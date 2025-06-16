@@ -5,133 +5,128 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using NetMQ;
 using Serilog;
 using Xunit.Abstractions;
 
-namespace Libplanet.Net.Tests.Transports
+namespace Libplanet.Net.Tests.Transports;
+
+[Collection("NetMQConfiguration")]
+public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest(output), IDisposable
 {
-    [Collection("NetMQConfiguration")]
-    public class NetMQTransportTest : TransportTest, IDisposable
+    private bool _disposed;
+
+    // public NetMQTransportTest(ITestOutputHelper testOutputHelper)
+    // {
+    //     TransportConstructor = CreateNetMQTransport;
+
+    //     const string outputTemplate =
+    //         "{Timestamp:HH:mm:ss:ffffff}[{ThreadId}] - {Message}";
+    //     Log.Logger = new LoggerConfiguration()
+    //         .MinimumLevel.Verbose()
+    //         .Enrich.WithThreadId()
+    //         .WriteTo.TestOutput(testOutputHelper, outputTemplate: outputTemplate)
+    //         .CreateLogger()
+    //         .ForContext<NetMQTransportTest>();
+    //     Logger = Log.ForContext<NetMQTransportTest>();
+    // }
+
+    [Fact]
+    public void Test()
     {
-        private bool _disposed;
+        var random = RandomUtility.GetRandom(output);
+        using var transport = CreateTransport(random);
+        Assert.True(true);
+    }
 
-        public NetMQTransportTest(ITestOutputHelper testOutputHelper)
+    [Fact]
+    public async Task SendMessageAsyncNetMQSocketLeak()
+    {
+        int previousMaxSocket = NetMQConfig.MaxSockets;
+
+        try
         {
-            TransportConstructor = CreateNetMQTransport;
-
-            const string outputTemplate =
-                "{Timestamp:HH:mm:ss:ffffff}[{ThreadId}] - {Message}";
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .Enrich.WithThreadId()
-                .WriteTo.TestOutput(testOutputHelper, outputTemplate: outputTemplate)
-                .CreateLogger()
-                .ForContext<NetMQTransportTest>();
-            Logger = Log.ForContext<NetMQTransportTest>();
-        }
-
-        ~NetMQTransportTest()
-        {
-            Dispose(false);
-        }
-
-        [Fact]
-        public async Task SendMessageAsyncNetMQSocketLeak()
-        {
-            int previousMaxSocket = NetMQConfig.MaxSockets;
-
-            try
-            {
-                // An arbitrary number to fit one transport testing.
-                NetMQConfig.MaxSockets = 12;
-                NetMQTransport transport = new NetMQTransport(
-                    new PrivateKey(),
-                    new ProtocolOptions(),
-                    new HostOptions
-                    {
-                        Host = IPAddress.Loopback.ToString(),
-                    });
-                transport.ProcessMessageHandler.Register(
-                    async m =>
-                    {
-                        await transport.ReplyMessageAsync(
-                            new PongMessage(),
-                            m.Id,
-                            CancellationToken.None);
-                    });
-                await InitializeAsync(transport);
-
-                string invalidHost = Guid.NewGuid().ToString();
-
-                // it isn't assertion for Libplanet codes, but to make sure that `invalidHost`
-                // really fails lookup before moving to the next step.
-                Assert.ThrowsAny<SocketException>(() =>
+            // An arbitrary number to fit one transport testing.
+            NetMQConfig.MaxSockets = 12;
+            NetMQTransport transport = new NetMQTransport(
+                new PrivateKey(),
+                new ProtocolOptions(),
+                new HostOptions
                 {
-                    Dns.GetHostEntry(invalidHost);
+                    Host = IPAddress.Loopback.ToString(),
                 });
-                var invalidPeer = new Peer
+            transport.ProcessMessageHandler.Register(
+                async m =>
                 {
-                    Address = new PrivateKey().Address,
-                    EndPoint = new DnsEndPoint(invalidHost, 0),
-                };
+                    await transport.ReplyMessageAsync(
+                        new PongMessage(),
+                        m.Id,
+                        CancellationToken.None);
+                });
+            await transport.StartAsync(default);
 
-                InvalidOperationException exc =
-                    await Assert.ThrowsAsync<InvalidOperationException>(
-                        () => transport.SendMessageAsync(
-                            invalidPeer,
-                            new PingMessage(),
-                            default));
+            string invalidHost = Guid.NewGuid().ToString();
 
-                // Expecting SocketException about host resolving since `invalidPeer` has an
-                // invalid hostname
-                Assert.IsAssignableFrom<SocketException>(exc.InnerException);
-
-                // Check sending/receiving after exceptions exceeding NetMQConifg.MaxSockets.
-                MessageEnvelope reply = await transport.SendMessageAsync(
-                    transport.Peer,
-                    new PingMessage(),
-                    default);
-                Assert.IsType<PongMessage>(reply.Message);
-
-                await transport.StopAsync(CancellationToken.None);
-            }
-            finally
+            // it isn't assertion for Libplanet codes, but to make sure that `invalidHost`
+            // really fails lookup before moving to the next step.
+            Assert.ThrowsAny<SocketException>(() =>
             {
-                NetMQConfig.MaxSockets = previousMaxSocket;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected void Dispose(bool disposing)
-        {
-            if (!_disposed)
+                Dns.GetHostEntry(invalidHost);
+            });
+            var invalidPeer = new Peer
             {
-                if (disposing)
-                {
-                    NetMQConfig.Cleanup(false);
-                }
+                Address = new PrivateKey().Address,
+                EndPoint = new DnsEndPoint(invalidHost, 0),
+            };
 
-                _disposed = true;
-            }
+            InvalidOperationException exc =
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => transport.SendMessageAsync(
+                        invalidPeer,
+                        new PingMessage(),
+                        default));
+
+            // Expecting SocketException about host resolving since `invalidPeer` has an
+            // invalid hostname
+            Assert.IsAssignableFrom<SocketException>(exc.InnerException);
+
+            // Check sending/receiving after exceptions exceeding NetMQConifg.MaxSockets.
+            MessageEnvelope reply = await transport.SendMessageAsync(
+                transport.Peer,
+                new PingMessage(),
+                default);
+            Assert.IsType<PongMessage>(reply.Message);
+
+            await transport.StopAsync(CancellationToken.None);
         }
-
-        private NetMQTransport CreateNetMQTransport(
-            PrivateKey privateKey,
-            ProtocolOptions appProtocolVersionOptions,
-            HostOptions hostOptions)
+        finally
         {
-            privateKey = privateKey ?? new PrivateKey();
-            return new NetMQTransport(
-                privateKey,
-                appProtocolVersionOptions,
-                hostOptions);
+            NetMQConfig.MaxSockets = previousMaxSocket;
         }
     }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                // NetMQConfig.Cleanup(false);
+            }
+
+            _disposed = true;
+        }
+    }
+
+    protected override ITransport CreateTransport(
+        PrivateKey privateKey, ProtocolOptions protocolOptions, HostOptions hostOptions)
+        => new NetMQTransport(privateKey, protocolOptions, hostOptions);
 }
