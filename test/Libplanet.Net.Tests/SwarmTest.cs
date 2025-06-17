@@ -77,7 +77,7 @@ namespace Libplanet.Net.Tests
                 t.Exception.InnerException is SwarmException,
                 $"Expected SwarmException, but actual exception was: {t.Exception.InnerException}");
 
-            CleaningSwarm(swarm);
+            await CleaningSwarm(swarm);
         }
 
         [Fact(Timeout = Timeout)]
@@ -321,8 +321,8 @@ namespace Libplanet.Net.Tests
             await AssertThatEventually(() => swarm.Peers.Contains(swarmB.AsPeer), 5_000);
 
             _logger.Debug("Address of swarmA: {Address}", swarmA.Address);
-            CleaningSwarm(swarmA);
-            swarmA.Dispose();
+            await CleaningSwarm(swarmA);
+            await swarmA.DisposeAsync();
             await Task.Delay(100);
             await swarm.PeerDiscovery.RefreshTableAsync(
                 TimeSpan.Zero,
@@ -425,7 +425,7 @@ namespace Libplanet.Net.Tests
                 await collectedTwoMessages[0].WaitAsync();
 
                 // Dispose swarm[3] to simulate shutdown during bootstrap.
-                swarms[3].Dispose();
+                await swarms[3].DisposeAsync();
 
                 // Bring swarm[2] online.
                 _ = swarms[2].StartAsync();
@@ -1595,10 +1595,10 @@ namespace Libplanet.Net.Tests
             return swarm.StopAsync(TimeSpan.FromMilliseconds(10));
         }
 
-        private void CleaningSwarm(Swarm swarm)
+        private async Task CleaningSwarm(Swarm swarm)
         {
-            swarm.StopAsync(TimeSpan.FromMilliseconds(10)).WaitAndUnwrapException();
-            swarm.Dispose();
+            await swarm.StopAsync(TimeSpan.FromMilliseconds(10));
+            await swarm.DisposeAsync();
         }
 
         private Task BootstrapAsync(

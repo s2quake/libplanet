@@ -45,7 +45,7 @@ namespace Libplanet.Net.Tests.Transports
                 swarmKey,
                 apvOptions,
                 hostOptions);
-            using (var swarm = new Swarm(
+            await using (var swarm = new Swarm(
                 blockchain,
                 swarmKey,
                 transport,

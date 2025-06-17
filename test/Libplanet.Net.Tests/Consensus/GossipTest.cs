@@ -83,8 +83,8 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 await gossip1.StopAsync(default);
                 await gossip2.StopAsync(default);
-                gossip1.Dispose();
-                gossip2.Dispose();
+                await gossip1.DisposeAsync();
+                await gossip2.DisposeAsync();
             }
         }
 
@@ -136,8 +136,8 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 await gossip1.StopAsync(default);
                 await gossip2.StopAsync(default);
-                gossip1.Dispose();
-                gossip2.Dispose();
+                await gossip1.DisposeAsync();
+                await gossip2.DisposeAsync();
             }
         }
 
@@ -199,8 +199,8 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 await gossip1.StopAsync(default);
                 await gossip2.StopAsync(default);
-                gossip1.Dispose();
-                gossip2.Dispose();
+                await gossip1.DisposeAsync();
+                await gossip2.DisposeAsync();
             }
         }
 
@@ -247,8 +247,8 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 await gossip.StopAsync(default);
                 await transport2.StopAsync(default);
-                gossip.Dispose();
-                transport2.Dispose();
+                await gossip.DisposeAsync();
+                await transport2.DisposeAsync();
             }
         }
 
@@ -284,8 +284,8 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 await seed.StopAsync(default);
                 await gossip.StopAsync(default);
-                seed.Dispose();
-                gossip.Dispose();
+                await seed.DisposeAsync();
+                await gossip.DisposeAsync();
             }
         }
 
@@ -334,9 +334,9 @@ namespace Libplanet.Net.Tests.Consensus
                 await receiver.StopAsync(default);
                 await sender1.StopAsync(default);
                 await sender2.StopAsync(default);
-                receiver.Dispose();
-                sender1.Dispose();
-                sender2.Dispose();
+                await receiver.DisposeAsync();
+                await sender1.DisposeAsync();
+                await sender2.DisposeAsync();
             }
         }
 

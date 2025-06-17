@@ -127,7 +127,7 @@ internal sealed class SwarmService(
         await _swarm.StopAsync(cancellationToken: cancellationToken);
         await _startTask;
         _logger.LogDebug("Node.Swarm is stopping: {Address}", _swarm.Address);
-        _swarm.Dispose();
+        await _swarm.DisposeAsync();
         _logger.LogDebug("Node.Swarm is stopped: {Address}", _swarm.Address);
 
         _swarm = null;
@@ -153,7 +153,7 @@ internal sealed class SwarmService(
         if (_swarm is not null)
         {
             await _swarm.StopAsync(cancellationToken: default);
-            _swarm.Dispose();
+            await _swarm.DisposeAsync();
         }
 
         await (_startTask ?? Task.CompletedTask);

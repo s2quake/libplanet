@@ -127,7 +127,7 @@ namespace Libplanet.Net.Tests.Consensus
                 for (int i = 0; i < 4; ++i)
                 {
                     await consensusReactors[i].StopAsync(cancellationTokenSource.Token);
-                    consensusReactors[i].Dispose();
+                    await consensusReactors[i].DisposeAsync();
                 }
             }
         }
