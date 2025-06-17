@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetMQ" Version="4.0.1.16" />
+    <PackageReference Include="NetMQ" Version="4.0.2.1" />
     <ProjectReference Include="..\Libplanet.Serialization.Analyzers\Libplanet.Serialization.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 

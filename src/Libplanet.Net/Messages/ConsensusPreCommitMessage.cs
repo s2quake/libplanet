@@ -10,8 +10,6 @@ public sealed record class ConsensusPreCommitMessage : ConsensusVoteMessage, IVa
     [Property(0)]
     public required Vote PreCommit { get; init; }
 
-    public override MessageType Type => MessageType.ConsensusCommit;
-
     public override BlockHash BlockHash => PreCommit.BlockHash;
 
     public override VoteFlag Flag => PreCommit.Flag;

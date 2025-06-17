@@ -8,6 +8,4 @@ internal sealed partial record class GetEvidenceMessage : MessageBase
 {
     [Property(0)]
     public ImmutableArray<EvidenceId> EvidenceIds { get; init; } = [];
-
-    public override MessageType Type => MessageType.GetEvidence;
 }

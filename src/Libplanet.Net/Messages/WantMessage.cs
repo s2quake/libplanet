@@ -7,6 +7,4 @@ public sealed partial record class WantMessage : MessageBase
 {
     [Property(0)]
     public ImmutableArray<MessageId> Ids { get; init; } = [];
-
-    public override MessageType Type => MessageType.WantMessage;
 }

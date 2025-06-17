@@ -11,8 +11,6 @@ public sealed record class ConsensusProposalMessage : ConsensusMessage
 
     public BlockHash BlockHash => Proposal.BlockHash;
 
-    public override MessageType Type => MessageType.ConsensusProposal;
-
     public override Address Validator => Proposal.Validator;
 
     public override int Height => Proposal.Height;

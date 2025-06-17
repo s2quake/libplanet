@@ -8,6 +8,4 @@ public sealed record class FindNeighborsMessage : MessageBase
 {
     [Property(0)]
     public Address Target { get; init; }
-
-    public override MessageType Type => MessageType.FindNeighbors;
 }

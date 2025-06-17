@@ -7,6 +7,4 @@ public sealed partial record class NeighborsMessage : MessageBase
 {
     [Property(0)]
     public ImmutableArray<Peer> Found { get; init; } = [];
-
-    public override MessageType Type => MessageType.Neighbors;
 }
