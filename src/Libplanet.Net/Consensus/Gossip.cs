@@ -8,7 +8,7 @@ using Serilog;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Gossip : IDisposable
+public sealed class Gossip : IAsyncDisposable
 {
     private const int DLazy = 6;
     private readonly TimeSpan _rebuildTableInterval = TimeSpan.FromMinutes(1);
@@ -102,12 +102,17 @@ public sealed class Gossip : IDisposable
         _cache.Clear();
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        _cancellationTokenSource?.Cancel();
+        if (_cancellationTokenSource is not null)
+        {
+            await _cancellationTokenSource.CancelAsync();
+        }
+
         _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
         _cache.Clear();
-        _transport.Dispose();
+        await _transport.DisposeAsync();
     }
 
     public void PublishMessage(IMessage content) => PublishMessage(

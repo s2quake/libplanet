@@ -117,7 +117,7 @@ public class SeedTest
         {
             Protocol = apv,
         };
-        using var transport = new NetMQTransport(
+        await using var transport = new NetMQTransport(
             remotePrivateKey, remoteAPVOptions, remoteHostOptions);
 
         var seedPrivateKey = new RandomPrivateKey();
@@ -178,7 +178,7 @@ public class SeedTest
         }
 
         using var d1 = new DisposerCollection(remoteEndPoints);
-        using var d2 = new DisposerCollection(transports);
+        await using var d2 = new AsyncDisposerCollection(transports);
 
         var seedPrivateKey = new RandomPrivateKey();
         var seedEndPoint = new RandomEndPoint();

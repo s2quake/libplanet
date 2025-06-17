@@ -43,7 +43,7 @@ public abstract class TransportTest(ITestOutputHelper output)
     public async Task StartAsync()
     {
         var random = RandomUtility.GetRandom(output);
-        using var transport = CreateTransport(random);
+        await using var transport = CreateTransport(random);
         await transport.StartAsync(default);
         Assert.True(transport.IsRunning);
     }
@@ -52,7 +52,7 @@ public abstract class TransportTest(ITestOutputHelper output)
     public async Task RestartAsync()
     {
         var random = RandomUtility.GetRandom(output);
-        using var transport = CreateTransport(random);
+        await using var transport = CreateTransport(random);
 
         await transport.StartAsync(default);
         Assert.True(transport.IsRunning);
@@ -66,11 +66,11 @@ public abstract class TransportTest(ITestOutputHelper output)
     public async Task DisposeTest()
     {
         var random = RandomUtility.GetRandom(output);
-        using var transport = CreateTransport(random);
+        await using var transport = CreateTransport(random);
 
         await transport.StartAsync(default);
         await transport.StopAsync(default);
-        transport.Dispose();
+        await transport.DisposeAsync();
 
         var boundPeer = new Peer
         {
@@ -92,7 +92,7 @@ public abstract class TransportTest(ITestOutputHelper output)
             async () => await transport.ReplyMessageAsync(message, Guid.NewGuid(), default));
 
         // To check multiple Dispose() throws error or not.
-        transport.Dispose();
+        await transport.DisposeAsync();
     }
 
     [Fact(Timeout = Timeout)]
@@ -101,7 +101,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var privateKey = new PrivateKey();
         var host = IPAddress.Loopback.ToString();
-        using var transport = CreateTransport(random, privateKey: privateKey);
+        await using var transport = CreateTransport(random, privateKey: privateKey);
 
         Assert.Throws<InvalidOperationException>(() => transport.Peer);
         await transport.StartAsync(default);
@@ -114,6 +114,12 @@ public abstract class TransportTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task SendMessageAsync()
     {
+        // using var router = new RouterSocket();
+        // using var poller = new NetMQPoller() { router };
+        // poller.RunAsync();
+        // poller.Stop();
+
+        // return;
         // var id = Guid.NewGuid();
         // var router = new RouterSocket();
         // // router.Options.RouterHandover = true;
@@ -145,8 +151,8 @@ public abstract class TransportTest(ITestOutputHelper output)
         // runtime.Run(task1, task2);
 
         var random = RandomUtility.GetRandom(output);
-        using var transportA = CreateTransport(random);
-        using var transportB = CreateTransport(random);
+        await using var transportA = CreateTransport(random);
+        await using var transportB = CreateTransport(random);
 
         transportB.ProcessMessageHandler.Register(async message =>
         {
@@ -170,8 +176,8 @@ public abstract class TransportTest(ITestOutputHelper output)
     public async Task SendMessageCancelAsync()
     {
         var random = RandomUtility.GetRandom(output);
-        using var transportA = CreateTransport(random);
-        using var transportB = CreateTransport(random);
+        await using var transportA = CreateTransport(random);
+        await using var transportB = CreateTransport(random);
         var cts = new CancellationTokenSource();
 
         try
@@ -190,8 +196,8 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             await transportA.StopAsync(default);
             await transportB.StopAsync(default);
-            transportA.Dispose();
-            transportB.Dispose();
+            await transportA.DisposeAsync();
+            await transportB.DisposeAsync();
             cts.Dispose();
         }
     }
@@ -200,8 +206,8 @@ public abstract class TransportTest(ITestOutputHelper output)
     public async Task SendMessageMultipleRepliesAsync()
     {
         var random = RandomUtility.GetRandom(output);
-        using var transportA = CreateTransport(random);
-        using var transportB = CreateTransport(random);
+        await using var transportA = CreateTransport(random);
+        await using var transportB = CreateTransport(random);
 
         transportB.ProcessMessageHandler.Register(async message =>
         {
@@ -236,8 +242,8 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             await transportA.StopAsync(default);
             await transportB.StopAsync(default);
-            transportA.Dispose();
-            transportB.Dispose();
+            await transportA.DisposeAsync();
+            await transportB.DisposeAsync();
         }
     }
 
@@ -246,8 +252,8 @@ public abstract class TransportTest(ITestOutputHelper output)
     public async Task SendMessageAsyncTimeout()
     {
         var random = RandomUtility.GetRandom(output);
-        using var transportA = CreateTransport(random);
-        using var transportB = CreateTransport(random);
+        await using var transportA = CreateTransport(random);
+        await using var transportB = CreateTransport(random);
 
         try
         {
@@ -265,8 +271,8 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             await transportA.StopAsync(default);
             await transportB.StopAsync(default);
-            transportA.Dispose();
-            transportB.Dispose();
+            await transportA.DisposeAsync();
+            await transportB.DisposeAsync();
         }
     }
 
@@ -275,7 +281,7 @@ public abstract class TransportTest(ITestOutputHelper output)
     public async Task SendMessageToInvalidPeerAsync(Peer invalidPeer)
     {
         var random = RandomUtility.GetRandom(output);
-        using var transport = CreateTransport(random);
+        await using var transport = CreateTransport(random);
 
         try
         {
@@ -292,7 +298,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         finally
         {
             await transport.StopAsync(default);
-            transport.Dispose();
+            await transport.DisposeAsync();
         }
     }
 
@@ -300,8 +306,8 @@ public abstract class TransportTest(ITestOutputHelper output)
     public async Task SendMessageAsyncCancelWhenTransportStop()
     {
         var random = RandomUtility.GetRandom(output);
-        using var transportA = CreateTransport(random);
-        using var transportB = CreateTransport(random);
+        await using var transportA = CreateTransport(random);
+        await using var transportB = CreateTransport(random);
 
         try
         {
@@ -325,8 +331,8 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             await transportA.StopAsync(default);
             await transportB.StopAsync(default);
-            transportA.Dispose();
-            transportB.Dispose();
+            await transportA.DisposeAsync();
+            await transportB.DisposeAsync();
         }
     }
 
@@ -393,13 +399,17 @@ public abstract class TransportTest(ITestOutputHelper output)
         finally
         {
             await transportA?.StopAsync(default);
-            transportA?.Dispose();
+            if (transportA is not null)
+            {
+                await transportA.DisposeAsync();
+            }
+
             await transportB.StopAsync(default);
-            transportB.Dispose();
+            await transportB.DisposeAsync();
             await transportC.StopAsync(default);
-            transportC.Dispose();
+            await transportC.DisposeAsync();
             await transportD.StopAsync(default);
-            transportD.Dispose();
+            await transportD.DisposeAsync();
         }
     }
 

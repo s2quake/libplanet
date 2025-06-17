@@ -111,8 +111,8 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 await communicator1.Gossip.StopAsync(default);
                 await communicator2.Gossip.StopAsync(default);
-                communicator1.Gossip.Dispose();
-                communicator2.Gossip.Dispose();
+                await communicator1.Gossip.DisposeAsync();
+                await communicator2.Gossip.DisposeAsync();
             }
         }
 
@@ -312,9 +312,9 @@ namespace Libplanet.Net.Tests.Consensus
                 await communicator1.Gossip.StopAsync(default);
                 await transport2.StopAsync(default);
                 await transport3.StopAsync(default);
-                communicator1.Gossip.Dispose();
-                transport2.Dispose();
-                transport3.Dispose();
+                await communicator1.Gossip.DisposeAsync();
+                await transport2.DisposeAsync();
+                await transport3.DisposeAsync();
             }
         }
 

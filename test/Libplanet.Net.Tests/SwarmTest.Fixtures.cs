@@ -177,7 +177,7 @@ namespace Libplanet.Net.Tests
                 try
                 {
                     await StopAsync(swarm);
-                    swarm.Dispose();
+                    await swarm.DisposeAsync();
                 }
                 catch (ObjectDisposedException)
                 {

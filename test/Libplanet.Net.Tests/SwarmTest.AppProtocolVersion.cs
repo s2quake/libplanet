@@ -42,10 +42,10 @@ namespace Libplanet.Net.Tests
                 await StopAsync(c);
                 await StopAsync(d);
 
-                a.Dispose();
-                b.Dispose();
-                c.Dispose();
-                d.Dispose();
+                await a.DisposeAsync();
+                await b.DisposeAsync();
+                await c.DisposeAsync();
+                await d.DisposeAsync();
             }
         }
 
@@ -77,8 +77,8 @@ namespace Libplanet.Net.Tests
                 await StopAsync(a);
                 await StopAsync(b);
 
-                a.Dispose();
-                b.Dispose();
+                await a.DisposeAsync();
+                await b.DisposeAsync();
             }
         }
 
@@ -177,12 +177,12 @@ namespace Libplanet.Net.Tests
                 await StopAsync(e);
                 await StopAsync(f);
 
-                a.Dispose();
-                b.Dispose();
-                c.Dispose();
-                d.Dispose();
-                e.Dispose();
-                f.Dispose();
+                await a.DisposeAsync();
+                await b.DisposeAsync();
+                await c.DisposeAsync();
+                await d.DisposeAsync();
+                await e.DisposeAsync();
+                await f.DisposeAsync();
             }
         }
     }

@@ -65,7 +65,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         if (_transport is not null)
         {
             await _transport.StopAsync(cancellationToken);
-            _transport.Dispose();
+            await _transport.DisposeAsync();
             _transport = null;
         }
 
@@ -87,7 +87,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
 
         if (_transport is not null)
         {
-            _transport.Dispose();
+            await _transport.DisposeAsync();
             _transport = null;
         }
 

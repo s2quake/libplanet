@@ -34,10 +34,10 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
     // }
 
     [Fact]
-    public void Test()
+    public async Task Test()
     {
         var random = RandomUtility.GetRandom(output);
-        using var transport = CreateTransport(random);
+        await using var transport = CreateTransport(random);
         Assert.True(true);
     }
 

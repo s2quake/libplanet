@@ -1047,9 +1047,9 @@ namespace Libplanet.Net.Tests
             }
             finally
             {
-                CleaningSwarm(receiver);
+                await CleaningSwarm(receiver);
                 await mockTransport.StopAsync(default);
-                mockTransport.Dispose();
+                await mockTransport.DisposeAsync();
             }
         }
 

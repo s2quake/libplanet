@@ -96,9 +96,9 @@ namespace Libplanet.Net.Consensus
         /// <summary>
         /// <inheritdoc cref="IDisposable.Dispose()"/>
         /// </summary>
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            _gossip.Dispose();
+            await _gossip.DisposeAsync();
             _consensusContext.Dispose();
         }
 

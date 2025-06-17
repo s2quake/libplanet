@@ -240,7 +240,7 @@ If omitted (default) explorer only the local blockchain store.")]
                 Startup.SwarmSingleton = swarm;
 
                 using (var cts = new CancellationTokenSource())
-                using (swarm)
+                await using (swarm)
                 {
                     Console.CancelKeyPress += (sender, eventArgs) =>
                     {
