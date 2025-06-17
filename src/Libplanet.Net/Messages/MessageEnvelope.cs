@@ -6,7 +6,7 @@ namespace Libplanet.Net.Messages;
 public sealed record class MessageEnvelope
 {
     [Property(0)]
-    public required Guid Id { get; init; }
+    public required Guid Identity { get; init; }
 
     [Property(1)]
     public required IMessage Message { get; init; }
@@ -15,7 +15,7 @@ public sealed record class MessageEnvelope
     public required Protocol Protocol { get; init; }
 
     [Property(3)]
-    public required Peer Remote { get; init; }
+    public required Peer Peer { get; init; }
 
     [Property(4)]
     public DateTimeOffset Timestamp { get; init; }

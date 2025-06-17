@@ -344,7 +344,7 @@ public sealed class Kademlia
         {
             throw new InvalidOperationException($"Expected pong, but received {reply.Message}.");
         }
-        else if (reply.Remote.Address.Equals(_address))
+        else if (reply.Peer.Address.Equals(_address))
         {
             throw new InvalidOperationException("Cannot receive pong from self");
         }
@@ -375,7 +375,7 @@ public sealed class Kademlia
         // to the other services before entering to synchronous AddPeer().
         await Task.Yield();
 
-        AddPeer(message.Remote);
+        AddPeer(message.Peer);
     }
 
     private async Task ValidateAsync(
@@ -492,14 +492,14 @@ public sealed class Kademlia
 
     private async Task ReceivePingAsync(MessageEnvelope messageEnvelope)
     {
-        if (messageEnvelope.Remote.Address.Equals(_address))
+        if (messageEnvelope.Peer.Address.Equals(_address))
         {
             throw new InvalidOperationException("Cannot receive ping from self.");
         }
 
         var pongMessage = new PongMessage();
 
-        await _transport.ReplyMessageAsync(pongMessage, messageEnvelope.Id, default)
+        await _transport.ReplyMessageAsync(pongMessage, messageEnvelope.Identity, default)
             .ConfigureAwait(false);
     }
 
@@ -587,7 +587,7 @@ public sealed class Kademlia
 
         var neighbors = new NeighborsMessage { Found = [.. found] };
 
-        await _transport.ReplyMessageAsync(neighbors, message.Id, default)
+        await _transport.ReplyMessageAsync(neighbors, message.Identity, default)
             .ConfigureAwait(false);
     }
 }

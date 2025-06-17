@@ -178,7 +178,7 @@ public sealed class Gossip : IDisposable
 
     private Func<MessageEnvelope, Task> HandleMessageAsync(CancellationToken ctx) => async msg =>
     {
-        if (_denySet.Contains(msg.Remote))
+        if (_denySet.Contains(msg.Peer))
         {
             await ReplyMessagePongAsync(msg, ctx);
             return;
@@ -241,15 +241,15 @@ public sealed class Gossip : IDisposable
             return;
         }
 
-        if (!_haveDict.ContainsKey(msg.Remote))
+        if (!_haveDict.ContainsKey(msg.Peer))
         {
-            _haveDict.TryAdd(msg.Remote, new HashSet<MessageId>(idsToGet));
+            _haveDict.TryAdd(msg.Peer, new HashSet<MessageId>(idsToGet));
         }
         else
         {
-            List<MessageId> list = _haveDict[msg.Remote].ToList();
+            List<MessageId> list = _haveDict[msg.Peer].ToList();
             list.AddRange(idsToGet.Where(id => !list.Contains(id)));
-            _haveDict[msg.Remote] = new HashSet<MessageId>(list);
+            _haveDict[msg.Peer] = new HashSet<MessageId>(list);
         }
     }
 
@@ -328,7 +328,7 @@ public sealed class Gossip : IDisposable
                 try
                 {
                     _validateMessageToSend(c);
-                    await _transport.ReplyMessageAsync(c, msg.Id, cancellationToken);
+                    await _transport.ReplyMessageAsync(c, msg.Identity, cancellationToken);
                 }
                 catch (Exception e)
                 {
@@ -379,6 +379,6 @@ public sealed class Gossip : IDisposable
 
     private async Task ReplyMessagePongAsync(MessageEnvelope message, CancellationToken ctx)
     {
-        await _transport.ReplyMessageAsync(new PongMessage(), message.Id, ctx);
+        await _transport.ReplyMessageAsync(new PongMessage(), message.Identity, ctx);
     }
 }

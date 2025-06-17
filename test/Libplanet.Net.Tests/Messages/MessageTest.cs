@@ -20,18 +20,17 @@ public class MessageTest
         var dateTimeOffset = DateTimeOffset.UtcNow;
         Block genesis = ProposeGenesisBlock(GenesisProposer);
         var messageContent = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, Excerpt = genesis };
-        var codec = new NetMQMessageCodec();
-        NetMQMessage raw = codec.Encode(
+        NetMQMessage raw = NetMQMessageCodec.Encode(
             new MessageEnvelope
             {
-                Id = Guid.NewGuid(),
+                Identity = Guid.NewGuid(),
                 Message = messageContent,
                 Protocol = apv,
-                Remote = peer,
+                Peer = peer,
                 Timestamp = dateTimeOffset,
             }, privateKey);
-        var parsed = codec.Decode(raw);
-        Assert.Equal(peer, parsed.Remote);
+        var parsed = NetMQMessageCodec.Decode(raw);
+        Assert.Equal(peer, parsed.Peer);
     }
 
     [Fact]
@@ -43,15 +42,14 @@ public class MessageTest
         var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) };
         var timestamp = DateTimeOffset.UtcNow;
         var badPrivateKey = new PrivateKey();
-        var codec = new NetMQMessageCodec();
         Assert.Throws<InvalidOperationException>(() =>
-            codec.Encode(
+            NetMQMessageCodec.Encode(
                 new MessageEnvelope
                 {
-                    Id = Guid.NewGuid(),
+                    Identity = Guid.NewGuid(),
                     Message = ping,
                     Protocol = apv,
-                    Remote = peer,
+                    Peer = peer,
                     Timestamp = timestamp
                 }, badPrivateKey));
     }
@@ -65,26 +63,25 @@ public class MessageTest
         var timestamp = DateTimeOffset.UtcNow;
         var apv = Protocol.Create(new PrivateKey(), 1);
         var ping = new PingMessage();
-        var codec = new NetMQMessageCodec();
-        var netMqMessage = codec.Encode(
+        var netMqMessage = NetMQMessageCodec.Encode(
             new MessageEnvelope
             {
-                Id = Guid.NewGuid(),
+                Identity = Guid.NewGuid(),
                 Message = ping,
                 Protocol = apv,
-                Remote = peer,
+                Peer = peer,
                 Timestamp = timestamp
             }, privateKey).ToArray();
 
         // Attacker
         var fakePeer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("1.2.3.4", 0) };
-        var fakeMessage = codec.Encode(
+        var fakeMessage = NetMQMessageCodec.Encode(
             new MessageEnvelope
             {
-                Id = Guid.NewGuid(),
+                Identity = Guid.NewGuid(),
                 Message = ping,
                 Protocol = apv,
-                Remote = fakePeer,
+                Peer = fakePeer,
                 Timestamp = timestamp,
             }, privateKey).ToArray();
 
@@ -96,18 +93,17 @@ public class MessageTest
         frames.Push(netMqMessage[0]);
 
         Assert.Throws<InvalidOperationException>(() =>
-            codec.Decode(frames));
+            NetMQMessageCodec.Decode(frames));
     }
 
     [Fact]
     public void InvalidArguments()
     {
-        var codec = new NetMQMessageCodec();
         var message = new PingMessage();
         var privateKey = new PrivateKey();
         var apv = Protocol.Create(new PrivateKey(), 1);
         Assert.Throws<ArgumentException>(
-            () => codec.Decode(new NetMQMessage()));
+            () => NetMQMessageCodec.Decode(new NetMQMessage()));
     }
 
     [Fact]

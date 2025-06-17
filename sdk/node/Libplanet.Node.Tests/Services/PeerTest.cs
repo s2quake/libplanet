@@ -46,10 +46,10 @@ public class PeerTest
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new MessageEnvelope
         {
-            Id = Guid.NewGuid(),
+            Identity = Guid.NewGuid(),
             Message = pongMsg,
             Protocol = protocol,
-            Remote = messageBoundPeer,
+            Peer = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
         };
         var transportMock = new Mock<ITransport>();
@@ -78,10 +78,10 @@ public class PeerTest
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new MessageEnvelope
         {
-            Id = Guid.NewGuid(),
+            Identity = Guid.NewGuid(),
             Message = pongMessage,
             Protocol = protocol,
-            Remote = messageBoundPeer,
+            Peer = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
         };
         var transportMock = new Mock<ITransport>();

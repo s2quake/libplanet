@@ -981,7 +981,7 @@ namespace Libplanet.Net.Tests
                     case PingMessage ping:
                         await mockTransport.ReplyMessageAsync(
                             new PongMessage(),
-                            message.Id,
+                            message.Identity,
                             default);
                         break;
 
