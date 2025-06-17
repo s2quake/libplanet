@@ -98,7 +98,7 @@ public partial class Swarm : IAsyncDisposable
         _txFetcher = new TxFetcher(Blockchain, Transport, Options.TimeoutOptions);
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, Options.TimeoutOptions);
         _processBlockDemandSessions = new ConcurrentDictionary<Peer, int>();
-        Transport.ProcessMessageHandler.Register(ProcessMessageHandlerAsync);
+        Transport.MessageReceived.Subscribe(ProcessMessageHandler);
         PeerDiscovery = new Kademlia(RoutingTable, Transport, Address);
         BlockDemandTable = new BlockDemandDictionary(Options.BlockDemandLifespan);
         BlockCandidateTable = new BlockCandidateTable();

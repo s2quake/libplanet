@@ -11,13 +11,13 @@ public partial class Swarm
     private readonly NullableSemaphore _transferTxsSemaphore;
     private readonly NullableSemaphore _transferEvidenceSemaphore;
 
-    private Task ProcessMessageHandlerAsync(MessageEnvelope message)
+    private void ProcessMessageHandler(MessageEnvelope message)
     {
         switch (message.Message)
         {
             case PingMessage _:
             case FindNeighborsMessage _:
-                return Task.CompletedTask;
+                return;
 
             case GetChainStatusMessage getChainStatus:
                 {
@@ -35,11 +35,9 @@ public partial class Swarm
                         TipHash = tip.BlockHash,
                     };
 
-                    return Transport.ReplyMessageAsync(
-                        chainStatus,
-                        message.Identity,
-                        default);
+                    Transport.ReplyMessage(chainStatus, message.Identity);
                 }
+                break;
 
             case GetBlockHashesMessage getBlockHashes:
                 {
@@ -60,44 +58,48 @@ public partial class Swarm
                         getBlockHashes.BlockHash);
                     var reply = new BlockHashesMessage { Hashes = [.. hashes] };
 
-                    return Transport.ReplyMessageAsync(reply, message.Identity, default);
+                    Transport.ReplyMessage(reply, message.Identity);
                 }
+                break;
 
             case GetBlocksMessage getBlocksMsg:
-                return TransferBlocksAsync(message);
+                TransferBlocksAsync(message);
+                break;
 
             case GetTransactionMessage getTxs:
-                return TransferTxsAsync(message);
+                TransferTxsAsync(message);
+                break;
 
             case GetEvidenceMessage getTxs:
-                return TransferEvidenceAsync(message);
+                TransferEvidenceAsync(message);
+                break;
 
             case TxIdsMessage txIds:
                 ProcessTxIds(message);
-                return Transport.ReplyMessageAsync(
+                Transport.ReplyMessage(
                     new PongMessage(),
-                    message.Identity,
-                    default);
+                    message.Identity);
+                break;
 
             case EvidenceIdsMessage evidenceIds:
                 ProcessEvidenceIds(message);
-                return Transport.ReplyMessageAsync(
+                Transport.ReplyMessage(
                     new PongMessage(),
-                    message.Identity,
-                    default);
+                    message.Identity);
+                break;
 
             case BlockHashesMessage _:
                 _logger.Error(
                     "{MessageType} messages are only for IBD",
                     nameof(BlockHashesMessage));
-                return Task.CompletedTask;
+                break;
 
             case BlockHeaderMessage blockHeader:
                 ProcessBlockHeader(message);
-                return Transport.ReplyMessageAsync(
+                Transport.ReplyMessage(
                     new PongMessage(),
-                    message.Identity,
-                    default);
+                    message.Identity);
+                break;
 
             default:
                 throw new InvalidOperationException($"Failed to handle message: {message.Message}");
@@ -208,7 +210,7 @@ public partial class Swarm
                     }
 
                     MessageBase response = new TransactionMessage { Payload = ModelSerializer.SerializeToBytes(tx) };
-                    await Transport.ReplyMessageAsync(response, message.Identity, default);
+                    Transport.ReplyMessage(response, message.Identity);
                 }
                 catch (KeyNotFoundException)
                 {
@@ -241,7 +243,7 @@ public partial class Swarm
         TxCompletion.DemandMany(message.Peer, txIdsMsg.Ids);
     }
 
-    private async Task TransferBlocksAsync(MessageEnvelope message)
+    private async void TransferBlocksAsync(MessageEnvelope message)
     {
         if (!await _transferBlocksSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
         {
@@ -292,7 +294,7 @@ public partial class Swarm
                         "Enqueuing a blocks reply (...{Count}/{Total})...",
                         count,
                         total);
-                    await Transport.ReplyMessageAsync(response, message.Identity, default);
+                    Transport.ReplyMessage(response, message.Identity);
                     payloads.Clear();
                 }
             }
@@ -305,7 +307,7 @@ public partial class Swarm
                 //     count,
                 //     total,
                 //     reqId);
-                await Transport.ReplyMessageAsync(response, message.Identity, default);
+                Transport.ReplyMessage(response, message.Identity);
             }
 
             if (count == 0)
@@ -316,7 +318,7 @@ public partial class Swarm
                 //     count,
                 //     total,
                 //     reqId);
-                await Transport.ReplyMessageAsync(response, message.Identity, default);
+                Transport.ReplyMessage(response, message.Identity);
             }
 
             // _logger.Debug("{Count} blocks were transferred to {Identity}", count, reqId);

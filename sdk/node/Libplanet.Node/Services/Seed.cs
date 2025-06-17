@@ -42,7 +42,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         _cancellationTokenSource
             = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _transport = CreateTransport();
-        _transport.ProcessMessageHandler.Register(ReceiveMessageAsync);
+        _transport.MessageReceived.Subscribe(ReceiveMessageAsync);
         await _transport.StartAsync(_cancellationTokenSource.Token);
         _refreshTask = RefreshContinuouslyAsync(_cancellationTokenSource.Token);
         IsRunning = true;
@@ -130,7 +130,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         }
     }
 
-    private async Task ReceiveMessageAsync(MessageEnvelope message)
+    private void ReceiveMessageAsync(MessageEnvelope message)
     {
         if (_transport is null || _cancellationTokenSource is null)
         {
@@ -138,7 +138,6 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         }
 
         var messageIdentity = message.Identity;
-        var cancellationToken = _cancellationTokenSource.Token;
         var transport = _transport;
         var peers = Peers;
 
@@ -149,18 +148,12 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
                                       .Select(item => item.BoundPeer)
                                       .ToArray();
                 var neighborsMsg = new NeighborsMessage { Found = [.. alivePeers] };
-                await transport.ReplyMessageAsync(
-                    neighborsMsg,
-                    messageIdentity,
-                    cancellationToken: cancellationToken);
+                transport.ReplyMessage(neighborsMsg, messageIdentity);
                 break;
 
             default:
                 var pongMsg = new PongMessage();
-                await transport.ReplyMessageAsync(
-                    message: pongMsg,
-                    identity: messageIdentity,
-                    cancellationToken: cancellationToken);
+                transport.ReplyMessage(pongMsg, messageIdentity);
                 break;
         }
 

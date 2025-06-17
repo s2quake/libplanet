@@ -213,14 +213,13 @@ namespace Libplanet.Net.Tests.Consensus
             var receivedEvent = new AsyncAutoResetEvent();
             var transport1 = CreateTransport(key1, 6001);
 
-            async Task HandleMessage(MessageEnvelope message)
+            void HandleMessage(MessageEnvelope message)
             {
                 received = true;
                 receivedEvent.Set();
-                await Task.Yield();
             }
 
-            transport1.ProcessMessageHandler.Register(HandleMessage);
+            transport1.MessageReceived.Subscribe(HandleMessage);
             var gossip = new Gossip(
                 transport1,
                 ImmutableArray<Peer>.Empty,
@@ -256,18 +255,16 @@ namespace Libplanet.Net.Tests.Consensus
         public async Task DoNotBroadcastToSeedPeers()
         {
             bool received = false;
-            async Task ProcessMessage(MessageEnvelope msg)
+            void ProcessMessage(MessageEnvelope msg)
             {
                 if (msg.Message is HaveMessage)
                 {
                     received = true;
                 }
-
-                await Task.CompletedTask;
             }
 
             ITransport seed = CreateTransport();
-            seed.ProcessMessageHandler.Register(ProcessMessage);
+            seed.MessageReceived.Subscribe(ProcessMessage);
             Gossip gossip = CreateGossip(_ => { }, seeds: new[] { seed.Peer });
 
             try
@@ -293,21 +290,19 @@ namespace Libplanet.Net.Tests.Consensus
         public async Task DoNotSendDuplicateMessageRequest()
         {
             int received = 0;
-            async Task ProcessMessage(MessageEnvelope msg)
+            void ProcessMessage(MessageEnvelope msg)
             {
                 if (msg.Message is WantMessage)
                 {
                     received++;
                 }
-
-                await Task.CompletedTask;
             }
 
             Gossip receiver = CreateGossip(_ => { });
             ITransport sender1 = CreateTransport();
-            sender1.ProcessMessageHandler.Register(ProcessMessage);
+            sender1.MessageReceived.Subscribe(ProcessMessage);
             ITransport sender2 = CreateTransport();
-            sender2.ProcessMessageHandler.Register(ProcessMessage);
+            sender2.MessageReceived.Subscribe(ProcessMessage);
 
             try
             {

@@ -89,7 +89,7 @@ namespace Libplanet.Net.Consensus
         }
 
         /// <summary>
-        /// Message content validator to be called on <see cref="Gossip.HandleWantAsync"/>.
+        /// Message content validator to be called on <see cref="Gossip.HandleWant"/>.
         /// This will be set as parameter of <see cref="Gossip"/>, and will validate
         /// <see cref="MessageEnvelope"/>s before respond to peer's <see cref="WantMessage"/>.
         /// </summary>

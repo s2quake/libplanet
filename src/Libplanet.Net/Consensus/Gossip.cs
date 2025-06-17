@@ -79,7 +79,7 @@ public sealed class Gossip : IAsyncDisposable
             // do noghing
         }
 
-        _transport.ProcessMessageHandler.Register(HandleMessageAsync(_cancellationTokenSource.Token));
+        _transport.MessageReceived.Subscribe(HandleMessage);
         IsRunning = true;
         await Task.WhenAny(
             RefreshTableAsync(_cancellationTokenSource.Token),
@@ -181,11 +181,11 @@ public sealed class Gossip : IAsyncDisposable
             .Take(count);
     }
 
-    private Func<MessageEnvelope, Task> HandleMessageAsync(CancellationToken ctx) => async msg =>
+    private void HandleMessage(MessageEnvelope msg)
     {
         if (_denySet.Contains(msg.Peer))
         {
-            await ReplyMessagePongAsync(msg, ctx);
+            ReplyMessagePong(msg);
             return;
         }
 
@@ -205,17 +205,17 @@ public sealed class Gossip : IAsyncDisposable
                 // Ignore protocol related messages, Kadmelia Protocol will handle it.
                 break;
             case HaveMessage _:
-                await HandleHaveAsync(msg, ctx);
+                HandleHave(msg);
                 break;
             case WantMessage _:
-                await HandleWantAsync(msg, ctx);
+                HandleWant(msg);
                 break;
             default:
-                await ReplyMessagePongAsync(msg, ctx);
+                ReplyMessagePong(msg);
                 AddMessage(msg.Message);
                 break;
         }
-    };
+    }
 
     private async Task HeartbeatTask(CancellationToken ctx)
     {
@@ -234,11 +234,11 @@ public sealed class Gossip : IAsyncDisposable
         }
     }
 
-    private async Task HandleHaveAsync(MessageEnvelope msg, CancellationToken ctx)
+    private void HandleHave(MessageEnvelope msg)
     {
         var haveMessage = (HaveMessage)msg.Message;
 
-        await ReplyMessagePongAsync(msg, ctx);
+        ReplyMessagePong(msg);
         MessageId[] idsToGet = _cache.DiffFrom(haveMessage.Ids);
 
         if (!idsToGet.Any())
@@ -320,22 +320,21 @@ public sealed class Gossip : IAsyncDisposable
             });
     }
 
-    private async Task HandleWantAsync(MessageEnvelope msg, CancellationToken ctx)
+    private void HandleWant(MessageEnvelope msg)
     {
         // FIXME: Message may have been discarded.
         var wantMessage = (WantMessage)msg.Message;
         IMessage[] contents = wantMessage.Ids.Select(id => _cache.Get(id)).ToArray();
         MessageId[] ids = contents.Select(c => c.Id).ToArray();
 
-        await Parallel.ForEachAsync(
+        Parallel.ForEach(
             contents,
-            ctx,
             async (c, cancellationToken) =>
             {
                 try
                 {
                     _validateMessageToSend(c);
-                    await _transport.ReplyMessageAsync(c, msg.Identity, cancellationToken);
+                    _transport.ReplyMessage(c, msg.Identity);
                 }
                 catch (Exception e)
                 {
@@ -384,8 +383,8 @@ public sealed class Gossip : IAsyncDisposable
         }
     }
 
-    private async Task ReplyMessagePongAsync(MessageEnvelope message, CancellationToken ctx)
+    private void ReplyMessagePong(MessageEnvelope message)
     {
-        await _transport.ReplyMessageAsync(new PongMessage(), message.Identity, ctx);
+        _transport.ReplyMessage(new PongMessage(), message.Identity);
     }
 }

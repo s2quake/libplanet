@@ -57,13 +57,10 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
                 {
                     Host = IPAddress.Loopback.ToString(),
                 });
-            transport.ProcessMessageHandler.Register(
-                async m =>
+            transport.MessageReceived.Subscribe(
+                m =>
                 {
-                    await transport.ReplyMessageAsync(
-                        new PongMessage(),
-                        m.Identity,
-                        CancellationToken.None);
+                    transport.ReplyMessage(new PongMessage(), m.Identity);
                 });
             await transport.StartAsync(default);
 

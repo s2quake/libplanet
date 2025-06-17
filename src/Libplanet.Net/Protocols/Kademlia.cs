@@ -36,7 +36,7 @@ public sealed class Kademlia
         _findConcurrency = findConcurrency;
         _table = table;
         _requestTimeout = requestTimeout ?? TimeSpan.FromMilliseconds(5000);
-        _transport.ProcessMessageHandler.Register(ProcessMessageHandler);
+        _transport.MessageReceived.Subscribe(ProcessMessageHandler);
     }
 
     public static Address CalculateDifference(Address left, Address right)
@@ -352,7 +352,7 @@ public sealed class Kademlia
         AddPeer(peer);
     }
 
-    private async Task ProcessMessageHandler(MessageEnvelope message)
+    private async void ProcessMessageHandler(MessageEnvelope message)
     {
         switch (message.Message)
         {
@@ -499,8 +499,7 @@ public sealed class Kademlia
 
         var pongMessage = new PongMessage();
 
-        await _transport.ReplyMessageAsync(pongMessage, messageEnvelope.Identity, default)
-            .ConfigureAwait(false);
+        _transport.ReplyMessage(pongMessage, messageEnvelope.Identity);
     }
 
     private async Task ProcessFoundAsync(
@@ -587,7 +586,6 @@ public sealed class Kademlia
 
         var neighbors = new NeighborsMessage { Found = [.. found] };
 
-        await _transport.ReplyMessageAsync(neighbors, message.Identity, default)
-            .ConfigureAwait(false);
+        _transport.ReplyMessage(neighbors, message.Identity);
     }
 }

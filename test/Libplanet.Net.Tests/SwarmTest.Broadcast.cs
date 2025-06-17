@@ -970,16 +970,15 @@ namespace Libplanet.Net.Tests
                 });
             int requestCount = 0;
 
-            async Task MessageHandler(MessageEnvelope message)
+            void MessageHandler(MessageEnvelope message)
             {
                 _logger.Debug("Received message: {Content}", message);
                 switch (message.Message)
                 {
                     case PingMessage ping:
-                        await mockTransport.ReplyMessageAsync(
+                        mockTransport.ReplyMessage(
                             new PongMessage(),
-                            message.Identity,
-                            default);
+                            message.Identity);
                         break;
 
                     case GetBlockHashesMessage gbhm:
@@ -988,7 +987,7 @@ namespace Libplanet.Net.Tests
                 }
             }
 
-            mockTransport.ProcessMessageHandler.Register(MessageHandler);
+            mockTransport.MessageReceived.Subscribe(MessageHandler);
 
             Block block1 = ProposeNextBlock(
                 receiver.Blockchain.Genesis,
