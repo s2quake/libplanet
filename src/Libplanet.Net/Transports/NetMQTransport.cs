@@ -22,7 +22,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
     private readonly Subject<MessageEnvelope> _messageReceivedSubject = new();
     private readonly RouterSocket _router = new();
-    private NetMQQueue<MessageReply> _replyQueue = new();
+    private readonly NetMQQueue<MessageReply> _replyQueue = new();
     private int _port;
     private NetMQPoller? _poller;
     private Peer? _peer;
@@ -235,7 +235,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
         var messageReply = new MessageReply
         {
-            ResetEvent = new AsyncManualResetEvent(),
             MessageEnvelope = new MessageEnvelope
             {
                 Identity = identity,
@@ -288,18 +287,18 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
     }
 
-    private async void ReplyQueue_ReceiveReady(object? sender, NetMQQueueEventArgs<MessageReply> e)
+    private void ReplyQueue_ReceiveReady(object? sender, NetMQQueueEventArgs<MessageReply> e)
     {
-        var messageReply = e.Queue.Dequeue();
-        var messageEnvelope = messageReply.MessageEnvelope;
-        var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, privateKey);
-        rawMessage.Push(messageEnvelope.Identity.ToByteArray());
-        if (_router?.TrySendMultipartMessage(TimeSpan.FromSeconds(1), rawMessage) is true)
+        if (e.Queue.TryDequeue(out var messageReply, TimeSpan.Zero))
         {
-
+            var messageEnvelope = messageReply.MessageEnvelope;
+            var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, privateKey);
+            rawMessage.Push(messageEnvelope.Identity.ToByteArray());
+            if (_router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), rawMessage))
+            {
+                // Successfully sent the message
+            }
         }
-
-        messageReply.Set();
     }
 
     private async Task ProcessRuntimeAsync(CancellationToken cancellationToken)
@@ -331,7 +330,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             incrementedSocketCount = Interlocked.Increment(ref _socketCount);
 
             var rawMessage = NetMQMessageCodec.Encode(request.MessageEnvelope, privateKey);
-            // rawMessage.Push(request.MessageEnvelope.Identity.ToByteArray());
             if (!dealerSocket.TrySendMultipartMessage(rawMessage))
             {
                 throw new InvalidOperationException();
@@ -358,16 +356,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
     }
 
-    // private async Task RunProcessAsync(CancellationToken cancellationToken)
-    // {
-    //     await Task.Run(() =>
-    //     {
-    //         using var runtime = new NetMQRuntime();
-    //         var task = ProcessRuntimeAsync(cancellationToken);
-    //         runtime.Run(task);
-    //     }, cancellationToken);
-    // }
-
     private sealed record class MessageRequest
     {
         public required MessageEnvelope MessageEnvelope { get; init; }
@@ -381,12 +369,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
     private sealed record class MessageReply
     {
-        public required AsyncManualResetEvent ResetEvent { get; init; }
-
         public required MessageEnvelope MessageEnvelope { get; init; }
-
-        public void Set() => ResetEvent.Set();
-
-        public Task WaitAsync(CancellationToken cancellationToken) => ResetEvent.WaitAsync(cancellationToken);
     }
 }
