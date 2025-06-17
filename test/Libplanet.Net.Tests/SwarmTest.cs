@@ -562,17 +562,17 @@ namespace Libplanet.Net.Tests
                 ITransport transport = swarmB.Transport;
 
                 var request = new GetBlocksMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
-                MessageEnvelope[] responses = (await transport.SendMessageAsync(
-                    swarmA.AsPeer,
-                    request,
-                    2,
-                    default)).ToArray();
-                var blockMessage = (BlocksMessage)responses[0].Message;
+                var reply = await transport.SendMessageAsync(
+                    swarmA.AsPeer, request, default);
+                var aggregateMessage = (AggregateMessage)reply.Message;
+                var responses = aggregateMessage.Messages;
+                    
+                var blockMessage = (BlocksMessage)responses[0];
 
                 Assert.Equal(2, responses.Length);
                 Assert.Equal(4, blockMessage.Payloads.Length);
 
-                blockMessage = (BlocksMessage)responses[1].Message;
+                blockMessage = (BlocksMessage)responses[1];
 
                 Assert.Equal(2, blockMessage.Payloads.Length);
             }
@@ -1471,7 +1471,6 @@ namespace Libplanet.Net.Tests
                         Task.Run(async () => await transport.SendMessageAsync(
                             swarm.AsPeer,
                             content,
-                            1,
                             default)));
                 }
 
@@ -1530,7 +1529,6 @@ namespace Libplanet.Net.Tests
                         transport.SendMessageAsync(
                             swarm.AsPeer,
                             content,
-                            1,
                             default));
                 }
 

@@ -817,35 +817,23 @@ public partial class Swarm : IAsyncDisposable
             blockRecvTimeout = Options.TimeoutOptions.MaxTimeout;
         }
 
-        IEnumerable<MessageEnvelope> replies;
-        try
-        {
-            replies = await Transport.SendMessageAsync(
-                peer,
-                request,
-                ((hashCount - 1) / request.ChunkSize) + 1,
-                cancellationToken)
-            .ConfigureAwait(false);
-        }
-        catch (CommunicationException e) when (e.InnerException is TimeoutException)
-        {
-            yield break;
-        }
+        var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
+        var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
 
         _logger.Debug("Received replies from {Peer}", peer);
         int count = 0;
 
-        foreach (MessageEnvelope message in replies)
+        foreach (var message in aggregateMessage.Messages)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (message.Message is BlocksMessage blockMessage)
+            if (message is BlocksMessage blockMessage)
             {
                 var payloads = blockMessage.Payloads;
                 _logger.Information(
                     "Received {Count} blocks from {Peer}",
                     payloads.Length,
-                    message.Peer);
+                    messageEnvelope.Peer);
                 for (int i = 0; i < payloads.Length; i += 2)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -914,24 +902,12 @@ public partial class Swarm : IAsyncDisposable
             txRecvTimeout = Options.TimeoutOptions.MaxTimeout;
         }
 
-        IEnumerable<MessageEnvelope> replies;
-        try
-        {
-            replies = await Transport.SendMessageAsync(
-                peer,
-                request,
-                txCount,
-                cancellationToken)
-            .ConfigureAwait(false);
-        }
-        catch (CommunicationException e) when (e.InnerException is TimeoutException)
-        {
-            yield break;
-        }
+        var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
+        var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
 
-        foreach (MessageEnvelope message in replies)
+        foreach (var message in aggregateMessage.Messages)
         {
-            if (message.Message is TransactionMessage parsed)
+            if (message is TransactionMessage parsed)
             {
                 Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload);
                 yield return tx;

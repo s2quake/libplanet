@@ -937,18 +937,15 @@ namespace Libplanet.Net.Tests
 
                 var transport = swarm1.Transport;
                 var msg = new GetTransactionMessage { TxIds = [tx1.Id, tx2.Id, tx3.Id, tx4.Id] };
-                var replies = (await transport.SendMessageAsync(
-                    swarm2.AsPeer,
-                    msg,
-                    4,
-                    default)).ToList();
+                var reply = await transport.SendMessageAsync(swarm2.AsPeer,msg,default);
+                var replayMessage = (AggregateMessage)reply.Message;
 
-                Assert.Equal(3, replies.Count);
+                Assert.Equal(3, replayMessage.Messages.Length);
                 Assert.Equal(
                     new[] { tx1, tx2, tx3 }.ToHashSet(),
-                    replies.Select(
+                    replayMessage.Messages.Select(
                         m => ModelSerializer.DeserializeFromBytes<Transaction>(
-                            ((TransactionMessage)m.Message).Payload)).ToHashSet());
+                            ((TransactionMessage)m).Payload)).ToHashSet());
             }
             finally
             {
