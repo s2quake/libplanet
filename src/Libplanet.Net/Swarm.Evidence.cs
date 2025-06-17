@@ -36,24 +36,12 @@ namespace Libplanet.Net
                 evidenceRecvTimeout = Options.TimeoutOptions.MaxTimeout;
             }
 
-            IEnumerable<MessageEnvelope> replies;
-            try
-            {
-                replies = await Transport.SendMessageAsync(
-                    peer,
-                    request,
-                    evidenceCount,
-                    cancellationToken)
-                .ConfigureAwait(false);
-            }
-            catch (InvalidOperationException e) when (e.InnerException is TimeoutException)
-            {
-                yield break;
-            }
+            var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
+            var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
 
-            foreach (MessageEnvelope message in replies)
+            foreach (var message in aggregateMessage.Messages)
             {
-                if (message.Message is EvidenceMessage parsed)
+                if (message is EvidenceMessage parsed)
                 {
                     EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. parsed.Payload]);
                     yield return evidence;

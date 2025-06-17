@@ -84,8 +84,6 @@ public abstract class TransportTest(ITestOutputHelper output)
             async () => await transport.StopAsync(default));
         await Assert.ThrowsAsync<ObjectDisposedException>(
             async () => await transport.SendMessageAsync(boundPeer, message, default));
-        await Assert.ThrowsAsync<ObjectDisposedException>(
-            async () => await transport.SendMessageAsync(boundPeer, message, 3, default));
         Assert.Throws<ObjectDisposedException>(
             () => transport.BroadcastMessage([], message));
         await Assert.ThrowsAsync<ObjectDisposedException>(
@@ -201,28 +199,26 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             if (message.Message is PingMessage)
             {
-                await transportB.ReplyMessageAsync(
-                    new PingMessage(),
-                    message.Identity,
-                    default);
-                await transportB.ReplyMessageAsync(
-                    new PongMessage(),
-                    message.Identity,
-                    default);
+                var replyMessage = new AggregateMessage
+                {
+                    Messages =
+                    [
+                        new PingMessage(),
+                        new PongMessage(),
+                    ]
+                };
+                await transportB.ReplyMessageAsync(replyMessage, message.Identity, default);
             }
         });
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        var replies = (await transportA.SendMessageAsync(
-            transportB.Peer,
-            new PingMessage(),
-            2,
-            CancellationToken.None)).ToArray();
+        var reply = await transportA.SendMessageAsync(transportB.Peer, new PingMessage(), default);
+        var replayMessage = Assert.IsType<AggregateMessage>(reply.Message);
 
-        Assert.Contains(replies, message => message.Message is PingMessage);
-        Assert.Contains(replies, message => message.Message is PongMessage);
+        Assert.Contains(replayMessage.Messages, message => message is PingMessage);
+        Assert.Contains(replayMessage.Messages, message => message is PongMessage);
     }
 
     // This also tests ITransport.ReplyMessage at the same time.

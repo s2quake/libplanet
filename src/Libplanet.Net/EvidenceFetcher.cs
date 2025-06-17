@@ -25,26 +25,14 @@ public sealed class EvidenceFetcher(
             txRecvTimeout = timeoutOptions.MaxTimeout;
         }
 
-        IEnumerable<MessageEnvelope> replies;
-        try
-        {
-            replies = await transport.SendMessageAsync(
-                peer,
-                request,
-                count,
-                cancellationToken)
-            .ConfigureAwait(false);
-        }
-        catch (CommunicationException e) when (e.InnerException is TimeoutException)
-        {
-            yield break;
-        }
+        var messageEnvelope = await transport.SendMessageAsync(peer, request, cancellationToken);
+        var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
 
-        foreach (MessageEnvelope message in replies)
+        foreach (var message in aggregateMessage.Messages)
         {
-            if (message.Message is EvidenceMessage parsed)
+            if (message is EvidenceMessage evidenceMessage)
             {
-                yield return ModelSerializer.DeserializeFromBytes<EvidenceBase>(parsed.Payload.AsSpan());
+                yield return ModelSerializer.DeserializeFromBytes<EvidenceBase>(evidenceMessage.Payload.AsSpan());
             }
             else
             {

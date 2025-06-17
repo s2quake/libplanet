@@ -8,6 +8,4 @@ internal sealed record class TestMessage : MessageBase
 {
     [Property(0)]
     public string Data { get; init; } = string.Empty;
-
-    public override MessageType Type => MessageType.Ping;
 }

@@ -25,24 +25,12 @@ public sealed class TxFetcher(
             txRecvTimeout = timeoutOptions.MaxTimeout;
         }
 
-        IEnumerable<MessageEnvelope> replies;
-        try
-        {
-            replies = await transport.SendMessageAsync(
-                peer,
-                request,
-                txCount,
-                cancellationToken)
-            .ConfigureAwait(false);
-        }
-        catch (CommunicationException e) when (e.InnerException is TimeoutException)
-        {
-            yield break;
-        }
+        var messageEnvelop = await transport.SendMessageAsync(peer, request, cancellationToken);
+        var aggregateMessage = (AggregateMessage)messageEnvelop.Message;
 
-        foreach (MessageEnvelope message in replies)
+        foreach (var message in aggregateMessage.Messages)
         {
-            if (message.Message is TransactionMessage parsed)
+            if (message is TransactionMessage parsed)
             {
                 Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload);
                 yield return tx;

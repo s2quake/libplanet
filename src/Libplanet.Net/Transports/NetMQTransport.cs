@@ -339,14 +339,11 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
                 throw new InvalidOperationException();
             }
 
-            for (var i = 0; i < request.ExpectedResponses; i++)
-            {
-                var receivedRawMessage = await dealerSocket.ReceiveMultipartMessageAsync(
-                    expectedFrameCount: 3,
-                    cancellationToken: cancellationToken);
+            var receivedRawMessage = await dealerSocket.ReceiveMultipartMessageAsync(
+                expectedFrameCount: 3,
+                cancellationToken: cancellationToken);
 
-                await requestWriter.WriteAsync(receivedRawMessage, cancellationToken);
-            }
+            await requestWriter.WriteAsync(receivedRawMessage, cancellationToken);
 
             requestWriter.Complete();
         }
@@ -356,11 +353,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
         finally
         {
-            if (request.ExpectedResponses == 0)
-            {
-                await TaskUtility.TryDelay(1000, default);
-            }
-
             if (incrementedSocketCount is { })
             {
                 Interlocked.Decrement(ref _socketCount);

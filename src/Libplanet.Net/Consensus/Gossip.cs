@@ -296,19 +296,21 @@ public sealed class Gossip : IAsyncDisposable
             {
                 MessageId[] idsToGet = pair.Value;
                 var want = new WantMessage { Ids = [.. idsToGet] };
-                MessageEnvelope[] replies = (await _transport.SendMessageAsync(
+                MessageEnvelope replies = await _transport.SendMessageAsync(
                     pair.Key,
                     want,
-                    idsToGet.Length,
-                    cancellationToken)).ToArray();
+                    cancellationToken);
 
-                replies.AsParallel().ForAll(
+                _validateMessageToReceive(replies);
+                var message = (AggregateMessage)replies.Message;
+
+                message.Messages.AsParallel().ForAll(
                     r =>
                     {
                         try
                         {
-                            _validateMessageToReceive(r);
-                            AddMessage(r.Message);
+
+                            AddMessage(r);
                         }
                         catch (Exception e)
                         {
