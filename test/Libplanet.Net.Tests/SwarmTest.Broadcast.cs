@@ -976,9 +976,7 @@ namespace Libplanet.Net.Tests
                 switch (message.Message)
                 {
                     case PingMessage ping:
-                        mockTransport.ReplyMessage(
-                            new PongMessage(),
-                            message.Identity);
+                        mockTransport.ReplyMessage(message.Identity, new PongMessage());
                         break;
 
                     case GetBlockHashesMessage gbhm:

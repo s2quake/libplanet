@@ -140,7 +140,7 @@ namespace Libplanet.Net
                         {
                             Payload = [.. ModelSerializer.SerializeToBytes(ev)],
                         };
-                        Transport.ReplyMessage(response, message.Identity);
+                        Transport.ReplyMessage(message.Identity, response);
                     }
                     catch (KeyNotFoundException)
                     {
