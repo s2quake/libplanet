@@ -60,7 +60,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
             transport.MessageReceived.Subscribe(
                 m =>
                 {
-                    transport.ReplyMessage(new PongMessage(), m.Identity);
+                    transport.ReplyMessage(m.Identity, new PongMessage());
                 });
             await transport.StartAsync(default);
 

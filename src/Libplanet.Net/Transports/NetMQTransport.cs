@@ -145,6 +145,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             _cancellationTokenSource = null;
             _replyQueue.Dispose();
             _router.Dispose();
+            _messageReceivedSubject.Dispose();
 
             _disposed = true;
         }
@@ -223,7 +224,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
     }
 
-    public void ReplyMessage(IMessage message, Guid identity)
+    public void ReplyMessage(Guid identity, IMessage message)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 

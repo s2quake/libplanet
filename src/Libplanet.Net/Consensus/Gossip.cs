@@ -334,7 +334,7 @@ public sealed class Gossip : IAsyncDisposable
                 try
                 {
                     _validateMessageToSend(c);
-                    _transport.ReplyMessage(c, msg.Identity);
+                    _transport.ReplyMessage(msg.Identity, c);
                 }
                 catch (Exception e)
                 {
@@ -385,6 +385,6 @@ public sealed class Gossip : IAsyncDisposable
 
     private void ReplyMessagePong(MessageEnvelope message)
     {
-        _transport.ReplyMessage(new PongMessage(), message.Identity);
+        _transport.ReplyMessage(message.Identity, new PongMessage());
     }
 }

@@ -499,7 +499,7 @@ public sealed class Kademlia
 
         var pongMessage = new PongMessage();
 
-        _transport.ReplyMessage(pongMessage, messageEnvelope.Identity);
+        _transport.ReplyMessage(messageEnvelope.Identity, pongMessage);
     }
 
     private async Task ProcessFoundAsync(
@@ -586,6 +586,6 @@ public sealed class Kademlia
 
         var neighbors = new NeighborsMessage { Found = [.. found] };
 
-        _transport.ReplyMessage(neighbors, message.Identity);
+        _transport.ReplyMessage(message.Identity, neighbors);
     }
 }

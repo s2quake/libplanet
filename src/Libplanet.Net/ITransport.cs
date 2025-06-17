@@ -22,5 +22,5 @@ public interface ITransport : IAsyncDisposable
 
     void BroadcastMessage(IEnumerable<Peer> peers, IMessage message);
 
-    void ReplyMessage(IMessage message, Guid identity);
+    void ReplyMessage(Guid identity, IMessage message);
 }

@@ -87,7 +87,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         Assert.Throws<ObjectDisposedException>(
             () => transport.BroadcastMessage([], message));
         Assert.Throws<ObjectDisposedException>(
-            () => transport.ReplyMessage(message, Guid.NewGuid()));
+            () => transport.ReplyMessage(Guid.NewGuid(), message));
 
         // To check multiple Dispose() throws error or not.
         await transport.DisposeAsync();
@@ -156,7 +156,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             if (messageEnvelope.Message is PingMessage)
             {
-                transportB.ReplyMessage(new PongMessage(), messageEnvelope.Identity);
+                transportB.ReplyMessage(messageEnvelope.Identity, new PongMessage());
             }
         });
 
@@ -207,7 +207,7 @@ public abstract class TransportTest(ITestOutputHelper output)
                         new PongMessage(),
                     ]
                 };
-                transportB.ReplyMessage(replyMessage, messageEnvelope.Identity);
+                transportB.ReplyMessage(messageEnvelope.Identity, replyMessage);
             }
         });
 
