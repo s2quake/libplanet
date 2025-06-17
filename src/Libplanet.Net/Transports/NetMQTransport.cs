@@ -80,7 +80,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         _processTask = Task.Run(() =>
         {
             using var runtime = new NetMQRuntime();
-            var task = ProcessRuntimeAsync(_cancellationToken);
+            var task = ProcessRequestAsync(_cancellationToken);
             runtime.Run(task);
         }, _cancellationToken);
         await _poller.StartAsync(cancellationToken);
@@ -262,24 +262,21 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
     {
         try
         {
-            var rawMessage = new NetMQMessage();
-            for (var i = 0; i < 1_000; i++)
+            var receivedMessage = new NetMQMessage();
+            if (!e.Socket.TryReceiveMultipartMessage(TimeSpan.Zero, ref receivedMessage))
             {
-                if (!e.Socket.TryReceiveMultipartMessage(TimeSpan.Zero, ref rawMessage))
-                {
-                    break;
-                }
-
-                if (_cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                var rawMessage2 = new NetMQMessage(rawMessage.Skip(1));
-                var messageEnvelope = NetMQMessageCodec.Decode(rawMessage2);
-                messageEnvelope.Validate(protocolOptions.Protocol, protocolOptions.MessageLifetime);
-                _messageReceivedSubject.OnNext(messageEnvelope);
+                return;
             }
+
+            if (_cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
+            var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
+            messageEnvelope.Validate(protocolOptions.Protocol, protocolOptions.MessageLifetime);
+            _messageReceivedSubject.OnNext(messageEnvelope);
         }
         catch
         {
@@ -301,7 +298,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
     }
 
-    private async Task ProcessRuntimeAsync(CancellationToken cancellationToken)
+    private async Task ProcessRequestAsync(CancellationToken cancellationToken)
     {
         var requestReader = _requestChannel.Reader;
         var synchronizationContext = SynchronizationContext.Current;
@@ -309,11 +306,11 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         {
             Interlocked.Decrement(ref _requestCount);
             await synchronizationContext.PostAsync(
-                () => ProcessRequestAsync(request, request.CancellationToken));
+                () => RequestMessageAsync(request, request.CancellationToken));
         }
     }
 
-    private async Task ProcessRequestAsync(MessageRequest request, CancellationToken cancellationToken)
+    private async Task RequestMessageAsync(MessageRequest request, CancellationToken cancellationToken)
     {
         var requestChannel = request.Channel;
         var requestWriter = requestChannel.Writer;
