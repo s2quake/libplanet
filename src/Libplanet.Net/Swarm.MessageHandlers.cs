@@ -37,7 +37,7 @@ public partial class Swarm
 
                     return Transport.ReplyMessageAsync(
                         chainStatus,
-                        message.Id,
+                        message.Identity,
                         default);
                 }
 
@@ -60,7 +60,7 @@ public partial class Swarm
                         getBlockHashes.BlockHash);
                     var reply = new BlockHashesMessage { Hashes = [.. hashes] };
 
-                    return Transport.ReplyMessageAsync(reply, message.Id, default);
+                    return Transport.ReplyMessageAsync(reply, message.Identity, default);
                 }
 
             case GetBlocksMessage getBlocksMsg:
@@ -76,14 +76,14 @@ public partial class Swarm
                 ProcessTxIds(message);
                 return Transport.ReplyMessageAsync(
                     new PongMessage(),
-                    message.Id,
+                    message.Identity,
                     default);
 
             case EvidenceIdsMessage evidenceIds:
                 ProcessEvidenceIds(message);
                 return Transport.ReplyMessageAsync(
                     new PongMessage(),
-                    message.Id,
+                    message.Identity,
                     default);
 
             case BlockHashesMessage _:
@@ -96,7 +96,7 @@ public partial class Swarm
                 ProcessBlockHeader(message);
                 return Transport.ReplyMessageAsync(
                     new PongMessage(),
-                    message.Id,
+                    message.Identity,
                     default);
 
             default:
@@ -113,7 +113,7 @@ public partial class Swarm
                 "{MessageType} message was sent from a peer {Peer} with " +
                 "a different genesis block {Hash}",
                 nameof(BlockHeaderMessage),
-                message.Remote,
+                message.Peer,
                 blockHeaderMsg.GenesisHash);
             return;
         }
@@ -162,10 +162,10 @@ public partial class Swarm
                 nameof(BlockDemandTable) + "...",
                 header.Height,
                 header.BlockHash,
-                message.Remote);
+                message.Peer);
             BlockDemandTable.Add(
                 IsBlockNeeded,
-                new BlockDemand(header, message.Remote, DateTimeOffset.UtcNow));
+                new BlockDemand(header, message.Peer, DateTimeOffset.UtcNow));
             return;
         }
         else
@@ -175,7 +175,7 @@ public partial class Swarm
                 "as it is not needed for the current chain with tip #{TipIndex} {TipHash}",
                 header.Height,
                 header.BlockHash,
-                message.Remote,
+                message.Peer,
                 Blockchain.Tip.Height,
                 Blockchain.Tip.BlockHash);
             return;
@@ -208,7 +208,7 @@ public partial class Swarm
                     }
 
                     MessageBase response = new TransactionMessage { Payload = ModelSerializer.SerializeToBytes(tx) };
-                    await Transport.ReplyMessageAsync(response, message.Id, default);
+                    await Transport.ReplyMessageAsync(response, message.Identity, default);
                 }
                 catch (KeyNotFoundException)
                 {
@@ -238,7 +238,7 @@ public partial class Swarm
             nameof(TxIdsMessage),
             txIdsMsg.Ids.Count());
 
-        TxCompletion.DemandMany(message.Remote, txIdsMsg.Ids);
+        TxCompletion.DemandMany(message.Peer, txIdsMsg.Ids);
     }
 
     private async Task TransferBlocksAsync(MessageEnvelope message)
@@ -292,7 +292,7 @@ public partial class Swarm
                         "Enqueuing a blocks reply (...{Count}/{Total})...",
                         count,
                         total);
-                    await Transport.ReplyMessageAsync(response, message.Id, default);
+                    await Transport.ReplyMessageAsync(response, message.Identity, default);
                     payloads.Clear();
                 }
             }
@@ -305,7 +305,7 @@ public partial class Swarm
                 //     count,
                 //     total,
                 //     reqId);
-                await Transport.ReplyMessageAsync(response, message.Id, default);
+                await Transport.ReplyMessageAsync(response, message.Identity, default);
             }
 
             if (count == 0)
@@ -316,7 +316,7 @@ public partial class Swarm
                 //     count,
                 //     total,
                 //     reqId);
-                await Transport.ReplyMessageAsync(response, message.Id, default);
+                await Transport.ReplyMessageAsync(response, message.Identity, default);
             }
 
             // _logger.Debug("{Count} blocks were transferred to {Identity}", count, reqId);

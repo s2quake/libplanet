@@ -114,48 +114,56 @@ public abstract class TransportTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task SendMessageAsync()
     {
-        var router = new RouterSocket();
-        router.Bind("tcp://*:4000");
-        var dealer = new DealerSocket();
-        dealer.Connect("tcp://127.0.0.1:4000");
+        // var id = Guid.NewGuid();
+        // var router = new RouterSocket();
+        // // router.Options.RouterHandover = true;
+        // router.Bind("tcp://*:4000");
+        // var dealer = new DealerSocket();
+        // // dealer.Options.DisableTimeWait = true;
+        // dealer.Options.Identity = id.ToByteArray();
+        // dealer.Connect("tcp://127.0.0.1:4000");
 
-
-        _ = Task.Run(async () =>
-        {
-            var m = dealer.ReceiveMultipartBytes();
-            int qwr = 0;
-        });
-
-        _ = Task.Run(async () =>
-        {
-            router.SendMultipartBytes(new byte[] { 0 });
-        });
-
-
-
-
-        await Task.Delay(20000);
-
-        // var random = RandomUtility.GetRandom(output);
-        // using var transportA = CreateTransport(random, hostOptions: new HostOptions { Host= IPAddress.Loopback.ToString(), Port = 4000 });
-        // using var transportB = CreateTransport(random, hostOptions: new HostOptions { Host= IPAddress.Loopback.ToString(), Port = 4004 });
-
-        // transportB.ProcessMessageHandler.Register(async message =>
+        // using var runtime = new NetMQRuntime();
+        // var task1 = Task.Run(() =>
         // {
-        //     if (message.Message is PingMessage)
-        //     {
-        //         await transportB.ReplyMessageAsync(new PongMessage(), message.Id, default);
-        //     }
+        //     var m = dealer.ReceiveMultipartMessage();
+        //     int qwr = 0;
         // });
 
+        // var task2 = Task.Run(() =>
+        // {
+        //     var m1 = router.ReceiveMultipartMessage();
+        //     var m = new NetMQMessage();
+        //     m.Push(id.ToByteArray());
+        //     m.Append([0, 1]);
+        //     router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), m);
+        //     int qwr = 0;
+        // });
 
-        // await transportA.StartAsync(default);
-        // await transportB.StartAsync(default);
+        // dealer.TrySendMultipartMessage(new NetMQMessage([new NetMQFrame([0, 1])]));
 
-        // var message = new PingMessage();
-        // var reply = await transportA.SendMessageAsync(transportB.Peer, message, default);
+        // runtime.Run(task1, task2);
 
-        // Assert.IsType<PongMessage>(reply.Message);
+        var random = RandomUtility.GetRandom(output);
+        using var transportA = CreateTransport(random);
+        using var transportB = CreateTransport(random);
+
+        transportB.ProcessMessageHandler.Register(async message =>
+        {
+            if (message.Message is PingMessage)
+            {
+                await transportB.ReplyMessageAsync(new PongMessage(), message.Identity, default);
+            }
+        });
+
+
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+
+        var message = new PingMessage();
+        var reply = await transportA.SendMessageAsync(transportB.Peer, message, default);
+
+        Assert.IsType<PongMessage>(reply.Message);
     }
 
     [Fact(Timeout = Timeout)]
@@ -201,11 +209,11 @@ public abstract class TransportTest(ITestOutputHelper output)
             {
                 await transportB.ReplyMessageAsync(
                     new PingMessage(),
-                    message.Id,
+                    message.Identity,
                     default);
                 await transportB.ReplyMessageAsync(
                     new PongMessage(),
-                    message.Id,
+                    message.Identity,
                     default);
             }
         });

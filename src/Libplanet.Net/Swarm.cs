@@ -838,7 +838,7 @@ namespace Libplanet.Net
                     _logger.Information(
                         "Received {Count} blocks from {Peer}",
                         payloads.Length,
-                        message.Remote);
+                        message.Peer);
                     for (int i = 0; i < payloads.Length; i += 2)
                     {
                         cancellationToken.ThrowIfCancellationRequested();

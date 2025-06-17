@@ -25,5 +25,5 @@ public interface ITransport : IDisposable
 
     void BroadcastMessage(IEnumerable<Peer> peers, IMessage message);
 
-    Task ReplyMessageAsync(IMessage message, Guid id, CancellationToken cancellationToken);
+    Task ReplyMessageAsync(IMessage message, Guid identity, CancellationToken cancellationToken);
 }

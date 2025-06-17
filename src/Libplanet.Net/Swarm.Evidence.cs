@@ -152,7 +152,7 @@ namespace Libplanet.Net
                         {
                             Payload = [.. ModelSerializer.SerializeToBytes(ev)],
                         };
-                        await Transport.ReplyMessageAsync(response, message.Id, default);
+                        await Transport.ReplyMessageAsync(response, message.Identity, default);
                     }
                     catch (KeyNotFoundException)
                     {
@@ -182,7 +182,7 @@ namespace Libplanet.Net
                 nameof(EvidenceIdsMessage),
                 evidenceIdsMsg.Ids.Count());
 
-            EvidenceCompletion.Demand(message.Remote, evidenceIdsMsg.Ids);
+            EvidenceCompletion.Demand(message.Peer, evidenceIdsMsg.Ids);
         }
     }
 }

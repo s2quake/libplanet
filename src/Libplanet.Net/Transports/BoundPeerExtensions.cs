@@ -18,14 +18,13 @@ public static class BoundPeerExtensions
         using var dealerSocket = new DealerSocket(ToNetMQAddress(peer));
         var privateKey = new PrivateKey();
         var ping = new PingMessage();
-        var netMQMessageCodec = new NetMQMessageCodec();
-        NetMQMessage request = netMQMessageCodec.Encode(
+        NetMQMessage request = NetMQMessageCodec.Encode(
             new MessageEnvelope
             {
-                Id = Guid.NewGuid(),
+                Identity = Guid.NewGuid(),
                 Message = ping,
                 Protocol = default,
-                Remote = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) },
+                Peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) },
                 Timestamp = DateTimeOffset.UtcNow,
             },
             privateKey);

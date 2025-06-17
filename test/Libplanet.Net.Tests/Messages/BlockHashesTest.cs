@@ -22,18 +22,17 @@ namespace Libplanet.Net.Tests.Messages
             var privateKey = new PrivateKey();
             Protocol apv = Protocol.Create(privateKey, 3);
             var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-            var messageCodec = new NetMQMessageCodec();
-            NetMQMessage encoded = messageCodec.Encode(
+            NetMQMessage encoded = NetMQMessageCodec.Encode(
                 new MessageEnvelope
                 {
-                    Id = Guid.NewGuid(),
+                    Identity = Guid.NewGuid(),
                     Message = messageContent,
                     Protocol = apv,
-                    Remote = peer,
+                    Peer = peer,
                     Timestamp = DateTimeOffset.UtcNow,
                 },
                 privateKey);
-            BlockHashesMessage restored = (BlockHashesMessage)messageCodec.Decode(encoded).Message;
+            BlockHashesMessage restored = (BlockHashesMessage)NetMQMessageCodec.Decode(encoded).Message;
             Assert.Equal(messageContent.Hashes, restored.Hashes);
         }
 

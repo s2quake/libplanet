@@ -84,7 +84,7 @@ namespace Libplanet.Net.Consensus
             if (message.Message is ConsensusVoteMessage voteMsg)
             {
                 FilterDifferentHeightVote(voteMsg);
-                FilterHigherRoundVoteSpam(voteMsg, message.Remote);
+                FilterHigherRoundVoteSpam(voteMsg, message.Peer);
             }
         }
 

@@ -137,7 +137,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
             throw new InvalidOperationException("Seed node is not running.");
         }
 
-        var messageIdentity = message.Id;
+        var messageIdentity = message.Identity;
         var cancellationToken = _cancellationTokenSource.Token;
         var transport = _transport;
         var peers = Peers;
@@ -159,12 +159,12 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
                 var pongMsg = new PongMessage();
                 await transport.ReplyMessageAsync(
                     message: pongMsg,
-                    id: messageIdentity,
+                    identity: messageIdentity,
                     cancellationToken: cancellationToken);
                 break;
         }
 
-        if (message.Remote is Net.Peer boundPeer)
+        if (message.Peer is Net.Peer boundPeer)
         {
             peers.AddOrUpdate(boundPeer, transport);
         }
