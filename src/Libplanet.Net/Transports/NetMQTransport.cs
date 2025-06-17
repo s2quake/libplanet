@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 {
     private readonly Channel<MessageRequest> _requestChannel = Channel.CreateUnbounded<MessageRequest>();
 
+    private readonly Subject<MessageEnvelope> _messageReceivedSubject = new();
     private readonly RouterSocket _router = new();
     private NetMQQueue<MessageReply> _replyQueue = new();
     private int _port;
@@ -39,7 +41,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         ForceDotNet.Force();
     }
 
-    public AsyncDelegate<MessageEnvelope> ProcessMessageHandler { get; } = new AsyncDelegate<MessageEnvelope>();
+    public IObservable<MessageEnvelope> MessageReceived => _messageReceivedSubject;
 
     public Peer Peer
     {
@@ -221,7 +223,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
     }
 
-    public async Task ReplyMessageAsync(IMessage message, Guid id, CancellationToken cancellationToken)
+    public void ReplyMessage(IMessage message, Guid identity)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -230,15 +232,12 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             throw new InvalidOperationException("Transport is not running.");
         }
 
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            _cancellationToken, cancellationToken);
-
         var messageReply = new MessageReply
         {
             ResetEvent = new AsyncManualResetEvent(),
             MessageEnvelope = new MessageEnvelope
             {
-                Identity = id,
+                Identity = identity,
                 Message = message,
                 Protocol = protocolOptions.Protocol,
                 Peer = Peer,
@@ -246,8 +245,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             },
         };
         _replyQueue.Enqueue(messageReply);
-
-        await messageReply.WaitAsync(cancellationTokenSource.Token);
     }
 
     private static int Initialize(RouterSocket routerSocket, int port)
@@ -261,7 +258,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         return port;
     }
 
-    private async void Router_ReceiveReady(object? sender, NetMQSocketEventArgs e)
+    private void Router_ReceiveReady(object? sender, NetMQSocketEventArgs e)
     {
         try
         {
@@ -281,7 +278,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
                 var rawMessage2 = new NetMQMessage(rawMessage.Skip(1));
                 var messageEnvelope = NetMQMessageCodec.Decode(rawMessage2);
                 messageEnvelope.Validate(protocolOptions.Protocol, protocolOptions.MessageLifetime);
-                await ProcessMessageHandler.InvokeAsync(messageEnvelope);
+                _messageReceivedSubject.OnNext(messageEnvelope);
             }
         }
         catch
