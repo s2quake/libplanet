@@ -17,8 +17,6 @@ internal sealed record class ChainStatusMessage : MessageBase
 
     public required BlockHash TipHash { get; init; }
 
-    public override MessageType Type => MessageType.ChainStatus;
-
     public static implicit operator BlockExcerpt(ChainStatusMessage msg) => new()
     {
         Height = msg.TipIndex,

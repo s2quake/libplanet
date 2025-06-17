@@ -7,6 +7,4 @@ internal sealed partial record class EvidenceMessage : MessageBase
 {
     [Property(0)]
     public ImmutableArray<byte> Payload { get; init; } = [];
-
-    public override MessageType Type => MessageType.Evidence;
 }

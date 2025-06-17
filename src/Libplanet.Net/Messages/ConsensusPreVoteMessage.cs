@@ -10,8 +10,6 @@ public sealed record class ConsensusPreVoteMessage : ConsensusVoteMessage, IVali
     [Property(0)]
     public required Vote PreVote { get; init; }
 
-    public override MessageType Type => MessageType.ConsensusVote;
-
     public override BlockHash BlockHash => PreVote.BlockHash;
 
     public override VoteFlag Flag => PreVote.Flag;

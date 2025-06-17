@@ -15,6 +15,4 @@ internal sealed record class BlockHeaderMessage : MessageBase
     public int HeaderIndex => Excerpt.Height;
 
     public BlockHash HeaderHash => Excerpt.BlockHash;
-
-    public override MessageType Type => MessageType.BlockHeaderMessage;
 }

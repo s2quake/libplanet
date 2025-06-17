@@ -8,6 +8,4 @@ internal sealed partial record class GetTransactionMessage : MessageBase
 {
     [Property(0)]
     public ImmutableArray<TxId> TxIds { get; init; } = [];
-
-    public override MessageType Type => MessageType.GetTxs;
 }

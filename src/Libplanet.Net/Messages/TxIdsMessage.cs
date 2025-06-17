@@ -8,6 +8,4 @@ internal sealed partial record class TxIdsMessage : MessageBase
 {
     [Property(0)]
     public ImmutableArray<TxId> Ids { get; init; } = [];
-
-    public override MessageType Type => MessageType.TxIds;
 }

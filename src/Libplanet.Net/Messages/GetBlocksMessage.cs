@@ -11,6 +11,4 @@ internal sealed partial record class GetBlocksMessage : MessageBase
 
     [Property(1)]
     public int ChunkSize { get; init; }
-
-    public override MessageType Type => MessageType.GetBlocks;
 }

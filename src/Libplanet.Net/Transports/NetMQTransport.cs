@@ -19,16 +19,15 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 {
     private readonly Channel<MessageRequest> _requestChannel = Channel.CreateUnbounded<MessageRequest>();
 
-    private RouterSocket _router = new RouterSocket();
+    private readonly RouterSocket _router = new();
+    private NetMQQueue<MessageReply> _replyQueue = new();
     private int _port;
     private NetMQPoller? _poller;
-    private NetMQQueue<MessageReply>? _replyQueue;
     private Peer? _peer;
 
     private CancellationTokenSource? _cancellationTokenSource = new();
     private CancellationToken _cancellationToken;
     private Task _processTask = Task.CompletedTask;
-    private Task _pollerTask = Task.CompletedTask;
 
     private long _requestCount;
     private long _socketCount;
@@ -73,26 +72,19 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
 
         _cancellationTokenSource = new CancellationTokenSource();
-
-        // _router = new RouterSocket();
-        // _router.Options.RouterHandover = true;
-        _port = Initialize(_router, hostOptions.Port);
-        _ = RunProcessAsync(_cancellationTokenSource.Token);
-        _replyQueue = new();
-        _poller = [_router, _replyQueue];
-
-        _router.ReceiveReady += Router_ReceiveReady;
-        _replyQueue.ReceiveReady += ReplyQueue_ReceiveReady;
-
-        _pollerTask = Task.Run(_poller.Run, _cancellationTokenSource.Token);
-        while (!_poller.IsRunning)
-        {
-            await Task.Yield();
-        }
-
-        _router.ReceiveReady += Router_ReceiveReady;
-        _replyQueue.ReceiveReady += ReplyQueue_ReceiveReady;
         _cancellationToken = _cancellationTokenSource.Token;
+        _port = Initialize(_router, hostOptions.Port);
+        _poller = [_router, _replyQueue];
+        _processTask = Task.Run(() =>
+        {
+            using var runtime = new NetMQRuntime();
+            var task = ProcessRuntimeAsync(_cancellationToken);
+            runtime.Run(task);
+        }, _cancellationToken);
+        await _poller.StartAsync(cancellationToken);
+
+        _router.ReceiveReady += Router_ReceiveReady;
+        _replyQueue.ReceiveReady += ReplyQueue_ReceiveReady;
         IsRunning = true;
     }
 
@@ -105,39 +97,24 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             throw new InvalidOperationException("Transport is not running.");
         }
 
-        _peer = null;
+        _replyQueue.ReceiveReady -= ReplyQueue_ReceiveReady;
+        _router.ReceiveReady -= Router_ReceiveReady;
         if (_cancellationTokenSource is not null)
         {
             await _cancellationTokenSource.CancelAsync();
-            _cancellationTokenSource.Dispose();
-            _cancellationTokenSource = null;
         }
 
         if (_poller is not null)
         {
-            _poller.Stop();
-            while (_poller.IsRunning)
-            {
-                await Task.Yield();
-            }
-            _poller.Dispose();
+            await _poller.StopAsync(cancellationToken);
             _poller = null;
         }
 
-        if (_replyQueue is not null)
-        {
-            _replyQueue.ReceiveReady -= ReplyQueue_ReceiveReady!;
-            _replyQueue.Dispose();
-            _replyQueue = null;
-        }
-
-        if (_router is not null)
-        {
-            _router.ReceiveReady -= Router_ReceiveReady!;
-            _router.Dispose();
-            _router = null;
-        }
-
+        await TaskUtility.TryWait(_processTask);
+        _processTask = Task.CompletedTask;
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
+        _peer = null;
         _requestCount = 0;
         IsRunning = false;
     }
@@ -148,34 +125,24 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         {
             _requestChannel.Writer.TryComplete();
 
+            _replyQueue.ReceiveReady -= ReplyQueue_ReceiveReady;
+            _router.ReceiveReady -= Router_ReceiveReady;
             if (_cancellationTokenSource is not null)
             {
                 await _cancellationTokenSource.CancelAsync();
             }
 
-            _cancellationTokenSource = null;
+            if (_poller is not null)
+            {
+                await _poller.DisposeAsync();
+                _poller = null;
+            }
 
-            _poller?.StopAsync();
-            
-            _poller?.Dispose();
-            _poller = null;
-
+            _router.Unbind($"tcp://*:{_port}");
             _cancellationTokenSource?.Dispose();
-
-            if (_replyQueue is not null)
-            {
-                _replyQueue.ReceiveReady -= ReplyQueue_ReceiveReady!;
-                _replyQueue.Dispose();
-                _replyQueue = null;
-            }
-
-            if (_router is not null)
-            {
-                _router.ReceiveReady -= Router_ReceiveReady!;
-                _router.Unbind($"tcp://*:{_port}");
-                _router.Dispose();
-                _router = null;
-            }
+            _cancellationTokenSource = null;
+            _replyQueue.Dispose();
+            _router.Dispose();
 
             _disposed = true;
         }
@@ -183,20 +150,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
     public async Task<MessageEnvelope> SendMessageAsync(
         Peer peer, IMessage message, CancellationToken cancellationToken)
-    {
-        IEnumerable<MessageEnvelope> replies =
-            await SendMessageAsync(
-                peer,
-                message,
-                1,
-                cancellationToken).ConfigureAwait(false);
-        MessageEnvelope reply = replies.First();
-
-        return reply;
-    }
-
-    public async Task<IEnumerable<MessageEnvelope>> SendMessageAsync(
-        Peer peer, IMessage message, int expectedResponses, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -207,7 +160,6 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken);
-        var replyList = new List<MessageEnvelope>();
         var channel = Channel.CreateUnbounded<NetMQMessage>();
 
         try
@@ -223,31 +175,16 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
                     Timestamp = DateTimeOffset.UtcNow,
                 },
                 Peer = peer,
-                ExpectedResponses = expectedResponses,
                 Channel = channel,
                 CancellationToken = cancellationTokenSource.Token,
             };
             Interlocked.Increment(ref _requestCount);
             await _requestChannel.Writer.WriteAsync(request, cancellationTokenSource.Token);
 
-            for (var i = 0; i < expectedResponses; i++)
-            {
-                var rawMessage = await channel.Reader.ReadAsync(cancellationTokenSource.Token);
-                var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
-
-                try
-                {
-                    messageEnvelope.Validate(protocolOptions.Protocol, protocolOptions.MessageLifetime);
-                }
-                catch (InvalidOperationException dapve)
-                {
-                    channel.Writer.Complete(dapve);
-                }
-
-                replyList.Add(messageEnvelope);
-            }
-
-            return replyList;
+            var rawMessage = await channel.Reader.ReadAsync(cancellationTokenSource.Token);
+            var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
+            messageEnvelope.Validate(protocolOptions.Protocol, protocolOptions.MessageLifetime);
+            return messageEnvelope;
         }
         finally
         {
@@ -431,23 +368,21 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         }
     }
 
-    private async Task RunProcessAsync(CancellationToken cancellationToken)
-    {
-        await Task.Run(() =>
-        {
-            using var runtime = new NetMQRuntime();
-            var task = ProcessRuntimeAsync(cancellationToken);
-            runtime.Run(task);
-        }, cancellationToken);
-    }
+    // private async Task RunProcessAsync(CancellationToken cancellationToken)
+    // {
+    //     await Task.Run(() =>
+    //     {
+    //         using var runtime = new NetMQRuntime();
+    //         var task = ProcessRuntimeAsync(cancellationToken);
+    //         runtime.Run(task);
+    //     }, cancellationToken);
+    // }
 
     private sealed record class MessageRequest
     {
         public required MessageEnvelope MessageEnvelope { get; init; }
 
         public required Peer Peer { get; init; }
-
-        public required int ExpectedResponses { get; init; }
 
         public required Channel<NetMQMessage> Channel { get; init; }
 
