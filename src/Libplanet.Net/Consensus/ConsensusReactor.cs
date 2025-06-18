@@ -13,12 +13,11 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     public ConsensusReactor(ITransport transport, Blockchain blockchain, ConsensusReactorOptions options)
     {
-        var messageCommunicator =
-            new MessageCommunicator(
-                transport,
-                options.ConsensusPeers,
-                options.SeedPeers,
-                ProcessMessage);
+        var messageCommunicator = new MessageCommunicator(
+            transport,
+            options.ConsensusPeers,
+            options.SeedPeers,
+            ProcessMessage);
         _gossip = messageCommunicator.Gossip;
 
         _consensusContext = new ConsensusContext(

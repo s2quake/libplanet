@@ -151,10 +151,10 @@ public partial class Context
             return;
         }
 
-        if (_contextOption.EnterPreCommitDelay > 0)
+        if (_contextOptions.EnterPreCommitDelay > 0)
         {
             await Task.Delay(
-                _contextOption.EnterPreCommitDelay,
+                _contextOptions.EnterPreCommitDelay,
                 _cancellationTokenSource.Token);
         }
 
@@ -168,10 +168,10 @@ public partial class Context
             return;
         }
 
-        if (_contextOption.EnterEndCommitDelay > 0)
+        if (_contextOptions.EnterEndCommitDelay > 0)
         {
             await Task.Delay(
-                _contextOption.EnterEndCommitDelay,
+                _contextOptions.EnterEndCommitDelay,
                 _cancellationTokenSource.Token);
         }
 

@@ -10,13 +10,13 @@ namespace Libplanet.Net.Consensus;
 
 public partial class ConsensusContext : IAsyncDisposable
 {
-    private readonly object _contextLock;
+    private readonly object _contextLock = new();
     private readonly ContextOptions _contextOption;
-    private readonly MessageCommunicator _consensusMessageCommunicator;
+    private readonly MessageCommunicator _messageCommunicator;
     private readonly Blockchain _blockchain;
     private readonly PrivateKey _privateKey;
     private readonly TimeSpan _newHeightDelay;
-    private readonly HashSet<ConsensusMessage> _pendingMessages;
+    private readonly HashSet<ConsensusMessage> _pendingMessages = [];
     private readonly EvidenceExceptionCollector _evidenceCollector = new();
     private readonly IDisposable _tipChangedSubscription;
 
@@ -31,10 +31,9 @@ public partial class ConsensusContext : IAsyncDisposable
         TimeSpan newHeightDelay,
         ContextOptions contextOption)
     {
-        _consensusMessageCommunicator = messageCommunicator;
+        _messageCommunicator = messageCommunicator;
         _blockchain = blockchain;
         _privateKey = privateKey;
-        IsRunning = false;
         _newHeightDelay = newHeightDelay;
 
         _contextOption = contextOption;
@@ -42,10 +41,8 @@ public partial class ConsensusContext : IAsyncDisposable
             _blockchain.Tip.Height + 1,
             _blockchain.BlockCommits[_blockchain.Tip.Height]);
         AttachEventHandlers(_currentContext);
-        _pendingMessages = new HashSet<ConsensusMessage>();
 
         _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
-        _contextLock = new object();
     }
 
     public bool IsRunning { get; private set; }
