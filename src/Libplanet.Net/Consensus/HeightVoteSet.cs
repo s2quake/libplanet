@@ -214,24 +214,24 @@ public class HeightVoteSet
     {
         lock (_lock)
         {
-            if (!maj23.Flag.Equals(VoteFlag.PreVote) &&
-                !maj23.Flag.Equals(VoteFlag.PreCommit))
+            if (!maj23.VoteFlag.Equals(VoteFlag.PreVote) &&
+                !maj23.VoteFlag.Equals(VoteFlag.PreCommit))
             {
                 throw new InvalidMaj23Exception(
                     $"Maj23 must have either {VoteFlag.PreVote} or {VoteFlag.PreCommit} " +
-                    $"(Actual: {maj23.Flag})",
+                    $"(Actual: {maj23.VoteFlag})",
                     maj23);
             }
 
             VoteSet voteSet;
             try
             {
-                voteSet = GetVoteSet(maj23.Round, maj23.Flag);
+                voteSet = GetVoteSet(maj23.Round, maj23.VoteFlag);
             }
             catch (KeyNotFoundException)
             {
                 AddRound(maj23.Round);
-                voteSet = GetVoteSet(maj23.Round, maj23.Flag);
+                voteSet = GetVoteSet(maj23.Round, maj23.VoteFlag);
             }
 
             return voteSet.SetPeerMaj23(maj23);

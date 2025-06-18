@@ -13,7 +13,7 @@ public partial class Context
 
         Proposal = null;
         Step = ConsensusStep.Propose;
-        if (_validatorSet.GetProposer(Height, Round).Address == _privateKey.Address)
+        if (_validators.GetProposer(Height, Round).Address == _privateKey.Address)
         {
             if ((_validValue ?? GetValue()) is Block proposalValue)
             {
@@ -66,7 +66,7 @@ public partial class Context
                     $"Given message's height {message.Height} is invalid");
             }
 
-            if (!_validatorSet.Contains(message.Validator))
+            if (!_validators.Contains(message.Validator))
             {
                 throw new InvalidOperationException(
                     $"Given message's validator {message.Validator} is invalid");
@@ -139,7 +139,7 @@ public partial class Context
 
     private void AddProposal(Proposal proposal)
     {
-        if (!_validatorSet.GetProposer(Height, Round)
+        if (!_validators.GetProposer(Height, Round)
                 .Address.Equals(proposal.Validator))
         {
             throw new InvalidProposalException(

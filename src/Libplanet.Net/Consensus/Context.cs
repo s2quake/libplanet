@@ -7,7 +7,6 @@ using BitFaster.Caching.Lru;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
-using Serilog;
 
 namespace Libplanet.Net.Consensus;
 
@@ -15,32 +14,29 @@ public partial class Context : IAsyncDisposable
 {
     private readonly ContextOptions _contextOption;
 
-    private readonly Blockchain _blockChain;
-    private readonly ImmutableSortedSet<Validator> _validatorSet;
+    private readonly Blockchain _blockchain;
+    private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Channel<ConsensusMessage> _messageRequests;
     private readonly Channel<System.Action> _mutationRequests;
     private readonly HeightVoteSet _heightVoteSet;
     private readonly PrivateKey _privateKey;
-    private readonly HashSet<int> _hasTwoThirdsPreVoteFlags;
-    private readonly HashSet<int> _preVoteTimeoutFlags;
-    private readonly HashSet<int> _preCommitTimeoutFlags;
-    private readonly HashSet<int> _preCommitWaitFlags;
-    private readonly HashSet<int> _endCommitWaitFlags;
-    private readonly EvidenceExceptionCollector _evidenceCollector
-        = new EvidenceExceptionCollector();
-
+    private readonly HashSet<int> _hasTwoThirdsPreVoteFlags = [];
+    private readonly HashSet<int> _preVoteTimeoutFlags = [];
+    private readonly HashSet<int> _preCommitTimeoutFlags = [];
+    private readonly HashSet<int> _preCommitWaitFlags = [];
+    private readonly HashSet<int> _endCommitWaitFlags = [];
+    private readonly EvidenceExceptionCollector _evidenceCollector = new();
     private readonly CancellationTokenSource _cancellationTokenSource;
-
     private readonly ICache<BlockHash, bool> _blockValidationCache;
 
     private Proposal? _proposal;
     private Block? _proposalBlock;
     private Block? _lockedValue;
-    private int _lockedRound;
+    private int _lockedRound = -1;
     private Block? _validValue;
-    private int _validRound;
+    private int _validRound = -1;
     private Block? _decision;
-    private int _committedRound;
+    private int _committedRound = -1;
     private readonly BlockCommit _lastCommit;
     private bool _disposed;
 
@@ -50,27 +46,7 @@ public partial class Context : IAsyncDisposable
         BlockCommit lastCommit,
         PrivateKey privateKey,
         ImmutableSortedSet<Validator> validators,
-        ContextOptions contextOption)
-        : this(
-            blockChain,
-            height,
-            lastCommit,
-            privateKey,
-            validators,
-            ConsensusStep.Default,
-            -1,
-            128,
-            contextOption)
-    {
-    }
-
-    private Context(
-        Blockchain blockChain,
-        int height,
-        BlockCommit lastCommit,
-        PrivateKey privateKey,
-        ImmutableSortedSet<Validator> validators,
-        ConsensusStep consensusStep,
+        ConsensusStep consensusStep = ConsensusStep.Default,
         int round = -1,
         int cacheSize = 128,
         ContextOptions? contextOption = null)
@@ -86,22 +62,11 @@ public partial class Context : IAsyncDisposable
         Round = round;
         Step = consensusStep;
         _lastCommit = lastCommit;
-        _lockedValue = null;
-        _lockedRound = -1;
-        _validValue = null;
-        _validRound = -1;
-        _decision = null;
-        _committedRound = -1;
-        _blockChain = blockChain;
+        _blockchain = blockChain;
         _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
         _mutationRequests = Channel.CreateUnbounded<System.Action>();
         _heightVoteSet = new HeightVoteSet(height, validators);
-        _hasTwoThirdsPreVoteFlags = new HashSet<int>();
-        _preVoteTimeoutFlags = new HashSet<int>();
-        _preCommitTimeoutFlags = new HashSet<int>();
-        _preCommitWaitFlags = new HashSet<int>();
-        _endCommitWaitFlags = new HashSet<int>();
-        _validatorSet = validators;
+        _validators = validators;
         _cancellationTokenSource = new CancellationTokenSource();
         _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
             .WithCapacity(cacheSize)
@@ -110,19 +75,10 @@ public partial class Context : IAsyncDisposable
         _contextOption = contextOption ?? new ContextOptions();
     }
 
-    /// <summary>
-    /// A target height of this consensus state. This is also a block height now in consensus.
-    /// </summary>
     public int Height { get; }
 
-    /// <summary>
-    /// A round represents of this consensus state.
-    /// </summary>
     public int Round { get; private set; }
 
-    /// <summary>
-    /// A step represents of this consensus state. See <see cref="Context"/> for more detail.
-    /// </summary>
     public ConsensusStep Step { get; private set; }
 
     public Proposal? Proposal
@@ -143,7 +99,6 @@ public partial class Context : IAsyncDisposable
         }
     }
 
-    /// <inheritdoc cref="IDisposable.Dispose()"/>
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
@@ -152,15 +107,10 @@ public partial class Context : IAsyncDisposable
             _messageRequests.Writer.TryComplete();
             _mutationRequests.Writer.TryComplete();
             _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 
-    /// <summary>
-    /// Returns a <see cref="BlockCommit"/> if the context is committed.
-    /// </summary>
-    /// <returns>Returns <see cref="BlockCommit"/> if the context is committed
-    /// otherwise returns <see langword="null"/>.
-    /// </returns>
     public BlockCommit GetBlockCommit()
     {
         try
@@ -201,19 +151,13 @@ public partial class Context : IAsyncDisposable
         }.Sign(_privateKey);
     }
 
-    /// <summary>
-    /// Add a <see cref="ConsensusMessage"/> to the context.
-    /// </summary>
-    /// <param name="maj23">A <see cref="ConsensusMessage"/> to add.</param>
-    /// <returns>A <see cref="VoteSetBits"/> if given <paramref name="maj23"/> is valid and
-    /// required.</returns>
     public VoteSetBits? AddMaj23(Maj23 maj23)
     {
         try
         {
             if (_heightVoteSet.SetPeerMaj23(maj23))
             {
-                var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.Flag);
+                var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.VoteFlag);
                 return voteSetBits.VoteBits.All(b => b) ? null : voteSetBits;
             }
 
@@ -275,7 +219,7 @@ public partial class Context : IAsyncDisposable
         var dict = new Dictionary<string, object>
         {
             { "node_id", _privateKey.Address.ToString() },
-            { "number_of_validators", _validatorSet.Count },
+            { "number_of_validators", _validators.Count },
             { "height", Height },
             { "round", Round },
             { "step", Step.ToString() },
@@ -288,18 +232,8 @@ public partial class Context : IAsyncDisposable
         return JsonSerializer.Serialize(dict);
     }
 
-    /// <summary>
-    /// Collects <see cref="EvidenceException"/>s that are occurred during the consensus.
-    /// </summary>
-    /// <returns>A list of <see cref="EvidenceException"/>s.</returns>
     public EvidenceException[] CollectEvidenceExceptions() => _evidenceCollector.Flush();
 
-    /// <summary>
-    /// Gets the timeout of <see cref="ConsensusStep.PreVote"/> with the given
-    /// round.
-    /// </summary>
-    /// <param name="round">A round to get the timeout.</param>
-    /// <returns>A duration in <see cref="TimeSpan"/>.</returns>
     private TimeSpan TimeoutPreVote(long round)
     {
         return TimeSpan.FromMilliseconds(
@@ -307,12 +241,6 @@ public partial class Context : IAsyncDisposable
             (round * _contextOption.PreVoteTimeoutDelta));
     }
 
-    /// <summary>
-    /// Gets the timeout of <see cref="ConsensusStep.PreCommit"/> with the given
-    /// round.
-    /// </summary>
-    /// <param name="round">A round to get the timeout.</param>
-    /// <returns>A duration in <see cref="TimeSpan"/>.</returns>
     private TimeSpan TimeoutPreCommit(long round)
     {
         return TimeSpan.FromMilliseconds(
@@ -320,12 +248,6 @@ public partial class Context : IAsyncDisposable
             (round * _contextOption.PreCommitTimeoutDelta));
     }
 
-    /// <summary>
-    /// Gets the timeout of <see cref="ConsensusStep.Propose"/> with the given
-    /// round.
-    /// </summary>
-    /// <param name="round">A round to get the timeout.</param>
-    /// <returns>A duration in <see cref="TimeSpan"/>.</returns>
     private TimeSpan TimeoutPropose(long round)
     {
         return TimeSpan.FromMilliseconds(
@@ -335,23 +257,12 @@ public partial class Context : IAsyncDisposable
 
     private Block GetValue()
     {
-        return _blockChain.ProposeBlock(_privateKey);
+        return _blockchain.ProposeBlock(_privateKey);
     }
 
-    /// <summary>
-    /// Publish <see cref="ConsensusMessage"/> to validators.
-    /// </summary>
-    /// <param name="message">A <see cref="ConsensusMessage"/> to publish.</param>
-    /// <remarks><see cref="ConsensusMessage"/> should be published to itself.</remarks>
-    private void PublishMessage(ConsensusMessage message) =>
-        MessageToPublish?.Invoke(this, message);
+    private void PublishMessage(ConsensusMessage message)
+        => MessageToPublish?.Invoke(this, message);
 
-    /// <summary>
-    /// Validates the given block.
-    /// </summary>
-    /// <param name="block">A <see cref="Block"/> to validate.</param>
-    /// <returns><see langword="true"/> if block is valid, otherwise <see langword="false"/>.
-    /// </returns>
     private bool IsValid(Block block)
     {
         if (_blockValidationCache.TryGet(block.BlockHash, out var isValid))
@@ -372,12 +283,12 @@ public partial class Context : IAsyncDisposable
 
             try
             {
-                block.Validate(_blockChain);
-                _blockChain.Options.BlockOptions.Validate(block);
+                block.Validate(_blockchain);
+                _blockchain.Options.BlockOptions.Validate(block);
 
                 foreach (var tx in block.Transactions)
                 {
-                    _blockChain.Options.TransactionOptions.Validate(tx);
+                    _blockchain.Options.TransactionOptions.Validate(tx);
                 }
             }
             catch (Exception e) when (
@@ -396,19 +307,6 @@ public partial class Context : IAsyncDisposable
         }
     }
 
-    /// <summary>
-    /// Creates a signed <see cref="Vote"/> for a <see cref="ConsensusPreVoteMessage"/> or
-    /// a <see cref="ConsensusPreCommitMessage"/>.
-    /// </summary>
-    /// <param name="round">Current context round.</param>
-    /// <param name="hash">Current context locked <see cref="BlockHash"/>.</param>
-    /// <param name="flag"><see cref="VoteFlag"/> of <see cref="Vote"/> to create.
-    /// Set to <see cref="VoteFlag.PreVote"/> if message is <see cref="ConsensusPreVoteMessage"/>.
-    /// If message is <see cref="ConsensusPreCommitMessage"/>, Set to
-    /// <see cref="VoteFlag.PreCommit"/>.</param>
-    /// <returns>Returns a signed <see cref="Vote"/> with consensus private key.</returns>
-    /// <exception cref="ArgumentException">If <paramref name="flag"/> is either
-    /// <see cref="VoteFlag.Null"/> or <see cref="VoteFlag.Unknown"/>.</exception>
     private Vote MakeVote(int round, BlockHash hash, VoteFlag flag)
     {
         if (flag == VoteFlag.Null || flag == VoteFlag.Unknown)
@@ -425,24 +323,11 @@ public partial class Context : IAsyncDisposable
             BlockHash = hash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = _privateKey.Address,
-            ValidatorPower = _validatorSet.GetValidator(_privateKey.Address).Power,
+            ValidatorPower = _validators.GetValidator(_privateKey.Address).Power,
             Flag = flag,
         }.Sign(_privateKey);
     }
 
-    /// <summary>
-    /// Creates a signed <see cref="Maj23"/> for a <see cref="ConsensusMaj23Message"/>.
-    /// </summary>
-    /// <param name="round">Current context round.</param>
-    /// <param name="hash">Current context locked <see cref="BlockHash"/>.</param>
-    /// <param name="flag"><see cref="VoteFlag"/> of <see cref="Maj23"/> to create.
-    /// Set to <see cref="VoteFlag.PreVote"/> if +2/3 <see cref="ConsensusPreVoteMessage"/>
-    /// messages that votes to the same block with proposal are collected.
-    /// If +2/3 <see cref="ConsensusPreCommitMessage"/> messages that votes to the same block
-    /// with proposal are collected, Set to <see cref="VoteFlag.PreCommit"/>.</param>
-    /// <returns>Returns a signed <see cref="Maj23"/> with consensus private key.</returns>
-    /// <exception cref="ArgumentException">If <paramref name="flag"/> is either
-    /// <see cref="VoteFlag.Null"/> or <see cref="VoteFlag.Unknown"/>.</exception>
     private Maj23 MakeMaj23(int round, BlockHash hash, VoteFlag flag)
     {
         if (flag == VoteFlag.Null || flag == VoteFlag.Unknown)
@@ -459,16 +344,10 @@ public partial class Context : IAsyncDisposable
             BlockHash = hash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = _privateKey.Address,
-            Flag = flag,
+            VoteFlag = flag,
         }.Sign(_privateKey);
     }
 
-    /// <summary>
-    /// Gets the proposed block and valid round of the given round.
-    /// </summary>
-    /// <returns>Returns a tuple of proposer and valid round.  If proposal for the round
-    /// does not exist, returns <see langword="null"/> instead.
-    /// </returns>
-    private (Block, int)? GetProposal() =>
-        Proposal is { } p && _proposalBlock is { } b ? (b, p.ValidRound) : null;
+    private (Block, int)? GetProposal()
+        => Proposal is { } p && _proposalBlock is { } b ? (b, p.ValidRound) : null;
 }
