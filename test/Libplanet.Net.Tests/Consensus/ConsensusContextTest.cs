@@ -87,8 +87,10 @@ public class ConsensusContextTest
         Assert.Equal(3, consensusContext.Height);
 
         // Cannot call NewHeight() with invalid heights.
-        Assert.Throws<InvalidHeightIncreasingException>(() => consensusContext.NewHeight(2));
-        Assert.Throws<InvalidHeightIncreasingException>(() => consensusContext.NewHeight(3));
+        await Assert.ThrowsAsync<InvalidHeightIncreasingException>(
+            async () => await consensusContext.NewHeightAsync(2, default));
+        await Assert.ThrowsAsync<InvalidHeightIncreasingException>(
+            async () => await consensusContext.NewHeightAsync(3, default));
 
         await proposalMessageSent.WaitAsync();
         BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);

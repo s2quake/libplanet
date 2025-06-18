@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
 using Libplanet.Extensions;
@@ -10,9 +11,9 @@ using Serilog;
 
 namespace Libplanet.Net.Consensus;
 
-public partial class Context : IDisposable
+public partial class Context : IAsyncDisposable
 {
-    private readonly ContextOption _contextOption;
+    private readonly ContextOptions _contextOption;
 
     private readonly Blockchain _blockChain;
     private readonly ImmutableSortedSet<Validator> _validatorSet;
@@ -30,7 +31,6 @@ public partial class Context : IDisposable
 
     private readonly CancellationTokenSource _cancellationTokenSource;
 
-    private readonly ILogger _logger;
     private readonly ICache<BlockHash, bool> _blockValidationCache;
 
     private Proposal? _proposal;
@@ -42,6 +42,7 @@ public partial class Context : IDisposable
     private Block? _decision;
     private int _committedRound;
     private readonly BlockCommit _lastCommit;
+    private bool _disposed;
 
     public Context(
         Blockchain blockChain,
@@ -49,7 +50,7 @@ public partial class Context : IDisposable
         BlockCommit lastCommit,
         PrivateKey privateKey,
         ImmutableSortedSet<Validator> validators,
-        ContextOption contextOption)
+        ContextOptions contextOption)
         : this(
             blockChain,
             height,
@@ -72,19 +73,13 @@ public partial class Context : IDisposable
         ConsensusStep consensusStep,
         int round = -1,
         int cacheSize = 128,
-        ContextOption? contextOption = null)
+        ContextOptions? contextOption = null)
     {
         if (height < 1)
         {
             throw new ArgumentException(
                 $"Given {nameof(height)} must be positive: {height}", nameof(height));
         }
-
-        _logger = Log
-            .ForContext("Tag", "Consensus")
-            .ForContext("SubTag", "Context")
-            .ForContext<Context>()
-            .ForContext("Source", nameof(Context));
 
         _privateKey = privateKey;
         Height = height;
@@ -112,12 +107,7 @@ public partial class Context : IDisposable
             .WithCapacity(cacheSize)
             .Build();
 
-        _contextOption = contextOption ?? new ContextOption();
-
-        _logger.Information(
-            "Created Context for height #{Height}, round #{Round}",
-            Height,
-            Round);
+        _contextOption = contextOption ?? new ContextOptions();
     }
 
     /// <summary>
@@ -154,11 +144,15 @@ public partial class Context : IDisposable
     }
 
     /// <inheritdoc cref="IDisposable.Dispose()"/>
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        _cancellationTokenSource.Cancel();
-        _messageRequests.Writer.TryComplete();
-        _mutationRequests.Writer.TryComplete();
+        if (!_disposed)
+        {
+            await _cancellationTokenSource.CancelAsync();
+            _messageRequests.Writer.TryComplete();
+            _mutationRequests.Writer.TryComplete();
+            _disposed = true;
+        }
     }
 
     /// <summary>
@@ -172,13 +166,6 @@ public partial class Context : IDisposable
         try
         {
             var blockCommit = _heightVoteSet.PreCommits(Round).ToBlockCommit();
-            _logger.Debug(
-                "{FName}: CommittedRound: {CommittedRound}, Decision: {Decision}, " +
-                "BlockCommit: {BlockCommit}",
-                nameof(GetBlockCommit),
-                _committedRound,
-                _decision,
-                blockCommit);
             return blockCommit;
         }
         catch (KeyNotFoundException)
@@ -234,9 +221,6 @@ public partial class Context : IDisposable
         }
         catch (InvalidMaj23Exception ime)
         {
-            var msg = $"Failed to add invalid maj23 {ime} to the " +
-                      $"{nameof(HeightVoteSet)}";
-            _logger.Error(ime, msg);
             ExceptionOccurred?.Invoke(this, ime);
             return null;
         }
@@ -399,11 +383,6 @@ public partial class Context : IDisposable
             catch (Exception e) when (
                 e is InvalidOperationException)
             {
-                _logger.Debug(
-                    e,
-                    "Block #{Index} {Hash} is invalid",
-                    block.Height,
-                    block.BlockHash);
                 _blockValidationCache.AddOrUpdate(block.BlockHash, false);
                 return false;
             }

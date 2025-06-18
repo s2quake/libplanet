@@ -79,7 +79,7 @@ namespace Libplanet.Net.Tests
             SwarmOptions? options = null,
             BlockchainOptions? policy = null,
             Block? genesis = null,
-            ConsensusReactorOption? consensusReactorOption = null)
+            ConsensusReactorOptions? consensusReactorOption = null)
         {
             return CreateSwarm(
                 privateKey,
@@ -88,13 +88,13 @@ namespace Libplanet.Net.Tests
                 options,
                 policy,
                 genesis,
-                consensusReactorOption ?? new ConsensusReactorOption
+                consensusReactorOption ?? new ConsensusReactorOptions
                 {
-                    SeedPeers = ImmutableList<Peer>.Empty,
-                    ConsensusPeers = ImmutableList<Peer>.Empty,
-                    ConsensusPort = 0,
-                    ConsensusPrivateKey = new PrivateKey(),
-                    ConsensusWorkers = 100,
+                    SeedPeers = ImmutableArray<Peer>.Empty,
+                    ConsensusPeers = ImmutableArray<Peer>.Empty,
+                    Port = 0,
+                    PrivateKey = new PrivateKey(),
+                    Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(10),
                 });
         }
@@ -106,7 +106,7 @@ namespace Libplanet.Net.Tests
             SwarmOptions? options = null,
             BlockchainOptions? policy = null,
             Block? genesis = null,
-            ConsensusReactorOption? consensusReactorOption = null)
+            ConsensusReactorOptions? consensusReactorOption = null)
         {
             policy ??= new BlockchainOptions
             {
@@ -138,7 +138,7 @@ namespace Libplanet.Net.Tests
             ProtocolOptions? appProtocolVersionOptions = null,
             HostOptions? hostOptions = null,
             SwarmOptions? options = null,
-            ConsensusReactorOption? consensusReactorOption = null)
+            ConsensusReactorOptions? consensusReactorOption = null)
         {
             appProtocolVersionOptions ??= new ProtocolOptions();
             hostOptions ??= new HostOptions
@@ -157,7 +157,7 @@ namespace Libplanet.Net.Tests
                 var consensusHostOptions = new HostOptions
                 {
                     Host = hostOptions.Host,
-                    Port = option.ConsensusPort
+                    Port = option.Port
                 };
                 consensusTransport = new NetMQTransport(
                     privateKey,

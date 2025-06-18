@@ -335,20 +335,7 @@ public sealed class Kademlia
             return;
         }
 
-        MessageEnvelope reply = await _transport.SendMessageAsync(
-                peer,
-                new PingMessage(),
-                cancellationToken)
-            .ConfigureAwait(false);
-        if (reply.Message is not PongMessage pong)
-        {
-            throw new InvalidOperationException($"Expected pong, but received {reply.Message}.");
-        }
-        else if (reply.Peer.Address.Equals(_address))
-        {
-            throw new InvalidOperationException("Cannot receive pong from self");
-        }
-
+        await _transport.PingAsync(peer, cancellationToken);
         AddPeer(peer);
     }
 

@@ -49,7 +49,7 @@ namespace Libplanet.Net.Tests.Consensus
                 consensusContext.StateChanged -= ConsensusContext_StateChanged;
             }
 
-            void ConsensusContext_StateChanged(object? sender, Context.ContextState e)
+            void ConsensusContext_StateChanged(object? sender, ContextState e)
             {
                 if (e.Step == consensusStep && e.Height == height)
                 {

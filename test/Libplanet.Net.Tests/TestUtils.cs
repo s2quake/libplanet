@@ -256,7 +256,7 @@ namespace Libplanet.Net.Tests
                 TimeSpan newHeightDelay,
                 BlockchainOptions? policy = null,
                 PrivateKey? privateKey = null,
-                ContextOption? contextOption = null)
+                ContextOptions? contextOption = null)
         {
             policy ??= Options;
             var blockChain = CreateDummyBlockChain(policy);
@@ -272,11 +272,11 @@ namespace Libplanet.Net.Tests
                 });
 
             consensusContext = new ConsensusContext(
-                new DummyConsensusMessageHandler(BroadcastMessage),
+                null,
                 blockChain,
                 privateKey,
                 newHeightDelay,
-                contextOption ?? new ContextOption());
+                contextOption ?? new ContextOptions());
 
             return (blockChain, consensusContext);
         }
@@ -286,7 +286,7 @@ namespace Libplanet.Net.Tests
             int height = 1,
             BlockCommit? lastCommit = null,
             PrivateKey? privateKey = null,
-            ContextOption? contextOption = null,
+            ContextOptions? contextOption = null,
             ImmutableSortedSet<Validator>? validatorSet = null)
         {
             Context? context = null;
@@ -299,7 +299,7 @@ namespace Libplanet.Net.Tests
                 validatorSet ?? blockChain
                     .GetWorld(height - 1)
                     .GetValidators(),
-                contextOption: contextOption ?? new ContextOption());
+                contextOption: contextOption ?? new ContextOptions());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
             return context;
         }
@@ -310,7 +310,7 @@ namespace Libplanet.Net.Tests
                 BlockCommit? lastCommit = null,
                 BlockchainOptions? policy = null,
                 PrivateKey? privateKey = null,
-                ContextOption? contextOption = null,
+                ContextOptions? contextOption = null,
                 ImmutableSortedSet<Validator>? validatorSet = null)
         {
             Context? context = null;
@@ -326,7 +326,7 @@ namespace Libplanet.Net.Tests
                 validatorSet ?? blockChain
                     .GetWorld(height - 1)
                     .GetValidators(),
-                contextOption: contextOption ?? new ContextOption());
+                contextOption: contextOption ?? new ContextOptions());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 
             return (blockChain, context);
@@ -339,7 +339,7 @@ namespace Libplanet.Net.Tests
             int consensusPort = 5101,
             List<Peer>? validatorPeers = null,
             int newHeightDelayMilliseconds = 10_000,
-            ContextOption? contextOption = null)
+            ContextOptions? contextOption = null)
         {
             key ??= PrivateKeys[1];
             validatorPeers ??= Peers;
@@ -355,15 +355,15 @@ namespace Libplanet.Net.Tests
                 key,
                 apvOption,
                 hostOption);
+            var consensusReactorOptions = new ConsensusReactorOptions
+            {
+                ConsensusPeers = validatorPeers.ToImmutableArray(),
+                PrivateKey = key,
+                TargetBlockInterval = TimeSpan.FromMilliseconds(newHeightDelayMilliseconds),
+                ContextOptions = contextOption ?? new ContextOptions(),
+            };
 
-            return new ConsensusReactor(
-                consensusTransport,
-                blockChain,
-                key,
-                validatorPeers.ToImmutableList(),
-                new List<Peer>().ToImmutableList(),
-                TimeSpan.FromMilliseconds(newHeightDelayMilliseconds),
-                contextOption: contextOption ?? new ContextOption());
+            return new ConsensusReactor(consensusTransport, blockChain, consensusReactorOptions);
         }
 
         public static byte[] GetRandomBytes(int size)
@@ -372,27 +372,6 @@ namespace Libplanet.Net.Tests
             Random.NextBytes(bytes);
 
             return bytes;
-        }
-
-        public class DummyConsensusMessageHandler : IConsensusMessageCommunicator
-        {
-            private readonly Action<ConsensusMessage> _publishMessage;
-
-            public DummyConsensusMessageHandler(Action<ConsensusMessage> publishMessage)
-            {
-                _publishMessage = publishMessage;
-            }
-
-            public void PublishMessage(ConsensusMessage message)
-                => _publishMessage(message);
-
-            public void OnStartHeight(int height)
-            {
-            }
-
-            public void OnStartRound(int round)
-            {
-            }
         }
     }
 }

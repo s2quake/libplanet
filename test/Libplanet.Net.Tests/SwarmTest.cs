@@ -380,16 +380,16 @@ namespace Libplanet.Net.Tests
                 {
                     Address = TestUtils.PrivateKeys[i].Address,
                     EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i),
-                }).ToImmutableList();
+                }).ToImmutableArray();
             var reactorOpts = Enumerable.Range(0, 4).Select(i =>
-                new ConsensusReactorOption
+                new ConsensusReactorOptions
                 {
                     ConsensusPeers = consensusPeers,
-                    ConsensusPort = 6000 + i,
-                    ConsensusPrivateKey = TestUtils.PrivateKeys[i],
-                    ConsensusWorkers = 100,
+                    Port = 6000 + i,
+                    PrivateKey = TestUtils.PrivateKeys[i],
+                    Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(10),
-                    ContextOption = new ContextOption(),
+                    ContextOptions = new ContextOptions(),
                 }).ToList();
             var swarms = new List<Swarm>();
             for (int i = 0; i < 4; i++)
@@ -566,7 +566,7 @@ namespace Libplanet.Net.Tests
                     swarmA.AsPeer, request, default);
                 var aggregateMessage = (AggregateMessage)reply.Message;
                 var responses = aggregateMessage.Messages;
-                    
+
                 var blockMessage = (BlocksMessage)responses[0];
 
                 Assert.Equal(2, responses.Length);

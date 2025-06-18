@@ -350,7 +350,7 @@ namespace Libplanet.Net.Tests.Consensus
                 blockChain
                     .GetWorld(0)
                     .GetValidators(),
-                contextOption: new ContextOption());
+                contextOption: new ContextOptions());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 
             context.StateChanged += (_, eventArgs) =>
@@ -670,11 +670,11 @@ namespace Libplanet.Net.Tests.Consensus
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(fx.Options);
 
             var consensusContext = new ConsensusContext(
-                new TestUtils.DummyConsensusMessageHandler(message => { }),
+                null,
                 blockChain,
                 TestUtils.PrivateKeys[0],
                 newHeightDelay,
-                new ContextOption());
+                new ContextOptions());
             Context context = consensusContext.CurrentContext;
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 
@@ -770,8 +770,10 @@ namespace Libplanet.Net.Tests.Consensus
             Block? proposedBlock = null;
             int numPreVotes = 0;
             var (_, context) = TestUtils.CreateDummyContext(
-                contextOption: new ContextOption(
-                    enterPreCommitDelay: delay));
+                contextOption: new ContextOptions
+                {
+                    EnterPreCommitDelay = delay,
+                });
             context.StateChanged += (_, eventArgs) =>
             {
                 if (eventArgs.Step == ConsensusStep.PreVote)

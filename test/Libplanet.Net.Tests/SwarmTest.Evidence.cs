@@ -25,16 +25,16 @@ namespace Libplanet.Net.Tests
                 {
                     Address = privateKeys[i].Address,
                     EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i)
-                }).ToImmutableList();
+                }).ToImmutableArray();
             var reactorOptions = Enumerable.Range(0, count).Select(i =>
-                new ConsensusReactorOption
+                new ConsensusReactorOptions
                 {
                     ConsensusPeers = consensusPeers,
-                    ConsensusPort = 6000 + i,
-                    ConsensusPrivateKey = privateKeys[i],
-                    ConsensusWorkers = 100,
+                    Port = 6000 + i,
+                    PrivateKey = privateKeys[i],
+                    Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(4),
-                    ContextOption = new ContextOption(),
+                    ContextOptions = new ContextOptions(),
                 }).ToList();
 
             var swarmTasks = privateKeys.Select(
@@ -185,7 +185,7 @@ namespace Libplanet.Net.Tests
                 consensusContext.StateChanged -= ConsensusContext_StateChanged;
             }
 
-            void ConsensusContext_StateChanged(object? sender, Context.ContextState e)
+            void ConsensusContext_StateChanged(object? sender, ContextState e)
             {
                 if (e.Step == consensusStep)
                 {

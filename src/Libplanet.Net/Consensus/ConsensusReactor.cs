@@ -2,227 +2,153 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Transports;
-using Libplanet.Types;
-using Serilog;
 
-namespace Libplanet.Net.Consensus
+namespace Libplanet.Net.Consensus;
+
+public sealed class ConsensusReactor : IAsyncDisposable
 {
-    /// <summary>
-    /// A manager class for starting network and joining into consensus.
-    /// <seealso cref="ConsensusContext"/>
-    /// </summary>
-    public class ConsensusReactor : IReactor
+    private readonly Gossip _gossip;
+    private readonly ConsensusContext _consensusContext;
+    private bool _disposed;
+
+    public ConsensusReactor(ITransport transport, Blockchain blockchain, ConsensusReactorOptions options)
     {
-        private readonly Gossip _gossip;
-        private readonly ConsensusContext _consensusContext;
-        private readonly Blockchain _blockChain;
-        private readonly ILogger _logger;
+        var messageCommunicator =
+            new MessageCommunicator(
+                transport,
+                options.ConsensusPeers,
+                options.SeedPeers,
+                ProcessMessage);
+        _gossip = messageCommunicator.Gossip;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ConsensusReactor"/> class.
-        /// </summary>
-        /// <param name="consensusTransport">An <see cref="ITransport"/> for sending the
-        /// <see cref="ConsensusMessage"/>s to validators.</param>
-        /// <param name="blockChain">A blockchain that will be committed, which
-        /// will be voted by consensus, and used for proposing a block.
-        /// </param>
-        /// <param name="privateKey">A <see cref="PrivateKey"/> for using in signing a block,
-        /// message.
-        /// </param>
-        /// <param name="validatorPeers">A list of validator's <see cref="Peer"/>, including
-        /// itself.
-        /// </param>
-        /// <param name="seedPeers">A list of seed's <see cref="Peer"/>.</param>
-        /// <param name="newHeightDelay">A time delay in starting the consensus for the next height
-        /// block.
-        /// </param>
-        /// <param name="contextOption">A <see cref="ContextOption"/> for
-        /// configuring a timeout for each <see cref="ConsensusStep"/>.</param>
-        public ConsensusReactor(
-            ITransport consensusTransport,
-            Blockchain blockChain,
-            PrivateKey privateKey,
-            ImmutableList<Peer> validatorPeers,
-            ImmutableList<Peer> seedPeers,
-            TimeSpan newHeightDelay,
-            ContextOption contextOption)
-        {
-            validatorPeers ??= ImmutableList<Peer>.Empty;
-            seedPeers ??= ImmutableList<Peer>.Empty;
+        _consensusContext = new ConsensusContext(
+            messageCommunicator,
+            blockchain,
+            options.PrivateKey,
+            options.TargetBlockInterval,
+            options.ContextOptions);
+    }
 
-            GossipConsensusMessageCommunicator consensusMessageHandler =
-                new GossipConsensusMessageCommunicator(
-                    consensusTransport,
-                    validatorPeers.ToImmutableArray(),
-                    seedPeers.ToImmutableArray(),
-                    ProcessMessage);
-            _gossip = consensusMessageHandler.Gossip;
-            _blockChain = blockChain;
+    public bool IsRunning { get; private set; }
 
-            _consensusContext = new ConsensusContext(
-                consensusMessageHandler,
-                blockChain,
-                privateKey,
-                newHeightDelay,
-                contextOption);
+    public int Height => _consensusContext.Height;
 
-            _logger = Log
-                .ForContext("Tag", "Consensus")
-                .ForContext("SubTag", "Reactor")
-                .ForContext<ConsensusReactor>()
-                .ForContext("Source", nameof(ConsensusReactor));
-        }
+    public ImmutableArray<Peer> Validators => _gossip.Peers;
 
-        /// <summary>
-        /// Whether this <see cref="ConsensusReactor"/> is running.
-        /// </summary>
-        public bool Running => _gossip.IsRunning;
+    internal ConsensusContext ConsensusContext => _consensusContext;
 
-        /// <summary>
-        /// The index of block that <see cref="ConsensusContext"/> is watching. The value can be
-        /// changed by starting a consensus or appending a block.
-        /// </summary>
-        public int Height => _consensusContext.Height;
-
-        /// <summary>
-        /// An <see cref="IEnumerable{BoundPeer}"/> of the validators.
-        /// </summary>
-        public IReadOnlyList<Peer> Validators => _gossip.Peers.ToList().AsReadOnly();
-
-        // FIXME: This should be exposed in a better way.
-        internal ConsensusContext ConsensusContext => _consensusContext;
-
-        /// <summary>
-        /// <inheritdoc cref="IDisposable.Dispose()"/>
-        /// </summary>
-        public async ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
         {
             await _gossip.DisposeAsync();
-            _consensusContext.Dispose();
+            await _consensusContext.DisposeAsync();
+            _disposed = true;
+        }
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (IsRunning)
+        {
+            throw new InvalidOperationException("Consensus reactor is already running.");
         }
 
-        /// <summary>
-        /// Starts the instance and joins into consensus.
-        /// </summary>
-        /// <param name="cancellationToken">A cancellation token used to propagate notification
-        /// that this operation should be canceled.</param>
-        /// <returns>Returns the <see cref="ITransport.StartAsync"/>.</returns>
-        public async Task StartAsync(CancellationToken cancellationToken)
+        await _gossip.StartAsync(cancellationToken);
+        _consensusContext.Start();
+        IsRunning = true;
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (!IsRunning)
         {
-            await _gossip.StartAsync(cancellationToken);
-            _consensusContext.Start();
+            throw new InvalidOperationException("Consensus reactor is not running.");
         }
 
-        /// <summary>
-        /// Stops the instance and consensus.
-        /// </summary>
-        /// <param name="cancellationToken">A cancellation Token.</param>
-        /// <returns>Returns the <see cref="ITransport.StopAsync"/>.</returns>
-        public async Task StopAsync(CancellationToken cancellationToken)
-        {
-            _consensusContext.Dispose();
-            await _gossip.StopAsync(cancellationToken);
-        }
+        await _consensusContext.DisposeAsync();
+        await _gossip.StopAsync(cancellationToken);
+        IsRunning = false;
+    }
 
-        /// <summary>
-        /// Returns a summary of current consensus status in JSON-formatted string.
-        /// </summary>
-        /// <returns>Returns a summary in JSON-formatted string.
-        /// </returns>
-        public override string ToString()
-        {
-            var dict =
-                JsonSerializer.Deserialize<Dictionary<string, object>>(
-                    _consensusContext.ToString()) ?? new Dictionary<string, object>();
-            dict["peer"] = _gossip.AsPeer.ToString();
+    public override string ToString()
+    {
+        var dict =
+            JsonSerializer.Deserialize<Dictionary<string, object>>(
+                _consensusContext.ToString()) ?? new Dictionary<string, object>();
+        dict["peer"] = _gossip.AsPeer.ToString();
 
-            return JsonSerializer.Serialize(dict);
-        }
+        return JsonSerializer.Serialize(dict);
+    }
 
-        /// <summary>
-        /// A handler for received <see cref="MessageEnvelope"/>s.
-        /// </summary>
-        /// <param name="content">A message to process.</param>
-        private void ProcessMessage(IMessage content)
+    private void ProcessMessage(IMessage message)
+    {
+        switch (message)
         {
-            switch (content)
-            {
-                case ConsensusVoteSetBitsMessage voteSetBits:
-                    // Note: ConsensusVoteSetBitsMsg will not be stored to context's message log.
-                    var messages = _consensusContext.HandleVoteSetBits(voteSetBits.VoteSetBits);
-                    try
+            case ConsensusVoteSetBitsMessage voteSetBits:
+                // Note: ConsensusVoteSetBitsMsg will not be stored to context's message log.
+                var messages = _consensusContext.HandleVoteSetBits(voteSetBits.VoteSetBits);
+                try
+                {
+                    var sender = _gossip.Peers.First(
+                        peer => peer.Address.Equals(voteSetBits.Validator));
+                    foreach (var msg in messages)
                     {
+                        _gossip.PublishMessage(msg, new[] { sender });
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                }
+
+                break;
+
+            case ConsensusMaj23Message maj23Message:
+                try
+                {
+                    VoteSetBits? voteSetBits = _consensusContext.HandleMaj23(maj23Message.Maj23);
+                    if (voteSetBits is null)
+                    {
+                        break;
+                    }
+
+                    var sender = _gossip.Peers.First(
+                        peer => peer.Address.Equals(maj23Message.Validator));
+                    _gossip.PublishMessage(
+                        new ConsensusVoteSetBitsMessage { VoteSetBits = voteSetBits },
+                        [sender]);
+                }
+                catch (InvalidOperationException)
+                {
+                }
+
+                break;
+
+            case ConsensusProposalClaimMessage proposalClaimmessage:
+                try
+                {
+                    Proposal? proposal = _consensusContext.HandleProposalClaim(
+                        proposalClaimmessage.ProposalClaim);
+                    if (proposal is { } proposalNotNull)
+                    {
+                        var reply = new ConsensusProposalMessage { Proposal = proposalNotNull };
                         var sender = _gossip.Peers.First(
-                            peer => peer.Address.Equals(voteSetBits.Validator));
-                        foreach (var msg in messages)
-                        {
-                            _gossip.PublishMessage(msg, new[] { sender });
-                        }
+                            peer => peer.Address.Equals(proposalClaimmessage.Validator));
+
+                        _gossip.PublishMessage(reply, new[] { sender });
                     }
-                    catch (InvalidOperationException)
-                    {
-                        _logger.Debug(
-                            "Cannot respond received ConsensusVoteSetBitsMsg message" +
-                            " {Message} since there is no corresponding peer in the table",
-                            voteSetBits);
-                    }
+                }
+                catch (InvalidOperationException)
+                {
+                }
 
-                    break;
+                break;
 
-                case ConsensusMaj23Message maj23Msg:
-                    try
-                    {
-                        VoteSetBits? voteSetBits = _consensusContext.HandleMaj23(maj23Msg.Maj23);
-                        if (voteSetBits is null)
-                        {
-                            break;
-                        }
-
-                        var sender = _gossip.Peers.First(
-                            peer => peer.Address.Equals(maj23Msg.Validator));
-                        _gossip.PublishMessage(
-                            new ConsensusVoteSetBitsMessage { VoteSetBits = voteSetBits },
-                            new[] { sender });
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        _logger.Debug(
-                            "Cannot respond received ConsensusMaj23Msg message " +
-                            "{Message} since there is no corresponding peer in the table",
-                            maj23Msg);
-                    }
-
-                    break;
-
-                case ConsensusProposalClaimMessage proposalClaimMsg:
-                    try
-                    {
-                        Proposal? proposal = _consensusContext.HandleProposalClaim(
-                            proposalClaimMsg.ProposalClaim);
-                        if (proposal is { } proposalNotNull)
-                        {
-                            var reply = new ConsensusProposalMessage { Proposal = proposalNotNull };
-                            var sender = _gossip.Peers.First(
-                                peer => peer.Address.Equals(proposalClaimMsg.Validator));
-
-                            _gossip.PublishMessage(reply, new[] { sender });
-                        }
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        _logger.Debug(
-                            "Cannot respond received ConsensusProposalClaimMsg message " +
-                            "{Message} since there is no corresponding peer in the table",
-                            proposalClaimMsg);
-                    }
-
-                    break;
-
-                case ConsensusMessage consensusMsg:
-                    _consensusContext.HandleMessage(consensusMsg);
-                    break;
-            }
+            case ConsensusMessage consensusMessage:
+                _consensusContext.HandleMessage(consensusMessage);
+                break;
         }
     }
 }

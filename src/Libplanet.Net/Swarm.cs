@@ -57,7 +57,7 @@ public partial class Swarm : IAsyncDisposable
     /// network communication in consensus.
     /// If null is given, the node cannot join block consensus.
     /// </param>
-    /// <param name="consensusOption"><see cref="ConsensusReactorOption"/> for
+    /// <param name="consensusOption"><see cref="ConsensusReactorOptions"/> for
     /// initialize <see cref="ConsensusReactor"/>.</param>
     public Swarm(
         Blockchain blockChain,
@@ -65,7 +65,7 @@ public partial class Swarm : IAsyncDisposable
         ITransport transport,
         SwarmOptions options = null,
         ITransport consensusTransport = null,
-        ConsensusReactorOption? consensusOption = null)
+        ConsensusReactorOptions? consensusOption = null)
     {
         Blockchain = blockChain ?? throw new ArgumentNullException(nameof(blockChain));
         _privateKey = privateKey ?? throw new ArgumentNullException(nameof(privateKey));
@@ -118,13 +118,7 @@ public partial class Swarm : IAsyncDisposable
         if (consensusTransport is { } && consensusOption is { } consensusReactorOption)
         {
             _consensusReactor = new ConsensusReactor(
-                consensusTransport,
-                Blockchain,
-                consensusReactorOption.ConsensusPrivateKey,
-                consensusReactorOption.ConsensusPeers,
-                consensusReactorOption.SeedPeers,
-                consensusReactorOption.TargetBlockInterval,
-                consensusReactorOption.ContextOption);
+                consensusTransport, Blockchain, consensusReactorOption);
         }
     }
 
@@ -140,7 +134,7 @@ public partial class Swarm : IAsyncDisposable
 
     public bool Running => Transport?.IsRunning ?? false;
 
-    public bool ConsensusRunning => _consensusReactor?.Running ?? false;
+    public bool ConsensusRunning => _consensusReactor?.IsRunning ?? false;
 
     public DnsEndPoint EndPoint => AsPeer is Peer boundPeer ? boundPeer.EndPoint : null;
 
@@ -152,19 +146,10 @@ public partial class Swarm : IAsyncDisposable
 
     public IReadOnlyList<Peer> Peers => RoutingTable.Peers;
 
-    /// <summary>
-    /// Returns list of the validators that consensus has in its routing table.
-    /// If the node is not joining consensus, returns <c>null</c>.
-    /// </summary>
     public IReadOnlyList<Peer> Validators => _consensusReactor?.Validators;
 
-    /// <summary>
-    /// The <see cref="Blockchain"/> instance this <see cref="Swarm"/> instance
-    /// synchronizes with.
-    /// </summary>
     public Blockchain Blockchain { get; private set; }
 
-    /// <inheritdoc cref="ProtocolOptions.Protocol"/>
     public Protocol AppProtocolVersion => Transport.Protocol;
 
     internal RoutingTable RoutingTable { get; }

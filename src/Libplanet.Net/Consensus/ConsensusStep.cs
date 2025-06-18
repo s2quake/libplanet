@@ -1,30 +1,14 @@
-namespace Libplanet.Net.Consensus
+namespace Libplanet.Net.Consensus;
+
+public enum ConsensusStep
 {
-    public enum ConsensusStep
-    {
-        /// <summary>
-        /// Initial Step.
-        /// </summary>
-        Default,
+    Default,
 
-        /// <summary>
-        /// Proposing Step.
-        /// </summary>
-        Propose,
+    Propose,
 
-        /// <summary>
-        /// Voting Step.
-        /// </summary>
-        PreVote,
+    PreVote,
 
-        /// <summary>
-        /// Commit voting step.
-        /// </summary>
-        PreCommit,
+    PreCommit,
 
-        /// <summary>
-        /// Commit end step.
-        /// </summary>
-        EndCommit,
-    }
+    EndCommit,
 }

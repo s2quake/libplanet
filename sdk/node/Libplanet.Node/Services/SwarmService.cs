@@ -101,7 +101,7 @@ internal sealed class SwarmService(
             : null;
         var consensusReactorOption = _validatorOptions.IsEnabled
             ? CreateConsensusReactorOption(privateKey, _validatorOptions)
-            : (ConsensusReactorOption?)null;
+            : (ConsensusReactorOptions?)null;
 
         _swarm = new Swarm(
             blockChain: blockChain,
@@ -185,18 +185,18 @@ internal sealed class SwarmService(
         return new(privateKey, protocolOptions, hostOptions);
     }
 
-    private static ConsensusReactorOption CreateConsensusReactorOption(
+    private static ConsensusReactorOptions CreateConsensusReactorOption(
         PrivateKey privateKey, ValidatorOptions options)
     {
         var consensusSeedPeer = Net.Peer.Parse(options.ConsensusSeedPeer);
         var consensusEndPoint = (DnsEndPoint)EndPointUtility.Parse(options.EndPoint);
-        return new ConsensusReactorOption
+        return new ConsensusReactorOptions
         {
             SeedPeers = [consensusSeedPeer],
-            ConsensusPort = consensusEndPoint.Port,
-            ConsensusPrivateKey = privateKey,
+            Port = consensusEndPoint.Port,
+            PrivateKey = privateKey,
             TargetBlockInterval = TimeSpan.FromSeconds(2),
-            ContextOption = new(),
+            ContextOptions = new(),
         };
     }
 
