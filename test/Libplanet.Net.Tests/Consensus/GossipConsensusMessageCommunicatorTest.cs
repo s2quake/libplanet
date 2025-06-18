@@ -69,10 +69,10 @@ namespace Libplanet.Net.Tests.Consensus
                 await communicator1.Gossip.StartAsync(default);
                 await communicator2.Gossip.StartAsync(default);
 
-                communicator1.OnStartHeight(1);
-                communicator2.OnStartHeight(1);
-                communicator1.OnStartRound(2);
-                communicator2.OnStartRound(4);
+                communicator1.StartHeight(1);
+                communicator2.StartHeight(1);
+                communicator1.StartRound(2);
+                communicator2.StartRound(4);
 
                 // Add message of higher round to communicator1
                 communicator1.Gossip.AddMessage(
@@ -189,8 +189,8 @@ namespace Libplanet.Net.Tests.Consensus
                 await transport2.StartAsync(default);
                 await transport3.StartAsync(default);
 
-                communicator1.OnStartHeight(1);
-                communicator1.OnStartRound(2);
+                communicator1.StartHeight(1);
+                communicator1.StartRound(2);
 
                 var peer1 = new Peer[] { communicator1.Gossip.AsPeer };
 
@@ -340,7 +340,7 @@ namespace Libplanet.Net.Tests.Consensus
                 hostOptions);
         }
 
-        private GossipConsensusMessageCommunicator CreateGossipConesnsusMessageCommunicator(
+        private MessageCommunicator CreateGossipConesnsusMessageCommunicator(
             Action<IMessage> processMessage,
             PrivateKey? privateKey = null,
             int? port = null,
@@ -349,7 +349,7 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var transport = CreateTransport(privateKey, port);
 
-            return new GossipConsensusMessageCommunicator(
+            return new MessageCommunicator(
                 transport,
                 peers?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
                 seeds?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,

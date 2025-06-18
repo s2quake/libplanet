@@ -48,9 +48,4 @@ internal static class NetMQMessageCodec
 
         return messageEnvelope;
     }
-
-    internal static IMessage CreateMessage(byte[] bytes)
-    {
-        return ModelSerializer.DeserializeFromBytes<IMessage>(bytes);
-    }
 }

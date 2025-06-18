@@ -4,56 +4,51 @@ using Libplanet.State;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 using Serilog;
+using Nito.AsyncEx;
 
 namespace Libplanet.Net.Consensus;
 
-public partial class ConsensusContext : IDisposable
+public partial class ConsensusContext : IAsyncDisposable
 {
     private readonly object _contextLock;
-    private readonly ContextOption _contextOption;
-    private readonly IConsensusMessageCommunicator _consensusMessageCommunicator;
-    private readonly Blockchain _blockChain;
+    private readonly ContextOptions _contextOption;
+    private readonly MessageCommunicator _consensusMessageCommunicator;
+    private readonly Blockchain _blockchain;
     private readonly PrivateKey _privateKey;
     private readonly TimeSpan _newHeightDelay;
-    private readonly ILogger _logger;
     private readonly HashSet<ConsensusMessage> _pendingMessages;
     private readonly EvidenceExceptionCollector _evidenceCollector = new();
     private readonly IDisposable _tipChangedSubscription;
 
     private Context _currentContext;
     private CancellationTokenSource? _newHeightCts;
+    private bool _disposed;
 
     public ConsensusContext(
-        IConsensusMessageCommunicator consensusMessageCommunicator,
-        Blockchain blockChain,
+        MessageCommunicator messageCommunicator,
+        Blockchain blockchain,
         PrivateKey privateKey,
         TimeSpan newHeightDelay,
-        ContextOption contextOption)
+        ContextOptions contextOption)
     {
-        _consensusMessageCommunicator = consensusMessageCommunicator;
-        _blockChain = blockChain;
+        _consensusMessageCommunicator = messageCommunicator;
+        _blockchain = blockchain;
         _privateKey = privateKey;
-        Running = false;
+        IsRunning = false;
         _newHeightDelay = newHeightDelay;
 
         _contextOption = contextOption;
         _currentContext = CreateContext(
-            _blockChain.Tip.Height + 1,
-            _blockChain.BlockCommits[_blockChain.Tip.Height]);
+            _blockchain.Tip.Height + 1,
+            _blockchain.BlockCommits[_blockchain.Tip.Height]);
         AttachEventHandlers(_currentContext);
         _pendingMessages = new HashSet<ConsensusMessage>();
 
-        _logger = Log
-            .ForContext("Tag", "Consensus")
-            .ForContext("SubTag", "ConsensusContext")
-            .ForContext<ConsensusContext>()
-            .ForContext("Source", nameof(ConsensusContext));
-
-        _tipChangedSubscription = _blockChain.TipChanged.Subscribe(OnTipChanged);
+        _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
         _contextLock = new object();
     }
 
-    public bool Running { get; private set; }
+    public bool IsRunning { get; private set; }
 
     public int Height => CurrentContext.Height;
 
@@ -74,94 +69,78 @@ public partial class ConsensusContext : IDisposable
 
     public void Start()
     {
-        if (Running)
+        if (IsRunning)
         {
             throw new InvalidOperationException(
-                $"Can only start {nameof(ConsensusContext)} if {nameof(Running)} is {false}.");
+                $"Can only start {nameof(ConsensusContext)} if {nameof(IsRunning)} is {false}.");
         }
         else
         {
             lock (_contextLock)
             {
-                Running = true;
+                IsRunning = true;
                 _currentContext.Start();
             }
         }
     }
 
-    public void Dispose()
-    {
-        _newHeightCts?.Cancel();
-        lock (_contextLock)
-        {
-            _currentContext.Dispose();
-        }
 
-        _tipChangedSubscription.Dispose();
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
+        {
+            if (_newHeightCts is not null)
+            {
+                await _newHeightCts.CancelAsync();
+            }
+
+            await _currentContext.DisposeAsync();
+
+            _newHeightCts?.Dispose();
+            _newHeightCts = null;
+            _tipChangedSubscription.Dispose();
+            _disposed = true;
+        }
     }
 
-    public void NewHeight(int height)
+    public async Task NewHeightAsync(int height, CancellationToken cancellationToken)
     {
-        lock (_contextLock)
+        if (height <= Height)
         {
-            _logger.Information(
-                "Invoked {FName}() for new height #{NewHeight} from old height #{OldHeight}",
-                nameof(NewHeight),
-                height,
-                Height);
+            throw new InvalidHeightIncreasingException(
+                $"Given new height #{height} must be greater than " +
+                $"the current height #{Height}.");
+        }
 
-            if (height <= Height)
+        var lastCommit = BlockCommit.Empty;
+        if (_currentContext.Height == height - 1 &&
+            _currentContext.GetBlockCommit() is { } prevCommit)
+        {
+            lastCommit = prevCommit;
+        }
+
+        if (lastCommit == default &&
+            _blockchain.BlockCommits[height - 1] is { } storedCommit)
+        {
+            lastCommit = storedCommit;
+        }
+
+        await _currentContext.DisposeAsync();
+        _currentContext = CreateContext(height, lastCommit);
+        AttachEventHandlers(_currentContext);
+
+        foreach (var message in _pendingMessages)
+        {
+            if (message.Height == height)
             {
-                throw new InvalidHeightIncreasingException(
-                    $"Given new height #{height} must be greater than " +
-                    $"the current height #{Height}.");
+                _currentContext.ProduceMessage(message);
             }
+        }
 
-            var lastCommit = BlockCommit.Empty;
-            if (_currentContext.Height == height - 1 &&
-                _currentContext.GetBlockCommit() is { } prevCommit)
-            {
-                lastCommit = prevCommit;
-                _logger.Debug(
-                    "Retrieved block commit for Height #{Height} from previous context",
-                    lastCommit.Height);
-            }
-
-            if (lastCommit == default &&
-                _blockChain.BlockCommits[height - 1] is { } storedCommit)
-            {
-                lastCommit = storedCommit;
-                _logger.Debug(
-                    "Retrieved stored block commit for Height #{Height} from blockchain",
-                    lastCommit.Height);
-            }
-
-            _logger.Debug(
-                "LastCommit for height #{Height} is {LastCommit}",
-                height,
-                lastCommit);
-
-            _currentContext.Dispose();
-            _logger.Information(
-                "Start consensus for height #{Height} with last commit {LastCommit}",
-                height,
-                lastCommit);
-            _currentContext = CreateContext(height, lastCommit);
-            AttachEventHandlers(_currentContext);
-
-            foreach (var message in _pendingMessages)
-            {
-                if (message.Height == height)
-                {
-                    _currentContext.ProduceMessage(message);
-                }
-            }
-
-            _pendingMessages.RemoveWhere(message => message.Height <= height);
-            if (Running)
-            {
-                _currentContext.Start();
-            }
+        _pendingMessages.RemoveWhere(message => message.Height <= height);
+        if (IsRunning)
+        {
+            _currentContext.Start();
         }
     }
 
@@ -170,11 +149,6 @@ public partial class ConsensusContext : IDisposable
         int height = consensusMessage.Height;
         if (height < Height)
         {
-            _logger.Debug(
-                "Discarding a received message as its height #{MessageHeight} " +
-                "is lower than the current context's height #{ContextHeight}",
-                height,
-                Height);
             return false;
         }
 
@@ -198,11 +172,6 @@ public partial class ConsensusContext : IDisposable
         int height = maj23.Height;
         if (height < Height)
         {
-            _logger.Debug(
-                "Ignore a received VoteSetBits as its height " +
-                "#{Height} is lower than the current context's height #{ContextHeight}",
-                height,
-                Height);
         }
         else
         {
@@ -223,11 +192,6 @@ public partial class ConsensusContext : IDisposable
         int height = voteSetBits.Height;
         if (height < Height)
         {
-            _logger.Debug(
-                "Ignore a received VoteSetBits as its height " +
-                "#{Height} is lower than the current context's height #{ContextHeight}",
-                height,
-                Height);
         }
         else
         {
@@ -251,19 +215,11 @@ public partial class ConsensusContext : IDisposable
         int round = proposalClaim.Round;
         if (height != Height)
         {
-            _logger.Debug(
-                "Ignore a received ProposalClaim as its height " +
-                "#{Height} does not match with the current context's height #{ContextHeight}",
-                height,
-                Height);
+            // logging
         }
         else if (round != Round)
         {
-            _logger.Debug(
-                "Ignore a received ProposalClaim as its round " +
-                "#{Round} does not match with the current context's round #{ContextRound}",
-                round,
-                Round);
+            // logging
         }
         else
         {
@@ -291,63 +247,44 @@ public partial class ConsensusContext : IDisposable
 
     private void OnTipChanged(TipChangedInfo e)
     {
-        // TODO: Should set delay by using GST.
         _newHeightCts?.Cancel();
         _newHeightCts?.Dispose();
         _newHeightCts = new CancellationTokenSource();
-        Task.Run(
-            async () =>
+
+        Invoke(_newHeightCts.Token);
+
+        async void Invoke(CancellationToken cancellationToken)
+        {
+            await Task.Delay(_newHeightDelay, cancellationToken);
+
+            while (_blockchain.GetStateRootHash(e.Tip.Height) == default)
             {
-                await Task.Delay(_newHeightDelay, _newHeightCts.Token);
+                await Task.Delay(100, cancellationToken);
+            }
 
-                // Delay further until evaluation is ready.
-                while (_blockChain.GetStateRootHash(e.Tip.Height) == default)
-                {
-                    // FIXME: Maybe interval should be adjustable?
-                    await Task.Delay(100, _newHeightCts.Token);
-                }
-
-                if (!_newHeightCts.IsCancellationRequested)
-                {
-                    try
-                    {
-                        HandleEvidenceExceptions();
-                        AddEvidenceToBlockChain(e.Tip);
-                        NewHeight(e.Tip.Height + 1);
-                    }
-                    catch (Exception exc)
-                    {
-                        _logger.Error(
-                            exc,
-                            "Unexpected exception occurred during {FName}()",
-                            nameof(NewHeight));
-                    }
-                }
-                else
-                {
-                    _logger.Error(
-                        "Did not invoke {FName}() for height " +
-                        "#{Height} because cancellation is requested",
-                        nameof(NewHeight),
-                        e.Tip.Height + 1);
-                }
-            },
-            _newHeightCts.Token);
+            try
+            {
+                HandleEvidenceExceptions();
+                AddEvidenceToBlockChain(e.Tip);
+                await NewHeightAsync(e.Tip.Height + 1, cancellationToken);
+            }
+            catch (Exception exc)
+            {
+                // logging
+            }
+        }
     }
 
     private Context CreateContext(int height, BlockCommit lastCommit)
     {
-        var nextStateRootHash = _blockChain.GetStateRootHash(height - 1);
-        ImmutableSortedSet<Validator> validatorSet = _blockChain
-            .GetWorld(nextStateRootHash)
-            .GetValidators();
-
-        Context context = new Context(
-            _blockChain,
+        var stateRootHash = _blockchain.GetStateRootHash(height - 1);
+        var validators = _blockchain.GetWorld(stateRootHash).GetValidators();
+        var context = new Context(
+            _blockchain,
             height,
             lastCommit,
             _privateKey,
-            validatorSet,
+            validators,
             contextOption: _contextOption);
         return context;
     }
@@ -367,17 +304,14 @@ public partial class ConsensusContext : IDisposable
         {
             try
             {
-                var validatorSet = _blockChain.GetWorld(evidenceException.Height).GetValidators();
-                var evidenceContext = new EvidenceContext(validatorSet);
+                var validators = _blockchain.GetWorld(evidenceException.Height).GetValidators();
+                var evidenceContext = new EvidenceContext(validators);
                 var evidence = evidenceException.Create(evidenceContext);
-                _blockChain.PendingEvidences.Add(evidence);
+                _blockchain.PendingEvidences.Add(evidence);
             }
-            catch (Exception e)
+            catch
             {
-                _logger.Error(
-                    exception: e,
-                    messageTemplate: "Unexpected exception occurred during {FName}()",
-                    propertyValue: nameof(Blockchain.PendingEvidences));
+                // logging
             }
         }
     }

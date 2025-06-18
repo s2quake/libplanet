@@ -40,11 +40,9 @@ public sealed class RoutingTable
 
     public int Count => _buckets.Sum(bucket => bucket.Count);
 
-    public ImmutableArray<Peer> Peers
-        => NonEmptyBuckets.SelectMany(bucket => bucket.Peers).ToImmutableArray();
+    public ImmutableArray<Peer> Peers => [.. NonEmptyBuckets.SelectMany(bucket => bucket.Peers)];
 
-    public ImmutableArray<PeerState> PeerStates
-        => NonEmptyBuckets.SelectMany(bucket => bucket.PeerStates).ToImmutableArray();
+    public ImmutableArray<PeerState> PeerStates => [.. NonEmptyBuckets.SelectMany(bucket => bucket.PeerStates)];
 
     internal ImmutableArray<ImmutableArray<Peer>> CachesToCheck
     {
@@ -97,7 +95,6 @@ public sealed class RoutingTable
 
     public ImmutableArray<Peer> Neighbors(Address target, int k, bool includeTarget)
     {
-        // TODO: Should include static peers?
         var sorted = _buckets
             .Where(b => !b.IsEmpty)
             .SelectMany(b => b.Peers)
