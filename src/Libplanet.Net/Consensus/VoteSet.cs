@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
@@ -6,10 +7,10 @@ public class VoteSet(
     int height, int round, VoteFlag voteFlag, ImmutableSortedSet<Validator> validators)
 {
     private readonly object _lock = new();
-    private readonly Dictionary<Address, Vote> _votes = [];
+    private readonly ConcurrentDictionary<Address, Vote> _votes = [];
     private readonly Dictionary<BlockHash, BlockVotes> _votesByBlock = [];
     private readonly Dictionary<Address, BlockHash> _peerMaj23s = [];
-    private BlockHash? _maj23; // First 2/3 majority seen
+    private BlockHash? _maj23;
 
     public ImmutableSortedSet<Validator> Validators { get; } = validators;
 
@@ -67,35 +68,33 @@ public class VoteSet(
 
     public bool SetPeerMaj23(Maj23 maj23)
     {
-        // TODO: implement ability to remove peers too
         lock (_lock)
         {
-            var publicKey = maj23.Validator;
-            BlockHash blockHash = maj23.BlockHash;
+            var validator = maj23.Validator;
+            var blockHash = maj23.BlockHash;
 
-            // Make sure peer hasn't already told us something.
-            if (_peerMaj23s.ContainsKey(publicKey))
+            if (_peerMaj23s.TryGetValue(validator, out BlockHash hash))
             {
-                BlockHash hash = _peerMaj23s[publicKey];
                 if (hash.Equals(blockHash))
                 {
                     return false;
                 }
 
                 throw new InvalidMaj23Exception(
-                    $"Received conflicting BlockHash from peer {publicKey} " +
+                    $"Received conflicting BlockHash from peer {validator} " +
                     $"(Expected: {hash}, Actual: {blockHash})",
                     maj23);
             }
 
-            _peerMaj23s[publicKey] = blockHash;
+            _peerMaj23s[validator] = blockHash;
 
-            if (!_votesByBlock.ContainsKey(blockHash))
+            if (!_votesByBlock.TryGetValue(blockHash, out BlockVotes? value))
             {
-                _votesByBlock[blockHash] = new BlockVotes(blockHash);
+                value = new BlockVotes(blockHash);
+                _votesByBlock[blockHash] = value;
             }
 
-            BlockVotes votesByBlock = _votesByBlock[blockHash];
+            BlockVotes votesByBlock = value;
             if (votesByBlock.PeerMaj23)
             {
                 return false;
@@ -112,8 +111,7 @@ public class VoteSet(
     {
         lock (_lock)
         {
-            return Validators.Select(validator =>
-                 _votes.ContainsKey(validator.Address)).ToArray();
+            return [.. Validators.Select(validator => _votes.ContainsKey(validator.Address))];
         }
     }
 
@@ -127,12 +125,11 @@ public class VoteSet(
                     _votesByBlock[blockHash].Votes.ContainsKey(validator.Address)).ToArray();
             }
 
-            return Validators.Select(_ => false).ToArray();
+            return [.. Validators.Select(_ => false)];
         }
     }
 
-    public List<Vote> List()
-        => _votes.Values.OrderBy(vote => vote.Validator).ToList();
+    public List<Vote> List() => [.. _votes.Values.OrderBy(vote => vote.Validator)];
 
     public List<Vote> MappedList()
     {
@@ -142,19 +139,6 @@ public class VoteSet(
         }
 
         throw new NullReferenceException();
-    }
-
-    public Vote GetByPublicKey(Address publicKey)
-    {
-        lock (_lock)
-        {
-            if (_votes.ContainsKey(publicKey))
-            {
-                return _votes[publicKey];
-            }
-
-            throw new KeyNotFoundException(nameof(publicKey));
-        }
     }
 
     public bool HasTwoThirdsMajority()
@@ -233,51 +217,38 @@ public class VoteSet(
 
     internal void AddVote(Vote vote)
     {
-        if (vote.Round != round ||
-            vote.Flag != voteFlag)
+        if (vote.Round != round || vote.Flag != voteFlag)
         {
-            throw new InvalidVoteException(
-                "Round, flag of the vote mismatches",
-                vote);
+            throw new InvalidVoteException("Round, flag of the vote mismatches", vote);
         }
 
-        var validatorKey = vote.Validator;
-        BlockHash blockHash = vote.BlockHash;
-
-        Vote? conflicting = null;
+        var validator = vote.Validator;
+        var blockHash = vote.BlockHash;
 
         // Already exists in voteSet.votes?
-        if (_votes.ContainsKey(validatorKey))
+        if (_votes.TryGetValue(validator, out var oldVote))
         {
-            var existing = _votes[validatorKey];
-            if (existing.BlockHash.Equals(vote.BlockHash))
+            if (oldVote.BlockHash.Equals(vote.BlockHash))
             {
-                throw new InvalidVoteException(
-                    $"{nameof(AddVote)}() does not expect duplicate votes",
-                    vote);
-            }
-            else
-            {
-                conflicting = existing;
+                throw new InvalidVoteException($"{nameof(AddVote)}() does not expect duplicate votes", vote);
             }
 
             // Replace vote if blockKey matches voteSet.maj23.
-            if (_maj23 is { } maj23NotNull && maj23NotNull.Equals(blockHash))
+            if (Equals(_maj23, blockHash))
             {
-                _votes[validatorKey] = vote;
+                _votes[validator] = vote;
             }
 
             // Otherwise don't add it to voteSet.votes
         }
         else
         {
-            // Add to voteSet.votes and incr .sum
-            _votes[validatorKey] = vote;
+            _votes[validator] = vote;
         }
 
         if (_votesByBlock.ContainsKey(blockHash))
         {
-            if (!(conflicting is null) && !_votesByBlock[blockHash].PeerMaj23)
+            if (oldVote is not null && !_votesByBlock[blockHash].PeerMaj23)
             {
                 // There's a conflict and no peer claims that this block is special.
                 throw new InvalidVoteException(
@@ -290,13 +261,13 @@ public class VoteSet(
         else
         {
             // .votesByBlock doesn't exist...
-            if (!(conflicting is null))
+            if (oldVote is not null)
             {
                 // ... and there's a conflicting vote.
                 // We're not even tracking this blockKey, so just forget it.
                 throw new DuplicateVoteException(
                     message: "There's a conflicting vote",
-                    voteRef: conflicting,
+                    voteRef: oldVote,
                     voteDup: vote);
             }
 
@@ -314,7 +285,7 @@ public class VoteSet(
         BigInteger quorum = Validators.GetTwoThirdsPower() + 1;
 
         // Add vote to votesByBlock
-        votesByBlock.AddVerifiedVote(vote, Validators.GetValidator(validatorKey).Power);
+        votesByBlock.AddVerifiedVote(vote, Validators.GetValidator(validator).Power);
 
         // If we just crossed the quorum threshold and have 2/3 majority...
         if (origSum < quorum && quorum <= votesByBlock.Sum && _maj23 is null)
@@ -333,9 +304,9 @@ public class VoteSet(
     {
         public BlockHash BlockHash { get; } = blockHash;
 
-        public bool PeerMaj23 { get; set; } = false;
+        public bool PeerMaj23 { get; set; }
 
-        public Dictionary<Address, Vote> Votes { get; set; } = [];
+        public Dictionary<Address, Vote> Votes { get; } = [];
 
         public BigInteger Sum { get; set; } = BigInteger.Zero;
 
@@ -350,22 +321,18 @@ public class VoteSet(
             Sum += power;
         }
 
-        public List<Vote> MappedList(
-            int height, int round, ImmutableSortedSet<Validator> validatorSet)
-            =>
-            validatorSet.Select(item => item.Address).Select(
-                key => Votes.ContainsKey(key)
-                    ? Votes[key]
-                    : new VoteMetadata
-                    {
-                        Height = height,
-                        Round = round,
-                        BlockHash = BlockHash,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Validator = key,
-                        ValidatorPower = validatorSet.GetValidator(key).Power,
-                        Flag = VoteFlag.Null,
-                    }.Sign(null!))
+        public List<Vote> MappedList(int height, int round, ImmutableSortedSet<Validator> validatorSet)
+            => validatorSet.Select(item => item.Address).Select(
+                key => Votes.TryGetValue(key, out Vote? value) ? value : new VoteMetadata
+                {
+                    Height = height,
+                    Round = round,
+                    BlockHash = BlockHash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = key,
+                    ValidatorPower = validatorSet.GetValidator(key).Power,
+                    Flag = VoteFlag.Null,
+                }.Sign(null!))
                 .ToList();
     }
 }

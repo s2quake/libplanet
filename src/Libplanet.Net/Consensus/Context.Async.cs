@@ -141,7 +141,7 @@ public partial class Context
 
     private void AppendBlock(Block block)
     {
-        _ = Task.Run(() => _blockChain.Append(block, GetBlockCommit()));
+        _ = Task.Run(() => _blockchain.Append(block, GetBlockCommit()));
     }
 
     private async Task EnterPreCommitWait(int round, BlockHash hash)

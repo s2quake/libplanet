@@ -596,7 +596,7 @@ namespace Libplanet.Net.Tests.Consensus
                 BlockHash = blockB.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key1.Address,
-                Flag = VoteFlag.PreVote,
+                VoteFlag = VoteFlag.PreVote,
             }.Sign(key1);
             context.AddMaj23(maj23);
 
