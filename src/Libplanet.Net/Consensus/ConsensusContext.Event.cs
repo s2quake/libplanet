@@ -31,13 +31,11 @@ public partial class ConsensusContext
             MutationConsumed?.Invoke(this, (context.Height, action));
 
         // NOTE: Events for consensus logic.
-        context.HeightStarted += (sender, height) =>
-            _consensusMessageCommunicator.StartHeight(height);
-        context.RoundStarted += (sender, round) =>
-            _consensusMessageCommunicator.StartRound(round);
+        context.HeightStarted += (sender, height) => _messageCommunicator.StartHeight(height);
+        context.RoundStarted += (sender, round) => _messageCommunicator.StartRound(round);
         context.MessageToPublish += (sender, message) =>
         {
-            _consensusMessageCommunicator.PublishMessage(message);
+            _messageCommunicator.PublishMessage(message);
             MessagePublished?.Invoke(this, (context.Height, message));
         };
     }

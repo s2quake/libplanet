@@ -48,6 +48,8 @@ public sealed partial record class VoteMetadata : IValidatableObject
         return new Vote { Metadata = this, Signature = [.. signature] };
     }
 
+    public Vote WithoutSignature() => new() { Metadata = this, Signature = [] };
+
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
         if (BlockHash.Equals(default) && (Flag == VoteFlag.Null || Flag == VoteFlag.Unknown))

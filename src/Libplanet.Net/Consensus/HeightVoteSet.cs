@@ -1,5 +1,4 @@
 using Libplanet.Types;
-using Serilog;
 
 namespace Libplanet.Net.Consensus;
 
@@ -7,31 +6,28 @@ public class HeightVoteSet
 {
     private readonly object _lock;
     private int _height;
-    private ImmutableSortedSet<Validator> _validatorSet;
+    private ImmutableSortedSet<Validator> _validators;
     private Dictionary<int, RoundVoteSet> _roundVoteSets;
     private int _round;
 
-    public HeightVoteSet(int height, ImmutableSortedSet<Validator> validatorSet)
+    public HeightVoteSet(int height, ImmutableSortedSet<Validator> validators)
     {
         _lock = new object();
-        lock (_lock)
-        {
-            _height = height;
-            _validatorSet = validatorSet;
-            _roundVoteSets = new Dictionary<int, RoundVoteSet>();
-        }
+        _height = height;
+        _validators = validators;
+        _roundVoteSets = [];
 
-        Reset(height, validatorSet);
+        Reset(height, validators);
     }
 
     public int Count => _roundVoteSets.Values.Sum(v => v.Count);
 
-    public void Reset(int height, ImmutableSortedSet<Validator> validatorSet)
+    public void Reset(int height, ImmutableSortedSet<Validator> validators)
     {
         lock (_lock)
         {
             _height = height;
-            _validatorSet = validatorSet;
+            _validators = validators;
             _roundVoteSets = new Dictionary<int, RoundVoteSet>();
 
             AddRound(0);
@@ -87,8 +83,8 @@ public class HeightVoteSet
             throw new ArgumentException($"Add round for an existing round: {round}");
         }
 
-        VoteSet preVotes = new VoteSet(_height, round, VoteFlag.PreVote, _validatorSet);
-        VoteSet preCommits = new VoteSet(_height, round, VoteFlag.PreCommit, _validatorSet);
+        VoteSet preVotes = new VoteSet(_height, round, VoteFlag.PreVote, _validators);
+        VoteSet preCommits = new VoteSet(_height, round, VoteFlag.PreCommit, _validators);
         _roundVoteSets[round] = new RoundVoteSet(preVotes, preCommits);
     }
 
@@ -112,14 +108,14 @@ public class HeightVoteSet
                 throw new InvalidVoteException("ValidatorKey of the vote cannot be null", vote);
             }
 
-            if (!_validatorSet.Contains(validatorKey))
+            if (!_validators.Contains(validatorKey))
             {
                 throw new InvalidVoteException(
                     "ValidatorKey of the vote is not in the validator set",
                     vote);
             }
 
-            if (_validatorSet.GetValidator(validatorKey).Power != vote.ValidatorPower)
+            if (_validators.GetValidator(validatorKey).Power != vote.ValidatorPower)
             {
                 const string msg = "ValidatorPower of the vote is given and the value is " +
                                    "not the same with the one in the validator set";

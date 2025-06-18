@@ -7,7 +7,7 @@ public class VoteSet(
     int height, int round, VoteFlag voteFlag, ImmutableSortedSet<Validator> validators)
 {
     private readonly object _lock = new();
-    private readonly ConcurrentDictionary<Address, Vote> _votes = [];
+    private readonly VoteCollection _votes = [];
     private readonly Dictionary<BlockHash, BlockVotes> _votesByBlock = [];
     private readonly Dictionary<Address, BlockHash> _peerMaj23s = [];
     private BlockHash? _maj23;
@@ -321,8 +321,8 @@ public class VoteSet(
             Sum += power;
         }
 
-        public List<Vote> MappedList(int height, int round, ImmutableSortedSet<Validator> validatorSet)
-            => validatorSet.Select(item => item.Address).Select(
+        public List<Vote> MappedList(int height, int round, ImmutableSortedSet<Validator> validators)
+            => validators.Select(item => item.Address).Select(
                 key => Votes.TryGetValue(key, out Vote? value) ? value : new VoteMetadata
                 {
                     Height = height,
@@ -330,9 +330,9 @@ public class VoteSet(
                     BlockHash = BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key,
-                    ValidatorPower = validatorSet.GetValidator(key).Power,
+                    ValidatorPower = validators.GetValidator(key).Power,
                     Flag = VoteFlag.Null,
-                }.Sign(null!))
+                }.WithoutSignature())
                 .ToList();
     }
 }

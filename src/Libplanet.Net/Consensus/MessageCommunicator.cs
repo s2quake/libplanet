@@ -22,10 +22,7 @@ public sealed class MessageCommunicator
             ValidateMessageToReceive,
             ValidateMessageToSend,
             processMessage);
-        _height = 0;
-        _round = 0;
-        _peerCatchupRounds
-            = new ConcurrentDictionary<Peer, ImmutableHashSet<int>>();
+        _peerCatchupRounds = new ConcurrentDictionary<Peer, ImmutableHashSet<int>>();
     }
 
     internal Gossip Gossip { get; }
@@ -54,9 +51,9 @@ public sealed class MessageCommunicator
         }
     }
 
-    private void ValidateMessageToSend(IMessage content)
+    private void ValidateMessageToSend(IMessage message)
     {
-        if (content is ConsensusVoteMessage voteMsg)
+        if (message is ConsensusVoteMessage voteMsg)
         {
             if (voteMsg.Height != _height)
             {
