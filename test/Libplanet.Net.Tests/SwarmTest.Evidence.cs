@@ -55,7 +55,7 @@ namespace Libplanet.Net.Tests
                         swarms.Where((_, i) => i != index).Select(item => item.AsPeer)));
                 await Task.WhenAll(addPeerTasks);
 
-                var consensusContext = swarms[0].ConsensusReactor.ConsensusContext;
+                var consensusContext = swarms[0].ConsensusReactor;
                 var round = 0;
                 var height = 1;
                 var context = consensusContext.CurrentContext;
@@ -167,7 +167,7 @@ namespace Libplanet.Net.Tests
         }
 
         private static async Task WaitUntilStepAsync(
-            ConsensusContext consensusContext,
+            ConsensusReactor consensusContext,
             ConsensusStep consensusStep,
             CancellationToken cancellationToken)
         {

@@ -2,46 +2,118 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
+using Libplanet.State;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
 public sealed class ConsensusReactor : IAsyncDisposable
 {
     private readonly Gossip _gossip;
-    private readonly ConsensusContext _consensusContext;
+    private readonly object _contextLock = new();
+    private readonly ContextOptions _contextOption;
+    private readonly MessageCommunicator _messageCommunicator;
+    private readonly Blockchain _blockchain;
+    private readonly PrivateKey _privateKey;
+    private readonly TimeSpan _newHeightDelay;
+    private readonly HashSet<ConsensusMessage> _pendingMessages = [];
+    private readonly EvidenceExceptionCollector _evidenceCollector = new();
+    private readonly IDisposable _tipChangedSubscription;
+
+    private Context _currentContext;
+    private CancellationTokenSource? _newHeightCts;
     private bool _disposed;
 
     public ConsensusReactor(ITransport transport, Blockchain blockchain, ConsensusReactorOptions options)
     {
-        var messageCommunicator = new MessageCommunicator(
+        _messageCommunicator = new MessageCommunicator(
             transport,
             options.ConsensusPeers,
             options.SeedPeers,
             ProcessMessage);
-        _gossip = messageCommunicator.Gossip;
+        _gossip = _messageCommunicator.Gossip;
 
-        _consensusContext = new ConsensusContext(
-            messageCommunicator,
-            blockchain,
-            options.PrivateKey,
-            options.TargetBlockInterval,
-            options.ContextOptions);
+        _blockchain = blockchain;
+        _privateKey = options.PrivateKey;
+        _newHeightDelay = options.TargetBlockInterval;
+
+        _contextOption = options.ContextOptions;
+        _currentContext = CreateContext(
+            _blockchain.Tip.Height + 1,
+            _blockchain.BlockCommits[_blockchain.Tip.Height]);
+        AttachEventHandlers(_currentContext);
+
+        _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
+
+        // _consensusContext = new ConsensusContext(
+        //     messageCommunicator,
+        //     blockchain,
+        //     options.PrivateKey,
+        //     options.TargetBlockInterval,
+        //     options.ContextOptions);
+    }
+
+    public event EventHandler<(int Height, ConsensusMessage Message)>? MessagePublished;
+
+    internal event EventHandler<(int Height, Exception)>? ExceptionOccurred;
+
+    internal event EventHandler<(int Height, int Round, ConsensusStep Step)>? TimeoutProcessed;
+
+    internal event EventHandler<ContextState>? StateChanged;
+
+    internal event EventHandler<(int Height, ConsensusMessage Message)>? MessageConsumed;
+
+    internal event EventHandler<(int Height, System.Action)>? MutationConsumed;
+
+    private void AttachEventHandlers(Context context)
+    {
+        // NOTE: Events for testing and debugging.
+        context.ExceptionOccurred += (sender, exception) =>
+            ExceptionOccurred?.Invoke(this, (context.Height, exception));
+        context.TimeoutProcessed += (sender, eventArgs) =>
+            TimeoutProcessed?.Invoke(this, (context.Height, eventArgs.Round, eventArgs.Step));
+        context.StateChanged += (sender, eventArgs) =>
+            StateChanged?.Invoke(this, eventArgs);
+        context.MessageConsumed += (sender, message) =>
+            MessageConsumed?.Invoke(this, (context.Height, message));
+        context.MutationConsumed += (sender, action) =>
+            MutationConsumed?.Invoke(this, (context.Height, action));
+
+        // NOTE: Events for consensus logic.
+        context.HeightStarted += (sender, height) => _messageCommunicator.StartHeight(height);
+        context.RoundStarted += (sender, round) => _messageCommunicator.StartRound(round);
+        context.MessageToPublish += (sender, message) =>
+        {
+            _messageCommunicator.PublishMessage(message);
+            MessagePublished?.Invoke(this, (context.Height, message));
+        };
     }
 
     public bool IsRunning { get; private set; }
 
-    public int Height => _consensusContext.Height;
+    public int Height => CurrentContext.Height;
+
+    public int Round => CurrentContext.Round;
 
     public ImmutableArray<Peer> Validators => _gossip.Peers;
 
-    internal ConsensusContext ConsensusContext => _consensusContext;
+    // internal ConsensusContext ConsensusContext => _consensusContext;
 
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
         {
             await _gossip.DisposeAsync();
-            await _consensusContext.DisposeAsync();
+            if (_newHeightCts is not null)
+            {
+                await _newHeightCts.CancelAsync();
+            }
+
+            await _currentContext.DisposeAsync();
+
+            _newHeightCts?.Dispose();
+            _newHeightCts = null;
+            _tipChangedSubscription.Dispose();
             _disposed = true;
         }
     }
@@ -55,7 +127,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
 
         await _gossip.StartAsync(cancellationToken);
-        _consensusContext.Start();
+        _currentContext.Start();
+        // _consensusContext.Start();
         IsRunning = true;
     }
 
@@ -67,28 +140,289 @@ public sealed class ConsensusReactor : IAsyncDisposable
             throw new InvalidOperationException("Consensus reactor is not running.");
         }
 
-        await _consensusContext.DisposeAsync();
+        // await _consensusContext.DisposeAsync();
         await _gossip.StopAsync(cancellationToken);
         IsRunning = false;
     }
 
-    public override string ToString()
-    {
-        var dict =
-            JsonSerializer.Deserialize<Dictionary<string, object>>(
-                _consensusContext.ToString()) ?? new Dictionary<string, object>();
-        dict["peer"] = _gossip.AsPeer.ToString();
+    // public override string ToString()
+    // {
+    //     var dict =
+    //         JsonSerializer.Deserialize<Dictionary<string, object>>(
+    //             _consensusContext.ToString()) ?? new Dictionary<string, object>();
+    //     dict["peer"] = _gossip.AsPeer.ToString();
 
-        return JsonSerializer.Serialize(dict);
+    //     return JsonSerializer.Serialize(dict);
+    // }
+
+    public ConsensusStep Step => CurrentContext.Step;
+
+    internal Context CurrentContext
+    {
+        get
+        {
+            lock (_contextLock)
+            {
+                return _currentContext;
+            }
+        }
     }
 
+    // public void Start()
+    // {
+    //     if (IsRunning)
+    //     {
+    //         throw new InvalidOperationException(
+    //             $"Can only start {nameof(ConsensusContext)} if {nameof(IsRunning)} is {false}.");
+    //     }
+    //     else
+    //     {
+    //         lock (_contextLock)
+    //         {
+    //             IsRunning = true;
+    //             _currentContext.Start();
+    //         }
+    //     }
+    // }
+
+
+    // public async ValueTask DisposeAsync()
+    // {
+    //     if (!_disposed)
+    //     {
+    //         if (_newHeightCts is not null)
+    //         {
+    //             await _newHeightCts.CancelAsync();
+    //         }
+
+    //         await _currentContext.DisposeAsync();
+
+    //         _newHeightCts?.Dispose();
+    //         _newHeightCts = null;
+    //         _tipChangedSubscription.Dispose();
+    //         _disposed = true;
+    //     }
+    // }
+
+    public async Task NewHeightAsync(int height, CancellationToken cancellationToken)
+    {
+        if (height <= Height)
+        {
+            throw new InvalidHeightIncreasingException(
+                $"Given new height #{height} must be greater than " +
+                $"the current height #{Height}.");
+        }
+
+        var lastCommit = BlockCommit.Empty;
+        if (_currentContext.Height == height - 1 &&
+            _currentContext.GetBlockCommit() is { } prevCommit)
+        {
+            lastCommit = prevCommit;
+        }
+
+        if (lastCommit == default &&
+            _blockchain.BlockCommits[height - 1] is { } storedCommit)
+        {
+            lastCommit = storedCommit;
+        }
+
+        await _currentContext.DisposeAsync();
+        _currentContext = CreateContext(height, lastCommit);
+        AttachEventHandlers(_currentContext);
+
+        foreach (var message in _pendingMessages)
+        {
+            if (message.Height == height)
+            {
+                _currentContext.ProduceMessage(message);
+            }
+        }
+
+        _pendingMessages.RemoveWhere(message => message.Height <= height);
+        if (IsRunning)
+        {
+            _currentContext.Start();
+        }
+    }
+
+    public bool HandleMessage(ConsensusMessage consensusMessage)
+    {
+        int height = consensusMessage.Height;
+        if (height < Height)
+        {
+            return false;
+        }
+
+        lock (_contextLock)
+        {
+            if (_currentContext.Height == height)
+            {
+                _currentContext.ProduceMessage(consensusMessage);
+            }
+            else
+            {
+                _pendingMessages.Add(consensusMessage);
+            }
+
+            return true;
+        }
+    }
+
+    public VoteSetBits? HandleMaj23(Maj23 maj23)
+    {
+        int height = maj23.Height;
+        if (height < Height)
+        {
+        }
+        else
+        {
+            lock (_contextLock)
+            {
+                if (_currentContext.Height == height)
+                {
+                    return _currentContext.AddMaj23(maj23);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public IEnumerable<ConsensusMessage> HandleVoteSetBits(VoteSetBits voteSetBits)
+    {
+        int height = voteSetBits.Height;
+        if (height < Height)
+        {
+        }
+        else
+        {
+            lock (_contextLock)
+            {
+                if (_currentContext.Height == height)
+                {
+                    // NOTE: Should check if collected messages have same BlockHash with
+                    // VoteSetBit's BlockHash?
+                    return _currentContext.GetVoteSetBitsResponse(voteSetBits);
+                }
+            }
+        }
+
+        return Array.Empty<ConsensusMessage>();
+    }
+
+    public Proposal? HandleProposalClaim(ProposalClaim proposalClaim)
+    {
+        int height = proposalClaim.Height;
+        int round = proposalClaim.Round;
+        if (height != Height)
+        {
+            // logging
+        }
+        else if (round != Round)
+        {
+            // logging
+        }
+        else
+        {
+            lock (_contextLock)
+            {
+                if (_currentContext.Height == height)
+                {
+                    // NOTE: Should check if collected messages have same BlockHash with
+                    // VoteSetBit's BlockHash?
+                    return _currentContext.Proposal;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // public override string ToString()
+    // {
+    //     lock (_contextLock)
+    //     {
+    //         return _currentContext.ToString();
+    //     }
+    // }
+
+    private void OnTipChanged(TipChangedInfo e)
+    {
+        _newHeightCts?.Cancel();
+        _newHeightCts?.Dispose();
+        _newHeightCts = new CancellationTokenSource();
+
+        Invoke(_newHeightCts.Token);
+
+        async void Invoke(CancellationToken cancellationToken)
+        {
+            await Task.Delay(_newHeightDelay, cancellationToken);
+
+            while (_blockchain.GetStateRootHash(e.Tip.Height) == default)
+            {
+                await Task.Delay(100, cancellationToken);
+            }
+
+            try
+            {
+                HandleEvidenceExceptions();
+                AddEvidenceToBlockChain(e.Tip);
+                await NewHeightAsync(e.Tip.Height + 1, cancellationToken);
+            }
+            catch (Exception exc)
+            {
+                // logging
+            }
+        }
+    }
+
+    private Context CreateContext(int height, BlockCommit lastCommit)
+    {
+        var stateRootHash = _blockchain.GetStateRootHash(height - 1);
+        var validators = _blockchain.GetWorld(stateRootHash).GetValidators();
+        var context = new Context(
+            _blockchain,
+            height,
+            lastCommit,
+            _privateKey,
+            validators,
+            contextOption: _contextOption);
+        return context;
+    }
+
+    private void HandleEvidenceExceptions()
+    {
+        var evidenceExceptions = _currentContext.CollectEvidenceExceptions();
+        _evidenceCollector.AddRange(evidenceExceptions);
+    }
+
+    private void AddEvidenceToBlockChain(Block tip)
+    {
+        var height = tip.Height;
+        var evidenceExceptions
+            = _evidenceCollector.Flush().Where(item => item.Height <= height).ToArray();
+        foreach (var evidenceException in evidenceExceptions)
+        {
+            try
+            {
+                var validators = _blockchain.GetWorld(evidenceException.Height).GetValidators();
+                var evidenceContext = new EvidenceContext(validators);
+                var evidence = evidenceException.Create(evidenceContext);
+                _blockchain.PendingEvidences.Add(evidence);
+            }
+            catch
+            {
+                // logging
+            }
+        }
+    }
     private void ProcessMessage(IMessage message)
     {
         switch (message)
         {
             case ConsensusVoteSetBitsMessage voteSetBits:
                 // Note: ConsensusVoteSetBitsMsg will not be stored to context's message log.
-                var messages = _consensusContext.HandleVoteSetBits(voteSetBits.VoteSetBits);
+                var messages = HandleVoteSetBits(voteSetBits.VoteSetBits);
                 try
                 {
                     var sender = _gossip.Peers.First(
@@ -107,7 +441,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             case ConsensusMaj23Message maj23Message:
                 try
                 {
-                    VoteSetBits? voteSetBits = _consensusContext.HandleMaj23(maj23Message.Maj23);
+                    VoteSetBits? voteSetBits = HandleMaj23(maj23Message.Maj23);
                     if (voteSetBits is null)
                     {
                         break;
@@ -128,7 +462,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             case ConsensusProposalClaimMessage proposalClaimmessage:
                 try
                 {
-                    Proposal? proposal = _consensusContext.HandleProposalClaim(
+                    Proposal? proposal = HandleProposalClaim(
                         proposalClaimmessage.ProposalClaim);
                     if (proposal is { } proposalNotNull)
                     {
@@ -146,7 +480,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 break;
 
             case ConsensusMessage consensusMessage:
-                _consensusContext.HandleMessage(consensusMessage);
+                HandleMessage(consensusMessage);
                 break;
         }
     }

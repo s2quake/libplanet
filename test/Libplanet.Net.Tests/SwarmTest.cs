@@ -413,7 +413,7 @@ namespace Libplanet.Net.Tests
                 _ = swarms[0].StartAsync();
                 _ = swarms[3].StartAsync();
 
-                swarms[0].ConsensusReactor.ConsensusContext.StateChanged += (_, eventArgs) =>
+                swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
                 {
                     if (eventArgs.VoteCount == 2)
                     {
@@ -429,14 +429,14 @@ namespace Libplanet.Net.Tests
 
                 // Bring swarm[2] online.
                 _ = swarms[2].StartAsync();
-                swarms[0].ConsensusReactor.ConsensusContext.StateChanged += (_, eventArgs) =>
+                swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
                 {
                     if (eventArgs.Step == ConsensusStep.PreCommit)
                     {
                         stepChangedToPreCommits[0].Set();
                     }
                 };
-                swarms[2].ConsensusReactor.ConsensusContext.StateChanged += (_, eventArgs) =>
+                swarms[2].ConsensusReactor.StateChanged += (_, eventArgs) =>
                 {
                     if (eventArgs.Step == ConsensusStep.PreCommit)
                     {
@@ -456,7 +456,7 @@ namespace Libplanet.Net.Tests
                 // After swarm[1] comes online, eventually it'll catch up to vote PreCommit,
                 // at which point the round will move to 1 where swarm[2] is the proposer.
                 _ = swarms[1].StartAsync();
-                swarms[2].ConsensusReactor.ConsensusContext.MessagePublished += (_, eventArgs) =>
+                swarms[2].ConsensusReactor.MessagePublished += (_, eventArgs) =>
                 {
                     if (eventArgs.Message is ConsensusProposalMessage proposalMsg &&
                         proposalMsg.Round == 1 &&
