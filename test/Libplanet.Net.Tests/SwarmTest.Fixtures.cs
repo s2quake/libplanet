@@ -44,9 +44,8 @@ namespace Libplanet.Net.Tests
                     {
                         for (int j = 0; j < 5; j++)
                         {
-                            chain.StagedTransactions.Add(submission: new()
+                            chain.StagedTransactions.Add(signer, submission: new()
                             {
-                                Signer = signer.AsSigner(),
                                 Actions = [DumbAction.Create((address, $"Item{i}.{j}"))],
                             });
                         }

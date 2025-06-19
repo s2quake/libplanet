@@ -357,10 +357,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.CreateDummyBlockChain(
                     policy, blockChain.Genesis);
 
-            var invalidTx = diffPolicyBlockChain.StagedTransactions.Add(new TransactionSubmission
-            {
-                Signer = invalidKey.AsSigner(),
-            });
+            var invalidTx = diffPolicyBlockChain.StagedTransactions.Add(invalidKey);
 
             Block invalidBlock = Libplanet.Tests.TestUtils.ProposeNext(
                 blockChain.Genesis,

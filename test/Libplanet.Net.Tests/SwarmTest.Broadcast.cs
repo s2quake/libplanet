@@ -331,9 +331,8 @@ namespace Libplanet.Net.Tests
             var txCount = 10;
 
             var txs = Enumerable.Range(0, txCount).Select(_ =>
-                    chainA.StagedTransactions.Add(new TransactionSubmission
+                    chainA.StagedTransactions.Add(new PrivateKey(), new TransactionSubmission
                     {
-                        Signer = new PrivateKey().AsSigner(),
                         Actions = [DumbAction.Create((address, "foo"))],
                     }))
                 .ToArray();
@@ -523,14 +522,8 @@ namespace Libplanet.Net.Tests
 
             try
             {
-                var tx1 = swarmA.Blockchain.StagedTransactions.Add(submission: new()
-                {
-                    Signer = privateKey.AsSigner(),
-                });
-                var tx2 = swarmA.Blockchain.StagedTransactions.Add(submission: new()
-                {
-                    Signer = privateKey.AsSigner(),
-                });
+                var tx1 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
+                var tx2 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
                 Assert.Equal(0, tx1.Nonce);
                 Assert.Equal(1, tx2.Nonce);
 
@@ -562,14 +555,8 @@ namespace Libplanet.Net.Tests
                 Block block = chainB.ProposeBlock(keyB);
                 chainB.Append(block, TestUtils.CreateBlockCommit(block));
 
-                var tx3 = chainA.StagedTransactions.Add(submission: new()
-                {
-                    Signer = privateKey.AsSigner(),
-                });
-                var tx4 = chainA.StagedTransactions.Add(submission: new()
-                {
-                    Signer = privateKey.AsSigner(),
-                });
+                var tx3 = chainA.StagedTransactions.Add(privateKey);
+                var tx4 = chainA.StagedTransactions.Add(privateKey);
                 Assert.Equal(1, tx3.Nonce);
                 Assert.Equal(2, tx4.Nonce);
 
@@ -904,21 +891,18 @@ namespace Libplanet.Net.Tests
             var swarm1 = await CreateSwarm();
             var swarm2 = await CreateSwarm();
 
-            var tx1 = swarm2.Blockchain.StagedTransactions.Add(submission: new()
+            var tx1 = swarm2.Blockchain.StagedTransactions.Add(privateKey, submission: new()
             {
-                Signer = privateKey.AsSigner(),
                 Actions = [DumbAction.Create((address, "foo"))],
             });
 
-            var tx2 = swarm2.Blockchain.StagedTransactions.Add(submission: new()
+            var tx2 = swarm2.Blockchain.StagedTransactions.Add(privateKey, submission: new()
             {
-                Signer = privateKey.AsSigner(),
                 Actions = [DumbAction.Create((address, "bar"))],
             });
 
-            var tx3 = swarm2.Blockchain.StagedTransactions.Add(submission: new()
+            var tx3 = swarm2.Blockchain.StagedTransactions.Add(privateKey, submission: new()
             {
-                Signer = privateKey.AsSigner(),
                 Actions = [DumbAction.Create((address, "quz"))],
             });
 

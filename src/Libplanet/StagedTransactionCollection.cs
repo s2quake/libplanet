@@ -75,18 +75,18 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
         AddNonce(transaction);
     }
 
-    public Transaction Add(TransactionSubmission submission)
+    public Transaction Add(ISigner signer, TransactionSubmission submission)
     {
         var tx = new TransactionMetadata
         {
-            Nonce = GetNextTxNonce(submission.Signer.Address),
-            Signer = submission.Signer.Address,
+            Nonce = GetNextTxNonce(signer.Address),
+            Signer = signer.Address,
             GenesisHash = repository.GenesisBlockHash,
             Actions = submission.Actions.ToBytecodes(),
             Timestamp = submission.Timestamp,
             MaxGasPrice = submission.MaxGasPrice,
             GasLimit = submission.GasLimit,
-        }.Sign(submission.Signer);
+        }.Sign(signer);
 
         Add(tx);
         return tx;
