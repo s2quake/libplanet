@@ -64,30 +64,23 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private void AttachEventHandlers(Context context)
     {
         // NOTE: Events for testing and debugging.
-        context.ExceptionOccurred += (sender, exception) =>
-            ExceptionOccurred?.Invoke(this, (context.Height, exception));
+        context.ExceptionOccurred.Subscribe(exception => ExceptionOccurred?.Invoke(this, (context.Height, exception)));
         context.TimeoutProcessed += (sender, eventArgs) =>
             TimeoutProcessed?.Invoke(this, (context.Height, eventArgs.Round, eventArgs.Step));
-        context.StateChanged += (sender, eventArgs) =>
-            StateChanged?.Invoke(this, eventArgs);
+        context.StateChanged.Subscribe(state => StateChanged?.Invoke(this, state));
         context.MessageConsumed += (sender, message) =>
             MessageConsumed?.Invoke(this, (context.Height, message));
         context.MutationConsumed += (sender, action) =>
             MutationConsumed?.Invoke(this, (context.Height, action));
 
         // NOTE: Events for consensus logic.
-        context.HeightStarted += (sender, height) => _messageCommunicator.StartHeight(height);
-        context.RoundStarted += (sender, round) => _messageCommunicator.StartRound(round);
+        context.HeightStarted.Subscribe(_messageCommunicator.StartHeight);
+        context.RoundStarted.Subscribe(_messageCommunicator.StartRound);
         context.MessagePublished.Subscribe(message =>
         {
             _gossip.PublishMessage(message);
             MessagePublished?.Invoke(this, (context.Height, message));
         });
-        // context.MessageToPublish += (sender, message) =>
-        // {
-        //     _messageCommunicator.PublishMessage(message);
-        //     MessagePublished?.Invoke(this, (context.Height, message));
-        // };
     }
 
     public bool IsRunning { get; private set; }
@@ -126,7 +119,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
 
         await _gossip.StartAsync(cancellationToken);
-        _currentContext.Start();
+        await _currentContext.StartAsync(default);
         IsRunning = true;
     }
 
@@ -197,7 +190,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _pendingMessages.RemoveWhere(message => message.Height <= height);
         if (IsRunning)
         {
-            _currentContext.Start();
+            await _currentContext.StartAsync(default);
         }
     }
 

@@ -8,7 +8,7 @@ public partial class Context
     private void StartRound(int round)
     {
         Round = round;
-        RoundStarted?.Invoke(this, Round);
+        _roundStartedSubject.OnNext(round);
         _heightVoteSet.SetRound(round);
 
         Proposal = null;
@@ -27,7 +27,7 @@ public partial class Context
                     ValidRound = _validRound,
                 }.Sign(_signer);
 
-                PublishMessage(new ConsensusProposalMessage { Proposal = proposal });
+                _messagePublishedSubject.OnNext(new ConsensusProposalMessage { Proposal = proposal });
             }
             else
             {
@@ -42,20 +42,6 @@ public partial class Context
         }
     }
 
-    /// <summary>
-    /// Validates given <paramref name="message"/> and add it to the message log.
-    /// </summary>
-    /// <param name="message">A <see cref="ConsensusMessage"/> to be added.
-    /// </param>
-    /// <remarks>
-    /// If an invalid <see cref="ConsensusMessage"/> is given, this method throws
-    /// an <see cref="InvalidOperationException"/> and handles it <em>internally</em>
-    /// while invoking <see cref="ExceptionOccurred"/> event.
-    /// An <see cref="InvalidOperationException"/> can be thrown when
-    /// the internal <see cref="HeightVoteSet"/> does not accept it, i.e.
-    /// <see cref="HeightVoteSet.AddVote"/> returns <see langword="false"/>.
-    /// </remarks>
-    /// <seealso cref="HeightVoteSet.AddVote"/>
     private bool AddMessage(ConsensusMessage message)
     {
         try
@@ -105,34 +91,9 @@ public partial class Context
 
             return false;
         }
-        catch (InvalidProposalException ipe)
-        {
-            // var icme = new InvalidOperationException(
-            //     ipe.Message,
-            //     message);
-            // var msg = $"Failed to add invalid message {message} to the " +
-            //           $"{nameof(HeightVoteSet)}";
-            // _logger.Error(icme, msg);
-            ExceptionOccurred?.Invoke(this, ipe);
-            return false;
-        }
-        catch (InvalidVoteException ive)
-        {
-            // var icme = new InvalidOperationException(
-            //     ive.Message,
-            //     message);
-            // var msg = $"Failed to add invalid message {message} to the " +
-            //           $"{nameof(HeightVoteSet)}";
-            // _logger.Error(icme, msg);
-            ExceptionOccurred?.Invoke(this, ive);
-            return false;
-        }
         catch (Exception icme)
         {
-            // var msg = $"Failed to add invalid message {message} to the " +
-            //           $"{nameof(HeightVoteSet)}";
-            // _logger.Error(icme, msg);
-            ExceptionOccurred?.Invoke(this, icme);
+            _exceptionOccurredSubject.OnNext(icme);
             return false;
         }
     }
@@ -247,10 +208,10 @@ public partial class Context
             {
                 _lockedValue = p3.Block;
                 _lockedRound = Round;
-                _ = EnterPreCommitWait(Round, p3.Block.BlockHash);
+                _ = EnterPreCommitWait(Round, p3.Block.BlockHash, default);
 
                 // Maybe need to broadcast periodically?
-                PublishMessage(
+                _messagePublishedSubject.OnNext(
                     new ConsensusMaj23Message
                     {
                         Maj23 = MakeMaj23(Round, p3.Block.BlockHash, VoteFlag.PreVote),
@@ -266,14 +227,14 @@ public partial class Context
         {
             if (hash3.Equals(default))
             {
-                _ = EnterPreCommitWait(Round, default);
+                _ = EnterPreCommitWait(Round, default, default);
             }
             else if (Proposal is { } proposal && !proposal.BlockHash.Equals(hash3))
             {
                 // +2/3 votes were collected and is not equal to proposal's,
                 // remove invalid proposal.
                 Proposal = null;
-                PublishMessage(
+                _messagePublishedSubject.OnNext(
                     new ConsensusProposalClaimMessage
                     {
                         ProposalClaim = new ProposalClaimMetadata
@@ -294,12 +255,6 @@ public partial class Context
         }
     }
 
-    /// <summary>
-    /// Checks the current state to mutate <see cref="Round"/> or to terminate
-    /// by setting <see cref="ConsensusStep"/> to <see cref="ConsensusStep.EndCommit"/>.
-    /// </summary>
-    /// <param name="message">The <see cref="ConsensusMessage"/> to process.
-    /// Although this is not strictly needed, this is used for optimization.</param>
     private void ProcessHeightOrRoundUponRules(ConsensusMessage message)
     {
         if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
@@ -318,12 +273,12 @@ public partial class Context
             _committedRound = round;
 
             // Maybe need to broadcast periodically?
-            PublishMessage(
+            _messagePublishedSubject.OnNext(
                 new ConsensusMaj23Message
                 {
                     Maj23 = MakeMaj23(round, block4.BlockHash, VoteFlag.PreCommit),
                 });
-            _ = EnterEndCommitWait(Round);
+            _ = EnterEndCommitWait(Round, default);
             return;
         }
 
@@ -346,7 +301,7 @@ public partial class Context
         }
 
         Step = ConsensusStep.PreVote;
-        PublishMessage(
+        _messagePublishedSubject.OnNext(
             new ConsensusPreVoteMessage { PreVote = MakeVote(round, blockHash, VoteFlag.PreVote) });
     }
 
@@ -359,7 +314,7 @@ public partial class Context
         }
 
         Step = ConsensusStep.PreCommit;
-        PublishMessage(
+        _messagePublishedSubject.OnNext(
             new ConsensusPreCommitMessage { PreCommit = MakeVote(round, hash, VoteFlag.PreCommit) });
     }
 
@@ -387,7 +342,7 @@ public partial class Context
         }
         catch (Exception e)
         {
-            ExceptionOccurred?.Invoke(this, e);
+            _exceptionOccurredSubject.OnNext(e);
             return;
         }
     }
@@ -401,12 +356,6 @@ public partial class Context
         }
     }
 
-    /// <summary>
-    /// A timeout mutation to run if +2/3 <see cref="ConsensusPreVoteMessage"/>s were received but
-    /// is still in <paramref name="round"/> round and <see cref="ConsensusStep.PreVote"/> step
-    /// after <see cref="TimeoutPreVote"/>.
-    /// </summary>
-    /// <param name="round">A round that the timeout task is scheduled for.</param>
     private void ProcessTimeoutPreVote(int round)
     {
         if (round == Round && Step == ConsensusStep.PreVote)
@@ -416,12 +365,6 @@ public partial class Context
         }
     }
 
-    /// <summary>
-    /// A timeout mutation to run if +2/3 <see cref="ConsensusPreCommitMessage"/>s were received but
-    /// is still in <paramref name="round"/> round and <see cref="ConsensusStep.PreCommit"/>
-    /// step after <see cref="TimeoutPreCommit"/>.
-    /// </summary>
-    /// <param name="round">A round that the timeout task is scheduled for.</param>
     private void ProcessTimeoutPreCommit(int round)
     {
         if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)

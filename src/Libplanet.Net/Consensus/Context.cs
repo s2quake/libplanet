@@ -15,7 +15,11 @@ public partial class Context : IAsyncDisposable
 {
     private readonly ContextOptions _contextOptions;
 
+    private readonly Subject<int> _heightStartedSubject = new();
+    private readonly Subject<int> _roundStartedSubject = new();
     private readonly Subject<ConsensusMessage> _messagePublishedSubject = new();
+    private readonly Subject<Exception> _exceptionOccurredSubject = new();
+    private readonly Subject<ContextState> _stateChangedSubject = new();
 
     private readonly Blockchain _blockchain;
     private readonly ImmutableSortedSet<Validator> _validators;
@@ -72,21 +76,21 @@ public partial class Context : IAsyncDisposable
         _contextOptions = contextOption ?? new ContextOptions();
     }
 
-    internal event EventHandler<int>? HeightStarted;
+    public IObservable<int> HeightStarted => _heightStartedSubject;
 
-    internal event EventHandler<int>? RoundStarted;
+    public IObservable<int> RoundStarted => _roundStartedSubject;
 
     public IObservable<ConsensusMessage> MessagePublished => _messagePublishedSubject;
 
-    internal event EventHandler<Exception>? ExceptionOccurred;
+    public IObservable<Exception> ExceptionOccurred => _exceptionOccurredSubject;
 
     internal event EventHandler<(int Round, ConsensusStep Step)>? TimeoutProcessed;
 
-    internal event EventHandler<ContextState>? StateChanged;
+    public IObservable<ContextState> StateChanged => _stateChangedSubject;
 
     internal event EventHandler<ConsensusMessage>? MessageConsumed;
 
-    internal event EventHandler<System.Action>? MutationConsumed;
+    internal event EventHandler<Action>? MutationConsumed;
 
     internal event EventHandler<(int Round, VoteFlag Flag, IEnumerable<Vote> Votes)>? VoteSetModified;
 
@@ -180,7 +184,7 @@ public partial class Context : IAsyncDisposable
         }
         catch (InvalidMaj23Exception ime)
         {
-            ExceptionOccurred?.Invoke(this, ime);
+            _exceptionOccurredSubject.OnNext(ime);
             return null;
         }
     }
@@ -251,11 +255,6 @@ public partial class Context : IAsyncDisposable
     private Block GetValue()
     {
         return _blockchain.ProposeBlock(_signer);
-    }
-
-    private void PublishMessage(ConsensusMessage message)
-    {
-        _messagePublishedSubject.OnNext(message);
     }
 
     private bool IsValid(Block block)

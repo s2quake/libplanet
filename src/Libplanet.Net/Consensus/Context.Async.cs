@@ -7,7 +7,7 @@ namespace Libplanet.Net.Consensus;
 
 public partial class Context
 {
-    public void Start()
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         if (Step != ConsensusStep.Default)
         {
@@ -16,8 +16,8 @@ public partial class Context
                 $"but its current step is {Step}");
         }
 
-        HeightStarted?.Invoke(this, Height);
-        ProduceMutation(() => StartRound(0));
+        _heightStartedSubject.OnNext(Height);
+        await ProduceMutationAsync(() => StartRound(0), _cancellationTokenSource.Token);
 
         // FIXME: Exceptions inside tasks should be handled properly.
         _ = MessageConsumerTask(_cancellationTokenSource.Token);
@@ -26,20 +26,15 @@ public partial class Context
 
     internal async Task MessageConsumerTask(CancellationToken cancellationToken)
     {
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
                 await ConsumeMessage(cancellationToken);
             }
-            catch (OperationCanceledException oce)
-            {
-                ExceptionOccurred?.Invoke(this, oce);
-                throw;
-            }
             catch (Exception e)
             {
-                ExceptionOccurred?.Invoke(this, e);
+                _exceptionOccurredSubject.OnNext(e);
                 throw;
             }
         }
@@ -55,7 +50,7 @@ public partial class Context
             }
             catch (OperationCanceledException oce)
             {
-                ExceptionOccurred?.Invoke(this, oce);
+                _exceptionOccurredSubject.OnNext(oce);
                 throw;
             }
             catch (EvidenceException e)
@@ -64,7 +59,7 @@ public partial class Context
             }
             catch (Exception e)
             {
-                ExceptionOccurred?.Invoke(this, e);
+                _exceptionOccurredSubject.OnNext(e);
                 throw;
             }
         }
@@ -75,21 +70,21 @@ public partial class Context
         _messageRequests.Writer.WriteAsync(message);
     }
 
-    private void ProduceMutation(System.Action mutation)
+    private ValueTask ProduceMutationAsync(Action mutation, CancellationToken cancellationToken)
     {
-        _mutationRequests.Writer.WriteAsync(mutation);
+        return _mutationRequests.Writer.WriteAsync(mutation, cancellationToken);
     }
 
     private async Task ConsumeMessage(CancellationToken cancellationToken)
     {
-        ConsensusMessage message = await _messageRequests.Reader.ReadAsync(cancellationToken);
-        ProduceMutation(() =>
+        var message = await _messageRequests.Reader.ReadAsync(cancellationToken);
+        await ProduceMutationAsync(() =>
         {
             if (AddMessage(message))
             {
                 ProcessHeightOrRoundUponRules(message);
             }
-        });
+        }, cancellationToken);
 
         MessageConsumed?.Invoke(this, message);
     }
@@ -116,7 +111,7 @@ public partial class Context
         };
         while (!prevState.Equals(nextState))
         {
-            StateChanged?.Invoke(this, nextState);
+            _stateChangedSubject.OnNext(nextState);
             prevState = new ContextState
             {
                 VoteCount = _heightVoteSet.Count,
@@ -144,7 +139,7 @@ public partial class Context
         _ = Task.Run(() => _blockchain.Append(block, GetBlockCommit()));
     }
 
-    private async Task EnterPreCommitWait(int round, BlockHash hash)
+    private async Task EnterPreCommitWait(int round, BlockHash hash, CancellationToken cancellationToken)
     {
         if (!_preCommitWaitFlags.Add(round))
         {
@@ -158,10 +153,10 @@ public partial class Context
                 _cancellationTokenSource.Token);
         }
 
-        ProduceMutation(() => EnterPreCommit(round, hash));
+        await ProduceMutationAsync(() => EnterPreCommit(round, hash), cancellationToken);
     }
 
-    private async Task EnterEndCommitWait(int round)
+    private async Task EnterEndCommitWait(int round, CancellationToken cancellationToken)
     {
         if (!_endCommitWaitFlags.Add(round))
         {
@@ -175,14 +170,14 @@ public partial class Context
                 _cancellationTokenSource.Token);
         }
 
-        ProduceMutation(() => EnterEndCommit(round));
+        await ProduceMutationAsync(() => EnterEndCommit(round), cancellationToken);
     }
 
     private async Task OnTimeoutPropose(int round)
     {
         TimeSpan timeout = TimeoutPropose(round);
         await Task.Delay(timeout, _cancellationTokenSource.Token);
-        ProduceMutation(() => ProcessTimeoutPropose(round));
+        await ProduceMutationAsync(() => ProcessTimeoutPropose(round), _cancellationTokenSource.Token);
     }
 
     private async Task OnTimeoutPreVote(int round)
@@ -194,7 +189,7 @@ public partial class Context
 
         TimeSpan timeout = TimeoutPreVote(round);
         await Task.Delay(timeout, _cancellationTokenSource.Token);
-        ProduceMutation(() => ProcessTimeoutPreVote(round));
+        await ProduceMutationAsync(() => ProcessTimeoutPreVote(round), _cancellationTokenSource.Token);
     }
 
     private async Task OnTimeoutPreCommit(int round)
@@ -206,6 +201,6 @@ public partial class Context
 
         TimeSpan timeout = TimeoutPreCommit(round);
         await Task.Delay(timeout, _cancellationTokenSource.Token);
-        ProduceMutation(() => ProcessTimeoutPreCommit(round));
+        await ProduceMutationAsync(() => ProcessTimeoutPreCommit(round), _cancellationTokenSource.Token);
     }
 }
