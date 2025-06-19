@@ -49,7 +49,7 @@ namespace Libplanet.Net.Tests.Consensus
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
             var block = blockChain.ProposeBlock(privateKeys[1]);
             var blockCommit = TestUtils.CreateBlockCommit(block);
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             blockChain.Append(block, blockCommit);
             block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -144,7 +144,7 @@ namespace Libplanet.Net.Tests.Consensus
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
             var block = blockChain.ProposeBlock(privateKeys[1]);
             var blockCommit = TestUtils.CreateBlockCommit(block);
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             blockChain.Append(block, blockCommit);
             block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -217,7 +217,7 @@ namespace Libplanet.Net.Tests.Consensus
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
             var block = blockChain.ProposeBlock(privateKeys[1]);
             var blockCommit = TestUtils.CreateBlockCommit(block);
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             blockChain.Append(block, blockCommit);
             block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -290,7 +290,7 @@ namespace Libplanet.Net.Tests.Consensus
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
             var block = blockChain.ProposeBlock(privateKeys[1]);
             var blockCommit = TestUtils.CreateBlockCommit(block);
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             blockChain.Append(block, blockCommit);
             block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -363,7 +363,7 @@ namespace Libplanet.Net.Tests.Consensus
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
             var block = blockChain.ProposeBlock(privateKeys[1]);
             var blockCommit = TestUtils.CreateBlockCommit(block);
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             blockChain.Append(block, blockCommit);
             block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -436,7 +436,7 @@ namespace Libplanet.Net.Tests.Consensus
                 cancellationToken: new CancellationTokenSource(Timeout).Token);
             var block = blockChain.ProposeBlock(privateKeys[1]);
             var blockCommit = TestUtils.CreateBlockCommit(block);
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             blockChain.Append(block, blockCommit);
             block = blockChain.ProposeBlock(privateKeys[2]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));

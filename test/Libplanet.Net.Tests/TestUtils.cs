@@ -124,7 +124,7 @@ namespace Libplanet.Net.Tests
             Libplanet.Tests.TestUtils.CreateBlockCommit(blockHash, height, round);
 
         public static void HandleFourPeersPreCommitMessages(
-            ConsensusContext consensusContext,
+            ConsensusReactor consensusContext,
             PrivateKey nodePrivateKey,
             BlockHash roundBlockHash)
         {
@@ -220,7 +220,7 @@ namespace Libplanet.Net.Tests
         }
 
         public static void HandleFourPeersPreVoteMessages(
-            ConsensusContext consensusContext,
+            ConsensusReactor consensusContext,
             PrivateKey nodePrivateKey,
             BlockHash roundBlockHash)
         {
@@ -251,7 +251,7 @@ namespace Libplanet.Net.Tests
             }
         }
 
-        public static (Blockchain BlockChain, ConsensusContext ConsensusContext)
+        public static (Blockchain BlockChain, ConsensusReactor ConsensusContext)
             CreateDummyConsensusContext(
                 TimeSpan newHeightDelay,
                 BlockchainOptions? policy = null,
@@ -260,7 +260,7 @@ namespace Libplanet.Net.Tests
         {
             policy ??= Options;
             var blockChain = CreateDummyBlockChain(policy);
-            ConsensusContext? consensusContext = null;
+            ConsensusReactor? consensusContext = null;
 
             privateKey ??= PrivateKeys[1];
 
@@ -271,12 +271,12 @@ namespace Libplanet.Net.Tests
                     consensusContext!.HandleMessage(message);
                 });
 
-            consensusContext = new ConsensusContext(
-                null,
-                blockChain,
-                privateKey,
-                newHeightDelay,
-                contextOption ?? new ContextOptions());
+            // consensusContext = new ConsensusReactor(
+            //     null,
+            //     blockChain,
+            //     privateKey,
+            //     newHeightDelay,
+            //     contextOption ?? new ContextOptions());
 
             return (blockChain, consensusContext);
         }

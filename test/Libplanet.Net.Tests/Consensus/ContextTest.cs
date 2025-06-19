@@ -669,12 +669,11 @@ namespace Libplanet.Net.Tests.Consensus
             var fx = new MemoryRepositoryFixture();
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(fx.Options);
 
-            var consensusContext = new ConsensusContext(
+
+            var consensusContext = new ConsensusReactor(
                 null,
                 blockChain,
-                TestUtils.PrivateKeys[0],
-                newHeightDelay,
-                new ContextOptions());
+                new ConsensusReactorOptions { PrivateKey = new PrivateKey() });
             Context context = consensusContext.CurrentContext;
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 
@@ -704,7 +703,7 @@ namespace Libplanet.Net.Tests.Consensus
             blockChain.StagedTransactions.Add(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             context.ProduceMessage(
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]));
 
