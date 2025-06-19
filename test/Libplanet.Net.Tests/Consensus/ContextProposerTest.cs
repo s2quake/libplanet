@@ -43,14 +43,14 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreCommit.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreCommitMessage preCommitMsg)
                 {
                     preCommit = preCommitMsg;
                     preCommitSent.Set();
                 }
-            };
+            });
 
             context.Start();
             context.ProduceMessage(
@@ -111,7 +111,7 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreCommit.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -123,7 +123,7 @@ namespace Libplanet.Net.Tests.Consensus
                     preCommit = preCommitMsg;
                     preCommitSent.Set();
                 }
-            };
+            });
 
             context.Start();
 
@@ -248,14 +248,14 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToEndCommit.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();
                 }
-            };
+            });
 
             context.Start();
 
@@ -298,13 +298,13 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreVote.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
                 {
                     nilPreVoteSent.Set();
                 }
-            };
+            });
 
             context.Start();
             await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
@@ -330,7 +330,7 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreVote.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -342,7 +342,7 @@ namespace Libplanet.Net.Tests.Consensus
                     preVote = preVoteMsg;
                     preVoteSent.Set();
                 }
-            };
+            });
 
             context.Start();
             await proposalSent.WaitAsync();
@@ -378,7 +378,7 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 2,
                 lastCommit: block2Commit,
                 validatorSet: TestUtils.Validators);
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -390,7 +390,7 @@ namespace Libplanet.Net.Tests.Consensus
                     preVote = preVoteMsg;
                     preVoteSent.Set();
                 }
-            };
+            });
 
             Assert.Equal(
                 TestUtils.PrivateKeys[2].Address,

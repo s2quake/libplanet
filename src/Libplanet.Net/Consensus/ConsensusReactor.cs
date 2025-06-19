@@ -40,7 +40,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _contextOption = options.ContextOptions;
         _currentContext = new Context(
             _blockchain,
-            _gossip,
             _blockchain.Tip.Height + 1,
             _blockchain.BlockCommits[_blockchain.Tip.Height],
             _privateKey.AsSigner(),
@@ -79,6 +78,11 @@ public sealed class ConsensusReactor : IAsyncDisposable
         // NOTE: Events for consensus logic.
         context.HeightStarted += (sender, height) => _messageCommunicator.StartHeight(height);
         context.RoundStarted += (sender, round) => _messageCommunicator.StartRound(round);
+        context.MessagePublished.Subscribe(message =>
+        {
+            _gossip.PublishMessage(message);
+            MessagePublished?.Invoke(this, (context.Height, message));
+        });
         // context.MessageToPublish += (sender, message) =>
         // {
         //     _messageCommunicator.PublishMessage(message);
@@ -176,7 +180,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         await _currentContext.DisposeAsync();
         _currentContext = new Context(
             _blockchain,
-            _gossip,
             height,
             lastCommit,
             _privateKey.AsSigner(),

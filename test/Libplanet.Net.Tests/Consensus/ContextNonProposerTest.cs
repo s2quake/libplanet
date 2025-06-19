@@ -99,14 +99,14 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreCommit.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreCommitMessage preCommitMsg)
                 {
                     preCommit = preCommitMsg;
                     preCommitSent.Set();
                 }
-            };
+            });
 
             context.Start();
             context.ProduceMessage(
@@ -190,14 +190,14 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreCommit.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreCommitMessage preCommitMsg &&
                     preCommitMsg.BlockHash.Equals(default))
                 {
                     preCommitSent.Set();
                 }
-            };
+            });
 
             context.Start();
             context.ProduceMessage(
@@ -262,13 +262,13 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 timeoutProcessed = true;
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
                 {
                     nilPreVoteSent.Set();
                 }
-            };
+            });
 
             // 1. ProtocolVersion should be matched.
             // 2. Index should be increased monotonically.
@@ -345,13 +345,13 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 timeoutProcessed = true;
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
                 {
                     nilPreVoteSent.Set();
                 }
-            };
+            });
 
             var diffPolicyBlockChain =
                 TestUtils.CreateDummyBlockChain(
@@ -417,7 +417,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 timeoutProcessed = true;
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
                 {
@@ -429,7 +429,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     nilPreCommitSent.Set();
                 }
-            };
+            });
 
             using var fx = new MemoryRepositoryFixture();
 
@@ -589,13 +589,13 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreVote.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreVoteMessage)
                 {
                     preVoteSent.Set();
                 }
-            };
+            });
 
             context.Start();
             await Task.WhenAll(preVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());

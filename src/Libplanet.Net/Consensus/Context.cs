@@ -1,3 +1,4 @@
+using System.Reactive.Subjects;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
@@ -14,8 +15,9 @@ public partial class Context : IAsyncDisposable
 {
     private readonly ContextOptions _contextOptions;
 
+    private readonly Subject<ConsensusMessage> _messagePublishedSubject = new();
+
     private readonly Blockchain _blockchain;
-    private readonly Gossip _gossip;
     private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Channel<ConsensusMessage> _messageRequests;
     private readonly Channel<Action> _mutationRequests;
@@ -43,7 +45,6 @@ public partial class Context : IAsyncDisposable
 
     public Context(
         Blockchain blockchain,
-        Gossip gossip,
         int height,
         BlockCommit previousCommit,
         ISigner signer,
@@ -59,7 +60,6 @@ public partial class Context : IAsyncDisposable
         Height = height;
         _lastCommit = previousCommit;
         _blockchain = blockchain;
-        _gossip = gossip;
         _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
         _mutationRequests = Channel.CreateUnbounded<System.Action>();
         _validators = blockchain.GetValidators(height - 1);
@@ -75,6 +75,8 @@ public partial class Context : IAsyncDisposable
     internal event EventHandler<int>? HeightStarted;
 
     internal event EventHandler<int>? RoundStarted;
+
+    public IObservable<ConsensusMessage> MessagePublished => _messagePublishedSubject;
 
     internal event EventHandler<Exception>? ExceptionOccurred;
 
@@ -253,7 +255,7 @@ public partial class Context : IAsyncDisposable
 
     private void PublishMessage(ConsensusMessage message)
     {
-        _gossip.PublishMessage(message);
+        _messagePublishedSubject.OnNext(message);
     }
 
     private bool IsValid(Block block)
