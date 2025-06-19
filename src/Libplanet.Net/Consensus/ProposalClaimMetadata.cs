@@ -26,7 +26,7 @@ public sealed partial record class ProposalClaimMetadata
     [NotDefault]
     public Address Validator { get; init; }
 
-    public ProposalClaim Sign(PrivateKey signer)
+    public ProposalClaim Sign(ISigner signer)
     {
         var options = new ModelOptions
         {

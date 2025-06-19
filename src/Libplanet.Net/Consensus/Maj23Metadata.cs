@@ -30,7 +30,7 @@ public sealed partial record class Maj23Metadata
     [DisallowedEnumValues(VoteFlag.Null, VoteFlag.Unknown)]
     public VoteFlag VoteFlag { get; init; }
 
-    public Maj23 Sign(PrivateKey signer)
+    public Maj23 Sign(ISigner signer)
     {
         var options = new ModelOptions
         {

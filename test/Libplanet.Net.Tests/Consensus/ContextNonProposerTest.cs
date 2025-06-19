@@ -12,6 +12,7 @@ using Serilog;
 using Xunit.Abstractions;
 using Libplanet.Types.Tests;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Net.Tests.Consensus
 {
@@ -358,7 +359,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var invalidTx = diffPolicyBlockChain.StagedTransactions.Add(new TransactionSubmission
             {
-                Signer = invalidKey,
+                Signer = invalidKey.AsSigner(),
             });
 
             Block invalidBlock = Libplanet.Tests.TestUtils.ProposeNext(

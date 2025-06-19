@@ -7,9 +7,11 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Random = System.Random;
+using Libplanet.Types.Tests;
 
 namespace Libplanet.Net.Tests
 {
@@ -295,7 +297,7 @@ namespace Libplanet.Net.Tests
                 blockChain,
                 height,
                 lastCommit ?? default,
-                privateKey,
+                privateKey.AsSigner(),
                 contextOption: contextOption ?? new ContextOptions());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
             return context;
@@ -319,7 +321,7 @@ namespace Libplanet.Net.Tests
                 blockChain,
                 height,
                 lastCommit ?? BlockCommit.Empty,
-                privateKey,
+                privateKey.AsSigner(),
                 contextOption: contextOption ?? new ContextOptions());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 
@@ -344,7 +346,7 @@ namespace Libplanet.Net.Tests
                 Host = host,
                 Port = consensusPort,
             };
-            var consensusTransport = new NetMQTransport(key, transportOption);
+            var consensusTransport = new NetMQTransport(key.AsSigner(), transportOption);
             var consensusReactorOptions = new ConsensusReactorOptions
             {
                 ConsensusPeers = validatorPeers.ToImmutableArray(),

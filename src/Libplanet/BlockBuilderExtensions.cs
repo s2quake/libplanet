@@ -5,7 +5,7 @@ namespace Libplanet;
 
 public static class BlockBuilderExtensions
 {
-    public static Block Create(this BlockBuilder @this, PrivateKey proposer, Blockchain blockchain)
+    public static Block Create(this BlockBuilder @this, ISigner proposer, Blockchain blockchain)
     {
         var tipInfo = blockchain.TipInfo;
         var builder = @this with
@@ -18,7 +18,7 @@ public static class BlockBuilderExtensions
         return builder.Create(proposer);
     }
 
-    public static Block Create(this BlockBuilder @this, PrivateKey proposer, Repository repository)
+    public static Block Create(this BlockBuilder @this, ISigner proposer, Repository repository)
     {
         var builder = @this with
         {

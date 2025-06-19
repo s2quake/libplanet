@@ -11,6 +11,8 @@ internal sealed class RandomPrivateKey
 
     public Address Address => _privateKey.PublicKey.Address;
 
+    public ISigner Signer => new RelaySigner(_privateKey);
+
     public static implicit operator PrivateKey(RandomPrivateKey randomPrivateKey)
         => randomPrivateKey._privateKey;
 

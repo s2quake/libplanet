@@ -9,6 +9,7 @@ using static Libplanet.Tests.TestUtils;
 using Random = System.Random;
 using Libplanet.Types.Tests;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -78,7 +79,7 @@ public partial class BlockChainTest
             _blockChain.StagedTransactions.Add(heavyTx);
         }
 
-        Block block4 = _blockChain.ProposeBlock(proposer: new PrivateKey());
+        Block block4 = _blockChain.ProposeBlock(proposer: new PrivateKey().AsSigner());
         Assert.False(_blockChain.Blocks.ContainsKey(block4.BlockHash));
         _logger.Debug(
             $"{nameof(block4)}: {0} bytes",
@@ -503,7 +504,7 @@ public partial class BlockChainTest
 
         blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey1,
+            Signer = privateKey1.AsSigner(),
             Actions = [DumbAction.Create((address1, "bar"))],
         });
         block = blockChain.ProposeBlock(privateKey1);

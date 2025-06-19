@@ -355,7 +355,9 @@ namespace Libplanet.Net.Tests.Consensus
                 Port = port ?? 0,
             };
 
-            return new NetMQTransport(privateKey ?? new PrivateKey(), options);
+            privateKey ??= new PrivateKey();
+
+            return new NetMQTransport(privateKey.AsSigner(), options);
         }
     }
 }

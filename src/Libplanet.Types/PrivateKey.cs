@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Libplanet.Types.Crypto;
 using Secp256k1Net;
 
@@ -98,6 +97,8 @@ public sealed record class PrivateKey(in ImmutableArray<byte> Bytes) : IEquatabl
             return new SymmetricKey(secret);
         }
     }
+
+    public ISigner AsSigner() => new RelaySigner(this);
 
     internal static byte[] GetPublicKey(in ImmutableArray<byte> raw, bool compress)
     {

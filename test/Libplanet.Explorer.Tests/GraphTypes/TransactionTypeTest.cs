@@ -11,6 +11,7 @@ using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Libplanet.Types.Tests;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {

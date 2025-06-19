@@ -53,7 +53,8 @@ internal sealed class SoloProposeService : BackgroundService
 
     private void ProposeBlock()
     {
-        var block = _blockChain.ProposeBlock(_privateKey);
+        var signer = _privateKey.AsSigner();
+        var block = _blockChain.ProposeBlock(signer);
         var blockCommit = new BlockCommit
         {
             BlockHash = block.BlockHash,
@@ -63,7 +64,7 @@ internal sealed class SoloProposeService : BackgroundService
                 {
                     Validator = _privateKey.Address,
                     Flag = VoteFlag.PreCommit,
-                }.Sign(_privateKey)
+                }.Sign(signer)
             ],
         };
         _blockChain.Append(block, blockCommit);

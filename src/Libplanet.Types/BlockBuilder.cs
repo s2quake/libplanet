@@ -18,7 +18,7 @@ public sealed record class BlockBuilder
 
     public ImmutableSortedSet<EvidenceBase> Evidences { get; init; } = [];
 
-    public Block Create(PrivateKey proposer)
+    public Block Create(ISigner proposer)
     {
         var blockHeader = new BlockHeader
         {

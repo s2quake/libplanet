@@ -1,6 +1,7 @@
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Data;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Xunit.Abstractions;

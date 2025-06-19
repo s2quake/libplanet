@@ -10,6 +10,7 @@ using Libplanet.State.Builtin;
 using Libplanet.Data;
 using Libplanet.Types;
 using Xunit.Abstractions;
+using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Tests;
 

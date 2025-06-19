@@ -32,7 +32,7 @@ public sealed partial record class VoteSetBitsMetadata
 
     public ImmutableArray<bool> VoteBits { get; init; }
 
-    public VoteSetBits Sign(PrivateKey signer)
+    public VoteSetBits Sign(ISigner signer)
     {
         var options = new ModelOptions
         {

@@ -4,6 +4,7 @@ using GraphQL;
 using GraphQL.Execution;
 using Libplanet.State;
 using Libplanet.Explorer.Queries;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 

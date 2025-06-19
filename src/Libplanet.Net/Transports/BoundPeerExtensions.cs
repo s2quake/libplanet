@@ -27,7 +27,7 @@ public static class BoundPeerExtensions
                 Peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) },
                 Timestamp = DateTimeOffset.UtcNow,
             },
-            privateKey);
+            privateKey.AsSigner());
 
         TimeSpan timeoutNotNull = timeout ?? TimeSpan.FromSeconds(5);
         try

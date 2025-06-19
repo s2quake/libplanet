@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -15,7 +14,7 @@ using Nito.AsyncEx;
 
 namespace Libplanet.Net.Transports;
 
-public sealed class NetMQTransport(PrivateKey privateKey, TransportOptions options)
+public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     : ITransport
 {
     private readonly Channel<MessageRequest> _requestChannel = Channel.CreateUnbounded<MessageRequest>();
@@ -41,8 +40,8 @@ public sealed class NetMQTransport(PrivateKey privateKey, TransportOptions optio
         ForceDotNet.Force();
     }
 
-    public NetMQTransport(PrivateKey privateKey)
-        : this(privateKey, new TransportOptions())
+    public NetMQTransport(ISigner signer)
+        : this(signer, new TransportOptions())
     {
     }
 
@@ -59,7 +58,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, TransportOptions optio
 
             return _peer ??= new()
             {
-                Address = privateKey.Address,
+                Address = signer.Address,
                 EndPoint = new DnsEndPoint(options.Host, _port),
             };
         }
@@ -294,7 +293,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, TransportOptions optio
         if (e.Queue.TryDequeue(out var messageReply, TimeSpan.Zero))
         {
             var messageEnvelope = messageReply.MessageEnvelope;
-            var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, privateKey);
+            var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
             rawMessage.Push(messageEnvelope.Identity.ToByteArray());
             if (_router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), rawMessage))
             {
@@ -331,7 +330,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, TransportOptions optio
             dealerSocket.Connect(address);
             incrementedSocketCount = Interlocked.Increment(ref _socketCount);
 
-            var rawMessage = NetMQMessageCodec.Encode(request.MessageEnvelope, privateKey);
+            var rawMessage = NetMQMessageCodec.Encode(request.MessageEnvelope, signer);
             if (!dealerSocket.TrySendMultipartMessage(rawMessage))
             {
                 throw new InvalidOperationException();

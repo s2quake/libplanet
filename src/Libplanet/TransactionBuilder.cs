@@ -18,7 +18,7 @@ public sealed record class TransactionBuilder
 
     public long GasLimit { get; init; }
 
-    public Transaction Create(PrivateKey signer)
+    public Transaction Create(ISigner signer)
     {
         var options = new ModelOptions
         {
@@ -44,7 +44,7 @@ public sealed record class TransactionBuilder
         };
     }
 
-    public Transaction Create(PrivateKey signer, Blockchain blockchain)
+    public Transaction Create(ISigner signer, Blockchain blockchain)
     {
         var builder = this with
         {

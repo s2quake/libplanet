@@ -5,6 +5,7 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Serilog;
@@ -45,7 +46,7 @@ namespace Libplanet.Net.Tests
                         {
                             chain.StagedTransactions.Add(submission: new()
                             {
-                                Signer = signer,
+                                Signer = signer.AsSigner(),
                                 Actions = [DumbAction.Create((address, $"Item{i}.{j}"))],
                             });
                         }
@@ -133,12 +134,12 @@ namespace Libplanet.Net.Tests
             options ??= new SwarmOptions();
             privateKey ??= new PrivateKey();
             transportOptions ??= new TransportOptions();
-            var transport = new NetMQTransport(privateKey, transportOptions ?? new TransportOptions());
+            var transport = new NetMQTransport(privateKey.AsSigner(), transportOptions ?? new TransportOptions());
             ITransport consensusTransport = null;
             if (consensusReactorOption is { } option)
             {
                 var consensusHostOptions = transportOptions with { Port = option.Port };
-                consensusTransport = new NetMQTransport(privateKey, consensusHostOptions);
+                consensusTransport = new NetMQTransport(privateKey.AsSigner(), consensusHostOptions);
             }
 
             var swarm = new Swarm(

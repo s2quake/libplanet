@@ -7,6 +7,7 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Nito.AsyncEx;
@@ -346,7 +347,7 @@ namespace Libplanet.Net.Tests.Consensus
                 blockChain,
                 1,
                 default,
-                TestUtils.PrivateKeys[0],
+                TestUtils.PrivateKeys[0].AsSigner(),
                 contextOption: new ContextOptions());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 

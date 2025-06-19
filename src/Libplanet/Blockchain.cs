@@ -153,7 +153,7 @@ public partial class Blockchain
     public World GetWorld(HashDigest<SHA256> stateRootHash)
         => new(_repository.States.GetTrie(stateRootHash), _repository.States);
 
-    public Block ProposeBlock(PrivateKey proposer)
+    public Block ProposeBlock(ISigner proposer)
     {
         var blockHeader = new BlockHeader
         {

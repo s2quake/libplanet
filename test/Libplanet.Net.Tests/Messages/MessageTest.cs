@@ -28,7 +28,7 @@ public class MessageTest
                 Protocol = apv,
                 Peer = peer,
                 Timestamp = dateTimeOffset,
-            }, privateKey);
+            }, privateKey.AsSigner());
         var parsed = NetMQMessageCodec.Decode(raw);
         Assert.Equal(peer, parsed.Peer);
     }
@@ -51,7 +51,7 @@ public class MessageTest
                     Protocol = apv,
                     Peer = peer,
                     Timestamp = timestamp
-                }, badPrivateKey));
+                }, badPrivateKey.AsSigner()));
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class MessageTest
                 Protocol = apv,
                 Peer = peer,
                 Timestamp = timestamp
-            }, privateKey).ToArray();
+            }, privateKey.AsSigner()).ToArray();
 
         // Attacker
         var fakePeer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("1.2.3.4", 0) };
@@ -83,7 +83,7 @@ public class MessageTest
                 Protocol = apv,
                 Peer = fakePeer,
                 Timestamp = timestamp,
-            }, privateKey).ToArray();
+            }, privateKey.AsSigner()).ToArray();
 
         var frames = new NetMQMessage();
         frames.Push(netMqMessage[4]);

@@ -2,8 +2,7 @@ using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Types;
-using Nethereum.Util;
-using static Libplanet.Tests.TestUtils;
+using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Tests.Tx;
 

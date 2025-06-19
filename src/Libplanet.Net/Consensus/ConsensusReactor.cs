@@ -43,7 +43,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _gossip,
             _blockchain.Tip.Height + 1,
             _blockchain.BlockCommits[_blockchain.Tip.Height],
-            _privateKey,
+            _privateKey.AsSigner(),
             contextOption: _contextOption);
         AttachEventHandlers(_currentContext);
 
@@ -179,7 +179,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _gossip,
             height,
             lastCommit,
-            _privateKey,
+            _privateKey.AsSigner(),
             contextOption: _contextOption);
         AttachEventHandlers(_currentContext);
 

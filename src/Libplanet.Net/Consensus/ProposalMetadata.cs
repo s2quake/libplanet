@@ -32,7 +32,7 @@ public sealed partial record class ProposalMetadata : IValidatableObject
     [Property(6)]
     public int ValidRound { get; init; }
 
-    public Proposal Sign(PrivateKey signer)
+    public Proposal Sign(ISigner signer)
     {
         var bytes = ModelSerializer.SerializeToBytes(this);
         var signature = signer.Sign(bytes).ToImmutableArray();

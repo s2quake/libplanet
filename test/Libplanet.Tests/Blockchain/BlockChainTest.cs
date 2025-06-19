@@ -11,6 +11,7 @@ using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.Types.Tests;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -339,7 +340,7 @@ public partial class BlockChainTest : IDisposable
         var privateKey = new PrivateKey();
         blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey,
+            Signer = privateKey.AsSigner(),
             Actions = [DumbAction.Create((default, string.Empty))],
         });
         var block = blockChain.ProposeBlock(new PrivateKey());
@@ -368,7 +369,7 @@ public partial class BlockChainTest : IDisposable
         var actions = new[] { action };
         blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey,
+            Signer = privateKey.AsSigner(),
             Actions = actions,
         });
         Block prevBlock = blockChain.Tip;
@@ -417,7 +418,7 @@ public partial class BlockChainTest : IDisposable
         var actions = new[] { action };
         blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey,
+            Signer = privateKey.AsSigner(),
             Actions = actions,
         });
         Block block = blockChain.ProposeBlock(new PrivateKey());
@@ -689,7 +690,7 @@ public partial class BlockChainTest : IDisposable
         {
             chain.StagedTransactions.Add(submission: new()
             {
-                Signer = key,
+                Signer = key.AsSigner(),
                 Actions = [DumbAction.Create((address, "1"))],
             });
         }
@@ -717,7 +718,7 @@ public partial class BlockChainTest : IDisposable
 
         chain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKeys[0],
+            Signer = privateKeys[0].AsSigner(),
             Actions = new[] { DumbAction.Create((addresses[0], "2")) },
         });
         Block block2 = chain.ProposeBlock(privateKeys[0]);
@@ -882,14 +883,14 @@ public partial class BlockChainTest : IDisposable
 
         _blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey,
+            Signer = privateKey.AsSigner(),
             Actions = actions,
         });
         Assert.Equal(3, _blockChain.GetNextTxNonce(address));
 
         _blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey,
+            Signer = privateKey.AsSigner(),
             Actions = actions,
         });
         Assert.Equal(4, _blockChain.GetNextTxNonce(address));
@@ -960,12 +961,12 @@ public partial class BlockChainTest : IDisposable
 
         _blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey,
+            Signer = privateKey.AsSigner(),
             Actions = [action],
         });
         _blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey,
+            Signer = privateKey.AsSigner(),
             Actions = [action],
         });
 
@@ -996,12 +997,12 @@ public partial class BlockChainTest : IDisposable
 
         _blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey,
+            Signer = privateKey.AsSigner(),
             Actions = actions,
         });
         _blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = privateKey,
+            Signer = privateKey.AsSigner(),
             Actions = actions,
         });
 
@@ -1033,7 +1034,7 @@ public partial class BlockChainTest : IDisposable
         var tasks = Enumerable.Range(0, 10)
             .Select(_ => Task.Run(() => _blockChain.StagedTransactions.Add(submission: new()
             {
-                Signer = privateKey,
+                Signer = privateKey.AsSigner(),
                 Actions = actions,
             })));
 
@@ -1357,7 +1358,7 @@ public partial class BlockChainTest : IDisposable
 
         blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = new PrivateKey(),
+            Signer = new PrivateKey().AsSigner(),
             Actions =
             [
                 new SetValidator
@@ -1389,7 +1390,7 @@ public partial class BlockChainTest : IDisposable
 
         blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = new PrivateKey(),
+            Signer = new PrivateKey().AsSigner(),
             Actions =
             [
                 new SetValidator
@@ -1422,7 +1423,7 @@ public partial class BlockChainTest : IDisposable
 
         blockChain.StagedTransactions.Add(submission: new()
         {
-            Signer = new PrivateKey(),
+            Signer = new PrivateKey().AsSigner(),
             Actions = new[]
             {
                 new SetValidator

@@ -1,5 +1,6 @@
 using System.Net;
 using Libplanet.Net.Messages;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using NetMQ;
 
@@ -31,7 +32,7 @@ namespace Libplanet.Net.Tests.Messages
                     Peer = peer,
                     Timestamp = DateTimeOffset.UtcNow,
                 },
-                privateKey);
+                privateKey.AsSigner());
             BlockHashesMessage restored = (BlockHashesMessage)NetMQMessageCodec.Decode(encoded).Message;
             Assert.Equal(messageContent.Hashes, restored.Hashes);
         }
