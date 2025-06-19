@@ -41,14 +41,14 @@ namespace Libplanet.Net.Tests.Consensus
             var proposalSent = new AsyncAutoResetEvent();
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             var (_, context) = TestUtils.CreateDummyContext();
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreVote)
+                if (state.Step == ConsensusStep.PreVote)
                 {
                     stepChangedToPreVote.Set();
                 }
-            };
-            using var _ = context.MessagePublished.Subscribe(message =>
+            });
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage)
                 {
@@ -56,7 +56,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             });
 
-            context.Start();
+            await context.StartAsync(default);
             await Task.WhenAll(proposalSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
 
             Assert.Equal(ConsensusStep.PreVote, context.Step);
@@ -92,14 +92,14 @@ namespace Libplanet.Net.Tests.Consensus
                 privateKey: TestUtils.PrivateKeys[2],
                 validatorSet: Libplanet.Tests.TestUtils.Validators);
 
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreVote)
+                if (state.Step == ConsensusStep.PreVote)
                 {
                     stepChangedToPreVote.Set();
                 }
-            };
-            using var _ = context.MessagePublished.Subscribe(message =>
+            });
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -108,7 +108,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             });
 
-            context.Start();
+            await context.StartAsync(default);
             await Task.WhenAll(stepChangedToPreVote.WaitAsync(), proposalSent.WaitAsync());
 
             Assert.Equal(ConsensusStep.PreVote, context.Step);
@@ -124,17 +124,18 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var stepChanged = new AsyncAutoResetEvent();
             var (_, context) = TestUtils.CreateDummyContext();
-            context.StateChanged += (_, eventArgs) =>
+            using var _ = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.Propose)
+                if (state.Step == ConsensusStep.Propose)
                 {
                     stepChanged.Set();
                 }
-            };
-            context.Start();
+            });
+            await context.StartAsync(default);
 
             await stepChanged.WaitAsync();
-            Assert.Throws<InvalidOperationException>(() => context.Start());
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await context.StartAsync(default));
         }
 
         [Fact(Timeout = Timeout)]
@@ -161,18 +162,18 @@ namespace Libplanet.Net.Tests.Consensus
                 privateKey: TestUtils.PrivateKeys[2],
                 validatorSet: TestUtils.Validators);
 
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreVote)
+                if (state.Step == ConsensusStep.PreVote)
                 {
                     stepChangedToPreVote.Set();
                 }
-                else if (eventArgs.Step == ConsensusStep.EndCommit)
+                else if (state.Step == ConsensusStep.EndCommit)
                 {
                     stepChangedToEndCommit.Set();
                 }
-            };
-            using var _ = context.MessagePublished.Subscribe(message =>
+            });
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -182,13 +183,13 @@ namespace Libplanet.Net.Tests.Consensus
                     proposalSent.Set();
                 }
             });
-            context.ExceptionOccurred += (_, exception) =>
+            using var _3 = context.ExceptionOccurred.Subscribe(exception =>
             {
                 exceptionThrown = exception;
                 exceptionOccurred.Set();
-            };
+            });
 
-            context.Start();
+            await context.StartAsync(default);
 
             await Task.WhenAll(stepChangedToPreVote.WaitAsync(), proposalSent.WaitAsync());
 
@@ -267,14 +268,14 @@ namespace Libplanet.Net.Tests.Consensus
             var exceptionOccurred = new AsyncAutoResetEvent();
 
             var (blockChain, context) = TestUtils.CreateDummyContext();
-            context.ExceptionOccurred += (_, e) =>
+            using var _ = context.ExceptionOccurred.Subscribe(e =>
             {
                 exceptionThrown = e;
                 exceptionOccurred.Set();
-            };
+            });
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
-            context.Start();
+            await context.StartAsync(default);
             context.ProduceMessage(
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[0]));
             await exceptionOccurred.WaitAsync();
@@ -288,14 +289,14 @@ namespace Libplanet.Net.Tests.Consensus
             var exceptionOccurred = new AsyncAutoResetEvent();
 
             var (blockChain, context) = TestUtils.CreateDummyContext();
-            context.ExceptionOccurred += (_, e) =>
+            using var _ = context.ExceptionOccurred.Subscribe(e =>
             {
                 exceptionThrown = e;
                 exceptionOccurred.Set();
-            };
+            });
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[2]);
 
-            context.Start();
+            await context.StartAsync(default);
             context.ProduceMessage(
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[2], 2, 2));
             await exceptionOccurred.WaitAsync();
@@ -351,25 +352,25 @@ namespace Libplanet.Net.Tests.Consensus
                 contextOption: new ContextOptions());
             using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
 
-            context.StateChanged += (_, eventArgs) =>
+            using var _2 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreVote)
+                if (state.Step == ConsensusStep.PreVote)
                 {
                     enteredPreVote.Set();
                 }
 
-                if (eventArgs.Step == ConsensusStep.PreCommit)
+                if (state.Step == ConsensusStep.PreCommit)
                 {
                     enteredPreCommit.Set();
                 }
 
-                if (eventArgs.Step == ConsensusStep.EndCommit)
+                if (state.Step == ConsensusStep.EndCommit)
                 {
                     enteredEndCommit.Set();
                 }
-            };
+            });
 
-            using var _2 = blockChain.TipChanged.Subscribe(eventArgs =>
+            using var _3 = blockChain.TipChanged.Subscribe(eventArgs =>
             {
                 if (eventArgs.Tip.Height == 1L)
                 {
@@ -387,7 +388,7 @@ namespace Libplanet.Net.Tests.Consensus
             blockChain.StagedTransactions.Add(tx);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
-            context.Start();
+            await context.StartAsync(default);
             context.ProduceMessage(
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]));
 
@@ -525,7 +526,7 @@ namespace Libplanet.Net.Tests.Consensus
                 validatorSet: validatorSet);
             var blockA = blockChain.ProposeBlock(proposer);
             var blockB = blockChain.ProposeBlock(proposer);
-            context.StateChanged += (sender, state) =>
+            using var _0 = context.StateChanged.Subscribe(state =>
             {
                 if (state.Step != prevStep)
                 {
@@ -538,8 +539,8 @@ namespace Libplanet.Net.Tests.Consensus
                     prevProposal = state.Proposal;
                     proposalModified.Set();
                 }
-            };
-            context.Start();
+            });
+            await context.StartAsync(default);
             await stepChanged.WaitAsync();
             Assert.Equal(ConsensusStep.Propose, context.Step);
 
@@ -771,18 +772,18 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     EnterPreCommitDelay = delay,
                 });
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreVote)
+                if (state.Step == ConsensusStep.PreVote)
                 {
                     stepChangedToPreVote.Set();
                 }
-                else if (eventArgs.Step == ConsensusStep.PreCommit)
+                else if (state.Step == ConsensusStep.PreCommit)
                 {
                     stepChangedToPreCommit.Set();
                 }
-            };
-            using var _1 = context.MessagePublished.Subscribe(message =>
+            });
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -797,7 +798,7 @@ namespace Libplanet.Net.Tests.Consensus
                     numPreVotes = tuple.Votes.Count();
                 }
             };
-            context.Start();
+            await context.StartAsync(default);
             await stepChangedToPreVote.WaitAsync();
             Assert.Equal(ConsensusStep.PreVote, context.Step);
             if (proposedBlock is not { } block)

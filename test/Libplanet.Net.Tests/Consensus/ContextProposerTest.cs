@@ -36,14 +36,14 @@ namespace Libplanet.Net.Tests.Consensus
             var preCommitSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreCommit)
+                if (state.Step == ConsensusStep.PreCommit)
                 {
                     stepChangedToPreCommit.Set();
                 }
-            };
-            using var _ = context.MessagePublished.Subscribe(message =>
+            });
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreCommitMessage preCommitMsg)
                 {
@@ -52,7 +52,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             });
 
-            context.Start();
+            await context.StartAsync(default);
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
@@ -104,14 +104,14 @@ namespace Libplanet.Net.Tests.Consensus
             var preCommitSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreCommit)
+                if (state.Step == ConsensusStep.PreCommit)
                 {
                     stepChangedToPreCommit.Set();
                 }
-            };
-            using var _ = context.MessagePublished.Subscribe(message =>
+            });
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -125,7 +125,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             });
 
-            context.Start();
+            await context.StartAsync(default);
 
             // Wait for propose to process.
             await proposalSent.WaitAsync();
@@ -178,15 +178,15 @@ namespace Libplanet.Net.Tests.Consensus
             var roundChangedToOne = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
-            context.StateChanged += (_, eventArgs) =>
+            using var _ = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Round == 1)
+                if (state.Round == 1)
                 {
                     roundChangedToOne.Set();
                 }
-            };
+            });
 
-            context.Start();
+            await context.StartAsync(default);
             context.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
@@ -236,19 +236,19 @@ namespace Libplanet.Net.Tests.Consensus
             var proposalSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreCommit)
+                if (state.Step == ConsensusStep.PreCommit)
                 {
                     stepChangedToPreCommit.Set();
                 }
 
-                if (eventArgs.Step == ConsensusStep.EndCommit)
+                if (state.Step == ConsensusStep.EndCommit)
                 {
                     stepChangedToEndCommit.Set();
                 }
-            };
-            using var _ = context.MessagePublished.Subscribe(message =>
+            });
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -257,7 +257,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             });
 
-            context.Start();
+            await context.StartAsync(default);
 
             // Wait for propose to process.
             await proposalSent.WaitAsync();
@@ -291,14 +291,14 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 5,
                 validatorSet: Libplanet.Tests.TestUtils.Validators); // Peer1 should be a proposer
 
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreVote)
+                if (state.Step == ConsensusStep.PreVote)
                 {
                     stepChangedToPreVote.Set();
                 }
-            };
-            using var _ = context.MessagePublished.Subscribe(message =>
+            });
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
                 {
@@ -306,7 +306,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             });
 
-            context.Start();
+            await context.StartAsync(default);
             await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
             Assert.Equal(ConsensusStep.PreVote, context.Step);
             Assert.Equal(5, context.Height);
@@ -323,14 +323,14 @@ namespace Libplanet.Net.Tests.Consensus
 
             var (_, context) = TestUtils.CreateDummyContext();
 
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Step == ConsensusStep.PreVote)
+                if (state.Step == ConsensusStep.PreVote)
                 {
                     stepChangedToPreVote.Set();
                 }
-            };
-            using var _ = context.MessagePublished.Subscribe(message =>
+            });
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -344,7 +344,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             });
 
-            context.Start();
+            await context.StartAsync(default);
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal?.BlockHash);
 
@@ -396,7 +396,7 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.PrivateKeys[2].Address,
                 TestUtils.Validators.GetProposer(2, 0).Address);
 
-            context.Start();
+            await context.StartAsync(default);
             await proposalSent.WaitAsync();
             var proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
                 proposal?.Proposal.MarshaledBlock!);

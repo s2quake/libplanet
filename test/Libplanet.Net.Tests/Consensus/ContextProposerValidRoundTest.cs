@@ -38,15 +38,15 @@ namespace Libplanet.Net.Tests.Consensus
             bool timeoutProcessed = false;
 
             var (_, context) = TestUtils.CreateDummyContext();
-            context.StateChanged += (_, eventArgs) =>
+            using var _1 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Round == 2 && eventArgs.Step == ConsensusStep.Propose)
+                if (state.Round == 2 && state.Step == ConsensusStep.Propose)
                 {
                     stateChangedToRoundTwoPropose.Set();
                 }
-            };
+            });
             context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
-            using var _ = context.MessagePublished.Subscribe(message =>
+            using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -62,7 +62,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             });
 
-            context.Start();
+            await context.StartAsync(default);
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal);
             Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
@@ -147,25 +147,25 @@ namespace Libplanet.Net.Tests.Consensus
             var roundThreeNilPreVoteSent = new AsyncAutoResetEvent();
             bool timeoutProcessed = false;
             var (blockChain, context) = TestUtils.CreateDummyContext();
-            context.StateChanged += (_, eventArgs) =>
+            using var _0 = context.StateChanged.Subscribe(state =>
             {
-                if (eventArgs.Round == 2 && eventArgs.Step == ConsensusStep.Propose)
+                if (state.Round == 2 && state.Step == ConsensusStep.Propose)
                 {
                     stateChangedToRoundTwoPropose.Set();
                 }
-                else if (eventArgs.Round == 2 && eventArgs.Step == ConsensusStep.PreVote)
+                else if (state.Round == 2 && state.Step == ConsensusStep.PreVote)
                 {
                     stateChangedToRoundTwoPreVote.Set();
                 }
-                else if (eventArgs.Round == 2 && eventArgs.Step == ConsensusStep.PreCommit)
+                else if (state.Round == 2 && state.Step == ConsensusStep.PreCommit)
                 {
                     stateChangedToRoundTwoPreCommit.Set();
                 }
-                else if (eventArgs.Round == 3 && eventArgs.Step == ConsensusStep.Propose)
+                else if (state.Round == 3 && state.Step == ConsensusStep.Propose)
                 {
                     stateChangedToRoundThreePropose.Set();
                 }
-            };
+            });
             context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
             using var _1 = context.MessagePublished.Subscribe(message =>
             {
@@ -195,7 +195,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
             }.Sign(key);
 
-            context.Start();
+            await context.StartAsync(default);
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal);
             Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
