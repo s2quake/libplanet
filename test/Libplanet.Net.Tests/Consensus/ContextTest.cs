@@ -48,13 +48,13 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreVote.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage)
                 {
                     proposalSent.Set();
                 }
-            };
+            });
 
             context.Start();
             await Task.WhenAll(proposalSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
@@ -99,14 +99,14 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreVote.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposal = proposalMsg;
                     proposalSent.Set();
                 }
-            };
+            });
 
             context.Start();
             await Task.WhenAll(stepChangedToPreVote.WaitAsync(), proposalSent.WaitAsync());
@@ -172,7 +172,7 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToEndCommit.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -181,7 +181,7 @@ namespace Libplanet.Net.Tests.Consensus
                         proposalMsg!.Proposal.MarshaledBlock);
                     proposalSent.Set();
                 }
-            };
+            });
             context.ExceptionOccurred += (_, exception) =>
             {
                 exceptionThrown = exception;
@@ -349,7 +349,7 @@ namespace Libplanet.Net.Tests.Consensus
                 default,
                 TestUtils.PrivateKeys[0].AsSigner(),
                 contextOption: new ContextOptions());
-            context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
+            using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
 
             context.StateChanged += (_, eventArgs) =>
             {
@@ -369,7 +369,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            using var _ = blockChain.TipChanged.Subscribe(eventArgs =>
+            using var _2 = blockChain.TipChanged.Subscribe(eventArgs =>
             {
                 if (eventArgs.Tip.Height == 1L)
                 {
@@ -673,9 +673,9 @@ namespace Libplanet.Net.Tests.Consensus
                 blockChain,
                 new ConsensusReactorOptions { PrivateKey = new PrivateKey() });
             Context context = consensusContext.CurrentContext;
-            context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
+            using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
 
-            using var _ = blockChain.TipChanged.Subscribe(eventArgs =>
+            using var _2 = blockChain.TipChanged.Subscribe(eventArgs =>
             {
                 if (eventArgs.Tip.Height == 1L)
                 {
@@ -782,14 +782,14 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreCommit.Set();
                 }
             };
-            context.MessageToPublish += (_, message) =>
+            using var _1 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
                     proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
                         proposalMsg!.Proposal.MarshaledBlock);
                 }
-            };
+            });
             context.VoteSetModified += (_, tuple) =>
             {
                 if (tuple.Flag == VoteFlag.PreVote)

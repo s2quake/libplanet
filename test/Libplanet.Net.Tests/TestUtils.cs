@@ -299,7 +299,7 @@ namespace Libplanet.Net.Tests
                 lastCommit ?? default,
                 privateKey.AsSigner(),
                 contextOption: contextOption ?? new ContextOptions());
-            context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
+            using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
             return context;
         }
 
@@ -323,7 +323,7 @@ namespace Libplanet.Net.Tests
                 lastCommit ?? BlockCommit.Empty,
                 privateKey.AsSigner(),
                 contextOption: contextOption ?? new ContextOptions());
-            context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
+            using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
 
             return (blockChain, context);
         }

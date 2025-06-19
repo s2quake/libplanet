@@ -46,7 +46,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
             context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
-            context.MessageToPublish += (_, message) =>
+            using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -60,7 +60,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     roundTwoVoteSent.Set();
                 }
-            };
+            });
 
             context.Start();
             await proposalSent.WaitAsync();
@@ -167,7 +167,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
             context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
-            context.MessageToPublish += (_, message) =>
+            using var _1 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
                 {
@@ -180,7 +180,7 @@ namespace Libplanet.Net.Tests.Consensus
                 {
                     roundThreeNilPreVoteSent.Set();
                 }
-            };
+            });
 
             var key = new PrivateKey();
             var differentBlock = new RawBlock

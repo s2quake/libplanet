@@ -30,7 +30,7 @@ public sealed class MessageCommunicator
 
     internal Gossip Gossip { get; }
 
-    public void PublishMessage(ConsensusMessage message) => Gossip.PublishMessage(message);
+    // public void PublishMessage(ConsensusMessage message) => Gossip.PublishMessage(message);
 
     public void StartHeight(int height)
     {
