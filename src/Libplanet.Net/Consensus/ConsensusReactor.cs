@@ -38,9 +38,13 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _newHeightDelay = options.TargetBlockInterval;
 
         _contextOption = options.ContextOptions;
-        _currentContext = CreateContext(
+        _currentContext = new Context(
+            _blockchain,
+            _gossip,
             _blockchain.Tip.Height + 1,
-            _blockchain.BlockCommits[_blockchain.Tip.Height]);
+            _blockchain.BlockCommits[_blockchain.Tip.Height],
+            _privateKey,
+            contextOption: _contextOption);
         AttachEventHandlers(_currentContext);
 
         _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
@@ -56,7 +60,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     internal event EventHandler<(int Height, ConsensusMessage Message)>? MessageConsumed;
 
-    internal event EventHandler<(int Height, System.Action)>? MutationConsumed;
+    internal event EventHandler<(int Height, Action)>? MutationConsumed;
 
     private void AttachEventHandlers(Context context)
     {
@@ -75,11 +79,11 @@ public sealed class ConsensusReactor : IAsyncDisposable
         // NOTE: Events for consensus logic.
         context.HeightStarted += (sender, height) => _messageCommunicator.StartHeight(height);
         context.RoundStarted += (sender, round) => _messageCommunicator.StartRound(round);
-        context.MessageToPublish += (sender, message) =>
-        {
-            _messageCommunicator.PublishMessage(message);
-            MessagePublished?.Invoke(this, (context.Height, message));
-        };
+        // context.MessageToPublish += (sender, message) =>
+        // {
+        //     _messageCommunicator.PublishMessage(message);
+        //     MessagePublished?.Invoke(this, (context.Height, message));
+        // };
     }
 
     public bool IsRunning { get; private set; }
@@ -170,7 +174,13 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
 
         await _currentContext.DisposeAsync();
-        _currentContext = CreateContext(height, lastCommit);
+        _currentContext = new Context(
+            _blockchain,
+            _gossip,
+            height,
+            lastCommit,
+            _privateKey,
+            contextOption: _contextOption);
         AttachEventHandlers(_currentContext);
 
         foreach (var message in _pendingMessages)
@@ -190,7 +200,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     public bool HandleMessage(ConsensusMessage consensusMessage)
     {
-        int height = consensusMessage.Height;
+        var height = consensusMessage.Height;
         if (height < Height)
         {
             return false;
@@ -313,20 +323,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
     }
 
-    private Context CreateContext(int height, BlockCommit lastCommit)
-    {
-        var stateRootHash = _blockchain.GetStateRootHash(height - 1);
-        var validators = _blockchain.GetWorld(stateRootHash).GetValidators();
-        var context = new Context(
-            _blockchain,
-            height,
-            lastCommit,
-            _privateKey,
-            validators,
-            contextOption: _contextOption);
-        return context;
-    }
-
     private void HandleEvidenceExceptions()
     {
         var evidenceExceptions = _currentContext.CollectEvidenceExceptions();
@@ -365,10 +361,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 {
                     var sender = _gossip.Peers.First(
                         peer => peer.Address.Equals(voteSetBits.Validator));
-                    foreach (var msg in messages)
-                    {
-                        _gossip.PublishMessage(msg, new[] { sender });
-                    }
+                    _gossip.PublishMessage([sender], [.. messages]);
                 }
                 catch (InvalidOperationException)
                 {
@@ -389,8 +382,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
                     var sender = _gossip.Peers.First(
                         peer => peer.Address.Equals(maj23Message.Validator));
                     _gossip.PublishMessage(
-                        new ConsensusVoteSetBitsMessage { VoteSetBits = voteSetBits },
-                        [sender]);
+                        [sender],
+                        new ConsensusVoteSetBitsMessage { VoteSetBits = voteSetBits });
                 }
                 catch (InvalidOperationException)
                 {
@@ -410,7 +403,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
                         var sender = _gossip.Peers.First(
                             peer => peer.Address.Equals(proposalClaimmessage.Validator));
 
-                        _gossip.PublishMessage(reply, new[] { sender });
+                        _gossip.PublishMessage([sender], reply);
                     }
                 }
                 catch (InvalidOperationException)

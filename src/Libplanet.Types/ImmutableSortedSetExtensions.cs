@@ -2,8 +2,7 @@ namespace Libplanet.Types;
 
 public static class ImmutableSortedSetExtensions
 {
-    public static Validator GetProposer(
-        this ImmutableSortedSet<Validator> @this, int height, int round)
+    public static Validator GetProposer(this ImmutableSortedSet<Validator> @this, int height, int round)
     {
         if (@this.IsEmpty)
         {

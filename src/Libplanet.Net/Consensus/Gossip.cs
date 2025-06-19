@@ -24,28 +24,27 @@ public sealed class Gossip : IAsyncDisposable
     private IDisposable? _transportSubscription;
     private bool _disposed;
 
-    public Gossip(
-        ITransport transport,
-        ImmutableArray<Peer> peers,
-        ImmutableArray<Peer> seeds,
-        Action<MessageEnvelope> validateMessageToReceive,
-        Action<IMessage> validateMessageToSend,
-        Action<IMessage> processMessage)
+    public Gossip(ITransport transport)
+        : this(transport, new GossipOptions())
+    {
+    }
+
+    public Gossip(ITransport transport, GossipOptions options)
     {
         _transport = transport;
-        _validateMessageToReceive = validateMessageToReceive;
-        _validateMessageToSend = validateMessageToSend;
-        _processMessage = processMessage;
+        _validateMessageToReceive = options.ValidateMessageToReceive;
+        _validateMessageToSend = options.ValidateMessageToSend;
+        _processMessage = options.ProcessMessage;
         _table = new RoutingTable(transport.Peer.Address);
 
         // FIXME: Dumb way to add peer.
-        foreach (Peer peer in peers.Where(p => p.Address != transport.Peer.Address))
+        foreach (Peer peer in options.Peers.Where(p => p.Address != transport.Peer.Address))
         {
             _table.AddPeer(peer);
         }
 
         _kademlia = new Kademlia(_table, _transport, transport.Peer.Address);
-        _seeds = seeds;
+        _seeds = options.Seeds;
         _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
     }
 
@@ -123,12 +122,15 @@ public sealed class Gossip : IAsyncDisposable
     }
 
     public void PublishMessage(IMessage message)
-        => PublishMessage(message, PeersToBroadcast(_table.Peers, DLazy));
+        => PublishMessage(PeersToBroadcast(_table.Peers, DLazy), message);
 
-    public void PublishMessage(IMessage message, IEnumerable<Peer> targetPeers)
+    public void PublishMessage(IEnumerable<Peer> targetPeers, params IMessage[] messages)
     {
-        AddMessage(message);
-        _transport.BroadcastMessage(targetPeers, message);
+        foreach (var message in messages)
+        {
+            AddMessage(message);
+            _transport.BroadcastMessage(targetPeers, message);
+        }
     }
 
     public void AddMessage(IMessage message)
