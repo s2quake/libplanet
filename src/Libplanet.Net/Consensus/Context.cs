@@ -15,9 +15,10 @@ public partial class Context : IAsyncDisposable
     private readonly ContextOptions _contextOptions;
 
     private readonly Blockchain _blockchain;
+    private readonly Gossip _gossip;
     private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Channel<ConsensusMessage> _messageRequests;
-    private readonly Channel<System.Action> _mutationRequests;
+    private readonly Channel<Action> _mutationRequests;
     private readonly HeightVoteSet _heightVoteSet;
     private readonly PrivateKey _privateKey;
     private readonly HashSet<int> _hasTwoThirdsPreVoteFlags = [];
@@ -41,14 +42,11 @@ public partial class Context : IAsyncDisposable
     private bool _disposed;
 
     public Context(
-        Blockchain blockChain,
+        Blockchain blockchain,
+        Gossip gossip,
         int height,
-        BlockCommit lastCommit,
+        BlockCommit previousCommit,
         PrivateKey privateKey,
-        ImmutableSortedSet<Validator> validators,
-        ConsensusStep consensusStep = ConsensusStep.Default,
-        int round = -1,
-        int cacheSize = 128,
         ContextOptions? contextOption = null)
     {
         if (height < 1)
@@ -59,25 +57,40 @@ public partial class Context : IAsyncDisposable
 
         _privateKey = privateKey;
         Height = height;
-        Round = round;
-        Step = consensusStep;
-        _lastCommit = lastCommit;
-        _blockchain = blockChain;
+        _lastCommit = previousCommit;
+        _blockchain = blockchain;
+        _gossip = gossip;
         _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
         _mutationRequests = Channel.CreateUnbounded<System.Action>();
-        _heightVoteSet = new HeightVoteSet(height, validators);
-        _validators = validators;
+        _validators = blockchain.GetValidators(height - 1);
+        _heightVoteSet = new HeightVoteSet(height, _validators);
         _cancellationTokenSource = new CancellationTokenSource();
         _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
-            .WithCapacity(cacheSize)
+            .WithCapacity(128)
             .Build();
 
         _contextOptions = contextOption ?? new ContextOptions();
     }
 
+    internal event EventHandler<int>? HeightStarted;
+
+    internal event EventHandler<int>? RoundStarted;
+
+    internal event EventHandler<Exception>? ExceptionOccurred;
+
+    internal event EventHandler<(int Round, ConsensusStep Step)>? TimeoutProcessed;
+
+    internal event EventHandler<ContextState>? StateChanged;
+
+    internal event EventHandler<ConsensusMessage>? MessageConsumed;
+
+    internal event EventHandler<System.Action>? MutationConsumed;
+
+    internal event EventHandler<(int Round, VoteFlag Flag, IEnumerable<Vote> Votes)>? VoteSetModified;
+
     public int Height { get; }
 
-    public int Round { get; private set; }
+    public int Round { get; private set; } = -1;
 
     public ConsensusStep Step { get; private set; }
 
@@ -210,28 +223,6 @@ public partial class Context : IAsyncDisposable
                };
     }
 
-    /// <summary>
-    /// Returns the summary of context in JSON-formatted string.
-    /// </summary>
-    /// <returns>Returns a JSON-formatted string of context state.</returns>
-    public override string ToString()
-    {
-        var dict = new Dictionary<string, object>
-        {
-            { "node_id", _privateKey.Address.ToString() },
-            { "number_of_validators", _validators.Count },
-            { "height", Height },
-            { "round", Round },
-            { "step", Step.ToString() },
-            { "proposal", Proposal?.ToString() ?? "null" },
-            { "locked_value", _lockedValue?.BlockHash.ToString() ?? "null" },
-            { "locked_round", _lockedRound },
-            { "valid_value", _validValue?.BlockHash.ToString() ?? "null" },
-            { "valid_round", _validRound },
-        };
-        return JsonSerializer.Serialize(dict);
-    }
-
     public EvidenceException[] CollectEvidenceExceptions() => _evidenceCollector.Flush();
 
     private TimeSpan TimeoutPreVote(long round)
@@ -261,7 +252,9 @@ public partial class Context : IAsyncDisposable
     }
 
     private void PublishMessage(ConsensusMessage message)
-        => MessageToPublish?.Invoke(this, message);
+    {
+        _gossip.PublishMessage(message);
+    }
 
     private bool IsValid(Block block)
     {

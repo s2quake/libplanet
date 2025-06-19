@@ -337,7 +337,7 @@ public partial class Context
         }
     }
 
-    private void EnterPreVote(int round, BlockHash hash)
+    private void EnterPreVote(int round, BlockHash blockHash)
     {
         if (Round != round || Step >= ConsensusStep.PreVote)
         {
@@ -347,7 +347,7 @@ public partial class Context
 
         Step = ConsensusStep.PreVote;
         PublishMessage(
-            new ConsensusPreVoteMessage { PreVote = MakeVote(round, hash, VoteFlag.PreVote) });
+            new ConsensusPreVoteMessage { PreVote = MakeVote(round, blockHash, VoteFlag.PreVote) });
     }
 
     private void EnterPreCommit(int round, BlockHash hash)
@@ -392,11 +392,6 @@ public partial class Context
         }
     }
 
-    /// <summary>
-    /// A timeout mutation to run if no <see cref="ConsensusProposalMessage"/> is received in
-    /// <see cref="TimeoutPropose"/> and is still in <see cref="ConsensusStep.Propose"/> step.
-    /// </summary>
-    /// <param name="round">A round that the timeout task is scheduled for.</param>
     private void ProcessTimeoutPropose(int round)
     {
         if (round == Round && Step == ConsensusStep.Propose)

@@ -296,9 +296,6 @@ namespace Libplanet.Net.Tests
                 height,
                 lastCommit ?? default,
                 privateKey,
-                validatorSet ?? blockChain
-                    .GetWorld(height - 1)
-                    .GetValidators(),
                 contextOption: contextOption ?? new ContextOptions());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
             return context;
@@ -323,9 +320,6 @@ namespace Libplanet.Net.Tests
                 height,
                 lastCommit ?? BlockCommit.Empty,
                 privateKey,
-                validatorSet ?? blockChain
-                    .GetWorld(height - 1)
-                    .GetValidators(),
                 contextOption: contextOption ?? new ContextOptions());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 

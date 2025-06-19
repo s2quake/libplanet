@@ -347,9 +347,6 @@ namespace Libplanet.Net.Tests.Consensus
                 1,
                 default,
                 TestUtils.PrivateKeys[0],
-                blockChain
-                    .GetWorld(0)
-                    .GetValidators(),
                 contextOption: new ContextOptions());
             context.MessageToPublish += (sender, message) => context.ProduceMessage(message);
 
