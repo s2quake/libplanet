@@ -318,26 +318,16 @@ namespace Libplanet.Net.Tests.Consensus
             }
         }
 
-        private NetMQTransport CreateTransport(
-            PrivateKey? privateKey = null,
-            int? port = null)
+        private NetMQTransport CreateTransport(PrivateKey? privateKey = null, int? port = null)
         {
-            var apvOptions = new ProtocolOptions
-            { Protocol = TestUtils.AppProtocolVersion };
-            HostOptions hostOptions;
-            if (port is { } p)
+            var transportOptions = new TransportOptions
             {
-                hostOptions = new HostOptions { Host = "127.0.0.1", Port = p };
-            }
-            else
-            {
-                hostOptions = new HostOptions { Host = "127.0.0.1" };
-            }
+                Protocol = TestUtils.AppProtocolVersion,
+                Host = "127.0.0.1",
+                Port = port ?? 0,
+            };
 
-            return new NetMQTransport(
-                privateKey ?? new PrivateKey(),
-                apvOptions,
-                hostOptions);
+            return new NetMQTransport(privateKey ?? new PrivateKey(), transportOptions);
         }
 
         private MessageCommunicator CreateGossipConesnsusMessageCommunicator(

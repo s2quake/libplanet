@@ -74,8 +74,7 @@ namespace Libplanet.Net.Tests
 
         private Task<Swarm> CreateConsensusSwarm(
             PrivateKey? privateKey = null,
-            ProtocolOptions? appProtocolVersionOptions = null,
-            HostOptions? hostOptions = null,
+            TransportOptions? transportOptions = null,
             SwarmOptions? options = null,
             BlockchainOptions? policy = null,
             Block? genesis = null,
@@ -83,8 +82,7 @@ namespace Libplanet.Net.Tests
         {
             return CreateSwarm(
                 privateKey,
-                appProtocolVersionOptions,
-                hostOptions,
+                transportOptions,
                 options,
                 policy,
                 genesis,
@@ -101,8 +99,7 @@ namespace Libplanet.Net.Tests
 
         private async Task<Swarm> CreateSwarm(
             PrivateKey? privateKey = null,
-            ProtocolOptions? appProtocolVersionOptions = null,
-            HostOptions? hostOptions = null,
+            TransportOptions? transportOptions = null,
             SwarmOptions? options = null,
             BlockchainOptions? policy = null,
             Block? genesis = null,
@@ -117,17 +114,11 @@ namespace Libplanet.Net.Tests
             };
             var fx = new MemoryRepositoryFixture(policy);
             var blockchain = MakeBlockChain(policy, genesisBlock: genesis);
-            appProtocolVersionOptions ??= new ProtocolOptions();
-            hostOptions ??= new HostOptions
-            {
-                Host = IPAddress.Loopback.ToString(),
-            };
 
             return await CreateSwarm(
                 blockchain,
                 privateKey,
-                appProtocolVersionOptions,
-                hostOptions,
+                transportOptions,
                 options,
                 consensusReactorOption: consensusReactorOption);
         }
@@ -135,34 +126,19 @@ namespace Libplanet.Net.Tests
         private async Task<Swarm> CreateSwarm(
             Blockchain blockChain,
             PrivateKey? privateKey = null,
-            ProtocolOptions? appProtocolVersionOptions = null,
-            HostOptions? hostOptions = null,
+            TransportOptions? transportOptions = null,
             SwarmOptions? options = null,
             ConsensusReactorOptions? consensusReactorOption = null)
         {
-            appProtocolVersionOptions ??= new ProtocolOptions();
-            hostOptions ??= new HostOptions
-            {
-                Host = IPAddress.Loopback.ToString(),
-            };
             options ??= new SwarmOptions();
             privateKey ??= new PrivateKey();
-            var transport = new NetMQTransport(
-                privateKey,
-                appProtocolVersionOptions,
-                hostOptions);
+            transportOptions ??= new TransportOptions();
+            var transport = new NetMQTransport(privateKey, transportOptions ?? new TransportOptions());
             ITransport consensusTransport = null;
             if (consensusReactorOption is { } option)
             {
-                var consensusHostOptions = new HostOptions
-                {
-                    Host = hostOptions.Host,
-                    Port = option.Port
-                };
-                consensusTransport = new NetMQTransport(
-                    privateKey,
-                    appProtocolVersionOptions,
-                    consensusHostOptions);
+                var consensusHostOptions = transportOptions with { Port = option.Port };
+                consensusTransport = new NetMQTransport(privateKey, consensusHostOptions);
             }
 
             var swarm = new Swarm(

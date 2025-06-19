@@ -17,11 +17,14 @@ public sealed class MessageCommunicator
     {
         Gossip = new Gossip(
             transport,
-            validators,
-            seeds,
-            ValidateMessageToReceive,
-            ValidateMessageToSend,
-            processMessage);
+            new GossipOptions
+            {
+                Seeds = seeds,
+                Validators = validators,
+                ValidateMessageToReceive = ValidateMessageToReceive,
+                ValidateMessageToSend = ValidateMessageToSend,
+                ProcessMessage = processMessage,
+            });
         _peerCatchupRounds = new ConcurrentDictionary<Peer, ImmutableHashSet<int>>();
     }
 

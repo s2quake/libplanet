@@ -937,7 +937,7 @@ namespace Libplanet.Net.Tests
 
                 var transport = swarm1.Transport;
                 var msg = new GetTransactionMessage { TxIds = [tx1.Id, tx2.Id, tx3.Id, tx4.Id] };
-                var reply = await transport.SendMessageAsync(swarm2.AsPeer,msg,default);
+                var reply = await transport.SendMessageAsync(swarm2.AsPeer, msg, default);
                 var replayMessage = (AggregateMessage)reply.Message;
 
                 Assert.Equal(3, replayMessage.Messages.Length);
@@ -958,16 +958,10 @@ namespace Libplanet.Net.Tests
         public async Task DoNotSpawnMultipleTaskForSinglePeer()
         {
             var key = new PrivateKey();
-            var apv = new ProtocolOptions();
+            var transportOptions = new TransportOptions();
             Swarm receiver =
-                await CreateSwarm(appProtocolVersionOptions: apv);
-            ITransport mockTransport = new NetMQTransport(
-                new PrivateKey(),
-                apv,
-                new HostOptions
-                {
-                    Host = IPAddress.Loopback.ToString(),
-                });
+                await CreateSwarm(transportOptions: transportOptions);
+            var mockTransport = new NetMQTransport(new PrivateKey(), transportOptions);
             int requestCount = 0;
 
             void MessageHandler(MessageEnvelope message)
@@ -999,7 +993,7 @@ namespace Libplanet.Net.Tests
             try
             {
                 await StartAsync(receiver);
-                await  mockTransport.StartAsync(default);
+                await mockTransport.StartAsync(default);
 
                 // Send block header for block 1.
                 var blockHeaderMsg1 = new BlockHeaderMessage

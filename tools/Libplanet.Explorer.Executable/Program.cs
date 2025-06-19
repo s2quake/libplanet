@@ -216,19 +216,15 @@ If omitted (default) explorer only the local blockchain store.")]
                         },
                     };
 
-                    var apvOptions = new ProtocolOptions()
+                    var transportOptions = new TransportOptions()
                     {
                         Protocol = options.AppProtocolVersionToken is string t
                             ? Protocol.FromToken(t)
                             : default,
                     };
 
-                    var hostOptions = new HostOptions {};
 
-                    var transport = new NetMQTransport(
-                        privateKey,
-                        apvOptions,
-                        hostOptions);
+                    var transport = new NetMQTransport(privateKey, transportOptions);
 
                     swarm = new Swarm(
                         blockChain,

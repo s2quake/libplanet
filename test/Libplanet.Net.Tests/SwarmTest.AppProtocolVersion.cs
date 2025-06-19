@@ -12,14 +12,14 @@ namespace Libplanet.Net.Tests
         public async Task DetectAppProtocolVersion()
         {
             var signer = new PrivateKey();
-            ProtocolOptions v2 = new ProtocolOptions()
-                { Protocol = Protocol.Create(signer, 2) };
-            ProtocolOptions v3 = new ProtocolOptions()
-                { Protocol = Protocol.Create(signer, 3) };
-            var a = await CreateSwarm(appProtocolVersionOptions: v2);
-            var b = await CreateSwarm(appProtocolVersionOptions: v3);
-            var c = await CreateSwarm(appProtocolVersionOptions: v2);
-            var d = await CreateSwarm(appProtocolVersionOptions: v3);
+            var v2 = new TransportOptions()
+            { Protocol = Protocol.Create(signer, 2) };
+            var v3 = new TransportOptions()
+            { Protocol = Protocol.Create(signer, 3) };
+            var a = await CreateSwarm(transportOptions: v2);
+            var b = await CreateSwarm(transportOptions: v3);
+            var c = await CreateSwarm(transportOptions: v2);
+            var d = await CreateSwarm(transportOptions: v3);
 
             try
             {
@@ -55,14 +55,14 @@ namespace Libplanet.Net.Tests
             var isCalled = false;
 
             var signer = new PrivateKey();
-            ProtocolOptions v1 = new ProtocolOptions()
+            var v1 = new TransportOptions()
             {
                 Protocol = Protocol.Create(signer, 1),
             };
-            ProtocolOptions v2 = new ProtocolOptions()
-                { Protocol = Protocol.Create(signer, 2) };
-            var a = await CreateSwarm(appProtocolVersionOptions: v1);
-            var b = await CreateSwarm(appProtocolVersionOptions: v2);
+            var v2 = new TransportOptions()
+            { Protocol = Protocol.Create(signer, 2) };
+            var a = await CreateSwarm(transportOptions: v1);
+            var b = await CreateSwarm(transportOptions: v2);
 
             try
             {
@@ -108,36 +108,36 @@ namespace Libplanet.Net.Tests
 
             var trustedSigners = new[] { signer.Address }.ToImmutableSortedSet();
             var untrustedSigners = new[] { untrustedSigner.Address }.ToImmutableSortedSet();
-            var optionsA = new ProtocolOptions()
+            var optionsA = new TransportOptions()
             {
                 Protocol = older,
             };
-            var a = await CreateSwarm(appProtocolVersionOptions: optionsA);
-            var optionsB = new ProtocolOptions()
+            var a = await CreateSwarm(transportOptions: optionsA);
+            var optionsB = new TransportOptions()
             {
                 Protocol = newer,
             };
-            var b = await CreateSwarm(appProtocolVersionOptions: optionsB);
-            var optionsC = new ProtocolOptions()
+            var b = await CreateSwarm(transportOptions: optionsB);
+            var optionsC = new TransportOptions()
             {
                 Protocol = older,
             };
-            var c = await CreateSwarm(appProtocolVersionOptions: optionsC);
-            var optionsD = new ProtocolOptions()
+            var c = await CreateSwarm(transportOptions: optionsC);
+            var optionsD = new TransportOptions()
             {
                 Protocol = newer,
             };
-            var d = await CreateSwarm(appProtocolVersionOptions: optionsD);
-            var optionsE = new ProtocolOptions()
+            var d = await CreateSwarm(transportOptions: optionsD);
+            var optionsE = new TransportOptions()
             {
                 Protocol = untrustedOlder,
             };
-            var e = await CreateSwarm(appProtocolVersionOptions: optionsE);
-            var optionsF = new ProtocolOptions()
+            var e = await CreateSwarm(transportOptions: optionsE);
+            var optionsF = new TransportOptions()
             {
                 Protocol = untrustedNewer,
             };
-            var f = await CreateSwarm(appProtocolVersionOptions: optionsF);
+            var f = await CreateSwarm(transportOptions: optionsF);
 
             try
             {

@@ -22,22 +22,14 @@ public abstract class TransportTest(ITestOutputHelper output)
     protected const int Timeout = 60 * 1000;
 
     protected ITransport CreateTransport(
-        Random random,
-        PrivateKey? privateKey = null,
-        ProtocolOptions? protocolOptions = null,
-        HostOptions? hostOptions = null)
+        Random random, PrivateKey? privateKey = null, TransportOptions? transportOptions = null)
     {
         return CreateTransport(
             privateKey ?? RandomUtility.PrivateKey(random),
-            protocolOptions ?? new ProtocolOptions(),
-            hostOptions ?? new HostOptions
-            {
-                Host = IPAddress.Loopback.ToString(),
-            });
+            transportOptions ?? new TransportOptions());
     }
 
-    protected abstract ITransport CreateTransport(
-        PrivateKey privateKey, ProtocolOptions protocolOptions, HostOptions hostOptions);
+    protected abstract ITransport CreateTransport(PrivateKey privateKey, TransportOptions transportOptions);
 
     [Fact(Timeout = Timeout)]
     public async Task StartAsync()

@@ -15,7 +15,7 @@ using Nito.AsyncEx;
 
 namespace Libplanet.Net.Transports;
 
-public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protocolOptions, HostOptions hostOptions)
+public sealed class NetMQTransport(PrivateKey privateKey, TransportOptions options)
     : ITransport
 {
     private readonly Channel<MessageRequest> _requestChannel = Channel.CreateUnbounded<MessageRequest>();
@@ -41,6 +41,11 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
         ForceDotNet.Force();
     }
 
+    public NetMQTransport(PrivateKey privateKey)
+        : this(privateKey, new TransportOptions())
+    {
+    }
+
     public IObservable<MessageEnvelope> MessageReceived => _messageReceivedSubject;
 
     public Peer Peer
@@ -55,14 +60,14 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             return _peer ??= new()
             {
                 Address = privateKey.Address,
-                EndPoint = new DnsEndPoint(hostOptions.Host, _port),
+                EndPoint = new DnsEndPoint(options.Host, _port),
             };
         }
     }
 
     public bool IsRunning { get; private set; }
 
-    public Protocol Protocol => protocolOptions.Protocol;
+    public Protocol Protocol => options.Protocol;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -75,7 +80,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
         _cancellationTokenSource = new CancellationTokenSource();
         _cancellationToken = _cancellationTokenSource.Token;
-        _port = Initialize(_router, hostOptions.Port);
+        _port = Initialize(_router, options.Port);
         _poller = [_router, _replyQueue];
         _processTask = Task.Run(() =>
         {
@@ -173,7 +178,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
                 {
                     Identity = Guid.NewGuid(),
                     Message = message,
-                    Protocol = protocolOptions.Protocol,
+                    Protocol = options.Protocol,
                     Peer = Peer,
                     Timestamp = DateTimeOffset.UtcNow,
                 },
@@ -186,7 +191,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
             var rawMessage = await channel.Reader.ReadAsync(cancellationTokenSource.Token);
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
-            messageEnvelope.Validate(protocolOptions.Protocol, protocolOptions.MessageLifetime);
+            messageEnvelope.Validate(options.Protocol, options.MessageLifetime);
             return messageEnvelope;
         }
         finally
@@ -239,7 +244,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
             {
                 Identity = identity,
                 Message = message,
-                Protocol = protocolOptions.Protocol,
+                Protocol = options.Protocol,
                 Peer = Peer,
                 Timestamp = DateTimeOffset.UtcNow,
             },
@@ -275,7 +280,7 @@ public sealed class NetMQTransport(PrivateKey privateKey, ProtocolOptions protoc
 
             var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
-            messageEnvelope.Validate(protocolOptions.Protocol, protocolOptions.MessageLifetime);
+            messageEnvelope.Validate(options.Protocol, options.MessageLifetime);
             _messageReceivedSubject.OnNext(messageEnvelope);
         }
         catch

@@ -289,13 +289,13 @@ namespace Libplanet.Net.Tests
         public async Task MaintainStaticPeers()
         {
             var keyA = new PrivateKey();
-            var hostOptionsA = new HostOptions { Host = IPAddress.Loopback.ToString(), Port = 20_000 };
-            var hostOptionsB = new HostOptions { Host = IPAddress.Loopback.ToString(), Port = 20_001 };
+            var hostOptionsA = new TransportOptions { Host = IPAddress.Loopback.ToString(), Port = 20_000 };
+            var hostOptionsB = new TransportOptions { Host = IPAddress.Loopback.ToString(), Port = 20_001 };
 
             Swarm swarmA =
-                await CreateSwarm(keyA, hostOptions: hostOptionsA);
+                await CreateSwarm(keyA, transportOptions: hostOptionsA);
             Swarm swarmB =
-                await CreateSwarm(hostOptions: hostOptionsB);
+                await CreateSwarm(transportOptions: hostOptionsB);
             await StartAsync(swarmA);
             await StartAsync(swarmB);
 
@@ -336,7 +336,7 @@ namespace Libplanet.Net.Tests
             Assert.Contains(swarmB.AsPeer, swarm.Peers);
 
             Swarm swarmC =
-                await CreateSwarm(keyA, hostOptions: hostOptionsA);
+                await CreateSwarm(keyA, transportOptions: hostOptionsA);
             await StartAsync(swarmC);
             await AssertThatEventually(() => swarm.Peers.Contains(swarmB.AsPeer), 5_000);
             await AssertThatEventually(() => swarm.Peers.Contains(swarmC.AsPeer), 5_000);
@@ -396,7 +396,7 @@ namespace Libplanet.Net.Tests
             {
                 swarms.Add(await CreateSwarm(
                     privateKey: TestUtils.PrivateKeys[i],
-                    hostOptions: new HostOptions
+                    transportOptions: new TransportOptions
                     {
                         Host = "127.0.0.1",
                         Port = 9000 + i,
@@ -637,12 +637,12 @@ namespace Libplanet.Net.Tests
             var blockchain = MakeBlockChain(policy);
             var key = new PrivateKey();
             var protocol = Protocol.Create(key, 1);
-            var protocolOptions = new ProtocolOptions() { Protocol = protocol };
-            var hostOptions = new HostOptions
+            var transportOptions = new TransportOptions
             {
+                Protocol = protocol,
                 Host = IPAddress.Loopback.ToString(),
             };
-            var transport = new NetMQTransport(key, protocolOptions, hostOptions);
+            var transport = new NetMQTransport(key, transportOptions);
 
             // TODO: Check Consensus Parameters.
             Assert.Throws<ArgumentNullException>(() =>
@@ -655,12 +655,12 @@ namespace Libplanet.Net.Tests
         public async Task CanResolveEndPoint()
         {
             var expected = new DnsEndPoint("1.2.3.4", 5678);
-            var hostOptions = new HostOptions
+            var hostOptions = new TransportOptions
             {
                 Host = "1.2.3.4",
                 Port = 5678,
             };
-            Swarm s = await CreateSwarm(hostOptions: hostOptions);
+            Swarm s = await CreateSwarm(transportOptions: hostOptions);
             Assert.Equal(expected, s.EndPoint);
             Assert.Equal(expected, s.AsPeer?.EndPoint);
             CleaningSwarm(s);
@@ -701,17 +701,17 @@ namespace Libplanet.Net.Tests
         // public async Task ExchangeWithIceServer()
         // {
         //     var iceServers = FactOnlyTurnAvailableAttribute.GetIceServers();
-        //     var seedHostOptions = new HostOptions
+        //     var seedHostOptions = new TransportOptions
         //     {
         //         Host = "127.0.0.1",
         //     };
-        //     var swarmHostOptions = new HostOptions
+        //     var swarmHostOptions = new TransportOptions
         //     {
         //         Host = string.Empty,
         //     };
-        //     var seed = await CreateSwarm(hostOptions: seedHostOptions).ConfigureAwait(false);
-        //     var swarmA = await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
-        //     var swarmB = await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
+        //     var seed = await CreateSwarm(transportOptions: seedHostOptions).ConfigureAwait(false);
+        //     var swarmA = await CreateSwarm(transportOptions: swarmHostOptions).ConfigureAwait(false);
+        //     var swarmB = await CreateSwarm(transportOptions: swarmHostOptions).ConfigureAwait(false);
 
         //     try
         //     {
@@ -766,15 +766,15 @@ namespace Libplanet.Net.Tests
         //     var proxyTask = TurnProxy(port, turnUrl, cts.Token);
 
         //     var seedKey = new PrivateKey();
-        //     var seedHostOptions = new HostOptions
+        //     var seedHostOptions = new TransportOptions
         //     {
         //         Host = "127.0.0.1",
         //     };
-        //     var swarmHostOptions = new HostOptions { };
+        //     var swarmHostOptions = new TransportOptions { };
         //     var seed =
-        //         await CreateSwarm(seedKey, hostOptions: seedHostOptions).ConfigureAwait(false);
+        //         await CreateSwarm(seedKey, transportOptions: seedHostOptions).ConfigureAwait(false);
         //     var swarmA =
-        //         await CreateSwarm(hostOptions: swarmHostOptions).ConfigureAwait(false);
+        //         await CreateSwarm(transportOptions: swarmHostOptions).ConfigureAwait(false);
 
         //     async Task RefreshTableAsync(CancellationToken cancellationToken)
         //     {
@@ -1447,17 +1447,17 @@ namespace Libplanet.Net.Tests
                     MaxTransferBlocksTaskCount = 3,
                 },
             };
-            var apvOptions = new ProtocolOptions();
+            var transportOptions = new TransportOptions
+            {
+                Host = "localhost",
+            };
 
             var key = new PrivateKey();
             Swarm swarm = await CreateSwarm(
                     options: options,
-                    appProtocolVersionOptions: apvOptions)
+                    transportOptions: transportOptions)
                 .ConfigureAwait(false);
-            NetMQTransport transport = new NetMQTransport(
-                key,
-                apvOptions,
-                new HostOptions { Host = "localhost" });
+            var transport = new NetMQTransport(key, transportOptions);
 
             try
             {
@@ -1504,17 +1504,17 @@ namespace Libplanet.Net.Tests
                     MaxTransferTxsTaskCount = 3,
                 },
             };
-            var apvOptions = new ProtocolOptions();
+            var transportOptions = new TransportOptions
+            {
+                Host = "localhost",
+            };
 
             var key = new PrivateKey();
             Swarm swarm = await CreateSwarm(
                     options: options,
-                    appProtocolVersionOptions: apvOptions)
+                    transportOptions: transportOptions)
                 .ConfigureAwait(false);
-            NetMQTransport transport = new NetMQTransport(
-                key,
-                apvOptions,
-                new HostOptions { Host = "localhost" });
+            NetMQTransport transport = new NetMQTransport(key, transportOptions);
 
             try
             {

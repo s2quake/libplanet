@@ -31,27 +31,26 @@ namespace Libplanet.Net.Tests.Transports
             {
                 swarmKey.PublicKey,
             };
-            var apv = Protocol.Create(new PrivateKey(), 1);
-            var apvOptions = new ProtocolOptions() { Protocol = apv };
-            string host = IPAddress.Loopback.ToString();
-            int port = FreeTcpPort();
-            var hostOptions = new HostOptions
+            var protocol = Protocol.Create(new PrivateKey(), 1);
+            var transportOptions = new TransportOptions()
             {
+                Protocol = protocol,
                 Host = IPAddress.Loopback.ToString(),
-                Port = port,
+                Port = FreeTcpPort(),
             };
             var option = new SwarmOptions();
-            var transport = new NetMQTransport(
-                swarmKey,
-                apvOptions,
-                hostOptions);
+            var transport = new NetMQTransport(swarmKey, transportOptions);
             await using (var swarm = new Swarm(
                 blockchain,
                 swarmKey,
                 transport,
                 options: option))
             {
-                var peer = new Peer { Address = swarmKey.Address, EndPoint = new DnsEndPoint(host, port) };
+                var peer = new Peer
+                {
+                    Address = swarmKey.Address,
+                    EndPoint = new DnsEndPoint(transportOptions.Host, transportOptions.Port),
+                };
                 // Before swarm starting...
                 Assert.Throws<TimeoutException>(() =>
                 {
@@ -80,7 +79,7 @@ namespace Libplanet.Net.Tests.Transports
                             "Each type of transport must have corresponding test case.");
                     }
 
-                    Assert.Equal(apv, receivedAPV);
+                    Assert.Equal(protocol, receivedAPV);
                 }
                 finally
                 {
