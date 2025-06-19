@@ -338,17 +338,13 @@ namespace Libplanet.Net.Tests
             key ??= PrivateKeys[1];
             validatorPeers ??= Peers;
 
-            var apvOption = new ProtocolOptions
-            { Protocol = AppProtocolVersion };
-            var hostOption = new HostOptions
+            var transportOption = new TransportOptions
             {
+                Protocol = AppProtocolVersion,
                 Host = host,
                 Port = consensusPort,
             };
-            var consensusTransport = new NetMQTransport(
-                key,
-                apvOption,
-                hostOption);
+            var consensusTransport = new NetMQTransport(key, transportOption);
             var consensusReactorOptions = new ConsensusReactorOptions
             {
                 ConsensusPeers = validatorPeers.ToImmutableArray(),

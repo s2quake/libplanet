@@ -220,13 +220,7 @@ namespace Libplanet.Net.Tests.Consensus
             }
 
             transport1.MessageReceived.Subscribe(HandleMessage);
-            var gossip = new Gossip(
-                transport1,
-                ImmutableArray<Peer>.Empty,
-                ImmutableArray<Peer>.Empty,
-                _ => { },
-                _ => { },
-                _ => { });
+            var gossip = new Gossip(transport1);
             var transport2 = CreateTransport(key2, 6002);
             try
             {
@@ -343,35 +337,25 @@ namespace Libplanet.Net.Tests.Consensus
             IEnumerable<Peer>? seeds = null)
         {
             var transport = CreateTransport(privateKey, port);
-            return new Gossip(
-                transport,
-                peers?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
-                seeds?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
-                _ => { },
-                _ => { },
-                processMessage);
+            var options = new GossipOptions
+            {
+                Validators = peers?.ToImmutableArray() ?? [],
+                Seeds = seeds?.ToImmutableArray() ?? [],
+                ProcessMessage = processMessage,
+            };
+            return new Gossip(transport, options);
         }
 
-        private NetMQTransport CreateTransport(
-            PrivateKey? privateKey = null,
-            int? port = null)
+        private static NetMQTransport CreateTransport(PrivateKey? privateKey = null, int? port = null)
         {
-            var apvOptions = new ProtocolOptions
-            { Protocol = TestUtils.AppProtocolVersion };
-            HostOptions hostOptions;
-            if (port is { } p)
+            var options = new TransportOptions
             {
-                hostOptions = new HostOptions { Host = "127.0.0.1", Port = p };
-            }
-            else
-            {
-                hostOptions = new HostOptions { Host = "127.0.0.1" };
-            }
+                Protocol = TestUtils.AppProtocolVersion,
+                Host = "127.0.0.1",
+                Port = port ?? 0,
+            };
 
-            return new NetMQTransport(
-                privateKey ?? new PrivateKey(),
-                apvOptions,
-                hostOptions);
+            return new NetMQTransport(privateKey ?? new PrivateKey(), options);
         }
     }
 }

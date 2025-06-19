@@ -8,9 +8,9 @@ namespace Libplanet.Net.Tests.Options
         public void Constructor()
         {
             // Assert.Throws<ArgumentException>(
-            //     () => new HostOptionsnull, new IceServer[] { }));
+            //     () => new TransportOptionsnull, new IceServer[] { }));
             // Assert.Throws<ArgumentException>(
-            //     () => new HostOptions(
+            //     () => new TransportOptions(
             //         "127.0.0.1", new IceServer[] { new IceServer("turn://user:info@some.path") }));
         }
     }

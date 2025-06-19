@@ -52,8 +52,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
             NetMQConfig.MaxSockets = 12;
             NetMQTransport transport = new NetMQTransport(
                 new PrivateKey(),
-                new ProtocolOptions(),
-                new HostOptions
+                new TransportOptions
                 {
                     Host = IPAddress.Loopback.ToString(),
                 });
@@ -123,7 +122,6 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
         }
     }
 
-    protected override ITransport CreateTransport(
-        PrivateKey privateKey, ProtocolOptions protocolOptions, HostOptions hostOptions)
-        => new NetMQTransport(privateKey, protocolOptions, hostOptions);
+    protected override ITransport CreateTransport(PrivateKey privateKey, TransportOptions transportOptions)
+        => new NetMQTransport(privateKey, transportOptions);
 }

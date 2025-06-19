@@ -101,15 +101,14 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
     {
         var privateKey = PrivateKey.Parse(seedOptions.PrivateKey);
         var protocol = Protocol.FromToken(seedOptions.AppProtocolVersion);
-        var protocolOptions = new ProtocolOptions
+        var endPoint = (DnsEndPoint)EndPointUtility.Parse(seedOptions.EndPoint);
+        var options = new TransportOptions
         {
             Protocol = protocol,
+            Host = endPoint.Host,
+            Port = endPoint.Port,
         };
-        var endPoint = (DnsEndPoint)EndPointUtility.Parse(seedOptions.EndPoint);
-        var host = endPoint.Host;
-        var port = endPoint.Port;
-        var hostOptions = new HostOptions { Host = host, Port = port };
-        return new(privateKey, protocolOptions, hostOptions);
+        return new(privateKey, options);
     }
 
     private async Task RefreshContinuouslyAsync(CancellationToken cancellationToken)

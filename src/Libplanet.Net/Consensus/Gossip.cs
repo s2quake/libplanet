@@ -38,7 +38,7 @@ public sealed class Gossip : IAsyncDisposable
         _table = new RoutingTable(transport.Peer.Address);
 
         // FIXME: Dumb way to add peer.
-        foreach (Peer peer in options.Peers.Where(p => p.Address != transport.Peer.Address))
+        foreach (Peer peer in options.Validators.Where(p => p.Address != transport.Peer.Address))
         {
             _table.AddPeer(peer);
         }

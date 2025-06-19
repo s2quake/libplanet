@@ -104,21 +104,17 @@ public class SeedTest
     public async Task MessageReceived_TestAsync()
     {
         // Given
-        var apv = Protocol.Create(new(), 0);
+        var protocol = Protocol.Create(new(), 0);
         var remotePrivateKey = new RandomPrivateKey();
         using var remoteEndPoint = new RandomEndPoint();
         var remoteBoundPeer = new Net.Peer { Address = remotePrivateKey.Address, EndPoint = remoteEndPoint };
-        var remoteHostOptions = new HostOptions
+        var transportOptions = new TransportOptions
         {
             Host = remoteEndPoint.Host,
             Port = remoteEndPoint.Port,
+            Protocol = protocol,
         };
-        var remoteAPVOptions = new ProtocolOptions
-        {
-            Protocol = apv,
-        };
-        await using var transport = new NetMQTransport(
-            remotePrivateKey, remoteAPVOptions, remoteHostOptions);
+        await using var transport = new NetMQTransport(remotePrivateKey, transportOptions);
 
         var seedPrivateKey = new RandomPrivateKey();
         using var seedEndPoint = new RandomEndPoint();
@@ -127,7 +123,7 @@ public class SeedTest
         {
             PrivateKey = seedPrivateKey.ToString(),
             EndPoint = seedEndPoint.ToString(),
-            AppProtocolVersion = apv.Token,
+            AppProtocolVersion = protocol.Token,
         };
         await using var seed = new Seed(options);
         await seed.StartAsync(cancellationToken: default);
@@ -156,25 +152,25 @@ public class SeedTest
     public async Task GetNeighborsMsg_TestAsync()
     {
         // Given
-        var apv = Protocol.Create(new(), 0);
+        var protocol = Protocol.Create(new(), 0);
         var length = Random.Shared.Next(3, 10);
         var remotePrivateKeys = new RandomPrivateKey[length];
         var remoteEndPoints = new RandomEndPoint[length];
         var remoteBoundPeers = new Net.Peer[length];
-        var remoteAPVOptions = new ProtocolOptions
-        {
-            Protocol = apv,
-        };
+
         var transports = new ITransport[length];
         for (var i = 0; i < length; i++)
         {
+            var transportOptions = new TransportOptions
+            {
+                Protocol = protocol,
+                Host = remoteEndPoints[i].Host,
+                Port = remoteEndPoints[i].Port,
+            };
             remotePrivateKeys[i] = new RandomPrivateKey();
             remoteEndPoints[i] = new RandomEndPoint();
             remoteBoundPeers[i] = new Net.Peer { Address = remotePrivateKeys[i].Address, EndPoint = remoteEndPoints[i] };
-            transports[i] = new NetMQTransport(
-                privateKey: remotePrivateKeys[i],
-                protocolOptions: remoteAPVOptions,
-                hostOptions: new HostOptions { Host = remoteEndPoints[i].Host, Port = remoteEndPoints[i].Port });
+            transports[i] = new NetMQTransport(remotePrivateKeys[i], transportOptions);
         }
 
         using var d1 = new DisposerCollection(remoteEndPoints);
@@ -187,7 +183,7 @@ public class SeedTest
         {
             PrivateKey = seedPrivateKey.ToString(),
             EndPoint = seedEndPoint.ToString(),
-            AppProtocolVersion = apv.Token,
+            AppProtocolVersion = protocol.Token,
         };
         await using var seed = new Seed(options);
         await seed.StartAsync(cancellationToken: default);

@@ -172,17 +172,15 @@ internal sealed class SwarmService(
         }
     }
 
-    private static NetMQTransport CreateTransport(
-        PrivateKey privateKey,
-        DnsEndPoint endPoint,
-        Protocol protocol)
+    private static NetMQTransport CreateTransport(PrivateKey privateKey, DnsEndPoint endPoint, Protocol protocol)
     {
-        var protocolOptions = new Net.Options.ProtocolOptions
+        var transportOptions = new Net.Options.TransportOptions
         {
             Protocol = protocol,
+            Host = endPoint.Host,
+            Port = endPoint.Port,
         };
-        var hostOptions = new Net.Options.HostOptions { Host = endPoint.Host, Port = endPoint.Port };
-        return new(privateKey, protocolOptions, hostOptions);
+        return new(privateKey, transportOptions);
     }
 
     private static ConsensusReactorOptions CreateConsensusReactorOption(
