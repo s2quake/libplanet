@@ -853,26 +853,23 @@ namespace Libplanet.Net.Tests
             var addr = miner1.Address;
             var item = "foo";
 
-            miner1.Blockchain.StagedTransactions.Add(submission: new()
+            miner1.Blockchain.StagedTransactions.Add(privKey, submission: new()
             {
-                Signer = privKey.AsSigner(),
                 Actions = [DumbAction.Create((addr, item))],
             });
             Block block1 = miner1.Blockchain.ProposeBlock(key1);
             miner1.Blockchain.Append(block1, TestUtils.CreateBlockCommit(block1));
             var miner1TipHash = miner1.Blockchain.Tip.BlockHash;
 
-            miner2.Blockchain.StagedTransactions.Add(submission: new()
+            miner2.Blockchain.StagedTransactions.Add(privKey, submission: new()
             {
-                Signer = privKey.AsSigner(),
                 Actions = [DumbAction.Create((addr, item))],
             });
             Block block2 = miner2.Blockchain.ProposeBlock(key2);
             miner2.Blockchain.Append(block2, TestUtils.CreateBlockCommit(block2));
 
-            miner2.Blockchain.StagedTransactions.Add(submission: new()
+            miner2.Blockchain.StagedTransactions.Add(privKey, submission: new()
             {
-                Signer = privKey.AsSigner(),
                 Actions = [DumbAction.Create((addr, item))],
             });
             var latest = miner2.Blockchain.ProposeBlock(key2);
@@ -931,14 +928,8 @@ namespace Libplanet.Net.Tests
 
             try
             {
-                var validTx = swarmA.Blockchain.StagedTransactions.Add(submission: new()
-                {
-                    Signer = validKey.AsSigner(),
-                });
-                var invalidTx = swarmA.Blockchain.StagedTransactions.Add(submission: new()
-                {
-                    Signer = invalidKey.AsSigner(),
-                });
+                var validTx = swarmA.Blockchain.StagedTransactions.Add(validKey);
+                var invalidTx = swarmA.Blockchain.StagedTransactions.Add(invalidKey);
 
                 await StartAsync(swarmA);
                 await StartAsync(swarmB);
@@ -1002,10 +993,7 @@ namespace Libplanet.Net.Tests
 
             try
             {
-                var tx = swarmA.Blockchain.StagedTransactions.Add(submission: new()
-                {
-                    Signer = validKey.AsSigner(),
-                });
+                var tx = swarmA.Blockchain.StagedTransactions.Add(validKey);
 
                 await StartAsync(swarmA);
                 await StartAsync(swarmB);

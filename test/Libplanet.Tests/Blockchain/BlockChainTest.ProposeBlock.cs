@@ -502,9 +502,8 @@ public partial class BlockChainTest
         Assert.Equal("foo,foo", state1);
         Assert.Equal("baz", state2);
 
-        blockChain.StagedTransactions.Add(submission: new()
+        blockChain.StagedTransactions.Add(privateKey1, submission: new()
         {
-            Signer = privateKey1.AsSigner(),
             Actions = [DumbAction.Create((address1, "bar"))],
         });
         block = blockChain.ProposeBlock(privateKey1);

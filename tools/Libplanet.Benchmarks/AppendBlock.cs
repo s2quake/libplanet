@@ -27,10 +27,7 @@ namespace Libplanet.Benchmarks
         [IterationSetup(Target = nameof(AppendBlockOneTransactionNoAction))]
         public void PrepareAppendMakeOneTransactionNoAction()
         {
-            _blockChain.StagedTransactions.Add(submission: new()
-            {
-                Signer = _privateKey.AsSigner(),
-            });
+            _blockChain.StagedTransactions.Add(_privateKey);
             PrepareAppend();
         }
 
@@ -39,10 +36,7 @@ namespace Libplanet.Benchmarks
         {
             for (var i = 0; i < 10; i++)
             {
-                _blockChain.StagedTransactions.Add(submission: new()
-                {
-                    Signer = new PrivateKey().AsSigner()
-                });
+                _blockChain.StagedTransactions.Add(new PrivateKey());
             }
             PrepareAppend();
         }
@@ -59,9 +53,8 @@ namespace Libplanet.Benchmarks
                 DumbAction.Create((address, "baz")),
                 DumbAction.Create((address, "qux")),
             };
-            _blockChain.StagedTransactions.Add(submission: new()
+            _blockChain.StagedTransactions.Add(privateKey, submission: new()
             {
-                Signer = privateKey.AsSigner(),
                 Actions = actions,
             });
             PrepareAppend();
@@ -81,9 +74,8 @@ namespace Libplanet.Benchmarks
                     DumbAction.Create((address, "baz")),
                     DumbAction.Create((address, "qux")),
                 };
-                _blockChain.StagedTransactions.Add(submission: new()
+                _blockChain.StagedTransactions.Add(privateKey, submission: new()
                 {
-                    Signer = privateKey.AsSigner(),
                     Actions = actions,
                 });
             }
