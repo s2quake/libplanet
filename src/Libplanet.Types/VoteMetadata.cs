@@ -37,7 +37,7 @@ public sealed partial record class VoteMetadata : IValidatableObject
         return Validator.Verify(message, signature);
     }
 
-    public Vote Sign(PrivateKey signer)
+    public Vote Sign(ISigner signer)
     {
         var options = new ModelOptions
         {

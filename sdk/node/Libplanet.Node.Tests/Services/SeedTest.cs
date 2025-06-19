@@ -114,7 +114,7 @@ public class SeedTest
             Port = remoteEndPoint.Port,
             Protocol = protocol,
         };
-        await using var transport = new NetMQTransport(remotePrivateKey, transportOptions);
+        await using var transport = new NetMQTransport(remotePrivateKey.Signer, transportOptions);
 
         var seedPrivateKey = new RandomPrivateKey();
         using var seedEndPoint = new RandomEndPoint();
@@ -170,7 +170,7 @@ public class SeedTest
             remotePrivateKeys[i] = new RandomPrivateKey();
             remoteEndPoints[i] = new RandomEndPoint();
             remoteBoundPeers[i] = new Net.Peer { Address = remotePrivateKeys[i].Address, EndPoint = remoteEndPoints[i] };
-            transports[i] = new NetMQTransport(remotePrivateKeys[i], transportOptions);
+            transports[i] = new NetMQTransport(remotePrivateKeys[i].Signer, transportOptions);
         }
 
         using var d1 = new DisposerCollection(remoteEndPoints);

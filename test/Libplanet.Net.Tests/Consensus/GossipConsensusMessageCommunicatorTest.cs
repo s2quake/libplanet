@@ -327,7 +327,9 @@ namespace Libplanet.Net.Tests.Consensus
                 Port = port ?? 0,
             };
 
-            return new NetMQTransport(privateKey ?? new PrivateKey(), transportOptions);
+            privateKey ??= new PrivateKey();
+
+            return new NetMQTransport(privateKey.AsSigner(), transportOptions);
         }
 
         private MessageCommunicator CreateGossipConesnsusMessageCommunicator(

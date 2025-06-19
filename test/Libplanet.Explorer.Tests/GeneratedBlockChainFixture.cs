@@ -1,6 +1,7 @@
 using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.Data;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 
 namespace Libplanet.Explorer.Tests;

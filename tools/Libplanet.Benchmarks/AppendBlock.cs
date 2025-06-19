@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Data;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
@@ -28,7 +29,7 @@ namespace Libplanet.Benchmarks
         {
             _blockChain.StagedTransactions.Add(submission: new()
             {
-                Signer = _privateKey,
+                Signer = _privateKey.AsSigner(),
             });
             PrepareAppend();
         }
@@ -40,7 +41,7 @@ namespace Libplanet.Benchmarks
             {
                 _blockChain.StagedTransactions.Add(submission: new()
                 {
-                    Signer = new PrivateKey()
+                    Signer = new PrivateKey().AsSigner()
                 });
             }
             PrepareAppend();
@@ -60,7 +61,7 @@ namespace Libplanet.Benchmarks
             };
             _blockChain.StagedTransactions.Add(submission: new()
             {
-                Signer = privateKey,
+                Signer = privateKey.AsSigner(),
                 Actions = actions,
             });
             PrepareAppend();
@@ -82,7 +83,7 @@ namespace Libplanet.Benchmarks
                 };
                 _blockChain.StagedTransactions.Add(submission: new()
                 {
-                    Signer = privateKey,
+                    Signer = privateKey.AsSigner(),
                     Actions = actions,
                 });
             }

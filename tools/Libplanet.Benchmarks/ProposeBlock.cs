@@ -3,6 +3,7 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Data;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 
 namespace Libplanet.Benchmarks

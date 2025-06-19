@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Nito.AsyncEx;

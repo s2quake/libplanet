@@ -30,19 +30,19 @@ public sealed partial record class TransactionMetadata
     [NonNegative]
     public long GasLimit { get; init; }
 
-    public Transaction Sign(PrivateKey privateKey)
+    public Transaction Sign(ISigner signer)
     {
         var options = new ModelOptions
         {
             IsValidationEnabled = true,
         };
-        var bytes = ModelSerializer.SerializeToBytes(this, options);
-        var signature = privateKey.Sign(bytes).ToImmutableArray();
+        var message = ModelSerializer.SerializeToBytes(this, options);
+        var signature = signer.Sign(message);
 
         return new Transaction
         {
             Metadata = this,
-            Signature = signature,
+            Signature = [.. signature],
         };
     }
 }

@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Tx;
 using Libplanet.Types;
 

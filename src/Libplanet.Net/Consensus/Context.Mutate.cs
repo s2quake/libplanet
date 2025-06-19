@@ -13,7 +13,7 @@ public partial class Context
 
         Proposal = null;
         Step = ConsensusStep.Propose;
-        if (_validators.GetProposer(Height, Round).Address == _privateKey.Address)
+        if (_validators.GetProposer(Height, Round).Address == _signer.Address)
         {
             if ((_validValue ?? GetValue()) is Block proposalValue)
             {
@@ -22,10 +22,10 @@ public partial class Context
                     Height = Height,
                     Round = Round,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Proposer = _privateKey.Address,
+                    Proposer = _signer.Address,
                     // MarshaledBlock = ModelSerializer.SerializeToBytes(proposalValue),
                     ValidRound = _validRound,
-                }.Sign(_privateKey);
+                }.Sign(_signer);
 
                 PublishMessage(new ConsensusProposalMessage { Proposal = proposal });
             }
@@ -282,8 +282,8 @@ public partial class Context
                             Round = Round,
                             BlockHash = hash3,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = _privateKey.Address,
-                        }.Sign(_privateKey),
+                            Validator = _signer.Address,
+                        }.Sign(_signer),
                     });
             }
         }

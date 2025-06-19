@@ -1,4 +1,5 @@
 using Libplanet.Data;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 
 namespace Libplanet.Tests.Blockchain;

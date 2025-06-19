@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Libplanet.Types.Tests;
 using Serilog;

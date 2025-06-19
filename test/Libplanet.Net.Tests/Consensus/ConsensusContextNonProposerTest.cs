@@ -3,6 +3,7 @@ using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Types;
+using Libplanet.TestUtilities.Extensions;
 using Nito.AsyncEx;
 using Serilog;
 using xRetry;

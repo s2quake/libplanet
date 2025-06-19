@@ -83,7 +83,7 @@ internal sealed class SwarmService(
             .Select(Address.Parse).ToArray();
         var swarmEndPoint = (DnsEndPoint)EndPointUtility.Parse(nodeOptions.EndPoint);
         var swarmTransport = CreateTransport(
-            privateKey: privateKey,
+            signer: privateKey.AsSigner(),
             endPoint: swarmEndPoint,
             protocol: appProtocolVersion);
         var blocksyncSeedPeer = Net.Peer.Parse(nodeOptions.BlocksyncSeedPeer);
@@ -172,7 +172,7 @@ internal sealed class SwarmService(
         }
     }
 
-    private static NetMQTransport CreateTransport(PrivateKey privateKey, DnsEndPoint endPoint, Protocol protocol)
+    private static NetMQTransport CreateTransport(ISigner signer, DnsEndPoint endPoint, Protocol protocol)
     {
         var transportOptions = new Net.Options.TransportOptions
         {
@@ -180,7 +180,7 @@ internal sealed class SwarmService(
             Host = endPoint.Host,
             Port = endPoint.Port,
         };
-        return new(privateKey, transportOptions);
+        return new(signer, transportOptions);
     }
 
     private static ConsensusReactorOptions CreateConsensusReactorOption(
@@ -202,6 +202,6 @@ internal sealed class SwarmService(
         PrivateKey privateKey, Protocol protocol, ValidatorOptions options)
     {
         var consensusEndPoint = (DnsEndPoint)EndPointUtility.Parse(options.EndPoint);
-        return CreateTransport(privateKey, consensusEndPoint, protocol);
+        return CreateTransport(privateKey.AsSigner(), consensusEndPoint, protocol);
     }
 }

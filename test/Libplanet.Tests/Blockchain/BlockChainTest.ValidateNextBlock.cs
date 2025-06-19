@@ -5,6 +5,7 @@ using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.Types.Tests;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -615,7 +616,9 @@ public partial class BlockChainTest
                 ValidatorPower = power,
                 Flag = flag,
             };
-            return metadata.Sign(flag == VoteFlag.Null ? null : key);
+            return flag == VoteFlag.Null
+                ? metadata.WithoutSignature()
+                : metadata.Sign(key);
         }
 
         ImmutableArray<Vote> GenerateVotes(

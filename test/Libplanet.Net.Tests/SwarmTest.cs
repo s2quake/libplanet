@@ -9,6 +9,7 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using NetMQ;
@@ -642,7 +643,7 @@ namespace Libplanet.Net.Tests
                 Protocol = protocol,
                 Host = IPAddress.Loopback.ToString(),
             };
-            var transport = new NetMQTransport(key, transportOptions);
+            var transport = new NetMQTransport(key.AsSigner(), transportOptions);
 
             // TODO: Check Consensus Parameters.
             Assert.Throws<ArgumentNullException>(() =>
@@ -854,7 +855,7 @@ namespace Libplanet.Net.Tests
 
             miner1.Blockchain.StagedTransactions.Add(submission: new()
             {
-                Signer = privKey,
+                Signer = privKey.AsSigner(),
                 Actions = [DumbAction.Create((addr, item))],
             });
             Block block1 = miner1.Blockchain.ProposeBlock(key1);
@@ -863,7 +864,7 @@ namespace Libplanet.Net.Tests
 
             miner2.Blockchain.StagedTransactions.Add(submission: new()
             {
-                Signer = privKey,
+                Signer = privKey.AsSigner(),
                 Actions = [DumbAction.Create((addr, item))],
             });
             Block block2 = miner2.Blockchain.ProposeBlock(key2);
@@ -871,7 +872,7 @@ namespace Libplanet.Net.Tests
 
             miner2.Blockchain.StagedTransactions.Add(submission: new()
             {
-                Signer = privKey,
+                Signer = privKey.AsSigner(),
                 Actions = [DumbAction.Create((addr, item))],
             });
             var latest = miner2.Blockchain.ProposeBlock(key2);
@@ -932,11 +933,11 @@ namespace Libplanet.Net.Tests
             {
                 var validTx = swarmA.Blockchain.StagedTransactions.Add(submission: new()
                 {
-                    Signer = validKey,
+                    Signer = validKey.AsSigner(),
                 });
                 var invalidTx = swarmA.Blockchain.StagedTransactions.Add(submission: new()
                 {
-                    Signer = invalidKey,
+                    Signer = invalidKey.AsSigner(),
                 });
 
                 await StartAsync(swarmA);
@@ -1003,7 +1004,7 @@ namespace Libplanet.Net.Tests
             {
                 var tx = swarmA.Blockchain.StagedTransactions.Add(submission: new()
                 {
-                    Signer = validKey,
+                    Signer = validKey.AsSigner(),
                 });
 
                 await StartAsync(swarmA);
@@ -1457,7 +1458,7 @@ namespace Libplanet.Net.Tests
                     options: options,
                     transportOptions: transportOptions)
                 .ConfigureAwait(false);
-            var transport = new NetMQTransport(key, transportOptions);
+            var transport = new NetMQTransport(key.AsSigner(), transportOptions);
 
             try
             {
@@ -1514,7 +1515,7 @@ namespace Libplanet.Net.Tests
                     options: options,
                     transportOptions: transportOptions)
                 .ConfigureAwait(false);
-            NetMQTransport transport = new NetMQTransport(key, transportOptions);
+            NetMQTransport transport = new NetMQTransport(key.AsSigner(), transportOptions);
 
             try
             {

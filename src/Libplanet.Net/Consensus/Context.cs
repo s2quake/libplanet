@@ -20,7 +20,7 @@ public partial class Context : IAsyncDisposable
     private readonly Channel<ConsensusMessage> _messageRequests;
     private readonly Channel<Action> _mutationRequests;
     private readonly HeightVoteSet _heightVoteSet;
-    private readonly PrivateKey _privateKey;
+    private readonly ISigner _signer;
     private readonly HashSet<int> _hasTwoThirdsPreVoteFlags = [];
     private readonly HashSet<int> _preVoteTimeoutFlags = [];
     private readonly HashSet<int> _preCommitTimeoutFlags = [];
@@ -46,7 +46,7 @@ public partial class Context : IAsyncDisposable
         Gossip gossip,
         int height,
         BlockCommit previousCommit,
-        PrivateKey privateKey,
+        ISigner signer,
         ContextOptions? contextOption = null)
     {
         if (height < 1)
@@ -55,7 +55,7 @@ public partial class Context : IAsyncDisposable
                 $"Given {nameof(height)} must be positive: {height}", nameof(height));
         }
 
-        _privateKey = privateKey;
+        _signer = signer;
         Height = height;
         _lastCommit = previousCommit;
         _blockchain = blockchain;
@@ -158,10 +158,10 @@ public partial class Context : IAsyncDisposable
             Round = round,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = _privateKey.Address,
+            Validator = _signer.Address,
             Flag = voteFlag,
             VoteBits = [.. voteBits],
-        }.Sign(_privateKey);
+        }.Sign(_signer);
     }
 
     public VoteSetBits? AddMaj23(Maj23 maj23)
@@ -248,7 +248,7 @@ public partial class Context : IAsyncDisposable
 
     private Block GetValue()
     {
-        return _blockchain.ProposeBlock(_privateKey);
+        return _blockchain.ProposeBlock(_signer);
     }
 
     private void PublishMessage(ConsensusMessage message)
@@ -315,10 +315,10 @@ public partial class Context : IAsyncDisposable
             Round = round,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = _privateKey.Address,
-            ValidatorPower = _validators.GetValidator(_privateKey.Address).Power,
+            Validator = _signer.Address,
+            ValidatorPower = _validators.GetValidator(_signer.Address).Power,
             Flag = voteFlag,
-        }.Sign(_privateKey);
+        }.Sign(_signer);
     }
 
     private Maj23 MakeMaj23(int round, BlockHash blockHash, VoteFlag voteFlag)
@@ -336,9 +336,9 @@ public partial class Context : IAsyncDisposable
             Round = round,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = _privateKey.Address,
+            Validator = _signer.Address,
             VoteFlag = voteFlag,
-        }.Sign(_privateKey);
+        }.Sign(_signer);
     }
 
     private (Block, int)? GetProposal()

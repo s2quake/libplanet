@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.Types\Libplanet.Types.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
+    <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
+    <ProjectReference Include="..\..\src\Libplanet.Net\Libplanet.Net.csproj" />
   </ItemGroup>
 
   <ItemGroup>

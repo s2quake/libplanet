@@ -39,7 +39,7 @@ namespace Libplanet.Net.Tests.Transports
                 Port = FreeTcpPort(),
             };
             var option = new SwarmOptions();
-            var transport = new NetMQTransport(swarmKey, transportOptions);
+            var transport = new NetMQTransport(swarmKey.AsSigner(), transportOptions);
             await using (var swarm = new Swarm(
                 blockchain,
                 swarmKey,

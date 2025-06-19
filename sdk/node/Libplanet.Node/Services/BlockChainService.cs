@@ -83,6 +83,7 @@ internal sealed class BlockChainService(
         if (genesisOptions.GenesisKey != string.Empty)
         {
             var genesisKey = PrivateKey.Parse(genesisOptions.GenesisKey);
+            var genesisSigner = genesisKey.AsSigner();
             var validatorAddresses = genesisOptions.Validators.Select(Address.Parse).ToArray();
             var actions = actionService.GetGenesisActions(
                 genesisAddress: genesisKey.Address,
@@ -94,9 +95,9 @@ internal sealed class BlockChainService(
                     new TransactionBuilder
                     {
                         Actions = actions,
-                    }.Create(genesisKey),
+                    }.Create(genesisSigner),
                 ],
-            }.Create(genesisKey, repository);
+            }.Create(genesisSigner, repository);
         }
 
         throw new UnreachableException("Genesis block path is not set.");
@@ -156,6 +157,6 @@ internal sealed class BlockChainService(
 
         return new BlockBuilder
         {
-        }.Create(genesisKey, repository);
+        }.Create(genesisKey.AsSigner(), repository);
     }
 }

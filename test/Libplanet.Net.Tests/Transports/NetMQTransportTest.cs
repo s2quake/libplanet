@@ -51,7 +51,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
             // An arbitrary number to fit one transport testing.
             NetMQConfig.MaxSockets = 12;
             NetMQTransport transport = new NetMQTransport(
-                new PrivateKey(),
+                new PrivateKey().AsSigner(),
                 new TransportOptions
                 {
                     Host = IPAddress.Loopback.ToString(),
@@ -123,5 +123,5 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
     }
 
     protected override ITransport CreateTransport(PrivateKey privateKey, TransportOptions transportOptions)
-        => new NetMQTransport(privateKey, transportOptions);
+        => new NetMQTransport(privateKey.AsSigner(), transportOptions);
 }

@@ -6,7 +6,7 @@ namespace Libplanet.Net.Messages;
 
 internal static class NetMQMessageCodec
 {
-    public static NetMQMessage Encode(MessageEnvelope messageEnvelope, PrivateKey signer)
+    public static NetMQMessage Encode(MessageEnvelope messageEnvelope, ISigner signer)
     {
         if (!signer.Address.Equals(messageEnvelope.Peer.Address))
         {

@@ -108,7 +108,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
             Host = endPoint.Host,
             Port = endPoint.Port,
         };
-        return new(privateKey, options);
+        return new(privateKey.AsSigner(), options);
     }
 
     private async Task RefreshContinuouslyAsync(CancellationToken cancellationToken)

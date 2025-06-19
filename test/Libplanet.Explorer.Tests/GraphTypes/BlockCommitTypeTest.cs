@@ -3,6 +3,7 @@ using GraphQL;
 using GraphQL.Execution;
 using GraphQL.Types;
 using Libplanet.Explorer.GraphTypes;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 

@@ -8,6 +8,7 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Serialization;
 using Libplanet.Data;
+using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Blockchain.Evidence;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
@@ -332,7 +333,7 @@ namespace Libplanet.Net.Tests
             var txs = Enumerable.Range(0, txCount).Select(_ =>
                     chainA.StagedTransactions.Add(new TransactionSubmission
                     {
-                        Signer = new PrivateKey(),
+                        Signer = new PrivateKey().AsSigner(),
                         Actions = [DumbAction.Create((address, "foo"))],
                     }))
                 .ToArray();
@@ -524,11 +525,11 @@ namespace Libplanet.Net.Tests
             {
                 var tx1 = swarmA.Blockchain.StagedTransactions.Add(submission: new()
                 {
-                    Signer = privateKey,
+                    Signer = privateKey.AsSigner(),
                 });
                 var tx2 = swarmA.Blockchain.StagedTransactions.Add(submission: new()
                 {
-                    Signer = privateKey,
+                    Signer = privateKey.AsSigner(),
                 });
                 Assert.Equal(0, tx1.Nonce);
                 Assert.Equal(1, tx2.Nonce);
@@ -563,11 +564,11 @@ namespace Libplanet.Net.Tests
 
                 var tx3 = chainA.StagedTransactions.Add(submission: new()
                 {
-                    Signer = privateKey,
+                    Signer = privateKey.AsSigner(),
                 });
                 var tx4 = chainA.StagedTransactions.Add(submission: new()
                 {
-                    Signer = privateKey,
+                    Signer = privateKey.AsSigner(),
                 });
                 Assert.Equal(1, tx3.Nonce);
                 Assert.Equal(2, tx4.Nonce);
@@ -905,19 +906,19 @@ namespace Libplanet.Net.Tests
 
             var tx1 = swarm2.Blockchain.StagedTransactions.Add(submission: new()
             {
-                Signer = privateKey,
+                Signer = privateKey.AsSigner(),
                 Actions = [DumbAction.Create((address, "foo"))],
             });
 
             var tx2 = swarm2.Blockchain.StagedTransactions.Add(submission: new()
             {
-                Signer = privateKey,
+                Signer = privateKey.AsSigner(),
                 Actions = [DumbAction.Create((address, "bar"))],
             });
 
             var tx3 = swarm2.Blockchain.StagedTransactions.Add(submission: new()
             {
-                Signer = privateKey,
+                Signer = privateKey.AsSigner(),
                 Actions = [DumbAction.Create((address, "quz"))],
             });
 
@@ -961,7 +962,7 @@ namespace Libplanet.Net.Tests
             var transportOptions = new TransportOptions();
             Swarm receiver =
                 await CreateSwarm(transportOptions: transportOptions);
-            var mockTransport = new NetMQTransport(new PrivateKey(), transportOptions);
+            var mockTransport = new NetMQTransport(new PrivateKey().AsSigner(), transportOptions);
             int requestCount = 0;
 
             void MessageHandler(MessageEnvelope message)

@@ -110,6 +110,7 @@ public class BlockCommand
     {
         // FIXME: Declare a ICommandParameterSet type taking key ID and keystore path instead:
         PrivateKey key = new KeyCommand().UnprotectKey(keyId, passphrase, ignoreStdin: true);
+        var signer = key.AsSigner();
 
         var validatorSet =
             validatorKey
@@ -124,9 +125,9 @@ public class BlockCommand
                 new TransactionBuilder
                 {
                     Actions = [action],
-                }.Create(key),
+                }.Create(signer),
             ],
-        }.Create(key);
+        }.Create(signer);
 
         using Stream stream = file == "-"
             ? Console.OpenStandardOutput()

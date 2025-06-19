@@ -20,19 +20,19 @@ public sealed partial record class RawBlock
         Content = block.Content,
     };
 
-    public Block Sign(PrivateKey privateKey) => new()
+    public Block Sign(ISigner signer) => new()
     {
         Header = Header,
         Content = Content,
-        Signature = CreateSignature(privateKey),
+        Signature = CreateSignature(signer),
     };
 
-    private ImmutableArray<byte> CreateSignature(PrivateKey privateKey)
+    private ImmutableArray<byte> CreateSignature(ISigner signer)
     {
-        if (Header.Proposer != privateKey.Address)
+        if (Header.Proposer != signer.Address)
         {
             throw new ArgumentException(
-                $"The given {nameof(privateKey)} does not match the block proposer.", nameof(privateKey));
+                $"The given {nameof(signer)} does not match the block proposer.", nameof(signer));
         }
 
         var options = new ModelOptions
@@ -40,6 +40,6 @@ public sealed partial record class RawBlock
             IsValidationEnabled = true,
         };
         var message = ModelSerializer.SerializeToBytes(this, options);
-        return [.. privateKey.Sign(message)];
+        return [.. signer.Sign(message)];
     }
 }

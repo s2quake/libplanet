@@ -224,7 +224,7 @@ If omitted (default) explorer only the local blockchain store.")]
                     };
 
 
-                    var transport = new NetMQTransport(privateKey, transportOptions);
+                    var transport = new NetMQTransport(privateKey.AsSigner(), transportOptions);
 
                     swarm = new Swarm(
                         blockChain,
