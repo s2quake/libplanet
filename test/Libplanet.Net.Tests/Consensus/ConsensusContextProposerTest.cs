@@ -41,7 +41,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
 
             // Wait for block to be proposed.
             Assert.Equal(1, consensusContext.Height);

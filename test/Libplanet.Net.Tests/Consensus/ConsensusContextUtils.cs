@@ -9,7 +9,7 @@ namespace Libplanet.Net.Tests.Consensus
     public static class ConsensusContextUtils
     {
         public static async Task WaitUntilHeightAsync(
-            ConsensusContext consensusContext,
+            ConsensusReactor consensusContext,
             int height,
             CancellationToken cancellationToken)
         {
@@ -30,7 +30,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         public static async Task WaitUntilStateAsync(
-            ConsensusContext consensusContext,
+            ConsensusReactor consensusContext,
             int height,
             ConsensusStep consensusStep,
             CancellationToken cancellationToken)
@@ -59,7 +59,7 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         public static async Task<T> WaitUntilPublishedAsync<T>(
-            ConsensusContext consensusContext,
+            ConsensusReactor consensusContext,
             int height,
             CancellationToken cancellationToken)
             where T : ConsensusMessage

@@ -44,13 +44,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         AttachEventHandlers(_currentContext);
 
         _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
-
-        // _consensusContext = new ConsensusContext(
-        //     messageCommunicator,
-        //     blockchain,
-        //     options.PrivateKey,
-        //     options.TargetBlockInterval,
-        //     options.ContextOptions);
     }
 
     public event EventHandler<(int Height, ConsensusMessage Message)>? MessagePublished;
@@ -97,8 +90,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     public ImmutableArray<Peer> Validators => _gossip.Peers;
 
-    // internal ConsensusContext ConsensusContext => _consensusContext;
-
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
@@ -128,7 +119,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
         await _gossip.StartAsync(cancellationToken);
         _currentContext.Start();
-        // _consensusContext.Start();
         IsRunning = true;
     }
 
@@ -140,20 +130,9 @@ public sealed class ConsensusReactor : IAsyncDisposable
             throw new InvalidOperationException("Consensus reactor is not running.");
         }
 
-        // await _consensusContext.DisposeAsync();
         await _gossip.StopAsync(cancellationToken);
         IsRunning = false;
     }
-
-    // public override string ToString()
-    // {
-    //     var dict =
-    //         JsonSerializer.Deserialize<Dictionary<string, object>>(
-    //             _consensusContext.ToString()) ?? new Dictionary<string, object>();
-    //     dict["peer"] = _gossip.AsPeer.ToString();
-
-    //     return JsonSerializer.Serialize(dict);
-    // }
 
     public ConsensusStep Step => CurrentContext.Step;
 
@@ -167,42 +146,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
             }
         }
     }
-
-    // public void Start()
-    // {
-    //     if (IsRunning)
-    //     {
-    //         throw new InvalidOperationException(
-    //             $"Can only start {nameof(ConsensusContext)} if {nameof(IsRunning)} is {false}.");
-    //     }
-    //     else
-    //     {
-    //         lock (_contextLock)
-    //         {
-    //             IsRunning = true;
-    //             _currentContext.Start();
-    //         }
-    //     }
-    // }
-
-
-    // public async ValueTask DisposeAsync()
-    // {
-    //     if (!_disposed)
-    //     {
-    //         if (_newHeightCts is not null)
-    //         {
-    //             await _newHeightCts.CancelAsync();
-    //         }
-
-    //         await _currentContext.DisposeAsync();
-
-    //         _newHeightCts?.Dispose();
-    //         _newHeightCts = null;
-    //         _tipChangedSubscription.Dispose();
-    //         _disposed = true;
-    //     }
-    // }
 
     public async Task NewHeightAsync(int height, CancellationToken cancellationToken)
     {
@@ -273,6 +216,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         int height = maj23.Height;
         if (height < Height)
         {
+            // logging
         }
         else
         {
@@ -293,6 +237,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         int height = voteSetBits.Height;
         if (height < Height)
         {
+            // logging
         }
         else
         {
@@ -338,14 +283,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         return null;
     }
 
-    // public override string ToString()
-    // {
-    //     lock (_contextLock)
-    //     {
-    //         return _currentContext.ToString();
-    //     }
-    // }
-
     private void OnTipChanged(TipChangedInfo e)
     {
         _newHeightCts?.Cancel();
@@ -369,7 +306,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 AddEvidenceToBlockChain(e.Tip);
                 await NewHeightAsync(e.Tip.Height + 1, cancellationToken);
             }
-            catch (Exception exc)
+            catch
             {
                 // logging
             }
@@ -416,6 +353,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             }
         }
     }
+
     private void ProcessMessage(IMessage message)
     {
         switch (message)
@@ -434,6 +372,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 }
                 catch (InvalidOperationException)
                 {
+                    // logging
                 }
 
                 break;
@@ -455,6 +394,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 }
                 catch (InvalidOperationException)
                 {
+                    // logging
                 }
 
                 break;
@@ -475,6 +415,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 }
                 catch (InvalidOperationException)
                 {
+                    // logging
                 }
 
                 break;

@@ -48,7 +48,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             var block1 = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             consensusContext.HandleMessage(
                 TestUtils.CreateConsensusPropose(block1, TestUtils.PrivateKeys[1]));
@@ -118,7 +118,7 @@ namespace Libplanet.Net.Tests.Consensus
                 newHeightDelay,
                 TestUtils.Options,
                 TestUtils.PrivateKeys[2]);
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
 
             consensusContext.StateChanged += (_, eventArgs) =>
             {
@@ -264,7 +264,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             Block block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var createdLastCommit = TestUtils.CreateBlockCommit(block);
             blockChain.Append(block, createdLastCommit);
@@ -305,7 +305,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             };
 
-            consensusContext.Start();
+            await consensusContext.StartAsync(default);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             consensusContext.HandleMessage(
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]));

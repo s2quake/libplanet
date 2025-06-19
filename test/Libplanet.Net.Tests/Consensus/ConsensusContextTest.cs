@@ -38,7 +38,7 @@ public class ConsensusContextTest
             TimeSpan.FromSeconds(1),
             TestUtils.Options,
             TestUtils.PrivateKeys[3]);
-        consensusContext.Start();
+        await consensusContext.StartAsync(default);
 
         AsyncAutoResetEvent heightThreeStepChangedToPropose = new AsyncAutoResetEvent();
         AsyncAutoResetEvent heightThreeStepChangedToEndCommit = new AsyncAutoResetEvent();
@@ -154,14 +154,15 @@ public class ConsensusContextTest
     }
 
     [Fact]
-    public void CannotStartTwice()
+    public async Task CannotStartTwice()
     {
         var (_, consensusContext) = TestUtils.CreateDummyConsensusContext(
             TimeSpan.FromSeconds(1),
             TestUtils.Options,
             TestUtils.PrivateKeys[1]);
-        consensusContext.Start();
-        Assert.Throws<InvalidOperationException>(() => consensusContext.Start());
+        await consensusContext.StartAsync(default);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async() => await consensusContext.StartAsync(default));
     }
 
     [Fact(Timeout = Timeout)]
@@ -172,7 +173,7 @@ public class ConsensusContextTest
             newHeightDelay,
             TestUtils.Options,
             TestUtils.PrivateKeys[1]);
-        consensusContext.Start();
+        await consensusContext.StartAsync(default);
 
         Assert.Equal(1, consensusContext.Height);
         Block block = blockChain.ProposeBlock(new PrivateKey());
@@ -183,13 +184,13 @@ public class ConsensusContextTest
     }
 
     [Fact(Timeout = Timeout)]
-    public void IgnoreMessagesFromLowerHeight()
+    public async Task IgnoreMessagesFromLowerHeight()
     {
         var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
             TimeSpan.FromSeconds(1),
             TestUtils.Options,
             TestUtils.PrivateKeys[1]);
-        consensusContext.Start();
+        await consensusContext.StartAsync(default);
         Assert.True(consensusContext.Height == 1);
         Assert.False(consensusContext.HandleMessage(
             TestUtils.CreateConsensusPropose(
@@ -226,7 +227,7 @@ public class ConsensusContextTest
             }
         };
 
-        consensusContext.Start();
+        await consensusContext.StartAsync(default);
         await heightOneProposalSent.WaitAsync();
         BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
@@ -277,7 +278,7 @@ public class ConsensusContextTest
             TimeSpan.FromSeconds(1),
             TestUtils.Options,
             TestUtils.PrivateKeys[0]);
-        consensusContext.Start();
+        await consensusContext.StartAsync(default);
         var block = blockChain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata
         {
@@ -370,7 +371,7 @@ public class ConsensusContextTest
             }
         };
 
-        consensusContext.Start();
+        await consensusContext.StartAsync(default);
         var block = blockChain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata
         {
@@ -448,7 +449,7 @@ public class ConsensusContextTest
                 stepChanged.Set();
             }
         };
-        consensusContext.Start();
+        await consensusContext.StartAsync(default);
         var block = blockChain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata
         {
