@@ -19,7 +19,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 {
     private readonly Channel<MessageRequest> _requestChannel = Channel.CreateUnbounded<MessageRequest>();
 
-    private readonly Subject<MessageEnvelope> _messageReceivedSubject = new();
+    private readonly Subject<MessageEnvelope> _processMessageSubject = new();
     private readonly RouterSocket _router = new();
     private readonly NetMQQueue<MessageReply> _replyQueue = new();
     private int _port;
@@ -45,7 +45,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
     }
 
-    public IObservable<MessageEnvelope> MessageReceived => _messageReceivedSubject;
+    public IObservable<MessageEnvelope> ProcessMessage => _processMessageSubject;
 
     public Peer Peer
     {
@@ -149,7 +149,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             _cancellationTokenSource = null;
             _replyQueue.Dispose();
             _router.Dispose();
-            _messageReceivedSubject.Dispose();
+            _processMessageSubject.Dispose();
 
             _disposed = true;
         }
@@ -280,7 +280,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
             messageEnvelope.Validate(options.Protocol, options.MessageLifetime);
-            _messageReceivedSubject.OnNext(messageEnvelope);
+            _processMessageSubject.OnNext(messageEnvelope);
         }
         catch
         {

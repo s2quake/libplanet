@@ -218,7 +218,7 @@ namespace Libplanet.Net.Tests.Consensus
                 receivedEvent.Set();
             }
 
-            transport1.MessageReceived.Subscribe(HandleMessage);
+            transport1.ProcessMessage.Subscribe(HandleMessage);
             var gossip = new Gossip(transport1);
             var transport2 = CreateTransport(key2, 6002);
             try
@@ -257,7 +257,7 @@ namespace Libplanet.Net.Tests.Consensus
             }
 
             ITransport seed = CreateTransport();
-            seed.MessageReceived.Subscribe(ProcessMessage);
+            seed.ProcessMessage.Subscribe(ProcessMessage);
             Gossip gossip = CreateGossip(seeds: [seed.Peer]);
 
             try
@@ -293,9 +293,9 @@ namespace Libplanet.Net.Tests.Consensus
 
             Gossip receiver = CreateGossip();
             ITransport sender1 = CreateTransport();
-            sender1.MessageReceived.Subscribe(ProcessMessage);
+            sender1.ProcessMessage.Subscribe(ProcessMessage);
             ITransport sender2 = CreateTransport();
-            sender2.MessageReceived.Subscribe(ProcessMessage);
+            sender2.ProcessMessage.Subscribe(ProcessMessage);
 
             try
             {
