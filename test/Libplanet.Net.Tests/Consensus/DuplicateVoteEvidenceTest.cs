@@ -67,7 +67,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -77,7 +77,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -87,7 +87,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -97,7 +97,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
 
             await WaitUntilHeightAsync(
@@ -162,7 +162,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -172,7 +172,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 4,
                     round: 0,
                     hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -182,7 +182,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -192,7 +192,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
 
             await WaitUntilHeightAsync(
@@ -235,7 +235,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -245,7 +245,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 1,
                     hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -255,7 +255,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -265,7 +265,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
 
             await WaitUntilHeightAsync(
@@ -308,7 +308,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreVoteMessage
             {
@@ -318,7 +318,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                    flag: VoteFlag.PreVote)
+                    flag: VoteType.PreVote)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -328,7 +328,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -338,7 +338,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
 
             await WaitUntilHeightAsync(
@@ -381,7 +381,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -391,7 +391,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -401,7 +401,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -411,7 +411,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
 
             await WaitUntilHeightAsync(
@@ -454,7 +454,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -464,7 +464,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: default,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -474,7 +474,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
             consensusContext.HandleMessage(new ConsensusPreCommitMessage
             {
@@ -484,7 +484,7 @@ namespace Libplanet.Net.Tests.Consensus
                     height: 3,
                     round: 0,
                     hash: blockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
 
             await WaitUntilHeightAsync(

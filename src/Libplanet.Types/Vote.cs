@@ -26,7 +26,7 @@ public sealed partial record class Vote : IValidatableObject
 
     public BigInteger ValidatorPower => Metadata.ValidatorPower;
 
-    public VoteFlag Flag => Metadata.Flag;
+    public VoteType Flag => Metadata.Flag;
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {

@@ -22,7 +22,7 @@
 //                 DateTimeOffset.UtcNow,
 //                 privateKey.PublicKey,
 //                 BigInteger.One,
-//                 VoteFlag.PreCommit);
+//                 VoteType.PreCommit);
 //             Vote vote = voteMetadata.Sign(privateKey);
 //             Assert.True(
 //                 privateKey.PublicKey.Verify(
@@ -35,7 +35,7 @@
 //                 DateTimeOffset.UtcNow,
 //                 privateKey.PublicKey,
 //                 null,
-//                 VoteFlag.PreCommit);
+//                 VoteType.PreCommit);
 //             Vote nullPowerVote = nullPowerVoteMetadata.Sign(privateKey);
 //             Assert.True(
 //                 privateKey.PublicKey.Verify(
@@ -56,7 +56,7 @@
 //                 timestamp: DateTimeOffset.UtcNow,
 //                 validatorPublicKey: validatorPublicKey,
 //                 validatorPower: BigInteger.One,
-//                 flag: VoteFlag.PreCommit);
+//                 flag: VoteType.PreCommit);
 
 //             // Cannot sign with Sign method
 //             Assert.Throws<ArgumentException>(() => voteMetadata.Sign(key));
@@ -80,7 +80,7 @@
 //                 timestamp: DateTimeOffset.UtcNow,
 //                 validatorPublicKey: key.PublicKey,
 //                 validatorPower: BigInteger.One,
-//                 flag: VoteFlag.PreVote);
+//                 flag: VoteType.PreVote);
 //             var preCommitMetadata = new VoteMetadata(
 //                 height: 2,
 //                 round: 3,
@@ -88,7 +88,7 @@
 //                 timestamp: DateTimeOffset.UtcNow,
 //                 validatorPublicKey: key.PublicKey,
 //                 validatorPower: BigInteger.One,
-//                 flag: VoteFlag.PreCommit);
+//                 flag: VoteType.PreCommit);
 
 //             // Works fine.
 //             _ = preVoteMetadata.Sign(key);
@@ -114,7 +114,7 @@
 //                 timestamp: DateTimeOffset.UtcNow,
 //                 validatorPublicKey: key.PublicKey,
 //                 validatorPower: BigInteger.One,
-//                 flag: VoteFlag.Null);
+//                 flag: VoteType.Null);
 //             var unknownMetadata = new VoteMetadata(
 //                 height: 2,
 //                 round: 3,
@@ -122,7 +122,7 @@
 //                 timestamp: DateTimeOffset.UtcNow,
 //                 validatorPublicKey: key.PublicKey,
 //                 validatorPower: BigInteger.One,
-//                 flag: VoteFlag.Unknown);
+//                 flag: VoteType.Unknown);
 
 //             // Works fine.
 //             _ = nullMetadata.Sign(null);
@@ -150,7 +150,7 @@
 //                 DateTimeOffset.UtcNow,
 //                 new PrivateKey().PublicKey,
 //                 BigInteger.One,
-//                 VoteFlag.PreCommit);
+//                 VoteType.PreCommit);
 //             Assert.Throws<ArgumentException>(() => new Vote(voteMetadata, default));
 //         }
 
@@ -166,7 +166,7 @@
 //                 DateTimeOffset.UtcNow,
 //                 key.PublicKey,
 //                 BigInteger.One,
-//                 VoteFlag.PreCommit).Sign(key);
+//                 VoteType.PreCommit).Sign(key);
 //             var decoded = new Vote(expected.Bencoded);
 //             Assert.Equal(expected, decoded);
 //         }

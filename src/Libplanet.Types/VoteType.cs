@@ -1,6 +1,6 @@
 namespace Libplanet.Types;
 
-public enum VoteFlag
+public enum VoteType
 {
     Null = 0,
 

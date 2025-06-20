@@ -22,7 +22,7 @@
 //                 Timestamp = DateTimeOffset.UtcNow,
 //                 Validator = new PrivateKey().PublicKey,
 //                 ValidatorPower = BigInteger.One,
-//                 Flag = VoteFlag.Null,
+//                 Flag = VoteType.Null,
 //             };
 //             _ = new VoteMetadata
 //             {
@@ -32,7 +32,7 @@
 //                 Timestamp = DateTimeOffset.UtcNow,
 //                 Validator = new PrivateKey().PublicKey,
 //                 ValidatorPower = BigInteger.One,
-//                 Flag = VoteFlag.Unknown,
+//                 Flag = VoteType.Unknown,
 //             };
 
 //             // Null hash is not allowed.
@@ -44,7 +44,7 @@
 //                 Timestamp = DateTimeOffset.UtcNow,
 //                 Validator = new PrivateKey().PublicKey,
 //                 ValidatorPower = BigInteger.One,
-//                 Flag = VoteFlag.Null,
+//                 Flag = VoteType.Null,
 //             });
 //             Assert.Throws<ArgumentException>(() => new VoteMetadata
 //             {
@@ -54,7 +54,7 @@
 //                 Timestamp = DateTimeOffset.UtcNow,
 //                 Validator = new PrivateKey().PublicKey,
 //                 ValidatorPower = BigInteger.One,
-//                 Flag = VoteFlag.Unknown,
+//                 Flag = VoteType.Unknown,
 //             });
 //         }
 
@@ -71,7 +71,7 @@
 //                 Timestamp = DateTimeOffset.UtcNow,
 //                 Validator = key.PublicKey,
 //                 ValidatorPower = BigInteger.One,
-//                 Flag = VoteFlag.PreCommit,
+//                 Flag = VoteType.PreCommit,
 //             };
 //             var decoded = ModelSerializer.Deserialize<VoteMetadata>(
 //                 ModelSerializer.Serialize(expected));
@@ -84,7 +84,7 @@
 //                 BlockHash = hash,
 //                 Timestamp = DateTimeOffset.UtcNow,
 //                 Validator = key.PublicKey,
-//                 Flag = VoteFlag.PreCommit,
+//                 Flag = VoteType.PreCommit,
 //             };
 //             decoded = ModelSerializer.Deserialize<VoteMetadata>(
 //                 ModelSerializer.Serialize(expected));

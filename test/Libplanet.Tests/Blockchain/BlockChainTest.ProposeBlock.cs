@@ -571,7 +571,7 @@ public partial class BlockChainTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = key.Address,
             ValidatorPower = BigInteger.One,
-            Flag = VoteFlag.PreCommit,
+            Flag = VoteType.PreCommit,
         }.Sign(key)).ToImmutableArray();
         var blockCommit = new BlockCommit
         {

@@ -25,7 +25,7 @@ public class BlockCommitTypeTest
             Timestamp = DateTimeOffset.Now,
             Validator = privateKey.Address,
             ValidatorPower = BigInteger.One,
-            Flag = VoteFlag.PreCommit,
+            Flag = Types.VoteType.PreCommit,
         }.Sign(privateKey);
 
         var blockCommit = new BlockCommit

@@ -25,7 +25,7 @@ public class VoteTypeTest
             Timestamp = DateTimeOffset.Now,
             Validator = privateKey.Address,
             ValidatorPower = 123,
-            Flag = VoteFlag.PreCommit,
+            Flag = Types.VoteType.PreCommit,
         }.Sign(privateKey);
 
         var query =
@@ -40,7 +40,7 @@ public class VoteTypeTest
                     signature
                 }";
 
-        var voteType = new VoteType();
+        var voteType = new Explorer.GraphTypes.VoteType();
         ExecutionResult result = await ExecuteQueryAsync(
             query,
             voteType,

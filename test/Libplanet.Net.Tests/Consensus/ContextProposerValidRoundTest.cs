@@ -78,7 +78,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         round: 2,
                         hash: proposedBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -89,7 +89,7 @@ namespace Libplanet.Net.Tests.Consensus
                         height: 1,
                         round: 2,
                         hash: proposedBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             await stateChangedToRoundTwoPropose.WaitAsync();
             Assert.Equal(2, context.Round);
@@ -105,7 +105,7 @@ namespace Libplanet.Net.Tests.Consensus
                         height: 1,
                         round: 1,
                         hash: proposedBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -116,7 +116,7 @@ namespace Libplanet.Net.Tests.Consensus
                         height: 1,
                         round: 1,
                         hash: proposedBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -127,7 +127,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         round: 1,
                         hash: proposedBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
 
             await roundTwoVoteSent.WaitAsync();
@@ -211,7 +211,7 @@ namespace Libplanet.Net.Tests.Consensus
                         height: 1,
                         round: 2,
                         hash: proposedBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -222,7 +222,7 @@ namespace Libplanet.Net.Tests.Consensus
                         height: 1,
                         round: 2,
                         hash: proposedBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             await stateChangedToRoundTwoPropose.WaitAsync();
             Assert.Equal(2, context.Round);
@@ -245,7 +245,7 @@ namespace Libplanet.Net.Tests.Consensus
                         height: 1,
                         round: 2,
                         hash: proposedBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             await stateChangedToRoundTwoPreCommit.WaitAsync();
 
@@ -259,7 +259,7 @@ namespace Libplanet.Net.Tests.Consensus
                         height: 1,
                         round: 3,
                         hash: differentBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -270,7 +270,7 @@ namespace Libplanet.Net.Tests.Consensus
                         height: 1,
                         round: 3,
                         hash: differentBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             await stateChangedToRoundThreePropose.WaitAsync();
             Assert.Equal(3, context.Round);
@@ -286,7 +286,7 @@ namespace Libplanet.Net.Tests.Consensus
                         height: 1,
                         round: 3,
                         hash: differentBlock.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
 
             await roundThreeNilPreVoteSent.WaitAsync();

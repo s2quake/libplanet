@@ -212,7 +212,7 @@ namespace Libplanet.Net.Tests.Consensus
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = TestUtils.PrivateKeys[i].Address,
                         ValidatorPower = TestUtils.Validators[i].Power,
-                        Flag = VoteFlag.PreVote,
+                        Flag = VoteType.PreVote,
                     }.Sign(TestUtils.PrivateKeys[i])
                 });
             }
@@ -230,7 +230,7 @@ namespace Libplanet.Net.Tests.Consensus
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = TestUtils.PrivateKeys[i].Address,
                         ValidatorPower = TestUtils.Validators[i].Power,
-                        Flag = VoteFlag.PreCommit,
+                        Flag = VoteType.PreCommit,
                     }.Sign(TestUtils.PrivateKeys[i])
                 });
             }
@@ -239,7 +239,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             // Check context has only three votes.
             BlockCommit? commit = context.GetBlockCommit();
-            Assert.Equal(3, commit?.Votes.Where(vote => vote.Flag == VoteFlag.PreCommit).Count());
+            Assert.Equal(3, commit?.Votes.Where(vote => vote.Flag == VoteType.PreCommit).Count());
 
             // Context should still accept new votes.
             context.ProduceMessage(new ConsensusPreCommitMessage
@@ -252,13 +252,13 @@ namespace Libplanet.Net.Tests.Consensus
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = TestUtils.PrivateKeys[3].Address,
                     ValidatorPower = TestUtils.Validators[3].Power,
-                    Flag = VoteFlag.PreCommit,
+                    Flag = VoteType.PreCommit,
                 }.Sign(TestUtils.PrivateKeys[3])
             });
 
             await Task.Delay(100);  // Wait for the new message to be added to the message log.
             commit = context.GetBlockCommit();
-            Assert.Equal(4, commit?.Votes.Where(vote => vote.Flag == VoteFlag.PreCommit).Count());
+            Assert.Equal(4, commit?.Votes.Where(vote => vote.Flag == VoteType.PreCommit).Count());
         }
 
         [Fact(Timeout = Timeout)]
@@ -313,7 +313,7 @@ namespace Libplanet.Net.Tests.Consensus
                         2,
                         0,
                         block.BlockHash,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
             await exceptionOccurred.WaitAsync();
             Assert.IsType<InvalidOperationException>(exceptionThrown);
@@ -405,7 +405,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = TestUtils.PrivateKeys[i].Address,
                             ValidatorPower = TestUtils.Validators[i].Power,
-                            Flag = VoteFlag.PreVote,
+                            Flag = VoteType.PreVote,
                         }.Sign(TestUtils.PrivateKeys[i])
                     });
             }
@@ -424,7 +424,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = TestUtils.PrivateKeys[i].Address,
                             ValidatorPower = TestUtils.Validators[i].Power,
-                            Flag = VoteFlag.PreCommit,
+                            Flag = VoteType.PreCommit,
                         }.Sign(TestUtils.PrivateKeys[i])
                     });
             }
@@ -432,7 +432,7 @@ namespace Libplanet.Net.Tests.Consensus
             await blockHeightOneAppended.WaitAsync();
             Assert.Equal(
                 3,
-                context.GetBlockCommit().Votes.Count(vote => vote.Flag == VoteFlag.PreCommit));
+                context.GetBlockCommit().Votes.Count(vote => vote.Flag == VoteType.PreCommit));
 
             Assert.True(enteredPreVote.IsSet);
             Assert.True(enteredPreCommit.IsSet);
@@ -450,13 +450,13 @@ namespace Libplanet.Net.Tests.Consensus
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = TestUtils.PrivateKeys[3].Address,
                         ValidatorPower = BigInteger.One,
-                        Flag = VoteFlag.PreCommit,
+                        Flag = VoteType.PreCommit,
                     }.Sign(TestUtils.PrivateKeys[3])
                 });
             Thread.Sleep(10);
             Assert.Equal(
                 4,
-                context.GetBlockCommit()!.Votes.Count(vote => vote.Flag == VoteFlag.PreCommit));
+                context.GetBlockCommit()!.Votes.Count(vote => vote.Flag == VoteType.PreCommit));
         }
 
         /// <summary>
@@ -563,7 +563,7 @@ namespace Libplanet.Net.Tests.Consensus
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key2.Address,
                     ValidatorPower = power2,
-                    Flag = VoteFlag.PreVote,
+                    Flag = VoteType.PreVote,
                 }.Sign(key2)
             };
             var proposalB = new ProposalMetadata
@@ -595,7 +595,7 @@ namespace Libplanet.Net.Tests.Consensus
                 BlockHash = blockB.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key1.Address,
-                VoteFlag = VoteFlag.PreVote,
+                VoteType = VoteType.PreVote,
             }.Sign(key1);
             context.AddMaj23(maj23);
 
@@ -609,7 +609,7 @@ namespace Libplanet.Net.Tests.Consensus
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = proposer.Address,
                     ValidatorPower = proposerPower,
-                    Flag = VoteFlag.PreVote,
+                    Flag = VoteType.PreVote,
                 }.Sign(proposer)
             };
             var preVoteB1 = new ConsensusPreVoteMessage
@@ -622,7 +622,7 @@ namespace Libplanet.Net.Tests.Consensus
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key1.Address,
                     ValidatorPower = power1,
-                    Flag = VoteFlag.PreVote,
+                    Flag = VoteType.PreVote,
                 }.Sign(key1)
             };
             var preVoteB2 = new ConsensusPreVoteMessage
@@ -635,7 +635,7 @@ namespace Libplanet.Net.Tests.Consensus
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key2.Address,
                     ValidatorPower = power2,
-                    Flag = VoteFlag.PreVote,
+                    Flag = VoteType.PreVote,
                 }.Sign(key2)
             };
             context.ProduceMessage(preVoteB0);
@@ -719,7 +719,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = TestUtils.PrivateKeys[i].Address,
                             ValidatorPower = TestUtils.Validators[i].Power,
-                            Flag = VoteFlag.PreVote,
+                            Flag = VoteType.PreVote,
                         }.Sign(TestUtils.PrivateKeys[i])
                     });
             }
@@ -737,7 +737,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = TestUtils.PrivateKeys[i].Address,
                             ValidatorPower = TestUtils.Validators[i].Power,
-                            Flag = VoteFlag.PreCommit,
+                            Flag = VoteType.PreCommit,
                         }.Sign(TestUtils.PrivateKeys[i])
                     });
             }
@@ -752,7 +752,7 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.Equal(
                 4,
                 context.GetBlockCommit()!.Votes.Count(
-                    vote => vote.Flag.Equals(VoteFlag.PreCommit)));
+                    vote => vote.Flag.Equals(VoteType.PreCommit)));
             Assert.True(watch.ElapsedMilliseconds > (actionDelay * 0.5));
             Assert.Equal(2, consensusContext.Height);
         }
@@ -793,7 +793,7 @@ namespace Libplanet.Net.Tests.Consensus
             });
             context.VoteSetModified += (_, tuple) =>
             {
-                if (tuple.Flag == VoteFlag.PreVote)
+                if (tuple.Flag == VoteType.PreVote)
                 {
                     numPreVotes = tuple.Votes.Count();
                 }
@@ -819,7 +819,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = TestUtils.PrivateKeys[i].Address,
                             ValidatorPower = TestUtils.Validators[i].Power,
-                            Flag = VoteFlag.PreVote,
+                            Flag = VoteType.PreVote,
                         }.Sign(TestUtils.PrivateKeys[i])
                     });
             }
@@ -842,7 +842,7 @@ namespace Libplanet.Net.Tests.Consensus
                                 Timestamp = DateTimeOffset.UtcNow,
                                 Validator = TestUtils.PrivateKeys[3].Address,
                                 ValidatorPower = TestUtils.Validators[3].Power,
-                                Flag = VoteFlag.PreVote,
+                                Flag = VoteType.PreVote,
                             }.Sign(TestUtils.PrivateKeys[3])
                         });
                 },

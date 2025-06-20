@@ -70,7 +70,7 @@ public partial class Context
                     case ConsensusPreVoteMessage preVote:
                         {
                             _heightVoteSet.AddVote(preVote.PreVote);
-                            var args = (preVote.Round, VoteFlag.PreVote,
+                            var args = (preVote.Round, VoteType.PreVote,
                                 _heightVoteSet.PreVotes(preVote.Round).GetAllVotes());
                             VoteSetModified?.Invoke(this, args);
                             break;
@@ -79,7 +79,7 @@ public partial class Context
                     case ConsensusPreCommitMessage preCommit:
                         {
                             _heightVoteSet.AddVote(preCommit.PreCommit);
-                            var args = (preCommit.Round, VoteFlag.PreCommit,
+                            var args = (preCommit.Round, VoteType.PreCommit,
                                 _heightVoteSet.PreCommits(preCommit.Round).GetAllVotes());
                             VoteSetModified?.Invoke(this, args);
                             break;
@@ -201,9 +201,9 @@ public partial class Context
             hash2.Equals(p3.Block.BlockHash) &&
             IsValid(p3.Block) &&
             (Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit) &&
-            !_hasTwoThirdsPreVoteFlags.Contains(Round))
+            !_hasTwoThirdsPreVoteTypes.Contains(Round))
         {
-            _hasTwoThirdsPreVoteFlags.Add(Round);
+            _hasTwoThirdsPreVoteTypes.Add(Round);
             if (Step == ConsensusStep.PreVote)
             {
                 _lockedValue = p3.Block;
@@ -214,7 +214,7 @@ public partial class Context
                 _messagePublishedSubject.OnNext(
                     new ConsensusMaj23Message
                     {
-                        Maj23 = MakeMaj23(Round, p3.Block.BlockHash, VoteFlag.PreVote),
+                        Maj23 = MakeMaj23(Round, p3.Block.BlockHash, VoteType.PreVote),
                     });
             }
 
@@ -276,7 +276,7 @@ public partial class Context
             _messagePublishedSubject.OnNext(
                 new ConsensusMaj23Message
                 {
-                    Maj23 = MakeMaj23(round, block4.BlockHash, VoteFlag.PreCommit),
+                    Maj23 = MakeMaj23(round, block4.BlockHash, VoteType.PreCommit),
                 });
             _ = EnterEndCommitWait(Round, default);
             return;
@@ -302,7 +302,7 @@ public partial class Context
 
         Step = ConsensusStep.PreVote;
         _messagePublishedSubject.OnNext(
-            new ConsensusPreVoteMessage { PreVote = MakeVote(round, blockHash, VoteFlag.PreVote) });
+            new ConsensusPreVoteMessage { PreVote = MakeVote(round, blockHash, VoteType.PreVote) });
     }
 
     private void EnterPreCommit(int round, BlockHash hash)
@@ -315,7 +315,7 @@ public partial class Context
 
         Step = ConsensusStep.PreCommit;
         _messagePublishedSubject.OnNext(
-            new ConsensusPreCommitMessage { PreCommit = MakeVote(round, hash, VoteFlag.PreCommit) });
+            new ConsensusPreCommitMessage { PreCommit = MakeVote(round, hash, VoteType.PreCommit) });
     }
 
     private void EnterEndCommit(int round)

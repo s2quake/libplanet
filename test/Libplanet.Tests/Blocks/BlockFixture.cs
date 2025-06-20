@@ -48,7 +48,7 @@ public class BlockFixture
                         Timestamp = Next.Timestamp,
                         Validator = Miner.Address,
                         ValidatorPower = TestUtils.Validators.GetValidator(Miner.Address).Power,
-                        Flag = VoteFlag.PreCommit,
+                        Flag = VoteType.PreCommit,
                     }.Sign(Miner),
                 ],
             });

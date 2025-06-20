@@ -145,7 +145,7 @@
 //                                 Timestamp = DateTimeOffset.UtcNow,
 //                                 Validator = privateKey.Address,
 //                                 ValidatorPower = BigInteger.One,
-//                                 Flag = VoteFlag.PreVote,
+//                                 Flag = VoteType.PreVote,
 //                             }.Sign(privateKey));
 //                 case MessageContent.MessageType.ConsensusCommit:
 //                     return new ConsensusPreCommitMessage(
@@ -157,7 +157,7 @@
 //                             Timestamp = DateTimeOffset.UtcNow,
 //                             Validator = privateKey.Address,
 //                             ValidatorPower = BigInteger.One,
-//                             Flag = VoteFlag.PreCommit,
+//                             Flag = VoteType.PreCommit,
 //                         }.Sign(privateKey));
 //                 case MessageContent.MessageType.ConsensusMaj23Msg:
 //                     return new ConsensusMaj23Msg(
@@ -168,7 +168,7 @@
 //                             BlockHash = genesis.BlockHash,
 //                             Timestamp = DateTimeOffset.UtcNow,
 //                             Validator = privateKey.Address,
-//                             Flag = VoteFlag.PreVote,
+//                             Flag = VoteType.PreVote,
 //                         }.Sign(privateKey));
 //                 case MessageContent.MessageType.ConsensusVoteSetBitsMsg:
 //                     return new ConsensusVoteSetBitsMessage(
@@ -179,7 +179,7 @@
 //                             BlockHash = genesis.BlockHash,
 //                             Timestamp = DateTimeOffset.UtcNow,
 //                             Validator = privateKey.Address,
-//                             Flag = VoteFlag.PreVote,
+//                             Flag = VoteType.PreVote,
 //                             VoteBits = [true, true, false, false],
 //                         }.Sign(privateKey));
 //                 case MessageContent.MessageType.ConsensusProposalClaimMsg:

@@ -1,19 +1,5 @@
-namespace Libplanet.Net.Consensus
+namespace Libplanet.Net.Consensus;
+
+public class InvalidHeightIncreasingException(string message) : Exception(message)
 {
-    /// <summary>
-    /// An exception thrown when a <see cref="ConsensusContext.NewHeightAsync"/> has called with
-    /// height is not the index of <see cref="Blockchain.Tip"/> + 1.
-    /// </summary>
-    public class InvalidHeightIncreasingException : Exception
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="InvalidHeightIncreasingException"/> class.
-        /// </summary>
-        /// <param name="message">The error message that explains the reason for the exception.
-        /// </param>
-        public InvalidHeightIncreasingException(string message)
-            : base(message)
-        {
-        }
-    }
 }

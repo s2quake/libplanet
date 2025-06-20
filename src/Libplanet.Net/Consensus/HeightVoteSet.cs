@@ -2,7 +2,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public class HeightVoteSet
+public sealed class HeightVoteSet
 {
     private readonly object _lock;
     private int _height;
@@ -35,21 +35,9 @@ public class HeightVoteSet
         }
     }
 
-    public int Height()
-    {
-        lock (_lock)
-        {
-            return _height;
-        }
-    }
+    public int Height => _height;
 
-    public int Round()
-    {
-        lock (_lock)
-        {
-            return _round;
-        }
-    }
+    public int Round => _round;
 
     // Create more RoundVoteSets up to round.
     public void SetRound(int round)
@@ -83,13 +71,11 @@ public class HeightVoteSet
             throw new ArgumentException($"Add round for an existing round: {round}");
         }
 
-        VoteSet preVotes = new VoteSet(_height, round, VoteFlag.PreVote, _validators);
-        VoteSet preCommits = new VoteSet(_height, round, VoteFlag.PreCommit, _validators);
+        VoteSet preVotes = new VoteSet(_height, round, VoteType.PreVote, _validators);
+        VoteSet preCommits = new VoteSet(_height, round, VoteType.PreCommit, _validators);
         _roundVoteSets[round] = new RoundVoteSet(preVotes, preCommits);
     }
 
-    // Duplicate votes return added=false, err=nil.
-    // By convention, peerID is "" if origin is self.
     public void AddVote(Vote vote)
     {
         lock (_lock)
@@ -122,11 +108,11 @@ public class HeightVoteSet
                 throw new InvalidVoteException(msg, vote);
             }
 
-            if (!vote.Flag.Equals(VoteFlag.PreVote) &&
-                !vote.Flag.Equals(VoteFlag.PreCommit))
+            if (!vote.Flag.Equals(VoteType.PreVote) &&
+                !vote.Flag.Equals(VoteType.PreCommit))
             {
                 throw new InvalidVoteException(
-                    $"VoteFlag should be either {VoteFlag.PreVote} or {VoteFlag.PreCommit}",
+                    $"VoteType should be either {VoteType.PreVote} or {VoteType.PreCommit}",
                     vote);
             }
 
@@ -156,7 +142,7 @@ public class HeightVoteSet
     {
         lock (_lock)
         {
-            return GetVoteSet(round, VoteFlag.PreVote);
+            return GetVoteSet(round, VoteType.PreVote);
         }
     }
 
@@ -164,7 +150,7 @@ public class HeightVoteSet
     {
         lock (_lock)
         {
-            return GetVoteSet(round, VoteFlag.PreCommit);
+            return GetVoteSet(round, VoteType.PreCommit);
         }
     }
 
@@ -178,7 +164,7 @@ public class HeightVoteSet
             {
                 try
                 {
-                    VoteSet voteSet = GetVoteSet(r, VoteFlag.PreVote);
+                    VoteSet voteSet = GetVoteSet(r, VoteType.PreVote);
                     bool exists = voteSet.TwoThirdsMajority(out BlockHash polBlockHash);
                     if (exists)
                     {
@@ -195,14 +181,14 @@ public class HeightVoteSet
         }
     }
 
-    public VoteSet GetVoteSet(int round, VoteFlag voteFlag)
+    public VoteSet GetVoteSet(int round, VoteType voteType)
     {
         RoundVoteSet roundVoteSet = _roundVoteSets[round];
-        return voteFlag switch
+        return voteType switch
         {
-            VoteFlag.PreVote => roundVoteSet.PreVotes,
-            VoteFlag.PreCommit => roundVoteSet.PreCommits,
-            _ => throw new ArgumentException($"Unexpected vote type: {voteFlag}"),
+            VoteType.PreVote => roundVoteSet.PreVotes,
+            VoteType.PreCommit => roundVoteSet.PreCommits,
+            _ => throw new ArgumentException($"Unexpected vote type: {voteType}"),
         };
     }
 
@@ -210,36 +196,27 @@ public class HeightVoteSet
     {
         lock (_lock)
         {
-            if (!maj23.VoteFlag.Equals(VoteFlag.PreVote) &&
-                !maj23.VoteFlag.Equals(VoteFlag.PreCommit))
+            if (!maj23.VoteType.Equals(VoteType.PreVote) &&
+                !maj23.VoteType.Equals(VoteType.PreCommit))
             {
                 throw new InvalidMaj23Exception(
-                    $"Maj23 must have either {VoteFlag.PreVote} or {VoteFlag.PreCommit} " +
-                    $"(Actual: {maj23.VoteFlag})",
+                    $"Maj23 must have either {VoteType.PreVote} or {VoteType.PreCommit} " +
+                    $"(Actual: {maj23.VoteType})",
                     maj23);
             }
 
             VoteSet voteSet;
             try
             {
-                voteSet = GetVoteSet(maj23.Round, maj23.VoteFlag);
+                voteSet = GetVoteSet(maj23.Round, maj23.VoteType);
             }
             catch (KeyNotFoundException)
             {
                 AddRound(maj23.Round);
-                voteSet = GetVoteSet(maj23.Round, maj23.VoteFlag);
+                voteSet = GetVoteSet(maj23.Round, maj23.VoteType);
             }
 
             return voteSet.SetPeerMaj23(maj23);
         }
-    }
-
-    private sealed class RoundVoteSet(VoteSet preVotes, VoteSet preCommits)
-    {
-        public VoteSet PreVotes { get; set; } = preVotes;
-
-        public VoteSet PreCommits { get; set; } = preCommits;
-
-        public int Count => PreVotes.TotalCount + PreCommits.TotalCount;
     }
 }

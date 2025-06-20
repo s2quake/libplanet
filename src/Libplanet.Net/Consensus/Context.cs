@@ -27,7 +27,7 @@ public partial class Context : IAsyncDisposable
     private readonly Channel<Action> _mutationRequests;
     private readonly HeightVoteSet _heightVoteSet;
     private readonly ISigner _signer;
-    private readonly HashSet<int> _hasTwoThirdsPreVoteFlags = [];
+    private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
     private readonly HashSet<int> _preVoteTimeoutFlags = [];
     private readonly HashSet<int> _preCommitTimeoutFlags = [];
     private readonly HashSet<int> _preCommitWaitFlags = [];
@@ -92,7 +92,7 @@ public partial class Context : IAsyncDisposable
 
     internal event EventHandler<Action>? MutationConsumed;
 
-    internal event EventHandler<(int Round, VoteFlag Flag, IEnumerable<Vote> Votes)>? VoteSetModified;
+    internal event EventHandler<(int Round, VoteType Flag, IEnumerable<Vote> Votes)>? VoteSetModified;
 
     public int Height { get; }
 
@@ -143,19 +143,19 @@ public partial class Context : IAsyncDisposable
         }
     }
 
-    public VoteSetBits GetVoteSetBits(int round, BlockHash blockHash, VoteFlag voteFlag)
+    public VoteSetBits GetVoteSetBits(int round, BlockHash blockHash, VoteType voteType)
     {
         // If executed in correct manner (called by Maj23),
         // _heightVoteSet.PreVotes(round) on below cannot throw KeyNotFoundException,
         // since RoundVoteSet has been already created on SetPeerMaj23.
-        bool[] voteBits = voteFlag switch
+        bool[] voteBits = voteType switch
         {
-            VoteFlag.PreVote => _heightVoteSet.PreVotes(round).BitArrayByBlockHash(blockHash),
-            VoteFlag.PreCommit
+            VoteType.PreVote => _heightVoteSet.PreVotes(round).BitArrayByBlockHash(blockHash),
+            VoteType.PreCommit
                 => _heightVoteSet.PreCommits(round).BitArrayByBlockHash(blockHash),
             _ => throw new ArgumentException(
-                "VoteFlag should be either PreVote or PreCommit.",
-                nameof(voteFlag)),
+                "VoteType should be either PreVote or PreCommit.",
+                nameof(voteType)),
         };
 
         return new VoteSetBitsMetadata
@@ -165,7 +165,7 @@ public partial class Context : IAsyncDisposable
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = _signer.Address,
-            Flag = voteFlag,
+            Flag = voteType,
             VoteBits = [.. voteBits],
         }.Sign(_signer);
     }
@@ -176,7 +176,7 @@ public partial class Context : IAsyncDisposable
         {
             if (_heightVoteSet.SetPeerMaj23(maj23))
             {
-                var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.VoteFlag);
+                var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.VoteType);
                 return voteSetBits.VoteBits.All(b => b) ? null : voteSetBits;
             }
 
@@ -196,20 +196,20 @@ public partial class Context : IAsyncDisposable
         {
             votes = voteSetBits.Flag switch
             {
-                VoteFlag.PreVote =>
+                VoteType.PreVote =>
                 _heightVoteSet.PreVotes(voteSetBits.Round).MappedList().Where(
                     (vote, index)
                     => !voteSetBits.VoteBits[index]
                     && vote is { }
-                    && vote.Flag == VoteFlag.PreVote).Select(vote => vote!),
-                VoteFlag.PreCommit =>
+                    && vote.Flag == VoteType.PreVote).Select(vote => vote!),
+                VoteType.PreCommit =>
                 _heightVoteSet.PreCommits(voteSetBits.Round).MappedList().Where(
                     (vote, index)
                     => !voteSetBits.VoteBits[index]
                     && vote is { }
-                    && vote.Flag == VoteFlag.PreCommit).Select(vote => vote!),
+                    && vote.Flag == VoteType.PreCommit).Select(vote => vote!),
                 _ => throw new ArgumentException(
-                    "VoteFlag should be PreVote or PreCommit.",
+                    "VoteType should be PreVote or PreCommit.",
                     nameof(voteSetBits.Flag)),
             };
         }
@@ -221,10 +221,10 @@ public partial class Context : IAsyncDisposable
         return from vote in votes
                select vote.Flag switch
                {
-                   VoteFlag.PreVote => (ConsensusMessage)new ConsensusPreVoteMessage { PreVote = vote },
-                   VoteFlag.PreCommit => (ConsensusMessage)new ConsensusPreCommitMessage { PreCommit = vote },
+                   VoteType.PreVote => (ConsensusMessage)new ConsensusPreVoteMessage { PreVote = vote },
+                   VoteType.PreCommit => (ConsensusMessage)new ConsensusPreCommitMessage { PreCommit = vote },
                    _ => throw new ArgumentException(
-                       "VoteFlag should be PreVote or PreCommit.",
+                       "VoteType should be PreVote or PreCommit.",
                        nameof(vote.Flag)),
                };
     }
@@ -301,12 +301,12 @@ public partial class Context : IAsyncDisposable
         }
     }
 
-    private Vote MakeVote(int round, BlockHash blockHash, VoteFlag voteFlag)
+    private Vote MakeVote(int round, BlockHash blockHash, VoteType voteType)
     {
-        if (voteFlag == VoteFlag.Null || voteFlag == VoteFlag.Unknown)
+        if (voteType == VoteType.Null || voteType == VoteType.Unknown)
         {
             throw new ArgumentException(
-                $"{nameof(voteFlag)} must be either {VoteFlag.PreVote} or {VoteFlag.PreCommit}" +
+                $"{nameof(voteType)} must be either {VoteType.PreVote} or {VoteType.PreCommit}" +
                 $"to create a valid signed vote.");
         }
 
@@ -318,16 +318,16 @@ public partial class Context : IAsyncDisposable
             Timestamp = DateTimeOffset.UtcNow,
             Validator = _signer.Address,
             ValidatorPower = _validators.GetValidator(_signer.Address).Power,
-            Flag = voteFlag,
+            Flag = voteType,
         }.Sign(_signer);
     }
 
-    private Maj23 MakeMaj23(int round, BlockHash blockHash, VoteFlag voteFlag)
+    private Maj23 MakeMaj23(int round, BlockHash blockHash, VoteType voteType)
     {
-        if (voteFlag == VoteFlag.Null || voteFlag == VoteFlag.Unknown)
+        if (voteType == VoteType.Null || voteType == VoteType.Unknown)
         {
             throw new ArgumentException(
-                $"{nameof(voteFlag)} must be either {VoteFlag.PreVote} or {VoteFlag.PreCommit}" +
+                $"{nameof(voteType)} must be either {VoteType.PreVote} or {VoteType.PreCommit}" +
                 $"to create a valid signed maj23.");
         }
 
@@ -338,7 +338,7 @@ public partial class Context : IAsyncDisposable
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = _signer.Address,
-            VoteFlag = voteFlag,
+            VoteType = voteType,
         }.Sign(_signer);
     }
 

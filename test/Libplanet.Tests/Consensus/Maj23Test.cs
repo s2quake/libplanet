@@ -18,7 +18,7 @@
 //                 hash,
 //                 DateTimeOffset.UtcNow,
 //                 new PrivateKey().PublicKey,
-//                 VoteFlag.PreVote);
+//                 VoteType.PreVote);
 
 //             // Empty Signature
 //             var emptySigBencodex = metadata.Encoded.Add(Maj23.SignatureKey, Array.Empty<byte>());
@@ -43,7 +43,7 @@
 //                 hash,
 //                 DateTimeOffset.UtcNow,
 //                 key.PublicKey,
-//                 VoteFlag.PreVote);
+//                 VoteType.PreVote);
 //             Maj23 maj23 = metadata.Sign(key);
 
 //             Assert.Equal(maj23.Signature, key.Sign(metadata.ByteArray));

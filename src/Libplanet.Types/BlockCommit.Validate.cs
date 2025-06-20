@@ -14,14 +14,14 @@ public sealed partial record class BlockCommit : IValidatableObject
             vote.Height != height ||
             vote.Round != round ||
             !blockHash.Equals(vote.BlockHash) ||
-            (vote.Flag != VoteFlag.Null && vote.Flag != VoteFlag.PreCommit) ||
-            (vote.Flag == VoteFlag.PreCommit && !ValidationUtility.TryValidate(vote))))
+            (vote.Flag != VoteType.Null && vote.Flag != VoteType.PreCommit) ||
+            (vote.Flag == VoteType.PreCommit && !ValidationUtility.TryValidate(vote))))
         {
             yield return new ValidationResult(
                 $"Every vote must have the same height as {Height}, the same round " +
                 $"as {Round}, the same hash as {BlockHash}, and must have flag value of " +
-                $"either {VoteFlag.Null} or {VoteFlag.PreCommit}, " +
-                $"and must be signed if the vote's flag is {VoteFlag.PreCommit}.",
+                $"either {VoteType.Null} or {VoteType.PreCommit}, " +
+                $"and must be signed if the vote's flag is {VoteType.PreCommit}.",
                 [nameof(Votes)]);
         }
     }
@@ -66,7 +66,7 @@ public sealed partial record class BlockCommit : IValidatableObject
     //     validators.ValidateBlockCommitValidators(blockCommit);
     //     BigInteger commitPower = blockCommit.Votes.Aggregate(
     //         BigInteger.Zero,
-    //         (power, vote) => power + (vote.Flag == VoteFlag.PreCommit
+    //         (power, vote) => power + (vote.Flag == VoteType.PreCommit
     //             ? validators.GetValidator(vote.Validator).Power
     //             : BigInteger.Zero));
     //     if (validators.GetTwoThirdsPower() >= commitPower)

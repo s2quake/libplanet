@@ -11,7 +11,7 @@ public class VoteSetTest
     [Fact]
     public void Majority()
     {
-        var voteSet = new VoteSet(0, 0, VoteFlag.PreCommit, TestUtils.Validators);
+        var voteSet = new VoteSet(0, 0, VoteType.PreCommit, TestUtils.Validators);
         Assert.False(voteSet.HasOneThirdsAny());
         Assert.False(voteSet.HasTwoThirdsAny());
         Assert.False(voteSet.HasTwoThirdsMajority());
@@ -27,7 +27,7 @@ public class VoteSetTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[0].Address,
             ValidatorPower = TestUtils.Validators[0].Power,
-            Flag = VoteFlag.PreCommit,
+            Flag = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[0]));
         Assert.False(voteSet.HasOneThirdsAny());
         Assert.False(voteSet.HasTwoThirdsAny());
@@ -43,7 +43,7 @@ public class VoteSetTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[1].Address,
             ValidatorPower = TestUtils.Validators[1].Power,
-            Flag = VoteFlag.PreCommit,
+            Flag = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[1]));
         Assert.True(voteSet.HasOneThirdsAny());
         Assert.False(voteSet.HasTwoThirdsAny());
@@ -59,7 +59,7 @@ public class VoteSetTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[2].Address,
             ValidatorPower = TestUtils.Validators[2].Power,
-            Flag = VoteFlag.PreCommit,
+            Flag = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[2]));
         Assert.True(voteSet.HasOneThirdsAny());
         Assert.True(voteSet.HasTwoThirdsAny());
@@ -75,7 +75,7 @@ public class VoteSetTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[3].Address,
             ValidatorPower = TestUtils.Validators[3].Power,
-            Flag = VoteFlag.PreCommit,
+            Flag = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[3]));
         Assert.True(voteSet.HasOneThirdsAny());
         Assert.True(voteSet.HasTwoThirdsAny());

@@ -47,28 +47,28 @@ namespace Libplanet.Net.Tests.Consensus
             var key2 = new PrivateKey();
             var receivedEvent = new AsyncAutoResetEvent();
             var gossip1 = CreateGossip(
-                content =>
-                {
-                    if (content is ConsensusProposalMessage)
-                    {
-                        received1 = true;
-                    }
-                },
                 key1,
                 6001,
-                new[] { new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) } });
-            var gossip2 = CreateGossip(
-                content =>
+                [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
+            using var g1 = gossip1.ProcessMessage.Subscribe(message =>
+            {
+                if (message is ConsensusProposalMessage)
                 {
-                    if (content is ConsensusProposalMessage)
-                    {
-                        received2 = true;
-                        receivedEvent.Set();
-                    }
-                },
+                    received1 = true;
+                }
+            });
+            var gossip2 = CreateGossip(
                 key2,
                 6002,
-                new[] { new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) } });
+                [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
+            using var g2 = gossip2.ProcessMessage.Subscribe(message =>
+            {
+                if (message is ConsensusProposalMessage)
+                {
+                    received2 = true;
+                    receivedEvent.Set();
+                }
+            });
             try
             {
                 await gossip1.StartAsync(default);
@@ -100,28 +100,28 @@ namespace Libplanet.Net.Tests.Consensus
             var key2 = new PrivateKey();
             var receivedEvent = new AsyncAutoResetEvent();
             var gossip1 = CreateGossip(
-                content =>
-                {
-                    if (content is ConsensusProposalMessage)
-                    {
-                        received1 = true;
-                    }
-                },
                 key1,
                 6001,
                 [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
-            var gossip2 = CreateGossip(
-                content =>
+            using var g1 = gossip1.ProcessMessage.Subscribe(message =>
+            {
+                if (message is ConsensusProposalMessage)
                 {
-                    if (content is ConsensusProposalMessage)
-                    {
-                        received2 = true;
-                        receivedEvent.Set();
-                    }
-                },
+                    received1 = true;
+                }
+            });
+            var gossip2 = CreateGossip(
                 key2,
                 6002,
                 [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
+            using var g2 = gossip2.ProcessMessage.Subscribe(message =>
+            {
+                if (message is ConsensusProposalMessage)
+                {
+                    received2 = true;
+                    receivedEvent.Set();
+                }
+            });
             try
             {
                 await gossip1.StartAsync(default);
@@ -151,45 +151,44 @@ namespace Libplanet.Net.Tests.Consensus
             var key2 = new PrivateKey();
             var receivedEvent = new AsyncAutoResetEvent();
             var gossip1 = CreateGossip(
-                content =>
-                {
-                    if (content is ConsensusProposalMessage)
-                    {
-                        received1++;
-                    }
-                },
                 key1,
                 6001,
                 [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
-            var gossip2 = CreateGossip(
-                content =>
+            using var g1 = gossip1.ProcessMessage.Subscribe(message =>
+            {
+                if (message is ConsensusProposalMessage)
                 {
-                    if (content is ConsensusProposalMessage)
-                    {
-                        received2++;
-                    }
-
-                    if (received2 == 4)
-                    {
-                        receivedEvent.Set();
-                    }
-                },
+                    received1++;
+                }
+            });
+            var gossip2 = CreateGossip(
                 key2,
                 6002,
-                new[] { new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) } });
+                [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
+            using var g2 = gossip2.ProcessMessage.Subscribe(message =>
+            {
+                if (message is ConsensusProposalMessage)
+                {
+                    received2++;
+                }
+
+                if (received2 == 4)
+                {
+                    receivedEvent.Set();
+                }
+            });
             try
             {
                 await gossip1.StartAsync(default);
                 await gossip2.StartAsync(default);
                 PrivateKey key = new PrivateKey();
                 gossip1.AddMessages(
-                    new[]
-                    {
-                        TestUtils.CreateConsensusPropose(fx.Block1, key, 0),
-                        TestUtils.CreateConsensusPropose(fx.Block1, key, 1),
-                        TestUtils.CreateConsensusPropose(fx.Block1, key, 2),
-                        TestUtils.CreateConsensusPropose(fx.Block1, key, 3),
-                    });
+                [
+                    TestUtils.CreateConsensusPropose(fx.Block1, key, 0),
+                    TestUtils.CreateConsensusPropose(fx.Block1, key, 1),
+                    TestUtils.CreateConsensusPropose(fx.Block1, key, 2),
+                    TestUtils.CreateConsensusPropose(fx.Block1, key, 3),
+                ]);
 
                 await receivedEvent.WaitAsync();
                 Assert.Equal(4, received1);
@@ -259,7 +258,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             ITransport seed = CreateTransport();
             seed.MessageReceived.Subscribe(ProcessMessage);
-            Gossip gossip = CreateGossip(_ => { }, seeds: new[] { seed.Peer });
+            Gossip gossip = CreateGossip(seeds: [seed.Peer]);
 
             try
             {
@@ -292,7 +291,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             }
 
-            Gossip receiver = CreateGossip(_ => { });
+            Gossip receiver = CreateGossip();
             ITransport sender1 = CreateTransport();
             sender1.MessageReceived.Subscribe(ProcessMessage);
             ITransport sender2 = CreateTransport();
@@ -330,7 +329,6 @@ namespace Libplanet.Net.Tests.Consensus
         }
 
         private Gossip CreateGossip(
-            Action<IMessage> processMessage,
             PrivateKey? privateKey = null,
             int? port = null,
             IEnumerable<Peer>? peers = null,
@@ -341,7 +339,6 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Validators = peers?.ToImmutableArray() ?? [],
                 Seeds = seeds?.ToImmutableArray() ?? [],
-                ProcessMessage = processMessage,
             };
             return new Gossip(transport, options);
         }

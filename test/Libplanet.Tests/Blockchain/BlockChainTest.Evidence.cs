@@ -387,7 +387,7 @@ public partial class BlockChainTest
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteFlag.PreCommit,
+    //         Flag = VoteType.PreCommit,
     //     }.Sign(key);
     //     var voteDup = new VoteMetadata
     //     {
@@ -397,7 +397,7 @@ public partial class BlockChainTest
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteFlag.PreCommit,
+    //         Flag = VoteType.PreCommit,
     //     }.Sign(key);
     //     var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
 
@@ -433,7 +433,7 @@ public partial class BlockChainTest
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteFlag.PreCommit,
+    //         Flag = VoteType.PreCommit,
     //     }.Sign(key);
     //     var voteDup = new VoteMetadata
     //     {
@@ -443,7 +443,7 @@ public partial class BlockChainTest
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteFlag.PreCommit,
+    //         Flag = VoteType.PreCommit,
     //     }.Sign(key);
     //     var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
 
@@ -470,7 +470,7 @@ public partial class BlockChainTest
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteFlag.PreCommit,
+    //         Flag = VoteType.PreCommit,
     //     }.Sign(key);
     //     var voteDup = new VoteMetadata
     //     {
@@ -480,7 +480,7 @@ public partial class BlockChainTest
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteFlag.PreCommit,
+    //         Flag = VoteType.PreCommit,
     //     }.Sign(key);
     //     var validators = ImmutableSortedSet.Create(Validator.Create(key.PublicKey, BigInteger.One));
     //     var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, validators);
@@ -510,7 +510,7 @@ public partial class BlockChainTest
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteFlag.PreCommit,
+    //         Flag = VoteType.PreCommit,
     //     }.Sign(key);
     //     var voteDup = new VoteMetadata
     //     {
@@ -520,7 +520,7 @@ public partial class BlockChainTest
     //         Timestamp = DateTimeOffset.UtcNow,
     //         Validator = key.PublicKey,
     //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteFlag.PreCommit,
+    //         Flag = VoteType.PreCommit,
     //     }.Sign(key);
     //     var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
 

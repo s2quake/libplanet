@@ -24,7 +24,7 @@ public sealed partial record class Maj23
 
     public Address Validator => Metadata.Validator;
 
-    public VoteFlag VoteFlag => Metadata.VoteFlag;
+    public VoteType VoteType => Metadata.VoteType;
 
     public bool Verify()
     {

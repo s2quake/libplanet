@@ -23,7 +23,7 @@ public sealed class BlockCommitTest
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = index == 0 ? BigInteger.Zero : BigInteger.One,
-                    Flag = VoteFlag.PreCommit,
+                    Flag = VoteType.PreCommit,
                 }.Sign(key))
             .ToImmutableArray();
         var blockCommit = new BlockCommit
@@ -54,7 +54,7 @@ public sealed class BlockCommitTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(key));
 
         // Negative height is not allowed.
@@ -123,7 +123,7 @@ public sealed class BlockCommitTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(key));
 
         var exception1 = ValidationUtility.Throws(
@@ -146,7 +146,7 @@ public sealed class BlockCommitTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(key));
 
         var exception2 = ValidationUtility.Throws(
@@ -178,7 +178,7 @@ public sealed class BlockCommitTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(key));
 
         var exception1 = ValidationUtility.Throws(
@@ -193,7 +193,7 @@ public sealed class BlockCommitTest
     }
 
     [Fact]
-    public void EveryVoteFlagMustBeNullOrPreCommit()
+    public void EveryVoteTypeMustBeNullOrPreCommit()
     {
         var height = 2;
         var round = 3;
@@ -208,7 +208,7 @@ public sealed class BlockCommitTest
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,
-                    Flag = VoteFlag.PreCommit,
+                    Flag = VoteType.PreCommit,
                 }.Sign(key))
             .ToImmutableArray();
 
@@ -221,7 +221,7 @@ public sealed class BlockCommitTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = keys[0].Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.Null,
+                Flag = VoteType.Null,
             }.Sign(null))
             .AddRange(preCommitVotes.Skip(1));
         _ = new BlockCommit
@@ -241,7 +241,7 @@ public sealed class BlockCommitTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = keys[0].Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.Unknown,
+                Flag = VoteType.Unknown,
             }.Sign(null))
             .AddRange(preCommitVotes.Skip(1));
         Assert.Throws<ArgumentException>(() => new BlockCommit
@@ -261,7 +261,7 @@ public sealed class BlockCommitTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = keys[0].Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreVote,
+                Flag = VoteType.PreVote,
             }.Sign(keys[0]))
             .AddRange(preCommitVotes.Skip(1));
         Assert.Throws<ArgumentException>(() => new BlockCommit
@@ -281,7 +281,7 @@ public sealed class BlockCommitTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = keys[0].Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(keys[0]))
             .AddRange(preCommitVotes.Skip(1));
         _ = new BlockCommit

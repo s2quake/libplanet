@@ -122,7 +122,7 @@ public class MessageTest
     }
 
     [Fact]
-    public void InvalidVoteFlagConsensus()
+    public void InvalidVoteTypeConsensus()
     {
         var blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 
@@ -132,7 +132,7 @@ public class MessageTest
             1,
             0,
             blockHash,
-            VoteFlag.PreVote);
+            VoteType.PreVote);
 
         var preCommit = TestUtils.CreateVote(
             TestUtils.PrivateKeys[0],
@@ -140,7 +140,7 @@ public class MessageTest
             1,
             0,
             blockHash,
-            VoteFlag.PreCommit);
+            VoteType.PreCommit);
 
         // Valid message cases
         _ = new ConsensusPreVoteMessage { PreVote = preVote };

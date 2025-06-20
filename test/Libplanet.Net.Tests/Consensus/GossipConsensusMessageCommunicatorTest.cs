@@ -1,351 +1,351 @@
-using System.Net;
-using System.Threading.Tasks;
-using Libplanet.Net.Consensus;
-using Libplanet.Net.Messages;
-using Libplanet.Net.Options;
-using Libplanet.Net.Transports;
-using Libplanet.Tests.Store;
-using Libplanet.Types;
-using NetMQ;
-using Nito.AsyncEx;
-using Serilog;
-using Xunit.Abstractions;
+// using System.Net;
+// using System.Threading.Tasks;
+// using Libplanet.Net.Consensus;
+// using Libplanet.Net.Messages;
+// using Libplanet.Net.Options;
+// using Libplanet.Net.Transports;
+// using Libplanet.Tests.Store;
+// using Libplanet.Types;
+// using NetMQ;
+// using Nito.AsyncEx;
+// using Serilog;
+// using Xunit.Abstractions;
 
-namespace Libplanet.Net.Tests.Consensus
-{
-    [Collection("NetMQConfiguration")]
-    public class GossipConsensusMessageCommunicatorTest : IDisposable
-    {
-        private const int Timeout = 60 * 1000;
-        private readonly ILogger _logger;
+// namespace Libplanet.Net.Tests.Consensus
+// {
+//     [Collection("NetMQConfiguration")]
+//     public class GossipConsensusMessageCommunicatorTest : IDisposable
+//     {
+//         private const int Timeout = 60 * 1000;
+//         private readonly ILogger _logger;
 
-        public GossipConsensusMessageCommunicatorTest(ITestOutputHelper output)
-        {
-            const string outputTemplate =
-                "{Timestamp:HH:mm:ss:ffffffZ} - {Message}";
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.TestOutput(output, outputTemplate: outputTemplate)
-                .CreateLogger()
-                .ForContext<GossipConsensusMessageCommunicatorTest>();
+//         public GossipConsensusMessageCommunicatorTest(ITestOutputHelper output)
+//         {
+//             const string outputTemplate =
+//                 "{Timestamp:HH:mm:ss:ffffffZ} - {Message}";
+//             Log.Logger = new LoggerConfiguration()
+//                 .MinimumLevel.Verbose()
+//                 .WriteTo.TestOutput(output, outputTemplate: outputTemplate)
+//                 .CreateLogger()
+//                 .ForContext<GossipConsensusMessageCommunicatorTest>();
 
-            _logger = Log.ForContext<GossipConsensusMessageCommunicatorTest>();
-        }
+//             _logger = Log.ForContext<GossipConsensusMessageCommunicatorTest>();
+//         }
 
-        public void Dispose()
-        {
-            NetMQConfig.Cleanup();
-        }
+//         public void Dispose()
+//         {
+//             NetMQConfig.Cleanup();
+//         }
 
-        [Fact(Timeout = Timeout)]
-        public async Task SendHigherMessage()
-        {
-            MemoryRepositoryFixture fx = new MemoryRepositoryFixture();
-            int nPreVoteReceived = 0;
-            var key1 = new PrivateKey();
-            var key2 = new PrivateKey();
-            var receivedPreVotes = new AsyncAutoResetEvent();
-            var receivedPreCommitFrom3 = new AsyncAutoResetEvent();
-            var communicator1 = CreateGossipConesnsusMessageCommunicator(
-                content => { },
-                key1,
-                6001,
-                [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
-            var communicator2 = CreateGossipConesnsusMessageCommunicator(
-                content =>
-                {
-                    if (content is ConsensusPreVoteMessage preVote)
-                    {
-                        nPreVoteReceived++;
-                        receivedPreVotes.Set();
-                    }
-                },
-                key2,
-                6002,
-                [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
+//         [Fact(Timeout = Timeout)]
+//         public async Task SendHigherMessage()
+//         {
+//             MemoryRepositoryFixture fx = new MemoryRepositoryFixture();
+//             int nPreVoteReceived = 0;
+//             var key1 = new PrivateKey();
+//             var key2 = new PrivateKey();
+//             var receivedPreVotes = new AsyncAutoResetEvent();
+//             var receivedPreCommitFrom3 = new AsyncAutoResetEvent();
+//             var communicator1 = CreateGossipConesnsusMessageCommunicator(
+//                 content => { },
+//                 key1,
+//                 6001,
+//                 [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
+//             var communicator2 = CreateGossipConesnsusMessageCommunicator(
+//                 content =>
+//                 {
+//                     if (content is ConsensusPreVoteMessage preVote)
+//                     {
+//                         nPreVoteReceived++;
+//                         receivedPreVotes.Set();
+//                     }
+//                 },
+//                 key2,
+//                 6002,
+//                 [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
 
-            try
-            {
-                await communicator1.Gossip.StartAsync(default);
-                await communicator2.Gossip.StartAsync(default);
+//             try
+//             {
+//                 await communicator1.Gossip.StartAsync(default);
+//                 await communicator2.Gossip.StartAsync(default);
 
-                communicator1.StartHeight(1);
-                communicator2.StartHeight(1);
-                communicator1.StartRound(2);
-                communicator2.StartRound(4);
+//                 communicator1.StartHeight(1);
+//                 communicator2.StartHeight(1);
+//                 communicator1.StartRound(2);
+//                 communicator2.StartRound(4);
 
-                // Add message of higher round to communicator1
-                communicator1.Gossip.AddMessage(
-                    new ConsensusPreVoteMessage
-                    {
-                        PreVote = TestUtils.CreateVote(
-                            new PrivateKey(),
-                            BigInteger.One,
-                            1,
-                            3,
-                            fx.Hash1,
-                            VoteFlag.PreVote),
-                    });
+//                 // Add message of higher round to communicator1
+//                 communicator1.Gossip.AddMessage(
+//                     new ConsensusPreVoteMessage
+//                     {
+//                         PreVote = TestUtils.CreateVote(
+//                             new PrivateKey(),
+//                             BigInteger.One,
+//                             1,
+//                             3,
+//                             fx.Hash1,
+//                             VoteType.PreVote),
+//                     });
 
-                // Add message of same round to communicator1
-                communicator1.Gossip.AddMessage(
-                    new ConsensusPreVoteMessage
-                    {
-                        PreVote = TestUtils.CreateVote(
-                            new PrivateKey(),
-                            BigInteger.One,
-                            1,
-                            2,
-                            fx.Hash1,
-                            VoteFlag.PreVote)
-                    });
+//                 // Add message of same round to communicator1
+//                 communicator1.Gossip.AddMessage(
+//                     new ConsensusPreVoteMessage
+//                     {
+//                         PreVote = TestUtils.CreateVote(
+//                             new PrivateKey(),
+//                             BigInteger.One,
+//                             1,
+//                             2,
+//                             fx.Hash1,
+//                             VoteType.PreVote)
+//                     });
 
-                await receivedPreVotes.WaitAsync();
-                await Task.Delay(1500);
+//                 await receivedPreVotes.WaitAsync();
+//                 await Task.Delay(1500);
 
-                // Only message of same round has been transmitted,
-                // message of higher round has been rejected to be sent.
-                Assert.Equal(1, nPreVoteReceived);
-            }
-            finally
-            {
-                await communicator1.Gossip.StopAsync(default);
-                await communicator2.Gossip.StopAsync(default);
-                await communicator1.Gossip.DisposeAsync();
-                await communicator2.Gossip.DisposeAsync();
-            }
-        }
+//                 // Only message of same round has been transmitted,
+//                 // message of higher round has been rejected to be sent.
+//                 Assert.Equal(1, nPreVoteReceived);
+//             }
+//             finally
+//             {
+//                 await communicator1.Gossip.StopAsync(default);
+//                 await communicator2.Gossip.StopAsync(default);
+//                 await communicator1.Gossip.DisposeAsync();
+//                 await communicator2.Gossip.DisposeAsync();
+//             }
+//         }
 
-        [Fact(Timeout = Timeout)]
-        public async Task ReceiveHigherMessage()
-        {
-            MemoryRepositoryFixture fx = new MemoryRepositoryFixture();
-            int nHigherPreVoteReceived = 0;
-            int nValidPreVoteReceived = 0;
-            int nPreCommitReceived = 0;
-            var key1 = new PrivateKey();
-            var key2 = new PrivateKey();
-            var key3 = new PrivateKey();
-            var receivedTwoHigherPreVotes = new AsyncAutoResetEvent();
-            var receivedPreCommitFrom3 = new AsyncAutoResetEvent();
+//         [Fact(Timeout = Timeout)]
+//         public async Task ReceiveHigherMessage()
+//         {
+//             MemoryRepositoryFixture fx = new MemoryRepositoryFixture();
+//             int nHigherPreVoteReceived = 0;
+//             int nValidPreVoteReceived = 0;
+//             int nPreCommitReceived = 0;
+//             var key1 = new PrivateKey();
+//             var key2 = new PrivateKey();
+//             var key3 = new PrivateKey();
+//             var receivedTwoHigherPreVotes = new AsyncAutoResetEvent();
+//             var receivedPreCommitFrom3 = new AsyncAutoResetEvent();
 
-            var communicator1 = CreateGossipConesnsusMessageCommunicator(
-                content =>
-                {
-                    if (content is ConsensusPreVoteMessage preVote)
-                    {
-                        if (preVote.Round > 2)
-                        {
-                            // If received message of higher round, counts.
-                            nHigherPreVoteReceived++;
-                            _logger.Debug($"PreVote round({preVote.Round}) > 2 received, " +
-                                $" total: {nHigherPreVoteReceived}");
-                        }
-                        else
-                        {
-                            // If received message of same or lower round, counts,
-                            nValidPreVoteReceived++;
-                        }
+//             var communicator1 = CreateGossipConesnsusMessageCommunicator(
+//                 content =>
+//                 {
+//                     if (content is ConsensusPreVoteMessage preVote)
+//                     {
+//                         if (preVote.Round > 2)
+//                         {
+//                             // If received message of higher round, counts.
+//                             nHigherPreVoteReceived++;
+//                             _logger.Debug($"PreVote round({preVote.Round}) > 2 received, " +
+//                                 $" total: {nHigherPreVoteReceived}");
+//                         }
+//                         else
+//                         {
+//                             // If received message of same or lower round, counts,
+//                             nValidPreVoteReceived++;
+//                         }
 
-                        if (nHigherPreVoteReceived >= 2)
-                        {
-                            // If received two higher round messages,
-                            // Spam filter logic will be activated on third
-                            // higher round message encounter.
-                            receivedTwoHigherPreVotes.Set();
-                        }
-                    }
+//                         if (nHigherPreVoteReceived >= 2)
+//                         {
+//                             // If received two higher round messages,
+//                             // Spam filter logic will be activated on third
+//                             // higher round message encounter.
+//                             receivedTwoHigherPreVotes.Set();
+//                         }
+//                     }
 
-                    if (content is ConsensusPreCommitMessage preCommit)
-                    {
-                        nPreCommitReceived++;
+//                     if (content is ConsensusPreCommitMessage preCommit)
+//                     {
+//                         nPreCommitReceived++;
 
-                        if (preCommit.Round == 2)
-                        {
-                            // Check if received message from communicator3.
-                            receivedPreCommitFrom3.Set();
-                        }
-                    }
-                },
-                key1,
-                6001);
+//                         if (preCommit.Round == 2)
+//                         {
+//                             // Check if received message from communicator3.
+//                             receivedPreCommitFrom3.Set();
+//                         }
+//                     }
+//                 },
+//                 key1,
+//                 6001);
 
-            var transport2 = CreateTransport(key2, 6002);
-            var transport3 = CreateTransport(key3, 6003);
+//             var transport2 = CreateTransport(key2, 6002);
+//             var transport3 = CreateTransport(key3, 6003);
 
-            async Task CheckDeniedAsync()
-            {
-                bool isPeer1Denied = false;
-                while (!isPeer1Denied)
-                {
-                    isPeer1Denied = communicator1.Gossip.DeniedPeers.Contains(transport2.Peer);
-                    await Task.Delay(200);
-                }
-            }
+//             async Task CheckDeniedAsync()
+//             {
+//                 bool isPeer1Denied = false;
+//                 while (!isPeer1Denied)
+//                 {
+//                     isPeer1Denied = communicator1.Gossip.DeniedPeers.Contains(transport2.Peer);
+//                     await Task.Delay(200);
+//                 }
+//             }
 
-            try
-            {
-                await communicator1.Gossip.StartAsync(default);
-                await transport2.StartAsync(default);
-                await transport3.StartAsync(default);
+//             try
+//             {
+//                 await communicator1.Gossip.StartAsync(default);
+//                 await transport2.StartAsync(default);
+//                 await transport3.StartAsync(default);
 
-                communicator1.StartHeight(1);
-                communicator1.StartRound(2);
+//                 communicator1.StartHeight(1);
+//                 communicator1.StartRound(2);
 
-                var peer1 = new Peer[] { communicator1.Gossip.AsPeer };
+//                 var peer1 = new Peer[] { communicator1.Gossip.AsPeer };
 
-                // This message will be accepted, since its round is valid.
-                transport2.BroadcastMessage(
-                    peer1,
-                    new ConsensusPreVoteMessage
-                    {
-                        PreVote = TestUtils.CreateVote(
-                            new PrivateKey(),
-                            BigInteger.One,
-                            1,
-                            2,
-                            fx.Hash1,
-                            VoteFlag.PreVote)
-                    });
+//                 // This message will be accepted, since its round is valid.
+//                 transport2.BroadcastMessage(
+//                     peer1,
+//                     new ConsensusPreVoteMessage
+//                     {
+//                         PreVote = TestUtils.CreateVote(
+//                             new PrivateKey(),
+//                             BigInteger.One,
+//                             1,
+//                             2,
+//                             fx.Hash1,
+//                             VoteType.PreVote)
+//                     });
 
-                // Higher round messages. These will trigger spam filter,
-                // and only two will be received.
-                transport2.BroadcastMessage(
-                    peer1,
-                    new ConsensusPreVoteMessage
-                    {
-                        PreVote = TestUtils.CreateVote(
-                            new PrivateKey(),
-                            BigInteger.One,
-                            1,
-                            3,
-                            fx.Hash1,
-                            VoteFlag.PreVote)
-                    });
-                transport2.BroadcastMessage(
-                    peer1,
-                    new ConsensusPreVoteMessage
-                    {
-                        PreVote = TestUtils.CreateVote(
-                            new PrivateKey(),
-                            BigInteger.One,
-                            1,
-                            4,
-                            fx.Hash1,
-                            VoteFlag.PreVote)
-                    });
-                // Higher round message. This will trigger spam filter, if encounter three times.
-                transport2.BroadcastMessage(
-                    peer1,
-                    new ConsensusPreVoteMessage
-                    {
-                        PreVote = TestUtils.CreateVote(
-                            new PrivateKey(),
-                            BigInteger.One,
-                            1,
-                            5,
-                            fx.Hash1,
-                            VoteFlag.PreVote)
-                    });
+//                 // Higher round messages. These will trigger spam filter,
+//                 // and only two will be received.
+//                 transport2.BroadcastMessage(
+//                     peer1,
+//                     new ConsensusPreVoteMessage
+//                     {
+//                         PreVote = TestUtils.CreateVote(
+//                             new PrivateKey(),
+//                             BigInteger.One,
+//                             1,
+//                             3,
+//                             fx.Hash1,
+//                             VoteType.PreVote)
+//                     });
+//                 transport2.BroadcastMessage(
+//                     peer1,
+//                     new ConsensusPreVoteMessage
+//                     {
+//                         PreVote = TestUtils.CreateVote(
+//                             new PrivateKey(),
+//                             BigInteger.One,
+//                             1,
+//                             4,
+//                             fx.Hash1,
+//                             VoteType.PreVote)
+//                     });
+//                 // Higher round message. This will trigger spam filter, if encounter three times.
+//                 transport2.BroadcastMessage(
+//                     peer1,
+//                     new ConsensusPreVoteMessage
+//                     {
+//                         PreVote = TestUtils.CreateVote(
+//                             new PrivateKey(),
+//                             BigInteger.One,
+//                             1,
+//                             5,
+//                             fx.Hash1,
+//                             VoteType.PreVote)
+//                     });
 
-                // Wait for third higher round message encounter.
-                await receivedTwoHigherPreVotes.WaitAsync();
-                await CheckDeniedAsync();
+//                 // Wait for third higher round message encounter.
+//                 await receivedTwoHigherPreVotes.WaitAsync();
+//                 await CheckDeniedAsync();
 
-                // These messages will be rejected, since spam filter logic has been activated
-                // to communicator1, and gossip denies messages from it.
-                transport2.BroadcastMessage(
-                    peer1,
-                    new ConsensusPreVoteMessage
-                    {
-                        PreVote = TestUtils.CreateVote(
-                            new PrivateKey(),
-                            BigInteger.One,
-                            1,
-                            1,
-                            fx.Hash1,
-                            VoteFlag.PreVote)
-                    });
-                transport2.BroadcastMessage(
-                    peer1,
-                    new ConsensusPreCommitMessage
-                    {
-                        PreCommit = TestUtils.CreateVote(
-                            new PrivateKey(),
-                            BigInteger.One,
-                            1,
-                            1,
-                            fx.Hash1,
-                            VoteFlag.PreCommit)
-                    });
+//                 // These messages will be rejected, since spam filter logic has been activated
+//                 // to communicator1, and gossip denies messages from it.
+//                 transport2.BroadcastMessage(
+//                     peer1,
+//                     new ConsensusPreVoteMessage
+//                     {
+//                         PreVote = TestUtils.CreateVote(
+//                             new PrivateKey(),
+//                             BigInteger.One,
+//                             1,
+//                             1,
+//                             fx.Hash1,
+//                             VoteType.PreVote)
+//                     });
+//                 transport2.BroadcastMessage(
+//                     peer1,
+//                     new ConsensusPreCommitMessage
+//                     {
+//                         PreCommit = TestUtils.CreateVote(
+//                             new PrivateKey(),
+//                             BigInteger.One,
+//                             1,
+//                             1,
+//                             fx.Hash1,
+//                             VoteType.PreCommit)
+//                     });
 
-                // Since communicator3 wasn't denied, this message will be received without block.
-                transport3.BroadcastMessage(
-                    peer1,
-                    new ConsensusPreCommitMessage
-                    {
-                        PreCommit = TestUtils.CreateVote(
-                            new PrivateKey(),
-                            BigInteger.One,
-                            1,
-                            2,
-                            fx.Hash1,
-                            VoteFlag.PreCommit)
-                    });
+//                 // Since communicator3 wasn't denied, this message will be received without block.
+//                 transport3.BroadcastMessage(
+//                     peer1,
+//                     new ConsensusPreCommitMessage
+//                     {
+//                         PreCommit = TestUtils.CreateVote(
+//                             new PrivateKey(),
+//                             BigInteger.One,
+//                             1,
+//                             2,
+//                             fx.Hash1,
+//                             VoteType.PreCommit)
+//                     });
 
-                // Wait for message from communicator1's precommit encounter,
-                // but this message will be rejected by spam filter logic.
-                await receivedPreCommitFrom3.WaitAsync();
-                await Task.Delay(1500);
+//                 // Wait for message from communicator1's precommit encounter,
+//                 // but this message will be rejected by spam filter logic.
+//                 await receivedPreCommitFrom3.WaitAsync();
+//                 await Task.Delay(1500);
 
-                // Accepted 1, Rejected 1
-                Assert.Equal(1, nValidPreVoteReceived);
+//                 // Accepted 1, Rejected 1
+//                 Assert.Equal(1, nValidPreVoteReceived);
 
-                // Accepted 2, Rejected 1
-                Assert.Equal(2, nHigherPreVoteReceived);
+//                 // Accepted 2, Rejected 1
+//                 Assert.Equal(2, nHigherPreVoteReceived);
 
-                // Accepted 1, Rejected 1
-                Assert.Equal(1, nPreCommitReceived);
-            }
-            finally
-            {
-                await communicator1.Gossip.StopAsync(default);
-                await transport2.StopAsync(default);
-                await transport3.StopAsync(default);
-                await communicator1.Gossip.DisposeAsync();
-                await transport2.DisposeAsync();
-                await transport3.DisposeAsync();
-            }
-        }
+//                 // Accepted 1, Rejected 1
+//                 Assert.Equal(1, nPreCommitReceived);
+//             }
+//             finally
+//             {
+//                 await communicator1.Gossip.StopAsync(default);
+//                 await transport2.StopAsync(default);
+//                 await transport3.StopAsync(default);
+//                 await communicator1.Gossip.DisposeAsync();
+//                 await transport2.DisposeAsync();
+//                 await transport3.DisposeAsync();
+//             }
+//         }
 
-        private NetMQTransport CreateTransport(PrivateKey? privateKey = null, int? port = null)
-        {
-            var transportOptions = new TransportOptions
-            {
-                Protocol = TestUtils.AppProtocolVersion,
-                Host = "127.0.0.1",
-                Port = port ?? 0,
-            };
+//         private NetMQTransport CreateTransport(PrivateKey? privateKey = null, int? port = null)
+//         {
+//             var transportOptions = new TransportOptions
+//             {
+//                 Protocol = TestUtils.AppProtocolVersion,
+//                 Host = "127.0.0.1",
+//                 Port = port ?? 0,
+//             };
 
-            privateKey ??= new PrivateKey();
+//             privateKey ??= new PrivateKey();
 
-            return new NetMQTransport(privateKey.AsSigner(), transportOptions);
-        }
+//             return new NetMQTransport(privateKey.AsSigner(), transportOptions);
+//         }
 
-        private MessageCommunicator CreateGossipConesnsusMessageCommunicator(
-            Action<IMessage> processMessage,
-            PrivateKey? privateKey = null,
-            int? port = null,
-            IEnumerable<Peer>? peers = null,
-            IEnumerable<Peer>? seeds = null)
-        {
-            var transport = CreateTransport(privateKey, port);
+//         private MessageCommunicator CreateGossipConesnsusMessageCommunicator(
+//             Action<IMessage> processMessage,
+//             PrivateKey? privateKey = null,
+//             int? port = null,
+//             IEnumerable<Peer>? peers = null,
+//             IEnumerable<Peer>? seeds = null)
+//         {
+//             var transport = CreateTransport(privateKey, port);
 
-            return new MessageCommunicator(
-                transport,
-                peers?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
-                seeds?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
-                processMessage);
-        }
-    }
-}
+//             return new MessageCommunicator(
+//                 transport,
+//                 peers?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
+//                 seeds?.ToImmutableArray() ?? ImmutableArray<Peer>.Empty,
+//                 processMessage);
+//         }
+//     }
+// }

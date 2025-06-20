@@ -12,7 +12,7 @@ public sealed record class ConsensusPreVoteMessage : ConsensusVoteMessage, IVali
 
     public override BlockHash BlockHash => PreVote.BlockHash;
 
-    public override VoteFlag Flag => PreVote.Flag;
+    public override VoteType Flag => PreVote.Flag;
 
     public override Address Validator => PreVote.Validator;
 
@@ -22,10 +22,10 @@ public sealed record class ConsensusPreVoteMessage : ConsensusVoteMessage, IVali
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (PreVote.Flag != VoteFlag.PreVote)
+        if (PreVote.Flag != VoteType.PreVote)
         {
             yield return new ValidationResult(
-                $"Given {nameof(PreVote)}'s flag must be {VoteFlag.PreVote}.",
+                $"Given {nameof(PreVote)}'s flag must be {VoteType.PreVote}.",
                 [nameof(PreVote)]);
         }
     }

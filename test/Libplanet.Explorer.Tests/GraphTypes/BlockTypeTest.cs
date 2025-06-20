@@ -31,7 +31,7 @@ public class BlockTypeTest
                 Timestamp = DateTimeOffset.Now,
                 Validator = privateKey.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = Types.VoteType.PreCommit,
             }.Sign(privateKey));
         var lastBlockCommit = new BlockCommit
         {

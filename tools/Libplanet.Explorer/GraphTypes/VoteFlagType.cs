@@ -4,26 +4,26 @@ using Libplanet.Types;
 
 namespace Libplanet.Explorer.GraphTypes
 {
-    public class VoteFlagType : StringGraphType
+    public class VoteTypeType : StringGraphType
     {
-        public VoteFlagType()
+        public VoteTypeType()
         {
-            Name = "VoteFlag";
+            Name = "VoteType";
         }
 
         public override object? Serialize(object? value)
         {
-            if (value is VoteFlag flag)
+            if (value is Types.VoteType flag)
             {
                 switch (flag)
                 {
-                    case VoteFlag.Null:
+                    case Types.VoteType.Null:
                         return "Null";
-                    case VoteFlag.PreVote:
+                    case Types.VoteType.PreVote:
                         return "PreVote";
-                    case VoteFlag.PreCommit:
+                    case Types.VoteType.PreCommit:
                         return "PreCommit";
-                    case VoteFlag.Unknown:
+                    case Types.VoteType.Unknown:
                         return "Unknown";
                 }
             }
@@ -38,13 +38,13 @@ namespace Libplanet.Explorer.GraphTypes
                 switch (flag)
                 {
                     case "Null":
-                        return VoteFlag.Null;
+                        return Types.VoteType.Null;
                     case "PreVote":
-                        return VoteFlag.PreVote;
+                        return Types.VoteType.PreVote;
                     case "PreCommit":
-                        return VoteFlag.PreCommit;
+                        return Types.VoteType.PreCommit;
                     case "Unknown":
-                        return VoteFlag.Unknown;
+                        return Types.VoteType.Unknown;
                 }
             }
             else if (value is null)
