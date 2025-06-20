@@ -11,7 +11,6 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Random = System.Random;
-using Libplanet.Types.Tests;
 
 namespace Libplanet.Net.Tests
 {
@@ -47,10 +46,11 @@ namespace Libplanet.Net.Tests
             },
         };
 
-        public static Protocol AppProtocolVersion = Protocol.FromToken(
-            "1/54684Ac4ee5B933e72144C4968BEa26056880d71/MEQCICGonYW" +
-            ".X8y4JpPIyccPYWGrsCXWA95sBfextucz3lOyAiBUoY5t8aYNPT0lwYwC0MSkK3HT7T" +
-            ".lGJJW13dJi+06nw==");
+        public static Protocol Protocol = new ProtocolMetadata
+        {
+            Version = 1,
+            Signer = PrivateKeys[0].Address,
+        }.Sign(PrivateKeys[0]);
 
         private static readonly Random Random = new Random();
 
@@ -342,7 +342,7 @@ namespace Libplanet.Net.Tests
 
             var transportOption = new TransportOptions
             {
-                Protocol = AppProtocolVersion,
+                Protocol = Protocol,
                 Host = host,
                 Port = consensusPort,
             };

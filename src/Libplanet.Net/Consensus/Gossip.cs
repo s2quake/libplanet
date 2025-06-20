@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;
+using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Consensus;
 
@@ -13,15 +14,15 @@ public sealed class Gossip : IAsyncDisposable
     private readonly Subject<MessageEnvelope> _validateReceivedMessageSubject = new();
     private readonly Subject<IMessage> _validateSendingMessageSubject = new();
     private readonly Subject<IMessage> _processMessageSubject = new();
-    private readonly GossipOptions _options = new();
     private readonly ITransport _transport;
+    private readonly GossipOptions _options;
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
-    private readonly ImmutableArray<Peer> _seeds;
-    private readonly RoutingTable _table;
-    private readonly HashSet<Peer> _disallowedPeers = [];
-    private readonly Kademlia _kademlia;
+    private readonly HashSet<Peer> _deniedPeers = [];
+    private RoutingTable? _table;
+    private Kademlia? _kademlia;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict;
     private CancellationTokenSource? _cancellationTokenSource;
+    private Task[] _tasks = [];
     private IDisposable? _transportSubscription;
     private bool _disposed;
 
@@ -33,16 +34,7 @@ public sealed class Gossip : IAsyncDisposable
     public Gossip(ITransport transport, GossipOptions options)
     {
         _transport = transport;
-        _table = new RoutingTable(transport.Peer.Address);
-
-        // FIXME: Dumb way to add peer.
-        foreach (Peer peer in options.Validators.Where(p => p.Address != transport.Peer.Address))
-        {
-            _table.AddPeer(peer);
-        }
-
-        _kademlia = new Kademlia(_table, _transport, transport.Peer.Address);
-        _seeds = options.Seeds;
+        _options = options;
         _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
     }
 
@@ -54,11 +46,11 @@ public sealed class Gossip : IAsyncDisposable
 
     public bool IsRunning { get; private set; }
 
-    public Peer AsPeer => _transport.Peer;
+    public Peer Peer => _transport.Peer;
 
-    public ImmutableArray<Peer> Peers => _table.Peers;
+    public ImmutableArray<Peer> Peers => _table?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
 
-    public IEnumerable<Peer> DeniedPeers => _disallowedPeers.ToList();
+    public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -70,12 +62,17 @@ public sealed class Gossip : IAsyncDisposable
 
         _cancellationTokenSource = new CancellationTokenSource();
         await _transport.StartAsync(cancellationToken);
+        _table = new RoutingTable(_transport.Peer.Address);
+        _table.AddPeers(_options.Validators);
         _transportSubscription = _transport.ProcessMessage.Subscribe(HandleMessage);
-        await _kademlia.BootstrapAsync(_seeds, 3, cancellationToken);
-        await Task.WhenAny(
-            RefreshTableAsync(_cancellationTokenSource.Token),
-            RebuildTableAsync(_cancellationTokenSource.Token),
-            HeartbeatAsync(_cancellationTokenSource.Token));
+        _kademlia = new Kademlia(_table, _transport, _transport.Peer.Address);
+        await _kademlia.BootstrapAsync(_options.Seeds, 3, cancellationToken);
+        _tasks =
+        [
+            RunTableRefreshAsync(_cancellationTokenSource.Token),
+            RunTableRebuildAsync(_cancellationTokenSource.Token),
+            RunHeartbeatAsync(_cancellationTokenSource.Token)
+        ];
         IsRunning = true;
     }
 
@@ -92,9 +89,13 @@ public sealed class Gossip : IAsyncDisposable
             await _cancellationTokenSource.CancelAsync();
         }
 
+        await TaskUtility.TryWaitAll(_tasks);
+        _tasks = [];
         _transportSubscription?.Dispose();
         _transportSubscription = null;
         await _transport.StopAsync(cancellationToken);
+        _table = null;
+        _kademlia = null;
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
         IsRunning = false;
@@ -126,7 +127,14 @@ public sealed class Gossip : IAsyncDisposable
     }
 
     public void PublishMessage(IMessage message)
-        => PublishMessage(PeersToBroadcast(_table.Peers, DLazy), message);
+    {
+        if (_table is null)
+        {
+            throw new InvalidOperationException("Gossip is not running.");
+        }
+
+        PublishMessage(GetPeersToBroadcast(_table.Peers, DLazy), message);
+    }
 
     public void PublishMessage(IEnumerable<Peer> targetPeers, params IMessage[] messages)
     {
@@ -143,7 +151,7 @@ public sealed class Gossip : IAsyncDisposable
         }
     }
 
-    public void AddMessage(IMessage message)
+    private void AddMessage(IMessage message)
     {
         if (_messageById.TryAdd(message.Id, message))
         {
@@ -158,38 +166,35 @@ public sealed class Gossip : IAsyncDisposable
         }
     }
 
-    public void AddMessages(IEnumerable<IMessage> messages)
-    {
-        messages.AsParallel().ForAll(AddMessage);
-    }
-
     public void DenyPeer(Peer peer)
     {
-        _disallowedPeers.Add(peer);
+        _deniedPeers.Add(peer);
     }
 
     public void AllowPeer(Peer peer)
     {
-        _disallowedPeers.Remove(peer);
+        _deniedPeers.Remove(peer);
     }
 
     public void ClearDenySet()
     {
-        _disallowedPeers.Clear();
+        _deniedPeers.Clear();
     }
 
-    private IEnumerable<Peer> PeersToBroadcast(IEnumerable<Peer> peers, int count)
+    private IEnumerable<Peer> GetPeersToBroadcast(IEnumerable<Peer> peers, int count)
     {
         var random = new Random();
-        return peers
-            .Where(x => !_seeds.Contains(x))
-            .OrderBy(x => random.Next())
-            .Take(count);
+        var query = from peer in peers
+                    where !_options.Seeds.Contains(peer)
+                    orderby random.Next()
+                    select peer;
+
+        return query.Take(count);
     }
 
     private void HandleMessage(MessageEnvelope messageEnvelope)
     {
-        if (_disallowedPeers.Contains(messageEnvelope.Peer))
+        if (_deniedPeers.Contains(messageEnvelope.Peer))
         {
             _transport.Pong(messageEnvelope);
             return;
@@ -208,14 +213,13 @@ public sealed class Gossip : IAsyncDisposable
         {
             case PingMessage:
             case FindNeighborsMessage:
-                // Ignore protocol related messages, Kadmelia Protocol will handle it.
                 break;
             case HaveMessage:
                 _transport.Pong(messageEnvelope);
-                HandleHave(messageEnvelope);
+                HandleHaveMessage(messageEnvelope);
                 break;
             case WantMessage:
-                HandleWant(messageEnvelope);
+                HandleWantMessage(messageEnvelope);
                 break;
             default:
                 _transport.Pong(messageEnvelope);
@@ -224,25 +228,26 @@ public sealed class Gossip : IAsyncDisposable
         }
     }
 
-    private async Task HeartbeatAsync(CancellationToken cancellationToken)
+    private async Task RunHeartbeatAsync(CancellationToken cancellationToken)
     {
+        var table = _table ?? throw new InvalidOperationException("Gossip is not running.");
         var interval = _options.HeartbeatInterval;
         while (!cancellationToken.IsCancellationRequested)
         {
             var ids = _messageById.Keys.ToArray();
             if (ids.Length > 0)
             {
-                var peers = PeersToBroadcast(_table.Peers, DLazy);
+                var peers = GetPeersToBroadcast(table.Peers, DLazy);
                 var message = new HaveMessage { Ids = [.. ids] };
                 _transport.BroadcastMessage(peers, message);
             }
 
-            _ = SendWantAsync(cancellationToken);
+            _ = SendWantMessageAsync(cancellationToken);
             await Task.Delay(interval, cancellationToken);
         }
     }
 
-    private void HandleHave(MessageEnvelope messageEnvelope)
+    private void HandleHaveMessage(MessageEnvelope messageEnvelope)
     {
         var haveMessage = (HaveMessage)messageEnvelope.Message;
         var ids = haveMessage.Ids.Where(id => !_messageById.ContainsKey(id)).ToArray();
@@ -265,7 +270,7 @@ public sealed class Gossip : IAsyncDisposable
         _haveDict[peer] = value;
     }
 
-    private async Task SendWantAsync(CancellationToken cancellationToken)
+    private async Task SendWantMessageAsync(CancellationToken cancellationToken)
     {
         // TODO: To optimize WantMessage count to minimum, should remove duplications.
         var copy = _haveDict.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray());
@@ -327,64 +332,61 @@ public sealed class Gossip : IAsyncDisposable
             });
     }
 
-    private void HandleWant(MessageEnvelope messageEnvelope)
+    private void HandleWantMessage(MessageEnvelope messageEnvelope)
     {
-        // FIXME: Message may have been discarded.
         var wantMessage = (WantMessage)messageEnvelope.Message;
-        IMessage[] contents = wantMessage.Ids.Select(id => _messageById[id]).ToArray();
-        MessageId[] ids = contents.Select(c => c.Id).ToArray();
+        var contents = wantMessage.Ids.Select(id => _messageById[id]).ToArray();
 
-        Parallel.ForEach(
-            contents,
-            async (c, cancellationToken) =>
-            {
-                try
-                {
-                    _validateSendingMessageSubject.OnNext(c);
-                    _transport.ReplyMessage(messageEnvelope.Identity, c);
-                }
-                catch (Exception e)
-                {
-                    // do nothing
-                }
-            });
-    }
+        Parallel.ForEach(contents, Invoke);
 
-    private async Task RebuildTableAsync(CancellationToken cancellationToken)
-    {
-        var interval = _options.RebuildTableInterval;
-        while (!cancellationToken.IsCancellationRequested)
+        void Invoke(IMessage message)
         {
-            await Task.Delay(interval, cancellationToken);
             try
             {
-                await _kademlia.BootstrapAsync(
-                    _seeds,
-                    Kademlia.MaxDepth,
-                    cancellationToken);
+                _validateSendingMessageSubject.OnNext(message);
+                _transport.ReplyMessage(messageEnvelope.Identity, message);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // do nothing
             }
         }
     }
 
-    private async Task RefreshTableAsync(CancellationToken cancellationToken)
+    private async Task RunTableRebuildAsync(CancellationToken cancellationToken)
     {
+        var kademlia = _kademlia ?? throw new InvalidOperationException("Gossip is not running.");
+        var interval = _options.RebuildTableInterval;
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            await Task.Delay(interval, cancellationToken);
+            try
+            {
+                await kademlia.BootstrapAsync(_options.Seeds, Kademlia.MaxDepth, cancellationToken);
+            }
+            catch
+            {
+                // do nothing
+            }
+        }
+    }
+
+    private async Task RunTableRefreshAsync(CancellationToken cancellationToken)
+    {
+        var kademlia = _kademlia ?? throw new InvalidOperationException("Gossip is not running.");
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                await _kademlia.RefreshTableAsync(_options.RefreshLifespan, cancellationToken);
-                await _kademlia.CheckReplacementCacheAsync(cancellationToken);
+                await kademlia.RefreshTableAsync(_options.RefreshLifespan, cancellationToken);
+                await kademlia.CheckReplacementCacheAsync(cancellationToken);
                 await Task.Delay(_options.RefreshTableInterval, cancellationToken);
             }
-            catch (OperationCanceledException e)
+            catch (OperationCanceledException)
             {
                 throw;
             }
-            catch (Exception e)
+            catch
             {
                 // do nothing
             }

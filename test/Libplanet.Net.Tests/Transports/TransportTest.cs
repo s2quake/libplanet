@@ -7,11 +7,8 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
-using Libplanet.Net.Transports;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
-using NetMQ;
-using NetMQ.Sockets;
 using Xunit.Abstractions;
 using static Libplanet.Net.Tests.TestUtils;
 
@@ -221,25 +218,15 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        try
-        {
-            await transportA.StartAsync(default);
-            await transportB.StartAsync(default);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
 
-            var e = await Assert.ThrowsAsync<CommunicationException>(
-                async () => await transportA.SendMessageAsync(
-                    transportB.Peer,
-                    new PingMessage(),
-                    CancellationToken.None));
-            Assert.True(e.InnerException is TimeoutException ie);
-        }
-        finally
-        {
-            await transportA.StopAsync(default);
-            await transportB.StopAsync(default);
-            await transportA.DisposeAsync();
-            await transportB.DisposeAsync();
-        }
+        var e = await Assert.ThrowsAsync<CommunicationException>(
+            async () => await transportA.SendMessageAsync(
+                transportB.Peer,
+                new PingMessage(),
+                CancellationToken.None));
+        Assert.True(e.InnerException is TimeoutException ie);
     }
 
     [SkippableTheory(Timeout = Timeout)]
