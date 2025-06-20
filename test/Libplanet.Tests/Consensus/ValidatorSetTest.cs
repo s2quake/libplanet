@@ -135,7 +135,7 @@
 //                         DateTimeOffset.UtcNow,
 //                         key.PublicKey,
 //                         BigInteger.One,
-//                         VoteFlag.PreCommit).Sign(key))
+//                         VoteType.PreCommit).Sign(key))
 //                 .ToImmutableArray();
 //             var orderedVotes = orderedPrivateKeys
 //                 .Select(
@@ -146,7 +146,7 @@
 //                         DateTimeOffset.UtcNow,
 //                         key.PublicKey,
 //                         BigInteger.One,
-//                         VoteFlag.PreCommit).Sign(key))
+//                         VoteType.PreCommit).Sign(key))
 //                 .ToImmutableArray();
 //             var invalidPowerVotes = orderedPrivateKeys
 //                 .Select(
@@ -157,7 +157,7 @@
 //                         DateTimeOffset.UtcNow,
 //                         key.PublicKey,
 //                         2,
-//                         VoteFlag.PreCommit).Sign(key))
+//                         VoteType.PreCommit).Sign(key))
 //                 .ToImmutableArray();
 
 //             var blockCommitWithUnorderedVotes =

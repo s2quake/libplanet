@@ -35,7 +35,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[0].Address,
                 ValidatorPower = TestUtils.Validators[0].Power,
-                Flag = VoteFlag.PreVote,
+                Flag = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[0]);
 
             Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
@@ -53,7 +53,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreVote,
+                Flag = VoteType.PreVote,
             }.Sign(key);
 
             Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
@@ -70,7 +70,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.Validators[0].Address,
                 ValidatorPower = TestUtils.Validators[0].Power + 1,
-                Flag = VoteFlag.PreVote,
+                Flag = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[0]);
 
             Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
@@ -88,7 +88,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[0].Address,
                 ValidatorPower = TestUtils.Validators[0].Power,
-                Flag = VoteFlag.PreVote,
+                Flag = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[0]);
             var preVote1 = new VoteMetadata
             {
@@ -98,7 +98,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[0].Address,
                 ValidatorPower = TestUtils.Validators[0].Power,
-                Flag = VoteFlag.PreVote,
+                Flag = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[0]);
             var preCommit0 = new VoteMetadata
             {
@@ -108,7 +108,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[0].Address,
                 ValidatorPower = TestUtils.Validators[0].Power,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[0]);
             var preCommit1 = new VoteMetadata
             {
@@ -118,7 +118,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[0].Address,
                 ValidatorPower = TestUtils.Validators[0].Power,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[0]);
 
             _heightVoteSet.AddVote(preVote0);
@@ -139,7 +139,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[0].Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreVote,
+                Flag = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[0]);
 
             var exception = Assert.Throws<InvalidVoteException>(
@@ -160,7 +160,7 @@ namespace Libplanet.Net.Tests.Consensus
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = TestUtils.PrivateKeys[index].Address,
                         ValidatorPower = TestUtils.Validators[index].Power,
-                        Flag = VoteFlag.PreVote,
+                        Flag = VoteType.PreVote,
                     }.Sign(TestUtils.PrivateKeys[index]))
                 .ToList();
             var preCommit = new VoteMetadata
@@ -171,7 +171,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[0].Address,
                 ValidatorPower = TestUtils.Validators[0].Power,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[0]);
 
             foreach (var preVote in preVotes)

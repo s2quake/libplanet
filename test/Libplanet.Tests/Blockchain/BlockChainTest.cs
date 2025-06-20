@@ -1369,7 +1369,7 @@ public partial class BlockChainTest : IDisposable
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = pk.Address,
                     ValidatorPower = TestUtils.Validators.GetValidator(pk.Address).Power,
-                    Flag = VoteFlag.PreCommit,
+                    Flag = VoteType.PreCommit,
                 }.Sign(pk))
             .OrderBy(vote => vote.Validator)],
         };
@@ -1401,7 +1401,7 @@ public partial class BlockChainTest : IDisposable
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = newValidators[index].Address,
                         ValidatorPower = newValidatorPowers[index],
-                        Flag = VoteFlag.PreCommit,
+                        Flag = VoteType.PreCommit,
                     }.Sign(newValidators[index]))
                 .OrderBy(vote => vote.Validator)],
         };
@@ -1437,7 +1437,7 @@ public partial class BlockChainTest : IDisposable
                                 Timestamp = DateTimeOffset.UtcNow,
                                 Validator = newValidators[index].Address,
                                 ValidatorPower = newValidatorPowers[index],
-                                Flag = VoteFlag.PreCommit,
+                                Flag = VoteType.PreCommit,
                             }.Sign(newValidators[index]))],
                 }));
 

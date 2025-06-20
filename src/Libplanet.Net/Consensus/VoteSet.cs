@@ -1,10 +1,9 @@
-using System.Collections.Concurrent;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
 public class VoteSet(
-    int height, int round, VoteFlag voteFlag, ImmutableSortedSet<Validator> validators)
+    int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
 {
     private readonly object _lock = new();
     private readonly VoteCollection _votes = [];
@@ -151,7 +150,7 @@ public class VoteSet(
 
     public bool IsCommit()
     {
-        if (voteFlag != VoteFlag.PreCommit)
+        if (voteType != VoteType.PreCommit)
         {
             return false;
         }
@@ -217,7 +216,7 @@ public class VoteSet(
 
     internal void AddVote(Vote vote)
     {
-        if (vote.Round != round || vote.Flag != voteFlag)
+        if (vote.Round != round || vote.Flag != voteType)
         {
             throw new InvalidVoteException("Round, flag of the vote mismatches", vote);
         }
@@ -331,7 +330,7 @@ public class VoteSet(
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key,
                     ValidatorPower = validators.GetValidator(key).Power,
-                    Flag = VoteFlag.Null,
+                    Flag = VoteType.Null,
                 }.WithoutSignature())
                 .ToList();
     }

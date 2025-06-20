@@ -60,7 +60,7 @@ namespace Libplanet.Net.Tests
             int height,
             int round,
             BlockHash hash,
-            VoteFlag flag) =>
+            VoteType flag) =>
             new VoteMetadata
             {
                 Height = height,
@@ -151,7 +151,7 @@ namespace Libplanet.Net.Tests
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteFlag.PreCommit,
+                            Flag = VoteType.PreCommit,
                         }.Sign(privateKey)
                     });
             }
@@ -183,7 +183,7 @@ namespace Libplanet.Net.Tests
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteFlag.PreCommit,
+                            Flag = VoteType.PreCommit,
                         }.Sign(privateKey)
                     });
             }
@@ -215,7 +215,7 @@ namespace Libplanet.Net.Tests
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteFlag.PreVote,
+                            Flag = VoteType.PreVote,
                         }.Sign(privateKey)
                     });
             }
@@ -247,7 +247,7 @@ namespace Libplanet.Net.Tests
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteFlag.PreVote,
+                            Flag = VoteType.PreVote,
                         }.Sign(privateKey)
                     });
             }

@@ -258,7 +258,7 @@
 //                         Timestamp = DateTimeOffset.UtcNow,
 //                         Validator = TestUtils.PrivateKeys[0].Address,
 //                         ValidatorPower = TestUtils.Validators[0].Power,
-//                         Flag = VoteFlag.PreCommit,
+//                         Flag = VoteType.PreCommit,
 //                     }.Sign(TestUtils.PrivateKeys[0])
 //                 ],
 //             };

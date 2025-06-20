@@ -517,7 +517,7 @@ public abstract class RepositoryTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validator.Address,
             ValidatorPower = BigInteger.One,
-            Flag = VoteFlag.PreCommit,
+            Flag = VoteType.PreCommit,
         }.Sign(validator)).ToImmutableArray();
 
         var expectedCommit = new BlockCommit
@@ -547,7 +547,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = fx.Proposer.Address,
                 ValidatorPower = fx.ProposerPower,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(fx.Proposer));
         var votesTwo = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
@@ -558,7 +558,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = fx.Proposer.Address,
                 ValidatorPower = fx.ProposerPower,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(fx.Proposer));
 
         BlockCommit[] blockCommits =
@@ -603,7 +603,7 @@ public abstract class RepositoryTest
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = validatorPrivateKey.Address,
                     ValidatorPower = BigInteger.One,
-                    Flag = VoteFlag.PreCommit,
+                    Flag = VoteType.PreCommit,
                 }.Sign(validatorPrivateKey)
             ],
         };
@@ -630,7 +630,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(signer))
             .Add(new VoteMetadata
             {
@@ -640,7 +640,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(signer));
         var duplicateVoteTwo = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
@@ -651,7 +651,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(signer))
             .Add(new VoteMetadata
             {
@@ -661,7 +661,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(signer));
 
         EvidenceBase[] evidences =
@@ -691,7 +691,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(signer))
             .Add(new VoteMetadata
             {
@@ -701,7 +701,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(signer));
         var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
 
@@ -732,7 +732,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(signer))
             .Add(new VoteMetadata
             {
@@ -742,7 +742,7 @@ public abstract class RepositoryTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(signer));
         var evidence = DuplicateVoteEvidence.Create(duplicateVote[0], duplicateVote[1], TestUtils.Validators);
 

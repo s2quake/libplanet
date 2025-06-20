@@ -27,8 +27,8 @@ public sealed partial record class Maj23Metadata
     public Address Validator { get; init; }
 
     [Property(5)]
-    [DisallowedEnumValues(VoteFlag.Null, VoteFlag.Unknown)]
-    public VoteFlag VoteFlag { get; init; }
+    [DisallowedEnumValues(VoteType.Null, VoteType.Unknown)]
+    public VoteType VoteType { get; init; }
 
     public Maj23 Sign(ISigner signer)
     {

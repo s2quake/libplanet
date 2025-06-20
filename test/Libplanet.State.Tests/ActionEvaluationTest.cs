@@ -29,7 +29,7 @@ public class ActionEvaluationTest(ITestOutputHelper output)
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,
-                    Flag = VoteFlag.PreCommit,
+                    Flag = VoteType.PreCommit,
                 }.Sign(key),
             ],
         };

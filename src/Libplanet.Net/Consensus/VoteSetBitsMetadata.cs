@@ -27,8 +27,8 @@ public sealed partial record class VoteSetBitsMetadata
     public Address Validator { get; init; }
 
     [Property(5)]
-    [DisallowedEnumValues(VoteFlag.Null, VoteFlag.Unknown)]
-    public VoteFlag Flag { get; init; }
+    [DisallowedEnumValues(VoteType.Null, VoteType.Unknown)]
+    public VoteType Flag { get; init; }
 
     public ImmutableArray<bool> VoteBits { get; init; }
 

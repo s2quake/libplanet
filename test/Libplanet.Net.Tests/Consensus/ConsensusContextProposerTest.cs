@@ -57,7 +57,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
 
             consensusContext.HandleMessage(
@@ -69,7 +69,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
 
             await timeoutProcessed.WaitAsync();
@@ -83,7 +83,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreCommit)
+                        flag: VoteType.PreCommit)
                 });
 
             consensusContext.HandleMessage(
@@ -95,7 +95,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreCommit)
+                        flag: VoteType.PreCommit)
                 });
 
             await timeoutProcessed.WaitAsync();

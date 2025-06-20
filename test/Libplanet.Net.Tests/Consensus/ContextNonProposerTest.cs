@@ -60,7 +60,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         1,
                         hash: block.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -71,7 +71,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         1,
                         hash: block.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
 
             // Wait for round 1 prevote step.
@@ -121,7 +121,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: block.BlockHash,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -132,7 +132,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: block.BlockHash,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -143,7 +143,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: block.BlockHash,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
@@ -211,7 +211,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -222,7 +222,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -233,7 +233,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
@@ -492,7 +492,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         invalidBlock.BlockHash,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -503,7 +503,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         default,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -514,7 +514,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         default,
-                        VoteFlag.PreVote)
+                        VoteType.PreVote)
                 });
             await nilPreCommitSent.WaitAsync();
             Assert.Equal(ConsensusStep.PreCommit, context.Step);
@@ -546,7 +546,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         1,
                         hash: default,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -557,7 +557,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         1,
                         hash: default,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
 
             await stepChangedToRoundOnePreVote.WaitAsync();
@@ -641,7 +641,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -652,7 +652,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
 
             // Two additional votes should be enough to trigger precommit timeout timer.
@@ -665,7 +665,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreCommit)
+                        flag: VoteType.PreCommit)
                 });
             context.ProduceMessage(
                 new ConsensusPreCommitMessage
@@ -676,7 +676,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreCommit)
+                        flag: VoteType.PreCommit)
                 });
 
             await context.StartAsync(default);
@@ -721,7 +721,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: block.BlockHash,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -732,7 +732,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
             context.ProduceMessage(
                 new ConsensusPreVoteMessage
@@ -743,7 +743,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreVote)
+                        flag: VoteType.PreVote)
                 });
 
             // Wait for timeout.
@@ -781,7 +781,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: block.BlockHash,
-                        flag: VoteFlag.PreCommit)
+                        flag: VoteType.PreCommit)
                 });
             context.ProduceMessage(
                 new ConsensusPreCommitMessage
@@ -792,7 +792,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreCommit)
+                        flag: VoteType.PreCommit)
                 });
             context.ProduceMessage(
                 new ConsensusPreCommitMessage
@@ -803,7 +803,7 @@ namespace Libplanet.Net.Tests.Consensus
                         1,
                         0,
                         hash: default,
-                        flag: VoteFlag.PreCommit)
+                        flag: VoteType.PreCommit)
                 });
 
             // Wait for timeout.

@@ -19,7 +19,7 @@
 //                 hash,
 //                 DateTimeOffset.UtcNow,
 //                 key.PublicKey,
-//                 VoteFlag.PreCommit,
+//                 VoteType.PreCommit,
 //                 voteBits);
 //             var decoded = new VoteSetBitsMetadata(expected.Encoded);
 //             Assert.Equal(expected, decoded);

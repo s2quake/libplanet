@@ -78,7 +78,7 @@ public static partial class RandomUtility
         Round = Int32(random),
         Timestamp = DateTimeOffset(random),
         ValidatorPower = BigInteger(random),
-        Flag = Enum<VoteFlag>(random),
+        Flag = Enum<VoteType>(random),
     };
 
     public static string Ticker() => Ticker(System.Random.Shared);

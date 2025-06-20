@@ -378,7 +378,7 @@ public partial class BlockChainTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validators[index].Address,
             ValidatorPower = validatorPowers[index],
-            Flag = VoteFlag.PreCommit,
+            Flag = VoteType.PreCommit,
         }.Sign(validators[index])).ToImmutableArray();
         var blockCommit = new BlockCommit
         {
@@ -428,7 +428,7 @@ public partial class BlockChainTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = key.Address,
             ValidatorPower = TestUtils.Validators.GetValidator(key.Address).Power,
-            Flag = VoteFlag.PreCommit,
+            Flag = VoteType.PreCommit,
         }.Sign(key)).ToImmutableArray();
         var blockCommit = new BlockCommit
         {
@@ -470,7 +470,7 @@ public partial class BlockChainTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = x.Address,
                 ValidatorPower = TestUtils.Validators.GetValidator(x.Address).Power,
-                Flag = VoteFlag.PreCommit,
+                Flag = VoteType.PreCommit,
             }.Sign(x))],
         };
         Assert.Throws<InvalidOperationException>(() => blockCommit.Validate(_fx.GenesisBlock));
@@ -555,7 +555,7 @@ public partial class BlockChainTest
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = x.Address,
                             ValidatorPower = BigInteger.One,
-                            Flag = VoteFlag.PreCommit,
+                            Flag = VoteType.PreCommit,
                         }.Sign(x))],
                 }));
     }
@@ -604,7 +604,7 @@ public partial class BlockChainTest
             },
         }.Sign(_fx.Proposer);
 
-        Vote GenerateVote(PrivateKey key, BigInteger power, VoteFlag flag)
+        Vote GenerateVote(PrivateKey key, BigInteger power, VoteType flag)
         {
             var metadata = new VoteMetadata
             {
@@ -616,16 +616,16 @@ public partial class BlockChainTest
                 ValidatorPower = power,
                 Flag = flag,
             };
-            return flag == VoteFlag.Null
+            return flag == VoteType.Null
                 ? metadata.WithoutSignature()
                 : metadata.Sign(key);
         }
 
         ImmutableArray<Vote> GenerateVotes(
-            VoteFlag flag1,
-            VoteFlag flag2,
-            VoteFlag flag3,
-            VoteFlag flag4)
+            VoteType flag1,
+            VoteType flag2,
+            VoteType flag3,
+            VoteType flag4)
         {
             return new[]
             {
@@ -642,10 +642,10 @@ public partial class BlockChainTest
             Round = 0,
             BlockHash = validNextBlock.BlockHash,
             Votes = GenerateVotes(
-                VoteFlag.PreCommit,
-                VoteFlag.PreCommit,
-                VoteFlag.PreCommit,
-                VoteFlag.PreCommit),
+                VoteType.PreCommit,
+                VoteType.PreCommit,
+                VoteType.PreCommit,
+                VoteType.PreCommit),
         };
         fullBlockCommit.Validate(validNextBlock);
 
@@ -656,10 +656,10 @@ public partial class BlockChainTest
             Round = 0,
             BlockHash = validNextBlock.BlockHash,
             Votes = GenerateVotes(
-                VoteFlag.PreCommit,
-                VoteFlag.Null,
-                VoteFlag.Null,
-                VoteFlag.Null),
+                VoteType.PreCommit,
+                VoteType.Null,
+                VoteType.Null,
+                VoteType.Null),
         };
         validBlockCommit.Validate(validNextBlock);
 
@@ -670,10 +670,10 @@ public partial class BlockChainTest
             Round = 0,
             BlockHash = validNextBlock.BlockHash,
             Votes = GenerateVotes(
-                VoteFlag.Null,
-                VoteFlag.PreCommit,
-                VoteFlag.PreCommit,
-                VoteFlag.PreCommit),
+                VoteType.Null,
+                VoteType.PreCommit,
+                VoteType.PreCommit,
+                VoteType.PreCommit),
         };
         Assert.Throws<InvalidOperationException>(() => invalidBlockCommit.Validate(validNextBlock));
     }

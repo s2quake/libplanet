@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
@@ -9,12 +10,12 @@ namespace Libplanet.Net.Consensus;
 public sealed class Gossip : IAsyncDisposable
 {
     private const int DLazy = 6;
+    private readonly Subject<MessageEnvelope> _messageReceivedSubject = new();
+    private readonly Subject<IMessage> _messageSendSubject = new();
+    private readonly Subject<IMessage> _processMessageSubject = new();
     private readonly GossipOptions _options = new();
     private readonly ITransport _transport;
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
-    private readonly Action<MessageEnvelope> _validateMessageToReceive;
-    private readonly Action<IMessage> _validateMessageToSend;
-    private readonly Action<IMessage> _processMessage;
     private readonly ImmutableArray<Peer> _seeds;
     private readonly RoutingTable _table;
     private readonly HashSet<Peer> _denySet = [];
@@ -32,9 +33,6 @@ public sealed class Gossip : IAsyncDisposable
     public Gossip(ITransport transport, GossipOptions options)
     {
         _transport = transport;
-        _validateMessageToReceive = options.ValidateMessageToReceive;
-        _validateMessageToSend = options.ValidateMessageToSend;
-        _processMessage = options.ProcessMessage;
         _table = new RoutingTable(transport.Peer.Address);
 
         // FIXME: Dumb way to add peer.
@@ -47,6 +45,12 @@ public sealed class Gossip : IAsyncDisposable
         _seeds = options.Seeds;
         _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
     }
+
+    public IObservable<MessageEnvelope> MessageReceived => _messageReceivedSubject;
+
+    public IObservable<IMessage> MessageSend => _messageSendSubject;
+
+    public IObservable<IMessage> ProcessMessage => _processMessageSubject;
 
     public bool IsRunning { get; private set; }
 
@@ -139,7 +143,7 @@ public sealed class Gossip : IAsyncDisposable
         {
             try
             {
-                _processMessage(message);
+                _processMessageSubject.OnNext(message);
             }
             catch (Exception)
             {
@@ -187,7 +191,7 @@ public sealed class Gossip : IAsyncDisposable
 
         try
         {
-            _validateMessageToReceive(messageEnvelope);
+            _messageReceivedSubject.OnNext(messageEnvelope);
         }
         catch
         {
@@ -299,7 +303,7 @@ public sealed class Gossip : IAsyncDisposable
                     want,
                     cancellationToken);
 
-                _validateMessageToReceive(replies);
+                _messageReceivedSubject.OnNext(replies);
                 var message = (AggregateMessage)replies.Message;
 
                 message.Messages.AsParallel().ForAll(
@@ -331,7 +335,7 @@ public sealed class Gossip : IAsyncDisposable
             {
                 try
                 {
-                    _validateMessageToSend(c);
+                    _messageSendSubject.OnNext(c);
                     _transport.ReplyMessage(messageEnvelope.Identity, c);
                 }
                 catch (Exception e)

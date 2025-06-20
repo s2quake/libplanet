@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,26 +13,43 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private readonly Gossip _gossip;
     private readonly object _contextLock = new();
     private readonly ContextOptions _contextOption;
-    private readonly MessageCommunicator _messageCommunicator;
+    // private readonly MessageCommunicator _messageCommunicator;
     private readonly Blockchain _blockchain;
     private readonly PrivateKey _privateKey;
     private readonly TimeSpan _newHeightDelay;
     private readonly HashSet<ConsensusMessage> _pendingMessages = [];
     private readonly EvidenceExceptionCollector _evidenceCollector = new();
     private readonly IDisposable _tipChangedSubscription;
+    private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
+    private readonly List<IDisposable> _subscriptionList;
 
+    private int _height;
+    private int _round;
     private Context _currentContext;
     private CancellationTokenSource? _newHeightCts;
     private bool _disposed;
 
     public ConsensusReactor(ITransport transport, Blockchain blockchain, ConsensusReactorOptions options)
     {
-        _messageCommunicator = new MessageCommunicator(
+        // _messageCommunicator = new MessageCommunicator(
+        //     transport,
+        //     options.ConsensusPeers,
+        //     options.SeedPeers,
+        //     ProcessMessage);
+        _gossip = new Gossip(
             transport,
-            options.ConsensusPeers,
-            options.SeedPeers,
-            ProcessMessage);
-        _gossip = _messageCommunicator.Gossip;
+            new GossipOptions
+            {
+                Seeds = options.SeedPeers,
+                Validators = options.ConsensusPeers,
+            });
+
+        _subscriptionList =
+        [
+            _gossip.MessageReceived.Subscribe(ValidateMessageToReceive),
+            _gossip.MessageSend.Subscribe(ValidateMessageToSend),
+            _gossip.ProcessMessage.Subscribe(ProcessMessage),
+        ];
 
         _blockchain = blockchain;
         _privateKey = options.PrivateKey;
@@ -48,6 +66,64 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
         _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
     }
+
+
+    private void ValidateMessageToReceive(MessageEnvelope message)
+    {
+        if (message.Message is ConsensusVoteMessage voteMsg)
+        {
+            FilterDifferentHeightVote(voteMsg);
+            FilterHigherRoundVoteSpam(voteMsg, message.Peer);
+        }
+    }
+
+    private void ValidateMessageToSend(IMessage message)
+    {
+        if (message is ConsensusVoteMessage voteMsg)
+        {
+            if (voteMsg.Height != _height)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot send vote of height different from context's");
+            }
+
+            if (voteMsg.Round > _round)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot send vote of round higher than context's");
+            }
+        }
+    }
+
+    private void FilterDifferentHeightVote(ConsensusVoteMessage voteMsg)
+    {
+        if (voteMsg.Height != _height)
+        {
+            throw new InvalidOperationException(
+                $"Filtered vote from different height: {voteMsg.Height}");
+        }
+    }
+
+    private void FilterHigherRoundVoteSpam(ConsensusVoteMessage voteMsg, Peer peer)
+    {
+        if (voteMsg.Height == _height &&
+            voteMsg.Round > _round)
+        {
+            _peerCatchupRounds.AddOrUpdate(
+                peer,
+                [voteMsg.Round],
+                (peer, set) => set.Add(voteMsg.Round));
+
+            if (_peerCatchupRounds.TryGetValue(peer, out var set) && set.Count > 2)
+            {
+                _gossip.DenyPeer(peer);
+                throw new InvalidOperationException(
+                    $"Add {peer} to deny set, since repetitively found higher rounds: " +
+                    $"{string.Join(", ", _peerCatchupRounds[peer])}");
+            }
+        }
+    }
+
 
     public event EventHandler<(int Height, ConsensusMessage Message)>? MessagePublished;
 
@@ -74,8 +150,17 @@ public sealed class ConsensusReactor : IAsyncDisposable
             MutationConsumed?.Invoke(this, (context.Height, action));
 
         // NOTE: Events for consensus logic.
-        context.HeightStarted.Subscribe(_messageCommunicator.StartHeight);
-        context.RoundStarted.Subscribe(_messageCommunicator.StartRound);
+        context.HeightStarted.Subscribe(height =>
+        {
+            _height = height;
+            _peerCatchupRounds.Clear();
+            _gossip.ClearDenySet();
+        });
+        context.RoundStarted.Subscribe(round =>
+        {
+            _round = round;
+            _gossip.ClearCache();
+        });
         context.MessagePublished.Subscribe(message =>
         {
             _gossip.PublishMessage(message);
@@ -95,6 +180,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
     {
         if (!_disposed)
         {
+            _subscriptionList.ForEach(subscription => subscription.Dispose());
             await _gossip.DisposeAsync();
             if (_newHeightCts is not null)
             {

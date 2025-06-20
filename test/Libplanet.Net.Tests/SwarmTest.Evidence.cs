@@ -66,7 +66,7 @@ namespace Libplanet.Net.Tests
 
                 Assert.NotNull(methodInfo);
 
-                var vote = MakeRandomVote(privateKeys[0], height, round, VoteFlag.PreVote);
+                var vote = MakeRandomVote(privateKeys[0], height, round, VoteType.PreVote);
                 var args = new object[] { new ConsensusPreVoteMessage { PreVote = vote } };
 
                 await WaitUntilStepAsync(consensusContext, ConsensusStep.PreVote, default);
@@ -101,12 +101,12 @@ namespace Libplanet.Net.Tests
         }
 
         private static Vote MakeRandomVote(
-            PrivateKey privateKey, int height, int round, VoteFlag flag)
+            PrivateKey privateKey, int height, int round, VoteType flag)
         {
-            if (flag == VoteFlag.Null || flag == VoteFlag.Unknown)
+            if (flag == VoteType.Null || flag == VoteType.Unknown)
             {
                 throw new ArgumentException(
-                    $"{nameof(flag)} must be either {VoteFlag.PreVote} or {VoteFlag.PreCommit}" +
+                    $"{nameof(flag)} must be either {VoteType.PreVote} or {VoteType.PreCommit}" +
                     $"to create a valid signed vote.");
             }
 

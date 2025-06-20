@@ -157,13 +157,13 @@ type Vote {
   validatorPublicKey: PublicKey!
 
   # Flag of the vote
-  flag: VoteFlag!
+  flag: VoteType!
 
   # A digital signature of the content of this vote.
   signature: ByteString!
 }
 
-scalar VoteFlag
+scalar VoteType
 
 scalar BigInt
 

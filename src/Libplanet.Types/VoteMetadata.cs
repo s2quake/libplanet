@@ -29,7 +29,7 @@ public sealed partial record class VoteMetadata : IValidatableObject
     public BigInteger ValidatorPower { get; init; }
 
     [Property(6)]
-    public VoteFlag Flag { get; init; }
+    public VoteType Flag { get; init; }
 
     public bool Verify(ReadOnlySpan<byte> signature)
     {
@@ -52,11 +52,11 @@ public sealed partial record class VoteMetadata : IValidatableObject
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (BlockHash.Equals(default) && (Flag == VoteFlag.Null || Flag == VoteFlag.Unknown))
+        if (BlockHash.Equals(default) && (Flag == VoteType.Null || Flag == VoteType.Unknown))
         {
             yield return new ValidationResult(
                 $"Given {nameof(BlockHash)} cannot be default if {nameof(Flag)} " +
-                $"is {VoteFlag.Null} or {VoteFlag.Unknown}",
+                $"is {VoteType.Null} or {VoteType.Unknown}",
                 [nameof(BlockHash)]);
         }
     }

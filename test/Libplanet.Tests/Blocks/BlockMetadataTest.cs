@@ -226,9 +226,9 @@
 //                 blockHash,
 //                 new[]
 //                 {
-//                     GenerateVote(blockHash, 2, 0, VoteFlag.PreCommit),
-//                     GenerateVote(blockHash, 2, 0, VoteFlag.PreCommit),
-//                     GenerateVote(blockHash, 2, 0, VoteFlag.PreCommit),
+//                     GenerateVote(blockHash, 2, 0, VoteType.PreCommit),
+//                     GenerateVote(blockHash, 2, 0, VoteType.PreCommit),
+//                     GenerateVote(blockHash, 2, 0, VoteType.PreCommit),
 //                 }.ToImmutableArray());
 //             Assert.Throws<InvalidOperationException>(() => new BlockHeader(
 //                 protocolVersion: BlockHeader.CurrentProtocolVersion,
@@ -248,9 +248,9 @@
 //                 invalidBlockHash,
 //                 new[]
 //                 {
-//                     GenerateVote(invalidBlockHash, 1, 0, VoteFlag.PreCommit),
-//                     GenerateVote(invalidBlockHash, 1, 0, VoteFlag.PreCommit),
-//                     GenerateVote(invalidBlockHash, 1, 0, VoteFlag.PreCommit),
+//                     GenerateVote(invalidBlockHash, 1, 0, VoteType.PreCommit),
+//                     GenerateVote(invalidBlockHash, 1, 0, VoteType.PreCommit),
+//                     GenerateVote(invalidBlockHash, 1, 0, VoteType.PreCommit),
 //                 }.ToImmutableArray());
 //             Assert.Throws<InvalidOperationException>(() => new BlockHeader(
 //                 protocolVersion: BlockHeader.CurrentProtocolVersion,
@@ -269,9 +269,9 @@
 //                 blockHash,
 //                 new[]
 //                 {
-//                     GenerateVote(blockHash, 1, 0, VoteFlag.PreCommit),
-//                     GenerateVote(blockHash, 1, 0, VoteFlag.PreCommit),
-//                     GenerateVote(blockHash, 1, 0, VoteFlag.PreCommit),
+//                     GenerateVote(blockHash, 1, 0, VoteType.PreCommit),
+//                     GenerateVote(blockHash, 1, 0, VoteType.PreCommit),
+//                     GenerateVote(blockHash, 1, 0, VoteType.PreCommit),
 //                     new VoteMetadata(
 //                         1,
 //                         0,
@@ -279,7 +279,7 @@
 //                         timestamp,
 //                         validatorB.PublicKey,
 //                         BigInteger.One,
-//                         VoteFlag.Null).Sign(null),
+//                         VoteType.Null).Sign(null),
 //                 }.ToImmutableArray());
 //             var validMetadata = new BlockHeader(
 //                 protocolVersion: BlockHeader.CurrentProtocolVersion,
@@ -293,12 +293,12 @@
 //                 evidenceHash: null);
 //         }
 
-//         private static Vote GenerateVote(BlockHash hash, int height, int round, VoteFlag flag)
+//         private static Vote GenerateVote(BlockHash hash, int height, int round, VoteType flag)
 //         {
 //             var key = new PrivateKey();
 //             var voteMetadata = new VoteMetadata(
 //                 height, round, hash, DateTimeOffset.UtcNow, key.PublicKey, BigInteger.One, flag);
-//             return flag == VoteFlag.PreVote || flag == VoteFlag.PreCommit
+//             return flag == VoteType.PreVote || flag == VoteType.PreCommit
 //                 ? voteMetadata.Sign(key)
 //                 : voteMetadata.Sign(null);
 //         }

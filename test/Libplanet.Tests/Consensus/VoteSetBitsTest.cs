@@ -18,7 +18,7 @@
 //                 hash,
 //                 DateTimeOffset.UtcNow,
 //                 new PrivateKey().PublicKey,
-//                 VoteFlag.PreVote,
+//                 VoteType.PreVote,
 //                 new[] { true, true, false, false });
 
 //             // Empty Signature
@@ -46,7 +46,7 @@
 //                 hash,
 //                 DateTimeOffset.UtcNow,
 //                 key.PublicKey,
-//                 VoteFlag.PreVote,
+//                 VoteType.PreVote,
 //                 new[] { true, true, false, false });
 //             VoteSetBits voteSetBits = metadata.Sign(key);
 

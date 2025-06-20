@@ -105,7 +105,7 @@ public class ConsensusContextTest
                     3,
                     0,
                     hash: proposedblockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
         consensusContext.HandleMessage(
             new ConsensusPreCommitMessage
@@ -116,7 +116,7 @@ public class ConsensusContextTest
                     3,
                     0,
                     hash: proposedblockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
         consensusContext.HandleMessage(
             new ConsensusPreCommitMessage
@@ -127,7 +127,7 @@ public class ConsensusContextTest
                     3,
                     0,
                     hash: proposedblockHash,
-                    flag: VoteFlag.PreCommit)
+                    flag: VoteType.PreCommit)
             });
 
         // Waiting for commit.
@@ -238,14 +238,14 @@ public class ConsensusContextTest
             1,
             0,
             new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-            VoteFlag.PreCommit));
+            VoteType.PreCommit));
         votes.AddRange(Enumerable.Range(1, 3).Select(x => TestUtils.CreateVote(
             TestUtils.PrivateKeys[x],
             TestUtils.Validators[x].Power,
             1,
             0,
             proposedblockHash,
-            VoteFlag.PreCommit)));
+            VoteType.PreCommit)));
 
         foreach (var vote in votes)
         {
@@ -298,7 +298,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = proposer.Address,
             ValidatorPower = proposerPower,
-            Flag = VoteFlag.PreVote,
+            Flag = VoteType.PreVote,
         }.Sign(proposer);
         var preVote2 = new VoteMetadata
         {
@@ -308,7 +308,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.PrivateKeys[2].Address,
             ValidatorPower = TestUtils.Validators[2].Power,
-            Flag = VoteFlag.PreVote,
+            Flag = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[2]);
         var preVote3 = new VoteMetadata
         {
@@ -318,7 +318,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.PrivateKeys[3].Address,
             ValidatorPower = TestUtils.Validators[3].Power,
-            Flag = VoteFlag.PreVote,
+            Flag = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[3]);
         consensusContext.StateChanged += (_, eventArgs) =>
         {
@@ -329,7 +329,7 @@ public class ConsensusContextTest
         };
         consensusContext.CurrentContext.VoteSetModified += (_, eventArgs) =>
         {
-            if (eventArgs.Flag == VoteFlag.PreCommit)
+            if (eventArgs.Flag == VoteType.PreCommit)
             {
                 committed.Set();
             }
@@ -343,11 +343,11 @@ public class ConsensusContextTest
 
         // VoteSetBits expects missing votes
         VoteSetBits voteSetBits = consensusContext.CurrentContext
-        .GetVoteSetBits(0, block.BlockHash, VoteFlag.PreVote);
+        .GetVoteSetBits(0, block.BlockHash, VoteType.PreVote);
         Assert.True(
         voteSetBits.VoteBits.SequenceEqual(new[] { true, true, false, true }));
         voteSetBits = consensusContext.CurrentContext
-        .GetVoteSetBits(0, block.BlockHash, VoteFlag.PreCommit);
+        .GetVoteSetBits(0, block.BlockHash, VoteType.PreCommit);
         Assert.True(
         voteSetBits.VoteBits.SequenceEqual(new[] { true, false, false, false }));
     }
@@ -391,7 +391,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = proposer.Address,
             ValidatorPower = proposerPower,
-            Flag = VoteFlag.PreVote,
+            Flag = VoteType.PreVote,
         }.Sign(proposer);
         var preVote2 = new VoteMetadata
         {
@@ -401,7 +401,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.PrivateKeys[2].Address,
             ValidatorPower = TestUtils.Validators[2].Power,
-            Flag = VoteFlag.PreVote,
+            Flag = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[2]);
         consensusContext.HandleMessage(new ConsensusProposalMessage { Proposal = proposal });
         consensusContext.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote1 });
@@ -421,7 +421,7 @@ public class ConsensusContextTest
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[1].Address,
-                Flag = VoteFlag.PreVote,
+                Flag = VoteType.PreVote,
                 VoteBits = [false, false, true, false],
             }.Sign(TestUtils.PrivateKeys[1]);
         ConsensusMessage[] votes =
