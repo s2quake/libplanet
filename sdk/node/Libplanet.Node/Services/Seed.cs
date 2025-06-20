@@ -42,7 +42,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         _cancellationTokenSource
             = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _transport = CreateTransport();
-        _transport.MessageReceived.Subscribe(ReceiveMessageAsync);
+        _transport.ProcessMessage.Subscribe(ReceiveMessageAsync);
         await _transport.StartAsync(_cancellationTokenSource.Token);
         _refreshTask = RefreshContinuouslyAsync(_cancellationTokenSource.Token);
         IsRunning = true;

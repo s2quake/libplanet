@@ -964,7 +964,7 @@ namespace Libplanet.Net.Tests
                 }
             }
 
-            mockTransport.MessageReceived.Subscribe(MessageHandler);
+            mockTransport.ProcessMessage.Subscribe(MessageHandler);
 
             Block block1 = ProposeNextBlock(
                 receiver.Blockchain.Genesis,

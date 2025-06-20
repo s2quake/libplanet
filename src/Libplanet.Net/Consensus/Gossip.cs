@@ -10,15 +10,15 @@ namespace Libplanet.Net.Consensus;
 public sealed class Gossip : IAsyncDisposable
 {
     private const int DLazy = 6;
-    private readonly Subject<MessageEnvelope> _messageReceivedSubject = new();
-    private readonly Subject<IMessage> _messageSendSubject = new();
+    private readonly Subject<MessageEnvelope> _validateReceivedMessageSubject = new();
+    private readonly Subject<IMessage> _validateSendingMessageSubject = new();
     private readonly Subject<IMessage> _processMessageSubject = new();
     private readonly GossipOptions _options = new();
     private readonly ITransport _transport;
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
     private readonly ImmutableArray<Peer> _seeds;
     private readonly RoutingTable _table;
-    private readonly HashSet<Peer> _denySet = [];
+    private readonly HashSet<Peer> _disallowedPeers = [];
     private readonly Kademlia _kademlia;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict;
     private CancellationTokenSource? _cancellationTokenSource;
@@ -46,9 +46,9 @@ public sealed class Gossip : IAsyncDisposable
         _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
     }
 
-    public IObservable<MessageEnvelope> MessageReceived => _messageReceivedSubject;
+    public IObservable<MessageEnvelope> ValidateReceivedMessage => _validateReceivedMessageSubject;
 
-    public IObservable<IMessage> MessageSend => _messageSendSubject;
+    public IObservable<IMessage> ValidateSendingMessage => _validateSendingMessageSubject;
 
     public IObservable<IMessage> ProcessMessage => _processMessageSubject;
 
@@ -58,7 +58,7 @@ public sealed class Gossip : IAsyncDisposable
 
     public ImmutableArray<Peer> Peers => _table.Peers;
 
-    public IEnumerable<Peer> DeniedPeers => _denySet.ToList();
+    public IEnumerable<Peer> DeniedPeers => _disallowedPeers.ToList();
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -70,7 +70,7 @@ public sealed class Gossip : IAsyncDisposable
 
         _cancellationTokenSource = new CancellationTokenSource();
         await _transport.StartAsync(cancellationToken);
-        _transportSubscription = _transport.MessageReceived.Subscribe(HandleMessage);
+        _transportSubscription = _transport.ProcessMessage.Subscribe(HandleMessage);
         await _kademlia.BootstrapAsync(_seeds, 3, cancellationToken);
         await Task.WhenAny(
             RefreshTableAsync(_cancellationTokenSource.Token),
@@ -130,6 +130,12 @@ public sealed class Gossip : IAsyncDisposable
 
     public void PublishMessage(IEnumerable<Peer> targetPeers, params IMessage[] messages)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (!IsRunning)
+        {
+            throw new InvalidOperationException("Gossip is not running.");
+        }
+
         foreach (var message in messages)
         {
             AddMessage(message);
@@ -159,17 +165,17 @@ public sealed class Gossip : IAsyncDisposable
 
     public void DenyPeer(Peer peer)
     {
-        _denySet.Add(peer);
+        _disallowedPeers.Add(peer);
     }
 
     public void AllowPeer(Peer peer)
     {
-        _denySet.Remove(peer);
+        _disallowedPeers.Remove(peer);
     }
 
     public void ClearDenySet()
     {
-        _denySet.Clear();
+        _disallowedPeers.Clear();
     }
 
     private IEnumerable<Peer> PeersToBroadcast(IEnumerable<Peer> peers, int count)
@@ -183,15 +189,15 @@ public sealed class Gossip : IAsyncDisposable
 
     private void HandleMessage(MessageEnvelope messageEnvelope)
     {
-        if (_denySet.Contains(messageEnvelope.Peer))
+        if (_disallowedPeers.Contains(messageEnvelope.Peer))
         {
-            ReplyPongMessage(messageEnvelope);
+            _transport.Pong(messageEnvelope);
             return;
         }
 
         try
         {
-            _messageReceivedSubject.OnNext(messageEnvelope);
+            _validateReceivedMessageSubject.OnNext(messageEnvelope);
         }
         catch
         {
@@ -205,13 +211,14 @@ public sealed class Gossip : IAsyncDisposable
                 // Ignore protocol related messages, Kadmelia Protocol will handle it.
                 break;
             case HaveMessage:
+                _transport.Pong(messageEnvelope);
                 HandleHave(messageEnvelope);
                 break;
             case WantMessage:
                 HandleWant(messageEnvelope);
                 break;
             default:
-                ReplyPongMessage(messageEnvelope);
+                _transport.Pong(messageEnvelope);
                 AddMessage(messageEnvelope.Message);
                 break;
         }
@@ -238,29 +245,27 @@ public sealed class Gossip : IAsyncDisposable
     private void HandleHave(MessageEnvelope messageEnvelope)
     {
         var haveMessage = (HaveMessage)messageEnvelope.Message;
-
-        ReplyPongMessage(messageEnvelope);
-        //             return ids.Where(id => !_messages.TryGetValue(id, out _)).ToArray();
-        MessageId[] idsToGet = _messageById.Keys.Where(id => !_messageById.ContainsKey(id)).ToArray();
-
-        if (!idsToGet.Any())
+        var ids = haveMessage.Ids.Where(id => !_messageById.ContainsKey(id)).ToArray();
+        if (ids.Length is 0)
         {
             return;
         }
 
-        if (!_haveDict.ContainsKey(messageEnvelope.Peer))
+        var peer = messageEnvelope.Peer;
+        if (!_haveDict.TryGetValue(peer, out HashSet<MessageId>? value))
         {
-            _haveDict.TryAdd(messageEnvelope.Peer, [.. idsToGet]);
+            value = [];
         }
-        else
+
+        foreach (var id in ids)
         {
-            List<MessageId> list = _haveDict[messageEnvelope.Peer].ToList();
-            list.AddRange(idsToGet.Where(id => !list.Contains(id)));
-            _haveDict[messageEnvelope.Peer] = [.. list];
+            value.Add(id);
         }
+
+        _haveDict[peer] = value;
     }
 
-    private async Task SendWantAsync(CancellationToken ctx)
+    private async Task SendWantAsync(CancellationToken cancellationToken)
     {
         // TODO: To optimize WantMessage count to minimum, should remove duplications.
         var copy = _haveDict.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray());
@@ -293,7 +298,7 @@ public sealed class Gossip : IAsyncDisposable
 
         await Parallel.ForEachAsync(
             optimized,
-            ctx,
+            cancellationToken,
             async (pair, cancellationToken) =>
             {
                 MessageId[] idsToGet = pair.Value;
@@ -303,7 +308,7 @@ public sealed class Gossip : IAsyncDisposable
                     want,
                     cancellationToken);
 
-                _messageReceivedSubject.OnNext(replies);
+                _validateReceivedMessageSubject.OnNext(replies);
                 var message = (AggregateMessage)replies.Message;
 
                 message.Messages.AsParallel().ForAll(
@@ -335,7 +340,7 @@ public sealed class Gossip : IAsyncDisposable
             {
                 try
                 {
-                    _messageSendSubject.OnNext(c);
+                    _validateSendingMessageSubject.OnNext(c);
                     _transport.ReplyMessage(messageEnvelope.Identity, c);
                 }
                 catch (Exception e)
@@ -384,10 +389,5 @@ public sealed class Gossip : IAsyncDisposable
                 // do nothing
             }
         }
-    }
-
-    private void ReplyPongMessage(MessageEnvelope messageEnvelope)
-    {
-        _transport.ReplyMessage(messageEnvelope.Identity, new PongMessage());
     }
 }

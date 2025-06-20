@@ -56,7 +56,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
                 {
                     Host = IPAddress.Loopback.ToString(),
                 });
-            transport.MessageReceived.Subscribe(
+            transport.ProcessMessage.Subscribe(
                 m =>
                 {
                     transport.ReplyMessage(m.Identity, new PongMessage());

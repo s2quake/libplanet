@@ -46,8 +46,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
         _subscriptionList =
         [
-            _gossip.MessageReceived.Subscribe(ValidateMessageToReceive),
-            _gossip.MessageSend.Subscribe(ValidateMessageToSend),
+            _gossip.ValidateReceivedMessage.Subscribe(ValidateMessageToReceive),
+            _gossip.ValidateSendingMessage.Subscribe(ValidateMessageToSend),
             _gossip.ProcessMessage.Subscribe(ProcessMessage),
         ];
 

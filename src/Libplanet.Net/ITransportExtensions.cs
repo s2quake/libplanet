@@ -23,4 +23,7 @@ public static class ITransportExtensions
             throw new InvalidOperationException("Cannot receive pong from self");
         }
     }
+
+    public static void Pong(this ITransport @this, MessageEnvelope messageEnvelope)
+        => @this.ReplyMessage(messageEnvelope.Identity, new PongMessage());
 }

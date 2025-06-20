@@ -144,7 +144,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        using var subscription = transportB.MessageReceived.Subscribe(messageEnvelope =>
+        using var subscription = transportB.ProcessMessage.Subscribe(messageEnvelope =>
         {
             if (messageEnvelope.Message is PingMessage)
             {
@@ -187,7 +187,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        using var subscription = transportB.MessageReceived.Subscribe(messageEnvelope =>
+        using var subscription = transportB.ProcessMessage.Subscribe(messageEnvelope =>
         {
             if (messageEnvelope.Message is PingMessage)
             {
@@ -319,9 +319,9 @@ public abstract class TransportTest(ITestOutputHelper output)
         var tcsC = new TaskCompletionSource<MessageEnvelope>();
         var tcsD = new TaskCompletionSource<MessageEnvelope>();
 
-        transportB.MessageReceived.Subscribe(item => MessageHandler(tcsB));
-        transportC.MessageReceived.Subscribe(item => MessageHandler(tcsC));
-        transportD.MessageReceived.Subscribe(item => MessageHandler(tcsD));
+        transportB.ProcessMessage.Subscribe(item => MessageHandler(tcsB));
+        transportC.ProcessMessage.Subscribe(item => MessageHandler(tcsC));
+        transportD.ProcessMessage.Subscribe(item => MessageHandler(tcsD));
 
         Func<MessageEnvelope, Task> MessageHandler(TaskCompletionSource<MessageEnvelope> tcs)
         {
