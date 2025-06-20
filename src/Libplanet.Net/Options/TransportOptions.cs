@@ -1,10 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+using System.Net;
 using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Net.Options;
 
 public sealed record class TransportOptions
 {
-    public string Host { get; init; } = string.Empty;
+    [Required]
+    public string Host { get; init; } = IPAddress.Loopback.ToString();
 
     [NonNegative]
     public int Port { get; init; } = 0;

@@ -82,10 +82,7 @@ public sealed class Kademlia
     public static IEnumerable<Peer> SortByDistance(IEnumerable<Peer> peers, Address target)
         => peers.OrderBy(peer => CalculateDistance(target, peer.Address));
 
-    public async Task BootstrapAsync(
-        IEnumerable<Peer> bootstrapPeers,
-        int depth,
-        CancellationToken cancellationToken)
+    public async Task BootstrapAsync(IEnumerable<Peer> bootstrapPeers, int depth, CancellationToken cancellationToken)
     {
         var findPeerTasks = new List<Task>();
         var history = new ConcurrentBag<Peer>();
@@ -93,9 +90,10 @@ public sealed class Kademlia
 
         if (!bootstrapPeers.Any())
         {
-            throw new InvalidOperationException(
-                "No seeds are provided.  If it is intended you should conditionally invoke " +
-                $"{nameof(BootstrapAsync)}() only when there are seed peers.");
+            // throw new InvalidOperationException(
+            //     "No seeds are provided.  If it is intended you should conditionally invoke " +
+            //     $"{nameof(BootstrapAsync)}() only when there are seed peers.");
+            return;
         }
 
         foreach (Peer peer in bootstrapPeers.Where(peer => !peer.Address.Equals(_address)))
@@ -124,15 +122,15 @@ public sealed class Kademlia
             }
         }
 
-        if (!_table.Peers.Any())
-        {
-            throw new InvalidOperationException("All seeds are unreachable.");
-        }
+        // if (!_table.Peers.Any())
+        // {
+        //     throw new InvalidOperationException("All seeds are unreachable.");
+        // }
 
-        if (findPeerTasks.Count == 0)
-        {
-            throw new InvalidOperationException("Bootstrap failed.");
-        }
+        // if (findPeerTasks.Count == 0)
+        // {
+        //     throw new InvalidOperationException("Bootstrap failed.");
+        // }
 
         await Task.WhenAll(findPeerTasks).ConfigureAwait(false);
     }

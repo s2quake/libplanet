@@ -237,7 +237,7 @@ public static class ModelResolver
             if (index != builder.Count)
             {
                 throw new NotSupportedException(
-                    $"Property {propertyInfo.Name} has an invalid index {index}");
+                    $"Property {propertyInfo.Name} of {type} has an invalid index {index}. ");
             }
 
             if (typeof(IEnumerable).IsAssignableFrom(propertyType) && propertyType != typeof(string))

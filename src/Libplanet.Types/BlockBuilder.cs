@@ -24,7 +24,7 @@ public sealed record class BlockBuilder
         {
             Version = BlockHeader.CurrentProtocolVersion,
             Height = Height,
-            Timestamp = DateTimeOffset.UtcNow,
+            Timestamp = Timestamp,
             Proposer = proposer.Address,
             PreviousHash = PreviousHash,
             PreviousCommit = PreviousCommit,

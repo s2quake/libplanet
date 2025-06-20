@@ -96,6 +96,7 @@ public abstract class RepositoryFixture : IDisposable
                     Actions = [new Initialize { Validators = TestUtils.Validators }]
                 }.Create(Proposer),
             ],
+            Timestamp = new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
         }.Create(Proposer);
         GenesisBlockExecutionInfo = BlockExecutor.Execute((RawBlock)GenesisBlock);
         GenesisStateRootHash = GenesisBlockExecutionInfo.StateRootHash;

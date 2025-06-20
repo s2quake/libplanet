@@ -62,6 +62,14 @@ public sealed class RoutingTable
 
     public void AddPeer(Peer peer) => AddPeer(peer, DateTimeOffset.UtcNow);
 
+    public void AddPeers(IEnumerable<Peer> peers)
+    {
+        foreach (var peer in peers)
+        {
+            AddPeer(peer);
+        }
+    }
+
     public bool RemovePeer(Peer peer)
     {
         if (peer.Address.Equals(_address))
