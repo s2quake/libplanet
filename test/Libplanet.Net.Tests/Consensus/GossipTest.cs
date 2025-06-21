@@ -35,30 +35,30 @@ public sealed class GossipTest : IDisposable
 
     public void Dispose()
     {
-        NetMQConfig.Cleanup();
+        // NetMQConfig.Cleanup(false);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task PublishMessage()
     {
         using var fx = new MemoryRepositoryFixture();
-        bool received1 = false;
-        bool received2 = false;
+        var received1 = false;
+        var received2 = false;
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
         var receivedEvent = new ManualResetEvent(false);
         var peer1 = new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) };
+        var peer2 = new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) };
         await using var gossip1 = CreateGossip(key1, 6001, [peer1]);
-        using var g1 = gossip1.ProcessMessage.Subscribe(message =>
+        await using var gossip2 = CreateGossip(key2, 6002, [peer2]);
+        using var s1 = gossip1.ProcessMessage.Subscribe(message =>
         {
             if (message is ConsensusProposalMessage)
             {
                 received1 = true;
             }
         });
-        var peer2 = new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) };
-        await using var gossip2 = CreateGossip(key2, 6002, [peer2]);
-        using var g2 = gossip2.ProcessMessage.Subscribe(message =>
+        using var s2 = gossip2.ProcessMessage.Subscribe(message =>
         {
             if (message is ConsensusProposalMessage)
             {
@@ -79,28 +79,24 @@ public sealed class GossipTest : IDisposable
     {
         // It has no difference with PublishMessage() test,
         // since two methods only has timing difference.
-        MemoryRepositoryFixture fx = new MemoryRepositoryFixture();
-        bool received1 = false;
-        bool received2 = false;
+        using var fx = new MemoryRepositoryFixture();
+        var received1 = false;
+        var received2 = false;
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
-        var receivedEvent = new AsyncAutoResetEvent();
-        var gossip1 = CreateGossip(
-            key1,
-            6001,
-            [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
-        using var g1 = gossip1.ProcessMessage.Subscribe(message =>
+        var receivedEvent = new ManualResetEvent(false);
+        var peer1 = new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) };
+        var peer2 = new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) };
+        await using var gossip1 = CreateGossip(key1, 6001, [peer2]);
+        await using var gossip2 = CreateGossip(key2, 6002, [peer1]);
+        using var s1 = gossip1.ProcessMessage.Subscribe(message =>
         {
             if (message is ConsensusProposalMessage)
             {
                 received1 = true;
             }
         });
-        var gossip2 = CreateGossip(
-            key2,
-            6002,
-            [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
-        using var g2 = gossip2.ProcessMessage.Subscribe(message =>
+        using var s2 = gossip2.ProcessMessage.Subscribe(message =>
         {
             if (message is ConsensusProposalMessage)
             {
@@ -108,38 +104,28 @@ public sealed class GossipTest : IDisposable
                 receivedEvent.Set();
             }
         });
-        try
-        {
-            await gossip1.StartAsync(default);
-            await gossip2.StartAsync(default);
-            gossip1.PublishMessage(
-                TestUtils.CreateConsensusPropose(fx.Block1, new PrivateKey(), 0));
-            await receivedEvent.WaitAsync();
-            Assert.True(received1);
-            Assert.True(received2);
-        }
-        finally
-        {
-            await gossip1.StopAsync(default);
-            await gossip2.StopAsync(default);
-            await gossip1.DisposeAsync();
-            await gossip2.DisposeAsync();
-        }
+
+        await gossip1.StartAsync(default);
+        await gossip2.StartAsync(default);
+        gossip1.PublishMessage(TestUtils.CreateConsensusPropose(fx.Block1, new PrivateKey(), 0));
+        receivedEvent.WaitOne();
+        Assert.True(received1);
+        Assert.True(received2);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task AddMessages()
     {
-        MemoryRepositoryFixture fx = new MemoryRepositoryFixture();
-        int received1 = 0;
-        int received2 = 0;
+        using var fx = new MemoryRepositoryFixture();
+        var received1 = 0;
+        var received2 = 0;
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
-        var receivedEvent = new AsyncAutoResetEvent();
-        var gossip1 = CreateGossip(
-            key1,
-            6001,
-            [new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) }]);
+        var receivedEvent = new ManualResetEvent(false);
+        var peer1 = new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) };
+        var peer2 = new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) };
+        await using var gossip1 = CreateGossip(key1, 6001, [peer2]);
+        await using var gossip2 = CreateGossip(key2, 6002, [peer1]);
         using var g1 = gossip1.ProcessMessage.Subscribe(message =>
         {
             if (message is ConsensusProposalMessage)
@@ -147,10 +133,6 @@ public sealed class GossipTest : IDisposable
                 received1++;
             }
         });
-        var gossip2 = CreateGossip(
-            key2,
-            6002,
-            [new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) }]);
         using var g2 = gossip2.ProcessMessage.Subscribe(message =>
         {
             if (message is ConsensusProposalMessage)
@@ -163,32 +145,23 @@ public sealed class GossipTest : IDisposable
                 receivedEvent.Set();
             }
         });
-        try
-        {
-            await gossip1.StartAsync(default);
-            await gossip2.StartAsync(default);
-            PrivateKey key = new PrivateKey();
-            IMessage[] message =
-            [
-                TestUtils.CreateConsensusPropose(fx.Block1, key, 0),
-                TestUtils.CreateConsensusPropose(fx.Block1, key, 1),
-                TestUtils.CreateConsensusPropose(fx.Block1, key, 2),
-                TestUtils.CreateConsensusPropose(fx.Block1, key, 3),
-            ];
 
-            Parallel.ForEach(message, gossip1.PublishMessage);
+        await gossip1.StartAsync(default);
+        await gossip2.StartAsync(default);
+        var privateKey = new PrivateKey();
+        IMessage[] message =
+        [
+            TestUtils.CreateConsensusPropose(fx.Block1, privateKey, 0),
+            TestUtils.CreateConsensusPropose(fx.Block1, privateKey, 1),
+            TestUtils.CreateConsensusPropose(fx.Block1, privateKey, 2),
+            TestUtils.CreateConsensusPropose(fx.Block1, privateKey, 3),
+        ];
 
-            await receivedEvent.WaitAsync();
-            Assert.Equal(4, received1);
-            Assert.Equal(4, received2);
-        }
-        finally
-        {
-            await gossip1.StopAsync(default);
-            await gossip2.StopAsync(default);
-            await gossip1.DisposeAsync();
-            await gossip2.DisposeAsync();
-        }
+        Parallel.ForEach(message, gossip1.PublishMessage);
+
+        receivedEvent.WaitOne();
+        Assert.Equal(4, received1);
+        Assert.Equal(4, received2);
     }
 
     [Fact(Timeout = Timeout)]
@@ -197,74 +170,48 @@ public sealed class GossipTest : IDisposable
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
         var received = false;
-        var receivedEvent = new AsyncAutoResetEvent();
-        var transport1 = CreateTransport(key1, 6001);
+        var receivedEvent = new ManualResetEvent(false);
+        await using var transport1 = CreateTransport(key1, 6001);
 
-        void HandleMessage(MessageEnvelope message)
+        using var s = transport1.ProcessMessage.Subscribe(messageEnvelope =>
         {
             received = true;
             receivedEvent.Set();
-        }
+        });
+        await using var gossip = new Gossip(transport1);
+        await using var transport2 = CreateTransport(key2, 6002);
 
-        transport1.ProcessMessage.Subscribe(HandleMessage);
-        var gossip = new Gossip(transport1);
-        var transport2 = CreateTransport(key2, 6002);
-        try
-        {
-            await gossip.StartAsync(default);
-            await transport2.StartAsync(default);
+        await gossip.StartAsync(default);
+        await transport2.StartAsync(default);
+        await transport2.SendMessageAsync(gossip.Peer, new HaveMessage(), default);
 
-            await transport2.SendMessageAsync(
-                gossip.Peer,
-                new HaveMessage { Ids = [] },
-                default);
-
-            await receivedEvent.WaitAsync();
-            Assert.True(received);
-            Assert.Contains(transport2.Peer, gossip.Peers);
-        }
-        finally
-        {
-            await gossip.StopAsync(default);
-            await transport2.StopAsync(default);
-            await gossip.DisposeAsync();
-            await transport2.DisposeAsync();
-        }
+        receivedEvent.WaitOne();
+        Assert.True(received);
+        Assert.Contains(transport2.Peer, gossip.Peers);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task DoNotBroadcastToSeedPeers()
     {
-        bool received = false;
-        void ProcessMessage(MessageEnvelope msg)
+        var received = false;
+        await using var transport = CreateTransport();
+        await using var gossip = CreateGossip(seeds: [transport.Peer]);
+
+        transport.ProcessMessage.Subscribe(messageEnvelope =>
         {
-            if (msg.Message is HaveMessage)
+            if (messageEnvelope.Message is HaveMessage)
             {
                 received = true;
             }
-        }
+        });
 
-        ITransport seed = CreateTransport();
-        seed.ProcessMessage.Subscribe(ProcessMessage);
-        Gossip gossip = CreateGossip(seeds: [seed.Peer]);
+        await transport.StartAsync(default);
+        await gossip.StartAsync(default);
+        gossip.PublishMessage(new PingMessage());
 
-        try
-        {
-            await seed.StartAsync(default);
-            await gossip.StartAsync(default);
-            gossip.PublishMessage(new PingMessage());
-
-            // Wait heartbeat interval * 2.
-            await Task.Delay(2 * 1000);
-            Assert.False(received);
-        }
-        finally
-        {
-            await seed.StopAsync(default);
-            await gossip.StopAsync(default);
-            await seed.DisposeAsync();
-            await gossip.DisposeAsync();
-        }
+        // Wait heartbeat interval * 2.
+        await Task.Delay(2 * 1000);
+        Assert.False(received);
     }
 
     [Fact(Timeout = Timeout)]
