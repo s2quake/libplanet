@@ -85,6 +85,12 @@ public abstract class TransportTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
+    public async Task PeerAsync()
+    {
+
+    }
+
+    [Fact(Timeout = Timeout)]
     public async Task Peer()
     {
         var random = RandomUtility.GetRandom(output);

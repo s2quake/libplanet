@@ -5,14 +5,12 @@ using System.ServiceModel;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using AsyncIO;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 using NetMQ;
 using NetMQ.Sockets;
-using Nito.AsyncEx;
 
 namespace Libplanet.Net.Transports;
 
@@ -24,6 +22,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     private readonly Subject<MessageEnvelope> _processMessageSubject = new();
     private readonly RouterSocket _router = new();
     private readonly NetMQQueue<MessageReply> _replyQueue = new();
+    private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private int _port;
     private NetMQPoller? _poller;
     private Peer? _peer;
@@ -53,22 +52,22 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
         get
         {
-            if (!IsRunning)
+            if (_options.Port is 0 && !IsRunning)
             {
-                throw new InvalidOperationException("Transport is not running.");
+                throw new InvalidOperationException("Port is not set and transport is not running.");
             }
 
             return _peer ??= new()
             {
                 Address = signer.Address,
-                EndPoint = new DnsEndPoint(options.Host, _port),
+                EndPoint = new DnsEndPoint(_options.Host, _port),
             };
         }
     }
 
     public bool IsRunning { get; private set; }
 
-    public Protocol Protocol => options.Protocol;
+    public Protocol Protocol => _options.Protocol;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -81,7 +80,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
         _cancellationTokenSource = new CancellationTokenSource();
         _cancellationToken = _cancellationTokenSource.Token;
-        _port = Initialize(_router, options.Port);
+        _port = Initialize(_router, _options.Port);
         _poller = [_router, _replyQueue];
         _router.ReceiveReady += Router_ReceiveReady;
         _replyQueue.ReceiveReady += ReplyQueue_ReceiveReady;
@@ -167,7 +166,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             throw new InvalidOperationException("Transport is not running.");
         }
 
-        using var timeoutCancellationTokenSource = new CancellationTokenSource(options.SendTimeout);
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(_options.SendTimeout);
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken, timeoutCancellationTokenSource.Token);
         var channel = Channel.CreateUnbounded<NetMQMessage>();
@@ -180,7 +179,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                 {
                     Identity = Guid.NewGuid(),
                     Message = message,
-                    Protocol = options.Protocol,
+                    Protocol = _options.Protocol,
                     Peer = Peer,
                     Timestamp = DateTimeOffset.UtcNow,
                 },
@@ -190,7 +189,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             };
             Interlocked.Increment(ref _requestCount);
             Trace.WriteLine("SendMessageAsync: Requesting message");
-            cancellationTokenSource.CancelAfter(options.SendTimeout);
+            cancellationTokenSource.CancelAfter(_options.SendTimeout);
             await _requestChannel.Writer.WriteAsync(request, cancellationTokenSource.Token);
 
             Trace.WriteLine("SendMessageAsync: Waiting for response");
@@ -198,7 +197,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
             Trace.WriteLine("SendMessageAsync: Response received");
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
-            messageEnvelope.Validate(options.Protocol, options.MessageLifetime);
+            messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
             return messageEnvelope;
         }
         catch (OperationCanceledException e) when (timeoutCancellationTokenSource.IsCancellationRequested)
@@ -260,7 +259,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             {
                 Identity = identity,
                 Message = message,
-                Protocol = options.Protocol,
+                Protocol = _options.Protocol,
                 Peer = Peer,
                 Timestamp = DateTimeOffset.UtcNow,
             },
@@ -301,7 +300,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             Trace.WriteLine("Router_ReceiveReady: 4");
             var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
-            messageEnvelope.Validate(options.Protocol, options.MessageLifetime);
+            messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
             Trace.WriteLine("Router_ReceiveReady: 5");
             _processMessageSubject.OnNext(messageEnvelope);
         }

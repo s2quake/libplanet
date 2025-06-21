@@ -7,31 +7,14 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using NetMQ;
-using Nito.AsyncEx;
-using Serilog;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus;
 
 [Collection("NetMQConfiguration")]
-public sealed class GossipTest : IDisposable
+public sealed class GossipTest(ITestOutputHelper output) : IDisposable
 {
     private const int Timeout = 60 * 1000;
-    private readonly ILogger _logger;
-
-    public GossipTest(ITestOutputHelper output)
-    {
-        const string outputTemplate =
-            "{Timestamp:HH:mm:ss:ffffffZ} - {Message}";
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-            .WriteTo.TestOutput(output, outputTemplate: outputTemplate)
-            .CreateLogger()
-            .ForContext<GossipTest>();
-
-        _logger = Log.ForContext<GossipTest>();
-    }
 
     public void Dispose()
     {
@@ -47,10 +30,10 @@ public sealed class GossipTest : IDisposable
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
         var receivedEvent = new ManualResetEvent(false);
-        var peer1 = new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) };
-        var peer2 = new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) };
-        await using var gossip1 = CreateGossip(key1, 6001, [peer1]);
-        await using var gossip2 = CreateGossip(key2, 6002, [peer2]);
+        var peer1 = CreatePeer(key1, 6001);
+        var peer2 = CreatePeer(key2, 6002);
+        await using var gossip1 = CreateGossip(key1, 6001, [peer2]);
+        await using var gossip2 = CreateGossip(key2, 6002, [peer1]);
         using var s1 = gossip1.ProcessMessage.Subscribe(message =>
         {
             if (message is ConsensusProposalMessage)
@@ -85,8 +68,8 @@ public sealed class GossipTest : IDisposable
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
         var receivedEvent = new ManualResetEvent(false);
-        var peer1 = new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) };
-        var peer2 = new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) };
+        var peer1 = CreatePeer(key1, 6001);
+        var peer2 = CreatePeer(key2, 6002);
         await using var gossip1 = CreateGossip(key1, 6001, [peer2]);
         await using var gossip2 = CreateGossip(key2, 6002, [peer1]);
         using var s1 = gossip1.ProcessMessage.Subscribe(message =>
@@ -122,8 +105,8 @@ public sealed class GossipTest : IDisposable
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
         var receivedEvent = new ManualResetEvent(false);
-        var peer1 = new Peer { Address = key1.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6001) };
-        var peer2 = new Peer { Address = key2.Address, EndPoint = new DnsEndPoint("127.0.0.1", 6002) };
+        var peer1 = CreatePeer(key1, 6001);
+        var peer2 = CreatePeer(key2, 6002);
         await using var gossip1 = CreateGossip(key1, 6001, [peer2]);
         await using var gossip2 = CreateGossip(key2, 6002, [peer1]);
         using var g1 = gossip1.ProcessMessage.Subscribe(message =>
@@ -194,7 +177,7 @@ public sealed class GossipTest : IDisposable
     public async Task DoNotBroadcastToSeedPeers()
     {
         var received = false;
-        await using var transport = CreateTransport();
+        await using var transport = CreateTransport(port: 6001);
         await using var gossip = CreateGossip(seeds: [transport.Peer]);
 
         transport.ProcessMessage.Subscribe(messageEnvelope =>
@@ -217,53 +200,41 @@ public sealed class GossipTest : IDisposable
     [Fact(Timeout = Timeout)]
     public async Task DoNotSendDuplicateMessageRequest()
     {
-        int received = 0;
-        void ProcessMessage(MessageEnvelope msg)
+        var received = 0;
+        void ProcessMessage(MessageEnvelope messageEnvelope)
         {
-            if (msg.Message is WantMessage)
+            if (messageEnvelope.Message is WantMessage)
             {
                 received++;
             }
         }
 
-        Gossip receiver = CreateGossip();
-        ITransport sender1 = CreateTransport();
-        sender1.ProcessMessage.Subscribe(ProcessMessage);
-        ITransport sender2 = CreateTransport();
-        sender2.ProcessMessage.Subscribe(ProcessMessage);
+        await using var receiver = CreateGossip();
+        await using var sender1 = CreateTransport();
+        using var s1 = sender1.ProcessMessage.Subscribe(ProcessMessage);
+        await using var sender2 = CreateTransport();
+        using var s2 = sender2.ProcessMessage.Subscribe(ProcessMessage);
 
-        try
-        {
-            await receiver.StartAsync(default);
-            await sender1.StartAsync(default);
-            await sender2.StartAsync(default);
-            var msg1 = new PingMessage();
-            var msg2 = new PongMessage();
-            await sender1.SendMessageAsync(
-                receiver.Peer,
-                new HaveMessage { Ids = [msg1.Id, msg2.Id] },
-                default);
-            await sender2.SendMessageAsync(
-                receiver.Peer,
-                new HaveMessage { Ids = [msg1.Id, msg2.Id] },
-                default);
+        await receiver.StartAsync(default);
+        await sender1.StartAsync(default);
+        await sender2.StartAsync(default);
+        var msg1 = new PingMessage();
+        var msg2 = new PongMessage();
+        await sender1.SendMessageAsync(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] }, default);
+        await sender2.SendMessageAsync(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] }, default);
 
-            // Wait heartbeat interval * 2.
-            await Task.Delay(2 * 1000);
-            Assert.Equal(1, received);
-        }
-        finally
-        {
-            await receiver.StopAsync(default);
-            await sender1.StopAsync(default);
-            await sender2.StopAsync(default);
-            await receiver.DisposeAsync();
-            await sender1.DisposeAsync();
-            await sender2.DisposeAsync();
-        }
+        // Wait heartbeat interval * 2.
+        await Task.Delay(2 * 1000);
+        Assert.Equal(1, received);
     }
 
-    private Gossip CreateGossip(
+    private static Peer CreatePeer(PrivateKey? privateKey = null, int? port = null) => new()
+    {
+        Address = (privateKey ?? new PrivateKey()).Address,
+        EndPoint = new DnsEndPoint("127.0.0.1", port ?? 0),
+    };
+
+    private static Gossip CreateGossip(
         PrivateKey? privateKey = null,
         int? port = null,
         IEnumerable<Peer>? peers = null,
@@ -278,7 +249,9 @@ public sealed class GossipTest : IDisposable
         return new Gossip(transport, options);
     }
 
-    private static NetMQTransport CreateTransport(PrivateKey? privateKey = null, int? port = null)
+    private static NetMQTransport CreateTransport(
+        PrivateKey? privateKey = null,
+        int? port = null)
     {
         var options = new TransportOptions
         {

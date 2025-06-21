@@ -1,7 +1,10 @@
+using Libplanet.Net.ModelConverters;
+using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
+[ModelConverter(typeof(MessageIdModelConverter), "msgid")]
 public readonly record struct MessageId(in ImmutableArray<byte> Bytes)
     : IEquatable<MessageId>, IComparable<MessageId>, IComparable
 {
