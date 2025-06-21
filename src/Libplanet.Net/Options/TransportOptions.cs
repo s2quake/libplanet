@@ -11,8 +11,10 @@ public sealed record class TransportOptions
 
     [NonNegative]
     public int Port { get; init; } = 0;
-    
+
     public Protocol Protocol { get; init; } = Protocol.Empty;
 
     public TimeSpan MessageLifetime { get; init; } = TimeSpan.MaxValue;
+    
+    public TimeSpan SendTimeout { get; init; } = TimeSpan.FromSeconds(3);
 }

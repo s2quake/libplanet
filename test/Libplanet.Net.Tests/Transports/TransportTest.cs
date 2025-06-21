@@ -228,12 +228,8 @@ public abstract class TransportTest(ITestOutputHelper output)
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-        var cancellationToken = cancellationTokenSource.Token;
-
-        var e = await Assert.ThrowsAsync<CommunicationException>(
-            async () => await transportA.SendMessageAsync(transportB.Peer, new PingMessage(), cancellationToken));
-        Assert.True(e.InnerException is TimeoutException ie);
+        await Assert.ThrowsAsync<TimeoutException>(
+            async () => await transportA.SendMessageAsync(transportB.Peer, new PingMessage(), default));
     }
 
     [SkippableTheory(Timeout = Timeout)]
