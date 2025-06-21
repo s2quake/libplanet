@@ -34,14 +34,6 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
     // }
 
     [Fact]
-    public async Task Test()
-    {
-        var random = RandomUtility.GetRandom(output);
-        await using var transport = CreateTransport(random);
-        Assert.True(true);
-    }
-
-    [Fact]
     public async Task SendMessageAsyncNetMQSocketLeak()
     {
         int previousMaxSocket = NetMQConfig.MaxSockets;
