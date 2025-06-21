@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
+using System.ServiceModel;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
@@ -36,63 +38,34 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
     [Fact]
     public async Task SendMessageAsyncNetMQSocketLeak()
     {
-        int previousMaxSocket = NetMQConfig.MaxSockets;
+        using var scope = new PropertyScope(typeof(NetMQConfig), nameof(NetMQConfig.MaxSockets), 12);
 
-        try
+        await using var transport = new NetMQTransport(new PrivateKey().AsSigner());
+        using var _ = transport.ProcessMessage.Subscribe(transport.Pong);
+        var invalidHost = Guid.NewGuid().ToString();
+        var invalidPeer = new Peer
         {
-            // An arbitrary number to fit one transport testing.
-            NetMQConfig.MaxSockets = 12;
-            NetMQTransport transport = new NetMQTransport(
-                new PrivateKey().AsSigner(),
-                new TransportOptions
-                {
-                    Host = IPAddress.Loopback.ToString(),
-                });
-            transport.ProcessMessage.Subscribe(
-                m =>
-                {
-                    transport.ReplyMessage(m.Identity, new PongMessage());
-                });
-            await transport.StartAsync(default);
+            Address = new PrivateKey().Address,
+            EndPoint = new DnsEndPoint(invalidHost, 0),
+        };
 
-            string invalidHost = Guid.NewGuid().ToString();
+        await transport.StartAsync(default);
 
-            // it isn't assertion for Libplanet codes, but to make sure that `invalidHost`
-            // really fails lookup before moving to the next step.
-            Assert.ThrowsAny<SocketException>(() =>
-            {
-                Dns.GetHostEntry(invalidHost);
-            });
-            var invalidPeer = new Peer
-            {
-                Address = new PrivateKey().Address,
-                EndPoint = new DnsEndPoint(invalidHost, 0),
-            };
+        // it isn't assertion for Libplanet codes, but to make sure that `invalidHost`
+        // really fails lookup before moving to the next step.
+        Assert.ThrowsAny<SocketException>(() => Dns.GetHostEntry(invalidHost));
 
-            InvalidOperationException exc =
-                await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => transport.SendMessageAsync(
-                        invalidPeer,
-                        new PingMessage(),
-                        default));
+        var exc = await Assert.ThrowsAsync<CommunicationException>(
+            () => transport.SendMessageAsync(invalidPeer, new PingMessage(), default));
 
-            // Expecting SocketException about host resolving since `invalidPeer` has an
-            // invalid hostname
-            Assert.IsAssignableFrom<SocketException>(exc.InnerException);
+        // Expecting SocketException about host resolving since `invalidPeer` has an
+        // invalid hostname
+        Assert.IsType<ChannelClosedException>(exc.InnerException, exactMatch: false);
+        Assert.IsType<SocketException>(exc.InnerException?.InnerException, exactMatch: false);
 
-            // Check sending/receiving after exceptions exceeding NetMQConifg.MaxSockets.
-            MessageEnvelope reply = await transport.SendMessageAsync(
-                transport.Peer,
-                new PingMessage(),
-                default);
-            Assert.IsType<PongMessage>(reply.Message);
-
-            await transport.StopAsync(CancellationToken.None);
-        }
-        finally
-        {
-            NetMQConfig.MaxSockets = previousMaxSocket;
-        }
+        // Check sending/receiving after exceptions exceeding NetMQConifg.MaxSockets.
+        var reply = await transport.SendMessageAsync(transport.Peer, new PingMessage(), default);
+        Assert.IsType<PongMessage>(reply.Message);
     }
 
     public void Dispose()

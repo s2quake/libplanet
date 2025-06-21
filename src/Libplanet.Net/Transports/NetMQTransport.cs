@@ -167,8 +167,9 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             throw new InvalidOperationException("Transport is not running.");
         }
 
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(options.SendTimeout);
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            _cancellationToken, cancellationToken);
+            _cancellationToken, cancellationToken, timeoutCancellationTokenSource.Token);
         var channel = Channel.CreateUnbounded<NetMQMessage>();
 
         try
@@ -189,6 +190,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             };
             Interlocked.Increment(ref _requestCount);
             Trace.WriteLine("SendMessageAsync: Requesting message");
+            cancellationTokenSource.CancelAfter(options.SendTimeout);
             await _requestChannel.Writer.WriteAsync(request, cancellationTokenSource.Token);
 
             Trace.WriteLine("SendMessageAsync: Waiting for response");
@@ -198,6 +200,10 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
             messageEnvelope.Validate(options.Protocol, options.MessageLifetime);
             return messageEnvelope;
+        }
+        catch (OperationCanceledException e) when (timeoutCancellationTokenSource.IsCancellationRequested)
+        {
+            throw new TimeoutException("The request timed out while waiting for a response.", e);
         }
         catch (ChannelClosedException e)
         {
