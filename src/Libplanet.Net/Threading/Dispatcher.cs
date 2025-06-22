@@ -15,6 +15,11 @@ public class Dispatcher : IAsyncDisposable
 #endif
     private bool _isDisposed;
 
+    public Dispatcher()
+        : this(new())
+    {
+    }
+
     public Dispatcher(object owner)
     {
         _cancellationTokenSource = new CancellationTokenSource();
