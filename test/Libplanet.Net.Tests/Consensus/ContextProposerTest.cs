@@ -376,8 +376,8 @@ namespace Libplanet.Net.Tests.Consensus
                 blockChain,
                 privateKey: TestUtils.PrivateKeys[2],
                 height: 2,
-                lastCommit: block2Commit,
-                validatorSet: TestUtils.Validators);
+                previousCommit: block2Commit,
+                validators: TestUtils.Validators);
             using var _ = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
