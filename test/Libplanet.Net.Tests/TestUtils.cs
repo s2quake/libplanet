@@ -86,13 +86,12 @@ namespace Libplanet.Net.Tests
         }
 
         public static Blockchain CreateDummyBlockChain(
-            BlockchainOptions? policy = null,
+            BlockchainOptions? options = null,
             Block? genesisBlock = null)
         {
-            policy ??= Options;
-            var fx = new MemoryRepositoryFixture(policy);
+            options ??= Options;
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
-                policy,
+                options,
                 genesisBlock: genesisBlock);
 
             return blockChain;
@@ -286,17 +285,17 @@ namespace Libplanet.Net.Tests
         public static Context CreateDummyContext(
             Blockchain blockChain,
             int height = 1,
-            BlockCommit? lastCommit = null,
+            BlockCommit? previousCommit = null,
             PrivateKey? privateKey = null,
             ContextOptions? contextOption = null,
-            ImmutableSortedSet<Validator>? validatorSet = null)
+            ImmutableSortedSet<Validator>? validators = null)
         {
             Context? context = null;
             privateKey ??= PrivateKeys[0];
             context = new Context(
                 blockChain,
                 height,
-                lastCommit ?? default,
+                previousCommit ?? BlockCommit.Empty,
                 privateKey.AsSigner(),
                 contextOption: contextOption ?? new ContextOptions());
             using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));

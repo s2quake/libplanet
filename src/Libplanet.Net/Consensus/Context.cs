@@ -66,7 +66,7 @@ public partial class Context : IAsyncDisposable
         _blockchain = blockchain;
         _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
         _mutationRequests = Channel.CreateUnbounded<System.Action>();
-        _validators = blockchain.GetValidators(height - 1);
+        _validators = blockchain.GetValidators(height);
         _heightVoteSet = new HeightVoteSet(height, _validators);
         _cancellationTokenSource = new CancellationTokenSource();
         _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
