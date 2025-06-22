@@ -64,9 +64,16 @@ public class Dispatcher : IAsyncDisposable
 
     public bool CheckAccess() => Thread == Thread.CurrentThread;
 
+    public void Post(Action action)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+        _factory.StartNew(action, _cancellationToken);
+    }
+
     public void Invoke(Action action)
     {
-        ObjectDisposedException.ThrowIf(_cancellationToken.IsCancellationRequested, this);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         if (CheckAccess())
         {
@@ -80,7 +87,7 @@ public class Dispatcher : IAsyncDisposable
 
     public TResult Invoke<TResult>(Func<TResult> func)
     {
-        ObjectDisposedException.ThrowIf(_cancellationToken.IsCancellationRequested, this);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         if (CheckAccess())
         {
@@ -92,26 +99,31 @@ public class Dispatcher : IAsyncDisposable
         return task.Result;
     }
 
-    public void Post(Action action)
+    public async Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> callback)
     {
-        ObjectDisposedException.ThrowIf(_cancellationToken.IsCancellationRequested, this);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        _factory.StartNew(action, _cancellationToken);
+        var task = callback();
+        task.Start(_scheduler);
+        await task;
+        return task.Result;
     }
 
-    public async Task<TResult> InvokeAsync<TResult>(Task<TResult> task)
+    public async Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, Task<TResult>> callback)
     {
-        ObjectDisposedException.ThrowIf(_cancellationToken.IsCancellationRequested, this);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
+        var task = callback(_cancellationToken);
         task.Start(_scheduler);
-        return await task;
+        await task;
+        return task.Result;
     }
 
     public Task InvokeAsync(Action action) => InvokeAsync(action, default);
 
     public async Task InvokeAsync(Action action, CancellationToken cancellationToken)
     {
-        ObjectDisposedException.ThrowIf(_cancellationToken.IsCancellationRequested, this);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken);
@@ -122,7 +134,7 @@ public class Dispatcher : IAsyncDisposable
 
     public async Task<TResult> InvokeAsync<TResult>(Func<TResult> callback, CancellationToken cancellationToken)
     {
-        ObjectDisposedException.ThrowIf(_cancellationToken.IsCancellationRequested, this);
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken);
