@@ -72,7 +72,7 @@ namespace Libplanet.Benchmarks
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = _privateKeys[x].Address,
                         ValidatorPower = BigInteger.One,
-                        Flag = VoteType.PreCommit,
+                        Type = VoteType.PreCommit,
                     }.Sign(_privateKeys[x]))];
         }
     }

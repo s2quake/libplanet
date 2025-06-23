@@ -139,7 +139,7 @@ public static class TestUtils
             Timestamp = deterministicTimestamp ? DateTimeOffset.UnixEpoch : DateTimeOffset.UtcNow,
             Validator = key.Address,
             ValidatorPower = useValidatorPower ? Validators.GetValidator(key.Address).Power : 0,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(key)).ToImmutableArray();
 
         return new BlockCommit

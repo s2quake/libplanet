@@ -63,7 +63,7 @@ internal sealed class SoloProposeService : BackgroundService
                 new VoteMetadata
                 {
                     Validator = _privateKey.Address,
-                    Flag = VoteType.PreCommit,
+                    Type = VoteType.PreCommit,
                 }.Sign(signer)
             ],
         };

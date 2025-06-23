@@ -93,11 +93,11 @@ public sealed partial record class DuplicateVoteEvidence : EvidenceBase, IEquata
                 $"voteDup {VoteDup.Validator}");
         }
 
-        if (VoteRef.Flag != VoteDup.Flag)
+        if (VoteRef.Type != VoteDup.Type)
         {
             yield return new ValidationResult(
                 $"Flags of votes are different: " +
-                $"voteRef {VoteRef.Flag}, voteDup {VoteDup.Flag}");
+                $"voteRef {VoteRef.Type}, voteDup {VoteDup.Type}");
         }
 
         if (VoteRef.BlockHash == default)

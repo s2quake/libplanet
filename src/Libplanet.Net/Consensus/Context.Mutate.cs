@@ -157,7 +157,7 @@ public partial class Context
         (Block Block, int ValidRound)? propose = GetProposal();
         if (Step == ConsensusStep.Propose && propose is { } p1 && p1.ValidRound == -1)
         {
-            if (IsValid(p1.Block) && (_lockedRound == -1 || _lockedValue == p1.Block))
+            if (IsValid(p1.Block) && (_lockedRound == -1 || _lockedBlock == p1.Block))
             {
                 EnterPreVote(Round, p1.Block.BlockHash);
             }
@@ -167,15 +167,14 @@ public partial class Context
             }
         }
 
-        if (propose is { } p2 &&
-            p2.ValidRound >= 0 &&
-            p2.ValidRound < Round &&
-            _heightVoteSet.PreVotes(p2.ValidRound).TwoThirdsMajority(out BlockHash hash1) &&
-            hash1.Equals(p2.Block.BlockHash) &&
-            Step == ConsensusStep.Propose)
+        if (Step == ConsensusStep.Propose
+            && propose is { } p2
+            && p2.ValidRound >= 0
+            && p2.ValidRound < Round
+            && _heightVoteSet.PreVotes(p2.ValidRound).TwoThirdsMajority(out BlockHash hash1)
+            && hash1.Equals(p2.Block.BlockHash))
         {
-            if (IsValid(p2.Block) &&
-                (_lockedRound <= p2.ValidRound || _lockedValue == p2.Block))
+            if (IsValid(p2.Block) && (_lockedRound <= p2.ValidRound || _lockedBlock == p2.Block))
             {
                 EnterPreVote(Round, p2.Block.BlockHash);
             }
@@ -185,22 +184,22 @@ public partial class Context
             }
         }
 
-        if (_heightVoteSet.PreVotes(Round).HasTwoThirdsAny() && Step == ConsensusStep.PreVote)
+        if (Step == ConsensusStep.PreVote && _heightVoteSet.PreVotes(Round).HasTwoThirdsAny())
         {
             _ = OnTimeoutPreVote(Round);
         }
 
-        if (propose is { } p3 &&
-            _heightVoteSet.PreVotes(Round).TwoThirdsMajority(out BlockHash hash2) &&
-            hash2.Equals(p3.Block.BlockHash) &&
-            IsValid(p3.Block) &&
-            (Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit) &&
-            !_hasTwoThirdsPreVoteTypes.Contains(Round))
+        if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
+            && propose is { } p3
+            && _heightVoteSet.PreVotes(Round).TwoThirdsMajority(out BlockHash hash2)
+            && hash2.Equals(p3.Block.BlockHash)
+            && IsValid(p3.Block)
+            && !_hasTwoThirdsPreVoteTypes.Contains(Round))
         {
             _hasTwoThirdsPreVoteTypes.Add(Round);
             if (Step == ConsensusStep.PreVote)
             {
-                _lockedValue = p3.Block;
+                _lockedBlock = p3.Block;
                 _lockedRound = Round;
                 _ = EnterPreCommitWait(Round, p3.Block.BlockHash, default);
 
@@ -216,8 +215,8 @@ public partial class Context
             _validRound = Round;
         }
 
-        if (_heightVoteSet.PreVotes(Round).TwoThirdsMajority(out BlockHash hash3) &&
-            Step == ConsensusStep.PreVote)
+        if (Step == ConsensusStep.PreVote
+            && _heightVoteSet.PreVotes(Round).TwoThirdsMajority(out BlockHash hash3))
         {
             if (hash3.Equals(default))
             {
@@ -256,7 +255,7 @@ public partial class Context
             return;
         }
 
-        int round = message.Round;
+        var round = message.Round;
         if ((message is ConsensusProposalMessage || message is ConsensusPreCommitMessage) &&
             GetProposal() is (Block block4, _) &&
             _heightVoteSet.PreCommits(Round).TwoThirdsMajority(out BlockHash hash) &&
@@ -278,11 +277,9 @@ public partial class Context
 
         // NOTE: +1/3 prevote received, skip round
         // FIXME: Tendermint uses +2/3, should be fixed?
-        if (round > Round &&
-            _heightVoteSet.PreVotes(round).HasOneThirdsAny())
+        if (round > Round && _heightVoteSet.PreVotes(round).HasOneThirdsAny())
         {
             StartRound(round);
-            return;
         }
     }
 

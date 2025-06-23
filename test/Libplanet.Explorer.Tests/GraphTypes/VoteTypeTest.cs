@@ -25,7 +25,7 @@ public class VoteTypeTest
             Timestamp = DateTimeOffset.Now,
             Validator = privateKey.Address,
             ValidatorPower = 123,
-            Flag = Types.VoteType.PreCommit,
+            Type = Types.VoteType.PreCommit,
         }.Sign(privateKey);
 
         var query =
@@ -55,7 +55,7 @@ public class VoteTypeTest
             new DateTimeOffsetGraphType().Serialize(vote.Timestamp), resultData["timestamp"]);
         Assert.Equal(vote.Validator.ToString(), resultData["validatorPublicKey"]);
         Assert.Equal(vote.ValidatorPower.ToString(), resultData["validatorPower"]);
-        Assert.Equal(vote.Flag.ToString(), resultData["flag"]);
+        Assert.Equal(vote.Type.ToString(), resultData["flag"]);
         Assert.Equal(ByteUtility.Hex(vote.Signature), resultData["signature"]);
     }
 }

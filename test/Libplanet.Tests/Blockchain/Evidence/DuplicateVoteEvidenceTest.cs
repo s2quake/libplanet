@@ -27,7 +27,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKey);
         var voteDup = new VoteMetadata
         {
@@ -37,7 +37,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKey);
 
         // When, Then
@@ -65,7 +65,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKey);
         var voteDup = new VoteMetadata
         {
@@ -75,7 +75,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKey);
 
         // When, Then
@@ -105,7 +105,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddresses[0],
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKeys[0]);
         var voteDup = new VoteMetadata
         {
@@ -115,7 +115,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddresses[1],
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKeys[1]);
 
         // When, Then
@@ -143,7 +143,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKey);
         var voteDup = new VoteMetadata
         {
@@ -153,7 +153,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreVote,
+            Type = VoteType.PreVote,
         }.Sign(privateKey);
 
         // When, Then
@@ -182,7 +182,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKey);
         var voteDup = new VoteMetadata
         {
@@ -192,7 +192,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKey);
 
         // When, Then
@@ -220,7 +220,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKey);
         var voteDup = new VoteMetadata
         {
@@ -230,7 +230,7 @@ public class DuplicateVoteEvidenceTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(privateKey);
 
         // When

@@ -27,7 +27,7 @@ public class ActionContextTest(ITestOutputHelper output)
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,
-                    Flag = VoteType.PreCommit,
+                    Type = VoteType.PreCommit,
                 }.Sign(key),
             ],
         };
@@ -71,7 +71,7 @@ public class ActionContextTest(ITestOutputHelper output)
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,
-                    Flag = VoteType.PreCommit,
+                    Type = VoteType.PreCommit,
                 }.Sign(key),
             ],
         };
@@ -143,7 +143,7 @@ public class ActionContextTest(ITestOutputHelper output)
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,
-                    Flag = VoteType.PreCommit,
+                    Type = VoteType.PreCommit,
                 }.Sign(key),
             ],
         };

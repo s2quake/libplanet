@@ -36,7 +36,7 @@ namespace Libplanet.Explorer.GraphTypes
             Field<NonNullGraphType<VoteTypeType>>(
                 "Flag",
                 description: "Flag of the vote",
-                resolve: ctx => ctx.Source.Flag);
+                resolve: ctx => ctx.Source.Type);
             Field<NonNullGraphType<ByteStringType>>(
                 name: "Signature",
                 description: "A digital signature of the content of this vote.",

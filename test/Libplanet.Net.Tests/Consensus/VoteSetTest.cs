@@ -3,14 +3,17 @@ using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Libplanet.Types.Tests;
+using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class VoteSetTest
+public class VoteSetTest(ITestOutputHelper output)
 {
     [Fact]
     public void Majority()
     {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
         var voteSet = new VoteSet(0, 0, VoteType.PreCommit, TestUtils.Validators);
         Assert.False(voteSet.HasOneThirdsAny());
         Assert.False(voteSet.HasTwoThirdsAny());
@@ -18,7 +21,6 @@ public class VoteSetTest
         Assert.False(voteSet.TwoThirdsMajority(out var hash0));
         Assert.Equal(default, hash0);
 
-        var blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
         voteSet.AddVote(new VoteMetadata
         {
             Height = 0,
@@ -27,7 +29,7 @@ public class VoteSetTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[0].Address,
             ValidatorPower = TestUtils.Validators[0].Power,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[0]));
         Assert.False(voteSet.HasOneThirdsAny());
         Assert.False(voteSet.HasTwoThirdsAny());
@@ -43,7 +45,7 @@ public class VoteSetTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[1].Address,
             ValidatorPower = TestUtils.Validators[1].Power,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[1]));
         Assert.True(voteSet.HasOneThirdsAny());
         Assert.False(voteSet.HasTwoThirdsAny());
@@ -59,7 +61,7 @@ public class VoteSetTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[2].Address,
             ValidatorPower = TestUtils.Validators[2].Power,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[2]));
         Assert.True(voteSet.HasOneThirdsAny());
         Assert.True(voteSet.HasTwoThirdsAny());
@@ -75,7 +77,7 @@ public class VoteSetTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[3].Address,
             ValidatorPower = TestUtils.Validators[3].Power,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[3]));
         Assert.True(voteSet.HasOneThirdsAny());
         Assert.True(voteSet.HasTwoThirdsAny());

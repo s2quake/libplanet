@@ -297,7 +297,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = proposer.Address,
             ValidatorPower = proposerPower,
-            Flag = VoteType.PreVote,
+            Type = VoteType.PreVote,
         }.Sign(proposer);
         var preVote2 = new VoteMetadata
         {
@@ -307,7 +307,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.PrivateKeys[2].Address,
             ValidatorPower = TestUtils.Validators[2].Power,
-            Flag = VoteType.PreVote,
+            Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[2]);
         var preVote3 = new VoteMetadata
         {
@@ -317,7 +317,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.PrivateKeys[3].Address,
             ValidatorPower = TestUtils.Validators[3].Power,
-            Flag = VoteType.PreVote,
+            Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[3]);
         consensusContext.StateChanged += (_, eventArgs) =>
         {
@@ -389,7 +389,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = proposer.Address,
             ValidatorPower = proposerPower,
-            Flag = VoteType.PreVote,
+            Type = VoteType.PreVote,
         }.Sign(proposer);
         var preVote2 = new VoteMetadata
         {
@@ -399,7 +399,7 @@ public class ConsensusContextTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.PrivateKeys[2].Address,
             ValidatorPower = TestUtils.Validators[2].Power,
-            Flag = VoteType.PreVote,
+            Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[2]);
         consensusContext.HandleMessage(new ConsensusProposalMessage { Proposal = proposal });
         consensusContext.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote1 });
