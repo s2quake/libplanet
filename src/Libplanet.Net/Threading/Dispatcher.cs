@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Nito.AsyncEx.Synchronous;
 
 namespace Libplanet.Net.Threading;
 
@@ -10,9 +12,6 @@ public class Dispatcher : IAsyncDisposable
     private readonly CancellationToken _cancellationToken;
     private readonly DispatcherSynchronizationContext _context;
     private readonly DispatcherScheduler _scheduler;
-#if DEBUG
-    private readonly System.Diagnostics.StackTrace _stackTrace;
-#endif
     private bool _isDisposed;
 
     public Dispatcher()
@@ -29,9 +28,6 @@ public class Dispatcher : IAsyncDisposable
             _cancellationToken, TaskCreationOptions.None, TaskContinuationOptions.None, _scheduler);
         _context = new DispatcherSynchronizationContext(_factory);
         Owner = owner;
-#if DEBUG
-        _stackTrace = new System.Diagnostics.StackTrace(true);
-#endif
         Thread = new Thread(_scheduler.Run)
         {
             Name = $"{owner}: {owner.GetHashCode()}",
@@ -47,10 +43,6 @@ public class Dispatcher : IAsyncDisposable
     public Thread Thread { get; }
 
     public SynchronizationContext SynchronizationContext => _context;
-
-#if DEBUG
-    internal string StackTrace => $"{_stackTrace}";
-#endif
 
     public override string ToString() => $"{Owner}";
 
@@ -82,6 +74,7 @@ public class Dispatcher : IAsyncDisposable
         }
 
         var task = _factory.StartNew(action, _cancellationToken);
+        Trace.WriteLine("0: Invoke");
         task.Wait(_cancellationToken);
     }
 
@@ -95,50 +88,139 @@ public class Dispatcher : IAsyncDisposable
         }
 
         var task = _factory.StartNew(func, _cancellationToken);
+        Trace.WriteLine("1: Invoke with return value");
         task.Wait(_cancellationToken);
         return task.Result;
     }
 
-    public async Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> callback)
-    {
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
+    public Task InvokeAsync(Action action) => InvokeAsync((cancellationToken) => action(), default);
 
-        var task = callback();
-        task.Start(_scheduler);
-        await task;
-        return task.Result;
-    }
-
-    public async Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, Task<TResult>> callback)
-    {
-        ObjectDisposedException.ThrowIf(_isDisposed, this);
-
-        var task = callback(_cancellationToken);
-        task.Start(_scheduler);
-        await task;
-        return task.Result;
-    }
-
-    public Task InvokeAsync(Action action) => InvokeAsync(action, default);
-
-    public async Task InvokeAsync(Action action, CancellationToken cancellationToken)
+    public async Task InvokeAsync(Action<CancellationToken> action, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken);
-        await _factory.StartNew(action, cancellationTokenSource.Token);
+        var task = _factory.StartNew(() => action(cancellationTokenSource.Token), cancellationTokenSource.Token);
+        Trace.WriteLine("2: InvokeAsync");
+
+        while (task.Status == TaskStatus.Created
+            || task.Status == TaskStatus.WaitingForActivation
+            || task.Status == TaskStatus.WaitingToRun)
+        {
+            if (cancellationTokenSource.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(
+                    "The operation was canceled before it could start.", cancellationTokenSource.Token);
+            }
+
+            await Task.Yield();
+        }
+
+        await task;
     }
 
-    public Task<TResult> InvokeAsync<TResult>(Func<TResult> callback) => InvokeAsync(callback, default);
+    public Task<TResult> InvokeAsync<TResult>(Func<TResult> funck)
+        => InvokeAsync((cancellationToken) => funck(), default);
 
-    public async Task<TResult> InvokeAsync<TResult>(Func<TResult> callback, CancellationToken cancellationToken)
+    public async Task<TResult> InvokeAsync<TResult>(
+        Func<CancellationToken, TResult> func, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken);
-        return await _factory.StartNew(callback, cancellationTokenSource.Token);
+        var task = _factory.StartNew(() => func(cancellationTokenSource.Token), cancellationTokenSource.Token);
+        Trace.WriteLine("3: InvokeAsync with return value");
+
+        while (task.Status == TaskStatus.Created
+            || task.Status == TaskStatus.WaitingForActivation
+            || task.Status == TaskStatus.WaitingToRun)
+        {
+            if (cancellationTokenSource.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(
+                    "The operation was canceled before it could start.", cancellationTokenSource.Token);
+            }
+
+            await Task.Yield();
+        }
+
+        return await task;
+    }
+
+    public async Task InvokeAsync(Func<Task> acitonTask)
+        => await InvokeAsync((cancellationToken) => acitonTask(), default);
+
+    public async Task InvokeAsync(Func<CancellationToken, Task> actionTask, CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            _cancellationToken, cancellationToken);
+        var taskCancellationToken = cancellationTokenSource.Token;
+        var task = _factory.StartNew(
+            () =>
+            {
+                var innerTask = Task.Run(() => actionTask(taskCancellationToken), taskCancellationToken);
+                innerTask.WaitWithoutException();
+                return innerTask;
+            }, taskCancellationToken);
+        Trace.WriteLine("4: InvokeAsync with return action task");
+
+        while (task.Status == TaskStatus.Created
+            || task.Status == TaskStatus.WaitingForActivation
+            || task.Status == TaskStatus.WaitingToRun)
+        {
+            if (taskCancellationToken.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(
+                    "The operation was canceled before it could start.", taskCancellationToken);
+            }
+
+            await Task.Yield();
+        }
+
+        var innerTask = await task;
+        await innerTask;
+    }
+
+    public async Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> funcTask)
+        => await InvokeAsync((cancellationToken) => funcTask(), default);
+
+    public async Task<TResult> InvokeAsync<TResult>(
+        Func<CancellationToken, Task<TResult>> funcTask, CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            _cancellationToken, cancellationToken);
+        var taskCancellationToken = cancellationTokenSource.Token;
+
+        var task = _factory.StartNew(
+            () =>
+            {
+                var innerTask = Task.Run(() => funcTask(taskCancellationToken));
+                innerTask.WaitWithoutException();
+                return innerTask;
+            }, taskCancellationToken);
+        Trace.WriteLine("5: InvokeAsync with return func task");
+
+        while (task.Status == TaskStatus.Created
+            || task.Status == TaskStatus.WaitingForActivation
+            || task.Status == TaskStatus.WaitingToRun)
+        {
+            if (taskCancellationToken.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(
+                    "The operation was canceled before it could start.", taskCancellationToken);
+            }
+
+            await Task.Yield();
+        }
+
+        var innerTask = await task;
+        return await innerTask;
     }
 
     public async ValueTask DisposeAsync()
