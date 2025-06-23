@@ -297,7 +297,7 @@ namespace Libplanet.Net.Tests
                 height,
                 previousCommit ?? BlockCommit.Empty,
                 privateKey.AsSigner(),
-                contextOption: contextOption ?? new ContextOptions());
+                options: contextOption ?? new ContextOptions());
             using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
             return context;
         }
@@ -321,7 +321,7 @@ namespace Libplanet.Net.Tests
                 height,
                 lastCommit ?? BlockCommit.Empty,
                 privateKey.AsSigner(),
-                contextOption: contextOption ?? new ContextOptions());
+                options: contextOption ?? new ContextOptions());
             using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
 
             return (blockChain, context);

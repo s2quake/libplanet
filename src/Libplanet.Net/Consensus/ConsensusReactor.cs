@@ -61,7 +61,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _blockchain.Tip.Height + 1,
             _blockchain.BlockCommits[_blockchain.Tip.Height],
             _privateKey.AsSigner(),
-            contextOption: _contextOption);
+            options: _contextOption);
         AttachEventHandlers(_currentContext);
 
         _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
@@ -262,7 +262,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             height,
             lastCommit,
             _privateKey.AsSigner(),
-            contextOption: _contextOption);
+            options: _contextOption);
         AttachEventHandlers(_currentContext);
 
         foreach (var message in _pendingMessages)

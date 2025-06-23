@@ -146,10 +146,10 @@ public partial class Context
             return;
         }
 
-        if (_contextOptions.EnterPreCommitDelay > 0)
+        if (_options.EnterPreCommitDelay > 0)
         {
             await Task.Delay(
-                _contextOptions.EnterPreCommitDelay,
+                _options.EnterPreCommitDelay,
                 _cancellationTokenSource.Token);
         }
 
@@ -163,10 +163,10 @@ public partial class Context
             return;
         }
 
-        if (_contextOptions.EnterEndCommitDelay > 0)
+        if (_options.EnterEndCommitDelay > 0)
         {
             await Task.Delay(
-                _contextOptions.EnterEndCommitDelay,
+                _options.EnterEndCommitDelay,
                 _cancellationTokenSource.Token);
         }
 
@@ -175,7 +175,7 @@ public partial class Context
 
     private async Task OnTimeoutPropose(int round)
     {
-        TimeSpan timeout = TimeoutPropose(round);
+        var timeout = _options.TimeoutPropose(round);
         await Task.Delay(timeout, _cancellationTokenSource.Token);
         await _dispatcher.InvokeAsync(_ => ProcessTimeoutPropose(round), _cancellationTokenSource.Token);
     }
@@ -187,7 +187,7 @@ public partial class Context
             return;
         }
 
-        TimeSpan timeout = TimeoutPreVote(round);
+        var timeout = _options.TimeoutPreVote(round);
         await Task.Delay(timeout, _cancellationTokenSource.Token);
         await _dispatcher.InvokeAsync(_ => ProcessTimeoutPreVote(round), _cancellationTokenSource.Token);
     }
@@ -199,7 +199,7 @@ public partial class Context
             return;
         }
 
-        TimeSpan timeout = TimeoutPreCommit(round);
+        var timeout = _options.TimeoutPreCommit(round);
         await Task.Delay(timeout, _cancellationTokenSource.Token);
         await _dispatcher.InvokeAsync(_ => ProcessTimeoutPreCommit(round), _cancellationTokenSource.Token);
     }
