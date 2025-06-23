@@ -114,7 +114,7 @@ namespace Libplanet.Net.Tests
                     Proposer = privateKey.Address,
                     // MarshaledBlock = ModelSerializer.SerializeToBytes(block),
                     ValidRound = validRound,
-                }.Sign(privateKey)
+                }.Sign(privateKey, block)
             };
         }
 

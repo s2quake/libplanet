@@ -65,8 +65,7 @@ namespace Libplanet.Net.Tests.Consensus
             await context.StartAsync(default);
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal);
-            Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
-                proposal!.Proposal.MarshaledBlock);
+            Block proposedBlock = proposal.Proposal.Block;
 
             // Force round change.
             context.ProduceMessage(
@@ -198,8 +197,7 @@ namespace Libplanet.Net.Tests.Consensus
             await context.StartAsync(default);
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal);
-            Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
-                proposal!.Proposal.MarshaledBlock);
+            Block proposedBlock = proposal.Proposal.Block;
 
             // Force round change to 2.
             context.ProduceMessage(

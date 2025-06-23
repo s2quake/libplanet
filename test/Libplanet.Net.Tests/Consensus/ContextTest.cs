@@ -100,8 +100,7 @@ public sealed class ContextTest(ITestOutputHelper output)
 
         Assert.Equal(ConsensusStep.PreVote, context.Step);
         Assert.NotNull(proposal);
-        Block proposed = ModelSerializer.DeserializeFromBytes<Block>(
-            proposal!.Proposal.MarshaledBlock);
+        Block proposed = proposal.Proposal.Block;
         Assert.NotNull(proposed.PreviousCommit);
         Assert.Equal(lastCommit, proposed.PreviousCommit);
     }
@@ -165,8 +164,7 @@ public sealed class ContextTest(ITestOutputHelper output)
             if (message is ConsensusProposalMessage proposalMsg)
             {
                 proposal = proposalMsg;
-                proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
-                    proposalMsg!.Proposal.MarshaledBlock);
+                proposedBlock = proposalMsg.Proposal.Block;
                 proposalSent.Set();
             }
         });
@@ -539,7 +537,7 @@ public sealed class ContextTest(ITestOutputHelper output)
             Proposer = proposer.Address,
             // MarshaledBlock = ModelSerializer.SerializeToBytes(blockA),
             ValidRound = -1,
-        }.Sign(proposer);
+        }.Sign(proposer, blockA);
         var preVoteA2 = new ConsensusPreVoteMessage
         {
             PreVote = new VoteMetadata
@@ -561,7 +559,7 @@ public sealed class ContextTest(ITestOutputHelper output)
             Proposer = proposer.Address,
             // MarshaledBlock = ModelSerializer.SerializeToBytes(blockB),
             ValidRound = -1,
-        }.Sign(proposer);
+        }.Sign(proposer, blockB);
         var proposalAMsg = new ConsensusProposalMessage { Proposal = proposalA };
         var proposalBMsg = new ConsensusProposalMessage { Proposal = proposalB };
         context.ProduceMessage(proposalAMsg);
@@ -774,8 +772,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
         {
             if (message is ConsensusProposalMessage proposalMsg)
             {
-                proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
-                    proposalMsg!.Proposal.MarshaledBlock);
+                proposedBlock = proposalMsg.Proposal.Block;
             }
         });
         context.VoteSetModified += (_, tuple) =>
