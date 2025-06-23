@@ -334,7 +334,7 @@ public sealed class ContextTest(ITestOutputHelper output)
             1,
             default,
             TestUtils.PrivateKeys[0].AsSigner(),
-            contextOption: new ContextOptions());
+            options: new ContextOptions());
         using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
 
         using var _2 = context.StateChanged.Subscribe(state =>

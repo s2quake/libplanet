@@ -15,7 +15,7 @@ namespace Libplanet.Net.Consensus;
 
 public partial class Context : IAsyncDisposable
 {
-    private readonly ContextOptions _contextOptions;
+    private readonly ContextOptions _options;
 
     private readonly Subject<int> _heightStartedSubject = new();
     private readonly Subject<int> _roundStartedSubject = new();
@@ -26,7 +26,7 @@ public partial class Context : IAsyncDisposable
     private readonly Blockchain _blockchain;
     private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Channel<ConsensusMessage> _messageRequests;
-    private readonly Dispatcher _dispatcher = new ();
+    private readonly Dispatcher _dispatcher = new();
     private readonly HeightVoteSet _heightVoteSet;
     private readonly ISigner _signer;
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
@@ -42,7 +42,7 @@ public partial class Context : IAsyncDisposable
     private Block? _proposalBlock;
     private Block? _lockedValue;
     private int _lockedRound = -1;
-    private Block? _validValue;
+    private Block? _validBlock;
     private int _validRound = -1;
     private Block? _decision;
     private int _committedRound = -1;
@@ -54,7 +54,7 @@ public partial class Context : IAsyncDisposable
         int height,
         BlockCommit previousCommit,
         ISigner signer,
-        ContextOptions? contextOption = null)
+        ContextOptions? options = null)
     {
         if (height < 1)
         {
@@ -75,7 +75,7 @@ public partial class Context : IAsyncDisposable
             .WithCapacity(128)
             .Build();
 
-        _contextOptions = contextOption ?? new ContextOptions();
+        _options = options ?? new ContextOptions();
     }
 
     public IObservable<int> HeightStarted => _heightStartedSubject;
@@ -111,7 +111,6 @@ public partial class Context : IAsyncDisposable
             {
                 _proposal = p;
                 _proposalBlock = p.Block;
-                // _proposalBlock = ModelSerializer.DeserializeFromBytes<Block>(p.MarshaledBlock);
             }
             else
             {
@@ -235,26 +234,25 @@ public partial class Context : IAsyncDisposable
 
     public EvidenceException[] CollectEvidenceExceptions() => _evidenceCollector.Flush();
 
-    private TimeSpan TimeoutPreVote(long round)
-    {
-        return TimeSpan.FromMilliseconds(
-            _contextOptions.PreVoteTimeoutBase +
-            (round * _contextOptions.PreVoteTimeoutDelta));
-    }
+    // private TimeSpan TimeoutPreVote(long round)
+    // {
+    //     return TimeSpan.FromMilliseconds(
+    //         _options.PreVoteTimeoutBase +
+    //         (round * _options.PreVoteTimeoutDelta));
+    // }
 
-    private TimeSpan TimeoutPreCommit(long round)
-    {
-        return TimeSpan.FromMilliseconds(
-            _contextOptions.PreCommitTimeoutBase +
-            (round * _contextOptions.PreCommitTimeoutDelta));
-    }
+    // private TimeSpan TimeoutPreCommit(long round)
+    // {
+    //     return TimeSpan.FromMilliseconds(
+    //         _options.PreCommitTimeoutBase +
+    //         (round * _options.PreCommitTimeoutDelta));
+    // }
 
-    private TimeSpan TimeoutPropose(long round)
-    {
-        return TimeSpan.FromMilliseconds(
-            _contextOptions.ProposeTimeoutBase +
-            (round * _contextOptions.ProposeTimeoutDelta));
-    }
+    // private TimeSpan TimeoutPropose(long round)
+    // {
+    //     return TimeSpan.FromMilliseconds(
+    //         _options.ProposeTimeoutBase + (round * _options.ProposeTimeoutDelta));
+    // }
 
     private Block GetValue()
     {

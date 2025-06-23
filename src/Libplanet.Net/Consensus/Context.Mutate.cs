@@ -15,7 +15,7 @@ public partial class Context
         Step = ConsensusStep.Propose;
         if (_validators.GetProposer(Height, Round).Address == _signer.Address)
         {
-            if ((_validValue ?? GetValue()) is Block proposalValue)
+            if ((_validBlock ?? GetValue()) is Block proposalValue)
             {
                 var proposal = new ProposalMetadata
                 {
@@ -23,7 +23,6 @@ public partial class Context
                     Round = Round,
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = _signer.Address,
-                    // MarshaledBlock = ModelSerializer.SerializeToBytes(proposalValue),
                     ValidRound = _validRound,
                 }.Sign(_signer, proposalValue);
 
@@ -148,9 +147,6 @@ public partial class Context
         }
     }
 
-    /// <summary>
-    /// Checks the current state to mutate <see cref="ConsensusStep"/> and/or schedule timeouts.
-    /// </summary>
     private void ProcessGenericUponRules()
     {
         if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
@@ -159,9 +155,7 @@ public partial class Context
         }
 
         (Block Block, int ValidRound)? propose = GetProposal();
-        if (propose is { } p1 &&
-            p1.ValidRound == -1 &&
-            Step == ConsensusStep.Propose)
+        if (Step == ConsensusStep.Propose && propose is { } p1 && p1.ValidRound == -1)
         {
             if (IsValid(p1.Block) && (_lockedRound == -1 || _lockedValue == p1.Block))
             {
@@ -218,7 +212,7 @@ public partial class Context
                     });
             }
 
-            _validValue = p3.Block;
+            _validBlock = p3.Block;
             _validRound = Round;
         }
 

@@ -32,4 +32,13 @@ public sealed record class ContextOptions
 
     [NonNegative]
     public int EnterEndCommitDelay { get; init; }
+
+    public TimeSpan TimeoutPropose(int round)
+        => TimeSpan.FromMilliseconds(ProposeTimeoutBase + (ProposeTimeoutDelta * round));
+
+    public TimeSpan TimeoutPreVote(int round)
+        => TimeSpan.FromMilliseconds(PreVoteTimeoutBase + (PreVoteTimeoutDelta * round));
+
+    public TimeSpan TimeoutPreCommit(int round)
+        => TimeSpan.FromMilliseconds(PreCommitTimeoutBase + (PreCommitTimeoutDelta * round));
 }
