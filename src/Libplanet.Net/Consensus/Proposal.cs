@@ -14,6 +14,10 @@ public sealed partial record class Proposal
     [NotDefault]
     public required ImmutableArray<byte> Signature { get; init; }
 
+    [Property(2)]
+    [NotEmpty]
+    public ImmutableArray<byte> MarshaledBlock { get; init; } = [];
+
     public int Height => Metadata.Height;
 
     public int Round => Metadata.Round;
@@ -24,7 +28,7 @@ public sealed partial record class Proposal
 
     public Address Validator => Metadata.Proposer;
 
-    public byte[] MarshaledBlock => throw new NotImplementedException();
+    public Block Block => ModelSerializer.DeserializeFromBytes<Block>(MarshaledBlock.AsSpan());
 
     public int ValidRound => Metadata.ValidRound;
 

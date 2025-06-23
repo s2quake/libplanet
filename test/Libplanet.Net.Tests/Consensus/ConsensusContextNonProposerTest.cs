@@ -92,8 +92,7 @@ namespace Libplanet.Net.Tests.Consensus
             await heightTwoProposalSent.WaitAsync();
             Assert.NotNull(proposal);
 
-            Block proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
-                proposal!.Proposal.MarshaledBlock);
+            Block proposedBlock = proposal!.Proposal.Block;
             ImmutableArray<Vote> votes = proposedBlock.PreviousCommit.Votes is { } vs
                 ? vs
                 : throw new NullReferenceException();
@@ -228,8 +227,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             await heightTwoStepChangedToEndCommit.WaitAsync();
 
-            var blockHeightTwo = ModelSerializer.DeserializeFromBytes<Block>(
-                proposal.Proposal.MarshaledBlock);
+            var blockHeightTwo = proposal.Proposal.Block;
             var blockHeightThree = blockChain.ProposeBlock(TestUtils.PrivateKeys[3]);
 
             // Message from higher height
@@ -259,8 +257,7 @@ namespace Libplanet.Net.Tests.Consensus
                 if (eventArgs.Height == 2 &&
                     eventArgs.Message is ConsensusProposalMessage propose)
                 {
-                    proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
-                        propose!.Proposal.MarshaledBlock);
+                    proposedBlock = propose!.Proposal.Block;
                     heightTwoProposalSent.Set();
                 }
             };

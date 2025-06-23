@@ -125,8 +125,7 @@ namespace Libplanet.Net.Tests.Consensus
             await consensusProposalMsgAt7Task;
             var consensusProposalMsgAt7 = consensusProposalMsgAt7Task.Result;
             Assert.NotNull(consensusProposalMsgAt3?.BlockHash);
-            var actualBlock = ModelSerializer.DeserializeFromBytes<Block>(
-                consensusProposalMsgAt7.Proposal.MarshaledBlock);
+            var actualBlock = consensusProposalMsgAt7.Proposal.Block;
             Assert.Single(actualBlock.Evidences);
         }
 

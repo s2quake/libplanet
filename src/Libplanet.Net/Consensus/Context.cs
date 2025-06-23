@@ -7,6 +7,8 @@ using BitFaster.Caching;
 using BitFaster.Caching.Lru;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
+using Libplanet.Net.Threading;
+using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
@@ -24,7 +26,7 @@ public partial class Context : IAsyncDisposable
     private readonly Blockchain _blockchain;
     private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Channel<ConsensusMessage> _messageRequests;
-    private readonly Channel<Action> _mutationRequests;
+    private readonly Dispatcher _dispatcher = new ();
     private readonly HeightVoteSet _heightVoteSet;
     private readonly ISigner _signer;
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
@@ -65,7 +67,7 @@ public partial class Context : IAsyncDisposable
         _lastCommit = previousCommit;
         _blockchain = blockchain;
         _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
-        _mutationRequests = Channel.CreateUnbounded<System.Action>();
+        // _mutationRequests = Channel.CreateUnbounded<System.Action>();
         _validators = blockchain.GetValidators(height);
         _heightVoteSet = new HeightVoteSet(height, _validators);
         _cancellationTokenSource = new CancellationTokenSource();
@@ -108,6 +110,7 @@ public partial class Context : IAsyncDisposable
             if (value is { } p)
             {
                 _proposal = p;
+                _proposalBlock = p.Block;
                 // _proposalBlock = ModelSerializer.DeserializeFromBytes<Block>(p.MarshaledBlock);
             }
             else
@@ -124,7 +127,8 @@ public partial class Context : IAsyncDisposable
         {
             await _cancellationTokenSource.CancelAsync();
             _messageRequests.Writer.TryComplete();
-            _mutationRequests.Writer.TryComplete();
+            // _mutationRequests.Writer.TryComplete();
+            await _dispatcher.DisposeAsync();
             _disposed = true;
             GC.SuppressFinalize(this);
         }

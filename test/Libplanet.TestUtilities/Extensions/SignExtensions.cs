@@ -15,8 +15,8 @@ public static class SignExtensions
     public static Block Sign(this RawBlock @this, PrivateKey privateKey)
         => @this.Sign(privateKey.AsSigner());
 
-    public static Proposal Sign(this ProposalMetadata @this, PrivateKey privateKey)
-        => @this.Sign(privateKey.AsSigner());
+    public static Proposal Sign(this ProposalMetadata @this, PrivateKey privateKey, Block block)
+        => @this.Sign(privateKey.AsSigner(), block);
 
     public static VoteSetBits Sign(this VoteSetBitsMetadata @this, PrivateKey privateKey)
         => @this.Sign(privateKey.AsSigner());

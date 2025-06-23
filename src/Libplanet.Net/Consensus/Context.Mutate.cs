@@ -25,7 +25,7 @@ public partial class Context
                     Proposer = _signer.Address,
                     // MarshaledBlock = ModelSerializer.SerializeToBytes(proposalValue),
                     ValidRound = _validRound,
-                }.Sign(_signer);
+                }.Sign(_signer, proposalValue);
 
                 _messagePublishedSubject.OnNext(new ConsensusProposalMessage { Proposal = proposal });
             }

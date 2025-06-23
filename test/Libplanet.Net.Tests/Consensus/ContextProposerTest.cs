@@ -398,8 +398,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             await context.StartAsync(default);
             await proposalSent.WaitAsync();
-            var proposedBlock = ModelSerializer.DeserializeFromBytes<Block>(
-                proposal?.Proposal.MarshaledBlock!);
+            var proposedBlock = proposal!.Proposal.Block;
             Assert.Equal(context.Height + 1, proposedBlock.Height);
             await preVoteSent.WaitAsync();
             Assert.Equal(default(BlockHash), preVote?.BlockHash);
