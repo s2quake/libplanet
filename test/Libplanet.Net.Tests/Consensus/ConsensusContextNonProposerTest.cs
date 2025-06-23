@@ -67,7 +67,7 @@ namespace Libplanet.Net.Tests.Consensus
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = TestUtils.Validators[i].Address,
                     ValidatorPower = TestUtils.Validators[i].Power,
-                    Flag = VoteType.PreVote,
+                    Type = VoteType.PreVote,
                 }.Sign(TestUtils.PrivateKeys[i]);
                 consensusContext.HandleMessage(new ConsensusPreVoteMessage { PreVote = expectedVotes[i] });
             }
@@ -84,7 +84,7 @@ namespace Libplanet.Net.Tests.Consensus
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = TestUtils.Validators[i].Address,
                     ValidatorPower = TestUtils.Validators[i].Power,
-                    Flag = VoteType.PreCommit,
+                    Type = VoteType.PreCommit,
                 }.Sign(TestUtils.PrivateKeys[i]);
                 consensusContext.HandleMessage(new ConsensusPreCommitMessage { PreCommit = expectedVotes[i] });
             }
@@ -96,10 +96,10 @@ namespace Libplanet.Net.Tests.Consensus
             ImmutableArray<Vote> votes = proposedBlock.PreviousCommit.Votes is { } vs
                 ? vs
                 : throw new NullReferenceException();
-            Assert.Equal(VoteType.PreCommit, votes[0].Flag);
-            Assert.Equal(VoteType.PreCommit, votes[1].Flag);
-            Assert.Equal(VoteType.PreCommit, votes[2].Flag);
-            Assert.Equal(VoteType.Null, votes[3].Flag);
+            Assert.Equal(VoteType.PreCommit, votes[0].Type);
+            Assert.Equal(VoteType.PreCommit, votes[1].Type);
+            Assert.Equal(VoteType.PreCommit, votes[2].Type);
+            Assert.Equal(VoteType.Null, votes[3].Type);
         }
 
         [Fact(Timeout = Timeout)]
@@ -193,7 +193,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteType.PreVote,
+                            Type = VoteType.PreVote,
                         }.Sign(privateKey)
                     });
             }
@@ -220,7 +220,7 @@ namespace Libplanet.Net.Tests.Consensus
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteType.PreCommit,
+                            Type = VoteType.PreCommit,
                         }.Sign(privateKey)
                     });
             }

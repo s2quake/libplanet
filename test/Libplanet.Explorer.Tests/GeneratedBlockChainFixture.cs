@@ -194,7 +194,7 @@ public class GeneratedBlockChainFixture
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = pk.Address,
                         ValidatorPower = BigInteger.One,
-                        Flag = VoteType.PreCommit,
+                        Type = VoteType.PreCommit,
                     }.Sign(pk))
                     .ToImmutableArray(),
             });

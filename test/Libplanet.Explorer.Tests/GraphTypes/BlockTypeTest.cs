@@ -31,7 +31,7 @@ public class BlockTypeTest
                 Timestamp = DateTimeOffset.Now,
                 Validator = privateKey.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = Types.VoteType.PreCommit,
+                Type = Types.VoteType.PreCommit,
             }.Sign(privateKey));
         var lastBlockCommit = new BlockCommit
         {
@@ -133,7 +133,7 @@ public class BlockTypeTest
                         },
                         { "validatorPublicKey", lastVotes[0].Validator.ToString() },
                         { "validatorPower", lastVotes[0].ValidatorPower.ToString() },
-                        { "flag", lastVotes[0].Flag.ToString() },
+                        { "flag", lastVotes[0].Type.ToString() },
                         { "signature", ByteUtility.Hex(lastVotes[0].Signature) },
                     }
                 }

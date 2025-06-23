@@ -119,7 +119,7 @@ namespace Libplanet.Net.Tests
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = privateKey.Address,
                 ValidatorPower = BigInteger.One,
-                Flag = flag,
+                Type = flag,
             };
 
             return voteMetadata.Sign(privateKey);

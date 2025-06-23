@@ -12,7 +12,7 @@ public sealed record class ConsensusPreCommitMessage : ConsensusVoteMessage, IVa
 
     public override BlockHash BlockHash => PreCommit.BlockHash;
 
-    public override VoteType Flag => PreCommit.Flag;
+    public override VoteType Flag => PreCommit.Type;
 
     public override Address Validator => PreCommit.Validator;
 
@@ -22,7 +22,7 @@ public sealed record class ConsensusPreCommitMessage : ConsensusVoteMessage, IVa
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (PreCommit.Flag != VoteType.PreCommit)
+        if (PreCommit.Type != VoteType.PreCommit)
         {
             yield return new ValidationResult(
                 $"Given {nameof(PreCommit)}'s flag must be {VoteType.PreCommit}.",

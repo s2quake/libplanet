@@ -69,7 +69,7 @@ namespace Libplanet.Net.Tests
                 Timestamp = DateTimeOffset.Now,
                 Validator = privateKey.Address,
                 ValidatorPower = power,
-                Flag = flag,
+                Type = flag,
             }.Sign(privateKey);
 
         public static PrivateKey GeneratePrivateKeyOfBucketIndex(Address tableAddress, int target)
@@ -150,7 +150,7 @@ namespace Libplanet.Net.Tests
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteType.PreCommit,
+                            Type = VoteType.PreCommit,
                         }.Sign(privateKey)
                     });
             }
@@ -182,7 +182,7 @@ namespace Libplanet.Net.Tests
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteType.PreCommit,
+                            Type = VoteType.PreCommit,
                         }.Sign(privateKey)
                     });
             }
@@ -214,7 +214,7 @@ namespace Libplanet.Net.Tests
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteType.PreVote,
+                            Type = VoteType.PreVote,
                         }.Sign(privateKey)
                     });
             }
@@ -246,7 +246,7 @@ namespace Libplanet.Net.Tests
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = privateKey.Address,
                             ValidatorPower = power,
-                            Flag = VoteType.PreVote,
+                            Type = VoteType.PreVote,
                         }.Sign(privateKey)
                     });
             }
@@ -295,7 +295,6 @@ namespace Libplanet.Net.Tests
             context = new Context(
                 blockChain,
                 height,
-                previousCommit ?? BlockCommit.Empty,
                 privateKey.AsSigner(),
                 options: contextOption ?? new ContextOptions());
             using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
@@ -319,7 +318,6 @@ namespace Libplanet.Net.Tests
             context = new Context(
                 blockChain,
                 height,
-                lastCommit ?? BlockCommit.Empty,
                 privateKey.AsSigner(),
                 options: contextOption ?? new ContextOptions());
             using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));

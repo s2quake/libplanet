@@ -197,7 +197,7 @@ public sealed class ContextTest(ITestOutputHelper output)
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = TestUtils.PrivateKeys[i].Address,
                     ValidatorPower = TestUtils.Validators[i].Power,
-                    Flag = VoteType.PreVote,
+                    Type = VoteType.PreVote,
                 }.Sign(TestUtils.PrivateKeys[i])
             });
         }
@@ -215,7 +215,7 @@ public sealed class ContextTest(ITestOutputHelper output)
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = TestUtils.PrivateKeys[i].Address,
                     ValidatorPower = TestUtils.Validators[i].Power,
-                    Flag = VoteType.PreCommit,
+                    Type = VoteType.PreCommit,
                 }.Sign(TestUtils.PrivateKeys[i])
             });
         }
@@ -224,7 +224,7 @@ public sealed class ContextTest(ITestOutputHelper output)
 
         // Check context has only three votes.
         BlockCommit? commit = context.GetBlockCommit();
-        Assert.Equal(3, commit?.Votes.Where(vote => vote.Flag == VoteType.PreCommit).Count());
+        Assert.Equal(3, commit?.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
 
         // Context should still accept new votes.
         context.ProduceMessage(new ConsensusPreCommitMessage
@@ -237,13 +237,13 @@ public sealed class ContextTest(ITestOutputHelper output)
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[3].Address,
                 ValidatorPower = TestUtils.Validators[3].Power,
-                Flag = VoteType.PreCommit,
+                Type = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[3])
         });
 
         await Task.Delay(100);  // Wait for the new message to be added to the message log.
         commit = context.GetBlockCommit();
-        Assert.Equal(4, commit?.Votes.Where(vote => vote.Flag == VoteType.PreCommit).Count());
+        Assert.Equal(4, commit?.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
     }
 
     [Fact(Timeout = Timeout)]
@@ -332,7 +332,6 @@ public sealed class ContextTest(ITestOutputHelper output)
         Context context = new Context(
             blockChain,
             1,
-            default,
             TestUtils.PrivateKeys[0].AsSigner(),
             options: new ContextOptions());
         using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
@@ -390,7 +389,7 @@ public sealed class ContextTest(ITestOutputHelper output)
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = TestUtils.PrivateKeys[i].Address,
                         ValidatorPower = TestUtils.Validators[i].Power,
-                        Flag = VoteType.PreVote,
+                        Type = VoteType.PreVote,
                     }.Sign(TestUtils.PrivateKeys[i])
                 });
         }
@@ -409,7 +408,7 @@ public sealed class ContextTest(ITestOutputHelper output)
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = TestUtils.PrivateKeys[i].Address,
                         ValidatorPower = TestUtils.Validators[i].Power,
-                        Flag = VoteType.PreCommit,
+                        Type = VoteType.PreCommit,
                     }.Sign(TestUtils.PrivateKeys[i])
                 });
         }
@@ -417,7 +416,7 @@ public sealed class ContextTest(ITestOutputHelper output)
         await blockHeightOneAppended.WaitAsync();
         Assert.Equal(
             3,
-            context.GetBlockCommit().Votes.Count(vote => vote.Flag == VoteType.PreCommit));
+            context.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
 
         Assert.True(enteredPreVote.IsSet);
         Assert.True(enteredPreCommit.IsSet);
@@ -435,13 +434,13 @@ public sealed class ContextTest(ITestOutputHelper output)
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = TestUtils.PrivateKeys[3].Address,
                     ValidatorPower = BigInteger.One,
-                    Flag = VoteType.PreCommit,
+                    Type = VoteType.PreCommit,
                 }.Sign(TestUtils.PrivateKeys[3])
             });
         Thread.Sleep(10);
         Assert.Equal(
             4,
-            context.GetBlockCommit()!.Votes.Count(vote => vote.Flag == VoteType.PreCommit));
+            context.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));
     }
 
     /// <summary>
@@ -548,7 +547,7 @@ public sealed class ContextTest(ITestOutputHelper output)
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key2.Address,
                 ValidatorPower = power2,
-                Flag = VoteType.PreVote,
+                Type = VoteType.PreVote,
             }.Sign(key2)
         };
         var proposalB = new ProposalMetadata
@@ -594,7 +593,7 @@ public sealed class ContextTest(ITestOutputHelper output)
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = proposer.Address,
                 ValidatorPower = proposerPower,
-                Flag = VoteType.PreVote,
+                Type = VoteType.PreVote,
             }.Sign(proposer)
         };
         var preVoteB1 = new ConsensusPreVoteMessage
@@ -607,7 +606,7 @@ public sealed class ContextTest(ITestOutputHelper output)
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key1.Address,
                 ValidatorPower = power1,
-                Flag = VoteType.PreVote,
+                Type = VoteType.PreVote,
             }.Sign(key1)
         };
         var preVoteB2 = new ConsensusPreVoteMessage
@@ -620,7 +619,7 @@ public sealed class ContextTest(ITestOutputHelper output)
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key2.Address,
                 ValidatorPower = power2,
-                Flag = VoteType.PreVote,
+                Type = VoteType.PreVote,
             }.Sign(key2)
         };
         context.ProduceMessage(preVoteB0);
@@ -704,7 +703,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = TestUtils.PrivateKeys[i].Address,
                         ValidatorPower = TestUtils.Validators[i].Power,
-                        Flag = VoteType.PreVote,
+                        Type = VoteType.PreVote,
                     }.Sign(TestUtils.PrivateKeys[i])
                 });
         }
@@ -722,7 +721,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = TestUtils.PrivateKeys[i].Address,
                         ValidatorPower = TestUtils.Validators[i].Power,
-                        Flag = VoteType.PreCommit,
+                        Type = VoteType.PreCommit,
                     }.Sign(TestUtils.PrivateKeys[i])
                 });
         }
@@ -737,7 +736,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
         Assert.Equal(
             4,
             context.GetBlockCommit()!.Votes.Count(
-                vote => vote.Flag.Equals(VoteType.PreCommit)));
+                vote => vote.Type.Equals(VoteType.PreCommit)));
         Assert.True(watch.ElapsedMilliseconds > (actionDelay * 0.5));
         Assert.Equal(2, consensusContext.Height);
     }
@@ -803,7 +802,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = TestUtils.PrivateKeys[i].Address,
                         ValidatorPower = TestUtils.Validators[i].Power,
-                        Flag = VoteType.PreVote,
+                        Type = VoteType.PreVote,
                     }.Sign(TestUtils.PrivateKeys[i])
                 });
         }
@@ -826,7 +825,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = TestUtils.PrivateKeys[3].Address,
                             ValidatorPower = TestUtils.Validators[3].Power,
-                            Flag = VoteType.PreVote,
+                            Type = VoteType.PreVote,
                         }.Sign(TestUtils.PrivateKeys[3])
                     });
             },

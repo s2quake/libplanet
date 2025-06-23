@@ -2,8 +2,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public class VoteSet(
-    int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
+public sealed class VoteSet(int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
 {
     private readonly object _lock = new();
     private readonly VoteCollection _votes = [];
@@ -39,6 +38,7 @@ public class VoteSet(
         }
         catch (KeyNotFoundException)
         {
+            // do nothing
         }
 
         try
@@ -47,6 +47,7 @@ public class VoteSet(
         }
         catch (KeyNotFoundException)
         {
+            // do nothing
         }
 
         return null;
@@ -216,7 +217,7 @@ public class VoteSet(
 
     internal void AddVote(Vote vote)
     {
-        if (vote.Round != round || vote.Flag != voteType)
+        if (vote.Round != round || vote.Type != voteType)
         {
             throw new InvalidVoteException("Round, flag of the vote mismatches", vote);
         }
@@ -245,14 +246,13 @@ public class VoteSet(
             _votes[validator] = vote;
         }
 
-        if (_votesByBlock.ContainsKey(blockHash))
+        if (_votesByBlock.TryGetValue(blockHash, out BlockVotes? value))
         {
-            if (oldVote is not null && !_votesByBlock[blockHash].PeerMaj23)
+            if (oldVote is not null && !value.PeerMaj23)
             {
                 // There's a conflict and no peer claims that this block is special.
                 throw new InvalidVoteException(
-                    "There's a conflict and no peer claims that this block is special",
-                    vote);
+                    "There's a conflict and no peer claims that this block is special", vote);
             }
 
             // We'll add the vote in a bit.
@@ -330,7 +330,7 @@ public class VoteSet(
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key,
                     ValidatorPower = validators.GetValidator(key).Power,
-                    Flag = VoteType.Null,
+                    Type = VoteType.Null,
                 }.WithoutSignature())
                 .ToList();
     }

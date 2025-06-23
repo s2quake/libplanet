@@ -89,7 +89,7 @@ public sealed class InitializeTest(ITestOutputHelper output)
                     BlockHash = hash,
                     Timestamp = DateTimeOffset.UtcNow,
                     ValidatorPower = BigInteger.One,
-                    Flag = VoteType.PreCommit,
+                    Type = VoteType.PreCommit,
                 }.Sign(key),
             ],
         };

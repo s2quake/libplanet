@@ -40,21 +40,15 @@ public partial class Context : IAsyncDisposable
 
     private Proposal? _proposal;
     private Block? _proposalBlock;
-    private Block? _lockedValue;
+    private Block? _lockedBlock;
     private int _lockedRound = -1;
     private Block? _validBlock;
     private int _validRound = -1;
     private Block? _decision;
     private int _committedRound = -1;
-    private readonly BlockCommit _lastCommit;
     private bool _disposed;
 
-    public Context(
-        Blockchain blockchain,
-        int height,
-        BlockCommit previousCommit,
-        ISigner signer,
-        ContextOptions? options = null)
+    public Context(Blockchain blockchain, int height, ISigner signer, ContextOptions options)
     {
         if (height < 1)
         {
@@ -64,7 +58,6 @@ public partial class Context : IAsyncDisposable
 
         _signer = signer;
         Height = height;
-        _lastCommit = previousCommit;
         _blockchain = blockchain;
         _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
         // _mutationRequests = Channel.CreateUnbounded<System.Action>();
@@ -75,7 +68,7 @@ public partial class Context : IAsyncDisposable
             .WithCapacity(128)
             .Build();
 
-        _options = options ?? new ContextOptions();
+        _options = options;
     }
 
     public IObservable<int> HeightStarted => _heightStartedSubject;
@@ -92,7 +85,7 @@ public partial class Context : IAsyncDisposable
 
     internal event EventHandler<ConsensusMessage>? MessageConsumed;
 
-    internal event EventHandler<Action>? MutationConsumed;
+    // internal event EventHandler<Action>? MutationConsumed;
 
     internal event EventHandler<(int Round, VoteType Flag, IEnumerable<Vote> Votes)>? VoteSetModified;
 
@@ -128,6 +121,7 @@ public partial class Context : IAsyncDisposable
             _messageRequests.Writer.TryComplete();
             // _mutationRequests.Writer.TryComplete();
             await _dispatcher.DisposeAsync();
+            _cancellationTokenSource.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
@@ -154,11 +148,8 @@ public partial class Context : IAsyncDisposable
         bool[] voteBits = voteType switch
         {
             VoteType.PreVote => _heightVoteSet.PreVotes(round).BitArrayByBlockHash(blockHash),
-            VoteType.PreCommit
-                => _heightVoteSet.PreCommits(round).BitArrayByBlockHash(blockHash),
-            _ => throw new ArgumentException(
-                "VoteType should be either PreVote or PreCommit.",
-                nameof(voteType)),
+            VoteType.PreCommit => _heightVoteSet.PreCommits(round).BitArrayByBlockHash(blockHash),
+            _ => throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(voteType)),
         };
 
         return new VoteSetBitsMetadata
@@ -204,32 +195,29 @@ public partial class Context : IAsyncDisposable
                     (vote, index)
                     => !voteSetBits.VoteBits[index]
                     && vote is { }
-                    && vote.Flag == VoteType.PreVote).Select(vote => vote!),
+                    && vote.Type == VoteType.PreVote).Select(vote => vote!),
                 VoteType.PreCommit =>
                 _heightVoteSet.PreCommits(voteSetBits.Round).MappedList().Where(
                     (vote, index)
                     => !voteSetBits.VoteBits[index]
                     && vote is { }
-                    && vote.Flag == VoteType.PreCommit).Select(vote => vote!),
-                _ => throw new ArgumentException(
-                    "VoteType should be PreVote or PreCommit.",
-                    nameof(voteSetBits.Flag)),
+                    && vote.Type == VoteType.PreCommit).Select(vote => vote!),
+                _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(voteSetBits)),
             };
         }
         catch (KeyNotFoundException)
         {
-            votes = Array.Empty<Vote>();
+            votes = [];
         }
 
-        return from vote in votes
-               select vote.Flag switch
-               {
-                   VoteType.PreVote => (ConsensusMessage)new ConsensusPreVoteMessage { PreVote = vote },
-                   VoteType.PreCommit => (ConsensusMessage)new ConsensusPreCommitMessage { PreCommit = vote },
-                   _ => throw new ArgumentException(
-                       "VoteType should be PreVote or PreCommit.",
-                       nameof(vote.Flag)),
-               };
+        return votes.Select(GetMessage);
+
+        static ConsensusMessage GetMessage(Vote vote) => vote.Type switch
+        {
+            VoteType.PreVote => new ConsensusPreVoteMessage { PreVote = vote },
+            VoteType.PreCommit => new ConsensusPreCommitMessage { PreCommit = vote },
+            _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(vote)),
+        };
     }
 
     public EvidenceException[] CollectEvidenceExceptions() => _evidenceCollector.Flush();
@@ -320,7 +308,7 @@ public partial class Context : IAsyncDisposable
             Timestamp = DateTimeOffset.UtcNow,
             Validator = _signer.Address,
             ValidatorPower = _validators.GetValidator(_signer.Address).Power,
-            Flag = voteType,
+            Type = voteType,
         }.Sign(_signer);
     }
 

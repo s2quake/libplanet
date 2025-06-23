@@ -14,8 +14,8 @@ public sealed partial record class BlockCommit : IValidatableObject
             vote.Height != height ||
             vote.Round != round ||
             !blockHash.Equals(vote.BlockHash) ||
-            (vote.Flag != VoteType.Null && vote.Flag != VoteType.PreCommit) ||
-            (vote.Flag == VoteType.PreCommit && !ValidationUtility.TryValidate(vote))))
+            (vote.Type != VoteType.Null && vote.Type != VoteType.PreCommit) ||
+            (vote.Type == VoteType.PreCommit && !ValidationUtility.TryValidate(vote))))
         {
             yield return new ValidationResult(
                 $"Every vote must have the same height as {Height}, the same round " +

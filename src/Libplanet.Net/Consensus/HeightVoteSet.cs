@@ -4,20 +4,15 @@ namespace Libplanet.Net.Consensus;
 
 public sealed class HeightVoteSet
 {
-    private readonly object _lock;
-    private int _height;
+    private readonly object _lock = new();
     private ImmutableSortedSet<Validator> _validators;
-    private Dictionary<int, RoundVoteSet> _roundVoteSets;
-    private int _round;
+    private Dictionary<int, RoundVoteSet> _roundVoteSets = [];
 
     public HeightVoteSet(int height, ImmutableSortedSet<Validator> validators)
     {
-        _lock = new object();
-        _height = height;
+        Height = height;
         _validators = validators;
-        _roundVoteSets = [];
-
-        Reset(height, validators);
+        AddRound(0);
     }
 
     public int Count => _roundVoteSets.Values.Sum(v => v.Count);
@@ -26,26 +21,26 @@ public sealed class HeightVoteSet
     {
         lock (_lock)
         {
-            _height = height;
+            Height = height;
             _validators = validators;
-            _roundVoteSets = new Dictionary<int, RoundVoteSet>();
+            _roundVoteSets = [];
 
             AddRound(0);
-            _round = 0;
+            Round = 0;
         }
     }
 
-    public int Height => _height;
+    public int Height { get; private set; }
 
-    public int Round => _round;
+    public int Round { get; private set; }
 
     // Create more RoundVoteSets up to round.
     public void SetRound(int round)
     {
         lock (_lock)
         {
-            var newRound = _round + 1;
-            if (_round != 0 && (round < newRound))
+            var newRound = Round + 1;
+            if (Round != 0 && (round < newRound))
             {
                 throw new ArgumentException("Round must increase");
             }
@@ -60,7 +55,7 @@ public sealed class HeightVoteSet
                 AddRound(r);
             }
 
-            _round = round;
+            Round = round;
         }
     }
 
@@ -71,16 +66,18 @@ public sealed class HeightVoteSet
             throw new ArgumentException($"Add round for an existing round: {round}");
         }
 
-        VoteSet preVotes = new VoteSet(_height, round, VoteType.PreVote, _validators);
-        VoteSet preCommits = new VoteSet(_height, round, VoteType.PreCommit, _validators);
-        _roundVoteSets[round] = new RoundVoteSet(preVotes, preCommits);
+        _roundVoteSets[round] = new RoundVoteSet
+        {
+            PreVotes = new VoteSet(Height, round, VoteType.PreVote, _validators),
+            PreCommits = new VoteSet(Height, round, VoteType.PreCommit, _validators),
+        };
     }
 
     public void AddVote(Vote vote)
     {
         lock (_lock)
         {
-            if (vote.Height != _height)
+            if (vote.Height != Height)
             {
                 throw new InvalidVoteException(
                     "Height of vote is different from current HeightVoteSet",
@@ -108,8 +105,8 @@ public sealed class HeightVoteSet
                 throw new InvalidVoteException(msg, vote);
             }
 
-            if (!vote.Flag.Equals(VoteType.PreVote) &&
-                !vote.Flag.Equals(VoteType.PreCommit))
+            if (!vote.Type.Equals(VoteType.PreVote) &&
+                !vote.Type.Equals(VoteType.PreCommit))
             {
                 throw new InvalidVoteException(
                     $"VoteType should be either {VoteType.PreVote} or {VoteType.PreCommit}",
@@ -126,12 +123,12 @@ public sealed class HeightVoteSet
             VoteSet voteSet;
             try
             {
-                voteSet = GetVoteSet(vote.Round, vote.Flag);
+                voteSet = GetVoteSet(vote.Round, vote.Type);
             }
             catch (KeyNotFoundException)
             {
                 AddRound(vote.Round);
-                voteSet = GetVoteSet(vote.Round, vote.Flag);
+                voteSet = GetVoteSet(vote.Round, vote.Type);
             }
 
             voteSet.AddVote(vote);
@@ -160,7 +157,7 @@ public sealed class HeightVoteSet
     {
         lock (_lock)
         {
-            for (int r = _round; r >= 0; r--)
+            for (int r = Round; r >= 0; r--)
             {
                 try
                 {
@@ -173,7 +170,7 @@ public sealed class HeightVoteSet
                 }
                 catch (KeyNotFoundException)
                 {
-                    continue;
+                    // do nothing
                 }
             }
 

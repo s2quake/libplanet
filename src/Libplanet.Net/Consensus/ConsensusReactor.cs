@@ -59,7 +59,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _currentContext = new Context(
             _blockchain,
             _blockchain.Tip.Height + 1,
-            _blockchain.BlockCommits[_blockchain.Tip.Height],
             _privateKey.AsSigner(),
             options: _contextOption);
         AttachEventHandlers(_currentContext);
@@ -135,7 +134,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     internal event EventHandler<(int Height, ConsensusMessage Message)>? MessageConsumed;
 
-    internal event EventHandler<(int Height, Action)>? MutationConsumed;
+    // internal event EventHandler<(int Height, Action)>? MutationConsumed;
 
     private void AttachEventHandlers(Context context)
     {
@@ -146,8 +145,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
         context.StateChanged.Subscribe(state => StateChanged?.Invoke(this, state));
         context.MessageConsumed += (sender, message) =>
             MessageConsumed?.Invoke(this, (context.Height, message));
-        context.MutationConsumed += (sender, action) =>
-            MutationConsumed?.Invoke(this, (context.Height, action));
+        // context.MutationConsumed += (sender, action) =>
+        //     MutationConsumed?.Invoke(this, (context.Height, action));
 
         // NOTE: Events for consensus logic.
         context.HeightStarted.Subscribe(height =>
@@ -260,7 +259,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _currentContext = new Context(
             _blockchain,
             height,
-            lastCommit,
             _privateKey.AsSigner(),
             options: _contextOption);
         AttachEventHandlers(_currentContext);

@@ -378,7 +378,7 @@ public partial class BlockChainTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validators[index].Address,
             ValidatorPower = validatorPowers[index],
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(validators[index])).ToImmutableArray();
         var blockCommit = new BlockCommit
         {
@@ -428,7 +428,7 @@ public partial class BlockChainTest
             Timestamp = DateTimeOffset.UtcNow,
             Validator = key.Address,
             ValidatorPower = TestUtils.Validators.GetValidator(key.Address).Power,
-            Flag = VoteType.PreCommit,
+            Type = VoteType.PreCommit,
         }.Sign(key)).ToImmutableArray();
         var blockCommit = new BlockCommit
         {
@@ -470,7 +470,7 @@ public partial class BlockChainTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = x.Address,
                 ValidatorPower = TestUtils.Validators.GetValidator(x.Address).Power,
-                Flag = VoteType.PreCommit,
+                Type = VoteType.PreCommit,
             }.Sign(x))],
         };
         Assert.Throws<InvalidOperationException>(() => blockCommit.Validate(_fx.GenesisBlock));
@@ -555,7 +555,7 @@ public partial class BlockChainTest
                             Timestamp = DateTimeOffset.UtcNow,
                             Validator = x.Address,
                             ValidatorPower = BigInteger.One,
-                            Flag = VoteType.PreCommit,
+                            Type = VoteType.PreCommit,
                         }.Sign(x))],
                 }));
     }
@@ -614,7 +614,7 @@ public partial class BlockChainTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = key.Address,
                 ValidatorPower = power,
-                Flag = flag,
+                Type = flag,
             };
             return flag == VoteType.Null
                 ? metadata.WithoutSignature()

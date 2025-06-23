@@ -45,7 +45,7 @@ public sealed class VoteCollection : IReadOnlyDictionary<Address, Vote>
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = key,
                         ValidatorPower = validator.Power,
-                        Flag = VoteType.Null,
+                        Type = VoteType.Null,
                     }.WithoutSignature();
         return [.. query];
     }
