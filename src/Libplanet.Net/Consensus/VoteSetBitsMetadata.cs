@@ -28,7 +28,7 @@ public sealed partial record class VoteSetBitsMetadata
 
     [Property(5)]
     [DisallowedEnumValues(VoteType.Null, VoteType.Unknown)]
-    public VoteType Flag { get; init; }
+    public VoteType VoteType { get; init; }
 
     public ImmutableArray<bool> VoteBits { get; init; }
 

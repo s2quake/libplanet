@@ -68,8 +68,8 @@ public sealed class HeightVoteSet
 
         _roundVoteSets[round] = new RoundVoteSet
         {
-            PreVotes = new VoteSet(Height, round, VoteType.PreVote, _validators),
-            PreCommits = new VoteSet(Height, round, VoteType.PreCommit, _validators),
+            PreVotes = new VoteCollection(Height, round, VoteType.PreVote, _validators),
+            PreCommits = new VoteCollection(Height, round, VoteType.PreCommit, _validators),
         };
     }
 
@@ -120,34 +120,34 @@ public sealed class HeightVoteSet
                     vote);
             }
 
-            VoteSet voteSet;
+            VoteCollection voteSet;
             try
             {
-                voteSet = GetVoteSet(vote.Round, vote.Type);
+                voteSet = GetVotes(vote.Round, vote.Type);
             }
             catch (KeyNotFoundException)
             {
                 AddRound(vote.Round);
-                voteSet = GetVoteSet(vote.Round, vote.Type);
+                voteSet = GetVotes(vote.Round, vote.Type);
             }
 
-            voteSet.AddVote(vote);
+            voteSet.Add(vote);
         }
     }
 
-    public VoteSet PreVotes(int round)
+    public VoteCollection PreVotes(int round)
     {
         lock (_lock)
         {
-            return GetVoteSet(round, VoteType.PreVote);
+            return GetVotes(round, VoteType.PreVote);
         }
     }
 
-    public VoteSet PreCommits(int round)
+    public VoteCollection PreCommits(int round)
     {
         lock (_lock)
         {
-            return GetVoteSet(round, VoteType.PreCommit);
+            return GetVotes(round, VoteType.PreCommit);
         }
     }
 
@@ -161,7 +161,7 @@ public sealed class HeightVoteSet
             {
                 try
                 {
-                    VoteSet voteSet = GetVoteSet(r, VoteType.PreVote);
+                    VoteCollection voteSet = GetVotes(r, VoteType.PreVote);
                     bool exists = voteSet.TwoThirdsMajority(out BlockHash polBlockHash);
                     if (exists)
                     {
@@ -178,7 +178,7 @@ public sealed class HeightVoteSet
         }
     }
 
-    public VoteSet GetVoteSet(int round, VoteType voteType)
+    public VoteCollection GetVotes(int round, VoteType voteType)
     {
         RoundVoteSet roundVoteSet = _roundVoteSets[round];
         return voteType switch
@@ -202,18 +202,18 @@ public sealed class HeightVoteSet
                     maj23);
             }
 
-            VoteSet voteSet;
+            VoteCollection voteSet;
             try
             {
-                voteSet = GetVoteSet(maj23.Round, maj23.VoteType);
+                voteSet = GetVotes(maj23.Round, maj23.VoteType);
             }
             catch (KeyNotFoundException)
             {
                 AddRound(maj23.Round);
-                voteSet = GetVoteSet(maj23.Round, maj23.VoteType);
+                voteSet = GetVotes(maj23.Round, maj23.VoteType);
             }
 
-            return voteSet.SetPeerMaj23(maj23);
+            return voteSet.SetMaj23(maj23);
         }
     }
 }

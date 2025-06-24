@@ -184,7 +184,7 @@ public partial class Context
             }
         }
 
-        if (Step == ConsensusStep.PreVote && _heightVoteSet.PreVotes(Round).HasTwoThirdsAny())
+        if (Step == ConsensusStep.PreVote && _heightVoteSet.PreVotes(Round).HasTwoThirdsAny)
         {
             _ = OnTimeoutPreVote(Round);
         }
@@ -242,7 +242,7 @@ public partial class Context
             }
         }
 
-        if (_heightVoteSet.PreCommits(Round).HasTwoThirdsAny())
+        if (_heightVoteSet.PreCommits(Round).HasTwoThirdsAny)
         {
             _ = OnTimeoutPreCommit(Round);
         }
@@ -277,7 +277,7 @@ public partial class Context
 
         // NOTE: +1/3 prevote received, skip round
         // FIXME: Tendermint uses +2/3, should be fixed?
-        if (round > Round && _heightVoteSet.PreVotes(round).HasOneThirdsAny())
+        if (round > Round && _heightVoteSet.PreVotes(round).HasOneThirdsAny)
         {
             StartRound(round);
         }

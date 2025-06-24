@@ -2,26 +2,25 @@ using Libplanet.Net.Consensus;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class VoteSetTest(ITestOutputHelper output)
+public sealed class VoteCollectionTest(ITestOutputHelper output)
 {
     [Fact]
     public void Majority()
     {
         var random = RandomUtility.GetRandom(output);
         var blockHash = RandomUtility.BlockHash(random);
-        var voteSet = new VoteSet(0, 0, VoteType.PreCommit, TestUtils.Validators);
-        Assert.False(voteSet.HasOneThirdsAny());
-        Assert.False(voteSet.HasTwoThirdsAny());
-        Assert.False(voteSet.HasTwoThirdsMajority());
-        Assert.False(voteSet.TwoThirdsMajority(out var hash0));
+        var votes = new VoteCollection(0, 0, VoteType.PreCommit, TestUtils.Validators);
+        Assert.False(votes.HasOneThirdsAny);
+        Assert.False(votes.HasTwoThirdsAny);
+        Assert.False(votes.HasTwoThirdsMajority);
+        Assert.False(votes.TwoThirdsMajority(out var hash0));
         Assert.Equal(default, hash0);
 
-        voteSet.AddVote(new VoteMetadata
+        votes.Add(new VoteMetadata
         {
             Height = 0,
             Round = 0,
@@ -31,13 +30,13 @@ public class VoteSetTest(ITestOutputHelper output)
             ValidatorPower = TestUtils.Validators[0].Power,
             Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[0]));
-        Assert.False(voteSet.HasOneThirdsAny());
-        Assert.False(voteSet.HasTwoThirdsAny());
-        Assert.False(voteSet.HasTwoThirdsMajority());
-        Assert.False(voteSet.TwoThirdsMajority(out var hash1));
+        Assert.False(votes.HasOneThirdsAny);
+        Assert.False(votes.HasTwoThirdsAny);
+        Assert.False(votes.HasTwoThirdsMajority);
+        Assert.False(votes.TwoThirdsMajority(out var hash1));
         Assert.Equal(default, hash1);
 
-        voteSet.AddVote(new VoteMetadata
+        votes.Add(new VoteMetadata
         {
             Height = 0,
             Round = 0,
@@ -47,13 +46,13 @@ public class VoteSetTest(ITestOutputHelper output)
             ValidatorPower = TestUtils.Validators[1].Power,
             Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[1]));
-        Assert.True(voteSet.HasOneThirdsAny());
-        Assert.False(voteSet.HasTwoThirdsAny());
-        Assert.False(voteSet.HasTwoThirdsMajority());
-        Assert.False(voteSet.TwoThirdsMajority(out var hash2));
+        Assert.True(votes.HasOneThirdsAny);
+        Assert.False(votes.HasTwoThirdsAny);
+        Assert.False(votes.HasTwoThirdsMajority);
+        Assert.False(votes.TwoThirdsMajority(out var hash2));
         Assert.Equal(default, hash2);
 
-        voteSet.AddVote(new VoteMetadata
+        votes.Add(new VoteMetadata
         {
             Height = 0,
             Round = 0,
@@ -63,13 +62,13 @@ public class VoteSetTest(ITestOutputHelper output)
             ValidatorPower = TestUtils.Validators[2].Power,
             Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[2]));
-        Assert.True(voteSet.HasOneThirdsAny());
-        Assert.True(voteSet.HasTwoThirdsAny());
-        Assert.False(voteSet.HasTwoThirdsMajority());
-        Assert.False(voteSet.TwoThirdsMajority(out var hash3));
+        Assert.True(votes.HasOneThirdsAny);
+        Assert.True(votes.HasTwoThirdsAny);
+        Assert.False(votes.HasTwoThirdsMajority);
+        Assert.False(votes.TwoThirdsMajority(out var hash3));
         Assert.Equal(default, hash3);
 
-        voteSet.AddVote(new VoteMetadata
+        votes.Add(new VoteMetadata
         {
             Height = 0,
             Round = 0,
@@ -79,10 +78,10 @@ public class VoteSetTest(ITestOutputHelper output)
             ValidatorPower = TestUtils.Validators[3].Power,
             Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[3]));
-        Assert.True(voteSet.HasOneThirdsAny());
-        Assert.True(voteSet.HasTwoThirdsAny());
-        Assert.True(voteSet.HasTwoThirdsMajority());
-        Assert.True(voteSet.TwoThirdsMajority(out var hash4));
+        Assert.True(votes.HasOneThirdsAny);
+        Assert.True(votes.HasTwoThirdsAny);
+        Assert.True(votes.HasTwoThirdsMajority);
+        Assert.True(votes.TwoThirdsMajority(out var hash4));
         Assert.Equal(blockHash, hash4);
     }
 }
