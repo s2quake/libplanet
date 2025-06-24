@@ -2,35 +2,15 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class HeightVoteSet
+public sealed class HeightVoteSet(int height, ImmutableSortedSet<Validator> validators)
 {
     private readonly object _lock = new();
-    private ImmutableSortedSet<Validator> _validators;
-    private Dictionary<int, RoundVoteSet> _roundVoteSets = [];
-
-    public HeightVoteSet(int height, ImmutableSortedSet<Validator> validators)
+    private readonly Dictionary<int, RoundVote> _roundVotes = new()
     {
-        Height = height;
-        _validators = validators;
-        AddRound(0);
-    }
+        [0] = new RoundVote(height, 0, validators),
+    };
 
-    public int Count => _roundVoteSets.Values.Sum(v => v.Count);
-
-    public void Reset(int height, ImmutableSortedSet<Validator> validators)
-    {
-        lock (_lock)
-        {
-            Height = height;
-            _validators = validators;
-            _roundVoteSets = [];
-
-            AddRound(0);
-            Round = 0;
-        }
-    }
-
-    public int Height { get; private set; }
+    public int Height { get; } = height;
 
     public int Round { get; private set; }
 
@@ -47,7 +27,7 @@ public sealed class HeightVoteSet
 
             for (int r = newRound; r <= round; r++)
             {
-                if (_roundVoteSets.ContainsKey(r))
+                if (_roundVotes.ContainsKey(r))
                 {
                     continue; // Already exists because peerCatchupRounds.
                 }
@@ -59,18 +39,14 @@ public sealed class HeightVoteSet
         }
     }
 
-    public void AddRound(int round)
+    private void AddRound(int round)
     {
-        if (_roundVoteSets.ContainsKey(round))
+        if (_roundVotes.ContainsKey(round))
         {
             throw new ArgumentException($"Add round for an existing round: {round}");
         }
 
-        _roundVoteSets[round] = new RoundVoteSet
-        {
-            PreVotes = new VoteCollection(Height, round, VoteType.PreVote, _validators),
-            PreCommits = new VoteCollection(Height, round, VoteType.PreCommit, _validators),
-        };
+        _roundVotes[round] = new RoundVote(Height, round, validators);
     }
 
     public void AddVote(Vote vote)
@@ -84,40 +60,28 @@ public sealed class HeightVoteSet
                     vote);
             }
 
-            var validatorKey = vote.Validator;
-
-            if (validatorKey == default)
+            var validator = vote.Validator;
+            if (!validators.Contains(validator))
             {
-                throw new InvalidVoteException("ValidatorKey of the vote cannot be null", vote);
+                throw new InvalidVoteException("ValidatorKey of the vote is not in the validator set", vote);
             }
 
-            if (!_validators.Contains(validatorKey))
-            {
-                throw new InvalidVoteException(
-                    "ValidatorKey of the vote is not in the validator set",
-                    vote);
-            }
-
-            if (_validators.GetValidator(validatorKey).Power != vote.ValidatorPower)
+            if (validators.GetValidator(validator).Power != vote.ValidatorPower)
             {
                 const string msg = "ValidatorPower of the vote is given and the value is " +
                                    "not the same with the one in the validator set";
                 throw new InvalidVoteException(msg, vote);
             }
 
-            if (!vote.Type.Equals(VoteType.PreVote) &&
-                !vote.Type.Equals(VoteType.PreCommit))
+            if (!vote.Type.Equals(VoteType.PreVote) && !vote.Type.Equals(VoteType.PreCommit))
             {
                 throw new InvalidVoteException(
-                    $"VoteType should be either {VoteType.PreVote} or {VoteType.PreCommit}",
-                    vote);
+                    $"VoteType should be either {VoteType.PreVote} or {VoteType.PreCommit}", vote);
             }
 
             if (!ValidationUtility.TryValidate(vote))
             {
-                throw new InvalidVoteException(
-                    "Received vote's signature is invalid",
-                    vote);
+                throw new InvalidVoteException("Received vote's signature is invalid", vote);
             }
 
             VoteCollection voteSet;
@@ -178,23 +142,13 @@ public sealed class HeightVoteSet
         }
     }
 
-    public VoteCollection GetVotes(int round, VoteType voteType)
-    {
-        RoundVoteSet roundVoteSet = _roundVoteSets[round];
-        return voteType switch
-        {
-            VoteType.PreVote => roundVoteSet.PreVotes,
-            VoteType.PreCommit => roundVoteSet.PreCommits,
-            _ => throw new ArgumentException($"Unexpected vote type: {voteType}"),
-        };
-    }
+    public VoteCollection GetVotes(int round, VoteType voteType) => _roundVotes[round].Votes[voteType];
 
     public bool SetPeerMaj23(Maj23 maj23)
     {
         lock (_lock)
         {
-            if (!maj23.VoteType.Equals(VoteType.PreVote) &&
-                !maj23.VoteType.Equals(VoteType.PreCommit))
+            if (!maj23.VoteType.Equals(VoteType.PreVote) && !maj23.VoteType.Equals(VoteType.PreCommit))
             {
                 throw new InvalidMaj23Exception(
                     $"Maj23 must have either {VoteType.PreVote} or {VoteType.PreCommit} " +
@@ -215,5 +169,14 @@ public sealed class HeightVoteSet
 
             return voteSet.SetMaj23(maj23);
         }
+    }
+
+    private sealed class RoundVote(int height, int round, ImmutableSortedSet<Validator> validators)
+    {
+        public IReadOnlyDictionary<VoteType, VoteCollection> Votes { get; } = new Dictionary<VoteType, VoteCollection>()
+        {
+            [VoteType.PreVote] = new VoteCollection(height, round, VoteType.PreVote, validators),
+            [VoteType.PreCommit] = new VoteCollection(height, round, VoteType.PreCommit, validators),
+        };
     }
 }
