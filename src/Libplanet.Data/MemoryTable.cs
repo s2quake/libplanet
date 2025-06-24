@@ -24,7 +24,7 @@ public sealed class MemoryTable(string name) : TableBase(name), IEquatable<Memor
     {
         if (!_dictionary.TryAdd(key, value))
         {
-            throw new ArgumentException("An item with the same key has already been added.", nameof(key));
+            throw new ArgumentException($"Key '{key}' already exists in the table.", nameof(key));
         }
     }
 
