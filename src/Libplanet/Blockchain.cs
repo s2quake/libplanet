@@ -38,6 +38,7 @@ public partial class Blockchain
     public Blockchain(Block genesisBlock, Repository repository, BlockchainOptions options)
         : this(repository, options)
     {
+        repository.GenesisHeight = genesisBlock.Height;
         Append(genesisBlock, BlockCommit.Empty);
     }
 
