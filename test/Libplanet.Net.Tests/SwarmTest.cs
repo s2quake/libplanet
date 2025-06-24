@@ -390,7 +390,7 @@ namespace Libplanet.Net.Tests
                     PrivateKey = TestUtils.PrivateKeys[i],
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(10),
-                    ContextOptions = new ContextOptions(),
+                    ContextOptions = new ConsensusOptions(),
                 }).ToList();
             var swarms = new List<Swarm>();
             for (int i = 0; i < 4; i++)

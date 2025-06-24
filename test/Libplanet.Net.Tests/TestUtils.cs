@@ -2,6 +2,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
+using Libplanet.Net;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
@@ -155,7 +156,7 @@ namespace Libplanet.Net.Tests
         }
 
         public static void HandleFourPeersPreCommitMessages(
-            Context context,
+            Net.Consensus.Consensus context,
             PrivateKey nodePrivateKey,
             BlockHash roundBlockHash)
         {
@@ -187,7 +188,7 @@ namespace Libplanet.Net.Tests
         }
 
         public static void HandleFourPeersPreVoteMessages(
-            Context context,
+            Net.Consensus.Consensus context,
             PrivateKey nodePrivateKey,
             BlockHash roundBlockHash)
         {
@@ -255,7 +256,7 @@ namespace Libplanet.Net.Tests
                 TimeSpan newHeightDelay,
                 BlockchainOptions? policy = null,
                 PrivateKey? privateKey = null,
-                ContextOptions? contextOption = null)
+                ConsensusOptions? contextOption = null)
         {
             policy ??= Options;
             var blockChain = CreateDummyBlockChain(policy);
@@ -280,44 +281,44 @@ namespace Libplanet.Net.Tests
             return (blockChain, consensusContext);
         }
 
-        public static Context CreateDummyContext(
+        public static Net.Consensus.Consensus CreateDummyContext(
             Blockchain blockChain,
             int height = 1,
             BlockCommit? previousCommit = null,
             PrivateKey? privateKey = null,
-            ContextOptions? contextOption = null,
+            ConsensusOptions? contextOption = null,
             ImmutableSortedSet<Validator>? validators = null)
         {
-            Context? context = null;
+            Net.Consensus.Consensus? context = null;
             privateKey ??= PrivateKeys[0];
-            context = new Context(
+            context = new Net.Consensus.Consensus(
                 blockChain,
                 height,
                 privateKey.AsSigner(),
-                options: contextOption ?? new ContextOptions());
+                options: contextOption ?? new ConsensusOptions());
             using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
             return context;
         }
 
-        public static (Blockchain BlockChain, Context Context)
+        public static (Blockchain BlockChain, Net.Consensus.Consensus Context)
             CreateDummyContext(
                 int height = 1,
                 BlockCommit? lastCommit = null,
                 BlockchainOptions? policy = null,
                 PrivateKey? privateKey = null,
-                ContextOptions? contextOption = null,
+                ConsensusOptions? contextOption = null,
                 ImmutableSortedSet<Validator>? validatorSet = null)
         {
-            Context? context = null;
+            Net.Consensus.Consensus? context = null;
             privateKey ??= PrivateKeys[1];
             policy ??= Options;
 
             var blockChain = CreateDummyBlockChain(policy);
-            context = new Context(
+            context = new Net.Consensus.Consensus(
                 blockChain,
                 height,
                 privateKey.AsSigner(),
-                options: contextOption ?? new ContextOptions());
+                options: contextOption ?? new ConsensusOptions());
             using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
 
             return (blockChain, context);
@@ -330,7 +331,7 @@ namespace Libplanet.Net.Tests
             int consensusPort = 5101,
             List<Peer>? validatorPeers = null,
             int newHeightDelayMilliseconds = 10_000,
-            ContextOptions? contextOption = null)
+            ConsensusOptions? contextOption = null)
         {
             key ??= PrivateKeys[1];
             validatorPeers ??= Peers;
@@ -347,7 +348,7 @@ namespace Libplanet.Net.Tests
                 ConsensusPeers = validatorPeers.ToImmutableArray(),
                 PrivateKey = key,
                 TargetBlockInterval = TimeSpan.FromMilliseconds(newHeightDelayMilliseconds),
-                ContextOptions = contextOption ?? new ContextOptions(),
+                ContextOptions = contextOption ?? new ConsensusOptions(),
             };
 
             return new ConsensusReactor(consensusTransport, blockChain, consensusReactorOptions);

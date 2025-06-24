@@ -2,9 +2,9 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed record class ContextOptions
+public sealed record class ConsensusOptions
 {
-    public static ContextOptions Default { get; } = new();
+    public static ConsensusOptions Default { get; } = new();
 
     [Positive]
     public int ProposeTimeoutBase { get; init; } = 8_000;

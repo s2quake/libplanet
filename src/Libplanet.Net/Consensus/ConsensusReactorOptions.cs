@@ -16,5 +16,5 @@ public sealed record class ConsensusReactorOptions
 
     public TimeSpan TargetBlockInterval { get; init; }
 
-    public ContextOptions ContextOptions { get; init; } = ContextOptions.Default;
+    public ConsensusOptions ContextOptions { get; init; } = ConsensusOptions.Default;
 }

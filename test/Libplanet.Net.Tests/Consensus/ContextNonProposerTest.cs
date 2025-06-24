@@ -574,7 +574,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var (_, context) = TestUtils.CreateDummyContext(
                 privateKey: TestUtils.PrivateKeys[0],
-                contextOption: new ContextOptions
+                contextOption: new ConsensusOptions
                 {
                     ProposeTimeoutBase = 1_000
                 });
@@ -606,7 +606,7 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var (blockChain, context) = TestUtils.CreateDummyContext(
                 privateKey: TestUtils.PrivateKeys[0],
-                contextOption: new ContextOptions
+                contextOption: new ConsensusOptions
                 {
                     PreVoteTimeoutBase = 1_000,
                     PreCommitTimeoutBase = 1_000,
@@ -698,7 +698,7 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var (blockChain, context) = TestUtils.CreateDummyContext(
                 privateKey: TestUtils.PrivateKeys[0],
-                contextOption: new ContextOptions
+                contextOption: new ConsensusOptions
                 {
                     PreVoteTimeoutBase = 1_000,
                 });
@@ -758,7 +758,7 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var (blockChain, context) = TestUtils.CreateDummyContext(
                 privateKey: TestUtils.PrivateKeys[0],
-                contextOption: new ContextOptions
+                contextOption: new ConsensusOptions
                 {
                     PreCommitTimeoutBase = 1_000,
                 });

@@ -6,9 +6,7 @@ public static class ImmutableSortedSetExtensions
     {
         if (@this.IsEmpty)
         {
-            throw new ArgumentException(
-                $"Given {nameof(@this)} should not be empty.",
-                nameof(@this));
+            throw new ArgumentException($"Given {nameof(@this)} should not be empty.", nameof(@this));
         }
 
         return @this[(height + round) % @this.Count];

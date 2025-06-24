@@ -35,7 +35,7 @@ namespace Libplanet.Net.Tests
                     PrivateKey = privateKeys[i],
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(4),
-                    ContextOptions = new ContextOptions(),
+                    ContextOptions = new ConsensusOptions(),
                 }).ToList();
 
             var swarmTasks = privateKeys.Select(
@@ -186,7 +186,7 @@ namespace Libplanet.Net.Tests
                 consensusContext.StateChanged -= ConsensusContext_StateChanged;
             }
 
-            void ConsensusContext_StateChanged(object? sender, ContextState e)
+            void ConsensusContext_StateChanged(object? sender, ConsensusState e)
             {
                 if (e.Step == consensusStep)
                 {

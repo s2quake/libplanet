@@ -8,7 +8,7 @@ namespace Libplanet.Net.Tests.Consensus;
 
 public sealed class HeightVoteTest(ITestOutputHelper output)
 {
-    private readonly HeightVote _heightVote = new(2, TestUtils.Validators);
+    private readonly HeightContext _heightVote = new(2, TestUtils.Validators);
 
     [Fact]
     public void CannotAddDifferentHeight()
