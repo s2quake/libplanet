@@ -774,13 +774,13 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
                 proposedBlock = proposalMsg.Proposal.Block;
             }
         });
-        context.VoteSetModified += (_, tuple) =>
-        {
-            if (tuple.Flag == VoteType.PreVote)
-            {
-                numPreVotes = tuple.Votes.Count();
-            }
-        };
+        // context.VoteSetModified += (_, tuple) =>
+        // {
+        //     if (tuple.Flag == VoteType.PreVote)
+        //     {
+        //         numPreVotes = tuple.Votes.Count();
+        //     }
+        // };
         await context.StartAsync(default);
         await stepChangedToPreVote.WaitAsync();
         Assert.Equal(ConsensusStep.PreVote, context.Step);

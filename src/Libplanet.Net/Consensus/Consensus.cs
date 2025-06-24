@@ -20,6 +20,7 @@ public partial class Consensus : IAsyncDisposable
     private readonly Subject<ConsensusMessage> _messagePublishedSubject = new();
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
     private readonly Subject<ConsensusState> _stateChangedSubject = new();
+    private readonly Subject<ConsensusStep> _stepChangedSubject = new();
 
     private readonly Blockchain _blockchain;
     private readonly ImmutableSortedSet<Validator> _validators;
@@ -35,22 +36,19 @@ public partial class Consensus : IAsyncDisposable
     private readonly EvidenceExceptionCollector _evidenceCollector = new();
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly ICache<BlockHash, bool> _blockValidationCache;
-
-    private Proposal? _proposal;
-    private Block? _proposalBlock;
     private Block? _lockedBlock;
     private int _lockedRound = -1;
     private Block? _validBlock;
     private int _validRound = -1;
     private Block? _decidedBlock;
     private bool _disposed;
+    private ConsensusStep _step;
 
     public Consensus(Blockchain blockchain, int height, ISigner signer, ConsensusOptions options)
     {
         if (height < 1)
         {
-            throw new ArgumentException(
-                $"Given {nameof(height)} must be positive: {height}", nameof(height));
+            throw new ArgumentException($"Given {nameof(height)} must be positive: {height}", nameof(height));
         }
 
         _signer = signer;
@@ -75,37 +73,28 @@ public partial class Consensus : IAsyncDisposable
 
     public IObservable<Exception> ExceptionOccurred => _exceptionOccurredSubject;
 
-    internal event EventHandler<(int Round, ConsensusStep Step)>? TimeoutProcessed;
-
     public IObservable<ConsensusState> StateChanged => _stateChangedSubject;
 
-    internal event EventHandler<ConsensusMessage>? MessageConsumed;
-
-    internal event EventHandler<(int Round, VoteType Flag, IEnumerable<Vote> Votes)>? VoteSetModified;
+    public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
     public int Height { get; }
 
     public int Round { get; private set; } = -1;
 
-    public ConsensusStep Step { get; private set; }
-
-    public Proposal? Proposal
+    public ConsensusStep Step
     {
-        get => _proposal;
+        get => _step;
         private set
         {
-            if (value is { } p)
+            if (_step != value)
             {
-                _proposal = p;
-                _proposalBlock = p.Block;
-            }
-            else
-            {
-                _proposal = null;
-                _proposalBlock = null;
+                _step = value;
+                _stepChangedSubject.OnNext(value);
             }
         }
     }
+
+    public Proposal? Proposal { get; private set; }
 
     public async ValueTask DisposeAsync()
     {
@@ -254,9 +243,9 @@ public partial class Consensus : IAsyncDisposable
         }
     }
 
-    private Vote MakeVote(int round, BlockHash blockHash, VoteType voteType)
+    private Vote CreateVote(int round, BlockHash blockHash, VoteType voteType)
     {
-        if (voteType == VoteType.Null || voteType == VoteType.Unknown)
+        if (voteType is VoteType.Null or VoteType.Unknown)
         {
             var message = $"{nameof(voteType)} must be either {VoteType.PreVote} or {VoteType.PreCommit}" +
                           $"to create a valid signed vote.";
@@ -277,7 +266,7 @@ public partial class Consensus : IAsyncDisposable
 
     private Maj23 CreateMaj23(int round, BlockHash blockHash, VoteType voteType)
     {
-        if (voteType == VoteType.Null || voteType == VoteType.Unknown)
+        if (voteType is VoteType.Null or VoteType.Unknown)
         {
             throw new ArgumentException(
                 $"{nameof(voteType)} must be either {VoteType.PreVote} or {VoteType.PreCommit}" +
@@ -295,8 +284,7 @@ public partial class Consensus : IAsyncDisposable
         }.Sign(_signer);
     }
 
-    private (Block, int)? GetProposal()
-        => Proposal is { } p && _proposalBlock is { } b ? (b, p.ValidRound) : null;
+    private (Block, int)? GetProposal() => Proposal is { } p ? (p.Block, p.ValidRound) : null;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -308,7 +296,11 @@ public partial class Consensus : IAsyncDisposable
         }
 
         _startedSubject.OnNext(Height);
-        await _dispatcher.InvokeAsync(_ => StartRound(0), _cancellationTokenSource.Token);
+        await _dispatcher.InvokeAsync(_ =>
+        {
+            StartRound(0);
+            ProcessGenericUponRules();
+        }, _cancellationTokenSource.Token);
         _ = MessageConsumerTask(_cancellationTokenSource.Token);
     }
 
@@ -321,13 +313,13 @@ public partial class Consensus : IAsyncDisposable
                 var message = await _messageRequests.Reader.ReadAsync(cancellationToken);
                 await _dispatcher.InvokeAsync(_ =>
                 {
-                    if (AddMessage(message))
+                    if (HandleMessage(message))
                     {
                         ProcessHeightOrRoundUponRules(message);
                     }
-                }, cancellationToken);
 
-                MessageConsumed?.Invoke(this, message);
+                    ProcessGenericUponRules();
+                }, cancellationToken);
             }
             catch (Exception e)
             {
@@ -342,7 +334,7 @@ public partial class Consensus : IAsyncDisposable
         _ = _messageRequests.Writer.WriteAsync(message);
     }
 
-    private async Task ConsumeMutation(CancellationToken cancellationToken)
+    private void ConsumeMutation()
     {
         // System.Action mutation = await _mutationRequests.Reader.ReadAsync(cancellationToken);
         // var prevState = new ContextState
@@ -400,7 +392,11 @@ public partial class Consensus : IAsyncDisposable
         }
 
         await Task.Delay(_options.EnterPreCommitDelay, cancellationToken);
-        await _dispatcher.InvokeAsync(_ => EnterPreCommit(round, blockHash), cancellationToken);
+        await _dispatcher.InvokeAsync(_ =>
+        {
+            EnterPreCommit(round, blockHash);
+            ProcessGenericUponRules();
+        }, cancellationToken);
     }
 
     private async Task EnterEndCommitWait(int round, CancellationToken cancellationToken)
@@ -411,7 +407,11 @@ public partial class Consensus : IAsyncDisposable
         }
 
         await Task.Delay(_options.EnterEndCommitDelay, cancellationToken);
-        await _dispatcher.InvokeAsync(_ => EnterEndCommit(round), cancellationToken);
+        await _dispatcher.InvokeAsync(_ =>
+        {
+            EnterEndCommit(round);
+            ProcessGenericUponRules();
+        }, cancellationToken);
     }
 
     private async Task PostProposeTimeoutAsync(int round, CancellationToken cancellationToken)
@@ -423,7 +423,7 @@ public partial class Consensus : IAsyncDisposable
             if (round == Round && Step == ConsensusStep.Propose)
             {
                 EnterPreVote(round, default);
-                TimeoutProcessed?.Invoke(this, (round, ConsensusStep.Propose));
+                ProcessGenericUponRules();
             }
         }, cancellationToken);
     }
@@ -442,7 +442,7 @@ public partial class Consensus : IAsyncDisposable
             if (round == Round && Step == ConsensusStep.PreVote)
             {
                 EnterPreCommit(round, default);
-                TimeoutProcessed?.Invoke(this, (round, ConsensusStep.PreVote));
+                ProcessGenericUponRules();
             }
         }, cancellationToken);
     }
@@ -466,7 +466,7 @@ public partial class Consensus : IAsyncDisposable
             if (round == Round)
             {
                 EnterEndCommit(round);
-                TimeoutProcessed?.Invoke(this, (round, ConsensusStep.PreCommit));
+                ProcessGenericUponRules();
             }
         }, cancellationToken);
     }
@@ -499,7 +499,7 @@ public partial class Consensus : IAsyncDisposable
         _roundStartedSubject.OnNext(round);
     }
 
-    private bool AddMessage(ConsensusMessage message)
+    private bool HandleMessage(ConsensusMessage message)
     {
         try
         {
@@ -520,25 +520,19 @@ public partial class Consensus : IAsyncDisposable
                 SetProposal(proposalMessage.Proposal);
             }
 
-            if (message is ConsensusVoteMessage voteMsg)
+            if (message is ConsensusVoteMessage voteMessage)
             {
-                switch (voteMsg)
+                switch (voteMessage)
                 {
                     case ConsensusPreVoteMessage preVote:
                         {
                             _heightContext.AddVote(preVote.PreVote);
-                            var args = (preVote.Round, VoteType.PreVote,
-                                _heightContext.PreVotes(preVote.Round).GetAllVotes());
-                            VoteSetModified?.Invoke(this, args);
                             break;
                         }
 
                     case ConsensusPreCommitMessage preCommit:
                         {
                             _heightContext.AddVote(preCommit.PreCommit);
-                            var args = (preCommit.Round, VoteType.PreCommit,
-                                _heightContext.PreCommits(preCommit.Round).GetAllVotes());
-                            VoteSetModified?.Invoke(this, args);
                             break;
                         }
                 }
@@ -731,8 +725,6 @@ public partial class Consensus : IAsyncDisposable
             return;
         }
 
-        // NOTE: +1/3 prevote received, skip round
-        // FIXME: Tendermint uses +2/3, should be fixed?
         if (round > Round && _heightContext.PreVotes(round).HasOneThirdsAny)
         {
             StartRound(round);
@@ -749,7 +741,7 @@ public partial class Consensus : IAsyncDisposable
 
         Step = ConsensusStep.PreVote;
         _messagePublishedSubject.OnNext(
-            new ConsensusPreVoteMessage { PreVote = MakeVote(round, blockHash, VoteType.PreVote) });
+            new ConsensusPreVoteMessage { PreVote = CreateVote(round, blockHash, VoteType.PreVote) });
     }
 
     private void EnterPreCommit(int round, BlockHash blockHash)
@@ -762,7 +754,7 @@ public partial class Consensus : IAsyncDisposable
 
         Step = ConsensusStep.PreCommit;
         _messagePublishedSubject.OnNext(
-            new ConsensusPreCommitMessage { PreCommit = MakeVote(round, blockHash, VoteType.PreCommit) });
+            new ConsensusPreCommitMessage { PreCommit = CreateVote(round, blockHash, VoteType.PreCommit) });
     }
 
     private void EnterEndCommit(int round)

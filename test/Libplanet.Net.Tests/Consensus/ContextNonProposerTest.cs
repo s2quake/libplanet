@@ -258,10 +258,10 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreVote.Set();
                 }
             });
-            context.TimeoutProcessed += (_, __) =>
-            {
-                timeoutProcessed = true;
-            };
+            // context.TimeoutProcessed += (_, __) =>
+            // {
+            //     timeoutProcessed = true;
+            // };
             using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
@@ -341,10 +341,10 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreVote.Set();
                 }
             });
-            context.TimeoutProcessed += (_, __) =>
-            {
-                timeoutProcessed = true;
-            };
+            // context.TimeoutProcessed += (_, __) =>
+            // {
+            //     timeoutProcessed = true;
+            // };
             using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
@@ -410,10 +410,10 @@ namespace Libplanet.Net.Tests.Consensus
                     stepChangedToPreVote.Set();
                 }
             });
-            context.TimeoutProcessed += (_, __) =>
-            {
-                timeoutProcessed = true;
-            };
+            // context.TimeoutProcessed += (_, __) =>
+            // {
+            //     timeoutProcessed = true;
+            // };
             using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
@@ -705,7 +705,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var timeoutProcessed = new AsyncAutoResetEvent();
-            context.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
+            // context.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
             await context.StartAsync(default);
 
             context.ProduceMessage(
@@ -765,7 +765,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var timeoutProcessed = new AsyncAutoResetEvent();
-            context.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
+            // context.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
             await context.StartAsync(default);
 
             context.ProduceMessage(
