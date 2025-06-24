@@ -419,7 +419,7 @@ public class ConsensusContextTest
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = TestUtils.PrivateKeys[1].Address,
-                Flag = VoteType.PreVote,
+                VoteType = VoteType.PreVote,
                 VoteBits = [false, false, true, false],
             }.Sign(TestUtils.PrivateKeys[1]);
         ConsensusMessage[] votes =

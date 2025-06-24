@@ -159,7 +159,7 @@ public partial class Context : IAsyncDisposable
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = _signer.Address,
-            Flag = voteType,
+            VoteType = voteType,
             VoteBits = [.. voteBits],
         }.Sign(_signer);
     }
@@ -188,7 +188,7 @@ public partial class Context : IAsyncDisposable
         IEnumerable<Vote> votes;
         try
         {
-            votes = voteSetBits.Flag switch
+            votes = voteSetBits.VoteType switch
             {
                 VoteType.PreVote =>
                 _heightVoteSet.PreVotes(voteSetBits.Round).MappedList().Where(

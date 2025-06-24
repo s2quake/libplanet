@@ -15,7 +15,7 @@ public sealed record class VoteSetBits : IEquatable<VoteSetBits>
 
     public Address Validator => Metadata.Validator;
 
-    public VoteType Flag => Metadata.Flag;
+    public VoteType VoteType => Metadata.VoteType;
 
     public ImmutableArray<bool> VoteBits => Metadata.VoteBits;
 
