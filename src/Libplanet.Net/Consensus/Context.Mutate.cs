@@ -8,8 +8,8 @@ public partial class Context
     private void StartRound(int round)
     {
         Round = round;
+        _heightVote.Round = round;
         _roundStartedSubject.OnNext(round);
-        _heightVotes.SetRound(round);
 
         Proposal = null;
         Step = ConsensusStep.Propose;
@@ -31,13 +31,13 @@ public partial class Context
             else
             {
                 // logging
-                _ = OnTimeoutPropose(Round);
+                _ = OnTimeoutProposeAsync(Round, _cancellationTokenSource.Token);
             }
         }
         else
         {
             // logging
-            _ = OnTimeoutPropose(Round);
+            _ = OnTimeoutProposeAsync(Round, _cancellationTokenSource.Token);
         }
     }
 
@@ -68,18 +68,18 @@ public partial class Context
                 {
                     case ConsensusPreVoteMessage preVote:
                         {
-                            _heightVotes.AddVote(preVote.PreVote);
+                            _heightVote.AddVote(preVote.PreVote);
                             var args = (preVote.Round, VoteType.PreVote,
-                                _heightVotes.PreVotes(preVote.Round).GetAllVotes());
+                                _heightVote.PreVotes(preVote.Round).GetAllVotes());
                             VoteSetModified?.Invoke(this, args);
                             break;
                         }
 
                     case ConsensusPreCommitMessage preCommit:
                         {
-                            _heightVotes.AddVote(preCommit.PreCommit);
+                            _heightVote.AddVote(preCommit.PreCommit);
                             var args = (preCommit.Round, VoteType.PreCommit,
-                                _heightVotes.PreCommits(preCommit.Round).GetAllVotes());
+                                _heightVote.PreCommits(preCommit.Round).GetAllVotes());
                             VoteSetModified?.Invoke(this, args);
                             break;
                         }
@@ -117,7 +117,7 @@ public partial class Context
         }
 
         // Should check if +2/3 votes already collected and the proposal does not match
-        if (_heightVotes.PreVotes(Round).TwoThirdsMajority(out var preVoteMaj23) &&
+        if (_heightVote.PreVotes(Round).TwoThirdsMajority(out var preVoteMaj23) &&
             !proposal.BlockHash.Equals(preVoteMaj23))
         {
             throw new InvalidProposalException(
@@ -126,7 +126,7 @@ public partial class Context
                 proposal);
         }
 
-        if (_heightVotes.PreCommits(Round).TwoThirdsMajority(out var preCommitMaj23) &&
+        if (_heightVote.PreCommits(Round).TwoThirdsMajority(out var preCommitMaj23) &&
             !proposal.BlockHash.Equals(preCommitMaj23))
         {
             throw new InvalidProposalException(
@@ -171,7 +171,7 @@ public partial class Context
             && propose is { } p2
             && p2.ValidRound >= 0
             && p2.ValidRound < Round
-            && _heightVotes.PreVotes(p2.ValidRound).TwoThirdsMajority(out BlockHash hash1)
+            && _heightVote.PreVotes(p2.ValidRound).TwoThirdsMajority(out BlockHash hash1)
             && hash1.Equals(p2.Block.BlockHash))
         {
             if (IsValid(p2.Block) && (_lockedRound <= p2.ValidRound || _lockedBlock == p2.Block))
@@ -184,14 +184,14 @@ public partial class Context
             }
         }
 
-        if (Step == ConsensusStep.PreVote && _heightVotes.PreVotes(Round).HasTwoThirdsAny)
+        if (Step == ConsensusStep.PreVote && _heightVote.PreVotes(Round).HasTwoThirdsAny)
         {
-            _ = OnTimeoutPreVote(Round);
+            _ = OnTimeoutPreVoteAsync(Round, _cancellationTokenSource.Token);
         }
 
         if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
             && propose is { } p3
-            && _heightVotes.PreVotes(Round).TwoThirdsMajority(out BlockHash hash2)
+            && _heightVote.PreVotes(Round).TwoThirdsMajority(out BlockHash hash2)
             && hash2.Equals(p3.Block.BlockHash)
             && IsValid(p3.Block)
             && !_hasTwoThirdsPreVoteTypes.Contains(Round))
@@ -207,7 +207,7 @@ public partial class Context
                 _messagePublishedSubject.OnNext(
                     new ConsensusMaj23Message
                     {
-                        Maj23 = MakeMaj23(Round, p3.Block.BlockHash, VoteType.PreVote),
+                        Maj23 = CreateMaj23(Round, p3.Block.BlockHash, VoteType.PreVote),
                     });
             }
 
@@ -216,7 +216,7 @@ public partial class Context
         }
 
         if (Step == ConsensusStep.PreVote
-            && _heightVotes.PreVotes(Round).TwoThirdsMajority(out BlockHash hash3))
+            && _heightVote.PreVotes(Round).TwoThirdsMajority(out BlockHash hash3))
         {
             if (hash3.Equals(default))
             {
@@ -242,9 +242,9 @@ public partial class Context
             }
         }
 
-        if (_heightVotes.PreCommits(Round).HasTwoThirdsAny)
+        if (_heightVote.PreCommits(Round).HasTwoThirdsAny)
         {
-            _ = OnTimeoutPreCommit(Round);
+            _ = OnTimeoutPreCommitAsync(Round, _cancellationTokenSource.Token);
         }
     }
 
@@ -258,18 +258,17 @@ public partial class Context
         var round = message.Round;
         if ((message is ConsensusProposalMessage || message is ConsensusPreCommitMessage) &&
             GetProposal() is (Block block4, _) &&
-            _heightVotes.PreCommits(Round).TwoThirdsMajority(out BlockHash hash) &&
+            _heightVote.PreCommits(Round).TwoThirdsMajority(out BlockHash hash) &&
             block4.BlockHash.Equals(hash) &&
             IsValid(block4))
         {
             _decision = block4;
-            _committedRound = round;
 
             // Maybe need to broadcast periodically?
             _messagePublishedSubject.OnNext(
                 new ConsensusMaj23Message
                 {
-                    Maj23 = MakeMaj23(round, block4.BlockHash, VoteType.PreCommit),
+                    Maj23 = CreateMaj23(round, block4.BlockHash, VoteType.PreCommit),
                 });
             _ = EnterEndCommitWait(Round, default);
             return;
@@ -277,7 +276,7 @@ public partial class Context
 
         // NOTE: +1/3 prevote received, skip round
         // FIXME: Tendermint uses +2/3, should be fixed?
-        if (round > Round && _heightVotes.PreVotes(round).HasOneThirdsAny)
+        if (round > Round && _heightVote.PreVotes(round).HasOneThirdsAny)
         {
             StartRound(round);
         }
@@ -296,7 +295,7 @@ public partial class Context
             new ConsensusPreVoteMessage { PreVote = MakeVote(round, blockHash, VoteType.PreVote) });
     }
 
-    private void EnterPreCommit(int round, BlockHash hash)
+    private void EnterPreCommit(int round, BlockHash blockHash)
     {
         if (Round != round || Step >= ConsensusStep.PreCommit)
         {
@@ -306,7 +305,7 @@ public partial class Context
 
         Step = ConsensusStep.PreCommit;
         _messagePublishedSubject.OnNext(
-            new ConsensusPreCommitMessage { PreCommit = MakeVote(round, hash, VoteType.PreCommit) });
+            new ConsensusPreCommitMessage { PreCommit = MakeVote(round, blockHash, VoteType.PreCommit) });
     }
 
     private void EnterEndCommit(int round)
@@ -335,38 +334,6 @@ public partial class Context
         {
             _exceptionOccurredSubject.OnNext(e);
             return;
-        }
-    }
-
-    private void ProcessTimeoutPropose(int round)
-    {
-        if (round == Round && Step == ConsensusStep.Propose)
-        {
-            EnterPreVote(round, default);
-            TimeoutProcessed?.Invoke(this, (round, ConsensusStep.Propose));
-        }
-    }
-
-    private void ProcessTimeoutPreVote(int round)
-    {
-        if (round == Round && Step == ConsensusStep.PreVote)
-        {
-            EnterPreCommit(round, default);
-            TimeoutProcessed?.Invoke(this, (round, ConsensusStep.PreVote));
-        }
-    }
-
-    private void ProcessTimeoutPreCommit(int round)
-    {
-        if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
-        {
-            return;
-        }
-
-        if (round == Round)
-        {
-            EnterEndCommit(round);
-            TimeoutProcessed?.Invoke(this, (round, ConsensusStep.PreCommit));
         }
     }
 }

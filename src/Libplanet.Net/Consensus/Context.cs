@@ -15,7 +15,7 @@ public partial class Context : IAsyncDisposable
 {
     private readonly ContextOptions _options;
 
-    private readonly Subject<int> _heightStartedSubject = new();
+    private readonly Subject<int> _startedSubject = new();
     private readonly Subject<int> _roundStartedSubject = new();
     private readonly Subject<ConsensusMessage> _messagePublishedSubject = new();
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
@@ -25,7 +25,7 @@ public partial class Context : IAsyncDisposable
     private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Channel<ConsensusMessage> _messageRequests;
     private readonly Dispatcher _dispatcher = new();
-    private readonly HeightVoteSet _heightVotes;
+    private readonly HeightVote _heightVote;
     private readonly ISigner _signer;
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
     private readonly HashSet<int> _preVoteTimeoutFlags = [];
@@ -43,7 +43,6 @@ public partial class Context : IAsyncDisposable
     private Block? _validBlock;
     private int _validRound = -1;
     private Block? _decision;
-    private int _committedRound = -1;
     private bool _disposed;
 
     public Context(Blockchain blockchain, int height, ISigner signer, ContextOptions options)
@@ -58,9 +57,8 @@ public partial class Context : IAsyncDisposable
         Height = height;
         _blockchain = blockchain;
         _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
-        // _mutationRequests = Channel.CreateUnbounded<System.Action>();
         _validators = blockchain.GetValidators(height);
-        _heightVotes = new HeightVoteSet(height, _validators);
+        _heightVote = new HeightVote(height, _validators);
         _cancellationTokenSource = new CancellationTokenSource();
         _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
             .WithCapacity(128)
@@ -69,7 +67,7 @@ public partial class Context : IAsyncDisposable
         _options = options;
     }
 
-    public IObservable<int> HeightStarted => _heightStartedSubject;
+    public IObservable<int> Started => _startedSubject;
 
     public IObservable<int> RoundStarted => _roundStartedSubject;
 
@@ -82,8 +80,6 @@ public partial class Context : IAsyncDisposable
     public IObservable<ContextState> StateChanged => _stateChangedSubject;
 
     internal event EventHandler<ConsensusMessage>? MessageConsumed;
-
-    // internal event EventHandler<Action>? MutationConsumed;
 
     internal event EventHandler<(int Round, VoteType Flag, IEnumerable<Vote> Votes)>? VoteSetModified;
 
@@ -117,7 +113,6 @@ public partial class Context : IAsyncDisposable
         {
             await _cancellationTokenSource.CancelAsync();
             _messageRequests.Writer.TryComplete();
-            // _mutationRequests.Writer.TryComplete();
             await _dispatcher.DisposeAsync();
             _cancellationTokenSource.Dispose();
             _disposed = true;
@@ -129,8 +124,7 @@ public partial class Context : IAsyncDisposable
     {
         try
         {
-            var blockCommit = _heightVotes.PreCommits(Round).ToBlockCommit();
-            return blockCommit;
+            return _heightVote.PreCommits(Round).ToBlockCommit();
         }
         catch (KeyNotFoundException)
         {
@@ -145,8 +139,8 @@ public partial class Context : IAsyncDisposable
         // since RoundVoteSet has been already created on SetPeerMaj23.
         bool[] voteBits = voteType switch
         {
-            VoteType.PreVote => _heightVotes.PreVotes(round).BitArrayByBlockHash(blockHash),
-            VoteType.PreCommit => _heightVotes.PreCommits(round).BitArrayByBlockHash(blockHash),
+            VoteType.PreVote => _heightVote.PreVotes(round).BitArrayByBlockHash(blockHash),
+            VoteType.PreCommit => _heightVote.PreCommits(round).BitArrayByBlockHash(blockHash),
             _ => throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(voteType)),
         };
 
@@ -166,7 +160,7 @@ public partial class Context : IAsyncDisposable
     {
         try
         {
-            if (_heightVotes.SetPeerMaj23(maj23))
+            if (_heightVote.SetPeerMaj23(maj23))
             {
                 var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.VoteType);
                 return voteSetBits.VoteBits.All(b => b) ? null : voteSetBits;
@@ -189,13 +183,13 @@ public partial class Context : IAsyncDisposable
             votes = voteSetBits.VoteType switch
             {
                 VoteType.PreVote =>
-                _heightVotes.PreVotes(voteSetBits.Round).MappedList().Where(
+                _heightVote.PreVotes(voteSetBits.Round).MappedList().Where(
                     (vote, index)
                     => !voteSetBits.VoteBits[index]
                     && vote is { }
                     && vote.Type == VoteType.PreVote).Select(vote => vote!),
                 VoteType.PreCommit =>
-                _heightVotes.PreCommits(voteSetBits.Round).MappedList().Where(
+                _heightVote.PreCommits(voteSetBits.Round).MappedList().Where(
                     (vote, index)
                     => !voteSetBits.VoteBits[index]
                     && vote is { }
@@ -220,26 +214,6 @@ public partial class Context : IAsyncDisposable
 
     public EvidenceException[] CollectEvidenceExceptions() => _evidenceCollector.Flush();
 
-    // private TimeSpan TimeoutPreVote(long round)
-    // {
-    //     return TimeSpan.FromMilliseconds(
-    //         _options.PreVoteTimeoutBase +
-    //         (round * _options.PreVoteTimeoutDelta));
-    // }
-
-    // private TimeSpan TimeoutPreCommit(long round)
-    // {
-    //     return TimeSpan.FromMilliseconds(
-    //         _options.PreCommitTimeoutBase +
-    //         (round * _options.PreCommitTimeoutDelta));
-    // }
-
-    // private TimeSpan TimeoutPropose(long round)
-    // {
-    //     return TimeSpan.FromMilliseconds(
-    //         _options.ProposeTimeoutBase + (round * _options.ProposeTimeoutDelta));
-    // }
-
     private Block GetValue()
     {
         return _blockchain.ProposeBlock(_signer);
@@ -253,10 +227,6 @@ public partial class Context : IAsyncDisposable
         }
         else
         {
-            // Need to get txs from store, lock?
-            // TODO: Remove ChainId, enhancing lock management.
-            // _blockChain._rwlock.EnterUpgradeableReadLock();
-
             if (block.Height != Height)
             {
                 _blockValidationCache.AddOrUpdate(block.BlockHash, false);
@@ -273,15 +243,10 @@ public partial class Context : IAsyncDisposable
                     _blockchain.Options.TransactionOptions.Validate(tx);
                 }
             }
-            catch (Exception e) when (
-                e is InvalidOperationException)
+            catch (Exception e) when (e is InvalidOperationException)
             {
                 _blockValidationCache.AddOrUpdate(block.BlockHash, false);
                 return false;
-            }
-            finally
-            {
-                // _blockChain._rwlock.ExitUpgradeableReadLock();
             }
 
             _blockValidationCache.AddOrUpdate(block.BlockHash, true);
@@ -293,9 +258,9 @@ public partial class Context : IAsyncDisposable
     {
         if (voteType == VoteType.Null || voteType == VoteType.Unknown)
         {
-            throw new ArgumentException(
-                $"{nameof(voteType)} must be either {VoteType.PreVote} or {VoteType.PreCommit}" +
-                $"to create a valid signed vote.");
+            var message = $"{nameof(voteType)} must be either {VoteType.PreVote} or {VoteType.PreCommit}" +
+                          $"to create a valid signed vote.";
+            throw new ArgumentException(message, nameof(voteType));
         }
 
         return new VoteMetadata
@@ -310,7 +275,7 @@ public partial class Context : IAsyncDisposable
         }.Sign(_signer);
     }
 
-    private Maj23 MakeMaj23(int round, BlockHash blockHash, VoteType voteType)
+    private Maj23 CreateMaj23(int round, BlockHash blockHash, VoteType voteType)
     {
         if (voteType == VoteType.Null || voteType == VoteType.Unknown)
         {
