@@ -122,7 +122,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     internal event EventHandler<(int Height, Exception)>? ExceptionOccurred;
 
-    internal event EventHandler<(int Height, int Round, ConsensusStep Step)>? TimeoutProcessed;
+    // internal event EventHandler<(int Height, int Round, ConsensusStep Step)>? TimeoutProcessed;
 
     internal event EventHandler<ConsensusState>? StateChanged;
 
@@ -134,8 +134,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
     {
         // NOTE: Events for testing and debugging.
         context.ExceptionOccurred.Subscribe(exception => ExceptionOccurred?.Invoke(this, (context.Height, exception)));
-        context.TimeoutProcessed += (sender, eventArgs) =>
-            TimeoutProcessed?.Invoke(this, (context.Height, eventArgs.Round, eventArgs.Step));
+        // context.TimeoutProcessed += (sender, eventArgs) =>
+        //     TimeoutProcessed?.Invoke(this, (context.Height, eventArgs.Round, eventArgs.Step));
         context.StateChanged.Subscribe(state => StateChanged?.Invoke(this, state));
         context.MessageConsumed += (sender, message) =>
             MessageConsumed?.Invoke(this, (context.Height, message));

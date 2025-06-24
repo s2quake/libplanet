@@ -28,27 +28,27 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task IncreaseRoundWhenTimeout()
         {
-            var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
+            var (blockChain, consensusReactor) = TestUtils.CreateDummyConsensusContext(
                 TimeSpan.FromSeconds(1),
                 TestUtils.Options,
                 TestUtils.PrivateKeys[1]);
-            var timeoutProcessed = new AsyncAutoResetEvent();
-            consensusContext.TimeoutProcessed += (_, eventArgs) =>
-            {
-                if (eventArgs.Height == 1)
-                {
-                    timeoutProcessed.Set();
-                }
-            };
+            // var timeoutProcessed = new AsyncAutoResetEvent();
+            // consensusReactor.TimeoutProcessed += (_, eventArgs) =>
+            // {
+            //     if (eventArgs.Height == 1)
+            //     {
+            //         timeoutProcessed.Set();
+            //     }
+            // };
 
-            await consensusContext.StartAsync(default);
+            await consensusReactor.StartAsync(default);
 
             // Wait for block to be proposed.
-            Assert.Equal(1, consensusContext.Height);
-            Assert.Equal(0, consensusContext.Round);
+            Assert.Equal(1, consensusReactor.Height);
+            Assert.Equal(0, consensusReactor.Round);
 
             // Triggers timeout +2/3 with NIL and Block
-            consensusContext.HandleMessage(
+            consensusReactor.HandleMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -60,7 +60,7 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreVote)
                 });
 
-            consensusContext.HandleMessage(
+            consensusReactor.HandleMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -72,9 +72,9 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreVote)
                 });
 
-            await timeoutProcessed.WaitAsync();
+            // await timeoutProcessed.WaitAsync();
 
-            consensusContext.HandleMessage(
+            consensusReactor.HandleMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -86,7 +86,7 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreCommit)
                 });
 
-            consensusContext.HandleMessage(
+            consensusReactor.HandleMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -98,9 +98,9 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreCommit)
                 });
 
-            await timeoutProcessed.WaitAsync();
-            Assert.Equal(1, consensusContext.Height);
-            Assert.Equal(1, consensusContext.Round);
+            // await timeoutProcessed.WaitAsync();
+            Assert.Equal(1, consensusReactor.Height);
+            Assert.Equal(1, consensusReactor.Round);
         }
     }
 }
