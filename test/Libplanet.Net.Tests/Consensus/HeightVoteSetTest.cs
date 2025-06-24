@@ -1,4 +1,5 @@
 using Libplanet.Data;
+using Libplanet.Data.Structures;
 using Libplanet.Net.Consensus;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
@@ -14,6 +15,7 @@ public class HeightVoteSetTest
 
     public HeightVoteSetTest()
     {
+        var trie = new Trie();
         _blockchain = TestUtils.CreateDummyBlockChain();
         var block = _blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         _heightVote = new HeightVoteSet(2, TestUtils.Validators);

@@ -60,7 +60,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
         {
             if (index.IsFromEnd)
             {
-                return this[Count - index.Value];
+                return GetByHeight(Count - index.Value);
             }
 
             if (index.Value < 0)
@@ -68,7 +68,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            return this[index.Value];
+            return GetByHeight(index.Value);
         }
     }
 
@@ -117,12 +117,6 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
         return false;
     }
 
-    internal void AddCache(Block block)
-    {
-        _cacheByHash.AddOrUpdate(block.BlockHash, block);
-        _cacheByHeight.AddOrUpdate(block.Height, block);
-    }
-
     public bool TryGetValue(int height, [MaybeNullWhen(false)] out Block value)
     {
         if (_cacheByHeight.TryGet(height, out value))
@@ -166,4 +160,20 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    internal void AddCache(Block block)
+    {
+        _cacheByHash.AddOrUpdate(block.BlockHash, block);
+        _cacheByHeight.AddOrUpdate(block.Height, block);
+    }
+
+    private Block GetByHeight(int height)
+    {
+        if (_blockHashes.TryGetValue(height, out var blockHash))
+        {
+            return this[blockHash];
+        }
+
+        throw new KeyNotFoundException($"No block found at height {height}.");
+    }
 }
