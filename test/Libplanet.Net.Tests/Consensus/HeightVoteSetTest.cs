@@ -1,187 +1,183 @@
+using Libplanet.Data;
 using Libplanet.Net.Consensus;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Libplanet.Types.Tests;
 
-namespace Libplanet.Net.Tests.Consensus
+namespace Libplanet.Net.Tests.Consensus;
+
+public class HeightVoteSetTest
 {
-    public class HeightVoteSetTest
+    private readonly Blockchain _blockchain;
+    private readonly HeightVoteSet _heightVote;
+
+    public HeightVoteSetTest()
     {
-        private readonly Blockchain _blockChain;
-        private readonly BlockCommit _lastCommit;
-        private readonly HeightVoteSet _heightVoteSet;
+        _blockchain = TestUtils.CreateDummyBlockChain();
+        var block = _blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        _heightVote = new HeightVoteSet(2, TestUtils.Validators);
+        _blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+    }
 
-        /// <summary>
-        /// Sets up a <see cref="Blockchain"/> with tip index of 1, i.e. two blocks.
-        /// </summary>
-        public HeightVoteSetTest()
+    [Fact]
+    public void CannotAddDifferentHeight()
+    {
+        var preVote = new VoteMetadata
         {
-            _blockChain = TestUtils.CreateDummyBlockChain();
-            var block = _blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
-            _lastCommit = TestUtils.CreateBlockCommit(block);
-            _heightVoteSet = new HeightVoteSet(2, TestUtils.Validators);
-            _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
+            Height = 3,
+            Round = 0,
+            BlockHash = default,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = TestUtils.PrivateKeys[0].Address,
+            ValidatorPower = TestUtils.Validators[0].Power,
+            Type = VoteType.PreVote,
+        }.Sign(TestUtils.PrivateKeys[0]);
+
+        Assert.Throws<InvalidVoteException>(() => _heightVote.AddVote(preVote));
+    }
+
+    [Fact]
+    public void CannotAddUnknownValidator()
+    {
+        var key = new PrivateKey();
+        var preVote = new VoteMetadata
+        {
+            Height = 2,
+            Round = 0,
+            BlockHash = default,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = key.Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreVote,
+        }.Sign(key);
+
+        Assert.Throws<InvalidVoteException>(() => _heightVote.AddVote(preVote));
+    }
+
+    [Fact]
+    public void CannotAddValidatorWithInvalidPower()
+    {
+        var preVote = new VoteMetadata
+        {
+            Height = 2,
+            Round = 0,
+            BlockHash = default,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = TestUtils.Validators[0].Address,
+            ValidatorPower = TestUtils.Validators[0].Power + 1,
+            Type = VoteType.PreVote,
+        }.Sign(TestUtils.PrivateKeys[0]);
+
+        Assert.Throws<InvalidVoteException>(() => _heightVote.AddVote(preVote));
+    }
+
+    [Fact]
+    public void CannotAddMultipleVotesPerRoundPerValidator()
+    {
+        Random random = new Random();
+        var preVote0 = new VoteMetadata
+        {
+            Height = 2,
+            Round = 0,
+            BlockHash = default,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = TestUtils.PrivateKeys[0].Address,
+            ValidatorPower = TestUtils.Validators[0].Power,
+            Type = VoteType.PreVote,
+        }.Sign(TestUtils.PrivateKeys[0]);
+        var preVote1 = new VoteMetadata
+        {
+            Height = 2,
+            Round = 0,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = TestUtils.PrivateKeys[0].Address,
+            ValidatorPower = TestUtils.Validators[0].Power,
+            Type = VoteType.PreVote,
+        }.Sign(TestUtils.PrivateKeys[0]);
+        var preCommit0 = new VoteMetadata
+        {
+            Height = 2,
+            Round = 0,
+            BlockHash = default,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = TestUtils.PrivateKeys[0].Address,
+            ValidatorPower = TestUtils.Validators[0].Power,
+            Type = VoteType.PreCommit,
+        }.Sign(TestUtils.PrivateKeys[0]);
+        var preCommit1 = new VoteMetadata
+        {
+            Height = 2,
+            Round = 0,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = TestUtils.PrivateKeys[0].Address,
+            ValidatorPower = TestUtils.Validators[0].Power,
+            Type = VoteType.PreCommit,
+        }.Sign(TestUtils.PrivateKeys[0]);
+
+        _heightVote.AddVote(preVote0);
+        Assert.Throws<DuplicateVoteException>(() => _heightVote.AddVote(preVote1));
+        _heightVote.AddVote(preCommit0);
+        Assert.Throws<DuplicateVoteException>(
+            () => _heightVote.AddVote(preCommit1));
+    }
+
+    [Fact]
+    public void CannotAddVoteWithoutValidatorPower()
+    {
+        var preVote = new VoteMetadata
+        {
+            Height = 2,
+            Round = 0,
+            BlockHash = default,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = TestUtils.PrivateKeys[0].Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreVote,
+        }.Sign(TestUtils.PrivateKeys[0]);
+
+        var exception = Assert.Throws<InvalidVoteException>(
+            () => _heightVote.AddVote(preVote));
+        Assert.Equal("ValidatorPower of the vote cannot be null", exception.Message);
+    }
+
+    [Fact]
+    public void GetCount()
+    {
+        var preVotes = Enumerable.Range(0, TestUtils.PrivateKeys.Count)
+            .Select(
+                index => new VoteMetadata
+                {
+                    Height = 2,
+                    Round = 0,
+                    BlockHash = default,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = TestUtils.PrivateKeys[index].Address,
+                    ValidatorPower = TestUtils.Validators[index].Power,
+                    Type = VoteType.PreVote,
+                }.Sign(TestUtils.PrivateKeys[index]))
+            .ToList();
+        var preCommit = new VoteMetadata
+        {
+            Height = 2,
+            Round = 0,
+            BlockHash = default,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = TestUtils.PrivateKeys[0].Address,
+            ValidatorPower = TestUtils.Validators[0].Power,
+            Type = VoteType.PreCommit,
+        }.Sign(TestUtils.PrivateKeys[0]);
+
+        foreach (var preVote in preVotes)
+        {
+            _heightVote.AddVote(preVote);
         }
 
-        [Fact]
-        public void CannotAddDifferentHeight()
-        {
-            var preVote = new VoteMetadata
-            {
-                Height = 3,
-                Round = 0,
-                BlockHash = default,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[0].Address,
-                ValidatorPower = TestUtils.Validators[0].Power,
-                Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[0]);
+        _heightVote.AddVote(preCommit);
 
-            Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
-        }
-
-        [Fact]
-        public void CannotAddUnknownValidator()
-        {
-            var key = new PrivateKey();
-            var preVote = new VoteMetadata
-            {
-                Height = 2,
-                Round = 0,
-                BlockHash = default,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = key.Address,
-                ValidatorPower = BigInteger.One,
-                Type = VoteType.PreVote,
-            }.Sign(key);
-
-            Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
-        }
-
-        [Fact]
-        public void CannotAddValidatorWithInvalidPower()
-        {
-            var preVote = new VoteMetadata
-            {
-                Height = 2,
-                Round = 0,
-                BlockHash = default,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.Validators[0].Address,
-                ValidatorPower = TestUtils.Validators[0].Power + 1,
-                Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[0]);
-
-            Assert.Throws<InvalidVoteException>(() => _heightVoteSet.AddVote(preVote));
-        }
-
-        [Fact]
-        public void CannotAddMultipleVotesPerRoundPerValidator()
-        {
-            Random random = new Random();
-            var preVote0 = new VoteMetadata
-            {
-                Height = 2,
-                Round = 0,
-                BlockHash = default,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[0].Address,
-                ValidatorPower = TestUtils.Validators[0].Power,
-                Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[0]);
-            var preVote1 = new VoteMetadata
-            {
-                Height = 2,
-                Round = 0,
-                BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[0].Address,
-                ValidatorPower = TestUtils.Validators[0].Power,
-                Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[0]);
-            var preCommit0 = new VoteMetadata
-            {
-                Height = 2,
-                Round = 0,
-                BlockHash = default,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[0].Address,
-                ValidatorPower = TestUtils.Validators[0].Power,
-                Type = VoteType.PreCommit,
-            }.Sign(TestUtils.PrivateKeys[0]);
-            var preCommit1 = new VoteMetadata
-            {
-                Height = 2,
-                Round = 0,
-                BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[0].Address,
-                ValidatorPower = TestUtils.Validators[0].Power,
-                Type = VoteType.PreCommit,
-            }.Sign(TestUtils.PrivateKeys[0]);
-
-            _heightVoteSet.AddVote(preVote0);
-            Assert.Throws<DuplicateVoteException>(() => _heightVoteSet.AddVote(preVote1));
-            _heightVoteSet.AddVote(preCommit0);
-            Assert.Throws<DuplicateVoteException>(
-                () => _heightVoteSet.AddVote(preCommit1));
-        }
-
-        [Fact]
-        public void CannotAddVoteWithoutValidatorPower()
-        {
-            var preVote = new VoteMetadata
-            {
-                Height = 2,
-                Round = 0,
-                BlockHash = default,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[0].Address,
-                ValidatorPower = BigInteger.One,
-                Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[0]);
-
-            var exception = Assert.Throws<InvalidVoteException>(
-                () => _heightVoteSet.AddVote(preVote));
-            Assert.Equal("ValidatorPower of the vote cannot be null", exception.Message);
-        }
-
-        [Fact]
-        public void GetCount()
-        {
-            var preVotes = Enumerable.Range(0, TestUtils.PrivateKeys.Count)
-                .Select(
-                    index => new VoteMetadata
-                    {
-                        Height = 2,
-                        Round = 0,
-                        BlockHash = default,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Validator = TestUtils.PrivateKeys[index].Address,
-                        ValidatorPower = TestUtils.Validators[index].Power,
-                        Type = VoteType.PreVote,
-                    }.Sign(TestUtils.PrivateKeys[index]))
-                .ToList();
-            var preCommit = new VoteMetadata
-            {
-                Height = 2,
-                Round = 0,
-                BlockHash = default,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[0].Address,
-                ValidatorPower = TestUtils.Validators[0].Power,
-                Type = VoteType.PreCommit,
-            }.Sign(TestUtils.PrivateKeys[0]);
-
-            foreach (var preVote in preVotes)
-            {
-                _heightVoteSet.AddVote(preVote);
-            }
-
-            _heightVoteSet.AddVote(preCommit);
-
-            Assert.Equal(5, _heightVoteSet.Count);
-        }
+        Assert.Equal(5, _heightVote.GetVotes(0, VoteType.PreVote).Count + 
+            _heightVote.GetVotes(0, VoteType.PreCommit).Count);
     }
 }

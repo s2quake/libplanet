@@ -1,5 +1,4 @@
 using System.Reactive.Subjects;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -8,7 +7,6 @@ using BitFaster.Caching.Lru;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Threading;
-using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
@@ -27,7 +25,7 @@ public partial class Context : IAsyncDisposable
     private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Channel<ConsensusMessage> _messageRequests;
     private readonly Dispatcher _dispatcher = new();
-    private readonly HeightVoteSet _heightVoteSet;
+    private readonly HeightVoteSet _heightVotes;
     private readonly ISigner _signer;
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
     private readonly HashSet<int> _preVoteTimeoutFlags = [];
@@ -62,7 +60,7 @@ public partial class Context : IAsyncDisposable
         _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
         // _mutationRequests = Channel.CreateUnbounded<System.Action>();
         _validators = blockchain.GetValidators(height);
-        _heightVoteSet = new HeightVoteSet(height, _validators);
+        _heightVotes = new HeightVoteSet(height, _validators);
         _cancellationTokenSource = new CancellationTokenSource();
         _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
             .WithCapacity(128)
@@ -131,7 +129,7 @@ public partial class Context : IAsyncDisposable
     {
         try
         {
-            var blockCommit = _heightVoteSet.PreCommits(Round).ToBlockCommit();
+            var blockCommit = _heightVotes.PreCommits(Round).ToBlockCommit();
             return blockCommit;
         }
         catch (KeyNotFoundException)
@@ -147,8 +145,8 @@ public partial class Context : IAsyncDisposable
         // since RoundVoteSet has been already created on SetPeerMaj23.
         bool[] voteBits = voteType switch
         {
-            VoteType.PreVote => _heightVoteSet.PreVotes(round).BitArrayByBlockHash(blockHash),
-            VoteType.PreCommit => _heightVoteSet.PreCommits(round).BitArrayByBlockHash(blockHash),
+            VoteType.PreVote => _heightVotes.PreVotes(round).BitArrayByBlockHash(blockHash),
+            VoteType.PreCommit => _heightVotes.PreCommits(round).BitArrayByBlockHash(blockHash),
             _ => throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(voteType)),
         };
 
@@ -168,7 +166,7 @@ public partial class Context : IAsyncDisposable
     {
         try
         {
-            if (_heightVoteSet.SetPeerMaj23(maj23))
+            if (_heightVotes.SetPeerMaj23(maj23))
             {
                 var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.VoteType);
                 return voteSetBits.VoteBits.All(b => b) ? null : voteSetBits;
@@ -191,13 +189,13 @@ public partial class Context : IAsyncDisposable
             votes = voteSetBits.VoteType switch
             {
                 VoteType.PreVote =>
-                _heightVoteSet.PreVotes(voteSetBits.Round).MappedList().Where(
+                _heightVotes.PreVotes(voteSetBits.Round).MappedList().Where(
                     (vote, index)
                     => !voteSetBits.VoteBits[index]
                     && vote is { }
                     && vote.Type == VoteType.PreVote).Select(vote => vote!),
                 VoteType.PreCommit =>
-                _heightVoteSet.PreCommits(voteSetBits.Round).MappedList().Where(
+                _heightVotes.PreCommits(voteSetBits.Round).MappedList().Where(
                     (vote, index)
                     => !voteSetBits.VoteBits[index]
                     && vote is { }

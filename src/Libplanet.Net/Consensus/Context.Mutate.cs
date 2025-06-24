@@ -9,7 +9,7 @@ public partial class Context
     {
         Round = round;
         _roundStartedSubject.OnNext(round);
-        _heightVoteSet.SetRound(round);
+        _heightVotes.SetRound(round);
 
         Proposal = null;
         Step = ConsensusStep.Propose;
@@ -68,18 +68,18 @@ public partial class Context
                 {
                     case ConsensusPreVoteMessage preVote:
                         {
-                            _heightVoteSet.AddVote(preVote.PreVote);
+                            _heightVotes.AddVote(preVote.PreVote);
                             var args = (preVote.Round, VoteType.PreVote,
-                                _heightVoteSet.PreVotes(preVote.Round).GetAllVotes());
+                                _heightVotes.PreVotes(preVote.Round).GetAllVotes());
                             VoteSetModified?.Invoke(this, args);
                             break;
                         }
 
                     case ConsensusPreCommitMessage preCommit:
                         {
-                            _heightVoteSet.AddVote(preCommit.PreCommit);
+                            _heightVotes.AddVote(preCommit.PreCommit);
                             var args = (preCommit.Round, VoteType.PreCommit,
-                                _heightVoteSet.PreCommits(preCommit.Round).GetAllVotes());
+                                _heightVotes.PreCommits(preCommit.Round).GetAllVotes());
                             VoteSetModified?.Invoke(this, args);
                             break;
                         }
@@ -117,7 +117,7 @@ public partial class Context
         }
 
         // Should check if +2/3 votes already collected and the proposal does not match
-        if (_heightVoteSet.PreVotes(Round).TwoThirdsMajority(out var preVoteMaj23) &&
+        if (_heightVotes.PreVotes(Round).TwoThirdsMajority(out var preVoteMaj23) &&
             !proposal.BlockHash.Equals(preVoteMaj23))
         {
             throw new InvalidProposalException(
@@ -126,7 +126,7 @@ public partial class Context
                 proposal);
         }
 
-        if (_heightVoteSet.PreCommits(Round).TwoThirdsMajority(out var preCommitMaj23) &&
+        if (_heightVotes.PreCommits(Round).TwoThirdsMajority(out var preCommitMaj23) &&
             !proposal.BlockHash.Equals(preCommitMaj23))
         {
             throw new InvalidProposalException(
@@ -171,7 +171,7 @@ public partial class Context
             && propose is { } p2
             && p2.ValidRound >= 0
             && p2.ValidRound < Round
-            && _heightVoteSet.PreVotes(p2.ValidRound).TwoThirdsMajority(out BlockHash hash1)
+            && _heightVotes.PreVotes(p2.ValidRound).TwoThirdsMajority(out BlockHash hash1)
             && hash1.Equals(p2.Block.BlockHash))
         {
             if (IsValid(p2.Block) && (_lockedRound <= p2.ValidRound || _lockedBlock == p2.Block))
@@ -184,14 +184,14 @@ public partial class Context
             }
         }
 
-        if (Step == ConsensusStep.PreVote && _heightVoteSet.PreVotes(Round).HasTwoThirdsAny)
+        if (Step == ConsensusStep.PreVote && _heightVotes.PreVotes(Round).HasTwoThirdsAny)
         {
             _ = OnTimeoutPreVote(Round);
         }
 
         if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
             && propose is { } p3
-            && _heightVoteSet.PreVotes(Round).TwoThirdsMajority(out BlockHash hash2)
+            && _heightVotes.PreVotes(Round).TwoThirdsMajority(out BlockHash hash2)
             && hash2.Equals(p3.Block.BlockHash)
             && IsValid(p3.Block)
             && !_hasTwoThirdsPreVoteTypes.Contains(Round))
@@ -216,7 +216,7 @@ public partial class Context
         }
 
         if (Step == ConsensusStep.PreVote
-            && _heightVoteSet.PreVotes(Round).TwoThirdsMajority(out BlockHash hash3))
+            && _heightVotes.PreVotes(Round).TwoThirdsMajority(out BlockHash hash3))
         {
             if (hash3.Equals(default))
             {
@@ -242,7 +242,7 @@ public partial class Context
             }
         }
 
-        if (_heightVoteSet.PreCommits(Round).HasTwoThirdsAny)
+        if (_heightVotes.PreCommits(Round).HasTwoThirdsAny)
         {
             _ = OnTimeoutPreCommit(Round);
         }
@@ -258,7 +258,7 @@ public partial class Context
         var round = message.Round;
         if ((message is ConsensusProposalMessage || message is ConsensusPreCommitMessage) &&
             GetProposal() is (Block block4, _) &&
-            _heightVoteSet.PreCommits(Round).TwoThirdsMajority(out BlockHash hash) &&
+            _heightVotes.PreCommits(Round).TwoThirdsMajority(out BlockHash hash) &&
             block4.BlockHash.Equals(hash) &&
             IsValid(block4))
         {
@@ -277,7 +277,7 @@ public partial class Context
 
         // NOTE: +1/3 prevote received, skip round
         // FIXME: Tendermint uses +2/3, should be fixed?
-        if (round > Round && _heightVoteSet.PreVotes(round).HasOneThirdsAny)
+        if (round > Round && _heightVotes.PreVotes(round).HasOneThirdsAny)
         {
             StartRound(round);
         }

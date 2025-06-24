@@ -10,6 +10,7 @@ using Libplanet.Net.Transports;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
+using Libplanet.Data;
 using Random = System.Random;
 
 namespace Libplanet.Net.Tests
@@ -85,14 +86,11 @@ namespace Libplanet.Net.Tests
             return privateKey;
         }
 
-        public static Blockchain CreateDummyBlockChain(
-            BlockchainOptions? options = null,
-            Block? genesisBlock = null)
+        public static Blockchain CreateDummyBlockChain(BlockchainOptions? options = null, Block? genesisBlock = null)
         {
             options ??= Options;
             var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
-                options,
-                genesisBlock: genesisBlock);
+                options, genesisBlock: genesisBlock);
 
             return blockChain;
         }
