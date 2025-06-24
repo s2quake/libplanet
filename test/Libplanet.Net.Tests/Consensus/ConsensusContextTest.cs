@@ -326,13 +326,13 @@ public class ConsensusContextTest
                 stepChanged.Set();
             }
         };
-        consensusContext.CurrentContext.VoteSetModified += (_, eventArgs) =>
-        {
-            if (eventArgs.Flag == VoteType.PreCommit)
-            {
-                committed.Set();
-            }
-        };
+        // consensusContext.CurrentContext.VoteSetModified += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.Flag == VoteType.PreCommit)
+        //     {
+        //         committed.Set();
+        //     }
+        // };
 
         consensusContext.HandleMessage(new ConsensusProposalMessage { Proposal = proposal });
         consensusContext.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote1 });

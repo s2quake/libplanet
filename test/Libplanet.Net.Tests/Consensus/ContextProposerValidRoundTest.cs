@@ -45,7 +45,7 @@ namespace Libplanet.Net.Tests.Consensus
                     stateChangedToRoundTwoPropose.Set();
                 }
             });
-            context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
+            // context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
             using var _2 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
@@ -165,7 +165,7 @@ namespace Libplanet.Net.Tests.Consensus
                     stateChangedToRoundThreePropose.Set();
                 }
             });
-            context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
+            // context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
             using var _1 = context.MessagePublished.Subscribe(message =>
             {
                 if (message is ConsensusProposalMessage proposalMsg)
