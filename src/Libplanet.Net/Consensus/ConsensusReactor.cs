@@ -12,8 +12,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
 {
     private readonly Gossip _gossip;
     private readonly object _contextLock = new();
-    private readonly ContextOptions _contextOption;
-    // private readonly MessageCommunicator _messageCommunicator;
+    private readonly ConsensusOptions _contextOption;
     private readonly Blockchain _blockchain;
     private readonly PrivateKey _privateKey;
     private readonly TimeSpan _newHeightDelay;
@@ -25,17 +24,12 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     private int _height;
     private int _round;
-    private Context _currentContext;
+    private Consensus _currentConsensus;
     private CancellationTokenSource? _newHeightCts;
     private bool _disposed;
 
     public ConsensusReactor(ITransport transport, Blockchain blockchain, ConsensusReactorOptions options)
     {
-        // _messageCommunicator = new MessageCommunicator(
-        //     transport,
-        //     options.ConsensusPeers,
-        //     options.SeedPeers,
-        //     ProcessMessage);
         _gossip = new Gossip(
             transport,
             new GossipOptions
@@ -56,12 +50,12 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _newHeightDelay = options.TargetBlockInterval;
 
         _contextOption = options.ContextOptions;
-        _currentContext = new Context(
+        _currentConsensus = new Consensus(
             _blockchain,
             _blockchain.Tip.Height + 1,
             _privateKey.AsSigner(),
             options: _contextOption);
-        AttachEventHandlers(_currentContext);
+        AttachEventHandlers(_currentConsensus);
 
         _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
     }
@@ -130,13 +124,13 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     internal event EventHandler<(int Height, int Round, ConsensusStep Step)>? TimeoutProcessed;
 
-    internal event EventHandler<ContextState>? StateChanged;
+    internal event EventHandler<ConsensusState>? StateChanged;
 
     internal event EventHandler<(int Height, ConsensusMessage Message)>? MessageConsumed;
 
     // internal event EventHandler<(int Height, Action)>? MutationConsumed;
 
-    private void AttachEventHandlers(Context context)
+    private void AttachEventHandlers(Consensus context)
     {
         // NOTE: Events for testing and debugging.
         context.ExceptionOccurred.Subscribe(exception => ExceptionOccurred?.Invoke(this, (context.Height, exception)));
@@ -186,7 +180,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 await _newHeightCts.CancelAsync();
             }
 
-            await _currentContext.DisposeAsync();
+            await _currentConsensus.DisposeAsync();
 
             _newHeightCts?.Dispose();
             _newHeightCts = null;
@@ -204,7 +198,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
 
         await _gossip.StartAsync(cancellationToken);
-        await _currentContext.StartAsync(default);
+        await _currentConsensus.StartAsync(default);
         IsRunning = true;
     }
 
@@ -222,13 +216,13 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     public ConsensusStep Step => CurrentContext.Step;
 
-    internal Context CurrentContext
+    internal Consensus CurrentContext
     {
         get
         {
             lock (_contextLock)
             {
-                return _currentContext;
+                return _currentConsensus;
             }
         }
     }
@@ -243,8 +237,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
 
         var lastCommit = BlockCommit.Empty;
-        if (_currentContext.Height == height - 1 &&
-            _currentContext.GetBlockCommit() is { } prevCommit)
+        if (_currentConsensus.Height == height - 1 &&
+            _currentConsensus.GetBlockCommit() is { } prevCommit)
         {
             lastCommit = prevCommit;
         }
@@ -255,26 +249,26 @@ public sealed class ConsensusReactor : IAsyncDisposable
             lastCommit = storedCommit;
         }
 
-        await _currentContext.DisposeAsync();
-        _currentContext = new Context(
+        await _currentConsensus.DisposeAsync();
+        _currentConsensus = new Consensus(
             _blockchain,
             height,
             _privateKey.AsSigner(),
             options: _contextOption);
-        AttachEventHandlers(_currentContext);
+        AttachEventHandlers(_currentConsensus);
 
         foreach (var message in _pendingMessages)
         {
             if (message.Height == height)
             {
-                _currentContext.ProduceMessage(message);
+                _currentConsensus.ProduceMessage(message);
             }
         }
 
         _pendingMessages.RemoveWhere(message => message.Height <= height);
         if (IsRunning)
         {
-            await _currentContext.StartAsync(default);
+            await _currentConsensus.StartAsync(default);
         }
     }
 
@@ -288,9 +282,9 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
         lock (_contextLock)
         {
-            if (_currentContext.Height == height)
+            if (_currentConsensus.Height == height)
             {
-                _currentContext.ProduceMessage(consensusMessage);
+                _currentConsensus.ProduceMessage(consensusMessage);
             }
             else
             {
@@ -312,9 +306,9 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             lock (_contextLock)
             {
-                if (_currentContext.Height == height)
+                if (_currentConsensus.Height == height)
                 {
-                    return _currentContext.AddMaj23(maj23);
+                    return _currentConsensus.AddMaj23(maj23);
                 }
             }
         }
@@ -333,11 +327,11 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             lock (_contextLock)
             {
-                if (_currentContext.Height == height)
+                if (_currentConsensus.Height == height)
                 {
                     // NOTE: Should check if collected messages have same BlockHash with
                     // VoteSetBit's BlockHash?
-                    return _currentContext.GetVoteSetBitsResponse(voteSetBits);
+                    return _currentConsensus.GetVoteSetBitsResponse(voteSetBits);
                 }
             }
         }
@@ -361,11 +355,11 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             lock (_contextLock)
             {
-                if (_currentContext.Height == height)
+                if (_currentConsensus.Height == height)
                 {
                     // NOTE: Should check if collected messages have same BlockHash with
                     // VoteSetBit's BlockHash?
-                    return _currentContext.Proposal;
+                    return _currentConsensus.Proposal;
                 }
             }
         }
@@ -405,7 +399,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     private void HandleEvidenceExceptions()
     {
-        var evidenceExceptions = _currentContext.CollectEvidenceExceptions();
+        var evidenceExceptions = _currentConsensus.CollectEvidenceExceptions();
         _evidenceCollector.AddRange(evidenceExceptions);
     }
 

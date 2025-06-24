@@ -2,11 +2,11 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class HeightVote(int height, ImmutableSortedSet<Validator> validators)
+public sealed class HeightContext(int height, ImmutableSortedSet<Validator> validators)
 {
-    private readonly Dictionary<int, RoundVote> _roundVotes = new()
+    private readonly Dictionary<int, RoundContext> _roundContexts = new()
     {
-        [0] = new RoundVote(height, 0, validators),
+        [0] = new RoundContext(height, 0, validators),
     };
 
     private int _round;
@@ -25,9 +25,9 @@ public sealed class HeightVote(int height, ImmutableSortedSet<Validator> validat
 
             for (var i = _round + 1; i <= value; i++)
             {
-                if (!_roundVotes.ContainsKey(i))
+                if (!_roundContexts.ContainsKey(i))
                 {
-                    _roundVotes[i] = new RoundVote(Height, i, validators);
+                    _roundContexts[i] = new RoundContext(Height, i, validators);
                 }
             }
 
@@ -76,9 +76,9 @@ public sealed class HeightVote(int height, ImmutableSortedSet<Validator> validat
         var round = vote.Round;
         var voteType = vote.Type;
 
-        if (!_roundVotes.TryGetValue(round, out var roundVote))
+        if (!_roundContexts.TryGetValue(round, out var roundVote))
         {
-            _roundVotes[round] = roundVote = new RoundVote(Height, round, validators);
+            _roundContexts[round] = roundVote = new RoundContext(Height, round, validators);
         }
 
         roundVote.Votes[voteType].Add(vote);
@@ -112,7 +112,7 @@ public sealed class HeightVote(int height, ImmutableSortedSet<Validator> validat
         return (-1, default);
     }
 
-    public VoteCollection GetVotes(int round, VoteType voteType) => _roundVotes[round].Votes[voteType];
+    public VoteCollection GetVotes(int round, VoteType voteType) => _roundContexts[round].Votes[voteType];
 
     public bool SetPeerMaj23(Maj23 maj23)
     {
@@ -126,15 +126,15 @@ public sealed class HeightVote(int height, ImmutableSortedSet<Validator> validat
                 maj23);
         }
 
-        if (!_roundVotes.TryGetValue(round, out var roundVote))
+        if (!_roundContexts.TryGetValue(round, out var roundVote))
         {
-            _roundVotes[round] = roundVote = new RoundVote(Height, round, validators);
+            _roundContexts[round] = roundVote = new RoundContext(Height, round, validators);
         }
 
         return roundVote.Votes[voteType].SetMaj23(maj23);
     }
 
-    private sealed class RoundVote(int height, int round, ImmutableSortedSet<Validator> validators)
+    private sealed class RoundContext(int height, int round, ImmutableSortedSet<Validator> validators)
     {
         public IReadOnlyDictionary<VoteType, VoteCollection> Votes { get; } = new Dictionary<VoteType, VoteCollection>()
         {

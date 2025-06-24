@@ -329,11 +329,11 @@ public sealed class ContextTest(ITestOutputHelper output)
         var fx = new MemoryRepositoryFixture(options);
         var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(options);
 
-        Context context = new Context(
+        Net.Consensus.Consensus context = new Net.Consensus.Consensus(
             blockChain,
             1,
             TestUtils.PrivateKeys[0].AsSigner(),
-            options: new ContextOptions());
+            options: new ConsensusOptions());
         using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
 
         using var _2 = context.StateChanged.Subscribe(state =>
@@ -657,7 +657,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
             null,
             blockChain,
             new ConsensusReactorOptions { PrivateKey = new PrivateKey() });
-        Context context = consensusContext.CurrentContext;
+        Net.Consensus.Consensus context = consensusContext.CurrentContext;
         using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
 
         using var _2 = blockChain.TipChanged.Subscribe(eventArgs =>
@@ -752,7 +752,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
         Block? proposedBlock = null;
         int numPreVotes = 0;
         var (_, context) = TestUtils.CreateDummyContext(
-            contextOption: new ContextOptions
+            contextOption: new ConsensusOptions
             {
                 EnterPreCommitDelay = delay,
             });
