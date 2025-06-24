@@ -414,7 +414,7 @@ public partial class Consensus : IAsyncDisposable
         await _dispatcher.InvokeAsync(_ => EnterEndCommit(round), cancellationToken);
     }
 
-    private async Task OnTimeoutProposeAsync(int round, CancellationToken cancellationToken)
+    private async Task PostProposeTimeoutAsync(int round, CancellationToken cancellationToken)
     {
         var timeout = _options.TimeoutPropose(round);
         await Task.Delay(timeout, cancellationToken);
@@ -428,7 +428,7 @@ public partial class Consensus : IAsyncDisposable
         }, cancellationToken);
     }
 
-    private async Task OnTimeoutPreVoteAsync(int round, CancellationToken cancellationToken)
+    private async Task PostPreVoteTimeoutAsync(int round, CancellationToken cancellationToken)
     {
         if (_preCommitTimeoutFlags.Contains(round) || !_preVoteTimeoutFlags.Add(round))
         {
@@ -447,7 +447,7 @@ public partial class Consensus : IAsyncDisposable
         }, cancellationToken);
     }
 
-    private async Task OnTimeoutPreCommitAsync(int round, CancellationToken cancellationToken)
+    private async Task PostPreCommitTimeoutAsync(int round, CancellationToken cancellationToken)
     {
         if (!_preCommitTimeoutFlags.Add(round))
         {
@@ -477,29 +477,23 @@ public partial class Consensus : IAsyncDisposable
         _heightContext.Round = round;
         Proposal = null;
         Step = ConsensusStep.Propose;
-        if (_validators.GetProposer(Height, Round).Address == _signer.Address)
+        if (_validators.GetProposer(Height, Round).Address == _signer.Address
+            && (_validBlock ?? GetValue()) is Block proposalBlock)
         {
-            if ((_validBlock ?? GetValue()) is Block proposalBlock)
+            var proposal = new ProposalMetadata
             {
-                var proposal = new ProposalMetadata
-                {
-                    Height = Height,
-                    Round = Round,
-                    Timestamp = DateTimeOffset.UtcNow,
-                    Proposer = _signer.Address,
-                    ValidRound = _validRound,
-                }.Sign(_signer, proposalBlock);
+                Height = Height,
+                Round = Round,
+                Timestamp = DateTimeOffset.UtcNow,
+                Proposer = _signer.Address,
+                ValidRound = _validRound,
+            }.Sign(_signer, proposalBlock);
 
-                _messagePublishedSubject.OnNext(new ConsensusProposalMessage { Proposal = proposal });
-            }
-            else
-            {
-                _ = OnTimeoutProposeAsync(Round, _cancellationTokenSource.Token);
-            }
+            _messagePublishedSubject.OnNext(new ConsensusProposalMessage { Proposal = proposal });
         }
         else
         {
-            _ = OnTimeoutProposeAsync(Round, _cancellationTokenSource.Token);
+            _ = PostProposeTimeoutAsync(Round, _cancellationTokenSource.Token);
         }
 
         _roundStartedSubject.OnNext(round);
@@ -649,7 +643,7 @@ public partial class Consensus : IAsyncDisposable
 
         if (Step == ConsensusStep.PreVote && _heightContext.PreVotes(Round).HasTwoThirdsAny)
         {
-            _ = OnTimeoutPreVoteAsync(Round, _cancellationTokenSource.Token);
+            _ = PostPreVoteTimeoutAsync(Round, _cancellationTokenSource.Token);
         }
 
         if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
@@ -707,7 +701,7 @@ public partial class Consensus : IAsyncDisposable
 
         if (_heightContext.PreCommits(Round).HasTwoThirdsAny)
         {
-            _ = OnTimeoutPreCommitAsync(Round, _cancellationTokenSource.Token);
+            _ = PostPreCommitTimeoutAsync(Round, _cancellationTokenSource.Token);
         }
     }
 
