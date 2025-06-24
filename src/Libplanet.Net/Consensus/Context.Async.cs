@@ -16,7 +16,7 @@ public partial class Context
                 $"but its current step is {Step}");
         }
 
-        _heightStartedSubject.OnNext(Height);
+        _startedSubject.OnNext(Height);
         await _dispatcher.InvokeAsync(_ => StartRound(0), _cancellationTokenSource.Token);
 
         // FIXME: Exceptions inside tasks should be handled properly.
@@ -24,13 +24,22 @@ public partial class Context
         // _ = MutationConsumerTask(_cancellationTokenSource.Token);
     }
 
-    internal async Task MessageConsumerTask(CancellationToken cancellationToken)
+    private async Task MessageConsumerTask(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                await ConsumeMessage(cancellationToken);
+                var message = await _messageRequests.Reader.ReadAsync(cancellationToken);
+                await _dispatcher.InvokeAsync(_ =>
+                {
+                    if (AddMessage(message))
+                    {
+                        ProcessHeightOrRoundUponRules(message);
+                    }
+                }, cancellationToken);
+
+                MessageConsumed?.Invoke(this, message);
             }
             catch (Exception e)
             {
@@ -67,26 +76,7 @@ public partial class Context
 
     internal void ProduceMessage(ConsensusMessage message)
     {
-        _messageRequests.Writer.WriteAsync(message);
-    }
-
-    // private ValueTask ProduceMutationAsync(Action mutation, CancellationToken cancellationToken)
-    // {
-    //     return _mutationRequests.Writer.WriteAsync(mutation, cancellationToken);
-    // }
-
-    private async Task ConsumeMessage(CancellationToken cancellationToken)
-    {
-        var message = await _messageRequests.Reader.ReadAsync(cancellationToken);
-        await _dispatcher.InvokeAsync(_ =>
-        {
-            if (AddMessage(message))
-            {
-                ProcessHeightOrRoundUponRules(message);
-            }
-        }, cancellationToken);
-
-        MessageConsumed?.Invoke(this, message);
+        _ = _messageRequests.Writer.WriteAsync(message);
     }
 
     private async Task ConsumeMutation(CancellationToken cancellationToken)
@@ -139,21 +129,15 @@ public partial class Context
         _ = Task.Run(() => _blockchain.Append(block, GetBlockCommit()));
     }
 
-    private async Task EnterPreCommitWait(int round, BlockHash hash, CancellationToken cancellationToken)
+    private async Task EnterPreCommitWait(int round, BlockHash blockHash, CancellationToken cancellationToken)
     {
         if (!_preCommitWaitFlags.Add(round))
         {
             return;
         }
 
-        if (_options.EnterPreCommitDelay > 0)
-        {
-            await Task.Delay(
-                _options.EnterPreCommitDelay,
-                _cancellationTokenSource.Token);
-        }
-
-        await _dispatcher.InvokeAsync(_ => EnterPreCommit(round, hash), cancellationToken);
+        await Task.Delay(_options.EnterPreCommitDelay, cancellationToken);
+        await _dispatcher.InvokeAsync(_ => EnterPreCommit(round, blockHash), cancellationToken);
     }
 
     private async Task EnterEndCommitWait(int round, CancellationToken cancellationToken)
@@ -163,24 +147,25 @@ public partial class Context
             return;
         }
 
-        if (_options.EnterEndCommitDelay > 0)
-        {
-            await Task.Delay(
-                _options.EnterEndCommitDelay,
-                _cancellationTokenSource.Token);
-        }
-
+        await Task.Delay(_options.EnterEndCommitDelay, cancellationToken);
         await _dispatcher.InvokeAsync(_ => EnterEndCommit(round), cancellationToken);
     }
 
-    private async Task OnTimeoutPropose(int round)
+    private async Task OnTimeoutProposeAsync(int round, CancellationToken cancellationToken)
     {
         var timeout = _options.TimeoutPropose(round);
-        await Task.Delay(timeout, _cancellationTokenSource.Token);
-        await _dispatcher.InvokeAsync(_ => ProcessTimeoutPropose(round), _cancellationTokenSource.Token);
+        await Task.Delay(timeout, cancellationToken);
+        await _dispatcher.InvokeAsync(_ =>
+        {
+            if (round == Round && Step == ConsensusStep.Propose)
+            {
+                EnterPreVote(round, default);
+                TimeoutProcessed?.Invoke(this, (round, ConsensusStep.Propose));
+            }
+        }, cancellationToken);
     }
 
-    private async Task OnTimeoutPreVote(int round)
+    private async Task OnTimeoutPreVoteAsync(int round, CancellationToken cancellationToken)
     {
         if (_preCommitTimeoutFlags.Contains(round) || !_preVoteTimeoutFlags.Add(round))
         {
@@ -188,11 +173,18 @@ public partial class Context
         }
 
         var timeout = _options.TimeoutPreVote(round);
-        await Task.Delay(timeout, _cancellationTokenSource.Token);
-        await _dispatcher.InvokeAsync(_ => ProcessTimeoutPreVote(round), _cancellationTokenSource.Token);
+        await Task.Delay(timeout, cancellationToken);
+        await _dispatcher.InvokeAsync(_ =>
+        {
+            if (round == Round && Step == ConsensusStep.PreVote)
+            {
+                EnterPreCommit(round, default);
+                TimeoutProcessed?.Invoke(this, (round, ConsensusStep.PreVote));
+            }
+        }, cancellationToken);
     }
 
-    private async Task OnTimeoutPreCommit(int round)
+    private async Task OnTimeoutPreCommitAsync(int round, CancellationToken cancellationToken)
     {
         if (!_preCommitTimeoutFlags.Add(round))
         {
@@ -200,7 +192,20 @@ public partial class Context
         }
 
         var timeout = _options.TimeoutPreCommit(round);
-        await Task.Delay(timeout, _cancellationTokenSource.Token);
-        await _dispatcher.InvokeAsync(_ => ProcessTimeoutPreCommit(round), _cancellationTokenSource.Token);
+        await Task.Delay(timeout, cancellationToken);
+        await _dispatcher.InvokeAsync(_ =>
+        {
+            if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
+            {
+                return;
+            }
+
+            if (round == Round)
+            {
+                EnterEndCommit(round);
+                TimeoutProcessed?.Invoke(this, (round, ConsensusStep.PreCommit));
+            }
+        }, cancellationToken);
     }
 }
+

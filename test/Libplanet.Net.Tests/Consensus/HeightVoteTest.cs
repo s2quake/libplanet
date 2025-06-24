@@ -1,26 +1,14 @@
-using Libplanet.Data;
-using Libplanet.Data.Structures;
 using Libplanet.Net.Consensus;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Libplanet.Types.Tests;
+using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class HeightVoteSetTest
+public sealed class HeightVoteTest(ITestOutputHelper output)
 {
-    private readonly Blockchain _blockchain;
-    private readonly HeightVoteSet _heightVote;
-
-    public HeightVoteSetTest()
-    {
-        var trie = new Trie();
-        _blockchain = TestUtils.CreateDummyBlockChain();
-        var block = _blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        _heightVote = new HeightVoteSet(2, TestUtils.Validators);
-        _blockchain.Append(block, TestUtils.CreateBlockCommit(block));
-    }
+    private readonly HeightVote _heightVote = new(2, TestUtils.Validators);
 
     [Fact]
     public void CannotAddDifferentHeight()
@@ -36,7 +24,8 @@ public class HeightVoteSetTest
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[0]);
 
-        Assert.Throws<InvalidVoteException>(() => _heightVote.AddVote(preVote));
+        var e = Assert.Throws<ArgumentException>(() => _heightVote.AddVote(preVote));
+        Assert.Equal("vote", e.ParamName);
     }
 
     [Fact]
@@ -54,7 +43,8 @@ public class HeightVoteSetTest
             Type = VoteType.PreVote,
         }.Sign(key);
 
-        Assert.Throws<InvalidVoteException>(() => _heightVote.AddVote(preVote));
+        var e = Assert.Throws<ArgumentException>(() => _heightVote.AddVote(preVote));
+        Assert.Equal("vote", e.ParamName);
     }
 
     [Fact]
@@ -71,7 +61,7 @@ public class HeightVoteSetTest
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[0]);
 
-        Assert.Throws<InvalidVoteException>(() => _heightVote.AddVote(preVote));
+        Assert.Throws<ArgumentException>(() => _heightVote.AddVote(preVote));
     }
 
     [Fact]
@@ -122,13 +112,13 @@ public class HeightVoteSetTest
         _heightVote.AddVote(preVote0);
         Assert.Throws<DuplicateVoteException>(() => _heightVote.AddVote(preVote1));
         _heightVote.AddVote(preCommit0);
-        Assert.Throws<DuplicateVoteException>(
-            () => _heightVote.AddVote(preCommit1));
+        Assert.Throws<DuplicateVoteException>(() => _heightVote.AddVote(preCommit1));
     }
 
     [Fact]
     public void CannotAddVoteWithoutValidatorPower()
     {
+        var random = RandomUtility.GetRandom(output);
         var preVote = new VoteMetadata
         {
             Height = 2,
@@ -136,12 +126,11 @@ public class HeightVoteSetTest
             BlockHash = default,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.PrivateKeys[0].Address,
-            ValidatorPower = BigInteger.One,
+            ValidatorPower = BigInteger.Zero,
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[0]);
 
-        var exception = Assert.Throws<InvalidVoteException>(
-            () => _heightVote.AddVote(preVote));
+        var exception = Assert.Throws<InvalidVoteException>(() => _heightVote.AddVote(preVote));
         Assert.Equal("ValidatorPower of the vote cannot be null", exception.Message);
     }
 
@@ -179,7 +168,15 @@ public class HeightVoteSetTest
 
         _heightVote.AddVote(preCommit);
 
-        Assert.Equal(5, _heightVote.GetVotes(0, VoteType.PreVote).Count + 
+        Assert.Equal(5, _heightVote.GetVotes(0, VoteType.PreVote).Count +
             _heightVote.GetVotes(0, VoteType.PreCommit).Count);
+    }
+
+    private static Blockchain CreateDummyBlockChain()
+    {
+        var blockchain = TestUtils.CreateDummyBlockChain();
+        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+        return blockchain;
     }
 }

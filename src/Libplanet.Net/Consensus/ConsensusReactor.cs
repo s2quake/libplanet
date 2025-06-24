@@ -149,7 +149,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         //     MutationConsumed?.Invoke(this, (context.Height, action));
 
         // NOTE: Events for consensus logic.
-        context.HeightStarted.Subscribe(height =>
+        context.Started.Subscribe(height =>
         {
             _height = height;
             _peerCatchupRounds.Clear();
