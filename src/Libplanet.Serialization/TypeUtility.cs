@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.Loader;
 using System.Text.RegularExpressions;
 
 namespace Libplanet.Serialization;
@@ -35,7 +37,18 @@ public static class TypeUtility
         _knownTypes.AddType(typeof(ImmutableDictionary<,>), "imdi<,>");
         _knownTypes.AddType(typeof(ImmutableSortedDictionary<,>), "imsd<,>");
 
-        InitializeModelTypes();
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            AddAssembly(assembly);
+        }
+
+        AppDomain.CurrentDomain.AssemblyLoad += (sender, args) =>
+        {
+            if (args.LoadedAssembly is not null)
+            {
+                AddAssembly(args.LoadedAssembly);
+            }
+        };
     }
 
     public static Type GetType(string typeName)
@@ -228,10 +241,9 @@ public static class TypeUtility
         return $"{GetFullName(type.DeclaringType)}+{name}";
     }
 
-    private static void InitializeModelTypes()
+    private static void AddAssembly(Assembly assembly)
     {
-        var query = from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                    from type in assembly.GetTypes()
+        var query = from type in assembly.GetTypes()
                     where type.IsDefined(typeof(ModelAttribute)) ||
                           type.IsDefined(typeof(ModelConverterAttribute))
                     select type;
