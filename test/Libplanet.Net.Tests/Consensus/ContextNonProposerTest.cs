@@ -37,12 +37,14 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task EnterPreVoteBlockOneThird()
         {
-            var (blockChain, context) = TestUtils.CreateDummyContext(
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
 
-            var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
+            var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var stateChangedToRoundOnePreVote = new AsyncAutoResetEvent();
-            // using var _ = context.StateChanged.Subscribe(state =>
+            // using var _ = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
             //     {
@@ -50,8 +52,8 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
-            context.ProduceMessage(
+            await consensus.StartAsync(default);
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -62,7 +64,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: block.BlockHash,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -76,9 +78,9 @@ namespace Libplanet.Net.Tests.Consensus
 
             // Wait for round 1 prevote step.
             await stateChangedToRoundOnePreVote.WaitAsync();
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(1, context.Round);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(1, consensus.Round);
         }
 
         [Fact(Timeout = Timeout)]
@@ -87,19 +89,21 @@ namespace Libplanet.Net.Tests.Consensus
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
             ConsensusPreCommitMessage? preCommit = null;
             var preCommitSent = new AsyncAutoResetEvent();
-            var (blockChain, context) = TestUtils.CreateDummyContext(
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
 
-            var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
+            var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreCommit)
             //     {
             //         stepChangedToPreCommit.Set();
             //     }
             // });
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusPreCommitMessage preCommitMsg)
             //     {
@@ -108,11 +112,11 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
-            context.ProduceMessage(
+            await consensus.StartAsync(default);
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]));
 
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -123,7 +127,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: block.BlockHash,
                         VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -134,7 +138,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: block.BlockHash,
                         VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -148,13 +152,13 @@ namespace Libplanet.Net.Tests.Consensus
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
             Assert.Equal(block.BlockHash, preCommit?.BlockHash);
-            Assert.Equal(ConsensusStep.PreCommit, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
+            Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
 
             var json =
-                JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(context.ToString())
-                    ?? throw new NullReferenceException("Failed to deserialize context");
+                JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(consensus.ToString())
+                    ?? throw new NullReferenceException("Failed to deserialize consensus");
 
             Assert.Equal(0, json["locked_round"].GetInt64());
             Assert.Equal(0, json["valid_round"].GetInt64());
@@ -168,7 +172,9 @@ namespace Libplanet.Net.Tests.Consensus
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
             var preCommitSent = new AsyncAutoResetEvent();
 
-            var (blockChain, context) = TestUtils.CreateDummyContext(
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
 
             var key = new PrivateKey();
@@ -176,21 +182,21 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Header = new BlockHeader
                 {
-                    Height = blockChain.Tip.Height + 1,
+                    Height = blockchain.Tip.Height + 1,
                     Timestamp = DateTimeOffset.UtcNow,
                     Proposer = key.Address,
-                    PreviousHash = blockChain.Tip.BlockHash,
+                    PreviousHash = blockchain.Tip.BlockHash,
                 },
             }.Sign(key);
 
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreCommit)
             //     {
             //         stepChangedToPreCommit.Set();
             //     }
             // });
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusPreCommitMessage preCommitMsg &&
             //         preCommitMsg.BlockHash.Equals(default))
@@ -199,10 +205,10 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
-            context.ProduceMessage(
+            await consensus.StartAsync(default);
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(invalidBlock, TestUtils.PrivateKeys[1]));
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -213,7 +219,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -224,7 +230,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -237,9 +243,9 @@ namespace Libplanet.Net.Tests.Consensus
                 });
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
-            Assert.Equal(ConsensusStep.PreCommit, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
+            Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
         }
 
         [Fact(Timeout = Timeout)]
@@ -249,20 +255,22 @@ namespace Libplanet.Net.Tests.Consensus
             var timeoutProcessed = false;
             var nilPreVoteSent = new AsyncAutoResetEvent();
 
-            var (blockChain, context) = TestUtils.CreateDummyContext(
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreVote)
             //     {
             //         stepChangedToPreVote.Set();
             //     }
             // });
-            // context.TimeoutProcessed += (_, __) =>
+            // consensus.TimeoutProcessed += (_, __) =>
             // {
             //     timeoutProcessed = true;
             // };
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
             //     {
@@ -279,23 +287,23 @@ namespace Libplanet.Net.Tests.Consensus
                 Header = new BlockHeader
                 {
                     Version = BlockHeader.CurrentProtocolVersion,
-                    Height = blockChain.Tip.Height + 2,
-                    Timestamp = blockChain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
+                    Height = blockchain.Tip.Height + 2,
+                    Timestamp = blockchain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
                     Proposer = TestUtils.PrivateKeys[1].Address,
-                    PreviousHash = blockChain.Tip.BlockHash,
+                    PreviousHash = blockchain.Tip.BlockHash,
                 },
             }.Sign(TestUtils.PrivateKeys[1]);
 
-            await context.StartAsync(default);
-            context.ProduceMessage(
+            await consensus.StartAsync(default);
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(
                     invalidBlock, TestUtils.PrivateKeys[1]));
 
             await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
             Assert.False(timeoutProcessed); // Check step transition isn't by timeout.
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
         }
 
         [Fact(Timeout = Timeout)]
@@ -331,21 +339,23 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             }
 
-            var (blockChain, context) = TestUtils.CreateDummyContext(
-                policy: policy,
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
+                blockchainOptions: policy,
                 privateKey: TestUtils.PrivateKeys[0]);
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreVote)
             //     {
             //         stepChangedToPreVote.Set();
             //     }
             // });
-            // context.TimeoutProcessed += (_, __) =>
+            // consensus.TimeoutProcessed += (_, __) =>
             // {
             //     timeoutProcessed = true;
             // };
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
             //     {
@@ -353,30 +363,28 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            var diffPolicyBlockChain =
-                TestUtils.CreateDummyBlockChain(
-                    policy, blockChain.Genesis);
+            var diffPolicyBlockChain = TestUtils.CreateBlockChain(policy, blockchain.Genesis);
 
             var invalidTx = diffPolicyBlockChain.StagedTransactions.Add(invalidKey);
 
             Block invalidBlock = Libplanet.Tests.TestUtils.ProposeNext(
-                blockChain.Genesis,
+                blockchain.Genesis,
                 previousStateRootHash: default,
                 transactions: [invalidTx],
                 proposer: TestUtils.PrivateKeys[1],
                 blockInterval: TimeSpan.FromSeconds(10)).Sign(TestUtils.PrivateKeys[1]);
 
-            await context.StartAsync(default);
-            context.ProduceMessage(
+            await consensus.StartAsync(default);
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(
                     invalidBlock,
                     TestUtils.PrivateKeys[1]));
 
             await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
             Assert.False(timeoutProcessed); // Check step transition isn't by timeout.
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
         }
 
         [Fact(Timeout = Timeout)]
@@ -400,21 +408,23 @@ namespace Libplanet.Net.Tests.Consensus
                 },
             };
 
-            var (blockChain, context) = TestUtils.CreateDummyContext(
-                policy: policy,
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
+                blockchainOptions: policy,
                 privateKey: TestUtils.PrivateKeys[0]);
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreVote)
             //     {
             //         stepChangedToPreVote.Set();
             //     }
             // });
-            // context.TimeoutProcessed += (_, __) =>
+            // consensus.TimeoutProcessed += (_, __) =>
             // {
             //     timeoutProcessed = true;
             // };
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
             //     {
@@ -434,7 +444,7 @@ namespace Libplanet.Net.Tests.Consensus
             // {
             //     Invoice = new TxInvoice
             //     {
-            //         GenesisHash = blockChain.Genesis.BlockHash,
+            //         GenesisHash = blockchain.Genesis.BlockHash,
             //         Timestamp = DateTimeOffset.UtcNow,
             //         Actions = [new ActionBytecode([0x01])], // Invalid action
             //     },
@@ -445,7 +455,7 @@ namespace Libplanet.Net.Tests.Consensus
             // };
             var invalidTx = new TransactionMetadata
             {
-                GenesisHash = blockChain.Genesis.BlockHash,
+                GenesisHash = blockchain.Genesis.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 Actions = [new ActionBytecode([0x01])], // Invalid action
                 Signer = txSigner.Address,
@@ -458,7 +468,7 @@ namespace Libplanet.Net.Tests.Consensus
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = TestUtils.PrivateKeys[1].Address,
-                PreviousHash = blockChain.Genesis.BlockHash,
+                PreviousHash = blockchain.Genesis.BlockHash,
                 PreviousStateRootHash = HashDigest<SHA256>.HashData(RandomUtility.Bytes(1024)),
             };
             var preEval = new RawBlock
@@ -472,18 +482,18 @@ namespace Libplanet.Net.Tests.Consensus
             };
             var invalidBlock = preEval.Sign(TestUtils.PrivateKeys[1]);
 
-            await context.StartAsync(default);
-            context.ProduceMessage(
+            await consensus.StartAsync(default);
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(
                     invalidBlock,
                     TestUtils.PrivateKeys[1]));
             await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
             Assert.False(timeoutProcessed); // Check step transition isn't by timeout.
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
 
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -494,7 +504,7 @@ namespace Libplanet.Net.Tests.Consensus
                         invalidBlock.BlockHash,
                         VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -505,7 +515,7 @@ namespace Libplanet.Net.Tests.Consensus
                         default,
                         VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -517,27 +527,29 @@ namespace Libplanet.Net.Tests.Consensus
                         VoteType.PreVote)
                 });
             await nilPreCommitSent.WaitAsync();
-            Assert.Equal(ConsensusStep.PreCommit, context.Step);
+            Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         }
 
         [Fact(Timeout = Timeout)]
         public async Task EnterPreVoteNilOneThird()
         {
-            var (blockChain, context) = TestUtils.CreateDummyContext(
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
 
-            var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
+            var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var stepChangedToRoundOnePreVote = new AsyncAutoResetEvent();
-            // using var _ = context.StateChanged.Subscribe(state =>
+            // using var _ = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
             //     {
             //         stepChangedToRoundOnePreVote.Set();
             //     }
             // });
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
 
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -548,7 +560,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -561,9 +573,9 @@ namespace Libplanet.Net.Tests.Consensus
                 });
 
             await stepChangedToRoundOnePreVote.WaitAsync();
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(1, context.Round);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(1, consensus.Round);
         }
 
         [Fact(Timeout = Timeout)]
@@ -572,21 +584,21 @@ namespace Libplanet.Net.Tests.Consensus
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             var preVoteSent = new AsyncAutoResetEvent();
 
-            var (_, context) = TestUtils.CreateDummyContext(
+            await using var consensus = TestUtils.CreateConsensus(
                 privateKey: TestUtils.PrivateKeys[0],
-                contextOption: new ConsensusOptions
+                consensusOptions: new ConsensusOptions
                 {
                     ProposeTimeoutBase = 1_000
                 });
 
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreVote)
             //     {
             //         stepChangedToPreVote.Set();
             //     }
             // });
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusPreVoteMessage)
             //     {
@@ -594,28 +606,30 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
             await Task.WhenAll(preVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
         }
 
         [Fact(Timeout = Timeout)]
         public async Task UponRulesCheckAfterTimeout()
         {
-            var (blockChain, context) = TestUtils.CreateDummyContext(
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0],
-                contextOption: new ConsensusOptions
+                consensusOptions: new ConsensusOptions
                 {
                     PreVoteTimeoutBase = 1_000,
                     PreCommitTimeoutBase = 1_000,
                 });
 
-            var block1 = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
-            var block2 = blockChain.ProposeBlock(TestUtils.PrivateKeys[2]);
+            var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
+            var block2 = blockchain.ProposeBlock(TestUtils.PrivateKeys[2]);
             var roundOneStepChangedToPreVote = new AsyncAutoResetEvent();
-            // using var _ =context.StateChanged.Subscribe(state =>
+            // using var _ =consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
             //     {
@@ -624,15 +638,15 @@ namespace Libplanet.Net.Tests.Consensus
             // });
 
             // Push round 0 and round 1 proposes.
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(
                     block1, TestUtils.PrivateKeys[1], round: 0));
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(
                     block2, TestUtils.PrivateKeys[2], round: 1));
 
             // Two additional votes should be enough to trigger prevote timeout timer.
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -643,7 +657,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -656,7 +670,7 @@ namespace Libplanet.Net.Tests.Consensus
                 });
 
             // Two additional votes should be enough to trigger precommit timeout timer.
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -667,7 +681,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteType.PreCommit)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -679,7 +693,7 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreCommit)
                 });
 
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
 
             // Round 0 Propose -> Round 0 PreVote (due to Round 0 Propose message) ->
             // PreVote timeout start (due to PreVote messages) ->
@@ -688,31 +702,33 @@ namespace Libplanet.Net.Tests.Consensus
             // PreCommit timeout end -> Round 1 Propose ->
             // Round 1 PreVote (due to state mutation check and Round 1 Propose message)
             await roundOneStepChangedToPreVote.WaitAsync();
-            Assert.Equal(1, context.Height);
-            Assert.Equal(1, context.Round);
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(1, consensus.Round);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         }
 
         [Fact(Timeout = Timeout)]
         public async Task TimeoutPreVote()
         {
-            var (blockChain, context) = TestUtils.CreateDummyContext(
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0],
-                contextOption: new ConsensusOptions
+                consensusOptions: new ConsensusOptions
                 {
                     PreVoteTimeoutBase = 1_000,
                 });
 
-            var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
+            var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var timeoutProcessed = new AsyncAutoResetEvent();
-            // context.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
-            await context.StartAsync(default);
+            // consensus.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
+            await consensus.StartAsync(default);
 
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(
                     block, TestUtils.PrivateKeys[1], round: 0));
 
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -723,7 +739,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: block.BlockHash,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -734,7 +750,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -748,31 +764,33 @@ namespace Libplanet.Net.Tests.Consensus
 
             // Wait for timeout.
             await timeoutProcessed.WaitAsync();
-            Assert.Equal(ConsensusStep.PreCommit, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
+            Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
         }
 
         [Fact(Timeout = Timeout)]
         public async Task TimeoutPreCommit()
         {
-            var (blockChain, context) = TestUtils.CreateDummyContext(
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(
+                blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0],
-                contextOption: new ConsensusOptions
+                consensusOptions: new ConsensusOptions
                 {
                     PreCommitTimeoutBase = 1_000,
                 });
 
-            var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
+            var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var timeoutProcessed = new AsyncAutoResetEvent();
-            // context.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
-            await context.StartAsync(default);
+            // consensus.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
+            await consensus.StartAsync(default);
 
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(
                     block, TestUtils.PrivateKeys[1], round: 0));
 
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -783,7 +801,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: block.BlockHash,
                         flag: VoteType.PreCommit)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -794,7 +812,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteType.PreCommit)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -808,9 +826,9 @@ namespace Libplanet.Net.Tests.Consensus
 
             // Wait for timeout.
             await timeoutProcessed.WaitAsync();
-            Assert.Equal(ConsensusStep.Propose, context.Step);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(1, context.Round);
+            Assert.Equal(ConsensusStep.Propose, consensus.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(1, consensus.Round);
         }
     }
 }

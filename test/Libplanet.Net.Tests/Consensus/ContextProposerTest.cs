@@ -35,15 +35,15 @@ namespace Libplanet.Net.Tests.Consensus
             ConsensusPreCommitMessage? preCommit = null;
             var preCommitSent = new AsyncAutoResetEvent();
 
-            var (_, context) = TestUtils.CreateDummyContext();
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            await using var consensus = TestUtils.CreateConsensus();
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreCommit)
             //     {
             //         stepChangedToPreCommit.Set();
             //     }
             // });
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusPreCommitMessage preCommitMsg)
             //     {
@@ -52,8 +52,8 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
-            context.ProduceMessage(
+            await consensus.StartAsync(default);
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -64,7 +64,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -75,7 +75,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -89,9 +89,9 @@ namespace Libplanet.Net.Tests.Consensus
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
             Assert.Equal(default(BlockHash), preCommit?.BlockHash);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
-            Assert.Equal(ConsensusStep.PreCommit, context.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
+            Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         }
 
         [Fact(Timeout = Timeout)]
@@ -103,15 +103,15 @@ namespace Libplanet.Net.Tests.Consensus
             ConsensusPreCommitMessage? preCommit = null;
             var preCommitSent = new AsyncAutoResetEvent();
 
-            var (_, context) = TestUtils.CreateDummyContext();
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            await using var consensus = TestUtils.CreateConsensus();
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreCommit)
             //     {
             //         stepChangedToPreCommit.Set();
             //     }
             // });
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusProposalMessage proposalMsg)
             //     {
@@ -125,13 +125,13 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
 
             // Wait for propose to process.
             await proposalSent.WaitAsync();
             BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -142,7 +142,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: proposedblockHash,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -153,7 +153,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: proposedblockHash,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -167,9 +167,9 @@ namespace Libplanet.Net.Tests.Consensus
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
             Assert.Equal(proposedblockHash, preCommit?.BlockHash);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
-            Assert.Equal(ConsensusStep.PreCommit, context.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
+            Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         }
 
         [Fact(Timeout = Timeout)]
@@ -177,8 +177,8 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var roundChangedToOne = new AsyncAutoResetEvent();
 
-            var (_, context) = TestUtils.CreateDummyContext();
-            // using var _ = context.StateChanged.Subscribe(state =>
+            await using var consensus = TestUtils.CreateConsensus();
+            // using var _ = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Round == 1)
             //     {
@@ -186,8 +186,8 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
-            context.ProduceMessage(
+            await consensus.StartAsync(default);
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -198,7 +198,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteType.PreCommit)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -209,7 +209,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: default,
                         flag: VoteType.PreCommit)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -222,9 +222,9 @@ namespace Libplanet.Net.Tests.Consensus
                 });
 
             await roundChangedToOne.WaitAsync();
-            Assert.Equal(1, context.Height);
-            Assert.Equal(1, context.Round);
-            Assert.Equal(ConsensusStep.Propose, context.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(1, consensus.Round);
+            Assert.Equal(ConsensusStep.Propose, consensus.Step);
         }
 
         [Fact(Timeout = Timeout)]
@@ -235,8 +235,8 @@ namespace Libplanet.Net.Tests.Consensus
             ConsensusProposalMessage? proposal = null;
             var proposalSent = new AsyncAutoResetEvent();
 
-            var (_, context) = TestUtils.CreateDummyContext();
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            await using var consensus = TestUtils.CreateConsensus();
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreCommit)
             //     {
@@ -248,7 +248,7 @@ namespace Libplanet.Net.Tests.Consensus
             //         stepChangedToEndCommit.Set();
             //     }
             // });
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusProposalMessage proposalMsg)
             //     {
@@ -257,29 +257,29 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
 
             // Wait for propose to process.
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal?.BlockHash);
 
             TestUtils.HandleFourPeersPreVoteMessages(
-                context,
+                consensus,
                 TestUtils.PrivateKeys[1],
                 proposal!.Proposal.BlockHash);
 
             await stepChangedToPreCommit.WaitAsync();
 
             TestUtils.HandleFourPeersPreCommitMessages(
-                context,
+                consensus,
                 TestUtils.PrivateKeys[1],
                 proposal!.Proposal.BlockHash);
 
             await stepChangedToEndCommit.WaitAsync();
-            Assert.Equal(proposal?.BlockHash, context.GetBlockCommit().BlockHash);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
-            Assert.Equal(ConsensusStep.EndCommit, context.Step);
+            Assert.Equal(proposal?.BlockHash, consensus.GetBlockCommit().BlockHash);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
+            Assert.Equal(ConsensusStep.EndCommit, consensus.Step);
         }
 
         [Fact(Timeout = Timeout)]
@@ -287,18 +287,18 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             var nilPreVoteSent = new AsyncAutoResetEvent();
-            var (_, context) = TestUtils.CreateDummyContext(
+            await using var consensus = TestUtils.CreateConsensus(
                 height: 5,
-                validatorSet: Libplanet.Tests.TestUtils.Validators); // Peer1 should be a proposer
+                validators: Libplanet.Tests.TestUtils.Validators); // Peer1 should be a proposer
 
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreVote)
             //     {
             //         stepChangedToPreVote.Set();
             //     }
             // });
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
             //     {
@@ -306,10 +306,10 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
             await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
-            Assert.Equal(5, context.Height);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
+            Assert.Equal(5, consensus.Height);
         }
 
         [Fact(Timeout = Timeout)]
@@ -321,16 +321,16 @@ namespace Libplanet.Net.Tests.Consensus
             ConsensusPreVoteMessage? preVote = null;
             var preVoteSent = new AsyncAutoResetEvent();
 
-            var (_, context) = TestUtils.CreateDummyContext();
+            await using var consensus = TestUtils.CreateConsensus();
 
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Step == ConsensusStep.PreVote)
             //     {
             //         stepChangedToPreVote.Set();
             //     }
             // });
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusProposalMessage proposalMsg)
             //     {
@@ -344,15 +344,15 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal?.BlockHash);
 
             await Task.WhenAll(preVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
             Assert.Equal(proposal?.BlockHash, preVote?.BlockHash);
-            Assert.Equal(1, context.Height);
-            Assert.Equal(0, context.Round);
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
+            Assert.Equal(1, consensus.Height);
+            Assert.Equal(0, consensus.Round);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         }
 
         [Fact(Timeout = Timeout)]
@@ -364,7 +364,7 @@ namespace Libplanet.Net.Tests.Consensus
             ConsensusPreVoteMessage? preVote = null;
             var preVoteSent = new AsyncAutoResetEvent();
 
-            var blockChain = TestUtils.CreateDummyBlockChain();
+            var blockChain = TestUtils.CreateBlockChain();
             var block1 = blockChain.ProposeBlock(new PrivateKey());
             var block1Commit = TestUtils.CreateBlockCommit(block1);
             blockChain.Append(block1, block1Commit);
@@ -372,13 +372,13 @@ namespace Libplanet.Net.Tests.Consensus
             var block2Commit = TestUtils.CreateBlockCommit(block2);
             blockChain.Append(block2, block2Commit);
 
-            var context = TestUtils.CreateConsensus(
+            await using var consensus = TestUtils.CreateConsensus(
                 blockChain,
                 privateKey: TestUtils.PrivateKeys[2],
                 height: 2,
                 previousCommit: block2Commit,
                 validators: TestUtils.Validators);
-            // using var _ = context.MessagePublished.Subscribe(message =>
+            // using var _ = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusProposalMessage proposalMsg)
             //     {
@@ -396,10 +396,10 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.PrivateKeys[2].Address,
                 TestUtils.Validators.GetProposer(2, 0).Address);
 
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
             await proposalSent.WaitAsync();
             var proposedBlock = proposal!.Proposal.Block;
-            Assert.Equal(context.Height + 1, proposedBlock.Height);
+            Assert.Equal(consensus.Height + 1, proposedBlock.Height);
             await preVoteSent.WaitAsync();
             Assert.Equal(default(BlockHash), preVote?.BlockHash);
             Assert.Equal(default(BlockHash), preVote?.PreVote.BlockHash);

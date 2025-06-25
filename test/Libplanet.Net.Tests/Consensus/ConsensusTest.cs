@@ -37,8 +37,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         });
 
         await consensus.StartAsync(default);
-        blockProposedEvent.WaitOne();
-        preVoteEnteredEvent.WaitOne();
+        Assert.True(blockProposedEvent.WaitOne(1000), "Block proposal did not happen in time.");
+        Assert.True(preVoteEnteredEvent.WaitOne(1000), "PreVote step did not happen in time.");
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -48,196 +48,164 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposerWithLastCommit()
     {
-        var stepChangedToPreVote = new AsyncAutoResetEvent();
-        ConsensusProposalMessage? proposal = null;
-        var proposalSent = new AsyncAutoResetEvent();
+        Block? proposedBlock = null;
+        var preVoteEnteredEvent = new ManualResetEvent(false);
+        var blockProposedEvent = new ManualResetEvent(false);
+        var blockchain = TestUtils.CreateBlockChain();
+        var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        var previousCommit = TestUtils.CreateBlockCommit(block1);
+        blockchain.Append(block1, previousCommit);
 
-        // Assumed that height 1 is already committed.  It will catch a propose to check
-        // whether the lastCommit of height 1 is used for propose.  Note that Peer2
-        // is the proposer for height 2.
-        var blockChain = TestUtils.CreateDummyBlockChain();
-        Block heightOneBlock = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        var lastCommit = new BlockCommit
-        {
-            Votes = TestUtils.CreateBlockCommit(heightOneBlock).Votes,
-        };
-        blockChain.Append(heightOneBlock, lastCommit);
-
-        var consensus = TestUtils.CreateConsensus(
-            blockChain,
+        await using var consensus = TestUtils.CreateConsensus(
+            blockchain,
             height: 2,
             previousCommit: new BlockCommit
             {
-                Votes = lastCommit.Votes,
+                Votes = previousCommit.Votes,
             },
             privateKey: TestUtils.PrivateKeys[2],
             validators: Libplanet.Tests.TestUtils.Validators);
 
-        // using var _1 = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.PreVote)
-        //     {
-        //         stepChangedToPreVote.Set();
-        //     }
-        // });
-        // using var _2 = consensus.MessagePublished.Subscribe(message =>
-        // {
-        //     if (message is ConsensusProposalMessage proposalMsg)
-        //     {
-        //         proposal = proposalMsg;
-        //         proposalSent.Set();
-        //     }
-        // });
+        using var _1 = consensus.PreVoteEntered.Subscribe(state =>
+        {
+            preVoteEnteredEvent.Set();
+        });
+        using var _2 = consensus.BlockProposed.Subscribe(e =>
+        {
+            proposedBlock = e.Block;
+            blockProposedEvent.Set();
+        });
 
         await consensus.StartAsync(default);
-        await Task.WhenAll(stepChangedToPreVote.WaitAsync(), proposalSent.WaitAsync());
+        Assert.True(preVoteEnteredEvent.WaitOne(1000), "PreVote step did not happen in time.");
+        Assert.True(blockProposedEvent.WaitOne(1000), "Block proposal did not happen in time.");
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
-        Assert.NotNull(proposal);
-        Block proposed = proposal.Proposal.Block;
-        Assert.NotNull(proposed.PreviousCommit);
-        Assert.Equal(lastCommit, proposed.PreviousCommit);
+        Assert.NotNull(proposedBlock);
+        Assert.Equal(previousCommit, proposedBlock.PreviousCommit);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task CannotStartTwice()
     {
-        var stepChanged = new AsyncAutoResetEvent();
-        var (_, consensus) = TestUtils.CreateDummyContext();
-        // using var _ = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.Propose)
-        //     {
-        //         stepChanged.Set();
-        //     }
-        // });
+        var stepChangedEvent = new ManualResetEvent(false);
+        await using var consensus = TestUtils.CreateConsensus();
+        using var _ = consensus.StepChanged.Subscribe(step =>
+        {
+            if (step == ConsensusStep.Propose)
+            {
+                stepChangedEvent.Set();
+            }
+        });
         await consensus.StartAsync(default);
 
-        await stepChanged.WaitAsync();
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await consensus.StartAsync(default));
+        Assert.True(stepChangedEvent.WaitOne(1000), "Consensus did not enter Propose step in time.");
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await consensus.StartAsync(default));
     }
 
     [Fact(Timeout = Timeout)]
     public async Task CanAcceptMessagesAfterCommitFailure()
     {
-        var stepChangedToPreVote = new AsyncAutoResetEvent();
-        ConsensusProposalMessage? proposal = null;
-        var proposalSent = new AsyncAutoResetEvent();
         Block? proposedBlock = null;
-        var stepChangedToEndCommit = new AsyncAutoResetEvent();
-        var exceptionOccurred = new AsyncAutoResetEvent();
-        Exception? exceptionThrown = null;
+        var preVoteEnteredEvent = new ManualResetEvent(false);
+        var endCommitEnteredEvent = new ManualResetEvent(false);
+        var blockProposedEvent = new ManualResetEvent(false);
 
         // Add block #1 so we can start with a last commit for height 2.
-        var blockChain = TestUtils.CreateDummyBlockChain();
-        Block heightOneBlock = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        var lastCommit = TestUtils.CreateBlockCommit(heightOneBlock);
-        blockChain.Append(heightOneBlock, lastCommit);
+        var blockchain = TestUtils.CreateBlockChain();
+        var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        var previousCommit = TestUtils.CreateBlockCommit(block1);
+        blockchain.Append(block1, previousCommit);
 
-        var consensus = TestUtils.CreateConsensus(
-            blockChain,
+        await using var consensus = TestUtils.CreateConsensus(
+            blockchain,
             height: 2,
-            previousCommit: lastCommit,
+            previousCommit: previousCommit,
             privateKey: TestUtils.PrivateKeys[2],
             validators: TestUtils.Validators);
 
-        // using var _1 = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.PreVote)
-        //     {
-        //         stepChangedToPreVote.Set();
-        //     }
-        //     else if (state.Step == ConsensusStep.EndCommit)
-        //     {
-        //         stepChangedToEndCommit.Set();
-        //     }
-        // });
-        // using var _2 = consensus.MessagePublished.Subscribe(message =>
-        // {
-        //     if (message is ConsensusProposalMessage proposalMsg)
-        //     {
-        //         proposal = proposalMsg;
-        //         proposedBlock = proposalMsg.Proposal.Block;
-        //         proposalSent.Set();
-        //     }
-        // });
-        using var _3 = consensus.ExceptionOccurred.Subscribe(exception =>
+        using var _1 = consensus.StepChanged.Subscribe(step =>
         {
-            exceptionThrown = exception;
-            exceptionOccurred.Set();
+            if (step == ConsensusStep.PreVote)
+            {
+                preVoteEnteredEvent.Set();
+            }
+            else if (step == ConsensusStep.EndCommit)
+            {
+                endCommitEnteredEvent.Set();
+            }
+        });
+        using var _2 = consensus.BlockProposed.Subscribe(e =>
+        {
+            proposedBlock = e.Block;
+            blockProposedEvent.Set();
         });
 
         await consensus.StartAsync(default);
 
-        await Task.WhenAll(stepChangedToPreVote.WaitAsync(), proposalSent.WaitAsync());
+        Assert.True(preVoteEnteredEvent.WaitOne(1000), "Consensus did not enter PreVote step in time.");
+        Assert.True(blockProposedEvent.WaitOne(1000), "Consensus did not send proposal in time.");
 
         // Simulate bypass of consensus and block sync by swarm by
         // directly appending to the blockchain.
         Assert.NotNull(proposedBlock);
-        blockChain.Append(proposedBlock!, TestUtils.CreateBlockCommit(proposedBlock!));
-        Assert.Equal(2, blockChain.Tip.Height);
+        blockchain.Append(proposedBlock!, TestUtils.CreateBlockCommit(proposedBlock!));
+        Assert.Equal(2, blockchain.Tip.Height);
 
         // Make PreVotes to normally move to PreCommit step.
-        foreach (int i in new int[] { 0, 1, 3 })
+        foreach (var i in new int[] { 0, 1, 3 })
         {
-            consensus.ProduceMessage(new ConsensusPreVoteMessage
-            {
-                PreVote = new VoteMetadata
-                {
-                    Height = 2,
-                    Round = 0,
-                    BlockHash = proposedBlock!.BlockHash,
-                    Timestamp = DateTimeOffset.UtcNow,
-                    Validator = TestUtils.PrivateKeys[i].Address,
-                    ValidatorPower = TestUtils.Validators[i].Power,
-                    Type = VoteType.PreVote,
-                }.Sign(TestUtils.PrivateKeys[i])
-            });
-        }
-
-        // Validator 2 will automatically vote its PreCommit.
-        foreach (int i in new int[] { 0, 1 })
-        {
-            consensus.ProduceMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = new VoteMetadata
-                {
-                    Height = 2,
-                    Round = 0,
-                    BlockHash = proposedBlock!.BlockHash,
-                    Timestamp = DateTimeOffset.UtcNow,
-                    Validator = TestUtils.PrivateKeys[i].Address,
-                    ValidatorPower = TestUtils.Validators[i].Power,
-                    Type = VoteType.PreCommit,
-                }.Sign(TestUtils.PrivateKeys[i])
-            });
-        }
-
-        await stepChangedToEndCommit.WaitAsync();
-
-        // Check consensus has only three votes.
-        BlockCommit? commit = consensus.GetBlockCommit();
-        Assert.Equal(3, commit?.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
-
-        // Context should still accept new votes.
-        consensus.ProduceMessage(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteMetadata
+            var vote = new VoteMetadata
             {
                 Height = 2,
                 Round = 0,
                 BlockHash = proposedBlock!.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[3].Address,
-                ValidatorPower = TestUtils.Validators[3].Power,
+                Validator = TestUtils.PrivateKeys[i].Address,
+                ValidatorPower = TestUtils.Validators[i].Power,
+                Type = VoteType.PreVote,
+            }.Sign(TestUtils.PrivateKeys[i]);
+            consensus.PostPreVote(vote);
+        }
+
+        // Validator 2 will automatically vote its PreCommit.
+        foreach (var i in new int[] { 0, 1 })
+        {
+            var vote = new VoteMetadata
+            {
+                Height = 2,
+                Round = 0,
+                BlockHash = proposedBlock!.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                Validator = TestUtils.PrivateKeys[i].Address,
+                ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreCommit,
-            }.Sign(TestUtils.PrivateKeys[3])
-        });
+            }.Sign(TestUtils.PrivateKeys[i]);
+            consensus.PostPreCommit(vote);
+        }
+
+        Assert.True(endCommitEnteredEvent.WaitOne(1000), "Consensus did not enter EndCommit step in time.");
+
+        // Check consensus has only three votes.
+        var blockCommit = consensus.GetBlockCommit();
+        Assert.Equal(3, blockCommit.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
+
+        // Context should still accept new votes.
+        var vote2 = new VoteMetadata
+        {
+            Height = 2,
+            Round = 0,
+            BlockHash = proposedBlock!.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = TestUtils.PrivateKeys[3].Address,
+            ValidatorPower = TestUtils.Validators[3].Power,
+            Type = VoteType.PreCommit,
+        }.Sign(TestUtils.PrivateKeys[3]);
+        consensus.PostPreCommit(vote2);
 
         await Task.Delay(100);  // Wait for the new message to be added to the message log.
-        commit = consensus.GetBlockCommit();
-        Assert.Equal(4, commit?.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
+        blockCommit = consensus.GetBlockCommit();
+        Assert.Equal(4, blockCommit.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
     }
 
     [Fact(Timeout = Timeout)]
@@ -246,13 +214,14 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         Exception? exceptionThrown = null;
         var exceptionOccurred = new AsyncAutoResetEvent();
 
-        var (blockChain, consensus) = TestUtils.CreateDummyContext();
+        var blockchain = TestUtils.CreateBlockChain();
+        await using var consensus = TestUtils.CreateConsensus(blockchain);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
             exceptionThrown = e;
             exceptionOccurred.Set();
         });
-        var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
         await consensus.StartAsync(default);
         consensus.ProduceMessage(
@@ -267,13 +236,14 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         Exception? exceptionThrown = null;
         var exceptionOccurred = new AsyncAutoResetEvent();
 
-        var (blockChain, consensus) = TestUtils.CreateDummyContext();
+        var blockchain = TestUtils.CreateBlockChain();
+        await using var consensus = TestUtils.CreateConsensus(blockchain);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
             exceptionThrown = e;
             exceptionOccurred.Set();
         });
-        var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[2]);
+        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[2]);
 
         await consensus.StartAsync(default);
         consensus.ProduceMessage(
@@ -321,10 +291,10 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             },
         };
         var fx = new MemoryRepositoryFixture(options);
-        var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(options);
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain(options);
 
         Net.Consensus.Consensus consensus = new Net.Consensus.Consensus(
-            blockChain,
+            blockchain,
             1,
             TestUtils.PrivateKeys[0].AsSigner(),
             options: new ConsensusOptions());
@@ -348,7 +318,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         //     }
         // });
 
-        using var _3 = blockChain.TipChanged.Subscribe(eventArgs =>
+        using var _3 = blockchain.TipChanged.Subscribe(eventArgs =>
         {
             if (eventArgs.Tip.Height == 1L)
             {
@@ -360,11 +330,11 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var tx = new TransactionMetadata
         {
             Signer = TestUtils.PrivateKeys[1].Address,
-            GenesisHash = blockChain.Genesis.BlockHash,
+            GenesisHash = blockchain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(TestUtils.PrivateKeys[1]);
-        blockChain.StagedTransactions.Add(tx);
-        var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        blockchain.StagedTransactions.Add(tx);
+        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
         await consensus.StartAsync(default);
         consensus.ProduceMessage(
@@ -491,19 +461,21 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var proposalModified = new AsyncAutoResetEvent();
         var prevStep = ConsensusStep.Default;
         BlockHash? prevProposal = null;
-        var validatorSet = ImmutableSortedSet.Create(
-            [
-                new Validator { Address = privateKeys[0].Address },
-                new Validator { Address = proposer.Address },
-                new Validator { Address = key1.Address },
-                new Validator { Address = key2.Address },
-            ]);
+        var validators = ImmutableSortedSet.Create(
+        [
+            new Validator { Address = privateKeys[0].Address },
+            new Validator { Address = proposer.Address },
+            new Validator { Address = key1.Address },
+            new Validator { Address = key2.Address },
+        ]);
 
-        var (blockChain, consensus) = TestUtils.CreateDummyContext(
+        var blockchain = TestUtils.CreateBlockChain();
+        await using var consensus = TestUtils.CreateConsensus(
+            blockchain: blockchain,
             privateKey: privateKeys[0],
-            validatorSet: validatorSet);
-        var blockA = blockChain.ProposeBlock(proposer);
-        var blockB = blockChain.ProposeBlock(proposer);
+            validators: validators);
+        var blockA = blockchain.ProposeBlock(proposer);
+        var blockB = blockchain.ProposeBlock(proposer);
         // using var _0 = consensus.StateChanged.Subscribe(state =>
         // {
         //     if (state.Step != prevStep)
@@ -644,17 +616,17 @@ JsonSerializer.Deserialize<ContextJson>(consensus.ToString()).valid_value);
         int actionDelay = 2000;
 
         var fx = new MemoryRepositoryFixture();
-        var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(fx.Options);
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain(fx.Options);
 
 
         var consensusContext = new ConsensusReactor(
             null,
-            blockChain,
+            blockchain,
             new ConsensusReactorOptions { PrivateKey = new PrivateKey() });
         Net.Consensus.Consensus consensus = consensusContext.CurrentContext;
         // using var _1 = consensus.MessagePublished.Subscribe(consensus.ProduceMessage);
 
-        using var _2 = blockChain.TipChanged.Subscribe(eventArgs =>
+        using var _2 = blockchain.TipChanged.Subscribe(eventArgs =>
         {
             if (eventArgs.Tip.Height == 1L)
             {
@@ -674,11 +646,11 @@ JsonSerializer.Deserialize<ContextJson>(consensus.ToString()).valid_value);
         var tx = new TransactionMetadata
         {
             Signer = TestUtils.PrivateKeys[1].Address,
-            GenesisHash = blockChain.Genesis.BlockHash,
+            GenesisHash = blockchain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(TestUtils.PrivateKeys[1]);
-        blockChain.StagedTransactions.Add(tx);
-        var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        blockchain.StagedTransactions.Add(tx);
+        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
         await consensusContext.StartAsync(default);
         consensus.ProduceMessage(
@@ -745,8 +717,8 @@ JsonSerializer.Deserialize<ContextJson>(consensus.ToString()).valid_value);
         var stepChangedToPreCommit = new AsyncAutoResetEvent();
         Block? proposedBlock = null;
         int numPreVotes = 0;
-        var (_, consensus) = TestUtils.CreateDummyContext(
-            contextOption: new ConsensusOptions
+        await using var consensus = TestUtils.CreateConsensus(
+            consensusOptions: new ConsensusOptions
             {
                 EnterPreCommitDelay = delay,
             });

@@ -87,13 +87,12 @@ namespace Libplanet.Net.Tests
             return privateKey;
         }
 
-        public static Blockchain CreateDummyBlockChain(BlockchainOptions? options = null, Block? genesisBlock = null)
+        public static Blockchain CreateBlockChain(BlockchainOptions? options = null, Block? genesisBlock = null)
         {
-            options ??= Options;
-            var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(
-                options, genesisBlock: genesisBlock);
-
-            return blockChain;
+            var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain(
+                options: options ?? Options,
+                genesisBlock: genesisBlock);
+            return blockchain;
         }
 
         public static ConsensusProposalMessage CreateConsensusPropose(
@@ -259,7 +258,7 @@ namespace Libplanet.Net.Tests
                 ConsensusOptions? contextOption = null)
         {
             policy ??= Options;
-            var blockChain = CreateDummyBlockChain(policy);
+            var blockChain = CreateBlockChain(policy);
             ConsensusReactor? consensusContext = null;
 
             privateKey ??= PrivateKeys[1];
@@ -282,20 +281,20 @@ namespace Libplanet.Net.Tests
         }
 
         public static Net.Consensus.Consensus CreateConsensus(
-            Blockchain blockChain,
+            Blockchain? blockchain = null,
             int height = 1,
             BlockCommit? previousCommit = null,
+            BlockchainOptions? blockchainOptions = null,
             PrivateKey? privateKey = null,
-            ConsensusOptions? contextOption = null,
+            ConsensusOptions? consensusOptions = null,
             ImmutableSortedSet<Validator>? validators = null)
         {
             var signer = (privateKey ?? PrivateKeys[1]).AsSigner();
             var consensus = new Net.Consensus.Consensus(
-                blockChain,
+                blockchain ?? CreateBlockChain(blockchainOptions ?? Options),
                 height,
                 signer,
-                options: contextOption ?? new ConsensusOptions());
-            // using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
+                options: consensusOptions ?? new ConsensusOptions());
 
             consensus.BlockProposed.Subscribe(e =>
             {
@@ -326,29 +325,25 @@ namespace Libplanet.Net.Tests
             return consensus;
         }
 
-        public static (Blockchain BlockChain, Net.Consensus.Consensus Context)
-            CreateDummyContext(
-                int height = 1,
-                BlockCommit? lastCommit = null,
-                BlockchainOptions? policy = null,
-                PrivateKey? privateKey = null,
-                ConsensusOptions? contextOption = null,
-                ImmutableSortedSet<Validator>? validatorSet = null)
-        {
-            Net.Consensus.Consensus? context = null;
-            privateKey ??= PrivateKeys[1];
-            policy ??= Options;
+        // public static Net.Consensus.Consensus CreateConsensus(
+        //     Blockchain? blockchain = null,
+        //     int height = 1,
+        //     BlockCommit? lastCommit = null,
+        //     BlockchainOptions? blockchainOptions = null,
+        //     PrivateKey? privateKey = null,
+        //     ConsensusOptions? contextOption = null,
+        //     ImmutableSortedSet<Validator>? validators = null)
+        // {
+        //     var signer = (privateKey ?? PrivateKeys[1]).AsSigner();
+        //     var consensus = new Net.Consensus.Consensus(
+        //         blockchain ?? CreateBlockChain(blockchainOptions ?? Options),
+        //         height,
+        //         signer,
+        //         options: contextOption ?? new ConsensusOptions());
+        //     // using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
 
-            var blockChain = CreateDummyBlockChain(policy);
-            context = new Net.Consensus.Consensus(
-                blockChain,
-                height,
-                privateKey.AsSigner(),
-                options: contextOption ?? new ConsensusOptions());
-            // using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
-
-            return (blockChain, context);
-        }
+        //     return consensus;
+        // }
 
         public static ConsensusReactor CreateDummyConsensusReactor(
             Blockchain blockChain,
