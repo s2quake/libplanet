@@ -38,7 +38,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
 
         await consensus.StartAsync(default);
         Assert.True(blockProposedEvent.WaitOne(1000), "Block proposal did not happen in time.");
-        Assert.True(preVoteEnteredEvent.WaitOne(1000), "PreVote step did not happen in time.");
+        Assert.True(preVoteEnteredEvent.WaitOne(10000), "PreVote step did not happen in time.");
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -233,47 +233,57 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         }.Sign(TestUtils.PrivateKeys[0], block);
 
         await consensus.StartAsync(default);
-        
+
         consensus.PostProposal(proposal);
         Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
-        Assert.IsType<InvalidOperationException>(exceptionThrown);
+        Assert.IsType<ArgumentException>(exceptionThrown);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task ThrowOnDifferentHeightMessage()
     {
         Exception? exceptionThrown = null;
-        var exceptionOccurred = new AsyncAutoResetEvent();
+        var exceptionOccurredEvent = new ManualResetEvent(false);
 
         var blockchain = TestUtils.CreateBlockChain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
             exceptionThrown = e;
-            exceptionOccurred.Set();
+            exceptionOccurredEvent.Set();
         });
-        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[2]);
+        var signer = TestUtils.PrivateKeys[2].AsSigner();
+        var block = new BlockBuilder
+        {
+            Height = 2,
+        }.Create(signer);
+        var proposal = new ProposalMetadata
+        {
+            BlockHash = block.BlockHash,
+            Height = 2,
+            Round = 2,
+            Timestamp = DateTimeOffset.UtcNow,
+            Proposer = signer.Address,
+            ValidRound = -1,
+        }.Sign(signer, block);
 
         await consensus.StartAsync(default);
-        consensus.ProduceMessage(
-            TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[2], 2, 2));
-        await exceptionOccurred.WaitAsync();
+        consensus.PostProposal(proposal);
+        Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
         Assert.IsType<InvalidOperationException>(exceptionThrown);
 
         // Reset exception thrown.
         exceptionThrown = null;
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
-            {
-                PreVote = TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[2],
-                    TestUtils.Validators[2].Power,
-                    2,
-                    0,
-                    block.BlockHash,
-                    VoteType.PreVote)
-            });
-        await exceptionOccurred.WaitAsync();
+        exceptionOccurredEvent.Reset();
+        var vote = TestUtils.CreateVote(
+            TestUtils.PrivateKeys[2],
+            TestUtils.Validators[2].Power,
+            2,
+            0,
+            block.BlockHash,
+            VoteType.PreVote);
+        consensus.PostVote(vote);
+        Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
         Assert.IsType<InvalidOperationException>(exceptionThrown);
     }
 

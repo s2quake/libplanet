@@ -295,7 +295,6 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             StartRound(0);
             ProcessGenericUponRules();
         }, _cancellationTokenSource.Token);
-        Step = ConsensusStep.Default;
         IsRunning = true;
     }
 
@@ -517,51 +516,43 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
 
     private void SetProposal(Proposal proposal)
     {
+        if (Proposal is not null)
+        {
+            throw new InvalidOperationException($"Proposal already exists for height {Height} and round {Round}");
+        }
+
         if (!_validators.GetProposer(Height, Round).Address.Equals(proposal.Validator))
         {
-            throw new InvalidProposalException(
-                $"Given proposal's proposer {proposal.Validator} is not the " +
-                $"proposer for the current height {Height} and round {Round}",
-                proposal);
+            var message = $"Given proposal's proposer {proposal.Validator} does not match " +
+                          $"with the current proposer for height {Height} and round {Round}.";
+            throw new ArgumentException(message, nameof(proposal));
         }
 
         if (proposal.Round != Round)
         {
-            throw new InvalidProposalException(
-                $"Given proposal's round {proposal.Round} does not match" +
-                $" with the current round {Round}",
-                proposal);
+            var message = $"Given proposal's round {proposal.Round} does not match " +
+                          $"with the current round {Round}.";
+            throw new ArgumentException(message, nameof(proposal));
         }
 
         // Should check if +2/3 votes already collected and the proposal does not match
         if (_heightContext.PreVotes(Round).TwoThirdsMajority(out var preVoteMaj23) &&
             !proposal.BlockHash.Equals(preVoteMaj23))
         {
-            throw new InvalidProposalException(
-                $"Given proposal's block hash {proposal.BlockHash} does not match" +
-                $" with the collected +2/3 preVotes' block hash {preVoteMaj23}",
-                proposal);
+            var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
+                          $"with the collected +2/3 preVotes' block hash {preVoteMaj23}.";
+            throw new ArgumentException(message, nameof(proposal));
         }
 
         if (_heightContext.PreCommits(Round).TwoThirdsMajority(out var preCommitMaj23) &&
             !proposal.BlockHash.Equals(preCommitMaj23))
         {
-            throw new InvalidProposalException(
-                $"Given proposal's block hash {proposal.BlockHash} does not match" +
-                $" with the collected +2/3 preCommits' block hash {preCommitMaj23}",
-                proposal);
+            var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
+                          $"with the collected +2/3 preCommits' block hash {preCommitMaj23}.";
+            throw new ArgumentException(message, nameof(proposal));
         }
 
-        if (Proposal is null)
-        {
-            Proposal = proposal;
-        }
-        else
-        {
-            throw new InvalidProposalException(
-                $"Proposal already exists for height {Height} and round {Round}",
-                proposal);
-        }
+        Proposal = proposal;
     }
 
     private void ProcessGenericUponRules()
