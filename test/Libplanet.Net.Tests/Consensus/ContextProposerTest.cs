@@ -36,21 +36,21 @@ namespace Libplanet.Net.Tests.Consensus
             var preCommitSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreCommit)
-                {
-                    stepChangedToPreCommit.Set();
-                }
-            });
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusPreCommitMessage preCommitMsg)
-                {
-                    preCommit = preCommitMsg;
-                    preCommitSent.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreCommit)
+            //     {
+            //         stepChangedToPreCommit.Set();
+            //     }
+            // });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusPreCommitMessage preCommitMsg)
+            //     {
+            //         preCommit = preCommitMsg;
+            //         preCommitSent.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
             context.ProduceMessage(
@@ -104,26 +104,26 @@ namespace Libplanet.Net.Tests.Consensus
             var preCommitSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreCommit)
-                {
-                    stepChangedToPreCommit.Set();
-                }
-            });
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusProposalMessage proposalMsg)
-                {
-                    proposal = proposalMsg;
-                    proposalSent.Set();
-                }
-                else if (message is ConsensusPreCommitMessage preCommitMsg)
-                {
-                    preCommit = preCommitMsg;
-                    preCommitSent.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreCommit)
+            //     {
+            //         stepChangedToPreCommit.Set();
+            //     }
+            // });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusProposalMessage proposalMsg)
+            //     {
+            //         proposal = proposalMsg;
+            //         proposalSent.Set();
+            //     }
+            //     else if (message is ConsensusPreCommitMessage preCommitMsg)
+            //     {
+            //         preCommit = preCommitMsg;
+            //         preCommitSent.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
 
@@ -178,13 +178,13 @@ namespace Libplanet.Net.Tests.Consensus
             var roundChangedToOne = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
-            using var _ = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Round == 1)
-                {
-                    roundChangedToOne.Set();
-                }
-            });
+            // using var _ = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Round == 1)
+            //     {
+            //         roundChangedToOne.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
             context.ProduceMessage(
@@ -236,26 +236,26 @@ namespace Libplanet.Net.Tests.Consensus
             var proposalSent = new AsyncAutoResetEvent();
 
             var (_, context) = TestUtils.CreateDummyContext();
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreCommit)
-                {
-                    stepChangedToPreCommit.Set();
-                }
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreCommit)
+            //     {
+            //         stepChangedToPreCommit.Set();
+            //     }
 
-                if (state.Step == ConsensusStep.EndCommit)
-                {
-                    stepChangedToEndCommit.Set();
-                }
-            });
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusProposalMessage proposalMsg)
-                {
-                    proposal = proposalMsg;
-                    proposalSent.Set();
-                }
-            });
+            //     if (state.Step == ConsensusStep.EndCommit)
+            //     {
+            //         stepChangedToEndCommit.Set();
+            //     }
+            // });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusProposalMessage proposalMsg)
+            //     {
+            //         proposal = proposalMsg;
+            //         proposalSent.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
 
@@ -291,20 +291,20 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 5,
                 validatorSet: Libplanet.Tests.TestUtils.Validators); // Peer1 should be a proposer
 
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreVote)
-                {
-                    stepChangedToPreVote.Set();
-                }
-            });
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
-                {
-                    nilPreVoteSent.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreVote)
+            //     {
+            //         stepChangedToPreVote.Set();
+            //     }
+            // });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
+            //     {
+            //         nilPreVoteSent.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
             await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
@@ -323,26 +323,26 @@ namespace Libplanet.Net.Tests.Consensus
 
             var (_, context) = TestUtils.CreateDummyContext();
 
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreVote)
-                {
-                    stepChangedToPreVote.Set();
-                }
-            });
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusProposalMessage proposalMsg)
-                {
-                    proposal = proposalMsg;
-                    proposalSent.Set();
-                }
-                else if (message is ConsensusPreVoteMessage preVoteMsg)
-                {
-                    preVote = preVoteMsg;
-                    preVoteSent.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreVote)
+            //     {
+            //         stepChangedToPreVote.Set();
+            //     }
+            // });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusProposalMessage proposalMsg)
+            //     {
+            //         proposal = proposalMsg;
+            //         proposalSent.Set();
+            //     }
+            //     else if (message is ConsensusPreVoteMessage preVoteMsg)
+            //     {
+            //         preVote = preVoteMsg;
+            //         preVoteSent.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
             await proposalSent.WaitAsync();
@@ -378,19 +378,19 @@ namespace Libplanet.Net.Tests.Consensus
                 height: 2,
                 previousCommit: block2Commit,
                 validators: TestUtils.Validators);
-            using var _ = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusProposalMessage proposalMsg)
-                {
-                    proposal = proposalMsg;
-                    proposalSent.Set();
-                }
-                else if (message is ConsensusPreVoteMessage preVoteMsg)
-                {
-                    preVote = preVoteMsg;
-                    preVoteSent.Set();
-                }
-            });
+            // using var _ = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusProposalMessage proposalMsg)
+            //     {
+            //         proposal = proposalMsg;
+            //         proposalSent.Set();
+            //     }
+            //     else if (message is ConsensusPreVoteMessage preVoteMsg)
+            //     {
+            //         preVote = preVoteMsg;
+            //         preVoteSent.Set();
+            //     }
+            // });
 
             Assert.Equal(
                 TestUtils.PrivateKeys[2].Address,

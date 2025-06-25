@@ -42,13 +42,13 @@ namespace Libplanet.Net.Tests.Consensus
 
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var stateChangedToRoundOnePreVote = new AsyncAutoResetEvent();
-            using var _ = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
-                {
-                    stateChangedToRoundOnePreVote.Set();
-                }
-            });
+            // using var _ = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
+            //     {
+            //         stateChangedToRoundOnePreVote.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
             context.ProduceMessage(
@@ -92,21 +92,21 @@ namespace Libplanet.Net.Tests.Consensus
 
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreCommit)
-                {
-                    stepChangedToPreCommit.Set();
-                }
-            });
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusPreCommitMessage preCommitMsg)
-                {
-                    preCommit = preCommitMsg;
-                    preCommitSent.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreCommit)
+            //     {
+            //         stepChangedToPreCommit.Set();
+            //     }
+            // });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusPreCommitMessage preCommitMsg)
+            //     {
+            //         preCommit = preCommitMsg;
+            //         preCommitSent.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
             context.ProduceMessage(
@@ -183,21 +183,21 @@ namespace Libplanet.Net.Tests.Consensus
                 },
             }.Sign(key);
 
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreCommit)
-                {
-                    stepChangedToPreCommit.Set();
-                }
-            });
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusPreCommitMessage preCommitMsg &&
-                    preCommitMsg.BlockHash.Equals(default))
-                {
-                    preCommitSent.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreCommit)
+            //     {
+            //         stepChangedToPreCommit.Set();
+            //     }
+            // });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusPreCommitMessage preCommitMsg &&
+            //         preCommitMsg.BlockHash.Equals(default))
+            //     {
+            //         preCommitSent.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
             context.ProduceMessage(
@@ -251,24 +251,24 @@ namespace Libplanet.Net.Tests.Consensus
 
             var (blockChain, context) = TestUtils.CreateDummyContext(
                 privateKey: TestUtils.PrivateKeys[0]);
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreVote)
-                {
-                    stepChangedToPreVote.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreVote)
+            //     {
+            //         stepChangedToPreVote.Set();
+            //     }
+            // });
             // context.TimeoutProcessed += (_, __) =>
             // {
             //     timeoutProcessed = true;
             // };
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
-                {
-                    nilPreVoteSent.Set();
-                }
-            });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
+            //     {
+            //         nilPreVoteSent.Set();
+            //     }
+            // });
 
             // 1. ProtocolVersion should be matched.
             // 2. Index should be increased monotonically.
@@ -334,24 +334,24 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, context) = TestUtils.CreateDummyContext(
                 policy: policy,
                 privateKey: TestUtils.PrivateKeys[0]);
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreVote)
-                {
-                    stepChangedToPreVote.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreVote)
+            //     {
+            //         stepChangedToPreVote.Set();
+            //     }
+            // });
             // context.TimeoutProcessed += (_, __) =>
             // {
             //     timeoutProcessed = true;
             // };
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
-                {
-                    nilPreVoteSent.Set();
-                }
-            });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
+            //     {
+            //         nilPreVoteSent.Set();
+            //     }
+            // });
 
             var diffPolicyBlockChain =
                 TestUtils.CreateDummyBlockChain(
@@ -403,30 +403,30 @@ namespace Libplanet.Net.Tests.Consensus
             var (blockChain, context) = TestUtils.CreateDummyContext(
                 policy: policy,
                 privateKey: TestUtils.PrivateKeys[0]);
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreVote)
-                {
-                    stepChangedToPreVote.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreVote)
+            //     {
+            //         stepChangedToPreVote.Set();
+            //     }
+            // });
             // context.TimeoutProcessed += (_, __) =>
             // {
             //     timeoutProcessed = true;
             // };
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
-                {
-                    nilPreVoteSent.Set();
-                }
-                else if (
-                    message is ConsensusPreCommitMessage commit &&
-                    commit.PreCommit.BlockHash.Equals(default))
-                {
-                    nilPreCommitSent.Set();
-                }
-            });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
+            //     {
+            //         nilPreVoteSent.Set();
+            //     }
+            //     else if (
+            //         message is ConsensusPreCommitMessage commit &&
+            //         commit.PreCommit.BlockHash.Equals(default))
+            //     {
+            //         nilPreCommitSent.Set();
+            //     }
+            // });
 
             using var fx = new MemoryRepositoryFixture();
 
@@ -528,13 +528,13 @@ namespace Libplanet.Net.Tests.Consensus
 
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var stepChangedToRoundOnePreVote = new AsyncAutoResetEvent();
-            using var _ = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
-                {
-                    stepChangedToRoundOnePreVote.Set();
-                }
-            });
+            // using var _ = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
+            //     {
+            //         stepChangedToRoundOnePreVote.Set();
+            //     }
+            // });
             await context.StartAsync(default);
 
             context.ProduceMessage(
@@ -579,20 +579,20 @@ namespace Libplanet.Net.Tests.Consensus
                     ProposeTimeoutBase = 1_000
                 });
 
-            using var _1 = context.StateChanged.Subscribe(state =>
-            {
-                if (state.Step == ConsensusStep.PreVote)
-                {
-                    stepChangedToPreVote.Set();
-                }
-            });
-            using var _2 = context.MessagePublished.Subscribe(message =>
-            {
-                if (message is ConsensusPreVoteMessage)
-                {
-                    preVoteSent.Set();
-                }
-            });
+            // using var _1 = context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Step == ConsensusStep.PreVote)
+            //     {
+            //         stepChangedToPreVote.Set();
+            //     }
+            // });
+            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // {
+            //     if (message is ConsensusPreVoteMessage)
+            //     {
+            //         preVoteSent.Set();
+            //     }
+            // });
 
             await context.StartAsync(default);
             await Task.WhenAll(preVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
@@ -615,13 +615,13 @@ namespace Libplanet.Net.Tests.Consensus
             var block1 = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             var block2 = blockChain.ProposeBlock(TestUtils.PrivateKeys[2]);
             var roundOneStepChangedToPreVote = new AsyncAutoResetEvent();
-            using var _ =context.StateChanged.Subscribe(state =>
-            {
-                if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
-                {
-                    roundOneStepChangedToPreVote.Set();
-                }
-            });
+            // using var _ =context.StateChanged.Subscribe(state =>
+            // {
+            //     if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
+            //     {
+            //         roundOneStepChangedToPreVote.Set();
+            //     }
+            // });
 
             // Push round 0 and round 1 proposes.
             context.ProduceMessage(

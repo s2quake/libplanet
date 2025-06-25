@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.State;
 using Libplanet.Types;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Libplanet.Net.Consensus;
 
@@ -118,42 +119,101 @@ public sealed class ConsensusReactor : IAsyncDisposable
     }
 
 
-    public event EventHandler<(int Height, ConsensusMessage Message)>? MessagePublished;
+    // public event EventHandler<(int Height, ConsensusMessage Message)>? MessagePublished;
 
     internal event EventHandler<(int Height, Exception)>? ExceptionOccurred;
 
-    internal event EventHandler<ConsensusState>? StateChanged;
+    // internal event EventHandler<ConsensusState>? StateChanged;
 
     internal event EventHandler<(int Height, ConsensusMessage Message)>? MessageConsumed;
 
-    private void AttachEventHandlers(Consensus context)
+    private void AttachEventHandlers(Consensus consensus)
     {
         // NOTE: Events for testing and debugging.
-        context.ExceptionOccurred.Subscribe(exception => ExceptionOccurred?.Invoke(this, (context.Height, exception)));
+        consensus.ExceptionOccurred.Subscribe(exception => ExceptionOccurred?.Invoke(this, (consensus.Height, exception)));
         // context.TimeoutProcessed += (sender, eventArgs) =>
         //     TimeoutProcessed?.Invoke(this, (context.Height, eventArgs.Round, eventArgs.Step));
-        context.StateChanged.Subscribe(state => StateChanged?.Invoke(this, state));
+        // consensus.StateChanged.Subscribe(state => StateChanged?.Invoke(this, state));
         // context.MessageConsumed += (sender, message) =>
         //     MessageConsumed?.Invoke(this, (context.Height, message));
         // context.MutationConsumed += (sender, action) =>
         //     MutationConsumed?.Invoke(this, (context.Height, action));
 
         // NOTE: Events for consensus logic.
-        context.Started.Subscribe(height =>
+        consensus.Started.Subscribe(height =>
         {
             _height = height;
             _peerCatchupRounds.Clear();
             _gossip.ClearDenySet();
         });
-        context.RoundStarted.Subscribe(round =>
+        consensus.RoundStarted.Subscribe(round =>
         {
             _round = round;
             _gossip.ClearCache();
         });
-        context.MessagePublished.Subscribe(message =>
+        // consensus.MessagePublished.Subscribe(message =>
+        // {
+        //     _gossip.PublishMessage(message);
+        //     MessagePublished?.Invoke(this, (consensus.Height, message));
+        // });
+        consensus.PreVoteEntered.Subscribe(blockHash =>
         {
+            var round = consensus.Round;
+            var message = new ConsensusPreVoteMessage
+            {
+                PreVote = consensus.CreateVote(round, blockHash, VoteType.PreVote),
+            };
             _gossip.PublishMessage(message);
-            MessagePublished?.Invoke(this, (context.Height, message));
+        });
+        consensus.PreCommitEntered.Subscribe(blockHash =>
+        {
+            var round = consensus.Round;
+            var message = new ConsensusPreCommitMessage
+            {
+                PreCommit = consensus.CreateVote(round, blockHash, VoteType.PreCommit),
+            };
+            _gossip.PublishMessage(message);
+        });
+        consensus.Maj23Achieved.Subscribe(e =>
+        {
+            var round = consensus.Round;
+            var blockHash = e.BlockHash;
+            var voteType = e.VoteType;
+            var maj23 = consensus.CreateMaj23(round, blockHash, voteType);
+            var message = new ConsensusMaj23Message
+            {
+                Maj23 = maj23,
+            };
+            _gossip.PublishMessage(message);
+        });
+        consensus.ProposalClaimed.Subscribe(blockHash =>
+        {
+            var proposalClaim = new ProposalClaimMetadata
+            {
+                Height = consensus.Height,
+                Round = consensus.Round,
+                BlockHash = blockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                Validator = _privateKey.Address,
+            }.Sign(_privateKey.AsSigner());
+            var message = new ConsensusProposalClaimMessage
+            {
+                ProposalClaim = proposalClaim,
+            };
+            _gossip.PublishMessage(message);
+        });
+        consensus.BlockProposed.Subscribe(e =>
+        {
+            var proposal = new ProposalMetadata
+            {
+                Height = Height,
+                Round = Round,
+                Timestamp = DateTimeOffset.UtcNow,
+                Proposer = _privateKey.Address,
+                ValidRound = e.ValidRound,
+            }.Sign(_privateKey.AsSigner(), e.Block);
+            var message = new ConsensusProposalMessage { Proposal = proposal };
+            _gossip.PublishMessage(message);
         });
     }
 

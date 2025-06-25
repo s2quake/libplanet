@@ -40,14 +40,14 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.Options,
                 TestUtils.PrivateKeys[2]);
             using var _ = blockChain.TipChanged.Subscribe(e => tipChanged.Set());
-            consensusContext.MessagePublished += (_, eventArgs) =>
-            {
-                if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
-                {
-                    proposal = proposalMsg;
-                    heightTwoProposalSent.Set();
-                }
-            };
+            // consensusContext.MessagePublished += (_, eventArgs) =>
+            // {
+            //     if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
+            //     {
+            //         proposal = proposalMsg;
+            //         heightTwoProposalSent.Set();
+            //     }
+            // };
 
             await consensusContext.StartAsync(default);
             var block1 = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
@@ -120,43 +120,43 @@ namespace Libplanet.Net.Tests.Consensus
                 TestUtils.PrivateKeys[2]);
             await consensusContext.StartAsync(default);
 
-            consensusContext.StateChanged += (_, eventArgs) =>
-            {
-                if (eventArgs.Height == 2)
-                {
-                    if (eventArgs.Step == ConsensusStep.PreVote)
-                    {
-                        heightTwoStepChangedToPreVote.Set();
-                    }
-                    else if (eventArgs.Step == ConsensusStep.PreCommit)
-                    {
-                        heightTwoStepChangedToPreCommit.Set();
-                    }
-                    else if (eventArgs.Step == ConsensusStep.EndCommit)
-                    {
-                        heightTwoStepChangedToEndCommit.Set();
-                    }
-                }
-                else if (eventArgs.Height == 3)
-                {
-                    if (eventArgs.Step == ConsensusStep.Propose)
-                    {
-                        heightThreeStepChangedToPropose.Set();
-                    }
-                    else if (eventArgs.Step == ConsensusStep.PreVote)
-                    {
-                        heightThreeStepChangedToPreVote.Set();
-                    }
-                }
-            };
-            consensusContext.MessagePublished += (_, eventArgs) =>
-            {
-                if (eventArgs.Message is ConsensusProposalMessage proposalMsg)
-                {
-                    proposal = proposalMsg;
-                    proposalSent.Set();
-                }
-            };
+            // consensusContext.StateChanged += (_, eventArgs) =>
+            // {
+            //     if (eventArgs.Height == 2)
+            //     {
+            //         if (eventArgs.Step == ConsensusStep.PreVote)
+            //         {
+            //             heightTwoStepChangedToPreVote.Set();
+            //         }
+            //         else if (eventArgs.Step == ConsensusStep.PreCommit)
+            //         {
+            //             heightTwoStepChangedToPreCommit.Set();
+            //         }
+            //         else if (eventArgs.Step == ConsensusStep.EndCommit)
+            //         {
+            //             heightTwoStepChangedToEndCommit.Set();
+            //         }
+            //     }
+            //     else if (eventArgs.Height == 3)
+            //     {
+            //         if (eventArgs.Step == ConsensusStep.Propose)
+            //         {
+            //             heightThreeStepChangedToPropose.Set();
+            //         }
+            //         else if (eventArgs.Step == ConsensusStep.PreVote)
+            //         {
+            //             heightThreeStepChangedToPreVote.Set();
+            //         }
+            //     }
+            // };
+            // consensusContext.MessagePublished += (_, eventArgs) =>
+            // {
+            //     if (eventArgs.Message is ConsensusProposalMessage proposalMsg)
+            //     {
+            //         proposal = proposalMsg;
+            //         proposalSent.Set();
+            //     }
+            // };
 
             Block block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
             blockChain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -288,20 +288,20 @@ namespace Libplanet.Net.Tests.Consensus
                 newHeightDelay,
                 TestUtils.Options,
                 TestUtils.PrivateKeys[2]);
-            consensusContext.StateChanged += (_, eventArgs) =>
-            {
-                if (eventArgs.Height == 1 && eventArgs.Step == ConsensusStep.EndCommit)
-                {
-                    heightOneEndCommit.Set();
-                }
-            };
-            consensusContext.MessagePublished += (_, eventArgs) =>
-            {
-                if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMessage)
-                {
-                    heightTwoProposalSent.Set();
-                }
-            };
+            // consensusContext.StateChanged += (_, eventArgs) =>
+            // {
+            //     if (eventArgs.Height == 1 && eventArgs.Step == ConsensusStep.EndCommit)
+            //     {
+            //         heightOneEndCommit.Set();
+            //     }
+            // };
+            // consensusContext.MessagePublished += (_, eventArgs) =>
+            // {
+            //     if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMessage)
+            //     {
+            //         heightTwoProposalSent.Set();
+            //     }
+            // };
 
             await consensusContext.StartAsync(default);
             var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
