@@ -312,13 +312,33 @@ public static class TestUtils
 
         consensus.PreVoteEntered.Subscribe(blockHash =>
         {
-            var vote = consensus.CreateVote(consensus.Round, blockHash, VoteType.PreVote);
+            var round = consensus.Round;
+            var vote = new VoteMetadata
+            {
+                Height = height,
+                Round = round,
+                BlockHash = blockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                Validator = signer.Address,
+                ValidatorPower = consensus.Validators.GetValidator(signer.Address).Power,
+                Type = VoteType.PreVote,
+            }.Sign(signer);
             consensus.PostVote(vote);
         });
 
         consensus.PreCommitEntered.Subscribe(blockHash =>
         {
-            var vote = consensus.CreateVote(consensus.Round, blockHash, VoteType.PreCommit);
+            var round = consensus.Round;
+            var vote = new VoteMetadata
+            {
+                Height = height,
+                Round = round,
+                BlockHash = blockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                Validator = signer.Address,
+                ValidatorPower = consensus.Validators.GetValidator(signer.Address).Power,
+                Type = VoteType.PreCommit,
+            }.Sign(signer);
             consensus.PostVote(vote);
         });
 

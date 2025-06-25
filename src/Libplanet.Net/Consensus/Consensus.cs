@@ -24,8 +24,6 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
     private readonly Subject<BlockHash> _proposalClaimedSubject = new();
     private readonly Subject<(int, Block)> _blockProposedSubject = new();
     private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
-
-    private readonly ImmutableSortedSet<Validator> _validators = blockchain.GetValidators(height);
     private readonly HeightContext _heightContext = new(height, blockchain.GetValidators(height));
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
     private readonly HashSet<int> _preVoteTimeoutFlags = [];
@@ -64,6 +62,8 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
     public IObservable<(int ValidRound, Block Block)> BlockProposed => _blockProposedSubject;
 
     public IObservable<(Block Block, BlockCommit BlockCommit)> Completed => _completedSubject;
+
+    public ImmutableSortedSet<Validator> Validators { get; } = blockchain.GetValidators(height);
 
     public int Height { get; } = ValidateHeight(height);
 
@@ -237,27 +237,6 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             _blockValidationCache.AddOrUpdate(block.BlockHash, true);
             return true;
         }
-    }
-
-    internal Vote CreateVote(int round, BlockHash blockHash, VoteType voteType)
-    {
-        if (voteType is VoteType.Null or VoteType.Unknown)
-        {
-            var message = $"{nameof(voteType)} must be either {VoteType.PreVote} or {VoteType.PreCommit}" +
-                          $"to create a valid signed vote.";
-            throw new ArgumentException(message, nameof(voteType));
-        }
-
-        return new VoteMetadata
-        {
-            Height = Height,
-            Round = round,
-            BlockHash = blockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = signer.Address,
-            ValidatorPower = _validators.GetValidator(signer.Address).Power,
-            Type = voteType,
-        }.Sign(signer);
     }
 
     internal Maj23 CreateMaj23(int round, BlockHash blockHash, VoteType voteType)
@@ -503,7 +482,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         Proposal = null;
         Step = ConsensusStep.Propose;
         _roundStartedSubject.OnNext(round);
-        if (_validators.GetProposer(Height, Round).Address == signer.Address
+        if (Validators.GetProposer(Height, Round).Address == signer.Address
             && (_validBlock ?? GetValue()) is Block proposalBlock)
         {
             _blockProposedSubject.OnNext((_validRound, proposalBlock));
@@ -521,7 +500,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             throw new InvalidOperationException($"Proposal already exists for height {Height} and round {Round}");
         }
 
-        if (!_validators.GetProposer(Height, Round).Address.Equals(proposal.Validator))
+        if (!Validators.GetProposer(Height, Round).Address.Equals(proposal.Validator))
         {
             var message = $"Given proposal's proposer {proposal.Validator} does not match " +
                           $"with the current proposer for height {Height} and round {Round}.";

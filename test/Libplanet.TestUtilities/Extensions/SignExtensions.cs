@@ -46,4 +46,7 @@ public static class SignExtensions
     public static Transaction Add(
         this StagedTransactionCollection @this, PrivateKey privateKey, TransactionSubmission submission)
         => @this.Add(privateKey.AsSigner(), submission);
+
+    public static Proposal Create(this ProposalBuilder @this, PrivateKey privateKey)
+        => @this.Create(privateKey.AsSigner());
 }
