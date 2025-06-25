@@ -293,20 +293,7 @@ public static class TestUtils
             signer,
             options: consensusOptions ?? new ConsensusOptions());
 
-        consensus.BlockProposed.Subscribe(e =>
-        {
-            var proposal = new ProposalMetadata
-            {
-                BlockHash = e.Block.BlockHash,
-                Height = consensus.Height,
-                Round = consensus.Round,
-                Timestamp = DateTimeOffset.UtcNow,
-                Proposer = signer.Address,
-                ValidRound = e.ValidRound,
-            }.Sign(signer, e.Block);
-            consensus.PostProposal(proposal);
-        });
-
+        consensus.BlockProposed.Subscribe(consensus.PostProposal);
         consensus.PreVoteed.Subscribe(consensus.PostVote);
         consensus.PreCommitted.Subscribe(consensus.PostVote);
 
