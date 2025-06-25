@@ -215,28 +215,26 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var exceptionOccurredEvent = new ManualResetEvent(false);
 
         var blockchain = TestUtils.CreateBlockChain();
-        await using var consensus = TestUtils.CreateConsensus(blockchain);
+        await using var consensus = TestUtils.CreateConsensus(blockchain, privateKey: TestUtils.PrivateKeys[0]);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
             exceptionThrown = e;
             exceptionOccurredEvent.Set();
         });
-        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[0]);
-        var proposal = new ProposalMetadata
+        var signer = TestUtils.PrivateKeys[0];
+        var block = blockchain.ProposeBlock(signer);
+        var proposal = new ProposalBuilder
         {
-            BlockHash = block.BlockHash,
-            Height = block.Height,
+            Block = block,
             Round = 0,
-            Timestamp = DateTimeOffset.UtcNow,
-            Proposer = TestUtils.PrivateKeys[0].Address,
-            ValidRound = -1,
-        }.Sign(TestUtils.PrivateKeys[0], block);
+        }.Create(signer);
 
         await consensus.StartAsync(default);
 
         consensus.PostProposal(proposal);
         Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
-        Assert.IsType<ArgumentException>(exceptionThrown);
+        var e = Assert.IsType<ArgumentException>(exceptionThrown);
+        Assert.Equal("proposal", e.ParamName);
     }
 
     [Fact(Timeout = Timeout)]

@@ -159,18 +159,40 @@ public sealed class ConsensusReactor : IAsyncDisposable
         consensus.PreVoteEntered.Subscribe(blockHash =>
         {
             var round = consensus.Round;
+            var signer = _privateKey.AsSigner();
+            var vote = new VoteMetadata
+            {
+                Height = Height,
+                Round = round,
+                BlockHash = blockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                Validator = signer.Address,
+                ValidatorPower = consensus.Validators.GetValidator(signer.Address).Power,
+                Type = VoteType.PreVote,
+            }.Sign(signer);
             var message = new ConsensusPreVoteMessage
             {
-                PreVote = consensus.CreateVote(round, blockHash, VoteType.PreVote),
+                PreVote = vote,
             };
             _gossip.PublishMessage(message);
         });
         consensus.PreCommitEntered.Subscribe(blockHash =>
         {
             var round = consensus.Round;
+            var signer = _privateKey.AsSigner();
+            var vote = new VoteMetadata
+            {
+                Height = Height,
+                Round = round,
+                BlockHash = blockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                Validator = signer.Address,
+                ValidatorPower = consensus.Validators.GetValidator(signer.Address).Power,
+                Type = VoteType.PreCommit,
+            }.Sign(signer);
             var message = new ConsensusPreCommitMessage
             {
-                PreCommit = consensus.CreateVote(round, blockHash, VoteType.PreCommit),
+                PreCommit = vote,
             };
             _gossip.PublishMessage(message);
         });
