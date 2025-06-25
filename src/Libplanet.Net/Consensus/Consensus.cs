@@ -25,7 +25,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
     private readonly Subject<(int, Block)> _blockProposedSubject = new();
 
     private readonly ImmutableSortedSet<Validator> _validators = blockchain.GetValidators(height);
-    private readonly Channel<ConsensusMessage> _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
+    // private readonly Channel<ConsensusMessage> _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
     private readonly Dispatcher _dispatcher = new();
     private readonly HeightContext _heightContext = new(height, blockchain.GetValidators(height));
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
@@ -89,7 +89,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         if (!_disposed)
         {
             await _cancellationTokenSource.CancelAsync();
-            _messageRequests.Writer.TryComplete();
+            // _messageRequests.Writer.TryComplete();
             await _dispatcher.DisposeAsync();
             _cancellationTokenSource.Dispose();
             _disposed = true;
@@ -286,37 +286,38 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             StartRound(0);
             ProcessGenericUponRules();
         }, _cancellationTokenSource.Token);
-        _ = MessageConsumerTask(_cancellationTokenSource.Token);
+        // _ = MessageConsumerTask(_cancellationTokenSource.Token);
     }
 
-    private async Task MessageConsumerTask(CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                var message = await _messageRequests.Reader.ReadAsync(cancellationToken);
-                await _dispatcher.InvokeAsync(_ =>
-                {
-                    if (HandleMessage(message))
-                    {
-                        ProcessHeightOrRoundUponRules(message);
-                    }
+    // private async Task MessageConsumerTask(CancellationToken cancellationToken)
+    // {
+    //     while (!cancellationToken.IsCancellationRequested)
+    //     {
+    //         try
+    //         {
+    //             var message = await _messageRequests.Reader.ReadAsync(cancellationToken);
+    //             await _dispatcher.InvokeAsync(_ =>
+    //             {
+    //                 if (HandleMessage(message))
+    //                 {
+    //                     ProcessHeightOrRoundUponRules(message);
+    //                 }
 
-                    ProcessGenericUponRules();
-                }, cancellationToken);
-            }
-            catch (Exception e)
-            {
-                _exceptionOccurredSubject.OnNext(e);
-                throw;
-            }
-        }
-    }
+    //                 ProcessGenericUponRules();
+    //             }, cancellationToken);
+    //         }
+    //         catch (Exception e)
+    //         {
+    //             _exceptionOccurredSubject.OnNext(e);
+    //             throw;
+    //         }
+    //     }
+    // }
 
+    [Obsolete]
     internal void ProduceMessage(ConsensusMessage message)
     {
-        _ = _messageRequests.Writer.WriteAsync(message);
+        // _ = _messageRequests.Writer.WriteAsync(message);
     }
 
     private void ConsumeMutation()
@@ -483,27 +484,16 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         _heightContext.Round = round;
         Proposal = null;
         Step = ConsensusStep.Propose;
+        _roundStartedSubject.OnNext(round);
         if (_validators.GetProposer(Height, Round).Address == signer.Address
             && (_validBlock ?? GetValue()) is Block proposalBlock)
         {
-            // var proposal = new ProposalMetadata
-            // {
-            //     Height = Height,
-            //     Round = Round,
-            //     Timestamp = DateTimeOffset.UtcNow,
-            //     Proposer = signer.Address,
-            //     ValidRound = _validRound,
-            // }.Sign(signer, proposalBlock);
-
-            // _messagePublishedSubject.OnNext(new ConsensusProposalMessage { Proposal = proposal });
             _blockProposedSubject.OnNext((_validRound, proposalBlock));
         }
         else
         {
             PostProposeTimeout(Round);
         }
-
-        _roundStartedSubject.OnNext(round);
     }
 
     private bool HandleMessage(ConsensusMessage message)
@@ -554,6 +544,35 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             _exceptionOccurredSubject.OnNext(e);
             return false;
         }
+    }
+
+    public void PostSetProposal(Proposal proposal)
+    {
+        _dispatcher.Post(() =>
+        {
+            SetProposal(proposal);
+            ProcessGenericUponRules();
+        });
+    }
+
+    public void PostPreVote(Vote vote)
+    {
+        _dispatcher.Post(() =>
+        {
+            _heightContext.AddVote(vote);
+            ProcessHeightOrRoundUponRules(vote);
+            ProcessGenericUponRules();
+        });
+    }
+
+    public void PostPreCommit(Vote vote)
+    {
+        _dispatcher.Post(() =>
+        {
+            _heightContext.AddVote(vote);
+            ProcessHeightOrRoundUponRules(vote);
+            ProcessGenericUponRules();
+        });
     }
 
     private void SetProposal(Proposal proposal)
@@ -691,6 +710,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         }
     }
 
+    [Obsolete]
     private void ProcessHeightOrRoundUponRules(ConsensusMessage message)
     {
         if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
@@ -701,6 +721,33 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         var round = message.Round;
         if ((message is ConsensusProposalMessage || message is ConsensusPreCommitMessage) &&
             GetProposal() is (Block block4, _) &&
+            _heightContext.PreCommits(Round).TwoThirdsMajority(out BlockHash hash) &&
+            block4.BlockHash.Equals(hash) &&
+            IsValid(block4))
+        {
+            _decidedBlock = block4;
+
+            // Maybe need to broadcast periodically?
+            _maj23AchievedSubject.OnNext((block4.BlockHash, VoteType.PreCommit));
+            EnterEndCommitWait(Round);
+            return;
+        }
+
+        if (round > Round && _heightContext.PreVotes(round).HasOneThirdsAny)
+        {
+            StartRound(round);
+        }
+    }
+
+    private void ProcessHeightOrRoundUponRules(Vote vote)
+    {
+        if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
+        {
+            return;
+        }
+
+        var round = vote.Round;
+        if (GetProposal() is (Block block4, _) &&
             _heightContext.PreCommits(Round).TwoThirdsMajority(out BlockHash hash) &&
             block4.BlockHash.Equals(hash) &&
             IsValid(block4))

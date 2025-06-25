@@ -317,7 +317,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             if (message.Height == height)
             {
-                _currentConsensus.ProduceMessage(message);
+                // _currentConsensus.ProduceMessage(message);
             }
         }
 
@@ -340,7 +340,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             if (_currentConsensus.Height == height)
             {
-                _currentConsensus.ProduceMessage(consensusMessage);
+                // _currentConsensus.ProduceMessage(consensusMessage);
             }
             else
             {

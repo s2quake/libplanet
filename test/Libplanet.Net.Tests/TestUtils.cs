@@ -281,7 +281,7 @@ namespace Libplanet.Net.Tests
             return (blockChain, consensusContext);
         }
 
-        public static Net.Consensus.Consensus CreateDummyContext(
+        public static Net.Consensus.Consensus CreateConsensus(
             Blockchain blockChain,
             int height = 1,
             BlockCommit? previousCommit = null,
@@ -289,15 +289,41 @@ namespace Libplanet.Net.Tests
             ConsensusOptions? contextOption = null,
             ImmutableSortedSet<Validator>? validators = null)
         {
-            Net.Consensus.Consensus? context = null;
-            privateKey ??= PrivateKeys[0];
-            context = new Net.Consensus.Consensus(
+            var signer = (privateKey ?? PrivateKeys[1]).AsSigner();
+            var consensus = new Net.Consensus.Consensus(
                 blockChain,
                 height,
-                privateKey.AsSigner(),
+                signer,
                 options: contextOption ?? new ConsensusOptions());
             // using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
-            return context;
+
+            consensus.BlockProposed.Subscribe(e =>
+            {
+                var proposal = new ProposalMetadata
+                {
+                    BlockHash = e.Block.BlockHash,
+                    Height = consensus.Height,
+                    Round = consensus.Round,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Proposer = signer.Address,
+                    ValidRound = e.ValidRound,
+                }.Sign(signer, e.Block);
+                consensus.PostSetProposal(proposal);
+            });
+
+            consensus.PreVoteEntered.Subscribe(blockHash =>
+            {
+                var vote = consensus.CreateVote(consensus.Round, blockHash, VoteType.PreVote);
+                consensus.PostPreVote(vote);
+            });
+
+            consensus.PreCommitEntered.Subscribe(blockHash =>
+            {
+                var vote = consensus.CreateVote(consensus.Round, blockHash, VoteType.PreCommit);
+                consensus.PostPreCommit(vote);
+            });
+
+            return consensus;
         }
 
         public static (Blockchain BlockChain, Net.Consensus.Consensus Context)
