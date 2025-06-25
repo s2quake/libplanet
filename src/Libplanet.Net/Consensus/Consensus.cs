@@ -12,7 +12,12 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public partial class Consensus(Blockchain blockchain, int height, ISigner signer, ConsensusOptions options)
+public partial class Consensus(
+    Blockchain blockchain,
+    int height,
+    ISigner signer,
+    ImmutableSortedSet<Validator> validators,
+    ConsensusOptions options)
     : IAsyncDisposable
 {
     private readonly Subject<int> _roundStartedSubject = new();
@@ -24,7 +29,8 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
     private readonly Subject<ProposalClaim> _proposalClaimedSubject = new();
     private readonly Subject<Proposal> _blockProposeSubject = new();
     private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
-    private readonly HeightContext _heightContext = new(height, blockchain.GetValidators(height));
+    private readonly HeightContext _heightContext = new(height, validators);
+    private readonly ImmutableSortedSet<Validator> _validators = validators;
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
     private readonly HashSet<int> _preVoteTimeoutFlags = [];
     private readonly HashSet<int> _preCommitTimeoutFlags = [];
@@ -45,6 +51,11 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
     private bool _disposed;
     private ConsensusStep _step;
 
+    public Consensus(Blockchain blockchain, int height, ISigner signer, ConsensusOptions options)
+        : this(blockchain, height, signer, blockchain.GetValidators(height), options)
+    {
+    }
+
     public IObservable<int> RoundStarted => _roundStartedSubject;
 
     public IObservable<Exception> ExceptionOccurred => _exceptionOccurredSubject;
@@ -62,8 +73,6 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
     public IObservable<Proposal> BlockProposed => _blockProposeSubject;
 
     public IObservable<(Block Block, BlockCommit BlockCommit)> Completed => _completedSubject;
-
-    public ImmutableSortedSet<Validator> Validators { get; } = blockchain.GetValidators(height);
 
     public int Height { get; } = ValidateHeight(height);
 
@@ -463,18 +472,9 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         Proposal = null;
         Step = ConsensusStep.Propose;
         _roundStartedSubject.OnNext(round);
-        if (Validators.GetProposer(Height, Round).Address == signer.Address
+        if (_validators.GetProposer(Height, Round).Address == signer.Address
             && (_validBlock ?? GetValue()) is Block proposalBlock)
         {
-            // var proposal = new ProposalMetadata
-            // {
-            //     BlockHash = e.Block.BlockHash,
-            //     Height = Height,
-            //     Round = Round,
-            //     Timestamp = DateTimeOffset.UtcNow,
-            //     Proposer = _privateKey.Address,
-            //     ValidRound = e.ValidRound,
-            // }.Sign(_privateKey.AsSigner(), e.Block);
             var proposal = new ProposalBuilder
             {
                 Block = proposalBlock,
@@ -497,7 +497,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             throw new InvalidOperationException($"Proposal already exists for height {Height} and round {Round}");
         }
 
-        if (!Validators.GetProposer(Height, Round).Address.Equals(proposal.Validator))
+        if (!_validators.GetProposer(Height, Round).Address.Equals(proposal.Validator))
         {
             var message = $"Given proposal's proposer {proposal.Validator} does not match " +
                           $"with the current proposer for height {Height} and round {Round}.";
@@ -587,11 +587,6 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
                 _lockedRound = Round;
                 EnterPreCommitWait(Round, p3.Block.BlockHash);
 
-                // Maybe need to broadcast periodically?
-                // var round = consensus.Round;
-                // var signer = _privateKey.AsSigner();
-                // var blockHash = e.BlockHash;
-                // var voteType = e.VoteType;
                 var maj23 = new Maj23Metadata
                 {
                     Height = Height,
@@ -608,8 +603,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             _validRound = Round;
         }
 
-        if (Step == ConsensusStep.PreVote
-            && _heightContext.PreVotes(Round).TwoThirdsMajority(out BlockHash hash3))
+        if (Step == ConsensusStep.PreVote && _heightContext.PreVotes(Round).TwoThirdsMajority(out BlockHash hash3))
         {
             if (hash3.Equals(default))
             {
@@ -689,7 +683,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = signer.Address,
-            ValidatorPower = Validators.GetValidator(signer.Address).Power,
+            ValidatorPower = _validators.GetValidator(signer.Address).Power,
             Type = VoteType.PreVote,
         }.Sign(signer);
         Step = ConsensusStep.PreVote;
@@ -710,7 +704,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = signer.Address,
-            ValidatorPower = Validators.GetValidator(signer.Address).Power,
+            ValidatorPower = _validators.GetValidator(signer.Address).Power,
             Type = VoteType.PreCommit,
         }.Sign(signer);
         Step = ConsensusStep.PreCommit;

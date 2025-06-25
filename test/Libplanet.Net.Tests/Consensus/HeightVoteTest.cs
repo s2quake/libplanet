@@ -8,7 +8,7 @@ namespace Libplanet.Net.Tests.Consensus;
 
 public sealed class HeightVoteTest(ITestOutputHelper output)
 {
-    private readonly HeightContext _heightVote = new(2, TestUtils.Validators);
+    private readonly HeightContext _heightContext = new(2, TestUtils.Validators);
 
     [Fact]
     public void CannotAddDifferentHeight()
@@ -24,7 +24,7 @@ public sealed class HeightVoteTest(ITestOutputHelper output)
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[0]);
 
-        var e = Assert.Throws<ArgumentException>(() => _heightVote.AddVote(preVote));
+        var e = Assert.Throws<ArgumentException>(() => _heightContext.AddVote(preVote));
         Assert.Equal("vote", e.ParamName);
     }
 
@@ -43,7 +43,7 @@ public sealed class HeightVoteTest(ITestOutputHelper output)
             Type = VoteType.PreVote,
         }.Sign(key);
 
-        var e = Assert.Throws<ArgumentException>(() => _heightVote.AddVote(preVote));
+        var e = Assert.Throws<ArgumentException>(() => _heightContext.AddVote(preVote));
         Assert.Equal("vote", e.ParamName);
     }
 
@@ -61,7 +61,7 @@ public sealed class HeightVoteTest(ITestOutputHelper output)
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[0]);
 
-        Assert.Throws<ArgumentException>(() => _heightVote.AddVote(preVote));
+        Assert.Throws<ArgumentException>(() => _heightContext.AddVote(preVote));
     }
 
     [Fact]
@@ -109,10 +109,10 @@ public sealed class HeightVoteTest(ITestOutputHelper output)
             Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[0]);
 
-        _heightVote.AddVote(preVote0);
-        Assert.Throws<DuplicateVoteException>(() => _heightVote.AddVote(preVote1));
-        _heightVote.AddVote(preCommit0);
-        Assert.Throws<DuplicateVoteException>(() => _heightVote.AddVote(preCommit1));
+        _heightContext.AddVote(preVote0);
+        Assert.Throws<DuplicateVoteException>(() => _heightContext.AddVote(preVote1));
+        _heightContext.AddVote(preCommit0);
+        Assert.Throws<DuplicateVoteException>(() => _heightContext.AddVote(preCommit1));
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public sealed class HeightVoteTest(ITestOutputHelper output)
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[0]);
 
-        var exception = Assert.Throws<InvalidVoteException>(() => _heightVote.AddVote(preVote));
+        var exception = Assert.Throws<InvalidVoteException>(() => _heightContext.AddVote(preVote));
         Assert.Equal("ValidatorPower of the vote cannot be null", exception.Message);
     }
 
@@ -163,13 +163,13 @@ public sealed class HeightVoteTest(ITestOutputHelper output)
 
         foreach (var preVote in preVotes)
         {
-            _heightVote.AddVote(preVote);
+            _heightContext.AddVote(preVote);
         }
 
-        _heightVote.AddVote(preCommit);
+        _heightContext.AddVote(preCommit);
 
-        Assert.Equal(5, _heightVote.GetVotes(0, VoteType.PreVote).Count +
-            _heightVote.GetVotes(0, VoteType.PreCommit).Count);
+        Assert.Equal(5, _heightContext.GetVotes(0, VoteType.PreVote).Count +
+            _heightContext.GetVotes(0, VoteType.PreCommit).Count);
     }
 
     private static Blockchain CreateDummyBlockChain()
