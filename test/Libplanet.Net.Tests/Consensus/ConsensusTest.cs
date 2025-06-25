@@ -165,7 +165,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensus.PostPreVote(vote);
+            consensus.PostVote(vote);
         }
 
         // Validator 2 will automatically vote its PreCommit.
@@ -181,7 +181,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensus.PostPreCommit(vote);
+            consensus.PostVote(vote);
         }
 
         Assert.True(endCommitEnteredEvent.WaitOne(1000), "Consensus did not enter EndCommit step in time.");
@@ -201,7 +201,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             ValidatorPower = TestUtils.Validators[3].Power,
             Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[3]);
-        consensus.PostPreCommit(vote2);
+        consensus.PostVote(vote2);
 
         await Task.Delay(100);  // Wait for the new message to be added to the message log.
         blockCommit = consensus.GetBlockCommit();
@@ -212,21 +212,30 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task ThrowOnInvalidProposerMessage()
     {
         Exception? exceptionThrown = null;
-        var exceptionOccurred = new AsyncAutoResetEvent();
+        var exceptionOccurredEvent = new ManualResetEvent(false);
 
         var blockchain = TestUtils.CreateBlockChain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
             exceptionThrown = e;
-            exceptionOccurred.Set();
+            exceptionOccurredEvent.Set();
         });
-        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[0]);
+        var proposal = new ProposalMetadata
+        {
+            BlockHash = block.BlockHash,
+            Height = block.Height,
+            Round = 0,
+            Timestamp = DateTimeOffset.UtcNow,
+            Proposer = TestUtils.PrivateKeys[0].Address,
+            ValidRound = -1,
+        }.Sign(TestUtils.PrivateKeys[0], block);
 
         await consensus.StartAsync(default);
-        consensus.ProduceMessage(
-            TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[0]));
-        await exceptionOccurred.WaitAsync();
+        
+        consensus.PostProposal(proposal);
+        Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
         Assert.IsType<InvalidOperationException>(exceptionThrown);
     }
 
@@ -496,11 +505,11 @@ public sealed class ConsensusTest(ITestOutputHelper output)
 
         var proposalA = new ProposalMetadata
         {
+            BlockHash = blockA.BlockHash,
             Height = 1,
             Round = 0,
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
-            // MarshaledBlock = ModelSerializer.SerializeToBytes(blockA),
             ValidRound = -1,
         }.Sign(proposer, blockA);
         var preVoteA2 = new ConsensusPreVoteMessage
@@ -518,11 +527,11 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         };
         var proposalB = new ProposalMetadata
         {
+            BlockHash = blockB.BlockHash,
             Height = 1,
             Round = 0,
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
-            // MarshaledBlock = ModelSerializer.SerializeToBytes(blockB),
             ValidRound = -1,
         }.Sign(proposer, blockB);
         var proposalAMsg = new ConsensusProposalMessage { Proposal = proposalA };
