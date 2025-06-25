@@ -11,10 +11,9 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public partial class Consensus : IAsyncDisposable
+public partial class Consensus(Blockchain blockchain, int height, ISigner signer, ConsensusOptions options)
+    : IAsyncDisposable
 {
-    private readonly ConsensusOptions _options;
-
     private readonly Subject<int> _startedSubject = new();
     private readonly Subject<int> _roundStartedSubject = new();
     private readonly Subject<ConsensusMessage> _messagePublishedSubject = new();
@@ -22,20 +21,21 @@ public partial class Consensus : IAsyncDisposable
     private readonly Subject<ConsensusState> _stateChangedSubject = new();
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
 
-    private readonly Blockchain _blockchain;
-    private readonly ImmutableSortedSet<Validator> _validators;
-    private readonly Channel<ConsensusMessage> _messageRequests;
+    private readonly ImmutableSortedSet<Validator> _validators = blockchain.GetValidators(height);
+    private readonly Channel<ConsensusMessage> _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
     private readonly Dispatcher _dispatcher = new();
-    private readonly HeightContext _heightContext;
-    private readonly ISigner _signer;
+    private readonly HeightContext _heightContext = new(height, blockchain.GetValidators(height));
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
     private readonly HashSet<int> _preVoteTimeoutFlags = [];
     private readonly HashSet<int> _preCommitTimeoutFlags = [];
     private readonly HashSet<int> _preCommitWaitFlags = [];
     private readonly HashSet<int> _endCommitWaitFlags = [];
     private readonly EvidenceExceptionCollector _evidenceCollector = new();
-    private readonly CancellationTokenSource _cancellationTokenSource;
-    private readonly ICache<BlockHash, bool> _blockValidationCache;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly ICache<BlockHash, bool> _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
+        .WithCapacity(128)
+        .Build();
+
     private Block? _lockedBlock;
     private int _lockedRound = -1;
     private Block? _validBlock;
@@ -43,27 +43,6 @@ public partial class Consensus : IAsyncDisposable
     private Block? _decidedBlock;
     private bool _disposed;
     private ConsensusStep _step;
-
-    public Consensus(Blockchain blockchain, int height, ISigner signer, ConsensusOptions options)
-    {
-        if (height < 1)
-        {
-            throw new ArgumentException($"Given {nameof(height)} must be positive: {height}", nameof(height));
-        }
-
-        _signer = signer;
-        Height = height;
-        _blockchain = blockchain;
-        _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
-        _validators = blockchain.GetValidators(height);
-        _heightContext = new HeightContext(height, _validators);
-        _cancellationTokenSource = new CancellationTokenSource();
-        _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
-            .WithCapacity(128)
-            .Build();
-
-        _options = options;
-    }
 
     public IObservable<int> Started => _startedSubject;
 
@@ -77,7 +56,7 @@ public partial class Consensus : IAsyncDisposable
 
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
-    public int Height { get; }
+    public int Height { get; } = ValidateHeight(height);
 
     public int Round { get; private set; } = -1;
 
@@ -139,10 +118,10 @@ public partial class Consensus : IAsyncDisposable
             Round = round,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = _signer.Address,
+            Validator = signer.Address,
             VoteType = voteType,
             VoteBits = [.. voteBits],
-        }.Sign(_signer);
+        }.Sign(signer);
     }
 
     public VoteSetBits? AddMaj23(Maj23 maj23)
@@ -203,10 +182,7 @@ public partial class Consensus : IAsyncDisposable
 
     public EvidenceException[] CollectEvidenceExceptions() => _evidenceCollector.Flush();
 
-    private Block GetValue()
-    {
-        return _blockchain.ProposeBlock(_signer);
-    }
+    private Block GetValue() => blockchain.ProposeBlock(signer);
 
     private bool IsValid(Block block)
     {
@@ -224,12 +200,12 @@ public partial class Consensus : IAsyncDisposable
 
             try
             {
-                block.Validate(_blockchain);
-                _blockchain.Options.BlockOptions.Validate(block);
+                block.Validate(blockchain);
+                blockchain.Options.BlockOptions.Validate(block);
 
                 foreach (var tx in block.Transactions)
                 {
-                    _blockchain.Options.TransactionOptions.Validate(tx);
+                    blockchain.Options.TransactionOptions.Validate(tx);
                 }
             }
             catch (Exception e) when (e is InvalidOperationException)
@@ -258,10 +234,10 @@ public partial class Consensus : IAsyncDisposable
             Round = round,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = _signer.Address,
-            ValidatorPower = _validators.GetValidator(_signer.Address).Power,
+            Validator = signer.Address,
+            ValidatorPower = _validators.GetValidator(signer.Address).Power,
             Type = voteType,
-        }.Sign(_signer);
+        }.Sign(signer);
     }
 
     private Maj23 CreateMaj23(int round, BlockHash blockHash, VoteType voteType)
@@ -279,9 +255,9 @@ public partial class Consensus : IAsyncDisposable
             Round = round,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = _signer.Address,
+            Validator = signer.Address,
             VoteType = voteType,
-        }.Sign(_signer);
+        }.Sign(signer);
     }
 
     private (Block, int)? GetProposal() => Proposal is { } p ? (p.Block, p.ValidRound) : null;
@@ -381,82 +357,101 @@ public partial class Consensus : IAsyncDisposable
 
     private void AppendBlock(Block block)
     {
-        _ = Task.Run(() => _blockchain.Append(block, GetBlockCommit()));
+        _ = Task.Run(() => blockchain.Append(block, GetBlockCommit()));
     }
 
-    private async Task EnterPreCommitWait(int round, BlockHash blockHash, CancellationToken cancellationToken)
+    private void EnterPreCommitWait(int round, BlockHash blockHash)
     {
+        _dispatcher.VerifyAccess();
         if (!_preCommitWaitFlags.Add(round))
         {
             return;
         }
 
-        await Task.Delay(_options.EnterPreCommitDelay, cancellationToken);
-        await _dispatcher.InvokeAsync(_ =>
+        var delay = options.EnterPreCommitDelay;
+        var cancellationToken = _cancellationTokenSource.Token;
+        _ = _dispatcher.PostAfterAsync(Invoke, delay, cancellationToken);
+
+        void Invoke(CancellationToken _)
         {
             EnterPreCommit(round, blockHash);
             ProcessGenericUponRules();
-        }, cancellationToken);
+        }
     }
 
-    private async Task EnterEndCommitWait(int round, CancellationToken cancellationToken)
+    private void EnterEndCommitWait(int round)
     {
+        _dispatcher.VerifyAccess();
         if (!_endCommitWaitFlags.Add(round))
         {
             return;
         }
 
-        await Task.Delay(_options.EnterEndCommitDelay, cancellationToken);
-        await _dispatcher.InvokeAsync(_ =>
+        var delay = options.EnterEndCommitDelay;
+        var cancellationToken = _cancellationTokenSource.Token;
+
+        _ = _dispatcher.PostAfterAsync(Invoke, delay, cancellationToken);
+
+        void Invoke(CancellationToken _)
         {
             EnterEndCommit(round);
             ProcessGenericUponRules();
-        }, cancellationToken);
+        }
     }
 
-    private async Task PostProposeTimeoutAsync(int round, CancellationToken cancellationToken)
+    private void PostProposeTimeout(int round)
     {
-        var timeout = _options.TimeoutPropose(round);
-        await Task.Delay(timeout, cancellationToken);
-        await _dispatcher.InvokeAsync(_ =>
+        _dispatcher.VerifyAccess();
+
+        var timeout = options.TimeoutPropose(round);
+        var cancellationToken = _cancellationTokenSource.Token;
+        _ = _dispatcher.PostAfterAsync(Invoke, timeout, cancellationToken);
+
+        void Invoke(CancellationToken _)
         {
             if (round == Round && Step == ConsensusStep.Propose)
             {
                 EnterPreVote(round, default);
                 ProcessGenericUponRules();
             }
-        }, cancellationToken);
+        }
     }
 
-    private async Task PostPreVoteTimeoutAsync(int round, CancellationToken cancellationToken)
+    private void PostPreVoteTimeout(int round)
     {
+        _dispatcher.VerifyAccess();
         if (_preCommitTimeoutFlags.Contains(round) || !_preVoteTimeoutFlags.Add(round))
         {
             return;
         }
 
-        var timeout = _options.TimeoutPreVote(round);
-        await Task.Delay(timeout, cancellationToken);
-        await _dispatcher.InvokeAsync(_ =>
+        var timeout = options.TimeoutPreVote(round);
+        var cancellationToken = _cancellationTokenSource.Token;
+        _ = _dispatcher.PostAfterAsync(Invoke, timeout, cancellationToken);
+
+        void Invoke(CancellationToken _)
         {
             if (round == Round && Step == ConsensusStep.PreVote)
             {
                 EnterPreCommit(round, default);
                 ProcessGenericUponRules();
             }
-        }, cancellationToken);
+        }
     }
 
-    private async Task PostPreCommitTimeoutAsync(int round, CancellationToken cancellationToken)
+    private void PostPreCommitTimeout(int round)
     {
+        _dispatcher.VerifyAccess();
         if (!_preCommitTimeoutFlags.Add(round))
         {
             return;
         }
 
-        var timeout = _options.TimeoutPreCommit(round);
-        await Task.Delay(timeout, cancellationToken);
-        await _dispatcher.InvokeAsync(_ =>
+        var timeout = options.TimeoutPreCommit(round);
+        var cancellationToken = _cancellationTokenSource.Token;
+        _ = _dispatcher.PostAfterAsync(Invoke, timeout, cancellationToken);
+
+        void Invoke(CancellationToken _)
         {
             if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
             {
@@ -468,16 +463,18 @@ public partial class Consensus : IAsyncDisposable
                 EnterEndCommit(round);
                 ProcessGenericUponRules();
             }
-        }, cancellationToken);
+        }
     }
 
     private void StartRound(int round)
     {
+        _dispatcher.VerifyAccess();
+
         Round = round;
         _heightContext.Round = round;
         Proposal = null;
         Step = ConsensusStep.Propose;
-        if (_validators.GetProposer(Height, Round).Address == _signer.Address
+        if (_validators.GetProposer(Height, Round).Address == signer.Address
             && (_validBlock ?? GetValue()) is Block proposalBlock)
         {
             var proposal = new ProposalMetadata
@@ -485,15 +482,15 @@ public partial class Consensus : IAsyncDisposable
                 Height = Height,
                 Round = Round,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _signer.Address,
+                Proposer = signer.Address,
                 ValidRound = _validRound,
-            }.Sign(_signer, proposalBlock);
+            }.Sign(signer, proposalBlock);
 
             _messagePublishedSubject.OnNext(new ConsensusProposalMessage { Proposal = proposal });
         }
         else
         {
-            _ = PostProposeTimeoutAsync(Round, _cancellationTokenSource.Token);
+            PostProposeTimeout(Round);
         }
 
         _roundStartedSubject.OnNext(round);
@@ -637,7 +634,7 @@ public partial class Consensus : IAsyncDisposable
 
         if (Step == ConsensusStep.PreVote && _heightContext.PreVotes(Round).HasTwoThirdsAny)
         {
-            _ = PostPreVoteTimeoutAsync(Round, _cancellationTokenSource.Token);
+            PostPreVoteTimeout(Round);
         }
 
         if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
@@ -652,7 +649,7 @@ public partial class Consensus : IAsyncDisposable
             {
                 _lockedBlock = p3.Block;
                 _lockedRound = Round;
-                _ = EnterPreCommitWait(Round, p3.Block.BlockHash, default);
+                EnterPreCommitWait(Round, p3.Block.BlockHash);
 
                 // Maybe need to broadcast periodically?
                 _messagePublishedSubject.OnNext(
@@ -671,7 +668,7 @@ public partial class Consensus : IAsyncDisposable
         {
             if (hash3.Equals(default))
             {
-                _ = EnterPreCommitWait(Round, default, default);
+                EnterPreCommitWait(Round, default);
             }
             else if (Proposal is { } proposal && !proposal.BlockHash.Equals(hash3))
             {
@@ -687,15 +684,15 @@ public partial class Consensus : IAsyncDisposable
                             Round = Round,
                             BlockHash = hash3,
                             Timestamp = DateTimeOffset.UtcNow,
-                            Validator = _signer.Address,
-                        }.Sign(_signer),
+                            Validator = signer.Address,
+                        }.Sign(signer),
                     });
             }
         }
 
         if (_heightContext.PreCommits(Round).HasTwoThirdsAny)
         {
-            _ = PostPreCommitTimeoutAsync(Round, _cancellationTokenSource.Token);
+            PostPreCommitTimeout(Round);
         }
     }
 
@@ -721,7 +718,7 @@ public partial class Consensus : IAsyncDisposable
                 {
                     Maj23 = CreateMaj23(round, block4.BlockHash, VoteType.PreCommit),
                 });
-            _ = EnterEndCommitWait(Round, default);
+            EnterEndCommitWait(Round);
             return;
         }
 
@@ -781,5 +778,15 @@ public partial class Consensus : IAsyncDisposable
             _exceptionOccurredSubject.OnNext(e);
             return;
         }
+    }
+
+    private static int ValidateHeight(int height)
+    {
+        if (height < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be non-negative.");
+        }
+
+        return height;
     }
 }
