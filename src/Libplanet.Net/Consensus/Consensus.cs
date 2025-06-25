@@ -239,7 +239,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         }
     }
 
-    public Vote CreateVote(int round, BlockHash blockHash, VoteType voteType)
+    internal Vote CreateVote(int round, BlockHash blockHash, VoteType voteType)
     {
         if (voteType is VoteType.Null or VoteType.Unknown)
         {
@@ -260,7 +260,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         }.Sign(signer);
     }
 
-    public Maj23 CreateMaj23(int round, BlockHash blockHash, VoteType voteType)
+    internal Maj23 CreateMaj23(int round, BlockHash blockHash, VoteType voteType)
     {
         if (voteType is VoteType.Null or VoteType.Unknown)
         {
