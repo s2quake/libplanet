@@ -174,7 +174,7 @@ public sealed class HeightVoteTest(ITestOutputHelper output)
 
     private static Blockchain CreateDummyBlockChain()
     {
-        var blockchain = TestUtils.CreateDummyBlockChain();
+        var blockchain = TestUtils.CreateBlockChain();
         var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         blockchain.Append(block, TestUtils.CreateBlockCommit(block));
         return blockchain;

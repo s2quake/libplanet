@@ -15,7 +15,7 @@ public class HeightVoteSetTest
 
     public HeightVoteSetTest()
     {
-        _blockchain = TestUtils.CreateDummyBlockChain();
+        _blockchain = TestUtils.CreateBlockChain();
         var block = _blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         _heightVote = new HeightContext(2, TestUtils.Validators);
         _blockchain.Append(block, TestUtils.CreateBlockCommit(block));

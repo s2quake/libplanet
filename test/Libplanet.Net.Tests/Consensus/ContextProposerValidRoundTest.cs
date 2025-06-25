@@ -37,16 +37,16 @@ namespace Libplanet.Net.Tests.Consensus
             var stateChangedToRoundTwoPropose = new AsyncAutoResetEvent();
             bool timeoutProcessed = false;
 
-            var (_, context) = TestUtils.CreateDummyContext();
-            // using var _1 = context.StateChanged.Subscribe(state =>
+            await using var consensus = TestUtils.CreateConsensus();
+            // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Round == 2 && state.Step == ConsensusStep.Propose)
             //     {
             //         stateChangedToRoundTwoPropose.Set();
             //     }
             // });
-            // context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
-            // using var _2 = context.MessagePublished.Subscribe(message =>
+            // consensus.TimeoutProcessed += (_, __) => timeoutProcessed = true;
+            // using var _2 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusProposalMessage proposalMsg)
             //     {
@@ -62,13 +62,13 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal);
             Block proposedBlock = proposal.Proposal.Block;
 
             // Force round change.
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -79,7 +79,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: proposedBlock.BlockHash,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -91,11 +91,11 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreVote)
                 });
             await stateChangedToRoundTwoPropose.WaitAsync();
-            Assert.Equal(2, context.Round);
+            Assert.Equal(2, consensus.Round);
 
-            context.ProduceMessage(TestUtils.CreateConsensusPropose(
+            consensus.ProduceMessage(TestUtils.CreateConsensusPropose(
                 proposedBlock, TestUtils.PrivateKeys[3], round: 2, validRound: 1));
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -106,7 +106,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: proposedBlock.BlockHash,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -117,7 +117,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: proposedBlock.BlockHash,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -131,7 +131,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             await roundTwoVoteSent.WaitAsync();
             Assert.False(timeoutProcessed); // Assert no transition is due to timeout.
-            Assert.Equal(ConsensusStep.PreVote, context.Step);
+            Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         }
 
         [Fact(Timeout = Timeout)]
@@ -145,8 +145,9 @@ namespace Libplanet.Net.Tests.Consensus
             var stateChangedToRoundThreePropose = new AsyncAutoResetEvent();
             var roundThreeNilPreVoteSent = new AsyncAutoResetEvent();
             bool timeoutProcessed = false;
-            var (blockChain, context) = TestUtils.CreateDummyContext();
-            // using var _0 = context.StateChanged.Subscribe(state =>
+            var blockchain = TestUtils.CreateBlockChain();
+            await using var consensus = TestUtils.CreateConsensus(blockchain);
+            // using var _0 = consensus.StateChanged.Subscribe(state =>
             // {
             //     if (state.Round == 2 && state.Step == ConsensusStep.Propose)
             //     {
@@ -165,8 +166,8 @@ namespace Libplanet.Net.Tests.Consensus
             //         stateChangedToRoundThreePropose.Set();
             //     }
             // });
-            // context.TimeoutProcessed += (_, __) => timeoutProcessed = true;
-            // using var _1 = context.MessagePublished.Subscribe(message =>
+            // consensus.TimeoutProcessed += (_, __) => timeoutProcessed = true;
+            // using var _1 = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusProposalMessage proposalMsg)
             //     {
@@ -187,20 +188,20 @@ namespace Libplanet.Net.Tests.Consensus
                 Header = new BlockHeader
                 {
                     Version = BlockHeader.CurrentProtocolVersion,
-                    Height = blockChain.Tip.Height + 1,
-                    Timestamp = blockChain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
+                    Height = blockchain.Tip.Height + 1,
+                    Timestamp = blockchain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
                     Proposer = key.Address,
-                    PreviousHash = blockChain.Tip.BlockHash,
+                    PreviousHash = blockchain.Tip.BlockHash,
                 },
             }.Sign(key);
 
-            await context.StartAsync(default);
+            await consensus.StartAsync(default);
             await proposalSent.WaitAsync();
             Assert.NotNull(proposal);
             Block proposedBlock = proposal.Proposal.Block;
 
             // Force round change to 2.
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -211,7 +212,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: proposedBlock.BlockHash,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -223,18 +224,18 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreVote)
                 });
             await stateChangedToRoundTwoPropose.WaitAsync();
-            Assert.Equal(2, context.Round);
+            Assert.Equal(2, consensus.Round);
             Assert.False(timeoutProcessed); // Assert no transition is due to timeout.
 
             // Updated locked round and valid round to 2.
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 TestUtils.CreateConsensusPropose(
                     proposedBlock,
                     TestUtils.PrivateKeys[3],
                     height: 1,
                     round: 2,
                     validRound: -1));
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -248,7 +249,7 @@ namespace Libplanet.Net.Tests.Consensus
             await stateChangedToRoundTwoPreCommit.WaitAsync();
 
             // Force round change to 3.
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -259,7 +260,7 @@ namespace Libplanet.Net.Tests.Consensus
                         hash: differentBlock.BlockHash,
                         flag: VoteType.PreVote)
                 });
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -271,11 +272,11 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreVote)
                 });
             await stateChangedToRoundThreePropose.WaitAsync();
-            Assert.Equal(3, context.Round);
+            Assert.Equal(3, consensus.Round);
 
-            context.ProduceMessage(TestUtils.CreateConsensusPropose(
+            consensus.ProduceMessage(TestUtils.CreateConsensusPropose(
                 differentBlock, TestUtils.PrivateKeys[0], round: 3, validRound: 0));
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(

@@ -1,6 +1,5 @@
 using System.Reactive.Subjects;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
@@ -25,7 +24,6 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
     private readonly Subject<(int, Block)> _blockProposedSubject = new();
 
     private readonly ImmutableSortedSet<Validator> _validators = blockchain.GetValidators(height);
-    // private readonly Channel<ConsensusMessage> _messageRequests = Channel.CreateUnbounded<ConsensusMessage>();
     private readonly Dispatcher _dispatcher = new();
     private readonly HeightContext _heightContext = new(height, blockchain.GetValidators(height));
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
@@ -89,7 +87,6 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         if (!_disposed)
         {
             await _cancellationTokenSource.CancelAsync();
-            // _messageRequests.Writer.TryComplete();
             await _dispatcher.DisposeAsync();
             _cancellationTokenSource.Dispose();
             _disposed = true;
@@ -286,7 +283,6 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             StartRound(0);
             ProcessGenericUponRules();
         }, _cancellationTokenSource.Token);
-        // _ = MessageConsumerTask(_cancellationTokenSource.Token);
     }
 
     // private async Task MessageConsumerTask(CancellationToken cancellationToken)
@@ -816,11 +812,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
 
     private static int ValidateHeight(int height)
     {
-        if (height < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(height), "Height must be non-negative.");
-        }
-
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
         return height;
     }
 }
