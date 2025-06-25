@@ -16,39 +16,33 @@ using Xunit.Sdk;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public sealed class ContextTest(ITestOutputHelper output)
+public sealed class ConsensusTest(ITestOutputHelper output)
 {
     private const int Timeout = 30000;
 
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposer()
     {
-        var publishEvent = new ManualResetEvent(false);
-        var stateEvent = new ManualResetEvent(false);
+        var blockProposedEvent = new ManualResetEvent(false);
+        var preVoteEnteredEvent = new ManualResetEvent(false);
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain();
-        await using var context = TestUtils.CreateDummyContext(blockchain);
-        // using var _1 = context.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.PreVote)
-        //     {
-        //         stateEvent.Set();
-        //     }
-        // });
-        // using var _2 = context.MessagePublished.Subscribe(message =>
-        // {
-        //     if (message is ConsensusProposalMessage)
-        //     {
-        //         publishEvent.Set();
-        //     }
-        // });
+        await using var consensus = TestUtils.CreateConsensus(blockchain);
+        using var _1 = consensus.PreVoteEntered.Subscribe(_ =>
+        {
+            preVoteEnteredEvent.Set();
+        });
+        using var _2 = consensus.BlockProposed.Subscribe(_ =>
+        {
+            blockProposedEvent.Set();
+        });
 
-        await context.StartAsync(default);
-        publishEvent.WaitOne();
-        stateEvent.WaitOne();
+        await consensus.StartAsync(default);
+        blockProposedEvent.WaitOne();
+        preVoteEnteredEvent.WaitOne();
 
-        Assert.Equal(ConsensusStep.PreVote, context.Step);
-        Assert.Equal(1, context.Height);
-        Assert.Equal(0, context.Round);
+        Assert.Equal(ConsensusStep.PreVote, consensus.Step);
+        Assert.Equal(1, consensus.Height);
+        Assert.Equal(0, consensus.Round);
     }
 
     [Fact(Timeout = Timeout)]
@@ -69,7 +63,7 @@ public sealed class ContextTest(ITestOutputHelper output)
         };
         blockChain.Append(heightOneBlock, lastCommit);
 
-        var context = TestUtils.CreateDummyContext(
+        var consensus = TestUtils.CreateConsensus(
             blockChain,
             height: 2,
             previousCommit: new BlockCommit
@@ -79,14 +73,14 @@ public sealed class ContextTest(ITestOutputHelper output)
             privateKey: TestUtils.PrivateKeys[2],
             validators: Libplanet.Tests.TestUtils.Validators);
 
-        // using var _1 = context.StateChanged.Subscribe(state =>
+        // using var _1 = consensus.StateChanged.Subscribe(state =>
         // {
         //     if (state.Step == ConsensusStep.PreVote)
         //     {
         //         stepChangedToPreVote.Set();
         //     }
         // });
-        // using var _2 = context.MessagePublished.Subscribe(message =>
+        // using var _2 = consensus.MessagePublished.Subscribe(message =>
         // {
         //     if (message is ConsensusProposalMessage proposalMsg)
         //     {
@@ -95,10 +89,10 @@ public sealed class ContextTest(ITestOutputHelper output)
         //     }
         // });
 
-        await context.StartAsync(default);
+        await consensus.StartAsync(default);
         await Task.WhenAll(stepChangedToPreVote.WaitAsync(), proposalSent.WaitAsync());
 
-        Assert.Equal(ConsensusStep.PreVote, context.Step);
+        Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.NotNull(proposal);
         Block proposed = proposal.Proposal.Block;
         Assert.NotNull(proposed.PreviousCommit);
@@ -109,19 +103,19 @@ public sealed class ContextTest(ITestOutputHelper output)
     public async Task CannotStartTwice()
     {
         var stepChanged = new AsyncAutoResetEvent();
-        var (_, context) = TestUtils.CreateDummyContext();
-        // using var _ = context.StateChanged.Subscribe(state =>
+        var (_, consensus) = TestUtils.CreateDummyContext();
+        // using var _ = consensus.StateChanged.Subscribe(state =>
         // {
         //     if (state.Step == ConsensusStep.Propose)
         //     {
         //         stepChanged.Set();
         //     }
         // });
-        await context.StartAsync(default);
+        await consensus.StartAsync(default);
 
         await stepChanged.WaitAsync();
         await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await context.StartAsync(default));
+            async () => await consensus.StartAsync(default));
     }
 
     [Fact(Timeout = Timeout)]
@@ -141,14 +135,14 @@ public sealed class ContextTest(ITestOutputHelper output)
         var lastCommit = TestUtils.CreateBlockCommit(heightOneBlock);
         blockChain.Append(heightOneBlock, lastCommit);
 
-        var context = TestUtils.CreateDummyContext(
+        var consensus = TestUtils.CreateConsensus(
             blockChain,
             height: 2,
             previousCommit: lastCommit,
             privateKey: TestUtils.PrivateKeys[2],
             validators: TestUtils.Validators);
 
-        // using var _1 = context.StateChanged.Subscribe(state =>
+        // using var _1 = consensus.StateChanged.Subscribe(state =>
         // {
         //     if (state.Step == ConsensusStep.PreVote)
         //     {
@@ -159,7 +153,7 @@ public sealed class ContextTest(ITestOutputHelper output)
         //         stepChangedToEndCommit.Set();
         //     }
         // });
-        // using var _2 = context.MessagePublished.Subscribe(message =>
+        // using var _2 = consensus.MessagePublished.Subscribe(message =>
         // {
         //     if (message is ConsensusProposalMessage proposalMsg)
         //     {
@@ -168,17 +162,17 @@ public sealed class ContextTest(ITestOutputHelper output)
         //         proposalSent.Set();
         //     }
         // });
-        using var _3 = context.ExceptionOccurred.Subscribe(exception =>
+        using var _3 = consensus.ExceptionOccurred.Subscribe(exception =>
         {
             exceptionThrown = exception;
             exceptionOccurred.Set();
         });
 
-        await context.StartAsync(default);
+        await consensus.StartAsync(default);
 
         await Task.WhenAll(stepChangedToPreVote.WaitAsync(), proposalSent.WaitAsync());
 
-        // Simulate bypass of context and block sync by swarm by
+        // Simulate bypass of consensus and block sync by swarm by
         // directly appending to the blockchain.
         Assert.NotNull(proposedBlock);
         blockChain.Append(proposedBlock!, TestUtils.CreateBlockCommit(proposedBlock!));
@@ -187,7 +181,7 @@ public sealed class ContextTest(ITestOutputHelper output)
         // Make PreVotes to normally move to PreCommit step.
         foreach (int i in new int[] { 0, 1, 3 })
         {
-            context.ProduceMessage(new ConsensusPreVoteMessage
+            consensus.ProduceMessage(new ConsensusPreVoteMessage
             {
                 PreVote = new VoteMetadata
                 {
@@ -205,7 +199,7 @@ public sealed class ContextTest(ITestOutputHelper output)
         // Validator 2 will automatically vote its PreCommit.
         foreach (int i in new int[] { 0, 1 })
         {
-            context.ProduceMessage(new ConsensusPreCommitMessage
+            consensus.ProduceMessage(new ConsensusPreCommitMessage
             {
                 PreCommit = new VoteMetadata
                 {
@@ -222,12 +216,12 @@ public sealed class ContextTest(ITestOutputHelper output)
 
         await stepChangedToEndCommit.WaitAsync();
 
-        // Check context has only three votes.
-        BlockCommit? commit = context.GetBlockCommit();
+        // Check consensus has only three votes.
+        BlockCommit? commit = consensus.GetBlockCommit();
         Assert.Equal(3, commit?.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
 
         // Context should still accept new votes.
-        context.ProduceMessage(new ConsensusPreCommitMessage
+        consensus.ProduceMessage(new ConsensusPreCommitMessage
         {
             PreCommit = new VoteMetadata
             {
@@ -242,7 +236,7 @@ public sealed class ContextTest(ITestOutputHelper output)
         });
 
         await Task.Delay(100);  // Wait for the new message to be added to the message log.
-        commit = context.GetBlockCommit();
+        commit = consensus.GetBlockCommit();
         Assert.Equal(4, commit?.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
     }
 
@@ -252,16 +246,16 @@ public sealed class ContextTest(ITestOutputHelper output)
         Exception? exceptionThrown = null;
         var exceptionOccurred = new AsyncAutoResetEvent();
 
-        var (blockChain, context) = TestUtils.CreateDummyContext();
-        using var _ = context.ExceptionOccurred.Subscribe(e =>
+        var (blockChain, consensus) = TestUtils.CreateDummyContext();
+        using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
             exceptionThrown = e;
             exceptionOccurred.Set();
         });
         var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
-        await context.StartAsync(default);
-        context.ProduceMessage(
+        await consensus.StartAsync(default);
+        consensus.ProduceMessage(
             TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[0]));
         await exceptionOccurred.WaitAsync();
         Assert.IsType<InvalidOperationException>(exceptionThrown);
@@ -273,23 +267,23 @@ public sealed class ContextTest(ITestOutputHelper output)
         Exception? exceptionThrown = null;
         var exceptionOccurred = new AsyncAutoResetEvent();
 
-        var (blockChain, context) = TestUtils.CreateDummyContext();
-        using var _ = context.ExceptionOccurred.Subscribe(e =>
+        var (blockChain, consensus) = TestUtils.CreateDummyContext();
+        using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
             exceptionThrown = e;
             exceptionOccurred.Set();
         });
         var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[2]);
 
-        await context.StartAsync(default);
-        context.ProduceMessage(
+        await consensus.StartAsync(default);
+        consensus.ProduceMessage(
             TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[2], 2, 2));
         await exceptionOccurred.WaitAsync();
         Assert.IsType<InvalidOperationException>(exceptionThrown);
 
         // Reset exception thrown.
         exceptionThrown = null;
-        context.ProduceMessage(
+        consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
                 PreVote = TestUtils.CreateVote(
@@ -329,14 +323,14 @@ public sealed class ContextTest(ITestOutputHelper output)
         var fx = new MemoryRepositoryFixture(options);
         var blockChain = Libplanet.Tests.TestUtils.MakeBlockChain(options);
 
-        Net.Consensus.Consensus context = new Net.Consensus.Consensus(
+        Net.Consensus.Consensus consensus = new Net.Consensus.Consensus(
             blockChain,
             1,
             TestUtils.PrivateKeys[0].AsSigner(),
             options: new ConsensusOptions());
-        // using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
+        // using var _1 = consensus.MessagePublished.Subscribe(consensus.ProduceMessage);
 
-        // using var _2 = context.StateChanged.Subscribe(state =>
+        // using var _2 = consensus.StateChanged.Subscribe(state =>
         // {
         //     if (state.Step == ConsensusStep.PreVote)
         //     {
@@ -372,13 +366,13 @@ public sealed class ContextTest(ITestOutputHelper output)
         blockChain.StagedTransactions.Add(tx);
         var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
-        await context.StartAsync(default);
-        context.ProduceMessage(
+        await consensus.StartAsync(default);
+        consensus.ProduceMessage(
             TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]));
 
         foreach (int i in new int[] { 1, 2, 3 })
         {
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = new VoteMetadata
@@ -397,7 +391,7 @@ public sealed class ContextTest(ITestOutputHelper output)
         // Two additional votes should be enough to reach a consensus.
         foreach (int i in new int[] { 1, 2 })
         {
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = new VoteMetadata
@@ -416,14 +410,14 @@ public sealed class ContextTest(ITestOutputHelper output)
         await blockHeightOneAppended.WaitAsync();
         Assert.Equal(
             3,
-            context.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
+            consensus.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
 
         Assert.True(enteredPreVote.IsSet);
         Assert.True(enteredPreCommit.IsSet);
         Assert.True(enteredEndCommit.IsSet);
 
         // Add the last vote and wait for it to be consumed.
-        context.ProduceMessage(
+        consensus.ProduceMessage(
             new ConsensusPreCommitMessage
             {
                 PreCommit = new VoteMetadata
@@ -440,7 +434,7 @@ public sealed class ContextTest(ITestOutputHelper output)
         Thread.Sleep(10);
         Assert.Equal(
             4,
-            context.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));
+            consensus.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));
     }
 
     /// <summary>
@@ -505,12 +499,12 @@ public sealed class ContextTest(ITestOutputHelper output)
                 new Validator { Address = key2.Address },
             ]);
 
-        var (blockChain, context) = TestUtils.CreateDummyContext(
+        var (blockChain, consensus) = TestUtils.CreateDummyContext(
             privateKey: privateKeys[0],
             validatorSet: validatorSet);
         var blockA = blockChain.ProposeBlock(proposer);
         var blockB = blockChain.ProposeBlock(proposer);
-        // using var _0 = context.StateChanged.Subscribe(state =>
+        // using var _0 = consensus.StateChanged.Subscribe(state =>
         // {
         //     if (state.Step != prevStep)
         //     {
@@ -524,9 +518,9 @@ public sealed class ContextTest(ITestOutputHelper output)
         //         proposalModified.Set();
         //     }
         // });
-        await context.StartAsync(default);
+        await consensus.StartAsync(default);
         await stepChanged.WaitAsync();
-        Assert.Equal(ConsensusStep.Propose, context.Step);
+        Assert.Equal(ConsensusStep.Propose, consensus.Step);
 
         var proposalA = new ProposalMetadata
         {
@@ -561,17 +555,17 @@ public sealed class ContextTest(ITestOutputHelper output)
         }.Sign(proposer, blockB);
         var proposalAMsg = new ConsensusProposalMessage { Proposal = proposalA };
         var proposalBMsg = new ConsensusProposalMessage { Proposal = proposalB };
-        context.ProduceMessage(proposalAMsg);
+        consensus.ProduceMessage(proposalAMsg);
         await proposalModified.WaitAsync();
-        Assert.Equal(proposalA, context.Proposal);
+        Assert.Equal(proposalA, consensus.Proposal);
 
         // Proposal B is ignored because proposal A is received first.
-        context.ProduceMessage(proposalBMsg);
-        Assert.Equal(proposalA, context.Proposal);
-        context.ProduceMessage(preVoteA2);
+        consensus.ProduceMessage(proposalBMsg);
+        Assert.Equal(proposalA, consensus.Proposal);
+        consensus.ProduceMessage(preVoteA2);
 
         // Validator 1 (key1) collected +2/3 pre-vote messages,
-        // sends maj23 message to context.
+        // sends maj23 message to consensus.
         var maj23 = new Maj23Metadata
         {
             Height = 1,
@@ -581,7 +575,7 @@ public sealed class ContextTest(ITestOutputHelper output)
             Validator = key1.Address,
             VoteType = VoteType.PreVote,
         }.Sign(key1);
-        context.AddMaj23(maj23);
+        consensus.AddMaj23(maj23);
 
         var preVoteB0 = new ConsensusPreVoteMessage
         {
@@ -622,22 +616,22 @@ public sealed class ContextTest(ITestOutputHelper output)
                 Type = VoteType.PreVote,
             }.Sign(key2)
         };
-        context.ProduceMessage(preVoteB0);
-        context.ProduceMessage(preVoteB1);
-        context.ProduceMessage(preVoteB2);
+        consensus.ProduceMessage(preVoteB0);
+        consensus.ProduceMessage(preVoteB1);
+        consensus.ProduceMessage(preVoteB2);
         await proposalModified.WaitAsync();
-        Assert.Null(context.Proposal);
-        context.ProduceMessage(proposalBMsg);
+        Assert.Null(consensus.Proposal);
+        consensus.ProduceMessage(proposalBMsg);
         await proposalModified.WaitAsync();
         Assert.Equal(
-context.Proposal,
+consensus.Proposal,
 proposalBMsg.Proposal);
         await stepChanged.WaitAsync();
         await stepChanged.WaitAsync();
-        Assert.Equal(ConsensusStep.PreCommit, context.Step);
+        Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(
 blockB.BlockHash.ToString(),
-JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
+JsonSerializer.Deserialize<ContextJson>(consensus.ToString()).valid_value);
     }
 
     [Fact(Timeout = Timeout)]
@@ -657,8 +651,8 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
             null,
             blockChain,
             new ConsensusReactorOptions { PrivateKey = new PrivateKey() });
-        Net.Consensus.Consensus context = consensusContext.CurrentContext;
-        // using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
+        Net.Consensus.Consensus consensus = consensusContext.CurrentContext;
+        // using var _1 = consensus.MessagePublished.Subscribe(consensus.ProduceMessage);
 
         using var _2 = blockChain.TipChanged.Subscribe(eventArgs =>
         {
@@ -687,12 +681,12 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
         var block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
         await consensusContext.StartAsync(default);
-        context.ProduceMessage(
+        consensus.ProduceMessage(
             TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]));
 
         foreach (int i in new int[] { 1, 2, 3 })
         {
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = new VoteMetadata
@@ -710,7 +704,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
 
         foreach (int i in new int[] { 1, 2, 3 })
         {
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = new VoteMetadata
@@ -735,7 +729,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
         await enteredHeightTwo.WaitAsync();
         Assert.Equal(
             4,
-            context.GetBlockCommit()!.Votes.Count(
+            consensus.GetBlockCommit()!.Votes.Count(
                 vote => vote.Type.Equals(VoteType.PreCommit)));
         Assert.True(watch.ElapsedMilliseconds > (actionDelay * 0.5));
         Assert.Equal(2, consensusContext.Height);
@@ -751,12 +745,12 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
         var stepChangedToPreCommit = new AsyncAutoResetEvent();
         Block? proposedBlock = null;
         int numPreVotes = 0;
-        var (_, context) = TestUtils.CreateDummyContext(
+        var (_, consensus) = TestUtils.CreateDummyContext(
             contextOption: new ConsensusOptions
             {
                 EnterPreCommitDelay = delay,
             });
-        // using var _1 = context.StateChanged.Subscribe(state =>
+        // using var _1 = consensus.StateChanged.Subscribe(state =>
         // {
         //     if (state.Step == ConsensusStep.PreVote)
         //     {
@@ -767,23 +761,23 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
         //         stepChangedToPreCommit.Set();
         //     }
         // });
-        // using var _2 = context.MessagePublished.Subscribe(message =>
+        // using var _2 = consensus.MessagePublished.Subscribe(message =>
         // {
         //     if (message is ConsensusProposalMessage proposalMsg)
         //     {
         //         proposedBlock = proposalMsg.Proposal.Block;
         //     }
         // });
-        // context.VoteSetModified += (_, tuple) =>
+        // consensus.VoteSetModified += (_, tuple) =>
         // {
         //     if (tuple.Flag == VoteType.PreVote)
         //     {
         //         numPreVotes = tuple.Votes.Count();
         //     }
         // };
-        await context.StartAsync(default);
+        await consensus.StartAsync(default);
         await stepChangedToPreVote.WaitAsync();
-        Assert.Equal(ConsensusStep.PreVote, context.Step);
+        Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         if (proposedBlock is not { } block)
         {
             throw new XunitException("No proposal is made");
@@ -791,7 +785,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
 
         for (int i = 0; i < 3; i++)
         {
-            context.ProduceMessage(
+            consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = new VoteMetadata
@@ -814,7 +808,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
             async () =>
             {
                 await Task.Delay(preVoteDelay, cts.Token);
-                context.ProduceMessage(
+                consensus.ProduceMessage(
                     new ConsensusPreVoteMessage
                     {
                         PreVote = new VoteMetadata

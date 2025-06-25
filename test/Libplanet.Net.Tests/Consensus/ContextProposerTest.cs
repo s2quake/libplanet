@@ -372,7 +372,7 @@ namespace Libplanet.Net.Tests.Consensus
             var block2Commit = TestUtils.CreateBlockCommit(block2);
             blockChain.Append(block2, block2Commit);
 
-            var context = TestUtils.CreateDummyContext(
+            var context = TestUtils.CreateConsensus(
                 blockChain,
                 privateKey: TestUtils.PrivateKeys[2],
                 height: 2,
