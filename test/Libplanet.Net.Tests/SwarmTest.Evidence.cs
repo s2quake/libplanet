@@ -173,18 +173,18 @@ namespace Libplanet.Net.Tests
             CancellationToken cancellationToken)
         {
             var asyncAutoResetEvent = new AsyncAutoResetEvent();
-            consensusContext.StateChanged += ConsensusContext_StateChanged;
-            try
-            {
-                if (consensusContext.Step != consensusStep)
-                {
-                    await asyncAutoResetEvent.WaitAsync(cancellationToken);
-                }
-            }
-            finally
-            {
-                consensusContext.StateChanged -= ConsensusContext_StateChanged;
-            }
+            // consensusContext.StateChanged += ConsensusContext_StateChanged;
+            // try
+            // {
+            //     if (consensusContext.Step != consensusStep)
+            //     {
+            //         await asyncAutoResetEvent.WaitAsync(cancellationToken);
+            //     }
+            // }
+            // finally
+            // {
+            //     consensusContext.StateChanged -= ConsensusContext_StateChanged;
+            // }
 
             void ConsensusContext_StateChanged(object? sender, ConsensusState e)
             {

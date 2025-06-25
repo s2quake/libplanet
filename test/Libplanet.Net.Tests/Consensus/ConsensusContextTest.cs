@@ -45,29 +45,29 @@ public class ConsensusContextTest
         AsyncAutoResetEvent heightThreeStepChangedToEndCommit = new AsyncAutoResetEvent();
         AsyncAutoResetEvent heightFourStepChangedToPropose = new AsyncAutoResetEvent();
         AsyncAutoResetEvent onTipChangedToThree = new AsyncAutoResetEvent();
-        consensusContext.StateChanged += (_, eventArgs) =>
-        {
-            if (eventArgs.Height == 3 && eventArgs.Step == ConsensusStep.Propose)
-            {
-                heightThreeStepChangedToPropose.Set();
-            }
-            else if (eventArgs.Height == 3 && eventArgs.Step == ConsensusStep.EndCommit)
-            {
-                heightThreeStepChangedToEndCommit.Set();
-            }
-            else if (eventArgs.Height == 4 && eventArgs.Step == ConsensusStep.Propose)
-            {
-                heightFourStepChangedToPropose.Set();
-            }
-        };
-        consensusContext.MessagePublished += (_, eventArgs) =>
-        {
-            if (eventArgs.Message is ConsensusProposalMessage proposalMsg)
-            {
-                proposal = proposalMsg;
-                proposalMessageSent.Set();
-            }
-        };
+        // consensusContext.StateChanged += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.Height == 3 && eventArgs.Step == ConsensusStep.Propose)
+        //     {
+        //         heightThreeStepChangedToPropose.Set();
+        //     }
+        //     else if (eventArgs.Height == 3 && eventArgs.Step == ConsensusStep.EndCommit)
+        //     {
+        //         heightThreeStepChangedToEndCommit.Set();
+        //     }
+        //     else if (eventArgs.Height == 4 && eventArgs.Step == ConsensusStep.Propose)
+        //     {
+        //         heightFourStepChangedToPropose.Set();
+        //     }
+        // };
+        // consensusContext.MessagePublished += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.Message is ConsensusProposalMessage proposalMsg)
+        //     {
+        //         proposal = proposalMsg;
+        //         proposalMessageSent.Set();
+        //     }
+        // };
         using var _ = blockChain.TipChanged.Subscribe(eventArgs =>
         {
             if (eventArgs.Tip.Height == 3L)
@@ -212,21 +212,21 @@ public class ConsensusContextTest
             TimeSpan.FromSeconds(1),
             TestUtils.Options,
             TestUtils.PrivateKeys[1]);
-        consensusContext.StateChanged += (sender, tuple) =>
-        {
-            if (tuple.Height == 1 && tuple.Step == ConsensusStep.EndCommit)
-            {
-                heightOneEndCommit.Set();
-            }
-        };
-        consensusContext.MessagePublished += (_, eventArgs) =>
-        {
-            if (eventArgs.Height == 1 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
-            {
-                proposal = proposalMsg;
-                heightOneProposalSent.Set();
-            }
-        };
+        // consensusContext.StateChanged += (sender, tuple) =>
+        // {
+        //     if (tuple.Height == 1 && tuple.Step == ConsensusStep.EndCommit)
+        //     {
+        //         heightOneEndCommit.Set();
+        //     }
+        // };
+        // consensusContext.MessagePublished += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.Height == 1 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
+        //     {
+        //         proposal = proposalMsg;
+        //         heightOneProposalSent.Set();
+        //     }
+        // };
 
         await consensusContext.StartAsync(default);
         await heightOneProposalSent.WaitAsync();
@@ -319,13 +319,13 @@ public class ConsensusContextTest
             ValidatorPower = TestUtils.Validators[3].Power,
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[3]);
-        consensusContext.StateChanged += (_, eventArgs) =>
-        {
-            if (eventArgs is { Height: 1, Step: ConsensusStep.PreCommit })
-            {
-                stepChanged.Set();
-            }
-        };
+        // consensusContext.StateChanged += (_, eventArgs) =>
+        // {
+        //     if (eventArgs is { Height: 1, Step: ConsensusStep.PreCommit })
+        //     {
+        //         stepChanged.Set();
+        //     }
+        // };
         // consensusContext.CurrentContext.VoteSetModified += (_, eventArgs) =>
         // {
         //     if (eventArgs.Flag == VoteType.PreCommit)
@@ -362,14 +362,14 @@ public class ConsensusContextTest
             TimeSpan.FromSeconds(1),
             TestUtils.Options,
             TestUtils.PrivateKeys[0]);
-        consensusContext.StateChanged += (_, eventArgs) =>
-        {
-            if (eventArgs.Step != step)
-            {
-                step = eventArgs.Step;
-                stepChanged.Set();
-            }
-        };
+        // consensusContext.StateChanged += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.Step != step)
+        //     {
+        //         step = eventArgs.Step;
+        //         stepChanged.Set();
+        //     }
+        // };
 
         await consensusContext.StartAsync(default);
         var block = blockChain.ProposeBlock(proposer);
@@ -440,14 +440,14 @@ public class ConsensusContextTest
             TimeSpan.FromSeconds(1),
             TestUtils.Options,
             TestUtils.PrivateKeys[0]);
-        consensusContext.StateChanged += (_, eventArgs) =>
-        {
-            if (eventArgs.Step != step)
-            {
-                step = eventArgs.Step;
-                stepChanged.Set();
-            }
-        };
+        // consensusContext.StateChanged += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.Step != step)
+        //     {
+        //         step = eventArgs.Step;
+        //         stepChanged.Set();
+        //     }
+        // };
         await consensusContext.StartAsync(default);
         var block = blockChain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata

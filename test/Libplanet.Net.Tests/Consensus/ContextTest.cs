@@ -27,20 +27,20 @@ public sealed class ContextTest(ITestOutputHelper output)
         var stateEvent = new ManualResetEvent(false);
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain();
         await using var context = TestUtils.CreateDummyContext(blockchain);
-        using var _1 = context.StateChanged.Subscribe(state =>
-        {
-            if (state.Step == ConsensusStep.PreVote)
-            {
-                stateEvent.Set();
-            }
-        });
-        using var _2 = context.MessagePublished.Subscribe(message =>
-        {
-            if (message is ConsensusProposalMessage)
-            {
-                publishEvent.Set();
-            }
-        });
+        // using var _1 = context.StateChanged.Subscribe(state =>
+        // {
+        //     if (state.Step == ConsensusStep.PreVote)
+        //     {
+        //         stateEvent.Set();
+        //     }
+        // });
+        // using var _2 = context.MessagePublished.Subscribe(message =>
+        // {
+        //     if (message is ConsensusProposalMessage)
+        //     {
+        //         publishEvent.Set();
+        //     }
+        // });
 
         await context.StartAsync(default);
         publishEvent.WaitOne();
@@ -79,21 +79,21 @@ public sealed class ContextTest(ITestOutputHelper output)
             privateKey: TestUtils.PrivateKeys[2],
             validators: Libplanet.Tests.TestUtils.Validators);
 
-        using var _1 = context.StateChanged.Subscribe(state =>
-        {
-            if (state.Step == ConsensusStep.PreVote)
-            {
-                stepChangedToPreVote.Set();
-            }
-        });
-        using var _2 = context.MessagePublished.Subscribe(message =>
-        {
-            if (message is ConsensusProposalMessage proposalMsg)
-            {
-                proposal = proposalMsg;
-                proposalSent.Set();
-            }
-        });
+        // using var _1 = context.StateChanged.Subscribe(state =>
+        // {
+        //     if (state.Step == ConsensusStep.PreVote)
+        //     {
+        //         stepChangedToPreVote.Set();
+        //     }
+        // });
+        // using var _2 = context.MessagePublished.Subscribe(message =>
+        // {
+        //     if (message is ConsensusProposalMessage proposalMsg)
+        //     {
+        //         proposal = proposalMsg;
+        //         proposalSent.Set();
+        //     }
+        // });
 
         await context.StartAsync(default);
         await Task.WhenAll(stepChangedToPreVote.WaitAsync(), proposalSent.WaitAsync());
@@ -110,13 +110,13 @@ public sealed class ContextTest(ITestOutputHelper output)
     {
         var stepChanged = new AsyncAutoResetEvent();
         var (_, context) = TestUtils.CreateDummyContext();
-        using var _ = context.StateChanged.Subscribe(state =>
-        {
-            if (state.Step == ConsensusStep.Propose)
-            {
-                stepChanged.Set();
-            }
-        });
+        // using var _ = context.StateChanged.Subscribe(state =>
+        // {
+        //     if (state.Step == ConsensusStep.Propose)
+        //     {
+        //         stepChanged.Set();
+        //     }
+        // });
         await context.StartAsync(default);
 
         await stepChanged.WaitAsync();
@@ -148,26 +148,26 @@ public sealed class ContextTest(ITestOutputHelper output)
             privateKey: TestUtils.PrivateKeys[2],
             validators: TestUtils.Validators);
 
-        using var _1 = context.StateChanged.Subscribe(state =>
-        {
-            if (state.Step == ConsensusStep.PreVote)
-            {
-                stepChangedToPreVote.Set();
-            }
-            else if (state.Step == ConsensusStep.EndCommit)
-            {
-                stepChangedToEndCommit.Set();
-            }
-        });
-        using var _2 = context.MessagePublished.Subscribe(message =>
-        {
-            if (message is ConsensusProposalMessage proposalMsg)
-            {
-                proposal = proposalMsg;
-                proposedBlock = proposalMsg.Proposal.Block;
-                proposalSent.Set();
-            }
-        });
+        // using var _1 = context.StateChanged.Subscribe(state =>
+        // {
+        //     if (state.Step == ConsensusStep.PreVote)
+        //     {
+        //         stepChangedToPreVote.Set();
+        //     }
+        //     else if (state.Step == ConsensusStep.EndCommit)
+        //     {
+        //         stepChangedToEndCommit.Set();
+        //     }
+        // });
+        // using var _2 = context.MessagePublished.Subscribe(message =>
+        // {
+        //     if (message is ConsensusProposalMessage proposalMsg)
+        //     {
+        //         proposal = proposalMsg;
+        //         proposedBlock = proposalMsg.Proposal.Block;
+        //         proposalSent.Set();
+        //     }
+        // });
         using var _3 = context.ExceptionOccurred.Subscribe(exception =>
         {
             exceptionThrown = exception;
@@ -334,25 +334,25 @@ public sealed class ContextTest(ITestOutputHelper output)
             1,
             TestUtils.PrivateKeys[0].AsSigner(),
             options: new ConsensusOptions());
-        using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
+        // using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
 
-        using var _2 = context.StateChanged.Subscribe(state =>
-        {
-            if (state.Step == ConsensusStep.PreVote)
-            {
-                enteredPreVote.Set();
-            }
+        // using var _2 = context.StateChanged.Subscribe(state =>
+        // {
+        //     if (state.Step == ConsensusStep.PreVote)
+        //     {
+        //         enteredPreVote.Set();
+        //     }
 
-            if (state.Step == ConsensusStep.PreCommit)
-            {
-                enteredPreCommit.Set();
-            }
+        //     if (state.Step == ConsensusStep.PreCommit)
+        //     {
+        //         enteredPreCommit.Set();
+        //     }
 
-            if (state.Step == ConsensusStep.EndCommit)
-            {
-                enteredEndCommit.Set();
-            }
-        });
+        //     if (state.Step == ConsensusStep.EndCommit)
+        //     {
+        //         enteredEndCommit.Set();
+        //     }
+        // });
 
         using var _3 = blockChain.TipChanged.Subscribe(eventArgs =>
         {
@@ -510,20 +510,20 @@ public sealed class ContextTest(ITestOutputHelper output)
             validatorSet: validatorSet);
         var blockA = blockChain.ProposeBlock(proposer);
         var blockB = blockChain.ProposeBlock(proposer);
-        using var _0 = context.StateChanged.Subscribe(state =>
-        {
-            if (state.Step != prevStep)
-            {
-                prevStep = state.Step;
-                stepChanged.Set();
-            }
+        // using var _0 = context.StateChanged.Subscribe(state =>
+        // {
+        //     if (state.Step != prevStep)
+        //     {
+        //         prevStep = state.Step;
+        //         stepChanged.Set();
+        //     }
 
-            if (!state.Proposal.Equals(prevProposal))
-            {
-                prevProposal = state.Proposal;
-                proposalModified.Set();
-            }
-        });
+        //     if (!state.Proposal.Equals(prevProposal))
+        //     {
+        //         prevProposal = state.Proposal;
+        //         proposalModified.Set();
+        //     }
+        // });
         await context.StartAsync(default);
         await stepChanged.WaitAsync();
         Assert.Equal(ConsensusStep.Propose, context.Step);
@@ -658,7 +658,7 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
             blockChain,
             new ConsensusReactorOptions { PrivateKey = new PrivateKey() });
         Net.Consensus.Consensus context = consensusContext.CurrentContext;
-        using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
+        // using var _1 = context.MessagePublished.Subscribe(context.ProduceMessage);
 
         using var _2 = blockChain.TipChanged.Subscribe(eventArgs =>
         {
@@ -668,13 +668,13 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
             }
         });
 
-        consensusContext.StateChanged += (_, eventArgs) =>
-        {
-            if (consensusContext.Height == 2L)
-            {
-                enteredHeightTwo.Set();
-            }
-        };
+        // consensusContext.StateChanged += (_, eventArgs) =>
+        // {
+        //     if (consensusContext.Height == 2L)
+        //     {
+        //         enteredHeightTwo.Set();
+        //     }
+        // };
 
         var action = new DelayAction(actionDelay);
         var tx = new TransactionMetadata
@@ -756,24 +756,24 @@ JsonSerializer.Deserialize<ContextJson>(context.ToString()).valid_value);
             {
                 EnterPreCommitDelay = delay,
             });
-        using var _1 = context.StateChanged.Subscribe(state =>
-        {
-            if (state.Step == ConsensusStep.PreVote)
-            {
-                stepChangedToPreVote.Set();
-            }
-            else if (state.Step == ConsensusStep.PreCommit)
-            {
-                stepChangedToPreCommit.Set();
-            }
-        });
-        using var _2 = context.MessagePublished.Subscribe(message =>
-        {
-            if (message is ConsensusProposalMessage proposalMsg)
-            {
-                proposedBlock = proposalMsg.Proposal.Block;
-            }
-        });
+        // using var _1 = context.StateChanged.Subscribe(state =>
+        // {
+        //     if (state.Step == ConsensusStep.PreVote)
+        //     {
+        //         stepChangedToPreVote.Set();
+        //     }
+        //     else if (state.Step == ConsensusStep.PreCommit)
+        //     {
+        //         stepChangedToPreCommit.Set();
+        //     }
+        // });
+        // using var _2 = context.MessagePublished.Subscribe(message =>
+        // {
+        //     if (message is ConsensusProposalMessage proposalMsg)
+        //     {
+        //         proposedBlock = proposalMsg.Proposal.Block;
+        //     }
+        // });
         // context.VoteSetModified += (_, tuple) =>
         // {
         //     if (tuple.Flag == VoteType.PreVote)

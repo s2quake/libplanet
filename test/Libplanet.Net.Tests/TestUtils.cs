@@ -296,7 +296,7 @@ namespace Libplanet.Net.Tests
                 height,
                 privateKey.AsSigner(),
                 options: contextOption ?? new ConsensusOptions());
-            using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
+            // using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
             return context;
         }
 
@@ -319,7 +319,7 @@ namespace Libplanet.Net.Tests
                 height,
                 privateKey.AsSigner(),
                 options: contextOption ?? new ConsensusOptions());
-            using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
+            // using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
 
             return (blockChain, context);
         }

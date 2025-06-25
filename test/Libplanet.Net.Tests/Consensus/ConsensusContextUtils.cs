@@ -36,7 +36,7 @@ namespace Libplanet.Net.Tests.Consensus
             CancellationToken cancellationToken)
         {
             var asyncAutoResetEvent = new AsyncAutoResetEvent();
-            consensusContext.StateChanged += ConsensusContext_StateChanged;
+            // consensusContext.StateChanged += ConsensusContext_StateChanged;
             try
             {
                 if (consensusContext.Step != consensusStep || consensusContext.Height != height)
@@ -46,7 +46,7 @@ namespace Libplanet.Net.Tests.Consensus
             }
             finally
             {
-                consensusContext.StateChanged -= ConsensusContext_StateChanged;
+                // consensusContext.StateChanged -= ConsensusContext_StateChanged;
             }
 
             void ConsensusContext_StateChanged(object? sender, ConsensusState e)
@@ -66,7 +66,7 @@ namespace Libplanet.Net.Tests.Consensus
         {
             T? consensusMessage = null;
             var asyncAutoResetEvent = new AsyncAutoResetEvent();
-            consensusContext.MessagePublished += ConsensusContext_MessagePublished;
+            // consensusContext.MessagePublished += ConsensusContext_MessagePublished;
             try
             {
                 await asyncAutoResetEvent.WaitAsync(cancellationToken);
@@ -74,7 +74,7 @@ namespace Libplanet.Net.Tests.Consensus
             }
             finally
             {
-                consensusContext.MessagePublished -= ConsensusContext_MessagePublished;
+                // consensusContext.MessagePublished -= ConsensusContext_MessagePublished;
             }
 
             void ConsensusContext_MessagePublished(
