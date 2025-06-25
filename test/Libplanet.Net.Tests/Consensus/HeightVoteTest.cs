@@ -8,7 +8,7 @@ namespace Libplanet.Net.Tests.Consensus;
 
 public sealed class HeightVoteTest(ITestOutputHelper output)
 {
-    private readonly HeightContext _heightContext = new(2, TestUtils.Validators);
+    private readonly VoteContext _heightContext = new(2, TestUtils.Validators);
 
     [Fact]
     public void CannotAddDifferentHeight()
@@ -130,7 +130,7 @@ public sealed class HeightVoteTest(ITestOutputHelper output)
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[0]);
 
-        var exception = Assert.Throws<InvalidVoteException>(() => _heightContext.AddVote(preVote));
+        var exception = Assert.Throws<ArgumentException>(() => _heightContext.AddVote(preVote));
         Assert.Equal("ValidatorPower of the vote cannot be null", exception.Message);
     }
 

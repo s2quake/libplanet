@@ -2,12 +2,10 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class HeightContext(int height, ImmutableSortedSet<Validator> validators)
+public sealed class VoteContext(int height, ImmutableSortedSet<Validator> validators)
 {
-    private readonly Dictionary<int, RoundContext> _roundContexts = new()
-    {
-        [0] = new RoundContext(height, 0, validators),
-    };
+    private readonly Dictionary<int, VoteCollection> _preVotesByRound = [];
+    private readonly Dictionary<int, VoteCollection> _preCommitsByRound = [];
 
     private int _round;
 
@@ -25,9 +23,14 @@ public sealed class HeightContext(int height, ImmutableSortedSet<Validator> vali
 
             for (var i = _round + 1; i <= value; i++)
             {
-                if (!_roundContexts.ContainsKey(i))
+                if (!_preVotesByRound.ContainsKey(i))
                 {
-                    _roundContexts[i] = new RoundContext(Height, i, validators);
+                    _preVotesByRound[i] = new VoteCollection(Height, i, VoteType.PreVote, validators);
+                }
+
+                if (!_preCommitsByRound.ContainsKey(i))
+                {
+                    _preCommitsByRound[i] = new VoteCollection(Height, i, VoteType.PreCommit, validators);
                 }
             }
 
@@ -57,7 +60,7 @@ public sealed class HeightContext(int height, ImmutableSortedSet<Validator> vali
             throw new ArgumentException(message, nameof(vote));
         }
 
-        if (!vote.Type.Equals(VoteType.PreVote) && !vote.Type.Equals(VoteType.PreCommit))
+        if (vote.Type is not VoteType.PreVote and not VoteType.PreCommit)
         {
             var message = $"Vote type must be either {VoteType.PreVote} or {VoteType.PreCommit} " +
                           $"(Actual: {vote.Type})";
@@ -75,13 +78,13 @@ public sealed class HeightContext(int height, ImmutableSortedSet<Validator> vali
 
         var round = vote.Round;
         var voteType = vote.Type;
-
-        if (!_roundContexts.TryGetValue(round, out var roundVote))
+        var dictionary = voteType == VoteType.PreVote ? _preVotesByRound : _preCommitsByRound;
+        if (!dictionary.TryGetValue(round, out var votes))
         {
-            _roundContexts[round] = roundVote = new RoundContext(Height, round, validators);
+            dictionary[round] = votes = new VoteCollection(Height, round, voteType, validators);
         }
 
-        roundVote.Votes[voteType].Add(vote);
+        votes.Add(vote);
     }
 
     public VoteCollection PreVotes(int round) => GetVotes(round, VoteType.PreVote);
@@ -112,13 +115,24 @@ public sealed class HeightContext(int height, ImmutableSortedSet<Validator> vali
         return (-1, default);
     }
 
-    public VoteCollection GetVotes(int round, VoteType voteType) => _roundContexts[round].Votes[voteType];
+    public VoteCollection GetVotes(int round, VoteType voteType)
+    {
+        if (voteType is not VoteType.PreVote and not VoteType.PreCommit)
+        {
+            throw new ArgumentOutOfRangeException(nameof(voteType),
+                $"Vote type must be either {VoteType.PreVote} or {VoteType.PreCommit} " +
+                $"(Actual: {voteType})");
+        }
+
+        var dictionary = voteType == VoteType.PreVote ? _preVotesByRound : _preCommitsByRound;
+        return dictionary[round];
+    }
 
     public bool SetPeerMaj23(Maj23 maj23)
     {
         var round = maj23.Round;
         var voteType = maj23.VoteType;
-        if (voteType != VoteType.PreVote && voteType != VoteType.PreCommit)
+        if (voteType is not VoteType.PreVote and not VoteType.PreCommit)
         {
             throw new InvalidMaj23Exception(
                 $"Maj23 must have either {VoteType.PreVote} or {VoteType.PreCommit} " +
@@ -126,20 +140,12 @@ public sealed class HeightContext(int height, ImmutableSortedSet<Validator> vali
                 maj23);
         }
 
-        if (!_roundContexts.TryGetValue(round, out var roundVote))
+        var dictionary = voteType == VoteType.PreVote ? _preVotesByRound : _preCommitsByRound;
+        if (!dictionary.TryGetValue(round, out var votes))
         {
-            _roundContexts[round] = roundVote = new RoundContext(Height, round, validators);
+            dictionary[round] = votes = new VoteCollection(Height, round, voteType, validators);
         }
 
-        return roundVote.Votes[voteType].SetMaj23(maj23);
-    }
-
-    private sealed class RoundContext(int height, int round, ImmutableSortedSet<Validator> validators)
-    {
-        public IReadOnlyDictionary<VoteType, VoteCollection> Votes { get; } = new Dictionary<VoteType, VoteCollection>()
-        {
-            [VoteType.PreVote] = new VoteCollection(height, round, VoteType.PreVote, validators),
-            [VoteType.PreCommit] = new VoteCollection(height, round, VoteType.PreCommit, validators),
-        };
+        return votes.SetMaj23(maj23);
     }
 }

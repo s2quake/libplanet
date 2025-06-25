@@ -118,7 +118,9 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
     {
         if (vote.Round != round || vote.Type != voteType)
         {
-            throw new InvalidVoteException("Round, flag of the vote mismatches", vote);
+            var message = $"Vote round {vote.Round} or type {vote.Type} does not match " +
+                          $"VoteCollection round {round} or type {voteType}";
+            throw new ArgumentException(message, nameof(vote));
         }
 
         var validator = vote.Validator;
@@ -128,7 +130,7 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
         {
             if (oldVote.BlockHash.Equals(vote.BlockHash))
             {
-                throw new InvalidVoteException($"{nameof(Add)}() does not expect duplicate votes", vote);
+                throw new ArgumentException($"{nameof(Add)}() does not expect duplicate votes", nameof(vote));
             }
             else
             {

@@ -1,4 +1,3 @@
-using Libplanet;
 using Libplanet.Net.Consensus;
 using Libplanet.Types;
 
@@ -39,8 +38,7 @@ public static class SignExtensions
     public static Block ProposeBlock(this Blockchain @this, PrivateKey privateKey)
         => @this.ProposeBlock(privateKey.AsSigner());
 
-    public static Transaction Add(
-        this StagedTransactionCollection @this, PrivateKey privateKey)
+    public static Transaction Add(this StagedTransactionCollection @this, PrivateKey privateKey)
         => @this.Add(privateKey.AsSigner(), new());
 
     public static Transaction Add(
