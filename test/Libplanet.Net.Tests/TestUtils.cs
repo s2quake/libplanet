@@ -283,15 +283,12 @@ public static class TestUtils
     public static Net.Consensus.Consensus CreateConsensus(
         Blockchain? blockchain = null,
         int height = 1,
-        BlockCommit? previousCommit = null,
-        BlockchainOptions? blockchainOptions = null,
         PrivateKey? privateKey = null,
-        ConsensusOptions? consensusOptions = null,
-        ImmutableSortedSet<Validator>? validators = null)
+        ConsensusOptions? consensusOptions = null)
     {
         var signer = (privateKey ?? PrivateKeys[1]).AsSigner();
         var consensus = new Net.Consensus.Consensus(
-            blockchain ?? CreateBlockChain(blockchainOptions ?? Options),
+            blockchain ?? CreateBlockChain(),
             height,
             signer,
             options: consensusOptions ?? new ConsensusOptions());
@@ -310,37 +307,8 @@ public static class TestUtils
             consensus.PostProposal(proposal);
         });
 
-        consensus.PreVoteEntered.Subscribe(blockHash =>
-        {
-            var round = consensus.Round;
-            var vote = new VoteMetadata
-            {
-                Height = height,
-                Round = round,
-                BlockHash = blockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = signer.Address,
-                ValidatorPower = consensus.Validators.GetValidator(signer.Address).Power,
-                Type = VoteType.PreVote,
-            }.Sign(signer);
-            consensus.PostVote(vote);
-        });
-
-        consensus.PreCommitEntered.Subscribe(blockHash =>
-        {
-            var round = consensus.Round;
-            var vote = new VoteMetadata
-            {
-                Height = height,
-                Round = round,
-                BlockHash = blockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = signer.Address,
-                ValidatorPower = consensus.Validators.GetValidator(signer.Address).Power,
-                Type = VoteType.PreCommit,
-            }.Sign(signer);
-            consensus.PostVote(vote);
-        });
+        consensus.PreVoteed.Subscribe(consensus.PostVote);
+        consensus.PreCommitted.Subscribe(consensus.PostVote);
 
         return consensus;
     }

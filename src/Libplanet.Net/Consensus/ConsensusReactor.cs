@@ -151,90 +151,28 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _round = round;
             _gossip.ClearCache();
         });
-        // consensus.MessagePublished.Subscribe(message =>
-        // {
-        //     _gossip.PublishMessage(message);
-        //     MessagePublished?.Invoke(this, (consensus.Height, message));
-        // });
-        consensus.PreVoteEntered.Subscribe(blockHash =>
+        consensus.PreVoteed.Subscribe(vote =>
         {
-            var round = consensus.Round;
-            var signer = _privateKey.AsSigner();
-            var vote = new VoteMetadata
-            {
-                Height = Height,
-                Round = round,
-                BlockHash = blockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = signer.Address,
-                ValidatorPower = consensus.Validators.GetValidator(signer.Address).Power,
-                Type = VoteType.PreVote,
-            }.Sign(signer);
-            var message = new ConsensusPreVoteMessage
-            {
-                PreVote = vote,
-            };
+            var message = new ConsensusPreVoteMessage { PreVote = vote };
             _gossip.PublishMessage(message);
         });
-        consensus.PreCommitEntered.Subscribe(blockHash =>
+        consensus.PreCommitted.Subscribe(vote =>
         {
-            var round = consensus.Round;
-            var signer = _privateKey.AsSigner();
-            var vote = new VoteMetadata
-            {
-                Height = Height,
-                Round = round,
-                BlockHash = blockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = signer.Address,
-                ValidatorPower = consensus.Validators.GetValidator(signer.Address).Power,
-                Type = VoteType.PreCommit,
-            }.Sign(signer);
-            var message = new ConsensusPreCommitMessage
-            {
-                PreCommit = vote,
-            };
+            var message = new ConsensusPreCommitMessage { PreCommit = vote };
             _gossip.PublishMessage(message);
         });
-        consensus.QuorumReached.Subscribe(e =>
+        consensus.QuorumReached.Subscribe(maj23 =>
         {
-            var round = consensus.Round;
-            var blockHash = e.BlockHash;
-            var voteType = e.VoteType;
-            var maj23 = consensus.CreateMaj23(round, blockHash, voteType);
-            var message = new ConsensusMaj23Message
-            {
-                Maj23 = maj23,
-            };
+            var message = new ConsensusMaj23Message { Maj23 = maj23 };
             _gossip.PublishMessage(message);
         });
-        consensus.ProposalClaimed.Subscribe(blockHash =>
+        consensus.ProposalClaimed.Subscribe(proposalClaim =>
         {
-            var proposalClaim = new ProposalClaimMetadata
-            {
-                Height = consensus.Height,
-                Round = consensus.Round,
-                BlockHash = blockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = _privateKey.Address,
-            }.Sign(_privateKey.AsSigner());
-            var message = new ConsensusProposalClaimMessage
-            {
-                ProposalClaim = proposalClaim,
-            };
+            var message = new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim };
             _gossip.PublishMessage(message);
         });
-        consensus.BlockProposed.Subscribe(e =>
+        consensus.BlockProposed.Subscribe(proposal =>
         {
-            var proposal = new ProposalMetadata
-            {
-                BlockHash = e.Block.BlockHash,
-                Height = Height,
-                Round = Round,
-                Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _privateKey.Address,
-                ValidRound = e.ValidRound,
-            }.Sign(_privateKey.AsSigner(), e.Block);
             var message = new ConsensusProposalMessage { Proposal = proposal };
             _gossip.PublishMessage(message);
         });
@@ -321,18 +259,18 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 $"the current height #{Height}.");
         }
 
-        var lastCommit = BlockCommit.Empty;
-        if (_currentConsensus.Height == height - 1 &&
-            _currentConsensus.GetBlockCommit() is { } prevCommit)
-        {
-            lastCommit = prevCommit;
-        }
+        // var lastCommit = BlockCommit.Empty;
+        // if (_currentConsensus.Height == height - 1 &&
+        //     _currentConsensus.GetBlockCommit() is { } prevCommit)
+        // {
+        //     lastCommit = prevCommit;
+        // }
 
-        if (lastCommit == default &&
-            _blockchain.BlockCommits[height - 1] is { } storedCommit)
-        {
-            lastCommit = storedCommit;
-        }
+        // if (lastCommit == default &&
+        //     _blockchain.BlockCommits[height - 1] is { } storedCommit)
+        // {
+        //     lastCommit = storedCommit;
+        // }
 
         await _currentConsensus.StopAsync(cancellationToken);
         await _currentConsensus.DisposeAsync();
@@ -347,7 +285,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             if (message.Height == height)
             {
-                // _currentConsensus.ProduceMessage(message);
+                _currentConsensus.ProduceMessage(message);
             }
         }
 

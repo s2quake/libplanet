@@ -287,9 +287,7 @@ namespace Libplanet.Net.Tests.Consensus
         {
             var stepChangedToPreVote = new AsyncAutoResetEvent();
             var nilPreVoteSent = new AsyncAutoResetEvent();
-            await using var consensus = TestUtils.CreateConsensus(
-                height: 5,
-                validators: Libplanet.Tests.TestUtils.Validators); // Peer1 should be a proposer
+            await using var consensus = TestUtils.CreateConsensus(height: 5); // Peer1 should be a proposer
 
             // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
@@ -375,9 +373,7 @@ namespace Libplanet.Net.Tests.Consensus
             await using var consensus = TestUtils.CreateConsensus(
                 blockChain,
                 privateKey: TestUtils.PrivateKeys[2],
-                height: 2,
-                previousCommit: block2Commit,
-                validators: TestUtils.Validators);
+                height: 2);
             // using var _ = consensus.MessagePublished.Subscribe(message =>
             // {
             //     if (message is ConsensusProposalMessage proposalMsg)
