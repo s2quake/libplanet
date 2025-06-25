@@ -27,7 +27,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var preVoteEnteredEvent = new ManualResetEvent(false);
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
-        using var _1 = consensus.PreVoteEntered.Subscribe(_ =>
+        using var _1 = consensus.PreVoteed.Subscribe(_ =>
         {
             preVoteEnteredEvent.Set();
         });
@@ -59,14 +59,9 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         await using var consensus = TestUtils.CreateConsensus(
             blockchain,
             height: 2,
-            previousCommit: new BlockCommit
-            {
-                Votes = previousCommit.Votes,
-            },
-            privateKey: TestUtils.PrivateKeys[2],
-            validators: Libplanet.Tests.TestUtils.Validators);
+            privateKey: TestUtils.PrivateKeys[2]);
 
-        using var _1 = consensus.PreVoteEntered.Subscribe(state =>
+        using var _1 = consensus.PreVoteed.Subscribe(state =>
         {
             preVoteEnteredEvent.Set();
         });
@@ -120,9 +115,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         await using var consensus = TestUtils.CreateConsensus(
             blockchain,
             height: 2,
-            previousCommit: previousCommit,
-            privateKey: TestUtils.PrivateKeys[2],
-            validators: TestUtils.Validators);
+            privateKey: TestUtils.PrivateKeys[2]);
 
         using var _1 = consensus.StepChanged.Subscribe(step =>
         {
@@ -310,30 +303,30 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var fx = new MemoryRepositoryFixture(options);
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain(options);
 
-        Net.Consensus.Consensus consensus = new Net.Consensus.Consensus(
+        await using var consensus = new Net.Consensus.Consensus(
             blockchain,
             1,
             TestUtils.PrivateKeys[0].AsSigner(),
             options: new ConsensusOptions());
         // using var _1 = consensus.MessagePublished.Subscribe(consensus.ProduceMessage);
 
-        // using var _2 = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.PreVote)
-        //     {
-        //         enteredPreVote.Set();
-        //     }
+        using var _2 = consensus.StepChanged.Subscribe(step =>
+        {
+            if (step == ConsensusStep.PreVote)
+            {
+                enteredPreVote.Set();
+            }
 
-        //     if (state.Step == ConsensusStep.PreCommit)
-        //     {
-        //         enteredPreCommit.Set();
-        //     }
+            if (step == ConsensusStep.PreCommit)
+            {
+                enteredPreCommit.Set();
+            }
 
-        //     if (state.Step == ConsensusStep.EndCommit)
-        //     {
-        //         enteredEndCommit.Set();
-        //     }
-        // });
+            if (step == ConsensusStep.EndCommit)
+            {
+                enteredEndCommit.Set();
+            }
+        });
 
         using var _3 = blockchain.TipChanged.Subscribe(eventArgs =>
         {
@@ -489,8 +482,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var blockchain = TestUtils.CreateBlockChain();
         await using var consensus = TestUtils.CreateConsensus(
             blockchain: blockchain,
-            privateKey: privateKeys[0],
-            validators: validators);
+            privateKey: privateKeys[0]);
         var blockA = blockchain.ProposeBlock(proposer);
         var blockB = blockchain.ProposeBlock(proposer);
         // using var _0 = consensus.StateChanged.Subscribe(state =>

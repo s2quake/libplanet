@@ -18,11 +18,11 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
     private readonly Subject<int> _roundStartedSubject = new();
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
-    private readonly Subject<BlockHash> _preVoteEnteredSubject = new();
-    private readonly Subject<BlockHash> _preCommitEnteredSubject = new();
-    private readonly Subject<(BlockHash BlockHash, VoteType VoteType)> _quorumReachedSubject = new();
-    private readonly Subject<BlockHash> _proposalClaimedSubject = new();
-    private readonly Subject<(int, Block)> _blockProposedSubject = new();
+    private readonly Subject<Vote> _preVotedSubject = new();
+    private readonly Subject<Vote> _preCommittedSubject = new();
+    private readonly Subject<Maj23> _quorumReachedSubject = new();
+    private readonly Subject<ProposalClaim> _proposalClaimedSubject = new();
+    private readonly Subject<Proposal> _blockProposeSubject = new();
     private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
     private readonly HeightContext _heightContext = new(height, blockchain.GetValidators(height));
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
@@ -51,15 +51,15 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
 
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
-    public IObservable<BlockHash> PreVoteEntered => _preVoteEnteredSubject;
+    public IObservable<Vote> PreVoteed => _preVotedSubject;
 
-    public IObservable<BlockHash> PreCommitEntered => _preCommitEnteredSubject;
+    public IObservable<Vote> PreCommitted => _preCommittedSubject;
 
-    public IObservable<(BlockHash BlockHash, VoteType VoteType)> QuorumReached => _quorumReachedSubject;
+    public IObservable<Maj23> QuorumReached => _quorumReachedSubject;
 
-    public IObservable<BlockHash> ProposalClaimed => _proposalClaimedSubject;
+    public IObservable<ProposalClaim> ProposalClaimed => _proposalClaimedSubject;
 
-    public IObservable<(int ValidRound, Block Block)> BlockProposed => _blockProposedSubject;
+    public IObservable<Proposal> BlockProposed => _blockProposeSubject;
 
     public IObservable<(Block Block, BlockCommit BlockCommit)> Completed => _completedSubject;
 
@@ -239,26 +239,6 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         }
     }
 
-    internal Maj23 CreateMaj23(int round, BlockHash blockHash, VoteType voteType)
-    {
-        if (voteType is VoteType.Null or VoteType.Unknown)
-        {
-            throw new ArgumentException(
-                $"{nameof(voteType)} must be either {VoteType.PreVote} or {VoteType.PreCommit}" +
-                $"to create a valid signed maj23.");
-        }
-
-        return new Maj23Metadata
-        {
-            Height = Height,
-            Round = round,
-            BlockHash = blockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = signer.Address,
-            VoteType = voteType,
-        }.Sign(signer);
-    }
-
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         if (IsRunning)
@@ -297,6 +277,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         _validBlock = null;
         _validRound = -1;
         _decidedBlock = null;
+        Round = -1;
         Step = ConsensusStep.Default;
         IsRunning = false;
     }
@@ -340,7 +321,7 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
 
     private void EnterPreCommitWait(int round, BlockHash blockHash)
     {
-        if (_dispatcher is null)
+        if (_dispatcher is null || _cancellationTokenSource is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
         }
@@ -485,7 +466,23 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
         if (Validators.GetProposer(Height, Round).Address == signer.Address
             && (_validBlock ?? GetValue()) is Block proposalBlock)
         {
-            _blockProposedSubject.OnNext((_validRound, proposalBlock));
+            // var proposal = new ProposalMetadata
+            // {
+            //     BlockHash = e.Block.BlockHash,
+            //     Height = Height,
+            //     Round = Round,
+            //     Timestamp = DateTimeOffset.UtcNow,
+            //     Proposer = _privateKey.Address,
+            //     ValidRound = e.ValidRound,
+            // }.Sign(_privateKey.AsSigner(), e.Block);
+            var proposal = new ProposalBuilder
+            {
+                Block = proposalBlock,
+                Round = Round,
+                Timestamp = DateTimeOffset.UtcNow,
+                ValidRound = _validRound,
+            }.Create(signer);
+            _blockProposeSubject.OnNext(proposal);
         }
         else
         {
@@ -591,7 +588,20 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
                 EnterPreCommitWait(Round, p3.Block.BlockHash);
 
                 // Maybe need to broadcast periodically?
-                _quorumReachedSubject.OnNext((p3.Block.BlockHash, VoteType.PreVote));
+                // var round = consensus.Round;
+                // var signer = _privateKey.AsSigner();
+                // var blockHash = e.BlockHash;
+                // var voteType = e.VoteType;
+                var maj23 = new Maj23Metadata
+                {
+                    Height = Height,
+                    Round = Round,
+                    BlockHash = p3.Block.BlockHash,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = signer.Address,
+                    VoteType = VoteType.PreVote,
+                }.Sign(signer);
+                _quorumReachedSubject.OnNext(maj23);
             }
 
             _validBlock = p3.Block;
@@ -610,7 +620,16 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
                 // +2/3 votes were collected and is not equal to proposal's,
                 // remove invalid proposal.
                 Proposal = null;
-                _proposalClaimedSubject.OnNext(hash3);
+
+                var proposalClaim = new ProposalClaimMetadata
+                {
+                    Height = Height,
+                    Round = Round,
+                    BlockHash = hash3,
+                    Timestamp = DateTimeOffset.UtcNow,
+                    Validator = signer.Address,
+                }.Sign(signer);
+                _proposalClaimedSubject.OnNext(proposalClaim);
             }
         }
 
@@ -636,7 +655,16 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             _decidedBlock = block4;
 
             // Maybe need to broadcast periodically?
-            _quorumReachedSubject.OnNext((block4.BlockHash, VoteType.PreCommit));
+            var maj23 = new Maj23Metadata
+            {
+                Height = Height,
+                Round = round,
+                BlockHash = block4.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                Validator = signer.Address,
+                VoteType = VoteType.PreCommit,
+            }.Sign(signer);
+            _quorumReachedSubject.OnNext(maj23);
             EnterEndCommitWait(Round);
             return;
         }
@@ -654,8 +682,18 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             return;
         }
 
+        var vote = new VoteMetadata
+        {
+            Height = Height,
+            Round = round,
+            BlockHash = blockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = signer.Address,
+            ValidatorPower = Validators.GetValidator(signer.Address).Power,
+            Type = VoteType.PreVote,
+        }.Sign(signer);
         Step = ConsensusStep.PreVote;
-        _preVoteEnteredSubject.OnNext(blockHash);
+        _preVotedSubject.OnNext(vote);
     }
 
     private void EnterPreCommit(int round, BlockHash blockHash)
@@ -665,8 +703,18 @@ public partial class Consensus(Blockchain blockchain, int height, ISigner signer
             return;
         }
 
+        var vote = new VoteMetadata
+        {
+            Height = Height,
+            Round = round,
+            BlockHash = blockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = signer.Address,
+            ValidatorPower = Validators.GetValidator(signer.Address).Power,
+            Type = VoteType.PreCommit,
+        }.Sign(signer);
         Step = ConsensusStep.PreCommit;
-        _preCommitEnteredSubject.OnNext(blockHash);
+        _preCommittedSubject.OnNext(vote);
     }
 
     private void EnterEndCommit(int round)

@@ -339,10 +339,9 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             }
 
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockChain(policy);
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
-                blockchainOptions: policy,
                 privateKey: TestUtils.PrivateKeys[0]);
             // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
@@ -408,10 +407,9 @@ namespace Libplanet.Net.Tests.Consensus
                 },
             };
 
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockChain(policy);
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
-                blockchainOptions: policy,
                 privateKey: TestUtils.PrivateKeys[0]);
             // using var _1 = consensus.StateChanged.Subscribe(state =>
             // {
