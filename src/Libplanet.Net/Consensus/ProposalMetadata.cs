@@ -10,7 +10,7 @@ namespace Libplanet.Net.Consensus;
 public sealed partial record class ProposalMetadata : IValidatableObject
 {
     [Property(0)]
-    public BlockHash BlockHash { get; init; }
+    public required BlockHash BlockHash { get; init; }
 
     [Property(1)]
     public HashDigest<SHA256> StateRootHash { get; init; }

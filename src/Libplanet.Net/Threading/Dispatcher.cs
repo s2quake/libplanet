@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Nito.AsyncEx.Synchronous;
@@ -36,6 +37,8 @@ public class Dispatcher : IAsyncDisposable
         Thread.Start();
     }
 
+    public event UnhandledExceptionEventHandler? UnhandledException;
+
     public string Name => $"{Owner}";
 
     public object Owner { get; }
@@ -60,7 +63,8 @@ public class Dispatcher : IAsyncDisposable
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        _factory.StartNew(action, _cancellationToken);
+        var task = _factory.StartNew(action, _cancellationToken);
+        _ = WaitAsync(task);
     }
 
     public void Invoke(Action action)
@@ -74,8 +78,15 @@ public class Dispatcher : IAsyncDisposable
         }
 
         var task = _factory.StartNew(action, _cancellationToken);
-        Trace.WriteLine("0: Invoke");
-        task.Wait(_cancellationToken);
+        try
+        {
+            task.Wait(_cancellationToken);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            UnhandledException?.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+            throw;
+        }
     }
 
     public TResult Invoke<TResult>(Func<TResult> func)
@@ -88,8 +99,16 @@ public class Dispatcher : IAsyncDisposable
         }
 
         var task = _factory.StartNew(func, _cancellationToken);
-        Trace.WriteLine("1: Invoke with return value");
-        task.Wait(_cancellationToken);
+        try
+        {
+            task.Wait(_cancellationToken);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            UnhandledException?.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+            throw;
+        }
+
         return task.Result;
     }
 
@@ -102,7 +121,6 @@ public class Dispatcher : IAsyncDisposable
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken);
         var task = _factory.StartNew(() => action(cancellationTokenSource.Token), cancellationTokenSource.Token);
-        Trace.WriteLine("2: InvokeAsync");
 
         while (task.Status == TaskStatus.Created
             || task.Status == TaskStatus.WaitingForActivation
@@ -117,7 +135,7 @@ public class Dispatcher : IAsyncDisposable
             await Task.Yield();
         }
 
-        await task;
+        await WaitAsync(task);
     }
 
     public Task<TResult> InvokeAsync<TResult>(Func<TResult> funck)
@@ -131,7 +149,6 @@ public class Dispatcher : IAsyncDisposable
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken);
         var task = _factory.StartNew(() => func(cancellationTokenSource.Token), cancellationTokenSource.Token);
-        Trace.WriteLine("3: InvokeAsync with return value");
 
         while (task.Status == TaskStatus.Created
             || task.Status == TaskStatus.WaitingForActivation
@@ -146,7 +163,7 @@ public class Dispatcher : IAsyncDisposable
             await Task.Yield();
         }
 
-        return await task;
+        return await WaitAsync(task);
     }
 
     public async Task InvokeAsync(Func<Task> acitonTask)
@@ -166,7 +183,6 @@ public class Dispatcher : IAsyncDisposable
                 innerTask.WaitWithoutException();
                 return innerTask;
             }, taskCancellationToken);
-        Trace.WriteLine("4: InvokeAsync with return action task");
 
         while (task.Status == TaskStatus.Created
             || task.Status == TaskStatus.WaitingForActivation
@@ -181,8 +197,8 @@ public class Dispatcher : IAsyncDisposable
             await Task.Yield();
         }
 
-        var innerTask = await task;
-        await innerTask;
+        var innerTask = await WaitAsync(task);
+        await WaitAsync(innerTask);
     }
 
     public async Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> funcTask)
@@ -204,7 +220,6 @@ public class Dispatcher : IAsyncDisposable
                 innerTask.WaitWithoutException();
                 return innerTask;
             }, taskCancellationToken);
-        Trace.WriteLine("5: InvokeAsync with return func task");
 
         while (task.Status == TaskStatus.Created
             || task.Status == TaskStatus.WaitingForActivation
@@ -219,8 +234,8 @@ public class Dispatcher : IAsyncDisposable
             await Task.Yield();
         }
 
-        var innerTask = await task;
-        return await innerTask;
+        var innerTask = await WaitAsync(task);
+        return await WaitAsync(innerTask);
     }
 
     public async ValueTask DisposeAsync()
@@ -232,6 +247,32 @@ public class Dispatcher : IAsyncDisposable
             _cancellationTokenSource.Dispose();
             _isDisposed = true;
             GC.SuppressFinalize(this);
+        }
+    }
+
+    private async Task WaitAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            UnhandledException?.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+            throw;
+        }
+    }
+
+    private async Task<TResult> WaitAsync<TResult>(Task<TResult> task)
+    {
+        try
+        {
+            return await task;
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            UnhandledException?.Invoke(this, new UnhandledExceptionEventArgs(e, false));
+            throw;
         }
     }
 }

@@ -283,6 +283,7 @@ public class ConsensusContextTest
         var block = blockChain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata
         {
+            BlockHash = block.BlockHash,
             Height = 1,
             Round = 0,
             Timestamp = DateTimeOffset.UtcNow,
@@ -375,6 +376,7 @@ public class ConsensusContextTest
         var block = blockChain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata
         {
+            BlockHash = block.BlockHash,
             Height = 1,
             Round = 0,
             Timestamp = DateTimeOffset.UtcNow,
@@ -452,6 +454,7 @@ public class ConsensusContextTest
         var block = blockChain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata
         {
+            BlockHash = block.BlockHash,
             Height = 1,
             Round = 0,
             Timestamp = DateTimeOffset.UtcNow,

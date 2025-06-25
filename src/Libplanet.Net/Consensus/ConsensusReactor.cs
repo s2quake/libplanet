@@ -140,12 +140,12 @@ public sealed class ConsensusReactor : IAsyncDisposable
         //     MutationConsumed?.Invoke(this, (context.Height, action));
 
         // NOTE: Events for consensus logic.
-        consensus.Started.Subscribe(height =>
-        {
-            _height = height;
-            _peerCatchupRounds.Clear();
-            _gossip.ClearDenySet();
-        });
+        // consensus.Started.Subscribe(height =>
+        // {
+        //     _height = height;
+        //     _peerCatchupRounds.Clear();
+        //     _gossip.ClearDenySet();
+        // });
         consensus.RoundStarted.Subscribe(round =>
         {
             _round = round;
@@ -174,7 +174,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             };
             _gossip.PublishMessage(message);
         });
-        consensus.Maj23Achieved.Subscribe(e =>
+        consensus.QuorumReached.Subscribe(e =>
         {
             var round = consensus.Round;
             var blockHash = e.BlockHash;
@@ -206,6 +206,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             var proposal = new ProposalMetadata
             {
+                BlockHash = e.Block.BlockHash,
                 Height = Height,
                 Round = Round,
                 Timestamp = DateTimeOffset.UtcNow,
@@ -214,6 +215,12 @@ public sealed class ConsensusReactor : IAsyncDisposable
             }.Sign(_privateKey.AsSigner(), e.Block);
             var message = new ConsensusProposalMessage { Proposal = proposal };
             _gossip.PublishMessage(message);
+        });
+        consensus.Completed.Subscribe(e =>
+        {
+            var block = e.Block;
+            var blockCommit = e.BlockCommit;
+            _ = Task.Run(() => _blockchain.Append(block, blockCommit));
         });
     }
 
@@ -305,6 +312,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             lastCommit = storedCommit;
         }
 
+        await _currentConsensus.StopAsync(cancellationToken);
         await _currentConsensus.DisposeAsync();
         _currentConsensus = new Consensus(
             _blockchain,
@@ -325,6 +333,9 @@ public sealed class ConsensusReactor : IAsyncDisposable
         if (IsRunning)
         {
             await _currentConsensus.StartAsync(default);
+            _height = height;
+            _peerCatchupRounds.Clear();
+            _gossip.ClearDenySet();
         }
     }
 
