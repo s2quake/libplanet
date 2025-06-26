@@ -631,7 +631,7 @@ JsonSerializer.Deserialize<ContextJson>(consensus.ToString()).valid_value);
         var consensusContext = new ConsensusReactor(
             null,
             blockchain,
-            new ConsensusReactorOptions { PrivateKey = new PrivateKey() });
+            new ConsensusReactorOptions { Signer = new PrivateKey().AsSigner() });
         Net.Consensus.Consensus consensus = consensusContext.CurrentContext;
         // using var _1 = consensus.MessagePublished.Subscribe(consensus.ProduceMessage);
 

@@ -27,6 +27,7 @@ public sealed partial record class ProposalMetadata : IValidatableObject
     public DateTimeOffset Timestamp { get; init; }
 
     [Property(5)]
+    [NotDefault]
     public Address Proposer { get; init; }
 
     [Property(6)]

@@ -49,13 +49,13 @@ namespace Libplanet.Net.Tests.Consensus
                 // consensusContext.StateChanged -= ConsensusContext_StateChanged;
             }
 
-            void ConsensusContext_StateChanged(object? sender, ConsensusState e)
-            {
-                if (e.Step == consensusStep && e.Height == height)
-                {
-                    asyncAutoResetEvent.Set();
-                }
-            }
+            // void ConsensusContext_StateChanged(object? sender, ConsensusState e)
+            // {
+            //     if (e.Step == consensusStep && e.Height == height)
+            //     {
+            //         asyncAutoResetEvent.Set();
+            //     }
+            // }
         }
 
         public static async Task<T> WaitUntilPublishedAsync<T>(

@@ -160,22 +160,14 @@ public partial class Consensus(
             throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(maj23));
         }
 
-        try
+        var voteContext = maj23.VoteType == VoteType.PreVote ? _preVotes : _preCommits;
+        if (voteContext.SetMaj23(maj23))
         {
-            var voteContext = maj23.VoteType == VoteType.PreVote ? _preVotes : _preCommits;
-            if (voteContext.SetMaj23(maj23))
-            {
-                var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.VoteType);
-                return voteSetBits.VoteBits.All(b => b) ? null : voteSetBits;
-            }
+            var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.VoteType);
+            return voteSetBits.VoteBits.All(b => b) ? null : voteSetBits;
+        }
 
-            return null;
-        }
-        catch (InvalidMaj23Exception ime)
-        {
-            _exceptionOccurredSubject.OnNext(ime);
-            return null;
-        }
+        return null;
     }
 
     public IEnumerable<ConsensusMessage> GetVoteSetBitsResponse(VoteSetBits voteSetBits)

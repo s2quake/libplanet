@@ -2,7 +2,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-internal sealed class EvidenceExceptionCollector
+internal sealed class EvidenceCollector
 {
     private readonly List<EvidenceException> _exceptionList = [];
 

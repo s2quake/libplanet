@@ -88,9 +88,9 @@ public class ConsensusContextTest
         Assert.Equal(3, consensusContext.Height);
 
         // Cannot call NewHeight() with invalid heights.
-        await Assert.ThrowsAsync<InvalidHeightIncreasingException>(
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
             async () => await consensusContext.NewHeightAsync(2, default));
-        await Assert.ThrowsAsync<InvalidHeightIncreasingException>(
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
             async () => await consensusContext.NewHeightAsync(3, default));
 
         await proposalMessageSent.WaitAsync();
