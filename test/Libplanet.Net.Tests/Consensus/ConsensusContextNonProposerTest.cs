@@ -252,15 +252,15 @@ namespace Libplanet.Net.Tests.Consensus
                 TimeSpan.FromSeconds(1),
                 TestUtils.Options,
                 TestUtils.PrivateKeys[2]);
-            consensusContext.MessageConsumed += (_, eventArgs) =>
-            {
-                if (eventArgs.Height == 2 &&
-                    eventArgs.Message is ConsensusProposalMessage propose)
-                {
-                    proposedBlock = propose!.Proposal.Block;
-                    heightTwoProposalSent.Set();
-                }
-            };
+            // consensusContext.MessageConsumed += (_, eventArgs) =>
+            // {
+            //     if (eventArgs.Height == 2 &&
+            //         eventArgs.Message is ConsensusProposalMessage propose)
+            //     {
+            //         proposedBlock = propose!.Proposal.Block;
+            //         heightTwoProposalSent.Set();
+            //     }
+            // };
 
             await consensusContext.StartAsync(default);
             Block block = blockChain.ProposeBlock(TestUtils.PrivateKeys[1]);

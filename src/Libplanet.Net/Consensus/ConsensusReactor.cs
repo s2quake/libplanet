@@ -1,11 +1,9 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.State;
 using Libplanet.Types;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Libplanet.Net.Consensus;
 
@@ -21,11 +19,12 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private readonly EvidenceExceptionCollector _evidenceCollector = new();
     private readonly IDisposable _tipChangedSubscription;
     private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
-    private readonly List<IDisposable> _subscriptionList;
+    private readonly IDisposable[] _gossipSubscriptions;
 
     private int _height;
     private int _round;
     private Consensus _currentConsensus;
+    private IDisposable[] _consensusSubscriptions = [];
     private CancellationTokenSource? _newHeightCts;
     private bool _disposed;
 
@@ -39,7 +38,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 Validators = options.ConsensusPeers,
             });
 
-        _subscriptionList =
+        _gossipSubscriptions =
         [
             _gossip.ValidateReceivedMessage.Subscribe(ValidateMessageToReceive),
             _gossip.ValidateSendingMessage.Subscribe(ValidateMessageToSend),
@@ -56,7 +55,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _blockchain.Tip.Height + 1,
             _privateKey.AsSigner(),
             options: _contextOption);
-        AttachEventHandlers(_currentConsensus);
+        _consensusSubscriptions = [.. Subscribe(_currentConsensus)];
 
         _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
     }
@@ -118,65 +117,46 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
     }
 
-
-    // public event EventHandler<(int Height, ConsensusMessage Message)>? MessagePublished;
-
-    internal event EventHandler<(int Height, Exception)>? ExceptionOccurred;
-
-    // internal event EventHandler<ConsensusState>? StateChanged;
-
-    internal event EventHandler<(int Height, ConsensusMessage Message)>? MessageConsumed;
-
-    private void AttachEventHandlers(Consensus consensus)
+    private IEnumerable<IDisposable> Subscribe(Consensus consensus)
     {
-        // NOTE: Events for testing and debugging.
-        consensus.ExceptionOccurred.Subscribe(exception => ExceptionOccurred?.Invoke(this, (consensus.Height, exception)));
-        // context.TimeoutProcessed += (sender, eventArgs) =>
-        //     TimeoutProcessed?.Invoke(this, (context.Height, eventArgs.Round, eventArgs.Step));
-        // consensus.StateChanged.Subscribe(state => StateChanged?.Invoke(this, state));
-        // context.MessageConsumed += (sender, message) =>
-        //     MessageConsumed?.Invoke(this, (context.Height, message));
-        // context.MutationConsumed += (sender, action) =>
-        //     MutationConsumed?.Invoke(this, (context.Height, action));
-
-        // NOTE: Events for consensus logic.
-        // consensus.Started.Subscribe(height =>
-        // {
-        //     _height = height;
-        //     _peerCatchupRounds.Clear();
-        //     _gossip.ClearDenySet();
-        // });
-        consensus.RoundStarted.Subscribe(round =>
+        yield return consensus.ExceptionOccurred.Subscribe(exception =>
+        {
+            if (exception is EvidenceException evidenceException)
+            {
+                _evidenceCollector.Add(evidenceException);
+            }
+        });
+        yield return consensus.RoundStarted.Subscribe(round =>
         {
             _round = round;
             _gossip.ClearCache();
         });
-        consensus.PreVoteed.Subscribe(vote =>
+        yield return consensus.PreVoteed.Subscribe(vote =>
         {
             var message = new ConsensusPreVoteMessage { PreVote = vote };
             _gossip.PublishMessage(message);
         });
-        consensus.PreCommitted.Subscribe(vote =>
+        yield return consensus.PreCommitted.Subscribe(vote =>
         {
             var message = new ConsensusPreCommitMessage { PreCommit = vote };
             _gossip.PublishMessage(message);
         });
-        consensus.QuorumReached.Subscribe(maj23 =>
+        yield return consensus.QuorumReached.Subscribe(maj23 =>
         {
             var message = new ConsensusMaj23Message { Maj23 = maj23 };
             _gossip.PublishMessage(message);
         });
-        consensus.ProposalClaimed.Subscribe(proposalClaim =>
+        yield return consensus.ProposalClaimed.Subscribe(proposalClaim =>
         {
             var message = new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim };
             _gossip.PublishMessage(message);
         });
-        consensus.BlockProposed.Subscribe(proposal =>
+        yield return consensus.BlockProposed.Subscribe(proposal =>
         {
             var message = new ConsensusProposalMessage { Proposal = proposal };
             _gossip.PublishMessage(message);
         });
-        consensus.Completed.Subscribe(e =>
+        yield return consensus.Completed.Subscribe(e =>
         {
             var block = e.Block;
             var blockCommit = e.BlockCommit;
@@ -196,13 +176,15 @@ public sealed class ConsensusReactor : IAsyncDisposable
     {
         if (!_disposed)
         {
-            _subscriptionList.ForEach(subscription => subscription.Dispose());
+            Array.ForEach(_gossipSubscriptions, subscription => subscription.Dispose());
             await _gossip.DisposeAsync();
             if (_newHeightCts is not null)
             {
                 await _newHeightCts.CancelAsync();
             }
 
+            Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
+            _consensusSubscriptions = [];
             await _currentConsensus.DisposeAsync();
 
             _newHeightCts?.Dispose();
@@ -272,6 +254,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         //     lastCommit = storedCommit;
         // }
 
+        Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
         await _currentConsensus.StopAsync(cancellationToken);
         await _currentConsensus.DisposeAsync();
         _currentConsensus = new Consensus(
@@ -279,7 +262,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             height,
             _privateKey.AsSigner(),
             options: _contextOption);
-        AttachEventHandlers(_currentConsensus);
+        _consensusSubscriptions = [.. Subscribe(_currentConsensus)];
 
         foreach (var message in _pendingMessages)
         {
@@ -424,7 +407,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
             try
             {
-                HandleEvidenceExceptions();
                 AddEvidenceToBlockChain(e.Tip);
                 await NewHeightAsync(e.Tip.Height + 1, cancellationToken);
             }
@@ -433,12 +415,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 // logging
             }
         }
-    }
-
-    private void HandleEvidenceExceptions()
-    {
-        var evidenceExceptions = _currentConsensus.CollectEvidenceExceptions();
-        _evidenceCollector.AddRange(evidenceExceptions);
     }
 
     private void AddEvidenceToBlockChain(Block tip)
