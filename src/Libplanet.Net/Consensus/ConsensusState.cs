@@ -2,6 +2,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
+[Obsolete]
 public readonly record struct ConsensusState
 {
     public int VoteCount { get; init; }

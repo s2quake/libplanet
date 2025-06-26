@@ -33,11 +33,10 @@ public partial class Consensus(
     private readonly VoteContext _preCommits = new(height, VoteType.PreCommit, validators);
     private readonly ImmutableSortedSet<Validator> _validators = validators;
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
-    private readonly HashSet<int> _preVoteTimeoutFlags = [];
-    private readonly HashSet<int> _preCommitTimeoutFlags = [];
-    private readonly HashSet<int> _preCommitWaitFlags = [];
-    private readonly HashSet<int> _endCommitWaitFlags = [];
-    private readonly EvidenceExceptionCollector _evidenceCollector = new();
+    private readonly HashSet<int> _preVoteTimeouts = [];
+    private readonly HashSet<int> _preCommitTimeouts = [];
+    private readonly HashSet<int> _preCommitWaits = [];
+    private readonly HashSet<int> _endCommitWaits = [];
     private readonly ICache<BlockHash, bool> _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
         .WithCapacity(128)
         .Build();
@@ -216,8 +215,6 @@ public partial class Consensus(
         };
     }
 
-    public EvidenceException[] CollectEvidenceExceptions() => _evidenceCollector.Flush();
-
     private Block GetValue() => blockchain.ProposeBlock(signer);
 
     private bool IsValid(Block block)
@@ -332,7 +329,6 @@ public partial class Consensus(
     [Obsolete]
     internal void ProduceMessage(ConsensusMessage message)
     {
-        // _ = _messageRequests.Writer.WriteAsync(message);
     }
 
     private void EnterPreCommitWait(int round, BlockHash blockHash)
@@ -343,7 +339,7 @@ public partial class Consensus(
         }
 
         _dispatcher.VerifyAccess();
-        if (!_preCommitWaitFlags.Add(round))
+        if (!_preCommitWaits.Add(round))
         {
             return;
         }
@@ -367,7 +363,7 @@ public partial class Consensus(
         }
 
         _dispatcher.VerifyAccess();
-        if (!_endCommitWaitFlags.Add(round))
+        if (!_endCommitWaits.Add(round))
         {
             return;
         }
@@ -415,7 +411,7 @@ public partial class Consensus(
         }
 
         _dispatcher.VerifyAccess();
-        if (_preCommitTimeoutFlags.Contains(round) || !_preVoteTimeoutFlags.Add(round))
+        if (_preCommitTimeouts.Contains(round) || !_preVoteTimeouts.Add(round))
         {
             return;
         }
@@ -441,7 +437,7 @@ public partial class Consensus(
             throw new InvalidOperationException("Consensus is not running.");
         }
 
-        if (!_preCommitTimeoutFlags.Add(round))
+        if (!_preCommitTimeouts.Add(round))
         {
             return;
         }
