@@ -4,7 +4,7 @@ namespace Libplanet.Net.Consensus;
 
 public sealed record class ConsensusReactorOptions
 {
-    public required PrivateKey PrivateKey { get; init; }
+    public required ISigner Signer { get; init; }
 
     public int Port { get; init; }
 

@@ -342,7 +342,7 @@ public static class TestUtils
         var consensusReactorOptions = new ConsensusReactorOptions
         {
             ConsensusPeers = validatorPeers.ToImmutableArray(),
-            PrivateKey = key,
+            Signer = key.AsSigner(),
             TargetBlockInterval = TimeSpan.FromMilliseconds(newHeightDelayMilliseconds),
             ContextOptions = contextOption ?? new ConsensusOptions(),
         };

@@ -32,7 +32,7 @@ namespace Libplanet.Net.Tests
                 {
                     ConsensusPeers = consensusPeers,
                     Port = 6000 + i,
-                    PrivateKey = privateKeys[i],
+                    Signer = privateKeys[i].AsSigner(),
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(4),
                     ContextOptions = new ConsensusOptions(),
@@ -186,13 +186,13 @@ namespace Libplanet.Net.Tests
             //     consensusContext.StateChanged -= ConsensusContext_StateChanged;
             // }
 
-            void ConsensusContext_StateChanged(object? sender, ConsensusState e)
-            {
-                if (e.Step == consensusStep)
-                {
-                    asyncAutoResetEvent.Set();
-                }
-            }
+            // void ConsensusContext_StateChanged(object? sender, ConsensusState e)
+            // {
+            //     if (e.Step == consensusStep)
+            //     {
+            //         asyncAutoResetEvent.Set();
+            //     }
+            // }
         }
     }
 }

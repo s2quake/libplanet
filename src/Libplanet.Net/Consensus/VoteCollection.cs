@@ -41,10 +41,9 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
                 return false;
             }
 
-            throw new InvalidMaj23Exception(
-                $"Received conflicting BlockHash from peer {validator} " +
-                $"(Expected: {hash}, Actual: {blockHash})",
-                maj23);
+            var message = $"Received conflicting Maj23 from peer {validator} " +
+                          $"(Expected: {hash}, Actual: {blockHash})";
+            throw new ArgumentException(message, nameof(maj23));
         }
 
         _maj23ByValidator[validator] = blockHash;

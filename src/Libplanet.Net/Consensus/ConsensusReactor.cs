@@ -13,10 +13,10 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private readonly object _contextLock = new();
     private readonly ConsensusOptions _contextOption;
     private readonly Blockchain _blockchain;
-    private readonly PrivateKey _privateKey;
+    private readonly ISigner _signer;
     private readonly TimeSpan _newHeightDelay;
     private readonly HashSet<ConsensusMessage> _pendingMessages = [];
-    private readonly EvidenceExceptionCollector _evidenceCollector = new();
+    private readonly EvidenceCollector _evidenceCollector = new();
     private readonly IDisposable _tipChangedSubscription;
     private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
     private readonly IDisposable[] _gossipSubscriptions;
@@ -46,14 +46,14 @@ public sealed class ConsensusReactor : IAsyncDisposable
         ];
 
         _blockchain = blockchain;
-        _privateKey = options.PrivateKey;
+        _signer = options.Signer;
         _newHeightDelay = options.TargetBlockInterval;
 
         _contextOption = options.ContextOptions;
         _currentConsensus = new Consensus(
             _blockchain,
             _blockchain.Tip.Height + 1,
-            _privateKey.AsSigner(),
+            _signer,
             options: _contextOption);
         _consensusSubscriptions = [.. Subscribe(_currentConsensus)];
 
@@ -236,32 +236,15 @@ public sealed class ConsensusReactor : IAsyncDisposable
     {
         if (height <= Height)
         {
-            throw new InvalidHeightIncreasingException(
-                $"Given new height #{height} must be greater than " +
-                $"the current height #{Height}.");
+            var message = $"Given new height #{height} must be greater than " +
+                          $"the current height #{Height}.";
+            throw new ArgumentOutOfRangeException(nameof(height), message);
         }
-
-        // var lastCommit = BlockCommit.Empty;
-        // if (_currentConsensus.Height == height - 1 &&
-        //     _currentConsensus.GetBlockCommit() is { } prevCommit)
-        // {
-        //     lastCommit = prevCommit;
-        // }
-
-        // if (lastCommit == default &&
-        //     _blockchain.BlockCommits[height - 1] is { } storedCommit)
-        // {
-        //     lastCommit = storedCommit;
-        // }
 
         Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
         await _currentConsensus.StopAsync(cancellationToken);
         await _currentConsensus.DisposeAsync();
-        _currentConsensus = new Consensus(
-            _blockchain,
-            height,
-            _privateKey.AsSigner(),
-            options: _contextOption);
+        _currentConsensus = new Consensus(_blockchain, height, _signer, _contextOption);
         _consensusSubscriptions = [.. Subscribe(_currentConsensus)];
 
         foreach (var message in _pendingMessages)

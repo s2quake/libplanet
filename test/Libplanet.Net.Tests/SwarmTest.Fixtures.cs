@@ -91,7 +91,7 @@ namespace Libplanet.Net.Tests
                     SeedPeers = ImmutableArray<Peer>.Empty,
                     ConsensusPeers = ImmutableArray<Peer>.Empty,
                     Port = 0,
-                    PrivateKey = new PrivateKey(),
+                    Signer = new PrivateKey().AsSigner(),
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(10),
                 });
