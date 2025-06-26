@@ -284,6 +284,7 @@ public static class TestUtils
         Blockchain? blockchain = null,
         int height = 1,
         PrivateKey? privateKey = null,
+        ImmutableSortedSet<Validator>? validators = null,
         ConsensusOptions? options = null)
     {
         blockchain ??= CreateBlockChain();
@@ -291,10 +292,11 @@ public static class TestUtils
             blockchain,
             height,
             (privateKey ?? PrivateKeys[1]).AsSigner(),
+            validators: validators ?? Validators,
             options: options ?? new ConsensusOptions());
 
         consensus.BlockProposed.Subscribe(consensus.PostProposal);
-        consensus.PreVoteed.Subscribe(consensus.PostVote);
+        consensus.PreVoted.Subscribe(consensus.PostVote);
         consensus.PreCommitted.Subscribe(consensus.PostVote);
         consensus.Completed.Subscribe(e =>
         {

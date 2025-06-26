@@ -131,7 +131,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _round = round;
             _gossip.ClearCache();
         });
-        yield return consensus.PreVoteed.Subscribe(vote =>
+        yield return consensus.PreVoted.Subscribe(vote =>
         {
             var message = new ConsensusPreVoteMessage { PreVote = vote };
             _gossip.PublishMessage(message);
