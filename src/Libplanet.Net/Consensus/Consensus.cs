@@ -62,7 +62,7 @@ public partial class Consensus(
 
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
-    public IObservable<Vote> PreVoteed => _preVotedSubject;
+    public IObservable<Vote> PreVoted => _preVotedSubject;
 
     public IObservable<Vote> PreCommitted => _preCommittedSubject;
 

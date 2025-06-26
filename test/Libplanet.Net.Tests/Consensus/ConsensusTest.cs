@@ -27,7 +27,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var preVoteEnteredEvent = new ManualResetEvent(false);
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
-        using var _1 = consensus.PreVoteed.Subscribe(_ =>
+        using var _1 = consensus.PreVoted.Subscribe(_ =>
         {
             preVoteEnteredEvent.Set();
         });
@@ -61,7 +61,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             height: 2,
             privateKey: TestUtils.PrivateKeys[2]);
 
-        using var _1 = consensus.PreVoteed.Subscribe(state =>
+        using var _1 = consensus.PreVoted.Subscribe(state =>
         {
             preVoteEnteredEvent.Set();
         });
@@ -400,44 +400,6 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         Assert.Equal(4, consensus.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));
     }
 
-    /// <summary>
-    /// <para>
-    /// This test tests whether a validator can discard received proposal
-    /// when another proposal has +2/3 votes and maj23 information.
-    /// This Can be happen in following scenario.
-    /// </para>
-    /// <para>
-    /// There exists 4 validators A B C and D, where D is attacker.
-    /// <list type="bullet">
-    /// <item><description>
-    ///     Validator D sends the block X's proposal to validator A, and block Y's proposal to
-    ///     validator B and C, both blocks are valid.
-    /// </description></item>
-    /// <item><description>
-    ///     The validator A will broadcast block X's pre-vote and the validator C and D
-    ///     will broadcast block Y's pre-vote.
-    /// </description></item>
-    /// <item><description>
-    ///     The validator D sends block X's pre-vote to the validator A and B,
-    ///     and sends block Y's pre-vote to the validator C.
-    /// </description></item>
-    /// <item><description>
-    ///     The validator C will lock block Y and change its state to pre-commit state
-    ///     since 2/3+ pre-vote messages are collected.
-    /// </description></item>
-    ///     Round is increased and other validator proposes valid block, but there are no
-    ///     2/3+ validator to vote to the new valid block since 1/3 of them are locked in
-    ///     block Y.
-    /// <item><description>
-    /// </description></item>
-    /// </list>
-    /// </para>
-    /// <para>
-    /// So this test make one single candidate which is validator A in scenario above,
-    /// to check the validator A can replace its proposal from block X to block Y when
-    /// receiving <see cref="ConsensusMaj23Message"/> message from peer C or D.
-    /// </para>
-    /// </summary>
     [Fact(Timeout = Timeout)]
     public async Task CanReplaceProposal()
     {
@@ -447,43 +409,43 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var proposer = privateKeys[1];
         var key1 = privateKeys[2];
         var key2 = privateKeys[3];
-        BigInteger proposerPower = TestUtils.Validators[1].Power;
-        BigInteger power1 = TestUtils.Validators[2].Power;
-        BigInteger power2 = TestUtils.Validators[3].Power;
-        var stepChanged = new AsyncAutoResetEvent();
-        var proposalModified = new AsyncAutoResetEvent();
+        var proposerPower = TestUtils.Validators[1].Power;
+        var power1 = TestUtils.Validators[2].Power;
+        var power2 = TestUtils.Validators[3].Power;
+        var stepChanged = new AutoResetEvent(false);
+        var proposalModified = new AutoResetEvent(false);
         var prevStep = ConsensusStep.Default;
         BlockHash? prevProposal = null;
         var validators = ImmutableSortedSet.Create(
-        [
             new Validator { Address = privateKeys[0].Address },
             new Validator { Address = proposer.Address },
             new Validator { Address = key1.Address },
-            new Validator { Address = key2.Address },
-        ]);
+            new Validator { Address = key2.Address }
+        );
 
         var blockchain = TestUtils.CreateBlockChain();
         await using var consensus = TestUtils.CreateConsensus(
             blockchain: blockchain,
-            privateKey: privateKeys[0]);
+            privateKey: privateKeys[0],
+            validators: validators);
         var blockA = blockchain.ProposeBlock(proposer);
         var blockB = blockchain.ProposeBlock(proposer);
-        // using var _0 = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step != prevStep)
-        //     {
-        //         prevStep = state.Step;
-        //         stepChanged.Set();
-        //     }
+        using var _0 = consensus.StepChanged.Subscribe(step =>
+        {
+            if (step != prevStep)
+            {
+                prevStep = step;
+                stepChanged.Set();
+            }
 
-        //     if (!state.Proposal.Equals(prevProposal))
-        //     {
-        //         prevProposal = state.Proposal;
-        //         proposalModified.Set();
-        //     }
-        // });
+            if (consensus.Proposal?.BlockHash != prevProposal)
+            {
+                prevProposal = consensus.Proposal?.BlockHash;
+                proposalModified.Set();
+            }
+        });
         await consensus.StartAsync(default);
-        await stepChanged.WaitAsync();
+        Assert.True(stepChanged.WaitOne(1000), "Consensus step was not changed in time.");
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
 
         var proposalA = new ProposalMetadata
@@ -495,19 +457,16 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             Proposer = proposer.Address,
             ValidRound = -1,
         }.Sign(proposer, blockA);
-        var preVoteA2 = new ConsensusPreVoteMessage
+        var preVoteA2 = new VoteMetadata
         {
-            PreVote = new VoteMetadata
-            {
-                Height = 1,
-                Round = 0,
-                BlockHash = blockA.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = key2.Address,
-                ValidatorPower = power2,
-                Type = VoteType.PreVote,
-            }.Sign(key2)
-        };
+            Height = 1,
+            Round = 0,
+            BlockHash = blockA.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = key2.Address,
+            ValidatorPower = power2,
+            Type = VoteType.PreVote,
+        }.Sign(key2);
         var proposalB = new ProposalMetadata
         {
             BlockHash = blockB.BlockHash,
@@ -517,16 +476,14 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             Proposer = proposer.Address,
             ValidRound = -1,
         }.Sign(proposer, blockB);
-        var proposalAMsg = new ConsensusProposalMessage { Proposal = proposalA };
-        var proposalBMsg = new ConsensusProposalMessage { Proposal = proposalB };
-        consensus.ProduceMessage(proposalAMsg);
-        await proposalModified.WaitAsync();
+        consensus.PostProposal(proposalA);
+        Assert.True(proposalModified.WaitOne(1000), "Proposal was not modified in time.");
         Assert.Equal(proposalA, consensus.Proposal);
 
         // Proposal B is ignored because proposal A is received first.
-        consensus.ProduceMessage(proposalBMsg);
+        consensus.PostProposal(proposalB);
         Assert.Equal(proposalA, consensus.Proposal);
-        consensus.ProduceMessage(preVoteA2);
+        consensus.PostVote(preVoteA2);
 
         // Validator 1 (key1) collected +2/3 pre-vote messages,
         // sends maj23 message to consensus.
@@ -541,61 +498,50 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         }.Sign(key1);
         consensus.AddMaj23(maj23);
 
-        var preVoteB0 = new ConsensusPreVoteMessage
+        var preVoteB0 = new VoteMetadata
         {
-            PreVote = new VoteMetadata
-            {
-                Height = 1,
-                Round = 0,
-                BlockHash = blockB.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = proposer.Address,
-                ValidatorPower = proposerPower,
-                Type = VoteType.PreVote,
-            }.Sign(proposer)
-        };
-        var preVoteB1 = new ConsensusPreVoteMessage
+            Height = 1,
+            Round = 0,
+            BlockHash = blockB.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = proposer.Address,
+            ValidatorPower = proposerPower,
+            Type = VoteType.PreVote,
+        }.Sign(proposer);
+        var preVoteB1 = new VoteMetadata
         {
-            PreVote = new VoteMetadata
-            {
-                Height = 1,
-                Round = 0,
-                BlockHash = blockB.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = key1.Address,
-                ValidatorPower = power1,
-                Type = VoteType.PreVote,
-            }.Sign(key1)
-        };
-        var preVoteB2 = new ConsensusPreVoteMessage
+            Height = 1,
+            Round = 0,
+            BlockHash = blockB.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = key1.Address,
+            ValidatorPower = power1,
+            Type = VoteType.PreVote,
+        }.Sign(key1);
+        var preVoteB2 = new VoteMetadata
         {
-            PreVote = new VoteMetadata
-            {
-                Height = 1,
-                Round = 0,
-                BlockHash = blockB.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = key2.Address,
-                ValidatorPower = power2,
-                Type = VoteType.PreVote,
-            }.Sign(key2)
-        };
-        consensus.ProduceMessage(preVoteB0);
-        consensus.ProduceMessage(preVoteB1);
-        consensus.ProduceMessage(preVoteB2);
-        await proposalModified.WaitAsync();
+            Height = 1,
+            Round = 0,
+            BlockHash = blockB.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = key2.Address,
+            ValidatorPower = power2,
+            Type = VoteType.PreVote,
+        }.Sign(key2);
+        consensus.PostVote(preVoteB0);
+        consensus.PostVote(preVoteB1);
+        consensus.PostVote(preVoteB2);
+        Assert.True(proposalModified.WaitOne(1000), "Proposal was not modified in time.");
         Assert.Null(consensus.Proposal);
-        consensus.ProduceMessage(proposalBMsg);
-        await proposalModified.WaitAsync();
-        Assert.Equal(
-consensus.Proposal,
-proposalBMsg.Proposal);
-        await stepChanged.WaitAsync();
-        await stepChanged.WaitAsync();
+        consensus.PostProposal(proposalB);
+        Assert.True(proposalModified.WaitOne(1000), "Proposal was not modified in time.");
+        Assert.Equal(consensus.Proposal, proposalB);
+        Assert.True(stepChanged.WaitOne(1000), "Consensus step was not changed in time.");
+        Assert.True(stepChanged.WaitOne(1000), "Consensus step was not changed in time.");
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(
-blockB.BlockHash.ToString(),
-JsonSerializer.Deserialize<ContextJson>(consensus.ToString()).valid_value);
+            blockB.BlockHash.ToString(),
+            JsonSerializer.Deserialize<ContextJson>(consensus.ToString()).valid_value);
     }
 
     [Fact(Timeout = Timeout)]
