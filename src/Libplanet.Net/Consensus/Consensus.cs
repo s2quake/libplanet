@@ -26,11 +26,13 @@ public partial class Consensus(
     private readonly Subject<Proposal?> _proposalChangedSubject = new();
     private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
 
-    private readonly Subject<Vote> _preVotedSubject = new();
-    private readonly Subject<Vote> _preCommittedSubject = new();
-    private readonly Subject<Maj23> _quorumReachedSubject = new();
-    private readonly Subject<ProposalClaim> _proposalClaimedSubject = new();
-    private readonly Subject<Proposal> _blockProposeSubject = new();
+    // private readonly Subject<Vote> _preVotedSubject = new();
+    // private readonly Subject<Vote> _preCommittedSubject = new();
+    // private readonly Subject<Maj23> _quorumReachedSubject = new();
+    // private readonly Subject<ProposalClaim> _proposalClaimedSubject = new();
+    // private readonly Subject<Proposal> _blockProposeSubject = new();
+
+    private readonly IConsensusMediator _mediator;
 
     private readonly VoteContext _preVotes = new(height, VoteType.PreVote, validators);
     private readonly VoteContext _preCommits = new(height, VoteType.PreCommit, validators);
@@ -496,7 +498,8 @@ public partial class Consensus(
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidRound = _validRound,
             }.Create(signer);
-            _blockProposeSubject.OnNext(proposal);
+            _mediator.Propose(proposal);
+            // _blockProposeSubject.OnNext(proposal);
         }
         else
         {
@@ -610,7 +613,8 @@ public partial class Consensus(
                     Validator = signer.Address,
                     VoteType = VoteType.PreVote,
                 }.Sign(signer);
-                _quorumReachedSubject.OnNext(maj23);
+                _mediator.Quorum(maj23);
+                // _quorumReachedSubject.OnNext(maj23);
             }
 
             _validBlock = p3.Block;
@@ -637,7 +641,8 @@ public partial class Consensus(
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = signer.Address,
                 }.Sign(signer);
-                _proposalClaimedSubject.OnNext(proposalClaim);
+                _mediator.Claim(proposalClaim);
+                // _proposalClaimedSubject.OnNext(proposalClaim);
             }
         }
 
@@ -672,7 +677,8 @@ public partial class Consensus(
                 Validator = signer.Address,
                 VoteType = VoteType.PreCommit,
             }.Sign(signer);
-            _quorumReachedSubject.OnNext(maj23);
+            _mediator.Quorum(maj23);
+            // _quorumReachedSubject.OnNext(maj23);
             EnterEndCommitWait(Round);
             return;
         }
@@ -701,7 +707,8 @@ public partial class Consensus(
             Type = VoteType.PreVote,
         }.Sign(signer);
         Step = ConsensusStep.PreVote;
-        _preVotedSubject.OnNext(vote);
+        _mediator.Vote(vote);
+        // _preVotedSubject.OnNext(vote);
     }
 
     private void EnterPreCommit(int round, BlockHash blockHash)
@@ -722,7 +729,8 @@ public partial class Consensus(
             Type = VoteType.PreCommit,
         }.Sign(signer);
         Step = ConsensusStep.PreCommit;
-        _preCommittedSubject.OnNext(vote);
+        _mediator.Vote(vote);
+        // _preCommittedSubject.OnNext(vote);
     }
 
     private void EnterEndCommit(int round)
