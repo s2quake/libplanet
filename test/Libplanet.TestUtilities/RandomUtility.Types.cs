@@ -64,21 +64,25 @@ public static partial class RandomUtility
         Votes = ImmutableArray(random, Vote),
     };
 
-    public static Vote Vote(Random random) => new()
+    public static Vote Vote(Random random)
     {
-        Metadata = VoteMetadata(random),
-        Signature = ImmutableArray(random, Byte),
-    };
+        var key = PrivateKey(random);
+        var metadata = VoteMetadata(random) with
+        {
+            Validator = key.Address,
+        };
+        return metadata.Sign(key.AsSigner());
+    }
 
     public static VoteMetadata VoteMetadata(Random random) => new()
     {
         Validator = Address(random),
         BlockHash = BlockHash(random),
-        Height = Int32(random),
-        Round = Int32(random),
+        Height = NonNegative(random),
+        Round = NonNegative(random),
         Timestamp = DateTimeOffset(random),
-        ValidatorPower = BigInteger(random),
-        Type = Enum<VoteType>(random),
+        ValidatorPower = PositiveBigInteger(random),
+        Type = Try(random, Enum<VoteType>, item => item is not VoteType.Null and not VoteType.Unknown),
     };
 
     public static string Ticker() => Ticker(System.Random.Shared);
@@ -164,7 +168,7 @@ public static partial class RandomUtility
 
     public static BlockContent BlockContent() => BlockContent(System.Random.Shared);
 
-public static BlockContent BlockContent(Random random) => new()
+    public static BlockContent BlockContent(Random random) => new()
     {
         Transactions = ImmutableSortedSet(random, Transaction),
         Evidences = ImmutableSortedSet(random, Evidence),

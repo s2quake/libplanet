@@ -1,16 +1,16 @@
-using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
 [Model(Version = 1, TypeName = "VoteMetadata")]
-public sealed partial record class VoteMetadata : IValidatableObject
+public sealed partial record class VoteMetadata
 {
     [Property(0)]
     public required Address Validator { get; init; }
 
     [Property(1)]
+    [NotDefault]
     public BlockHash BlockHash { get; init; }
 
     [Property(2)]
@@ -49,15 +49,4 @@ public sealed partial record class VoteMetadata : IValidatableObject
     }
 
     public Vote WithoutSignature() => new() { Metadata = this, Signature = [] };
-
-    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-    {
-        if (BlockHash.Equals(default) && (Type == VoteType.Null || Type == VoteType.Unknown))
-        {
-            yield return new ValidationResult(
-                $"Given {nameof(BlockHash)} cannot be default if {nameof(Type)} " +
-                $"is {VoteType.Null} or {VoteType.Unknown}",
-                [nameof(BlockHash)]);
-        }
-    }
 }
