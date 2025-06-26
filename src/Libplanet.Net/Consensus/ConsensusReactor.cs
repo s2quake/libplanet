@@ -24,7 +24,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private int _height;
     private int _round;
     private Consensus _currentConsensus;
-    private IDisposable[] _consensusSubscriptions = [];
+    private IDisposable[] _consensusSubscriptions;
     private CancellationTokenSource? _newHeightCts;
     private bool _disposed;
 
