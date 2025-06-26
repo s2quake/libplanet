@@ -279,15 +279,15 @@ public sealed class ConsensusReactor : IAsyncDisposable
             {
                 if (consensusMessage is ConsensusPreVoteMessage preVoteMessage)
                 {
-                    _currentConsensus.PostVote(preVoteMessage.PreVote);
+                    _currentConsensus.Post(preVoteMessage.PreVote);
                 }
                 else if (consensusMessage is ConsensusPreCommitMessage preCommitMessage)
                 {
-                    _currentConsensus.PostVote(preCommitMessage.PreCommit);
+                    _currentConsensus.Post(preCommitMessage.PreCommit);
                 }
                 else if (consensusMessage is ConsensusProposalMessage proposalMessage)
                 {
-                    _currentConsensus.PostProposal(proposalMessage.Proposal);
+                    _currentConsensus.Post(proposalMessage.Proposal);
                 }
             }
             else

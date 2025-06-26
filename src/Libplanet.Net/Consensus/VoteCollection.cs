@@ -8,7 +8,9 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
     : IReadOnlyDictionary<Address, Vote>
 {
     private readonly Dictionary<Address, Vote> _voteByValidator = [];
-    private readonly Dictionary<Address, BlockHash> _maj23ByValidator = [];
+    private readonly Dictionary<Address, BlockHash> _blockHashByValidator = [];
+    private readonly HashSet<BlockHash> _maj23s = [];
+    private readonly Dictionary<BlockHash, List<Vote>> _votesByBlockHash = [];
     private BlockHash? _maj23;
 
     public BigInteger Sum => validators.GetValidatorsPower([.. _voteByValidator.Values.Select(vote => vote.Validator)]);
@@ -27,14 +29,12 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
 
     public Vote this[Address key] => _voteByValidator[key];
 
-    public IEnumerable<Vote> GetAllVotes() => _voteByValidator.Values;
-
     public bool SetMaj23(Maj23 maj23)
     {
         var validator = maj23.Validator;
         var blockHash = maj23.BlockHash;
 
-        if (_maj23ByValidator.TryGetValue(validator, out var hash))
+        if (_blockHashByValidator.TryGetValue(validator, out var hash))
         {
             if (hash.Equals(blockHash))
             {
@@ -46,7 +46,13 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
             throw new ArgumentException(message, nameof(maj23));
         }
 
-        _maj23ByValidator[validator] = blockHash;
+        _blockHashByValidator[validator] = blockHash;
+        if (_maj23s.Contains(blockHash))
+        {
+            return false;
+        }
+
+        _maj23s.Add(blockHash);
         return true;
     }
 
@@ -131,9 +137,13 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
             {
                 throw new ArgumentException($"{nameof(Add)}() does not expect duplicate votes", nameof(vote));
             }
-            else
+            else if (!_maj23s.Contains(vote.BlockHash))
             {
                 throw new DuplicateVoteException("There's a conflicting vote", oldVote, vote);
+            }
+            else if (_maj23 is { } maj23 && maj23.Equals(vote.BlockHash))
+            {
+                _voteByValidator[validator] = vote;
             }
         }
         else
@@ -141,13 +151,28 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
             _voteByValidator.Add(validator, vote);
         }
 
-        var votes = _voteByValidator.Values.Where(item => item.BlockHash == blockHash).ToArray();
+        if (!_votesByBlockHash.TryGetValue(blockHash, out var votes))
+        {
+            votes = [];
+            _votesByBlockHash[blockHash] = votes;
+        }
+
+
+        var totalPower1 = votes.Aggregate(BigInteger.Zero, (n, i) => n + i.ValidatorPower);
+        votes.Add(vote);
+
+
+        // var votes = _voteByValidator.Values.Where(item => item.BlockHash == blockHash).ToArray();
         var totalPower2 = votes.Aggregate(BigInteger.Zero, (n, i) => n + i.ValidatorPower);
-        var totalPower1 = totalPower2 - vote.ValidatorPower;
         var quorum = validators.GetTwoThirdsPower() + 1;
         if (totalPower1 < quorum && quorum <= totalPower2 && _maj23 is null)
         {
             _maj23 = vote.BlockHash;
+
+            foreach (var pair in votes)
+            {
+                _voteByValidator[pair.Validator] = pair;
+            }
         }
     }
 

@@ -23,12 +23,15 @@ public partial class Consensus(
     private readonly Subject<int> _roundStartedSubject = new();
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
+    private readonly Subject<Proposal?> _proposalChangedSubject = new();
+    private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
+
     private readonly Subject<Vote> _preVotedSubject = new();
     private readonly Subject<Vote> _preCommittedSubject = new();
     private readonly Subject<Maj23> _quorumReachedSubject = new();
     private readonly Subject<ProposalClaim> _proposalClaimedSubject = new();
     private readonly Subject<Proposal> _blockProposeSubject = new();
-    private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
+
     private readonly VoteContext _preVotes = new(height, VoteType.PreVote, validators);
     private readonly VoteContext _preCommits = new(height, VoteType.PreCommit, validators);
     private readonly ImmutableSortedSet<Validator> _validators = validators;
@@ -50,6 +53,7 @@ public partial class Consensus(
     private Block? _decidedBlock;
     private bool _disposed;
     private ConsensusStep _step;
+    private Proposal? _proposal;
 
     public Consensus(Blockchain blockchain, int height, ISigner signer, ConsensusOptions options)
         : this(blockchain, height, signer, blockchain.GetValidators(height), options)
@@ -62,6 +66,10 @@ public partial class Consensus(
 
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
+    public IObservable<Proposal?> ProposalChanged => _proposalChangedSubject;
+
+    public IObservable<(Block Block, BlockCommit BlockCommit)> Completed => _completedSubject;
+
     public IObservable<Vote> PreVoted => _preVotedSubject;
 
     public IObservable<Vote> PreCommitted => _preCommittedSubject;
@@ -71,8 +79,6 @@ public partial class Consensus(
     public IObservable<ProposalClaim> ProposalClaimed => _proposalClaimedSubject;
 
     public IObservable<Proposal> BlockProposed => _blockProposeSubject;
-
-    public IObservable<(Block Block, BlockCommit BlockCommit)> Completed => _completedSubject;
 
     public int Height { get; } = ValidateHeight(height);
 
@@ -93,7 +99,18 @@ public partial class Consensus(
         }
     }
 
-    public Proposal? Proposal { get; private set; }
+    public Proposal? Proposal
+    {
+        get => _proposal;
+        private set
+        {
+            if (_proposal != value)
+            {
+                _proposal = value;
+                _proposalChangedSubject.OnNext(value);
+            }
+        }
+    }
 
     public async ValueTask DisposeAsync()
     {
@@ -287,7 +304,7 @@ public partial class Consensus(
         IsRunning = false;
     }
 
-    public void PostProposal(Proposal proposal)
+    public void Post(Proposal proposal)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (_dispatcher is null)
@@ -302,7 +319,7 @@ public partial class Consensus(
         });
     }
 
-    public void PostVote(Vote vote)
+    public void Post(Vote vote)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (_dispatcher is null)
