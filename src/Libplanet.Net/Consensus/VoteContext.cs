@@ -2,14 +2,15 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class VoteContext(int height, ImmutableSortedSet<Validator> validators)
+public sealed class VoteContext(int height, VoteType voteType, ImmutableSortedSet<Validator> validators)
 {
-    private readonly Dictionary<int, VoteCollection> _preVotesByRound = [];
-    private readonly Dictionary<int, VoteCollection> _preCommitsByRound = [];
+    private readonly Dictionary<int, VoteCollection> _votesByRound = [];
 
     private int _round;
 
-    public int Height { get; } = height;
+    public int Height { get; } = ValidateHeight(height);
+
+    public VoteType VoteType { get; } = ValidateVoteType(voteType);
 
     public int Round
     {
@@ -21,35 +22,47 @@ public sealed class VoteContext(int height, ImmutableSortedSet<Validator> valida
                 throw new ArgumentOutOfRangeException(nameof(value), "Round must be non-negative");
             }
 
-            for (var i = _round + 1; i <= value; i++)
-            {
-                if (!_preVotesByRound.ContainsKey(i))
-                {
-                    _preVotesByRound[i] = new VoteCollection(Height, i, VoteType.PreVote, validators);
-                }
-
-                if (!_preCommitsByRound.ContainsKey(i))
-                {
-                    _preCommitsByRound[i] = new VoteCollection(Height, i, VoteType.PreCommit, validators);
-                }
-            }
-
             _round = value;
         }
     }
 
-    public void AddVote(Vote vote)
+    public VoteCollection this[int round]
+    {
+        get
+        {
+            if (round < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(round), "Round must be non-negative");
+            }
+
+            if (!_votesByRound.TryGetValue(round, out var votes))
+            {
+                votes = new VoteCollection(Height, round, voteType, validators);
+                _votesByRound[round] = votes;
+            }
+
+            return votes;
+        }
+    }
+
+    public void Add(Vote vote)
     {
         if (vote.Height != Height)
         {
-            var message = $"Vote height {vote.Height} does not match HeightVoteSet height {Height}";
+            var message = $"Vote height {vote.Height} does not match expected height {Height}";
+            throw new ArgumentException(message, nameof(vote));
+        }
+
+        if (vote.Type != voteType)
+        {
+            var message = $"Vote type {vote.Type} does not match expected type {voteType}";
             throw new ArgumentException(message, nameof(vote));
         }
 
         var validator = vote.Validator;
         if (!validators.Contains(validator))
         {
-            var message = $"Validator {validator} is not in the validator set for height {Height}";
+            var message = $"Validator {validator} is not in the validators for height {Height}";
             throw new ArgumentException(message, nameof(vote));
         }
 
@@ -60,62 +73,44 @@ public sealed class VoteContext(int height, ImmutableSortedSet<Validator> valida
             throw new ArgumentException(message, nameof(vote));
         }
 
-        if (vote.Type is not VoteType.PreVote and not VoteType.PreCommit)
-        {
-            var message = $"Vote type must be either {VoteType.PreVote} or {VoteType.PreCommit} " +
-                          $"(Actual: {vote.Type})";
-            throw new ArgumentException(message, nameof(vote));
-        }
-
-        try
-        {
-            ValidationUtility.Validate(vote);
-        }
-        catch (Exception e)
-        {
-            throw new ArgumentException($"Received vote is invalid: {e.Message}", nameof(vote), e);
-        }
-
-        var round = vote.Round;
-        var voteType = vote.Type;
-        var dictionary = voteType == VoteType.PreVote ? _preVotesByRound : _preCommitsByRound;
-        if (!dictionary.TryGetValue(round, out var votes))
-        {
-            dictionary[round] = votes = new VoteCollection(Height, round, voteType, validators);
-        }
-
-        votes.Add(vote);
+        this[vote.Round].Add(vote);
     }
 
-    public VoteCollection PreVotes(int round) => GetVotes(round, VoteType.PreVote);
-
-    public VoteCollection PreCommits(int round) => GetVotes(round, VoteType.PreCommit);
-
-    // Last round and block hash that has +2/3 prevotes for a particular block or nil.
-    // Returns -1 if no such round exists.
-    public (int, BlockHash) POLInfo()
+    public bool SetMaj23(Maj23 maj23)
     {
-        for (var i = Round; i >= 0; i--)
+        if (maj23.Height != Height)
         {
-            try
-            {
-                var votes = GetVotes(i, VoteType.PreVote);
-                var exists = votes.TwoThirdsMajority(out BlockHash polBlockHash);
-                if (exists)
-                {
-                    return (i, polBlockHash);
-                }
-            }
-            catch (KeyNotFoundException)
-            {
-                // do nothing
-            }
+            var message = $"Maj23 height {maj23.Height} does not match expected height {Height}";
+            throw new ArgumentException(message, nameof(maj23));
         }
 
-        return (-1, default);
+        if (maj23.VoteType != voteType)
+        {
+            var message = $"Maj23 vote type {maj23.VoteType} does not match expected type {voteType}";
+            throw new ArgumentException(message, nameof(maj23));
+        }
+
+        var validator = maj23.Validator;
+        if (!validators.Contains(validator))
+        {
+            var message = $"Validator {validator} is not in the validators for height {Height}";
+            throw new ArgumentException(message, nameof(maj23));
+        }
+
+        return this[maj23.Round].SetMaj23(maj23);
     }
 
-    public VoteCollection GetVotes(int round, VoteType voteType)
+    private static int ValidateHeight(int height)
+    {
+        if (height < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be non-negative");
+        }
+
+        return height;
+    }
+
+    private static VoteType ValidateVoteType(VoteType voteType)
     {
         if (voteType is not VoteType.PreVote and not VoteType.PreCommit)
         {
@@ -124,28 +119,6 @@ public sealed class VoteContext(int height, ImmutableSortedSet<Validator> valida
                 $"(Actual: {voteType})");
         }
 
-        var dictionary = voteType == VoteType.PreVote ? _preVotesByRound : _preCommitsByRound;
-        return dictionary[round];
-    }
-
-    public bool SetPeerMaj23(Maj23 maj23)
-    {
-        var round = maj23.Round;
-        var voteType = maj23.VoteType;
-        if (voteType is not VoteType.PreVote and not VoteType.PreCommit)
-        {
-            throw new InvalidMaj23Exception(
-                $"Maj23 must have either {VoteType.PreVote} or {VoteType.PreCommit} " +
-                $"(Actual: {voteType})",
-                maj23);
-        }
-
-        var dictionary = voteType == VoteType.PreVote ? _preVotesByRound : _preCommitsByRound;
-        if (!dictionary.TryGetValue(round, out var votes))
-        {
-            dictionary[round] = votes = new VoteCollection(Height, round, voteType, validators);
-        }
-
-        return votes.SetMaj23(maj23);
+        return voteType;
     }
 }
