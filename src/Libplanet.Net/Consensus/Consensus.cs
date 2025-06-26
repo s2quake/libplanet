@@ -312,7 +312,8 @@ public partial class Consensus(
 
         _dispatcher.Post(() =>
         {
-            _preVotes.Add(vote);
+            var voteContext = vote.Type is VoteType.PreVote ? _preVotes : _preCommits;
+            voteContext.Add(vote);
             ProcessHeightOrRoundUponRules(vote);
             ProcessGenericUponRules();
         });

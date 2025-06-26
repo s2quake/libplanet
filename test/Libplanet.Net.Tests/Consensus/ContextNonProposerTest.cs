@@ -584,7 +584,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             await using var consensus = TestUtils.CreateConsensus(
                 privateKey: TestUtils.PrivateKeys[0],
-                consensusOptions: new ConsensusOptions
+                options: new ConsensusOptions
                 {
                     ProposeTimeoutBase = 1_000
                 });
@@ -618,7 +618,7 @@ namespace Libplanet.Net.Tests.Consensus
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0],
-                consensusOptions: new ConsensusOptions
+                options: new ConsensusOptions
                 {
                     PreVoteTimeoutBase = 1_000,
                     PreCommitTimeoutBase = 1_000,
@@ -712,7 +712,7 @@ namespace Libplanet.Net.Tests.Consensus
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0],
-                consensusOptions: new ConsensusOptions
+                options: new ConsensusOptions
                 {
                     PreVoteTimeoutBase = 1_000,
                 });
@@ -774,7 +774,7 @@ namespace Libplanet.Net.Tests.Consensus
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0],
-                consensusOptions: new ConsensusOptions
+                options: new ConsensusOptions
                 {
                     PreCommitTimeoutBase = 1_000,
                 });

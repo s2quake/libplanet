@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
@@ -27,7 +28,7 @@ public sealed partial record class VoteSetBitsMetadata
     public Address Validator { get; init; }
 
     [Property(5)]
-    [DisallowedEnumValues(VoteType.Null, VoteType.Unknown)]
+    [AllowedValues(VoteType.PreVote, VoteType.PreCommit)]
     public VoteType VoteType { get; init; }
 
     public ImmutableArray<bool> VoteBits { get; init; }

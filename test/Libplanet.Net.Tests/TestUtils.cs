@@ -284,18 +284,22 @@ public static class TestUtils
         Blockchain? blockchain = null,
         int height = 1,
         PrivateKey? privateKey = null,
-        ConsensusOptions? consensusOptions = null)
+        ConsensusOptions? options = null)
     {
-        var signer = (privateKey ?? PrivateKeys[1]).AsSigner();
+        blockchain ??= CreateBlockChain();
         var consensus = new Net.Consensus.Consensus(
-            blockchain ?? CreateBlockChain(),
+            blockchain,
             height,
-            signer,
-            options: consensusOptions ?? new ConsensusOptions());
+            (privateKey ?? PrivateKeys[1]).AsSigner(),
+            options: options ?? new ConsensusOptions());
 
         consensus.BlockProposed.Subscribe(consensus.PostProposal);
         consensus.PreVoteed.Subscribe(consensus.PostVote);
         consensus.PreCommitted.Subscribe(consensus.PostVote);
+        consensus.Completed.Subscribe(e =>
+        {
+            _ = Task.Run(() => blockchain.Append(e.Block, e.BlockCommit));
+        });
 
         return consensus;
     }
