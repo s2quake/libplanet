@@ -25,14 +25,13 @@ public partial class Consensus(
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
     private readonly Subject<Proposal?> _proposalChangedSubject = new();
     private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
+    private readonly Subject<Vote> _voteAddedSubject = new();
 
-    // private readonly Subject<Vote> _preVotedSubject = new();
-    // private readonly Subject<Vote> _preCommittedSubject = new();
-    // private readonly Subject<Maj23> _quorumReachedSubject = new();
-    // private readonly Subject<ProposalClaim> _proposalClaimedSubject = new();
-    // private readonly Subject<Proposal> _blockProposeSubject = new();
-
-    private readonly IConsensusMediator _mediator;
+    private readonly Subject<Vote> _preVoteSubject = new();
+    private readonly Subject<Vote> _preCommitSubject = new();
+    private readonly Subject<Maj23> _quorumReachSubject = new();
+    private readonly Subject<ProposalClaim> _proposalClaimSubject = new();
+    private readonly Subject<Proposal> _blockProposeSubject = new();
 
     private readonly VoteContext _preVotes = new(height, VoteType.PreVote, validators);
     private readonly VoteContext _preCommits = new(height, VoteType.PreCommit, validators);
@@ -72,15 +71,15 @@ public partial class Consensus(
 
     public IObservable<(Block Block, BlockCommit BlockCommit)> Completed => _completedSubject;
 
-    public IObservable<Vote> PreVoted => _preVotedSubject;
+    public IObservable<Vote> PreVote => _preVoteSubject;
 
-    public IObservable<Vote> PreCommitted => _preCommittedSubject;
+    public IObservable<Vote> PreCommit => _preCommitSubject;
 
-    public IObservable<Maj23> QuorumReached => _quorumReachedSubject;
+    public IObservable<Maj23> QuorumReach => _quorumReachSubject;
 
-    public IObservable<ProposalClaim> ProposalClaimed => _proposalClaimedSubject;
+    public IObservable<ProposalClaim> ProposalClaim => _proposalClaimSubject;
 
-    public IObservable<Proposal> BlockProposed => _blockProposeSubject;
+    public IObservable<Proposal> BlockPropose => _blockProposeSubject;
 
     public int Height { get; } = ValidateHeight(height);
 
@@ -113,6 +112,8 @@ public partial class Consensus(
             }
         }
     }
+
+    internal IObservable<Vote> VoteAdded => _voteAddedSubject;
 
     public async ValueTask DisposeAsync()
     {
@@ -226,43 +227,6 @@ public partial class Consensus(
         };
     }
 
-    private Block GetValue() => blockchain.ProposeBlock(signer);
-
-    private bool IsValid(Block block)
-    {
-        if (_blockValidationCache.TryGet(block.BlockHash, out var isValid))
-        {
-            return isValid;
-        }
-        else
-        {
-            if (block.Height != Height)
-            {
-                _blockValidationCache.AddOrUpdate(block.BlockHash, false);
-                return false;
-            }
-
-            try
-            {
-                block.Validate(blockchain);
-                blockchain.Options.BlockOptions.Validate(block);
-
-                foreach (var tx in block.Transactions)
-                {
-                    blockchain.Options.TransactionOptions.Validate(tx);
-                }
-            }
-            catch (Exception e) when (e is InvalidOperationException)
-            {
-                _blockValidationCache.AddOrUpdate(block.BlockHash, false);
-                return false;
-            }
-
-            _blockValidationCache.AddOrUpdate(block.BlockHash, true);
-            return true;
-        }
-    }
-
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         if (IsRunning)
@@ -333,6 +297,7 @@ public partial class Consensus(
         {
             var voteContext = vote.Type is VoteType.PreVote ? _preVotes : _preCommits;
             voteContext.Add(vote);
+            _voteAddedSubject.OnNext(vote);
             ProcessHeightOrRoundUponRules(vote);
             ProcessGenericUponRules();
         });
@@ -341,6 +306,43 @@ public partial class Consensus(
     [Obsolete]
     internal void ProduceMessage(ConsensusMessage message)
     {
+    }
+
+    private Block ProposeBlock() => blockchain.ProposeBlock(signer);
+
+    private bool IsValid(Block block)
+    {
+        if (_blockValidationCache.TryGet(block.BlockHash, out var isValid))
+        {
+            return isValid;
+        }
+        else
+        {
+            if (block.Height != Height)
+            {
+                _blockValidationCache.AddOrUpdate(block.BlockHash, false);
+                return false;
+            }
+
+            try
+            {
+                block.Validate(blockchain);
+                blockchain.Options.BlockOptions.Validate(block);
+
+                foreach (var tx in block.Transactions)
+                {
+                    blockchain.Options.TransactionOptions.Validate(tx);
+                }
+            }
+            catch (Exception e) when (e is InvalidOperationException)
+            {
+                _blockValidationCache.AddOrUpdate(block.BlockHash, false);
+                return false;
+            }
+
+            _blockValidationCache.AddOrUpdate(block.BlockHash, true);
+            return true;
+        }
     }
 
     private void EnterPreCommitWait(int round, BlockHash blockHash)
@@ -489,7 +491,7 @@ public partial class Consensus(
         Step = ConsensusStep.Propose;
         _roundStartedSubject.OnNext(round);
         if (_validators.GetProposer(Height, Round).Address == signer.Address
-            && (_validBlock ?? GetValue()) is Block proposalBlock)
+            && (_validBlock ?? ProposeBlock()) is Block proposalBlock)
         {
             var proposal = new ProposalBuilder
             {
@@ -498,8 +500,7 @@ public partial class Consensus(
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidRound = _validRound,
             }.Create(signer);
-            _mediator.Propose(proposal);
-            // _blockProposeSubject.OnNext(proposal);
+            _blockProposeSubject.OnNext(proposal);
         }
         else
         {
@@ -613,8 +614,7 @@ public partial class Consensus(
                     Validator = signer.Address,
                     VoteType = VoteType.PreVote,
                 }.Sign(signer);
-                _mediator.Quorum(maj23);
-                // _quorumReachedSubject.OnNext(maj23);
+                _quorumReachSubject.OnNext(maj23);
             }
 
             _validBlock = p3.Block;
@@ -641,8 +641,7 @@ public partial class Consensus(
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = signer.Address,
                 }.Sign(signer);
-                _mediator.Claim(proposalClaim);
-                // _proposalClaimedSubject.OnNext(proposalClaim);
+                _proposalClaimSubject.OnNext(proposalClaim);
             }
         }
 
@@ -677,8 +676,7 @@ public partial class Consensus(
                 Validator = signer.Address,
                 VoteType = VoteType.PreCommit,
             }.Sign(signer);
-            _mediator.Quorum(maj23);
-            // _quorumReachedSubject.OnNext(maj23);
+            _quorumReachSubject.OnNext(maj23);
             EnterEndCommitWait(Round);
             return;
         }
@@ -707,8 +705,7 @@ public partial class Consensus(
             Type = VoteType.PreVote,
         }.Sign(signer);
         Step = ConsensusStep.PreVote;
-        _mediator.Vote(vote);
-        // _preVotedSubject.OnNext(vote);
+        _preVoteSubject.OnNext(vote);
     }
 
     private void EnterPreCommit(int round, BlockHash blockHash)
@@ -729,8 +726,7 @@ public partial class Consensus(
             Type = VoteType.PreCommit,
         }.Sign(signer);
         Step = ConsensusStep.PreCommit;
-        _mediator.Vote(vote);
-        // _preCommittedSubject.OnNext(vote);
+        _preCommitSubject.OnNext(vote);
     }
 
     private void EnterEndCommit(int round)

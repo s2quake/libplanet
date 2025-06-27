@@ -11,7 +11,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
 {
     private readonly Gossip _gossip;
     private readonly object _contextLock = new();
-    private readonly ConsensusOptions _contextOption;
+    private readonly ConsensusOptions _consensusOption;
     private readonly Blockchain _blockchain;
     private readonly ISigner _signer;
     private readonly TimeSpan _newHeightDelay;
@@ -23,7 +23,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     private int _height;
     private int _round;
-    private Consensus _currentConsensus;
+    private Consensus _consensus;
+    private ConsensusCommunicator _communicator;
     private IDisposable[] _consensusSubscriptions;
     private CancellationTokenSource? _newHeightCts;
     private bool _disposed;
@@ -49,13 +50,14 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _signer = options.Signer;
         _newHeightDelay = options.TargetBlockInterval;
 
-        _contextOption = options.ContextOptions;
-        _currentConsensus = new Consensus(
+        _consensusOption = options.ContextOptions;
+        _consensus = new Consensus(
             _blockchain,
             _blockchain.Tip.Height + 1,
             _signer,
-            options: _contextOption);
-        _consensusSubscriptions = [.. Subscribe(_currentConsensus)];
+            options: _consensusOption);
+        _communicator = new ConsensusCommunicator(_consensus, _gossip);
+        _consensusSubscriptions = [.. Subscribe(_consensus)];
 
         _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
     }
@@ -131,31 +133,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _round = round;
             _gossip.ClearCache();
         });
-        yield return consensus.PreVoted.Subscribe(vote =>
-        {
-            var message = new ConsensusPreVoteMessage { PreVote = vote };
-            _gossip.PublishMessage(message);
-        });
-        yield return consensus.PreCommitted.Subscribe(vote =>
-        {
-            var message = new ConsensusPreCommitMessage { PreCommit = vote };
-            _gossip.PublishMessage(message);
-        });
-        yield return consensus.QuorumReached.Subscribe(maj23 =>
-        {
-            var message = new ConsensusMaj23Message { Maj23 = maj23 };
-            _gossip.PublishMessage(message);
-        });
-        yield return consensus.ProposalClaimed.Subscribe(proposalClaim =>
-        {
-            var message = new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim };
-            _gossip.PublishMessage(message);
-        });
-        yield return consensus.BlockProposed.Subscribe(proposal =>
-        {
-            var message = new ConsensusProposalMessage { Proposal = proposal };
-            _gossip.PublishMessage(message);
-        });
         yield return consensus.Completed.Subscribe(e =>
         {
             var block = e.Block;
@@ -185,7 +162,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
             Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
             _consensusSubscriptions = [];
-            await _currentConsensus.DisposeAsync();
+            await _consensus.DisposeAsync();
 
             _newHeightCts?.Dispose();
             _newHeightCts = null;
@@ -203,7 +180,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
 
         await _gossip.StartAsync(cancellationToken);
-        await _currentConsensus.StartAsync(default);
+        await _consensus.StartAsync(default);
         IsRunning = true;
     }
 
@@ -227,7 +204,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             lock (_contextLock)
             {
-                return _currentConsensus;
+                return _consensus;
             }
         }
     }
@@ -242,23 +219,25 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
 
         Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
-        await _currentConsensus.StopAsync(cancellationToken);
-        await _currentConsensus.DisposeAsync();
-        _currentConsensus = new Consensus(_blockchain, height, _signer, _contextOption);
-        _consensusSubscriptions = [.. Subscribe(_currentConsensus)];
+        _communicator.Dispose();
+        await _consensus.StopAsync(cancellationToken);
+        await _consensus.DisposeAsync();
+        _consensus = new Consensus(_blockchain, height, _signer, _consensusOption);
+        _communicator = new ConsensusCommunicator(_consensus, _gossip);
+        _consensusSubscriptions = [.. Subscribe(_consensus)];
 
         foreach (var message in _pendingMessages)
         {
             if (message.Height == height)
             {
-                _currentConsensus.ProduceMessage(message);
+                _consensus.ProduceMessage(message);
             }
         }
 
         _pendingMessages.RemoveWhere(message => message.Height <= height);
         if (IsRunning)
         {
-            await _currentConsensus.StartAsync(default);
+            await _consensus.StartAsync(default);
             _height = height;
             _peerCatchupRounds.Clear();
             _gossip.ClearDenySet();
@@ -275,19 +254,19 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
         lock (_contextLock)
         {
-            if (_currentConsensus.Height == height)
+            if (_consensus.Height == height)
             {
                 if (consensusMessage is ConsensusPreVoteMessage preVoteMessage)
                 {
-                    _currentConsensus.Post(preVoteMessage.PreVote);
+                    _consensus.Post(preVoteMessage.PreVote);
                 }
                 else if (consensusMessage is ConsensusPreCommitMessage preCommitMessage)
                 {
-                    _currentConsensus.Post(preCommitMessage.PreCommit);
+                    _consensus.Post(preCommitMessage.PreCommit);
                 }
                 else if (consensusMessage is ConsensusProposalMessage proposalMessage)
                 {
-                    _currentConsensus.Post(proposalMessage.Proposal);
+                    _consensus.Post(proposalMessage.Proposal);
                 }
             }
             else
@@ -310,9 +289,9 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             lock (_contextLock)
             {
-                if (_currentConsensus.Height == height)
+                if (_consensus.Height == height)
                 {
-                    return _currentConsensus.AddMaj23(maj23);
+                    return _consensus.AddMaj23(maj23);
                 }
             }
         }
@@ -331,11 +310,11 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             lock (_contextLock)
             {
-                if (_currentConsensus.Height == height)
+                if (_consensus.Height == height)
                 {
                     // NOTE: Should check if collected messages have same BlockHash with
                     // VoteSetBit's BlockHash?
-                    return _currentConsensus.GetVoteSetBitsResponse(voteSetBits);
+                    return _consensus.GetVoteSetBitsResponse(voteSetBits);
                 }
             }
         }
@@ -359,11 +338,11 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             lock (_contextLock)
             {
-                if (_currentConsensus.Height == height)
+                if (_consensus.Height == height)
                 {
                     // NOTE: Should check if collected messages have same BlockHash with
                     // VoteSetBit's BlockHash?
-                    return _currentConsensus.Proposal;
+                    return _consensus.Proposal;
                 }
             }
         }
