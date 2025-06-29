@@ -157,12 +157,8 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
             _votesByBlockHash[blockHash] = votes;
         }
 
-
         var totalPower1 = votes.Aggregate(BigInteger.Zero, (n, i) => n + i.ValidatorPower);
         votes.Add(vote);
-
-
-        // var votes = _voteByValidator.Values.Where(item => item.BlockHash == blockHash).ToArray();
         var totalPower2 = votes.Aggregate(BigInteger.Zero, (n, i) => n + i.ValidatorPower);
         var quorum = validators.GetTwoThirdsPower() + 1;
         if (totalPower1 < quorum && quorum <= totalPower2 && _maj23 is null)

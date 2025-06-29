@@ -7,22 +7,17 @@ public sealed class RoutingTable
     private readonly Address _address;
     private readonly KademliaBucket[] _buckets;
 
-    public RoutingTable(
-        Address address,
-        int tableSize = Kademlia.TableSize,
-        int bucketSize = Kademlia.BucketSize)
+    public RoutingTable(Address address, int tableSize = Kademlia.TableSize, int bucketSize = Kademlia.BucketSize)
     {
         if (tableSize <= 0)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(tableSize),
-                $"The value of {nameof(tableSize)} must be positive.");
+                nameof(tableSize), $"The value of {nameof(tableSize)} must be positive.");
         }
         else if (bucketSize <= 0)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(bucketSize),
-                $"The value of {nameof(bucketSize)} must be positive.");
+                nameof(bucketSize), $"The value of {nameof(bucketSize)} must be positive.");
         }
 
         _address = address;
@@ -121,16 +116,14 @@ public sealed class RoutingTable
         return [.. peers.Take(maxCount)];
     }
 
-    public void Check(Peer peer, DateTimeOffset start, DateTimeOffset end)
-        => GetBucker(peer).Check(peer, start, end);
+    public void Check(Peer peer, DateTimeOffset startTime, DateTimeOffset endTime)
+        => GetBucker(peer).Check(peer, startTime, endTime);
 
     internal void AddPeer(Peer peer, DateTimeOffset updated)
     {
         if (peer.Address.Equals(_address))
         {
-            throw new ArgumentException(
-                "A node is disallowed to add itself to its routing table.",
-                nameof(peer));
+            throw new ArgumentException("A node is disallowed to add itself to its routing table.", nameof(peer));
         }
 
         GetBucker(peer).AddPeer(peer, updated);

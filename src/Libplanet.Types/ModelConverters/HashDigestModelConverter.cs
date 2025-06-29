@@ -14,17 +14,17 @@ internal sealed class HashDigestModelConverter(Type type) : ModelConverterBase(t
 
     protected override object Deserialize(Stream stream, ModelOptions options)
     {
-        var length = GetSize(type);
+        var length = GetSize(Type);
         Span<byte> bytes = stackalloc byte[length];
         if (stream.Read(bytes) != length)
         {
             throw new EndOfStreamException("Failed to read the expected number of bytes.");
         }
 
-        if (Activator.CreateInstance(type, [bytes.ToImmutableArray()]) is not object obj)
+        if (Activator.CreateInstance(Type, [bytes.ToImmutableArray()]) is not object obj)
         {
             throw new UnreachableException(
-                $"Failed to create an instance of {type.Name}");
+                $"Failed to create an instance of {Type.Name}");
         }
 
         return obj;
@@ -32,7 +32,7 @@ internal sealed class HashDigestModelConverter(Type type) : ModelConverterBase(t
 
     protected override void Serialize(object obj, Stream stream, ModelOptions options)
     {
-        var bytesProperty = GetBytesProperty(type);
+        var bytesProperty = GetBytesProperty(Type);
         if (bytesProperty.GetValue(obj) is ImmutableArray<byte> bytes)
         {
             stream.Write(bytes.AsSpan());

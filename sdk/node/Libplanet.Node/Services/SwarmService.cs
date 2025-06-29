@@ -190,11 +190,11 @@ internal sealed class SwarmService(
         var consensusEndPoint = (DnsEndPoint)EndPointUtility.Parse(options.EndPoint);
         return new ConsensusReactorOptions
         {
-            SeedPeers = [consensusSeedPeer],
+            Seeds = [consensusSeedPeer],
             Port = consensusEndPoint.Port,
             Signer = privateKey.AsSigner(),
             TargetBlockInterval = TimeSpan.FromSeconds(2),
-            ContextOptions = new(),
+            ConsensusOptions = new(),
         };
     }
 

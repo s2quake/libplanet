@@ -3,7 +3,6 @@ using System.ServiceModel;
 using System.Threading;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net.Transports;
 using Libplanet.Serialization;
 using Libplanet.Types;
 
@@ -17,14 +16,7 @@ public sealed class EvidenceFetcher(
         Peer peer, EvidenceId[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var request = new GetEvidenceMessage { EvidenceIds = [.. ids] };
-        var count = ids.Length;
-
-        var txRecvTimeout = timeoutOptions.GetTxsBaseTimeout + timeoutOptions.GetTxsPerTxIdTimeout.Multiply(count);
-        if (txRecvTimeout > timeoutOptions.MaxTimeout)
-        {
-            txRecvTimeout = timeoutOptions.MaxTimeout;
-        }
-
+        using var cancellationTokenSource = CreateCancellationTokenSource();
         var messageEnvelope = await transport.SendMessageAsync(peer, request, cancellationToken);
         var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
 
@@ -42,6 +34,15 @@ public sealed class EvidenceFetcher(
                     $"message instead: {message}";
                 throw new InvalidMessageContractException(errorMessage);
             }
+        }
+
+        CancellationTokenSource CreateCancellationTokenSource()
+        {
+            var count = ids.Length;
+            var fetchTimeout = timeoutOptions.GetEvidenceFetchTimeout(count);
+            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cancellationTokenSource.CancelAfter(fetchTimeout);
+            return cancellationTokenSource;
         }
     }
 

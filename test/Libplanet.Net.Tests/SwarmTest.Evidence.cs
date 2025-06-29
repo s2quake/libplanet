@@ -30,12 +30,12 @@ namespace Libplanet.Net.Tests
             var reactorOptions = Enumerable.Range(0, count).Select(i =>
                 new ConsensusReactorOptions
                 {
-                    ConsensusPeers = consensusPeers,
+                    Validators = consensusPeers,
                     Port = 6000 + i,
                     Signer = privateKeys[i].AsSigner(),
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(4),
-                    ContextOptions = new ConsensusOptions(),
+                    ConsensusOptions = new ConsensusOptions(),
                 }).ToList();
 
             var swarmTasks = privateKeys.Select(

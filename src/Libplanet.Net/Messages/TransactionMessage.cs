@@ -6,5 +6,5 @@ namespace Libplanet.Net.Messages;
 internal sealed partial record class TransactionMessage : MessageBase
 {
     [Property(0)]
-    public byte[] Payload { get; init; } = [];
+    public ImmutableArray<byte> Payload { get; init; } = [];
 }

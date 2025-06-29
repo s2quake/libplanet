@@ -35,12 +35,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     private long _socketCount;
     private bool _disposed;
 
-    // static NetMQTransport()
-    // {
-    //     NetMQConfig.ThreadPoolSize = 3;
-    //     ForceDotNet.Force();
-    // }
-
     public NetMQTransport(ISigner signer)
         : this(signer, new TransportOptions())
     {
@@ -188,14 +182,10 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                 CancellationToken = cancellationTokenSource.Token,
             };
             Interlocked.Increment(ref _requestCount);
-            Trace.WriteLine("SendMessageAsync: Requesting message");
             cancellationTokenSource.CancelAfter(_options.SendTimeout);
             await _requestChannel.Writer.WriteAsync(request, cancellationTokenSource.Token);
 
-            Trace.WriteLine("SendMessageAsync: Waiting for response");
             var rawMessage = await channel.Reader.ReadAsync(cancellationTokenSource.Token);
-
-            Trace.WriteLine("SendMessageAsync: Response received");
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
             messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
             return messageEnvelope;
@@ -236,9 +226,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                     cancellationTokenSource.Token,
                     async (peer, cancellationToken) => await SendMessageAsync(peer, message, cancellationToken));
             }
-            catch (Exception e)
+            catch
             {
-                int weqr = 0;
                 // do nothing
             }
         }
@@ -265,7 +254,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             },
         };
         _replyQueue.Enqueue(messageReply);
-        Trace.WriteLine("replay message enqueued");
     }
 
     private static int Initialize(RouterSocket routerSocket, int port)
@@ -283,30 +271,24 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
         try
         {
-            Trace.WriteLine("Router_ReceiveReady: 1");
             var receivedMessage = new NetMQMessage();
             if (!e.Socket.TryReceiveMultipartMessage(TimeSpan.Zero, ref receivedMessage))
             {
-                Trace.WriteLine("Router_ReceiveReady: 2");
                 return;
             }
 
             if (_cancellationToken.IsCancellationRequested)
             {
-                Trace.WriteLine("Router_ReceiveReady: 3");
                 return;
             }
 
-            Trace.WriteLine("Router_ReceiveReady: 4");
             var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
             messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
-            Trace.WriteLine("Router_ReceiveReady: 5");
             _processMessageSubject.OnNext(messageEnvelope);
         }
         catch
         {
-            Trace.WriteLine("Router_ReceiveReady: 6");
             // log
         }
     }
@@ -318,17 +300,14 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             var messageEnvelope = messageReply.MessageEnvelope;
             var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
             rawMessage.Push(messageEnvelope.Identity.ToByteArray());
-            Trace.WriteLine("ReplyQueue_ReceiveReady 1");
             if (_router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), rawMessage))
             {
                 // Successfully sent the message
             }
-            Trace.WriteLine("ReplyQueue_ReceiveReady 2");
         }
         else
         {
             // Handle the case where no message was dequeued
-            Trace.WriteLine("No message to reply.");
         }
     }
 
@@ -363,13 +342,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             {
                 throw new InvalidOperationException();
             }
-            Trace.WriteLine("request message sent");
 
             var receivedRawMessage = await dealerSocket.ReceiveMultipartMessageAsync(
                 expectedFrameCount: 3,
                 cancellationToken: cancellationToken);
 
-            Trace.WriteLine("request message received");
             await requestWriter.WriteAsync(receivedRawMessage, cancellationToken);
 
             requestWriter.Complete();

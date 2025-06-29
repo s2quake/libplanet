@@ -347,10 +347,10 @@ public static class TestUtils
         var consensusTransport = new NetMQTransport(key.AsSigner(), transportOption);
         var consensusReactorOptions = new ConsensusReactorOptions
         {
-            ConsensusPeers = validatorPeers.ToImmutableArray(),
+            Validators = validatorPeers.ToImmutableArray(),
             Signer = key.AsSigner(),
             TargetBlockInterval = TimeSpan.FromMilliseconds(newHeightDelayMilliseconds),
-            ContextOptions = contextOption ?? new ConsensusOptions(),
+            ConsensusOptions = contextOption ?? new ConsensusOptions(),
         };
 
         return new ConsensusReactor(consensusTransport, blockChain, consensusReactorOptions);

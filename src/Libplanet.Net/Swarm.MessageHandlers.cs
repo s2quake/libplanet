@@ -203,7 +203,10 @@ public partial class Swarm
                         continue;
                     }
 
-                    MessageBase response = new TransactionMessage { Payload = ModelSerializer.SerializeToBytes(tx) };
+                    MessageBase response = new TransactionMessage
+                    {
+                        Payload = [.. ModelSerializer.SerializeToBytes(tx)],
+                    };
                     Transport.ReplyMessage(message.Identity, response);
                 }
                 catch (KeyNotFoundException)
