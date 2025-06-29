@@ -254,7 +254,7 @@ public class ConsensusContextTest
 
         await heightOneEndCommit.WaitAsync();
 
-        var blockCommit = consensusContext.CurrentContext.GetBlockCommit();
+        var blockCommit = consensusContext.Consensus.GetBlockCommit();
         Assert.NotNull(blockCommit);
         Assert.NotEqual(votes[0], blockCommit!.Votes.First(x =>
             x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)));
@@ -342,11 +342,11 @@ public class ConsensusContextTest
         await committed.WaitAsync();
 
         // VoteSetBits expects missing votes
-        VoteSetBits voteSetBits = consensusContext.CurrentContext
+        VoteSetBits voteSetBits = consensusContext.Consensus
         .GetVoteSetBits(0, block.BlockHash, VoteType.PreVote);
         Assert.True(
         voteSetBits.VoteBits.SequenceEqual(new[] { true, true, false, true }));
-        voteSetBits = consensusContext.CurrentContext
+        voteSetBits = consensusContext.Consensus
         .GetVoteSetBits(0, block.BlockHash, VoteType.PreCommit);
         Assert.True(
         voteSetBits.VoteBits.SequenceEqual(new[] { true, false, false, false }));

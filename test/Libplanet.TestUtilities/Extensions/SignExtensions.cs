@@ -35,6 +35,9 @@ public static class SignExtensions
     public static Block Create(this BlockBuilder @this, PrivateKey privateKey)
         => @this.Create(privateKey.AsSigner());
 
+    public static Proposal Create(this ProposalBuilder @this, PrivateKey privateKey)
+        => @this.Create(privateKey.AsSigner());
+
     public static Block ProposeBlock(this Blockchain @this, PrivateKey privateKey)
         => @this.ProposeBlock(privateKey.AsSigner());
 
@@ -44,7 +47,4 @@ public static class SignExtensions
     public static Transaction Add(
         this StagedTransactionCollection @this, PrivateKey privateKey, TransactionSubmission submission)
         => @this.Add(privateKey.AsSigner(), submission);
-
-    public static Proposal Create(this ProposalBuilder @this, PrivateKey privateKey)
-        => @this.Create(privateKey.AsSigner());
 }

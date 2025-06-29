@@ -59,7 +59,7 @@ namespace Libplanet.Net.Tests
                 var consensusContext = swarms[0].ConsensusReactor;
                 var round = 0;
                 var height = 1;
-                var context = consensusContext.CurrentContext;
+                var context = consensusContext.Consensus;
                 var bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
                 var methodName = "PublishMessage";
                 var methodInfo = context.GetType().GetMethod(methodName, bindingFlags);
