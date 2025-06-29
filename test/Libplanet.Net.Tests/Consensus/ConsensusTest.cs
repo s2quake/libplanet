@@ -4,13 +4,12 @@ using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
-using Libplanet.Net.Messages;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Nito.AsyncEx;
 using Xunit.Abstractions;
 using Xunit.Sdk;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -401,9 +400,11 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task CanReplaceProposal()
     {
-        var privateKeys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToArray();
-        // Order keys as validator set's order to run test as intended.
-        privateKeys = privateKeys.OrderBy(key => key.Address).ToArray();
+        var random = RandomUtility.GetRandom(output);
+        var privateKeys = Enumerable.Range(0, 4)
+            .Select(_ => RandomUtility.PrivateKey(random))
+            .OrderBy(key => key.Address)
+            .ToArray();
         var proposer = privateKeys[1];
         var key1 = privateKeys[2];
         var key2 = privateKeys[3];
@@ -548,13 +549,20 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         TimeSpan newHeightDelay = TimeSpan.FromMilliseconds(100);
         int actionDelay = 2000;
 
-        var fx = new MemoryRepositoryFixture();
+        using var fx = new MemoryRepositoryFixture();
+        var privateKey0 = TestUtils.PrivateKeys[0];
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain(fx.Options);
+        await using var transport = TestUtils.CreateTransport(privateKey0);
+        var options = new ConsensusReactorOptions
+        {
+            Signer = privateKey0.AsSigner(),
+            TargetBlockInterval = newHeightDelay,
+        };
         var consensusReactor = new ConsensusReactor(
-            null,
+            transport,
             blockchain,
-            new ConsensusReactorOptions { Signer = new PrivateKey().AsSigner() });
-        Net.Consensus.Consensus consensus = consensusReactor.CurrentContext;
+            options);
+        var consensus = consensusReactor.Consensus;
         // using var _1 = consensus.MessagePublished.Subscribe(consensus.ProduceMessage);
 
         using var _2 = blockchain.TipChanged.Subscribe(e =>
@@ -565,21 +573,19 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             }
         });
 
-        // consensusContext.StateChanged += (_, eventArgs) =>
-        // {
-        //     if (consensusContext.Height == 2L)
-        //     {
-        //         enteredHeightTwo.Set();
-        //     }
-        // };
-
-        var action = new DelayAction(actionDelay);
-        var tx = new TransactionMetadata
+        using var _3 = consensusReactor.HeightChanged.Subscribe(height =>
         {
-            Signer = TestUtils.PrivateKeys[1].Address,
+            if (height == 2)
+            {
+                enteredHeightTwo.Set();
+            }
+        });
+
+        var tx = new TransactionBuilder
+        {
             GenesisHash = blockchain.Genesis.BlockHash,
-            Actions = new[] { action }.ToBytecodes(),
-        }.Sign(TestUtils.PrivateKeys[1]);
+            Actions = [new DelayAction(actionDelay)],
+        }.Create(TestUtils.PrivateKeys[1], blockchain);
         blockchain.StagedTransactions.Add(tx);
         var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         var proposal = new ProposalBuilder

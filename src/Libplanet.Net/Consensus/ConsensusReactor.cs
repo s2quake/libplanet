@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
@@ -9,6 +10,7 @@ namespace Libplanet.Net.Consensus;
 
 public sealed class ConsensusReactor : IAsyncDisposable
 {
+    private readonly Subject<int> _heightChangedSubject = new();
     private readonly Gossip _gossip;
     private readonly object _contextLock = new();
     private readonly ConsensusOptions _consensusOption;
@@ -57,6 +59,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
     }
 
+    public IObservable<int> HeightChanged => _heightChangedSubject;
 
     private void ValidateMessageToReceive(MessageEnvelope message)
     {
@@ -138,9 +141,9 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     public bool IsRunning { get; private set; }
 
-    public int Height => CurrentContext.Height;
+    public int Height => Consensus.Height;
 
-    public int Round => CurrentContext.Round;
+    public int Round => Consensus.Round;
 
     public ImmutableArray<Peer> Validators => _gossip.Peers;
 
@@ -191,9 +194,9 @@ public sealed class ConsensusReactor : IAsyncDisposable
         IsRunning = false;
     }
 
-    public ConsensusStep Step => CurrentContext.Step;
+    public ConsensusStep Step => Consensus.Step;
 
-    internal Consensus CurrentContext
+    internal Consensus Consensus
     {
         get
         {
@@ -237,6 +240,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _peerCatchupRounds.Clear();
             _gossip.ClearDenySet();
         }
+
+        _heightChangedSubject.OnNext(height);
     }
 
     public bool HandleMessage(ConsensusMessage consensusMessage)
@@ -356,11 +361,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         async void Invoke(CancellationToken cancellationToken)
         {
             await Task.Delay(_newHeightDelay, cancellationToken);
-
-            while (_blockchain.GetStateRootHash(e.Tip.Height) == default)
-            {
-                await Task.Delay(100, cancellationToken);
-            }
 
             try
             {

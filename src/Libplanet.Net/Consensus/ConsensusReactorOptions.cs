@@ -10,9 +10,9 @@ public sealed record class ConsensusReactorOptions
 
     public int Workers { get; init; }
 
-    public ImmutableArray<Peer> Seeds { get; init; }
+    public ImmutableArray<Peer> Seeds { get; init; } = [];
 
-    public ImmutableArray<Peer> Validators { get; init; }
+    public ImmutableArray<Peer> Validators { get; init; } = [];
 
     public TimeSpan TargetBlockInterval { get; init; }
 

@@ -280,6 +280,25 @@ public static class TestUtils
         return (blockChain, consensusContext);
     }
 
+
+    public static NetMQTransport CreateTransport(
+        PrivateKey? privateKey = null,
+        int? port = null,
+        TransportOptions? options = null)
+    {
+        options ??= new TransportOptions
+        {
+            Protocol = TestUtils.Protocol,
+            Host = "127.0.0.1",
+            Port = port ?? 0,
+        };
+
+        privateKey ??= new PrivateKey();
+
+        return new NetMQTransport(privateKey.AsSigner(), options);
+    }
+
+
     public static Net.Consensus.Consensus CreateConsensus(
         Blockchain? blockchain = null,
         int height = 1,
