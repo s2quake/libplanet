@@ -18,9 +18,32 @@ public sealed record class TimeoutOptions
 
     public TimeSpan GetBlocksBaseTimeout { get; init; } = TimeSpan.FromSeconds(DefaultGetBlocksBaseTimeout);
 
-    public TimeSpan GetBlocksPerBlockHashTimeout { get; init; } = TimeSpan.FromSeconds(DefaultGetBlocksPerBlockHashTimeout);
+    public TimeSpan GetBlocksPerBlockHashTimeout { get; init; }
+        = TimeSpan.FromSeconds(DefaultGetBlocksPerBlockHashTimeout);
 
     public TimeSpan GetTxsBaseTimeout { get; init; } = TimeSpan.FromSeconds(DefaultGetTxsBaseTimeout);
 
     public TimeSpan GetTxsPerTxIdTimeout { get; init; } = TimeSpan.FromSeconds(DefaultGetTxsPerTxIdTimeout);
+
+    internal TimeSpan GetTxFetchTimeout(int count)
+    {
+        var txRecvTimeout = GetTxsBaseTimeout + GetTxsPerTxIdTimeout.Multiply(count);
+        if (txRecvTimeout > MaxTimeout)
+        {
+            txRecvTimeout = MaxTimeout;
+        }
+
+        return txRecvTimeout;
+    }
+
+    internal TimeSpan GetEvidenceFetchTimeout(int count)
+    {
+        var txRecvTimeout = GetTxsBaseTimeout + GetTxsPerTxIdTimeout.Multiply(count);
+        if (txRecvTimeout > MaxTimeout)
+        {
+            txRecvTimeout = MaxTimeout;
+        }
+
+        return txRecvTimeout;
+    }
 }

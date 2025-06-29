@@ -1,3 +1,5 @@
+#pragma warning disable S2743 // Static fields should not be used in generic types
+#pragma warning disable S3877 // Exceptions should not be thrown from unexpected methods
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq.Expressions;

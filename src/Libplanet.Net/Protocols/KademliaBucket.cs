@@ -16,9 +16,7 @@ internal sealed class KademliaBucket
     {
         if (size <= 0)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(size),
-                $"The value of {nameof(size)} must be positive.");
+            throw new ArgumentOutOfRangeException(nameof(size), $"The value of {nameof(size)} must be positive.");
         }
 
         _size = size;

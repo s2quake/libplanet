@@ -3,7 +3,6 @@ using System.ServiceModel;
 using System.Threading;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net.Transports;
 using Libplanet.Serialization;
 using Libplanet.Types;
 
@@ -17,14 +16,7 @@ public sealed class TxFetcher(
         Peer peer, TxId[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var request = new GetTransactionMessage { TxIds = [.. ids] };
-        var txCount = ids.Length;
-
-        var txRecvTimeout = timeoutOptions.GetTxsBaseTimeout + timeoutOptions.GetTxsPerTxIdTimeout.Multiply(txCount);
-        if (txRecvTimeout > timeoutOptions.MaxTimeout)
-        {
-            txRecvTimeout = timeoutOptions.MaxTimeout;
-        }
-
+        using var cancellationTokenSource = CreateCancellationTokenSource();
         var messageEnvelop = await transport.SendMessageAsync(peer, request, cancellationToken);
         var aggregateMessage = (AggregateMessage)messageEnvelop.Message;
 
@@ -32,8 +24,7 @@ public sealed class TxFetcher(
         {
             if (message is TransactionMessage parsed)
             {
-                Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload);
-                yield return tx;
+                yield return ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload.AsSpan());
             }
             else
             {
@@ -43,6 +34,15 @@ public sealed class TxFetcher(
                     $"message instead: {message}";
                 throw new InvalidMessageContractException(errorMessage);
             }
+        }
+
+        CancellationTokenSource CreateCancellationTokenSource()
+        {
+            var count = ids.Length;
+            var fetchTimeout = timeoutOptions.GetTxFetchTimeout(count);
+            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cancellationTokenSource.CancelAfter(fetchTimeout);
+            return cancellationTokenSource;
         }
     }
 

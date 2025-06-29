@@ -35,8 +35,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
             transport,
             new GossipOptions
             {
-                Seeds = options.SeedPeers,
-                Validators = options.ConsensusPeers,
+                Seeds = options.Seeds,
+                Validators = options.Validators,
             });
 
         _gossipSubscriptions =
@@ -49,13 +49,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _blockchain = blockchain;
         _signer = options.Signer;
         _newHeightDelay = options.TargetBlockInterval;
-
-        _consensusOption = options.ContextOptions;
-        _consensus = new Consensus(
-            _blockchain,
-            _blockchain.Tip.Height + 1,
-            _signer,
-            options: _consensusOption);
+        _consensusOption = options.ConsensusOptions;
+        _consensus = new Consensus(_blockchain, _blockchain.Tip.Height + 1, _signer, _consensusOption);
         _communicator = new ConsensusCommunicator(_consensus, _gossip);
         _consensusSubscriptions = [.. Subscribe(_consensus)];
 

@@ -69,6 +69,8 @@ public partial class Consensus(
 
     public IObservable<Proposal?> ProposalChanged => _proposalChangedSubject;
 
+    public IObservable<Vote> VoteAdded => _voteAddedSubject;
+
     public IObservable<(Block Block, BlockCommit BlockCommit)> Completed => _completedSubject;
 
     public IObservable<Vote> PreVote => _preVoteSubject;
@@ -112,8 +114,6 @@ public partial class Consensus(
             }
         }
     }
-
-    internal IObservable<Vote> VoteAdded => _voteAddedSubject;
 
     public async ValueTask DisposeAsync()
     {

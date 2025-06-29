@@ -337,19 +337,19 @@ public sealed class Kademlia
         AddPeer(peer);
     }
 
-    private async void ProcessMessageHandler(MessageEnvelope message)
+    private async void ProcessMessageHandler(MessageEnvelope messageEnvelope)
     {
-        switch (message.Message)
+        switch (messageEnvelope.Message)
         {
             case PingMessage:
                 {
-                    await ReceivePingAsync(message).ConfigureAwait(false);
+                    ReceivePing(messageEnvelope);
                     break;
                 }
 
             case FindNeighborsMessage:
                 {
-                    await ReceiveFindPeerAsync(message).ConfigureAwait(false);
+                    ReceiveFindPeer(messageEnvelope);
                     break;
                 }
         }
@@ -360,18 +360,17 @@ public sealed class Kademlia
         // to the other services before entering to synchronous AddPeer().
         await Task.Yield();
 
-        AddPeer(message.Peer);
+        AddPeer(messageEnvelope.Peer);
     }
 
-    private async Task ValidateAsync(
-        Peer peer,
-        CancellationToken cancellationToken = default)
+    private async Task ValidateAsync(Peer peer, CancellationToken cancellationToken = default)
     {
         try
         {
-            DateTimeOffset check = DateTimeOffset.UtcNow;
+            var startTime = DateTimeOffset.UtcNow;
             await PingAsync(peer, cancellationToken).ConfigureAwait(false);
-            _table.Check(peer, check, DateTimeOffset.UtcNow);
+            var endTime = DateTimeOffset.UtcNow;
+            _table.Check(peer, startTime, endTime);
         }
         catch
         {
@@ -475,7 +474,7 @@ public sealed class Kademlia
         }
     }
 
-    private async Task ReceivePingAsync(MessageEnvelope messageEnvelope)
+    private void ReceivePing(MessageEnvelope messageEnvelope)
     {
         if (messageEnvelope.Peer.Address.Equals(_address))
         {
@@ -483,7 +482,6 @@ public sealed class Kademlia
         }
 
         var pongMessage = new PongMessage();
-
         _transport.ReplyMessage(messageEnvelope.Identity, pongMessage);
     }
 
@@ -563,14 +561,11 @@ public sealed class Kademlia
         }
     }
 
-    private async Task ReceiveFindPeerAsync(MessageEnvelope message)
+    private void ReceiveFindPeer(MessageEnvelope messageEnvelope)
     {
-        var findNeighbors = (FindNeighborsMessage)message.Message;
-        IEnumerable<Peer> found =
-            _table.Neighbors(findNeighbors.Target, _table.BucketSize, true);
-
+        var findNeighbors = (FindNeighborsMessage)messageEnvelope.Message;
+        var found = _table.Neighbors(findNeighbors.Target, _table.BucketSize, true);
         var neighbors = new NeighborsMessage { Found = [.. found] };
-
-        _transport.ReplyMessage(message.Identity, neighbors);
+        _transport.ReplyMessage(messageEnvelope.Identity, neighbors);
     }
 }

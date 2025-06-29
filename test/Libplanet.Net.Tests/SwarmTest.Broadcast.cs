@@ -930,7 +930,7 @@ namespace Libplanet.Net.Tests
                     new[] { tx1, tx2, tx3 }.ToHashSet(),
                     replayMessage.Messages.Select(
                         m => ModelSerializer.DeserializeFromBytes<Transaction>(
-                            ((TransactionMessage)m).Payload)).ToHashSet());
+                            ((TransactionMessage)m).Payload.AsSpan())).ToHashSet());
             }
             finally
             {

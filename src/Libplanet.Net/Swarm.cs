@@ -894,7 +894,7 @@ public partial class Swarm : IAsyncDisposable
         {
             if (message is TransactionMessage parsed)
             {
-                Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload);
+                Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload.AsSpan());
                 yield return tx;
             }
             else

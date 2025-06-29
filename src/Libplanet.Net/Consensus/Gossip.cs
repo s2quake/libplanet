@@ -8,19 +8,19 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Gossip : IAsyncDisposable
+public sealed class Gossip(ITransport transport, GossipOptions options) : IAsyncDisposable
 {
     private const int DLazy = 6;
     private readonly Subject<MessageEnvelope> _validateReceivedMessageSubject = new();
     private readonly Subject<IMessage> _validateSendingMessageSubject = new();
     private readonly Subject<IMessage> _processMessageSubject = new();
-    private readonly ITransport _transport;
-    private readonly GossipOptions _options;
+    private readonly ITransport _transport = transport;
+    private readonly GossipOptions _options = options;
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
     private readonly HashSet<Peer> _deniedPeers = [];
     private RoutingTable? _table;
     private Kademlia? _kademlia;
-    private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict;
+    private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
     private CancellationTokenSource? _cancellationTokenSource;
     private Task[] _tasks = [];
     private IDisposable? _transportSubscription;
@@ -29,13 +29,6 @@ public sealed class Gossip : IAsyncDisposable
     public Gossip(ITransport transport)
         : this(transport, new GossipOptions())
     {
-    }
-
-    public Gossip(ITransport transport, GossipOptions options)
-    {
-        _transport = transport;
-        _options = options;
-        _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
     }
 
     public IObservable<MessageEnvelope> ValidateReceivedMessage => _validateReceivedMessageSubject;
@@ -272,11 +265,10 @@ public sealed class Gossip : IAsyncDisposable
 
     private async Task SendWantMessageAsync(CancellationToken cancellationToken)
     {
-        // TODO: To optimize WantMessage count to minimum, should remove duplications.
         var copy = _haveDict.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray());
         _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
         var optimized = new Dictionary<Peer, MessageId[]>();
-        while (copy.Any())
+        while (copy.Count > 0)
         {
             var longest = copy.OrderBy(pair => pair.Value.Length).Last();
             optimized.Add(longest.Key, longest.Value);
@@ -285,7 +277,7 @@ public sealed class Gossip : IAsyncDisposable
             foreach (var pair in copy)
             {
                 var clean = pair.Value.Where(id => !longest.Value.Contains(id)).ToArray();
-                if (clean.Any())
+                if (clean.Length > 0)
                 {
                     copy[pair.Key] = clean;
                 }
@@ -321,10 +313,9 @@ public sealed class Gossip : IAsyncDisposable
                     {
                         try
                         {
-
                             AddMessage(r);
                         }
-                        catch (Exception e)
+                        catch
                         {
                             // do nogthing
                         }
