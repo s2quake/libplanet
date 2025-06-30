@@ -2,10 +2,6 @@ namespace Libplanet.Net.Consensus;
 
 public sealed record class GossipOptions
 {
-    public ImmutableArray<Peer> Validators { get; init; } = [];
-
-    public ImmutableArray<Peer> Seeds { get; init; } = [];
-
     public TimeSpan RebuildTableInterval { get; init; } = TimeSpan.FromMinutes(1);
 
     public TimeSpan RefreshTableInterval { get; init; } = TimeSpan.FromSeconds(10);

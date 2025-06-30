@@ -13,4 +13,6 @@ public sealed record class ConsensusReactorOptions
     public TimeSpan TargetBlockInterval { get; init; }
 
     public ConsensusOptions ConsensusOptions { get; init; } = ConsensusOptions.Default;
+
+    public GossipOptions GossipOptions { get; init; } = new GossipOptions();
 }

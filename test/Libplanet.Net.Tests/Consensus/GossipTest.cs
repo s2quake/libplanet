@@ -237,16 +237,14 @@ public sealed class GossipTest(ITestOutputHelper output) : IDisposable
     private static Gossip CreateGossip(
         PrivateKey? privateKey = null,
         int? port = null,
-        IEnumerable<Peer>? peers = null,
-        IEnumerable<Peer>? seeds = null)
+        ImmutableArray<Peer>? validators = null,
+        ImmutableArray<Peer>? seeds = null)
     {
         var transport = CreateTransport(privateKey, port);
         var options = new GossipOptions
         {
-            Validators = peers?.ToImmutableArray() ?? [],
-            Seeds = seeds?.ToImmutableArray() ?? [],
         };
-        return new Gossip(transport, options);
+        return new Gossip(transport, seeds ?? [], validators ?? [], options);
     }
 
     private static NetMQTransport CreateTransport(
