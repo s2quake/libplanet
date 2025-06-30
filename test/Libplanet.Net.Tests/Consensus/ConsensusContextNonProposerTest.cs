@@ -18,16 +18,21 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task NewHeightWithLastCommit()
     {
-        var tipChanged = new AsyncAutoResetEvent();
-        ConsensusProposalMessage? proposal = null;
+        Proposal? proposal = null;
         var heightTwoProposalSent = new AsyncAutoResetEvent();
-
         var blockchain = TestUtils.CreateBlockchain();
         await using var consensusReactor = TestUtils.CreateConsensusReactor(
             blockchain: blockchain,
             key: TestUtils.PrivateKeys[2],
             newHeightDelay: TimeSpan.FromSeconds(1));
-        using var _ = blockchain.TipChanged.Subscribe(e => tipChanged.Set());
+        using var _1 = consensusReactor.BlockPropose.Subscribe(e =>
+        {
+            if (e.Height == 2)
+            {
+                proposal = e;
+                heightTwoProposalSent.Set();
+            }
+        });
         // consensusReactor.MessagePublished += (_, eventArgs) =>
         // {
         //     if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
@@ -39,8 +44,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
 
         await consensusReactor.StartAsync(default);
         var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        consensusReactor.HandleMessage(
-            TestUtils.CreateConsensusPropose(block1, TestUtils.PrivateKeys[1]));
+        var proposalMessage = TestUtils.CreateConsensusPropose(block1, TestUtils.PrivateKeys[1]);
+        await consensusReactor.HandleMessageAsync(proposalMessage, default);
         var expectedVotes = new Vote[4];
 
         // Peer2 sends a ConsensusVote via background process.
@@ -57,7 +62,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensusReactor.HandleMessage(new ConsensusPreVoteMessage { PreVote = expectedVotes[i] });
+            var preVoteMessage = new ConsensusPreVoteMessage { PreVote = expectedVotes[i] };
+            await consensusReactor.HandleMessageAsync(preVoteMessage, default);
         }
 
         // Peer2 sends a ConsensusCommit via background process.
@@ -74,16 +80,15 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensusReactor.HandleMessage(new ConsensusPreCommitMessage { PreCommit = expectedVotes[i] });
+            var preCommitMessage = new ConsensusPreCommitMessage { PreCommit = expectedVotes[i] };
+            await consensusReactor.HandleMessageAsync(preCommitMessage, default);
         }
 
         await heightTwoProposalSent.WaitAsync();
         Assert.NotNull(proposal);
 
-        Block proposedBlock = proposal!.Proposal.Block;
-        ImmutableArray<Vote> votes = proposedBlock.PreviousCommit.Votes is { } vs
-            ? vs
-            : throw new NullReferenceException();
+        var proposedBlock = proposal.Block;
+        var votes = proposedBlock.PreviousCommit.Votes;
         Assert.Equal(VoteType.PreCommit, votes[0].Type);
         Assert.Equal(VoteType.PreCommit, votes[1].Type);
         Assert.Equal(VoteType.PreCommit, votes[2].Type);
@@ -171,7 +176,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
                 continue;
             }
 
-            consensusReactor.HandleMessage(
+            await consensusReactor.HandleMessageAsync(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = new VoteMetadata
@@ -184,7 +189,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
                         ValidatorPower = power,
                         Type = VoteType.PreVote,
                     }.Sign(privateKey)
-                });
+                },
+                default);
         }
 
         foreach ((PrivateKey privateKey, BigInteger power)
@@ -198,7 +204,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
                 continue;
             }
 
-            consensusReactor.HandleMessage(
+            await consensusReactor.HandleMessageAsync(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = new VoteMetadata
@@ -211,7 +217,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
                         ValidatorPower = power,
                         Type = VoteType.PreCommit,
                     }.Sign(privateKey)
-                });
+                },
+                default);
         }
 
         await heightTwoStepChangedToEndCommit.WaitAsync();
@@ -220,8 +227,9 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var blockHeightThree = blockchain.ProposeBlock(TestUtils.PrivateKeys[3]);
 
         // Message from higher height
-        consensusReactor.HandleMessage(
-            TestUtils.CreateConsensusPropose(blockHeightThree, TestUtils.PrivateKeys[3], 3));
+        await consensusReactor.HandleMessageAsync(
+            TestUtils.CreateConsensusPropose(blockHeightThree, TestUtils.PrivateKeys[3], 3),
+            default);
 
         // New height started.
         await heightThreeStepChangedToPropose.WaitAsync();
@@ -296,8 +304,9 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
 
         await consensusReactor.StartAsync(default);
         var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        consensusReactor.HandleMessage(
-            TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]));
+        await consensusReactor.HandleMessageAsync(
+            TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]),
+            default);
 
         TestUtils.HandleFourPeersPreCommitMessages(
              consensusReactor, TestUtils.PrivateKeys[2], block.BlockHash);

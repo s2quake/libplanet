@@ -1,11 +1,7 @@
-using Libplanet.Types;
-
 namespace Libplanet.Net.Consensus;
 
 public sealed record class ConsensusReactorOptions
 {
-    public required ISigner Signer { get; init; }
-
     public int Port { get; init; }
 
     public int Workers { get; init; }

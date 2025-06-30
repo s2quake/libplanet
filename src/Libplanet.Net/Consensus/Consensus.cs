@@ -133,6 +133,17 @@ public partial class Consensus(
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
             _dispatcher = null;
+            _roundStartedSubject.Dispose();
+            _exceptionOccurredSubject.Dispose();
+            _stepChangedSubject.Dispose();
+            _proposalChangedSubject.Dispose();
+            _completedSubject.Dispose();
+            _voteAddedSubject.Dispose();
+            _preVoteSubject.Dispose();
+            _preCommitSubject.Dispose();
+            _quorumReachSubject.Dispose();
+            _proposalClaimSubject.Dispose();
+            _blockProposeSubject.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
@@ -305,9 +316,26 @@ public partial class Consensus(
         });
     }
 
-    [Obsolete]
-    internal void ProduceMessage(ConsensusMessage message)
+    internal void Post(ConsensusMessage consensusMessage)
     {
+        if (consensusMessage.Height != Height)
+        {
+            var message = $"ConsensusMessage height {consensusMessage.Height} does not match expected height {Height}.";
+            throw new ArgumentException(message, nameof(consensusMessage));
+        }
+
+        if (consensusMessage is ConsensusPreVoteMessage preVoteMessage)
+        {
+            Post(preVoteMessage.PreVote);
+        }
+        else if (consensusMessage is ConsensusPreCommitMessage preCommitMessage)
+        {
+            Post(preCommitMessage.PreCommit);
+        }
+        else if (consensusMessage is ConsensusProposalMessage proposalMessage)
+        {
+            Post(proposalMessage.Proposal);
+        }
     }
 
     private Block ProposeBlock() => blockchain.ProposeBlock(signer);

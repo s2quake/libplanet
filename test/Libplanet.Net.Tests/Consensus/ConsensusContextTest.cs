@@ -97,7 +97,7 @@ public class ConsensusContextTest
         await proposalMessageSent.WaitAsync();
         BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
-        consensusReactor.HandleMessage(
+        await consensusReactor.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
                 PreCommit = TestUtils.CreateVote(
@@ -107,8 +107,9 @@ public class ConsensusContextTest
                     0,
                     hash: proposedblockHash,
                     flag: VoteType.PreCommit)
-            });
-        consensusReactor.HandleMessage(
+            },
+            default);
+        await consensusReactor.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
                 PreCommit = TestUtils.CreateVote(
@@ -118,8 +119,9 @@ public class ConsensusContextTest
                     0,
                     hash: proposedblockHash,
                     flag: VoteType.PreCommit)
-            });
-        consensusReactor.HandleMessage(
+            },
+            default);
+        await consensusReactor.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
                 PreCommit = TestUtils.CreateVote(
@@ -129,7 +131,8 @@ public class ConsensusContextTest
                     0,
                     hash: proposedblockHash,
                     flag: VoteType.PreCommit)
-            });
+            },
+            default);
 
         // Waiting for commit.
         await heightThreeStepChangedToEndCommit.WaitAsync();
@@ -194,11 +197,9 @@ public class ConsensusContextTest
             key: TestUtils.PrivateKeys[1]);
         await consensusReactor.StartAsync(default);
         Assert.True(consensusReactor.Height == 1);
-        Assert.False(consensusReactor.HandleMessage(
-            TestUtils.CreateConsensusPropose(
-                blockchain.ProposeBlock(TestUtils.PrivateKeys[0]),
-                TestUtils.PrivateKeys[0],
-                0)));
+        Assert.False(await consensusReactor.HandleMessageAsync(
+            TestUtils.CreateConsensusPropose(blockchain.ProposeBlock(TestUtils.PrivateKeys[0]), TestUtils.PrivateKeys[0], 0),
+            default));
     }
 
     [Fact(Timeout = Timeout)]
@@ -251,7 +252,7 @@ public class ConsensusContextTest
 
         foreach (var vote in votes)
         {
-            consensusReactor.HandleMessage(new ConsensusPreCommitMessage { PreCommit = vote });
+            await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage { PreCommit = vote }, default);
         }
 
         await heightOneEndCommit.WaitAsync();
@@ -338,9 +339,9 @@ public class ConsensusContextTest
         //     }
         // };
 
-        consensusReactor.HandleMessage(new ConsensusProposalMessage { Proposal = proposal });
-        consensusReactor.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote1 });
-        consensusReactor.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote3 });
+        await consensusReactor.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
+        await consensusReactor.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote1 }, default);
+        await consensusReactor.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote3 }, default);
         await stepChanged.WaitAsync();
         await committed.WaitAsync();
 
@@ -407,9 +408,9 @@ public class ConsensusContextTest
             ValidatorPower = TestUtils.Validators[2].Power,
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[2]);
-        consensusReactor.HandleMessage(new ConsensusProposalMessage { Proposal = proposal });
-        consensusReactor.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote1 });
-        consensusReactor.HandleMessage(new ConsensusPreVoteMessage { PreVote = preVote2 });
+        await consensusReactor.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
+        await consensusReactor.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote1 }, default);
+        await consensusReactor.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote2 }, default);
         do
         {
             await stepChanged.WaitAsync();
@@ -466,7 +467,7 @@ public class ConsensusContextTest
             Proposer = proposer.Address,
             ValidRound = -1,
         }.Sign(proposer, block);
-        consensusReactor.HandleMessage(new ConsensusProposalMessage { Proposal = proposal });
+        await consensusReactor.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
         await stepChanged.WaitAsync();
 
         // ProposalClaim expects corresponding proposal if exists

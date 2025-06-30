@@ -192,7 +192,6 @@ internal sealed class SwarmService(
         {
             Seeds = [consensusSeedPeer],
             Port = consensusEndPoint.Port,
-            Signer = privateKey.AsSigner(),
             TargetBlockInterval = TimeSpan.FromSeconds(2),
             ConsensusOptions = new(),
         };
