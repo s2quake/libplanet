@@ -41,11 +41,9 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _signer = signer;
         _gossip = new Gossip(
             transport,
-            new GossipOptions
-            {
-                Seeds = options.Seeds,
-                Validators = [.. options.Validators.Where(item => item.Address != signer.Address)],
-            });
+            options.Seeds,
+            [.. options.Validators.Where(item => item.Address != signer.Address)],
+            options.GossipOptions);
 
         _blockchain = blockchain;
         _newHeightDelay = options.TargetBlockInterval;
@@ -365,14 +363,11 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
         else
         {
-            // lock (_contextLock)
+            if (_consensus.Height == height)
             {
-                if (_consensus.Height == height)
-                {
-                    // NOTE: Should check if collected messages have same BlockHash with
-                    // VoteSetBit's BlockHash?
-                    return _consensus.Proposal;
-                }
+                // NOTE: Should check if collected messages have same BlockHash with
+                // VoteSetBit's BlockHash?
+                return _consensus.Proposal;
             }
         }
 

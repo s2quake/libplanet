@@ -8,7 +8,9 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Gossip(ITransport transport, GossipOptions options) : IAsyncDisposable
+public sealed class Gossip(
+    ITransport transport, ImmutableArray<Peer> seeds, ImmutableArray<Peer> validators, GossipOptions options)
+    : IAsyncDisposable
 {
     private const int DLazy = 6;
     private readonly Subject<MessageEnvelope> _validateReceivedMessageSubject = new();
@@ -27,7 +29,7 @@ public sealed class Gossip(ITransport transport, GossipOptions options) : IAsync
     private bool _disposed;
 
     public Gossip(ITransport transport)
-        : this(transport, new GossipOptions())
+        : this(transport, [], [], new GossipOptions())
     {
     }
 
@@ -56,10 +58,10 @@ public sealed class Gossip(ITransport transport, GossipOptions options) : IAsync
         _cancellationTokenSource = new CancellationTokenSource();
         await _transport.StartAsync(cancellationToken);
         _table = new RoutingTable(_transport.Peer.Address);
-        _table.AddPeers(_options.Validators);
+        _table.AddPeers(validators);
         _transportSubscription = _transport.ProcessMessage.Subscribe(HandleMessage);
         _kademlia = new Kademlia(_table, _transport, _transport.Peer.Address);
-        await _kademlia.BootstrapAsync(_options.Seeds, 3, cancellationToken);
+        await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);
         _tasks =
         [
             RunTableRefreshAsync(_cancellationTokenSource.Token),
@@ -183,7 +185,7 @@ public sealed class Gossip(ITransport transport, GossipOptions options) : IAsync
     {
         var random = new Random();
         var query = from peer in peers
-                    where !_options.Seeds.Contains(peer)
+                    where !seeds.Contains(peer)
                     orderby random.Next()
                     select peer;
 
@@ -360,7 +362,7 @@ public sealed class Gossip(ITransport transport, GossipOptions options) : IAsync
             await Task.Delay(interval, cancellationToken);
             try
             {
-                await kademlia.BootstrapAsync(_options.Seeds, Kademlia.MaxDepth, cancellationToken);
+                await kademlia.BootstrapAsync(seeds, Kademlia.MaxDepth, cancellationToken);
             }
             catch
             {
