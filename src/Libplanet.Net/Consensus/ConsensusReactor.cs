@@ -14,6 +14,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private readonly Subject<int> _heightChangedSubject = new();
     private readonly Subject<int> _roundChangedSubject = new();
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
+    private readonly Subject<(int Round, ConsensusStep Step)> _timeoutOccurredSubject = new();
 
     private readonly Subject<Proposal> _blockProposeSubject = new();
     private readonly Gossip _gossip;
@@ -64,6 +65,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
     public IObservable<int> RoundChanged => _roundChangedSubject;
 
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
+
+    public IObservable<(int Round, ConsensusStep Step)> TimeoutOccurred => _timeoutOccurredSubject;
 
     public IObservable<Proposal> BlockPropose => _blockProposeSubject;
 
@@ -132,7 +135,14 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 _evidenceCollector.Add(evidenceException);
             }
         });
-        yield return consensus.RoundStarted.Subscribe(round =>
+        yield return consensus.TimeoutOccurred.Subscribe(e =>
+        {
+            _dispatcher?.Post(() =>
+            {
+                _timeoutOccurredSubject.OnNext(e);
+            });
+        });
+        yield return consensus.RoundChanged.Subscribe(round =>
         {
             _dispatcher?.Post(() =>
             {

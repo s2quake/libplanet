@@ -21,8 +21,9 @@ public partial class Consensus(
     ConsensusOptions options)
     : IAsyncDisposable
 {
-    private readonly Subject<int> _roundStartedSubject = new();
+    private readonly Subject<int> _roundChangedSubject = new();
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
+    private readonly Subject<(int Round, ConsensusStep Step)> _timeoutOccurredSubject = new();
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
     private readonly Subject<Proposal?> _proposalChangedSubject = new();
     private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
@@ -62,9 +63,11 @@ public partial class Consensus(
     {
     }
 
-    public IObservable<int> RoundStarted => _roundStartedSubject;
+    public IObservable<int> RoundChanged => _roundChangedSubject;
 
     public IObservable<Exception> ExceptionOccurred => _exceptionOccurredSubject;
+
+    public IObservable<(int Round, ConsensusStep Step)> TimeoutOccurred => _timeoutOccurredSubject;
 
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
@@ -133,7 +136,7 @@ public partial class Consensus(
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
             _dispatcher = null;
-            _roundStartedSubject.Dispose();
+            _roundChangedSubject.Dispose();
             _exceptionOccurredSubject.Dispose();
             _stepChangedSubject.Dispose();
             _proposalChangedSubject.Dispose();
@@ -442,6 +445,7 @@ public partial class Consensus(
             if (round == Round && Step == ConsensusStep.Propose)
             {
                 EnterPreVote(round, default);
+                _timeoutOccurredSubject.OnNext((round, ConsensusStep.Propose));
                 ProcessGenericUponRules();
             }
         }
@@ -469,6 +473,7 @@ public partial class Consensus(
             if (round == Round && Step == ConsensusStep.PreVote)
             {
                 EnterPreCommit(round, default);
+                _timeoutOccurredSubject.OnNext((round, ConsensusStep.PreVote));
                 ProcessGenericUponRules();
             }
         }
@@ -500,6 +505,7 @@ public partial class Consensus(
             if (round == Round)
             {
                 EnterEndCommit(round);
+                _timeoutOccurredSubject.OnNext((round, ConsensusStep.PreCommit));
                 ProcessGenericUponRules();
             }
         }
@@ -519,7 +525,7 @@ public partial class Consensus(
         _preCommits.Round = round;
         Proposal = null;
         Step = ConsensusStep.Propose;
-        _roundStartedSubject.OnNext(round);
+        _roundChangedSubject.OnNext(round);
         if (_validators.GetProposer(Height, Round).Address == signer.Address
             && (_validBlock ?? ProposeBlock()) is Block proposalBlock)
         {

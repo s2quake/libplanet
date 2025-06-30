@@ -25,6 +25,24 @@ public static class ConsensusReactorExtensions
         }
     }
 
+    public static async Task WaitUntilToProposeAsync(
+        this ConsensusReactor @this, int height, CancellationToken cancellationToken)
+    {
+        using var resetEvent = new ManualResetEvent(false);
+        using var _ = @this.BlockPropose.Subscribe(e =>
+        {
+            if (e.Height == height)
+            {
+                resetEvent.Set();
+            }
+        });
+
+        while (!resetEvent.WaitOne(0))
+        {
+            await Task.Delay(100, cancellationToken);
+        }
+    }
+
     public static async Task WaitUntilAsync(
         this ConsensusReactor @this, int height, ConsensusStep step, CancellationToken cancellationToken)
     {
