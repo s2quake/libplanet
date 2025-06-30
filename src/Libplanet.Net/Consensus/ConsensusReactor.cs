@@ -12,6 +12,8 @@ namespace Libplanet.Net.Consensus;
 public sealed class ConsensusReactor : IAsyncDisposable
 {
     private readonly Subject<int> _heightChangedSubject = new();
+    private readonly Subject<int> _roundChangedSubject = new();
+    private readonly Subject<ConsensusStep> _stepChangedSubject = new();
 
     private readonly Subject<Proposal> _blockProposeSubject = new();
     private readonly Gossip _gossip;
@@ -25,8 +27,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private readonly IDisposable[] _blockchainSubscriptions;
 
     private Dispatcher? _dispatcher;
-    private int _height;
-    private int _round;
     private Consensus _consensus;
     private ConsensusCommunicator _communicator;
     private IDisposable[] _gossipSubscriptions = [];
@@ -48,7 +48,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _blockchain = blockchain;
         _newHeightDelay = options.TargetBlockInterval;
         _consensusOption = options.ConsensusOptions;
-        _consensus = new Consensus(_blockchain, _blockchain.Tip.Height + 1, _signer, _consensusOption);
+        Height = _blockchain.Tip.Height + 1;
+        _consensus = new Consensus(_blockchain, Height, _signer, _consensusOption);
         _communicator = new ConsensusCommunicator(_consensus, _gossip);
         _consensusSubscriptions = [.. Subscribe(_consensus)];
         _blockchainSubscriptions =
@@ -59,6 +60,10 @@ public sealed class ConsensusReactor : IAsyncDisposable
     }
 
     public IObservable<int> HeightChanged => _heightChangedSubject;
+
+    public IObservable<int> RoundChanged => _roundChangedSubject;
+
+    public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
     public IObservable<Proposal> BlockPropose => _blockProposeSubject;
 
@@ -75,13 +80,13 @@ public sealed class ConsensusReactor : IAsyncDisposable
     {
         if (message is ConsensusVoteMessage voteMsg)
         {
-            if (voteMsg.Height != _height)
+            if (voteMsg.Height != Height)
             {
                 throw new InvalidOperationException(
                     $"Cannot send vote of height different from context's");
             }
 
-            if (voteMsg.Round > _round)
+            if (voteMsg.Round > Round)
             {
                 throw new InvalidOperationException(
                     $"Cannot send vote of round higher than context's");
@@ -91,7 +96,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     private void FilterDifferentHeightVote(ConsensusVoteMessage voteMsg)
     {
-        if (voteMsg.Height != _height)
+        if (voteMsg.Height != Height)
         {
             throw new InvalidOperationException(
                 $"Filtered vote from different height: {voteMsg.Height}");
@@ -100,8 +105,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     private void FilterHigherRoundVoteSpam(ConsensusVoteMessage voteMsg, Peer peer)
     {
-        if (voteMsg.Height == _height &&
-            voteMsg.Round > _round)
+        if (voteMsg.Height == Height &&
+            voteMsg.Round > Round)
         {
             _peerCatchupRounds.AddOrUpdate(
                 peer,
@@ -129,23 +134,46 @@ public sealed class ConsensusReactor : IAsyncDisposable
         });
         yield return consensus.RoundStarted.Subscribe(round =>
         {
-            _round = round;
-            _gossip.ClearCache();
+            _dispatcher?.Post(() =>
+            {
+                Round = round;
+                _gossip.ClearCache();
+                _roundChangedSubject.OnNext(round);
+            });
         });
+        yield return consensus.StepChanged.Subscribe((Action<ConsensusStep>)(step =>
+        {
+            _dispatcher?.Post((Action)(() =>
+            {
+                this.Step = step;
+                _stepChangedSubject.OnNext(step);
+            }));
+        }));
+
         yield return consensus.Completed.Subscribe(e =>
         {
             var block = e.Block;
             var blockCommit = e.BlockCommit;
             _ = Task.Run(() => _blockchain.Append(block, blockCommit));
         });
-        yield return consensus.BlockPropose.Subscribe(_blockProposeSubject.OnNext);
+        yield return consensus.BlockPropose.Subscribe(proposal =>
+        {
+            _dispatcher?.Post(() =>
+            {
+                _blockProposeSubject.OnNext(proposal);
+            });
+        });
     }
 
     public bool IsRunning { get; private set; }
 
-    public int Height => Consensus.Height;
+    public int Height { get; private set; }
 
-    public int Round => Consensus.Round;
+    public int Round { get; private set; }
+
+    public ConsensusStep Step { get; private set; }
+
+    public Consensus Consensus => _consensus;
 
     public ImmutableArray<Peer> Validators => _gossip.Peers;
 
@@ -206,10 +234,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         IsRunning = false;
     }
 
-    public ConsensusStep Step => Consensus.Step;
-
-    public Consensus Consensus => _consensus;
-
     public async Task NewHeightAsync(int height, CancellationToken cancellationToken)
     {
         if (_dispatcher is null)
@@ -233,10 +257,10 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _communicator = new ConsensusCommunicator(_consensus, _gossip);
             _consensusSubscriptions = [.. Subscribe(_consensus)];
             await _consensus.StartAsync(cancellationToken);
-            _height = height;
+            Height = height;
             _peerCatchupRounds.Clear();
             _gossip.ClearDenySet();
-            _heightChangedSubject.OnNext(_height);
+            _heightChangedSubject.OnNext(Height);
             FlushPendingMessages(height);
         }, cancellationToken);
     }
