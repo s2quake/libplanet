@@ -118,7 +118,7 @@ public partial class Swarm : IAsyncDisposable
         if (consensusTransport is { } && consensusOption is { } consensusReactorOption)
         {
             _consensusReactor = new ConsensusReactor(
-                consensusTransport, Blockchain, consensusReactorOption);
+                privateKey.AsSigner(), consensusTransport, Blockchain, consensusReactorOption);
         }
     }
 

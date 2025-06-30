@@ -88,10 +88,9 @@ namespace Libplanet.Net.Tests
                 genesis,
                 consensusReactorOption ?? new ConsensusReactorOptions
                 {
-                    Seeds = ImmutableArray<Peer>.Empty,
-                    Validators = ImmutableArray<Peer>.Empty,
+                    Seeds = [],
+                    Validators = [],
                     Port = 0,
-                    Signer = new PrivateKey().AsSigner(),
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(10),
                 });

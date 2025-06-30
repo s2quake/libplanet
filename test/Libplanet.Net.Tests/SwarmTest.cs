@@ -387,7 +387,6 @@ namespace Libplanet.Net.Tests
                 {
                     Validators = consensusPeers,
                     Port = 6000 + i,
-                    Signer = TestUtils.PrivateKeys[i].AsSigner(),
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(10),
                     ConsensusOptions = new ConsensusOptions(),

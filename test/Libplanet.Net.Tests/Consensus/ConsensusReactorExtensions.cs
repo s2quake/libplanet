@@ -38,43 +38,41 @@ public static class ConsensusReactorExtensions
     public static async Task WaitUntilAsync(
         this ConsensusReactor @this, int height, ConsensusStep step, CancellationToken cancellationToken)
     {
-        using var heightChangedEvent = new ManualResetEvent(false);
-        using var stepChangedEvent = new ManualResetEvent(false);
-        using var _1 = @this.HeightChanged.Subscribe(height =>
-        {
-            if (height == @this.Height)
-            {
-                heightChangedEvent.Set();
-            }
-        });
-        // using var _2 = @this.Step.Subscribe(state =>
-        // {
-        //     if (state.Step == step && state.Height == height)
-        //     {
-        //         stepChangedEvent.Set();
-        //     }
-        // });
-        // var asyncAutoResetEvent = new AsyncAutoResetEvent();
-        // @this.StateChanged += ConsensusContext_StateChanged;
-        // try
-        // {
-        //     if (@this.Step != step || @this.Height != height)
-        //     {
-        //         await asyncAutoResetEvent.WaitAsync(cancellationToken);
-        //     }
-        // }
-        // finally
-        // {
-        //     // @this.StateChanged -= ConsensusContext_StateChanged;
-        // }
+        using var resetvent = new ManualResetEvent(false);
 
-        // void ConsensusContext_StateChanged(object? sender, ConsensusState e)
-        // {
-        //     if (e.Step == consensusStep && e.Height == height)
-        //     {
-        //         asyncAutoResetEvent.Set();
-        //     }
-        // }
+        var consensus = @this.Consensus;
+        var stepChangedSubscription = @this.Consensus.StepChanged.Subscribe(Consensus_StepChanged);
+
+        try
+        {
+            using var _2 = @this.HeightChanged.Subscribe(consensus =>
+            {
+                stepChangedSubscription.Dispose();
+                stepChangedSubscription = @this.Consensus.StepChanged.Subscribe(Consensus_StepChanged);
+            });
+
+            while (true)
+            {
+                if (resetvent.WaitOne(0))
+                {
+                    return;
+                }
+
+                await Task.Delay(100, cancellationToken);
+            }
+        }
+        finally
+        {
+            stepChangedSubscription.Dispose();
+        }
+
+        void Consensus_StepChanged(ConsensusStep e)
+        {
+            if (e == step && consensus.Height == height)
+            {
+                resetvent.Set();
+            }
+        }
     }
 
     public static async Task<T> WaitUntilPublishedAsync<T>(

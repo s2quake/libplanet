@@ -13,6 +13,7 @@ using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Libplanet.Data;
 using Random = System.Random;
+using Libplanet.Net.Tests.Consensus;
 
 namespace Libplanet.Net.Tests;
 
@@ -121,7 +122,7 @@ public static class TestUtils
     public static BlockCommit CreateBlockCommit(BlockHash blockHash, int height, int round) =>
         Libplanet.Tests.TestUtils.CreateBlockCommit(blockHash, height, round);
 
-    public static void HandleFourPeersPreCommitMessages(
+    public static async Task HandleFourPeersPreCommitMessages(
         ConsensusReactor consensusContext,
         PrivateKey nodePrivateKey,
         BlockHash roundBlockHash)
@@ -136,7 +137,7 @@ public static class TestUtils
                 continue;
             }
 
-            consensusContext.HandleMessage(
+            await consensusContext.HandleMessageAsync(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = new VoteMetadata
@@ -149,7 +150,8 @@ public static class TestUtils
                         ValidatorPower = power,
                         Type = VoteType.PreCommit,
                     }.Sign(privateKey)
-                });
+                },
+                default);
         }
     }
 
@@ -217,7 +219,7 @@ public static class TestUtils
         }
     }
 
-    public static void HandleFourPeersPreVoteMessages(
+    public static async Task HandleFourPeersPreVoteMessages(
         ConsensusReactor consensusContext,
         PrivateKey nodePrivateKey,
         BlockHash roundBlockHash)
@@ -232,7 +234,7 @@ public static class TestUtils
                 continue;
             }
 
-            consensusContext.HandleMessage(
+            await consensusContext.HandleMessageAsync(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = new VoteMetadata
@@ -245,7 +247,8 @@ public static class TestUtils
                         ValidatorPower = power,
                         Type = VoteType.PreVote,
                     }.Sign(privateKey)
-                });
+                },
+                default);
         }
     }
 
@@ -305,6 +308,7 @@ public static class TestUtils
         blockchain ??= CreateBlockchain();
         key ??= PrivateKeys[1];
 
+        var signer = key.AsSigner();
         var transportOption = new TransportOptions
         {
             Protocol = Protocol,
@@ -315,12 +319,11 @@ public static class TestUtils
         var consensusReactorOptions = new ConsensusReactorOptions
         {
             Validators = validatorPeers ?? Peers,
-            Signer = key.AsSigner(),
             TargetBlockInterval = newHeightDelay ?? TimeSpan.FromMilliseconds(10_000),
             ConsensusOptions = consensusOption ?? new ConsensusOptions(),
         };
 
-        return new ConsensusReactor(transport, blockchain, consensusReactorOptions);
+        return new ConsensusReactor(signer, transport, blockchain, consensusReactorOptions);
     }
 
     public static byte[] GetRandomBytes(int size)

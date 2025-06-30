@@ -49,7 +49,7 @@ namespace Libplanet.Net.Tests.Consensus
             Assert.Equal(0, consensusReactor.Round);
 
             // Triggers timeout +2/3 with NIL and Block
-            consensusReactor.HandleMessage(
+            await consensusReactor.HandleMessageAsync(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -59,9 +59,10 @@ namespace Libplanet.Net.Tests.Consensus
                         0,
                         hash: default,
                         flag: VoteType.PreVote)
-                });
+                },
+                default);
 
-            consensusReactor.HandleMessage(
+            await consensusReactor.HandleMessageAsync(
                 new ConsensusPreVoteMessage
                 {
                     PreVote = TestUtils.CreateVote(
@@ -71,11 +72,12 @@ namespace Libplanet.Net.Tests.Consensus
                         0,
                         hash: default,
                         flag: VoteType.PreVote)
-                });
+                },
+                default);
 
             // await timeoutProcessed.WaitAsync();
 
-            consensusReactor.HandleMessage(
+            await consensusReactor.HandleMessageAsync(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -85,9 +87,10 @@ namespace Libplanet.Net.Tests.Consensus
                         0,
                         hash: default,
                         flag: VoteType.PreCommit)
-                });
+                },
+                default);
 
-            consensusReactor.HandleMessage(
+            await consensusReactor.HandleMessageAsync(
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = TestUtils.CreateVote(
@@ -97,7 +100,8 @@ namespace Libplanet.Net.Tests.Consensus
                         0,
                         hash: default,
                         flag: VoteType.PreCommit)
-                });
+                },
+                default);
 
             // await timeoutProcessed.WaitAsync();
             Assert.Equal(1, consensusReactor.Height);

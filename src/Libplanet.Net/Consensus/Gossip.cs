@@ -111,6 +111,11 @@ public sealed class Gossip(ITransport transport, GossipOptions options) : IAsync
             _transportSubscription?.Dispose();
             _transportSubscription = null;
 
+            // Subject들을 정리
+            _validateReceivedMessageSubject.Dispose();
+            _validateSendingMessageSubject.Dispose();
+            _processMessageSubject.Dispose();
+
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
             _messageById.Clear();
@@ -197,8 +202,10 @@ public sealed class Gossip(ITransport transport, GossipOptions options) : IAsync
         {
             _validateReceivedMessageSubject.OnNext(messageEnvelope);
         }
-        catch
+        catch (Exception ex)
         {
+            // 유효성 검사 실패 시 로깅하고 메시지 처리 중단
+            // TODO: 로거 추가 시 여기서 로깅
             return;
         }
 
