@@ -19,8 +19,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private readonly TimeSpan _newHeightDelay;
     private readonly HashSet<ConsensusMessage> _pendingMessages = [];
     private readonly EvidenceCollector _evidenceCollector = new();
-    private readonly IDisposable _tipChangedSubscription;
     private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
+    private readonly IDisposable[] _blockchainSubscriptions;
     private readonly IDisposable[] _gossipSubscriptions;
 
     private int _height;
@@ -28,7 +28,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private Consensus _consensus;
     private ConsensusCommunicator _communicator;
     private IDisposable[] _consensusSubscriptions;
-    private CancellationTokenSource? _newHeightCts;
+    private CancellationTokenSource? _cancellationTokenSource;
+    private DateTimeOffset _tipChangedTime;
     private bool _disposed;
 
     public ConsensusReactor(ITransport transport, Blockchain blockchain, ConsensusReactorOptions options)
@@ -55,8 +56,11 @@ public sealed class ConsensusReactor : IAsyncDisposable
         _consensus = new Consensus(_blockchain, _blockchain.Tip.Height + 1, _signer, _consensusOption);
         _communicator = new ConsensusCommunicator(_consensus, _gossip);
         _consensusSubscriptions = [.. Subscribe(_consensus)];
-
-        _tipChangedSubscription = _blockchain.TipChanged.Subscribe(OnTipChanged);
+        _blockchainSubscriptions =
+        [
+            _blockchain.TipChanged.Subscribe(OnTipChanged),
+            _blockchain.BlockExecuted.Subscribe(OnBlockExecuted),
+        ];
     }
 
     public IObservable<int> HeightChanged => _heightChangedSubject;
@@ -153,18 +157,18 @@ public sealed class ConsensusReactor : IAsyncDisposable
         {
             Array.ForEach(_gossipSubscriptions, subscription => subscription.Dispose());
             await _gossip.DisposeAsync();
-            if (_newHeightCts is not null)
+            if (_cancellationTokenSource is not null)
             {
-                await _newHeightCts.CancelAsync();
+                await _cancellationTokenSource.CancelAsync();
             }
 
+            Array.ForEach(_blockchainSubscriptions, subscription => subscription.Dispose());
             Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
             _consensusSubscriptions = [];
             await _consensus.DisposeAsync();
 
-            _newHeightCts?.Dispose();
-            _newHeightCts = null;
-            _tipChangedSubscription.Dispose();
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
             _disposed = true;
         }
     }
@@ -352,31 +356,45 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     private void OnTipChanged(TipChangedInfo e)
     {
-        _newHeightCts?.Cancel();
-        _newHeightCts?.Dispose();
-        _newHeightCts = new CancellationTokenSource();
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
+        _tipChangedTime = DateTimeOffset.UtcNow;
 
-        Invoke(_newHeightCts.Token);
 
-        async void Invoke(CancellationToken cancellationToken)
-        {
-            await Task.Delay(_newHeightDelay, cancellationToken);
+        // Invoke(_newHeightCts.Token);
 
-            try
-            {
-                AddEvidenceToBlockChain(e.Tip);
-                await NewHeightAsync(e.Tip.Height + 1, cancellationToken);
-            }
-            catch
-            {
-                // logging
-            }
-        }
+        // async void Invoke(CancellationToken cancellationToken)
+        // {
+        //     await Task.Delay(_newHeightDelay, cancellationToken);
+
+        //     try
+        //     {
+        //         AddEvidenceToBlockChain(e.Tip);
+        //         await NewHeightAsync(e.Tip.Height + 1, cancellationToken);
+        //     }
+        //     catch
+        //     {
+        //         // logging
+        //     }
+        // }
     }
 
-    private void AddEvidenceToBlockChain(Block tip)
+    private async void OnBlockExecuted(BlockExecutionInfo e)
     {
-        var height = tip.Height;
+        var height = e.Block.Header.Height;
+        var dateTime = DateTimeOffset.UtcNow;
+        var delay = EnsureNonNegative(_newHeightDelay - (dateTime - _tipChangedTime));
+        _cancellationTokenSource = new CancellationTokenSource();
+        await Task.Delay(delay, _cancellationTokenSource.Token);
+        AddEvidenceToBlockChain(height);
+        await NewHeightAsync(height + 1, _cancellationTokenSource.Token);
+
+        static TimeSpan EnsureNonNegative(TimeSpan timeSpan) => timeSpan < TimeSpan.Zero ? TimeSpan.Zero : timeSpan;
+    }
+
+    private void AddEvidenceToBlockChain(int height)
+    {
         var evidenceExceptions
             = _evidenceCollector.Flush().Where(item => item.Height <= height).ToArray();
         foreach (var evidenceException in evidenceExceptions)

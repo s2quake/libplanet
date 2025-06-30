@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -234,6 +235,12 @@ public partial class Consensus(
             throw new InvalidOperationException("Consensus is already running.");
         }
 
+        _lockedBlock = null;
+        _lockedRound = -1;
+        _validBlock = null;
+        _validRound = -1;
+        _decidedBlock = null;
+        Round = -1;
         _cancellationTokenSource = new CancellationTokenSource();
         _dispatcher = new Dispatcher(this);
         _dispatcher.UnhandledException += Dispatcher_UnhandledException;
@@ -260,18 +267,13 @@ public partial class Consensus(
         _cancellationTokenSource.Dispose();
         _cancellationTokenSource = null;
 
-        _lockedBlock = null;
-        _lockedRound = -1;
-        _validBlock = null;
-        _validRound = -1;
-        _decidedBlock = null;
-        Round = -1;
         Step = ConsensusStep.Default;
         IsRunning = false;
     }
 
     public void Post(Proposal proposal)
     {
+        Trace.WriteLine(proposal.GetType());
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (_dispatcher is null)
         {

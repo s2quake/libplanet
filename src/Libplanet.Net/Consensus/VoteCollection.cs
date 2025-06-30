@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types;
 
@@ -158,6 +159,7 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
         }
 
         var totalPower1 = votes.Aggregate(BigInteger.Zero, (n, i) => n + i.ValidatorPower);
+        Trace.WriteLine($"AddVerifiedVote: {vote.Type} {vote.Validator}");
         votes.Add(vote);
         var totalPower2 = votes.Aggregate(BigInteger.Zero, (n, i) => n + i.ValidatorPower);
         var quorum = validators.GetTwoThirdsPower() + 1;
