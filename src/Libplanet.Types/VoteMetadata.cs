@@ -10,7 +10,6 @@ public sealed partial record class VoteMetadata
     public required Address Validator { get; init; }
 
     [Property(1)]
-    [NotDefault]
     public BlockHash BlockHash { get; init; }
 
     [Property(2)]
