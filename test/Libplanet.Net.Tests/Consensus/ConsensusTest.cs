@@ -20,8 +20,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposer()
     {
-        var blockProposeEvent = new ManualResetEvent(false);
-        var preVoteEvent = new ManualResetEvent(false);
+        using var blockProposeEvent = new ManualResetEvent(false);
+        using var preVoteEvent = new ManualResetEvent(false);
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
         using var _1 = consensus.PreVote.Subscribe(_ =>
@@ -46,9 +46,9 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task StartAsProposerWithLastCommit()
     {
         Block? proposedBlock = null;
-        var preVoteEnteredEvent = new ManualResetEvent(false);
-        var blockProposedEvent = new ManualResetEvent(false);
-        var blockchain = TestUtils.CreateBlockChain();
+        using var preVoteEnteredEvent = new ManualResetEvent(false);
+        using var blockProposedEvent = new ManualResetEvent(false);
+        var blockchain = TestUtils.CreateBlockchain();
         var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         var previousCommit = TestUtils.CreateBlockCommit(block1);
         blockchain.Append(block1, previousCommit);
@@ -80,7 +80,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task CannotStartTwice()
     {
-        var stepChangedEvent = new ManualResetEvent(false);
+        using var stepChangedEvent = new ManualResetEvent(false);
         await using var consensus = TestUtils.CreateConsensus();
         using var _ = consensus.StepChanged.Subscribe(step =>
         {
@@ -99,12 +99,12 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task CanAcceptMessagesAfterCommitFailure()
     {
         Block? proposedBlock = null;
-        var preVoteEnteredEvent = new ManualResetEvent(false);
-        var endCommitEnteredEvent = new ManualResetEvent(false);
-        var blockProposedEvent = new ManualResetEvent(false);
+        using var preVoteEnteredEvent = new ManualResetEvent(false);
+        using var endCommitEnteredEvent = new ManualResetEvent(false);
+        using var blockProposedEvent = new ManualResetEvent(false);
 
         // Add block #1 so we can start with a last commit for height 2.
-        var blockchain = TestUtils.CreateBlockChain();
+        var blockchain = TestUtils.CreateBlockchain();
         var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         var previousCommit = TestUtils.CreateBlockCommit(block1);
         blockchain.Append(block1, previousCommit);
@@ -202,9 +202,9 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task ThrowOnInvalidProposerMessage()
     {
         Exception? exceptionThrown = null;
-        var exceptionOccurredEvent = new ManualResetEvent(false);
+        using var exceptionOccurredEvent = new ManualResetEvent(false);
 
-        var blockchain = TestUtils.CreateBlockChain();
+        var blockchain = TestUtils.CreateBlockchain();
         await using var consensus = TestUtils.CreateConsensus(blockchain, privateKey: TestUtils.PrivateKeys[0]);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
@@ -231,9 +231,9 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task ThrowOnDifferentHeightMessage()
     {
         Exception? exceptionThrown = null;
-        var exceptionOccurredEvent = new ManualResetEvent(false);
+        using var exceptionOccurredEvent = new ManualResetEvent(false);
 
-        var blockchain = TestUtils.CreateBlockChain();
+        var blockchain = TestUtils.CreateBlockchain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
@@ -278,10 +278,10 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task CanPreCommitOnEndCommit()
     {
-        var enteredPreVote = new ManualResetEvent(false);
-        var enteredPreCommit = new ManualResetEvent(false);
-        var enteredEndCommit = new ManualResetEvent(false);
-        var blockHeightOneAppended = new ManualResetEvent(false);
+        using var enteredPreVote = new ManualResetEvent(false);
+        using var enteredPreCommit = new ManualResetEvent(false);
+        using var enteredEndCommit = new ManualResetEvent(false);
+        using var blockHeightOneAppended = new ManualResetEvent(false);
 
         var blockchainOptions = new BlockchainOptions
         {
@@ -411,8 +411,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var proposerPower = TestUtils.Validators[1].Power;
         var power1 = TestUtils.Validators[2].Power;
         var power2 = TestUtils.Validators[3].Power;
-        var stepChanged = new AutoResetEvent(false);
-        var proposalModified = new AutoResetEvent(false);
+        using var stepChanged = new AutoResetEvent(false);
+        using var proposalModified = new AutoResetEvent(false);
         Block? completedBlock = null;
         // var prevStep = ConsensusStep.Default;
         // BlockHash? prevProposal = null;
@@ -423,7 +423,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             new Validator { Address = key2.Address }
         );
 
-        var blockchain = TestUtils.CreateBlockChain();
+        var blockchain = TestUtils.CreateBlockchain();
         await using var consensus = TestUtils.CreateConsensus(
             blockchain: blockchain,
             privateKey: privateKeys[0],
@@ -543,8 +543,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task CanCreateContextWithLastingEvaluation()
     {
-        var onTipChanged = new ManualResetEvent(false);
-        var enteredHeightTwo = new ManualResetEvent(false);
+        using var onTipChanged = new ManualResetEvent(false);
+        using var enteredHeightTwo = new ManualResetEvent(false);
 
         TimeSpan newHeightDelay = TimeSpan.FromMilliseconds(100);
         int actionDelay = 2000;
@@ -647,8 +647,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [InlineData(500)]
     public async Task CanCollectPreVoteAfterMajority(int delay)
     {
-        var preVoteStepEvent = new ManualResetEvent(false);
-        var preCommitStepEvent = new ManualResetEvent(false);
+        using var preVoteStepEvent = new ManualResetEvent(false);
+        using var preCommitStepEvent = new ManualResetEvent(false);
         Block? proposedBlock = null;
         int numPreVotes = 0;
         var options = new ConsensusOptions

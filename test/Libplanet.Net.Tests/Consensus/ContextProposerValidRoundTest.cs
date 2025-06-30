@@ -145,7 +145,7 @@ namespace Libplanet.Net.Tests.Consensus
             var stateChangedToRoundThreePropose = new AsyncAutoResetEvent();
             var roundThreeNilPreVoteSent = new AsyncAutoResetEvent();
             bool timeoutProcessed = false;
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockchain();
             await using var consensus = TestUtils.CreateConsensus(blockchain);
             // using var _0 = consensus.StateChanged.Subscribe(state =>
             // {

@@ -362,7 +362,7 @@ namespace Libplanet.Net.Tests.Consensus
             ConsensusPreVoteMessage? preVote = null;
             var preVoteSent = new AsyncAutoResetEvent();
 
-            var blockChain = TestUtils.CreateBlockChain();
+            var blockChain = TestUtils.CreateBlockchain();
             var block1 = blockChain.ProposeBlock(new PrivateKey());
             var block1Commit = TestUtils.CreateBlockCommit(block1);
             blockChain.Append(block1, block1Commit);
