@@ -37,7 +37,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task EnterPreVoteBlockOneThird()
         {
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockchain();
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
@@ -89,7 +89,7 @@ namespace Libplanet.Net.Tests.Consensus
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
             ConsensusPreCommitMessage? preCommit = null;
             var preCommitSent = new AsyncAutoResetEvent();
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockchain();
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
@@ -172,7 +172,7 @@ namespace Libplanet.Net.Tests.Consensus
             var stepChangedToPreCommit = new AsyncAutoResetEvent();
             var preCommitSent = new AsyncAutoResetEvent();
 
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockchain();
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
@@ -255,7 +255,7 @@ namespace Libplanet.Net.Tests.Consensus
             var timeoutProcessed = false;
             var nilPreVoteSent = new AsyncAutoResetEvent();
 
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockchain();
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
@@ -339,7 +339,7 @@ namespace Libplanet.Net.Tests.Consensus
                 }
             }
 
-            var blockchain = TestUtils.CreateBlockChain(policy);
+            var blockchain = TestUtils.CreateBlockchain(policy);
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
@@ -362,7 +362,7 @@ namespace Libplanet.Net.Tests.Consensus
             //     }
             // });
 
-            var diffPolicyBlockChain = TestUtils.CreateBlockChain(policy, blockchain.Genesis);
+            var diffPolicyBlockChain = TestUtils.CreateBlockchain(policy, blockchain.Genesis);
 
             var invalidTx = diffPolicyBlockChain.StagedTransactions.Add(invalidKey);
 
@@ -407,7 +407,7 @@ namespace Libplanet.Net.Tests.Consensus
                 },
             };
 
-            var blockchain = TestUtils.CreateBlockChain(policy);
+            var blockchain = TestUtils.CreateBlockchain(policy);
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
@@ -531,7 +531,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task EnterPreVoteNilOneThird()
         {
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockchain();
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0]);
@@ -614,7 +614,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task UponRulesCheckAfterTimeout()
         {
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockchain();
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0],
@@ -708,7 +708,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task TimeoutPreVote()
         {
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockchain();
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0],
@@ -770,7 +770,7 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task TimeoutPreCommit()
         {
-            var blockchain = TestUtils.CreateBlockChain();
+            var blockchain = TestUtils.CreateBlockchain();
             await using var consensus = TestUtils.CreateConsensus(
                 blockchain: blockchain,
                 privateKey: TestUtils.PrivateKeys[0],

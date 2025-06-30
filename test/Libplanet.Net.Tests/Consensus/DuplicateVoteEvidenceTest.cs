@@ -9,489 +9,481 @@ using Libplanet.Types;
 using Libplanet.Types.Tests;
 using Serilog;
 using Xunit.Abstractions;
-using static Libplanet.Net.Tests.Consensus.ConsensusContextUtils;
+using static Libplanet.Net.Tests.Consensus.ConsensusReactorExtensions;
 
-namespace Libplanet.Net.Tests.Consensus
+namespace Libplanet.Net.Tests.Consensus;
+
+public class DuplicateVoteEvidenceTest
 {
-    public class DuplicateVoteEvidenceTest
+    private const int Timeout = 30000;
+    private readonly ILogger _logger;
+
+    public DuplicateVoteEvidenceTest(ITestOutputHelper output)
     {
-        private const int Timeout = 30000;
-        private readonly ILogger _logger;
+        const string outputTemplate =
+            "{Timestamp:HH:mm:ss:ffffffZ} - {Message} {Exception}";
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .WriteTo.TestOutput(output, outputTemplate: outputTemplate)
+            .CreateLogger()
+            .ForContext<ConsensusContextTest>();
 
-        public DuplicateVoteEvidenceTest(ITestOutputHelper output)
+        _logger = Log.ForContext<ConsensusContextTest>();
+    }
+
+    [Fact(Timeout = Timeout)]
+    public async Task Evidence_WithDuplicateVotes_Test()
+    {
+        var privateKeys = TestUtils.PrivateKeys;
+        var blockchain = TestUtils.CreateBlockchain();
+        var consensusReactor = TestUtils.CreateConsensusReactor(
+            blockchain: blockchain,
+            newHeightDelay: TimeSpan.FromSeconds(1),
+            key: privateKeys[3]);
+
+        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+            height: 3,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+        var consensusProposalMsgAt7Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+            height: 7,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+        var block = blockchain.ProposeBlock(privateKeys[1]);
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        await consensusReactor.StartAsync(default);
+        blockchain.Append(block, blockCommit);
+        block = blockchain.ProposeBlock(privateKeys[2]);
+        blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+
+        await consensusProposalMsgAt3Task;
+        var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
+        var blockHash = consensusProposalMsgAt3.BlockHash;
+
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
         {
-            const string outputTemplate =
-                "{Timestamp:HH:mm:ss:ffffffZ} - {Message} {Exception}";
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.TestOutput(output, outputTemplate: outputTemplate)
-                .CreateLogger()
-                .ForContext<ConsensusContextTest>();
-
-            _logger = Log.ForContext<ConsensusContextTest>();
-        }
-
-        [Fact(Timeout = Timeout)]
-        public async Task Evidence_WithDuplicateVotes_Test()
-        {
-            var privateKeys = TestUtils.PrivateKeys;
-            var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
-                TimeSpan.FromSeconds(1),
-                TestUtils.Options,
-                privateKeys[3]);
-
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
-                consensusContext: consensusContext,
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
                 height: 3,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-            var consensusProposalMsgAt7Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
-                consensusContext: consensusContext,
-                height: 7,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-            var block = blockChain.ProposeBlock(privateKeys[1]);
-            var blockCommit = TestUtils.CreateBlockCommit(block);
-            await consensusContext.StartAsync(default);
-            blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2]);
-            blockChain.Append(block, TestUtils.CreateBlockCommit(block));
-
-            await consensusProposalMsgAt3Task;
-            var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
-            var blockHash = consensusProposalMsgAt3.BlockHash;
-
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[1],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[2],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-
-            await WaitUntilHeightAsync(
-                consensusContext: consensusContext,
-                height: 4,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-
-            Assert.Single(blockChain.PendingEvidences);
-            Assert.Equal(4, consensusContext.Height);
-            Assert.Equal(0, consensusContext.Round);
-
-            blockCommit = blockChain.BlockCommits[blockChain.Tip.BlockHash];
-            block = blockChain.ProposeBlock(privateKeys[0]);
-            blockCommit = TestUtils.CreateBlockCommit(block);
-            blockChain.Append(block, blockCommit);
-
-            block = blockChain.ProposeBlock(privateKeys[1]);
-            blockCommit = TestUtils.CreateBlockCommit(block);
-            blockChain.Append(block, blockCommit);
-
-            block = blockChain.ProposeBlock(privateKeys[2]);
-            blockCommit = TestUtils.CreateBlockCommit(block);
-            blockChain.Append(block, blockCommit);
-
-            await consensusProposalMsgAt7Task;
-            var consensusProposalMsgAt7 = consensusProposalMsgAt7Task.Result;
-            Assert.NotNull(consensusProposalMsgAt3?.BlockHash);
-            var actualBlock = consensusProposalMsgAt7.Proposal.Block;
-            Assert.Single(actualBlock.Evidences);
-        }
-
-        [Fact(Timeout = Timeout)]
-        public async Task IgnoreDifferentHeightVote()
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
         {
-            var privateKeys = TestUtils.PrivateKeys;
-            var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
-                TimeSpan.FromSeconds(1),
-                TestUtils.Options,
-                privateKeys[3]);
-
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
-                consensusContext: consensusContext,
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
                 height: 3,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-            var block = blockChain.ProposeBlock(privateKeys[1]);
-            var blockCommit = TestUtils.CreateBlockCommit(block);
-            await consensusContext.StartAsync(default);
-            blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2]);
-            blockChain.Append(block, TestUtils.CreateBlockCommit(block));
-
-            await consensusProposalMsgAt3Task;
-            var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
-            var blockHash = consensusProposalMsgAt3.BlockHash;
-
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 4,
-                    round: 0,
-                    hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[1],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[2],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-
-            await WaitUntilHeightAsync(
-                consensusContext: consensusContext,
-                height: 4,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-
-            Assert.Empty(blockChain.Blocks[3].Evidences);
-        }
-
-        [Fact(Timeout = Timeout)]
-        public async Task IgnoreDifferentRoundVote()
+                round: 0,
+                hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
         {
-            var privateKeys = TestUtils.PrivateKeys;
-            var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
-                TimeSpan.FromSeconds(1),
-                TestUtils.Options,
-                TestUtils.PrivateKeys[3]);
-
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
-                consensusContext: consensusContext,
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[1],
+                power: BigInteger.One,
                 height: 3,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-            var block = blockChain.ProposeBlock(privateKeys[1]);
-            var blockCommit = TestUtils.CreateBlockCommit(block);
-            await consensusContext.StartAsync(default);
-            blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2]);
-            blockChain.Append(block, TestUtils.CreateBlockCommit(block));
-
-            await consensusProposalMsgAt3Task;
-            var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
-            var blockHash = consensusProposalMsgAt3.BlockHash;
-
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 1,
-                    hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[1],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[2],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-
-            await WaitUntilHeightAsync(
-                consensusContext: consensusContext,
-                height: 4,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-
-            Assert.Empty(blockChain.Blocks[3].Evidences);
-        }
-
-        [Fact(Timeout = Timeout)]
-        public async Task IgnoreDifferentFlagVote()
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
         {
-            var privateKeys = TestUtils.PrivateKeys;
-            var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
-                TimeSpan.FromSeconds(1),
-                TestUtils.Options,
-                privateKeys[3]);
-
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
-                consensusContext: consensusContext,
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[2],
+                power: BigInteger.One,
                 height: 3,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-            var block = blockChain.ProposeBlock(privateKeys[1]);
-            var blockCommit = TestUtils.CreateBlockCommit(block);
-            await consensusContext.StartAsync(default);
-            blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2]);
-            blockChain.Append(block, TestUtils.CreateBlockCommit(block));
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
 
-            await consensusProposalMsgAt3Task;
-            var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
-            var blockHash = consensusProposalMsgAt3.BlockHash;
+        await consensusReactor.WaitUntilAsync(
+            height: 4,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
 
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreVoteMessage
-            {
-                PreVote = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                    flag: VoteType.PreVote)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[1],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[2],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
+        Assert.Single(blockchain.PendingEvidences);
+        Assert.Equal(4, consensusReactor.Height);
+        Assert.Equal(0, consensusReactor.Round);
 
-            await WaitUntilHeightAsync(
-                consensusContext: consensusContext,
-                height: 4,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
+        blockCommit = blockchain.BlockCommits[blockchain.Tip.BlockHash];
+        block = blockchain.ProposeBlock(privateKeys[0]);
+        blockCommit = TestUtils.CreateBlockCommit(block);
+        blockchain.Append(block, blockCommit);
 
-            Assert.Empty(blockChain.Blocks[3].Evidences);
-        }
+        block = blockchain.ProposeBlock(privateKeys[1]);
+        blockCommit = TestUtils.CreateBlockCommit(block);
+        blockchain.Append(block, blockCommit);
 
-        [Fact(Timeout = Timeout)]
-        public async Task IgnoreSameBlockHashVote()
+        block = blockchain.ProposeBlock(privateKeys[2]);
+        blockCommit = TestUtils.CreateBlockCommit(block);
+        blockchain.Append(block, blockCommit);
+
+        await consensusProposalMsgAt7Task;
+        var consensusProposalMsgAt7 = consensusProposalMsgAt7Task.Result;
+        Assert.NotNull(consensusProposalMsgAt3?.BlockHash);
+        var actualBlock = consensusProposalMsgAt7.Proposal.Block;
+        Assert.Single(actualBlock.Evidences);
+    }
+
+    [Fact(Timeout = Timeout)]
+    public async Task IgnoreDifferentHeightVote()
+    {
+        var privateKeys = TestUtils.PrivateKeys;
+        var blockchain = TestUtils.CreateBlockchain();
+        var consensusReactor = TestUtils.CreateConsensusReactor(
+            blockchain: blockchain,
+            newHeightDelay: TimeSpan.FromSeconds(1),
+            key: privateKeys[3]);
+
+        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+            height: 3,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+        var block = blockchain.ProposeBlock(privateKeys[1]);
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        await consensusReactor.StartAsync(default);
+        blockchain.Append(block, blockCommit);
+        block = blockchain.ProposeBlock(privateKeys[2]);
+        blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+
+        await consensusProposalMsgAt3Task;
+        var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
+        var blockHash = consensusProposalMsgAt3.BlockHash;
+
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
         {
-            var privateKeys = TestUtils.PrivateKeys;
-            var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
-                TimeSpan.FromSeconds(1),
-                TestUtils.Options,
-                TestUtils.PrivateKeys[3]);
-
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
-                consensusContext: consensusContext,
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
                 height: 3,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-            var block = blockChain.ProposeBlock(privateKeys[1]);
-            var blockCommit = TestUtils.CreateBlockCommit(block);
-            await consensusContext.StartAsync(default);
-            blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2]);
-            blockChain.Append(block, TestUtils.CreateBlockCommit(block));
-
-            await consensusProposalMsgAt3Task;
-            var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
-            var blockHash = consensusProposalMsgAt3.BlockHash;
-
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[1],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[2],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-
-            await WaitUntilHeightAsync(
-                consensusContext: consensusContext,
-                height: 4,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-
-            Assert.Empty(blockChain.Blocks[3].Evidences);
-        }
-
-        [Fact(Timeout = Timeout)]
-        public async Task IgnoreNillVote()
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
         {
-            var privateKeys = TestUtils.PrivateKeys;
-            var (blockChain, consensusContext) = TestUtils.CreateDummyConsensusContext(
-                TimeSpan.FromSeconds(1),
-                TestUtils.Options,
-                privateKeys[3]);
-
-            var consensusProposalMsgAt3Task = WaitUntilPublishedAsync<ConsensusProposalMessage>(
-                consensusContext: consensusContext,
-                height: 3,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
-            var block = blockChain.ProposeBlock(privateKeys[1]);
-            var blockCommit = TestUtils.CreateBlockCommit(block);
-            await consensusContext.StartAsync(default);
-            blockChain.Append(block, blockCommit);
-            block = blockChain.ProposeBlock(privateKeys[2]);
-            blockChain.Append(block, TestUtils.CreateBlockCommit(block));
-
-            await consensusProposalMsgAt3Task;
-            var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
-            var blockHash = consensusProposalMsgAt3.BlockHash;
-
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[0],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: default,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[1],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-            consensusContext.HandleMessage(new ConsensusPreCommitMessage
-            {
-                PreCommit = TestUtils.CreateVote(
-                    privateKey: privateKeys[2],
-                    power: BigInteger.One,
-                    height: 3,
-                    round: 0,
-                    hash: blockHash,
-                    flag: VoteType.PreCommit)
-            });
-
-            await WaitUntilHeightAsync(
-                consensusContext: consensusContext,
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
                 height: 4,
-                cancellationToken: new CancellationTokenSource(Timeout).Token);
+                round: 0,
+                hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[1],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[2],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
 
-            Assert.Empty(blockChain.Blocks[3].Evidences);
-        }
+        await consensusReactor.WaitUntilAsync(
+            height: 4,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+
+        Assert.Empty(blockchain.Blocks[3].Evidences);
+    }
+
+    [Fact(Timeout = Timeout)]
+    public async Task IgnoreDifferentRoundVote()
+    {
+        var privateKeys = TestUtils.PrivateKeys;
+        var blockchain = TestUtils.CreateBlockchain();
+        var consensusReactor = TestUtils.CreateConsensusReactor(
+            blockchain: blockchain,
+            newHeightDelay: TimeSpan.FromSeconds(1),
+            key: TestUtils.PrivateKeys[3]);
+
+        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+            height: 3,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+        var block = blockchain.ProposeBlock(privateKeys[1]);
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        await consensusReactor.StartAsync(default);
+        blockchain.Append(block, blockCommit);
+        block = blockchain.ProposeBlock(privateKeys[2]);
+        blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+
+        await consensusProposalMsgAt3Task;
+        var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
+        var blockHash = consensusProposalMsgAt3.BlockHash;
+
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
+                height: 3,
+                round: 1,
+                hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[1],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[2],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+
+        await consensusReactor.WaitUntilAsync(
+            height: 4,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+
+        Assert.Empty(blockchain.Blocks[3].Evidences);
+    }
+
+    [Fact(Timeout = Timeout)]
+    public async Task IgnoreDifferentFlagVote()
+    {
+        var privateKeys = TestUtils.PrivateKeys;
+        var blockchain = TestUtils.CreateBlockchain();
+        var consensusReactor = TestUtils.CreateConsensusReactor(
+            blockchain: blockchain,
+            newHeightDelay: TimeSpan.FromSeconds(1),
+            key: privateKeys[3]);
+
+        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+            height: 3,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+        var block = blockchain.ProposeBlock(privateKeys[1]);
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        await consensusReactor.StartAsync(default);
+        blockchain.Append(block, blockCommit);
+        block = blockchain.ProposeBlock(privateKeys[2]);
+        blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+
+        await consensusProposalMsgAt3Task;
+        var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
+        var blockHash = consensusProposalMsgAt3.BlockHash;
+
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreVoteMessage
+        {
+            PreVote = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+                flag: VoteType.PreVote)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[1],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[2],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+
+        await consensusReactor.WaitUntilAsync(
+            height: 4,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+
+        Assert.Empty(blockchain.Blocks[3].Evidences);
+    }
+
+    [Fact(Timeout = Timeout)]
+    public async Task IgnoreSameBlockHashVote()
+    {
+        var privateKeys = TestUtils.PrivateKeys;
+        var blockchain = TestUtils.CreateBlockchain();
+        var consensusReactor = TestUtils.CreateConsensusReactor(
+            blockchain: blockchain,
+            newHeightDelay: TimeSpan.FromSeconds(1),
+            key: TestUtils.PrivateKeys[3]);
+
+        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+            height: 3,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+        var block = blockchain.ProposeBlock(privateKeys[1]);
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        await consensusReactor.StartAsync(default);
+        blockchain.Append(block, blockCommit);
+        block = blockchain.ProposeBlock(privateKeys[2]);
+        blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+
+        await consensusProposalMsgAt3Task;
+        var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
+        var blockHash = consensusProposalMsgAt3.BlockHash;
+
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[1],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[2],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+
+        await consensusReactor.WaitUntilAsync(
+            height: 4,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+
+        Assert.Empty(blockchain.Blocks[3].Evidences);
+    }
+
+    [Fact(Timeout = Timeout)]
+    public async Task IgnoreNillVote()
+    {
+        var privateKeys = TestUtils.PrivateKeys;
+        var blockchain = TestUtils.CreateBlockchain();
+        var consensusReactor = TestUtils.CreateConsensusReactor(
+            blockchain: blockchain,
+            newHeightDelay: TimeSpan.FromSeconds(1),
+            key: privateKeys[3]);
+
+        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+            height: 3,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+        var block = blockchain.ProposeBlock(privateKeys[1]);
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        await consensusReactor.StartAsync(default);
+        blockchain.Append(block, blockCommit);
+        block = blockchain.ProposeBlock(privateKeys[2]);
+        blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+
+        await consensusProposalMsgAt3Task;
+        var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
+        var blockHash = consensusProposalMsgAt3.BlockHash;
+
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[0],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: default,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[1],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+        consensusReactor.HandleMessage(new ConsensusPreCommitMessage
+        {
+            PreCommit = TestUtils.CreateVote(
+                privateKey: privateKeys[2],
+                power: BigInteger.One,
+                height: 3,
+                round: 0,
+                hash: blockHash,
+                flag: VoteType.PreCommit)
+        });
+
+        await consensusReactor.WaitUntilAsync(
+            height: 4,
+            cancellationToken: new CancellationTokenSource(Timeout).Token);
+
+        Assert.Empty(blockchain.Blocks[3].Evidences);
     }
 }

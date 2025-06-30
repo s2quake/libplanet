@@ -49,21 +49,21 @@ namespace Libplanet.Net.Tests.Consensus
                         Address = TestUtils.PrivateKeys[i].Address,
                         EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i)
                     });
-                var options = TestUtils.Options with
+                var options = TestUtils.BlockchainOptions with
                 {
                 };
                 var repository = new Repository();
-                blockChains[i] = new Blockchain(fx.GenesisBlock, repository, TestUtils.Options);
+                blockChains[i] = new Blockchain(fx.GenesisBlock, repository, TestUtils.BlockchainOptions);
             }
 
             for (var i = 0; i < 4; i++)
             {
-                consensusReactors[i] = TestUtils.CreateDummyConsensusReactor(
-                    blockChain: blockChains[i],
+                consensusReactors[i] = TestUtils.CreateConsensusReactor(
+                    blockchain: blockChains[i],
                     key: TestUtils.PrivateKeys[i],
-                    consensusPort: 6000 + i,
-                    validatorPeers: validatorPeers,
-                    newHeightDelayMilliseconds: PropagationDelay * 2);
+                    port: 6000 + i,
+                    validatorPeers: [..validatorPeers],
+                    newHeightDelay: TimeSpan.FromMilliseconds(PropagationDelay * 2));
             }
 
             try

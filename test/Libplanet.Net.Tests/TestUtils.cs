@@ -25,7 +25,7 @@ public static class TestUtils
     public static readonly ImmutableList<PrivateKey> PrivateKeys =
         Libplanet.Tests.TestUtils.ValidatorPrivateKeys;
 
-    public static readonly List<Peer> Peers =
+    public static readonly ImmutableArray<Peer> Peers =
     [
         new Peer { Address = PrivateKeys[0].Address, EndPoint = new DnsEndPoint("1.0.0.0", 1000)},
         new Peer { Address = PrivateKeys[1].Address, EndPoint = new DnsEndPoint("1.0.0.1", 1001)},
@@ -33,10 +33,9 @@ public static class TestUtils
         new Peer { Address = PrivateKeys[3].Address, EndPoint = new DnsEndPoint("1.0.0.3", 1003)},
     ];
 
-    public static readonly ImmutableSortedSet<Validator> Validators
-        = Libplanet.Tests.TestUtils.Validators;
+    public static readonly ImmutableSortedSet<Validator> Validators = Libplanet.Tests.TestUtils.Validators;
 
-    public static readonly BlockchainOptions Options = new()
+    public static readonly BlockchainOptions BlockchainOptions = new()
     {
         SystemActions = new SystemActions
         {
@@ -48,13 +47,13 @@ public static class TestUtils
         },
     };
 
-    public static Protocol Protocol = new ProtocolMetadata
+    public static readonly Protocol Protocol = new ProtocolMetadata
     {
         Version = 1,
         Signer = PrivateKeys[0].Address,
     }.Sign(PrivateKeys[0]);
 
-    private static readonly Random Random = new Random();
+    private static readonly Random Random = new();
 
     public static Vote CreateVote(
         PrivateKey privateKey,
@@ -87,10 +86,10 @@ public static class TestUtils
         return privateKey;
     }
 
-    public static Blockchain CreateBlockChain(BlockchainOptions? options = null, Block? genesisBlock = null)
+    public static Blockchain CreateBlockchain(BlockchainOptions? options = null, Block? genesisBlock = null)
     {
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain(
-            options: options ?? Options,
+            options: options ?? BlockchainOptions,
             genesisBlock: genesisBlock);
         return blockchain;
     }
@@ -250,37 +249,6 @@ public static class TestUtils
         }
     }
 
-    public static (Blockchain BlockChain, ConsensusReactor ConsensusContext)
-        CreateDummyConsensusContext(
-            TimeSpan newHeightDelay,
-            BlockchainOptions? policy = null,
-            PrivateKey? privateKey = null,
-            ConsensusOptions? contextOption = null)
-    {
-        policy ??= Options;
-        var blockChain = CreateBlockChain(policy);
-        ConsensusReactor? consensusContext = null;
-
-        privateKey ??= PrivateKeys[1];
-
-        void BroadcastMessage(ConsensusMessage message) =>
-            Task.Run(() =>
-            {
-                // ReSharper disable once AccessToModifiedClosure
-                consensusContext!.HandleMessage(message);
-            });
-
-        // consensusContext = new ConsensusReactor(
-        //     null,
-        //     blockChain,
-        //     privateKey,
-        //     newHeightDelay,
-        //     contextOption ?? new ContextOptions());
-
-        return (blockChain, consensusContext);
-    }
-
-
     public static NetMQTransport CreateTransport(
         PrivateKey? privateKey = null,
         int? port = null,
@@ -306,7 +274,7 @@ public static class TestUtils
         ImmutableSortedSet<Validator>? validators = null,
         ConsensusOptions? options = null)
     {
-        blockchain ??= CreateBlockChain();
+        blockchain ??= CreateBlockchain();
         var consensus = new Net.Consensus.Consensus(
             blockchain,
             height,
@@ -325,54 +293,34 @@ public static class TestUtils
         return consensus;
     }
 
-    // public static Net.Consensus.Consensus CreateConsensus(
-    //     Blockchain? blockchain = null,
-    //     int height = 1,
-    //     BlockCommit? lastCommit = null,
-    //     BlockchainOptions? blockchainOptions = null,
-    //     PrivateKey? privateKey = null,
-    //     ConsensusOptions? contextOption = null,
-    //     ImmutableSortedSet<Validator>? validators = null)
-    // {
-    //     var signer = (privateKey ?? PrivateKeys[1]).AsSigner();
-    //     var consensus = new Net.Consensus.Consensus(
-    //         blockchain ?? CreateBlockChain(blockchainOptions ?? Options),
-    //         height,
-    //         signer,
-    //         options: contextOption ?? new ConsensusOptions());
-    //     // using var _ = context.MessagePublished.Subscribe(message => context.ProduceMessage(message));
-
-    //     return consensus;
-    // }
-
-    public static ConsensusReactor CreateDummyConsensusReactor(
-        Blockchain blockChain,
+    public static ConsensusReactor CreateConsensusReactor(
+        Blockchain? blockchain = null,
         PrivateKey? key = null,
         string host = "127.0.0.1",
-        int consensusPort = 5101,
-        List<Peer>? validatorPeers = null,
-        int newHeightDelayMilliseconds = 10_000,
-        ConsensusOptions? contextOption = null)
+        int port = 5101,
+        ImmutableArray<Peer>? validatorPeers = null,
+        TimeSpan? newHeightDelay = null,
+        ConsensusOptions? consensusOption = null)
     {
+        blockchain ??= CreateBlockchain();
         key ??= PrivateKeys[1];
-        validatorPeers ??= Peers;
 
         var transportOption = new TransportOptions
         {
             Protocol = Protocol,
             Host = host,
-            Port = consensusPort,
+            Port = port,
         };
-        var consensusTransport = new NetMQTransport(key.AsSigner(), transportOption);
+        var transport = new NetMQTransport(key.AsSigner(), transportOption);
         var consensusReactorOptions = new ConsensusReactorOptions
         {
-            Validators = validatorPeers.ToImmutableArray(),
+            Validators = validatorPeers ?? Peers,
             Signer = key.AsSigner(),
-            TargetBlockInterval = TimeSpan.FromMilliseconds(newHeightDelayMilliseconds),
-            ConsensusOptions = contextOption ?? new ConsensusOptions(),
+            TargetBlockInterval = newHeightDelay ?? TimeSpan.FromMilliseconds(10_000),
+            ConsensusOptions = consensusOption ?? new ConsensusOptions(),
         };
 
-        return new ConsensusReactor(consensusTransport, blockChain, consensusReactorOptions);
+        return new ConsensusReactor(transport, blockchain, consensusReactorOptions);
     }
 
     public static byte[] GetRandomBytes(int size)

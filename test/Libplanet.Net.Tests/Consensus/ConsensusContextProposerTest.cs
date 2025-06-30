@@ -28,10 +28,11 @@ namespace Libplanet.Net.Tests.Consensus
         [Fact(Timeout = Timeout)]
         public async Task IncreaseRoundWhenTimeout()
         {
-            var (blockChain, consensusReactor) = TestUtils.CreateDummyConsensusContext(
-                TimeSpan.FromSeconds(1),
-                TestUtils.Options,
-                TestUtils.PrivateKeys[1]);
+            var blockchain = TestUtils.CreateBlockchain();
+            var consensusReactor = TestUtils.CreateConsensusReactor(
+                blockchain: blockchain,
+                newHeightDelay: TimeSpan.FromSeconds(1),
+                key: TestUtils.PrivateKeys[1]);
             // var timeoutProcessed = new AsyncAutoResetEvent();
             // consensusReactor.TimeoutProcessed += (_, eventArgs) =>
             // {
