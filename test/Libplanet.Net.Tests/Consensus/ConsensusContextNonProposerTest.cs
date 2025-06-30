@@ -8,6 +8,8 @@ using Nito.AsyncEx;
 using Serilog;
 using xRetry;
 using Xunit.Abstractions;
+using Libplanet.Tests;
+using System.Threading;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -98,9 +100,9 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task HandleMessageFromHigherHeight()
     {
-        ConsensusProposalMessage? proposal = null;
-        var heightTwoStepChangedToPreVote = new AsyncAutoResetEvent();
-        var heightTwoStepChangedToPreCommit = new AsyncAutoResetEvent();
+        Proposal? proposal = null;
+        // var heightTwoStepChangedToPreVote = new AsyncAutoResetEvent();
+        // var heightTwoStepChangedToPreCommit = new AsyncAutoResetEvent();
         var heightTwoStepChangedToEndCommit = new AsyncAutoResetEvent();
         var heightThreeStepChangedToPropose = new AsyncAutoResetEvent();
         var heightThreeStepChangedToPreVote = new AsyncAutoResetEvent();
@@ -151,6 +153,44 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         //         proposalSent.Set();
         //     }
         // };
+        consensusReactor.StepChanged.Subscribe(step =>
+        {
+            if (consensusReactor.Height == 2)
+            {
+                if (step == ConsensusStep.PreVote)
+                {
+                    // heightTwoStepChangedToPreVote.Set();
+                }
+                else if (step == ConsensusStep.PreCommit)
+                {
+                    // heightTwoStepChangedToPreCommit.Set();
+                }
+                else if (step == ConsensusStep.EndCommit)
+                {
+                    heightTwoStepChangedToEndCommit.Set();
+                }
+            }
+            else if (consensusReactor.Height == 3)
+            {
+                if (step == ConsensusStep.Propose)
+                {
+                    heightThreeStepChangedToPropose.Set();
+                }
+                else if (step == ConsensusStep.PreVote)
+                {
+                    heightThreeStepChangedToPreVote.Set();
+                }
+            }
+        });
+
+        consensusReactor.BlockPropose.Subscribe(e =>
+        {
+            if (e.Height == 2)
+            {
+                proposal = e;
+                proposalSent.Set();
+            }
+        });
 
         Block block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         blockchain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -222,8 +262,9 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         }
 
         await heightTwoStepChangedToEndCommit.WaitAsync();
+        await blockchain.WaitUntilHeightAsync(2, default);
 
-        var blockHeightTwo = proposal.Proposal.Block;
+        var blockHeightTwo = proposal.Block;
         var blockHeightThree = blockchain.ProposeBlock(TestUtils.PrivateKeys[3]);
 
         // Message from higher height
@@ -250,6 +291,14 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[2]);
+        consensusReactor.BlockPropose.Subscribe(e =>
+        {
+            if (e.Height == 2)
+            {
+                proposedBlock = e.Block;
+                heightTwoProposalSent.Set();
+            }
+        });
         // consensusReactor.MessageConsumed += (_, eventArgs) =>
         // {
         //     if (eventArgs.Height == 2 &&
@@ -280,8 +329,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var newHeightDelay = TimeSpan.FromSeconds(1);
         // The maximum error margin. (macos-netcore-test)
         var timeError = 500;
-        var heightOneEndCommit = new AsyncAutoResetEvent();
-        var heightTwoProposalSent = new AsyncAutoResetEvent();
+        var heightOneEndCommit = new ManualResetEvent(false);
+        var heightTwoProposalSent = new ManualResetEvent(false);
         var blockchain = TestUtils.CreateBlockchain();
         var consensusReactor = TestUtils.CreateConsensusReactor(
             blockchain: blockchain,
@@ -301,6 +350,21 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         //         heightTwoProposalSent.Set();
         //     }
         // };
+        consensusReactor.StepChanged.Subscribe(step =>
+        {
+            if (consensusReactor.Height == 1 && step == ConsensusStep.EndCommit)
+            {
+                heightOneEndCommit.Set();
+            }
+        });
+
+        consensusReactor.BlockPropose.Subscribe(e =>
+        {
+            if (e.Height == 2)
+            {
+                heightTwoProposalSent.Set();
+            }
+        });
 
         await consensusReactor.StartAsync(default);
         var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
@@ -308,13 +372,13 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
             TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]),
             default);
 
-        TestUtils.HandleFourPeersPreCommitMessages(
+        await TestUtils.HandleFourPeersPreCommitMessages(
              consensusReactor, TestUtils.PrivateKeys[2], block.BlockHash);
 
-        await heightOneEndCommit.WaitAsync();
+        Assert.True(heightOneEndCommit.WaitOne(5000), "EndCommit not reached in time.");
         var endCommitTime = DateTimeOffset.UtcNow;
 
-        await heightTwoProposalSent.WaitAsync();
+        Assert.True(heightTwoProposalSent.WaitOne(5000), "Proposal not sent in time.");
         var proposeTime = DateTimeOffset.UtcNow;
         var difference = proposeTime - endCommitTime;
 

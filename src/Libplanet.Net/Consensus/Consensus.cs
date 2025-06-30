@@ -770,18 +770,19 @@ public partial class Consensus(
         if (_decidedBlock is not { } block)
         {
             StartRound(Round + 1);
-            return;
         }
-
-        try
+        else
         {
-            IsValid(block);
-            _completedSubject.OnNext((block, GetBlockCommit()));
-        }
-        catch (Exception e)
-        {
-            _exceptionOccurredSubject.OnNext(e);
-            return;
+            try
+            {
+                IsValid(block);
+                _completedSubject.OnNext((block, GetBlockCommit()));
+            }
+            catch (Exception e)
+            {
+                _exceptionOccurredSubject.OnNext(e);
+                return;
+            }
         }
     }
 

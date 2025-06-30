@@ -300,7 +300,7 @@ public static class TestUtils
         Blockchain? blockchain = null,
         PrivateKey? key = null,
         string host = "127.0.0.1",
-        int port = 5101,
+        int port = 0,
         ImmutableArray<Peer>? validatorPeers = null,
         TimeSpan? newHeightDelay = null,
         ConsensusOptions? consensusOption = null)

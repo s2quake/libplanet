@@ -10,27 +10,17 @@ public static class ConsensusReactorExtensions
     public static async Task WaitUntilAsync(
         this ConsensusReactor @this, int height, CancellationToken cancellationToken)
     {
-        if (@this.Height > height)
+        using var resetEvent = new ManualResetEvent(false);
+        using var _ = @this.HeightChanged.Subscribe(e =>
         {
-            throw new InvalidOperationException($"Height {height} is already passed.");
-        }
-
-        using var manualResetEvent = new ManualResetEvent(false);
-        using var _1 = @this.HeightChanged.Subscribe(height =>
-        {
-            if (height == @this.Height)
+            if (e == height)
             {
-                manualResetEvent.Set();
+                resetEvent.Set();
             }
         });
 
-        while (true)
+        while (@this.Height < height && !resetEvent.WaitOne(0))
         {
-            if (manualResetEvent.WaitOne(0))
-            {
-                return;
-            }
-
             await Task.Delay(100, cancellationToken);
         }
     }
