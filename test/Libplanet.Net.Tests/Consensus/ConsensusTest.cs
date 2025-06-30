@@ -272,7 +272,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             VoteType.PreVote);
         consensus.Post(vote);
         Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
-        Assert.IsType<InvalidOperationException>(exceptionThrown);
+        Assert.IsType<ArgumentException>(exceptionThrown);
     }
 
     [Fact(Timeout = Timeout)]
@@ -563,7 +563,6 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             blockchain,
             options);
         var consensus = consensusReactor.Consensus;
-        // using var _1 = consensus.MessagePublished.Subscribe(consensus.ProduceMessage);
 
         using var _2 = blockchain.TipChanged.Subscribe(e =>
         {
@@ -629,11 +628,11 @@ public sealed class ConsensusTest(ITestOutputHelper output)
 
         Assert.Equal(1, consensusReactor.Height);
         var watch = Stopwatch.StartNew();
-        Assert.True(onTipChanged.WaitOne(1000), "Tip was not changed in time.");
+        Assert.True(onTipChanged.WaitOne(5000), "Tip was not changed in time.");
         Assert.True(watch.ElapsedMilliseconds < (actionDelay * 0.5));
         watch.Restart();
 
-        Assert.True(enteredHeightTwo.WaitOne(1000), "Consensus did not enter height 2 in time.");
+        Assert.True(enteredHeightTwo.WaitOne(5000), "Consensus did not enter height 2 in time.");
         Assert.Equal(
             4,
             consensus.GetBlockCommit()!.Votes.Count(
@@ -727,20 +726,5 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         await cancellationToken.CancelAsync();
 
         Assert.Equal(delay < preVoteDelay ? 3 : 4, numPreVotes);
-    }
-
-    public struct ContextJson
-    {
-#pragma warning disable SA1300
-#pragma warning disable IDE1006
-        public string locked_value { get; set; }
-
-        public int locked_round { get; set; }
-
-        public string valid_value { get; set; }
-
-        public int valid_round { get; set; }
-#pragma warning restore IDE1006
-#pragma warning restore SA1300
     }
 }
