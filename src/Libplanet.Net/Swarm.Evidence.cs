@@ -27,8 +27,6 @@ namespace Libplanet.Net
             var request = new GetEvidenceMessage { EvidenceIds = [.. evidenceIdsAsArray] };
             int evidenceCount = evidenceIdsAsArray.Count();
 
-            _logger.Debug("Required evidence count: {Count}", evidenceCount);
-
             var evidenceRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
                 + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(evidenceCount);
             if (evidenceRecvTimeout > Options.TimeoutOptions.MaxTimeout)
@@ -61,7 +59,6 @@ namespace Libplanet.Net
         private void BroadcastEvidence(Peer? except, IEnumerable<EvidenceBase> evidence)
         {
             List<EvidenceId> evidenceIds = evidence.Select(evidence => evidence.Id).ToList();
-            _logger.Information("Broadcasting {Count} evidenceIds...", evidenceIds.Count);
             BroadcastEvidenceIds(except?.Address ?? default, evidenceIds);
         }
 
@@ -82,9 +79,6 @@ namespace Libplanet.Net
 
                             if (evidenceIds.Any())
                             {
-                                _logger.Debug(
-                                    "Broadcasting {EvidenceCount} pending evidence...",
-                                    evidenceIds.Count);
                                 BroadcastEvidenceIds(default, evidenceIds);
                             }
                         },
@@ -92,15 +86,10 @@ namespace Libplanet.Net
                 }
                 catch (OperationCanceledException e)
                 {
-                    _logger.Warning(e, "{MethodName}() was canceled", nameof(BroadcastTxAsync));
                     throw;
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(
-                        e,
-                        "An unexpected exception occurred during {MethodName}()",
-                        nameof(BroadcastTxAsync));
                 }
             }
         }
@@ -115,10 +104,6 @@ namespace Libplanet.Net
         {
             if (!await _transferEvidenceSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
             {
-                _logger.Debug(
-                    "Message {Message} is dropped due to task limit {Limit}",
-                    message,
-                    Options.TaskRegulationOptions.MaxTransferTxsTaskCount);
                 return;
             }
 
@@ -144,7 +129,6 @@ namespace Libplanet.Net
                     }
                     catch (KeyNotFoundException)
                     {
-                        _logger.Warning("Requested TxId {TxId} does not exist", txid);
                     }
                 }
             }
@@ -153,11 +137,6 @@ namespace Libplanet.Net
                 int count = _transferEvidenceSemaphore.Release();
                 if (count >= 0)
                 {
-                    _logger.Debug(
-                        "{Count}/{Limit} tasks are remaining for handling {FName}",
-                        count,
-                        Options.TaskRegulationOptions.MaxTransferTxsTaskCount,
-                        nameof(TransferEvidenceAsync));
                 }
             }
         }
@@ -165,11 +144,6 @@ namespace Libplanet.Net
         private void ProcessEvidenceIds(MessageEnvelope message)
         {
             var evidenceIdsMsg = (EvidenceIdsMessage)message.Message;
-            _logger.Information(
-                "Received a {MessageType} message with {EvidenceIdCount} evidenceIds",
-                nameof(EvidenceIdsMessage),
-                evidenceIdsMsg.Ids.Count());
-
             EvidenceCompletion.Demand(message.Peer, evidenceIdsMsg.Ids);
         }
     }

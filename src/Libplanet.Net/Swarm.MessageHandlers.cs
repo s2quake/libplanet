@@ -21,10 +21,6 @@ public partial class Swarm
 
             case GetChainStatusMessage getChainStatus:
                 {
-                    _logger.Debug(
-                        "Received a {MessageType} message",
-                        nameof(GetChainStatusMessage));
-
                     // This is based on the assumption that genesis block always exists.
                     Block tip = Blockchain.Tip;
                     var chainStatus = new ChainStatusMessage
@@ -41,21 +37,12 @@ public partial class Swarm
 
             case GetBlockHashesMessage getBlockHashes:
                 {
-                    _logger.Debug(
-                        "Received a {MessageType} message locator [{LocatorHead}]",
-                        nameof(GetBlockHashesMessage),
-                        getBlockHashes.BlockHash);
                     var height = Blockchain.Blocks[getBlockHashes.BlockHash].Height;
                     var hashes = Blockchain.Blocks[height..].Select(item => item.BlockHash).ToArray();
 
                     // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
                     //     getBlockHashes.Locator,
                     //     FindNextHashesChunkSize);
-                    _logger.Debug(
-                        "Found {HashCount} hashes after the branchpoint " +
-                        "with locator [{LocatorHead}]",
-                        hashes.Length,
-                        getBlockHashes.BlockHash);
                     var reply = new BlockHashesMessage { Hashes = [.. hashes] };
 
                     Transport.ReplyMessage(message.Identity, reply);
@@ -85,9 +72,6 @@ public partial class Swarm
                 break;
 
             case BlockHashesMessage _:
-                _logger.Error(
-                    "{MessageType} messages are only for IBD",
-                    nameof(BlockHashesMessage));
                 break;
 
             case BlockHeaderMessage blockHeader:
@@ -105,12 +89,6 @@ public partial class Swarm
         var blockHeaderMsg = (BlockHeaderMessage)message.Message;
         if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
         {
-            _logger.Debug(
-                "{MessageType} message was sent from a peer {Peer} with " +
-                "a different genesis block {Hash}",
-                nameof(BlockHeaderMessage),
-                message.Peer,
-                blockHeaderMsg.GenesisHash);
             return;
         }
 
@@ -122,11 +100,6 @@ public partial class Swarm
         }
         catch (InvalidOperationException ibe)
         {
-            _logger.Debug(
-                ibe,
-                "Received header #{BlockHeight} {BlockHash} is invalid",
-                blockHeaderMsg.HeaderHash,
-                blockHeaderMsg.HeaderIndex);
             return;
         }
 
@@ -136,29 +109,12 @@ public partial class Swarm
         }
         catch (InvalidOperationException e)
         {
-            _logger.Debug(
-                e,
-                "Received header #{BlockHeight} {BlockHash} has invalid timestamp: {Timestamp}",
-                header.Height,
-                header.BlockHash,
-                header.Timestamp);
             return;
         }
 
         bool needed = IsBlockNeeded(header);
-        _logger.Information(
-            "Received " + nameof(BlockHeader) + " #{ReceivedIndex} {ReceivedHash}",
-            header.Height,
-            header.BlockHash);
-
         if (needed)
         {
-            _logger.Information(
-                "Adding received header #{BlockHeight} {BlockHash} from peer {Peer} to " +
-                nameof(BlockDemandTable) + "...",
-                header.Height,
-                header.BlockHash,
-                message.Peer);
             BlockDemandTable.Add(
                 IsBlockNeeded,
                 new BlockDemand(header, message.Peer, DateTimeOffset.UtcNow));
@@ -166,14 +122,6 @@ public partial class Swarm
         }
         else
         {
-            _logger.Information(
-                "Discarding received header #{ReceivedIndex} {ReceivedHash} from peer {Peer} " +
-                "as it is not needed for the current chain with tip #{TipIndex} {TipHash}",
-                header.Height,
-                header.BlockHash,
-                message.Peer,
-                Blockchain.Tip.Height,
-                Blockchain.Tip.BlockHash);
             return;
         }
     }
@@ -182,10 +130,6 @@ public partial class Swarm
     {
         if (!await _transferTxsSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
         {
-            _logger.Debug(
-                "Message {Message} is dropped due to task limit {Limit}",
-                message,
-                Options.TaskRegulationOptions.MaxTransferTxsTaskCount);
             return;
         }
 
@@ -211,7 +155,6 @@ public partial class Swarm
                 }
                 catch (KeyNotFoundException)
                 {
-                    _logger.Warning("Requested TxId {TxId} does not exist", txid);
                 }
             }
         }
@@ -220,11 +163,6 @@ public partial class Swarm
             int count = _transferTxsSemaphore.Release();
             if (count >= 0)
             {
-                _logger.Debug(
-                    "{Count}/{Limit} tasks are remaining for handling {FName}",
-                    count,
-                    Options.TaskRegulationOptions.MaxTransferTxsTaskCount,
-                    nameof(TransferTxsAsync));
             }
         }
     }
@@ -232,11 +170,6 @@ public partial class Swarm
     private void ProcessTxIds(MessageEnvelope message)
     {
         var txIdsMsg = (TxIdsMessage)message.Message;
-        _logger.Information(
-            "Received a {MessageType} message with {TxIdCount} txIds",
-            nameof(TxIdsMessage),
-            txIdsMsg.Ids.Count());
-
         TxCompletion.DemandMany(message.Peer, txIdsMsg.Ids);
     }
 
@@ -244,10 +177,6 @@ public partial class Swarm
     {
         if (!await _transferBlocksSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
         {
-            _logger.Debug(
-                "Message {Message} is dropped due to task limit {Limit}",
-                message,
-                Options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
             return;
         }
 
@@ -287,10 +216,6 @@ public partial class Swarm
                 if (payloads.Count / 2 == blocksMsg.ChunkSize)
                 {
                     var response = new BlocksMessage { Payloads = [.. payloads] };
-                    _logger.Verbose(
-                        "Enqueuing a blocks reply (...{Count}/{Total})...",
-                        count,
-                        total);
                     Transport.ReplyMessage(message.Identity, response);
                     payloads.Clear();
                 }

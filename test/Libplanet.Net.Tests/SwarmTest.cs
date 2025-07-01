@@ -69,8 +69,8 @@ namespace Libplanet.Net.Tests
             Swarm swarm = await CreateSwarm();
 
             Task t = await Task.WhenAny(
-                swarm.StartAsync(),
-                swarm.StartAsync());
+                swarm.StartAsync(default),
+                swarm.StartAsync(default));
 
             Assert.True(swarm.Running);
             Assert.True(t.IsFaulted);
@@ -162,7 +162,7 @@ namespace Libplanet.Net.Tests
                     Assert.True(swarm.Running);
                 });
 
-            Task producerTask = Task.Run(async () => { await swarm.StartAsync(); });
+            Task producerTask = Task.Run(async () => { await swarm.StartAsync(default); });
 
             await consumerTask;
             Assert.True(swarm.Running);
@@ -410,8 +410,8 @@ namespace Libplanet.Net.Tests
             {
                 // swarms[1] is the round 0 proposer for height 1.
                 // swarms[2] is the round 1 proposer for height 2.
-                _ = swarms[0].StartAsync();
-                _ = swarms[3].StartAsync();
+                _ = swarms[0].StartAsync(default);
+                _ = swarms[3].StartAsync(default);
 
                 // swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
                 // {
@@ -428,7 +428,7 @@ namespace Libplanet.Net.Tests
                 await swarms[3].DisposeAsync();
 
                 // Bring swarm[2] online.
-                _ = swarms[2].StartAsync();
+                _ = swarms[2].StartAsync(default);
                 // swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
                 // {
                 //     if (eventArgs.Step == ConsensusStep.PreCommit)
@@ -455,7 +455,7 @@ namespace Libplanet.Net.Tests
 
                 // After swarm[1] comes online, eventually it'll catch up to vote PreCommit,
                 // at which point the round will move to 1 where swarm[2] is the proposer.
-                _ = swarms[1].StartAsync();
+                _ = swarms[1].StartAsync(default);
                 // swarms[2].ConsensusReactor.MessagePublished += (_, eventArgs) =>
                 // {
                 //     if (eventArgs.Message is ConsensusProposalMessage proposalMsg &&

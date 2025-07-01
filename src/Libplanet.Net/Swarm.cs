@@ -21,14 +21,11 @@ using Org.BouncyCastle.Tls;
 
 namespace Libplanet.Net;
 
-public partial class Swarm : IAsyncDisposable
+public sealed partial class Swarm : IAsyncDisposable
 {
-
-    private readonly PrivateKey _privateKey;
-
+    private readonly ISigner _signer;
     private readonly AsyncLock _runningMutex;
 
-    private readonly ILogger _logger;
     private readonly ConsensusReactor _consensusReactor;
     private readonly TxFetcher _txFetcher;
     private readonly IDisposable _txFetcherSubscription;
@@ -39,36 +36,18 @@ public partial class Swarm : IAsyncDisposable
     private CancellationToken _cancellationToken;
     private IDisposable? _tipChangedSubscription;
 
-
-
     private bool _disposed;
 
-    /// <summary>
-    /// Creates a <see cref="Swarm"/>.  This constructor in only itself does not start
-    /// any communication with the network.
-    /// </summary>
-    /// <param name="blockChain">A blockchain to publicize on the network.</param>
-    /// <param name="privateKey">A private key to sign messages.  The public part of
-    /// this key become a part of its end address for being pointed by peers.</param>
-    /// <param name="transport">The <see cref="ITransport"/> to use for
-    /// network communication in block synchronization.</param>
-    /// <param name="options">Options for <see cref="Swarm"/>.</param>
-    /// <param name="consensusTransport">The <see cref="ITransport"/> to use for
-    /// network communication in consensus.
-    /// If null is given, the node cannot join block consensus.
-    /// </param>
-    /// <param name="consensusOption"><see cref="ConsensusReactorOptions"/> for
-    /// initialize <see cref="ConsensusReactor"/>.</param>
     public Swarm(
-        Blockchain blockChain,
+        Blockchain blockchain,
         PrivateKey privateKey,
         ITransport transport,
-        SwarmOptions options = null,
-        ITransport consensusTransport = null,
+        SwarmOptions? options = null,
+        ITransport? consensusTransport = null,
         ConsensusReactorOptions? consensusOption = null)
     {
-        Blockchain = blockChain ?? throw new ArgumentNullException(nameof(blockChain));
-        _privateKey = privateKey ?? throw new ArgumentNullException(nameof(privateKey));
+        Blockchain = blockchain;
+        _signer = privateKey.AsSigner();
         LastSeenTimestamps =
             new ConcurrentDictionary<Peer, DateTimeOffset>();
         BlockHeaderReceived = new AsyncAutoResetEvent();
@@ -77,11 +56,6 @@ public partial class Swarm : IAsyncDisposable
 
         _runningMutex = new AsyncLock();
 
-        string loggerId = _privateKey.Address.ToString("raw", null);
-        _logger = Log
-            .ForContext<Swarm>()
-            .ForContext("Source", nameof(Swarm))
-            .ForContext("SwarmId", loggerId);
 
         Options = options ?? new SwarmOptions();
         TxCompletion = new TxCompletion(Blockchain, GetTxsAsync, BroadcastTxs);
@@ -122,23 +96,13 @@ public partial class Swarm : IAsyncDisposable
         }
     }
 
-    ~Swarm()
-    {
-        // FIXME If possible, we should stop Swarm appropriately here.
-        if (Running)
-        {
-            _logger.Warning(
-                "Swarm is scheduled to destruct, but Transport progress is still running");
-        }
-    }
-
     public bool Running => Transport?.IsRunning ?? false;
 
     public bool ConsensusRunning => _consensusReactor?.IsRunning ?? false;
 
     public DnsEndPoint EndPoint => AsPeer is Peer boundPeer ? boundPeer.EndPoint : null;
 
-    public Address Address => _privateKey.Address;
+    public Address Address => _signer.Address;
 
     public Peer AsPeer => Transport?.Peer;
 
@@ -212,11 +176,9 @@ public partial class Swarm : IAsyncDisposable
         TimeSpan waitFor,
         CancellationToken cancellationToken = default)
     {
-        _logger.Debug("Stopping watching " + nameof(Blockchain) + " for tip changes...");
         _tipChangedSubscription?.Dispose();
         _tipChangedSubscription = null;
 
-        _logger.Debug($"Stopping {nameof(Swarm)}...");
         using (await _runningMutex.LockAsync())
         {
             await Transport.StopAsync(cancellationToken);
@@ -228,28 +190,9 @@ public partial class Swarm : IAsyncDisposable
 
         BlockDemandTable = new BlockDemandDictionary(Options.BlockDemandLifespan);
         BlockCandidateTable = new BlockCandidateTable();
-        _logger.Debug($"{nameof(Swarm)} stopped");
     }
 
-    /// <summary>
-    /// Starts to periodically synchronize the <see cref="Blockchain"/>.
-    /// </summary>
-    /// <param name="cancellationToken">
-    /// A cancellation token used to propagate notification that this
-    /// operation should be canceled.
-    /// </param>
-    /// <returns>An awaitable task without value.</returns>
-    /// <exception cref="SwarmException">Thrown when this <see cref="Swarm"/> instance is
-    /// already <see cref="Running"/>.</exception>
-    /// <remarks>If the <see cref="Blockchain"/> has no blocks at all or there are long behind
-    /// blocks to caught in the network this method could lead to unexpected behaviors, because
-    /// this tries to render <em>all</em> actions in the behind blocks so that there are
-    /// a lot of calls to methods of <see cref="Blockchain.Renderers"/> in a short
-    /// period of time.  This can lead a game startup slow.  If you want to omit rendering of
-    /// these actions in the behind blocks use
-    /// <see cref="PreloadAsync(IProgress{BlockSyncState}, CancellationToken)"/>
-    /// method too.</remarks>
-    public async Task StartAsync(CancellationToken cancellationToken = default)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         await StartAsync(
             Options.TimeoutOptions.DialTimeout,
@@ -258,33 +201,6 @@ public partial class Swarm : IAsyncDisposable
             cancellationToken);
     }
 
-    /// <summary>
-    /// Starts to periodically synchronize the <see cref="Blockchain"/>.
-    /// </summary>
-    /// <param name="dialTimeout">
-    /// When the <see cref="Swarm"/> tries to dial each peer in <see cref="Peers"/>,
-    /// the dial-up is cancelled after this timeout, and it tries another peer.
-    /// If <see langword="null"/> is given it never gives up dial-ups.
-    /// </param>
-    /// <param name="broadcastBlockInterval">Time interval between each broadcast of
-    /// chain tip.</param>
-    /// <param name="broadcastTxInterval">Time interval between each broadcast of staged
-    /// transactions.</param>
-    /// <param name="cancellationToken">
-    /// A cancellation token used to propagate notification that this
-    /// operation should be canceled.
-    /// </param>
-    /// <returns>An awaitable task without value.</returns>
-    /// <exception cref="SwarmException">Thrown when this <see cref="Swarm"/> instance is
-    /// already <see cref="Running"/>.</exception>
-    /// <remarks>If the <see cref="Blockchain"/> has no blocks at all or there are long behind
-    /// blocks to caught in the network this method could lead to unexpected behaviors, because
-    /// this tries to render <em>all</em> actions in the behind blocks so that there are
-    /// a lot of calls to methods of <see cref="Blockchain.Renderers"/> in a short
-    /// period of time.  This can lead a game startup slow.  If you want to omit rendering of
-    /// these actions in the behind blocks use
-    /// <see cref="PreloadAsync(IProgress{BlockSyncState}, CancellationToken)"/>
-    /// method too.</remarks>
     public async Task StartAsync(
         TimeSpan dialTimeout,
         TimeSpan broadcastBlockInterval,
@@ -304,10 +220,6 @@ public partial class Swarm : IAsyncDisposable
                 throw new SwarmException("Swarm is already running.");
             }
 
-            _logger.Debug("Starting swarm...");
-            _logger.Debug("Peer information : {Peer}", AsPeer);
-
-            _logger.Debug("Watching the " + nameof(Blockchain) + " for tip changes...");
             _tipChangedSubscription = Blockchain.TipChanged.Subscribe(OnBlockChainTipChanged);
 
             var tasks = new List<Func<Task>>
@@ -349,32 +261,18 @@ public partial class Swarm : IAsyncDisposable
 
         try
         {
-            _logger.Debug("Swarm started");
             await await runner;
         }
         catch (OperationCanceledException e)
         {
-            _logger.Warning(e, "{MethodName}() is canceled", nameof(StartAsync));
             throw;
         }
         catch (Exception e)
         {
-            _logger.Error(
-                e,
-                "An unexpected exception occurred during {MethodName}()",
-                nameof(StartAsync));
             throw;
         }
     }
 
-    /// <summary>
-    /// Join to the peer-to-peer network using seed peers.
-    /// </summary>
-    /// <param name="cancellationToken">A cancellation token used to propagate notification
-    /// that this operation should be canceled.</param>
-    /// <returns>An awaitable task without value.</returns>
-    /// <exception cref="SwarmException">Thrown when this <see cref="Swarm"/> instance is
-    /// not <see cref="Running"/>.</exception>
     public async Task BootstrapAsync(CancellationToken cancellationToken = default)
     {
         await BootstrapAsync(
@@ -385,18 +283,6 @@ public partial class Swarm : IAsyncDisposable
             .ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Join to the peer-to-peer network using seed peers.
-    /// </summary>
-    /// <param name="seedPeers">List of seed peers.</param>
-    /// <param name="dialTimeout">Timeout for connecting to peers.</param>
-    /// <param name="searchDepth">Maximum recursion depth when finding neighbors of
-    /// current <see cref="Peer"/> from seed peers.</param>
-    /// <param name="cancellationToken">A cancellation token used to propagate notification
-    /// that this operation should be canceled.</param>
-    /// <returns>An awaitable task without value.</returns>
-    /// <exception cref="SwarmException">Thrown when this <see cref="Swarm"/> instance is
-    /// not <see cref="Running"/>.</exception>
     public async Task BootstrapAsync(
         IEnumerable<Peer> seedPeers,
         TimeSpan? dialTimeout,
@@ -426,15 +312,6 @@ public partial class Swarm : IAsyncDisposable
         }
     }
 
-    /// <summary>
-    /// Broadcasts the given block to peers.
-    /// <para>The message is immediately broadcasted, and it is done if the same block has
-    /// already been broadcasted before.</para>
-    /// </summary>
-    /// <param name="block">The block to broadcast to peers.</param>
-    /// <remarks>It does not have to be called manually, because <see cref="Swarm"/> in
-    /// itself watches <see cref="Blockchain"/> for <see cref="Blockchain.Tip"/> changes and
-    /// immediately broadcasts updates if anything changes.</remarks>
     public void BroadcastBlock(Block block)
     {
         BroadcastBlock(default, block);
@@ -445,19 +322,6 @@ public partial class Swarm : IAsyncDisposable
         BroadcastTxs(null, txs);
     }
 
-    /// <summary>
-    /// Gets the <see cref="PeerChainState"/> of the connected <see cref="Peers"/>.
-    /// </summary>
-    /// <param name="dialTimeout">
-    /// When the <see cref="Swarm"/> tries to dial each peer in <see cref="Peers"/>,
-    /// the dial-up is cancelled after this timeout, and it tries another peer.
-    /// If <see langword="null"/> is given it never gives up dial-ups.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// A cancellation token used to propagate notification that this
-    /// operation should be canceled.
-    /// </param>
-    /// <returns><see cref="PeerChainState"/> of the connected <see cref="Peers"/>.</returns>
     public async Task<IEnumerable<PeerChainState>> GetPeerChainStateAsync(
         TimeSpan? dialTimeout,
         CancellationToken cancellationToken)
@@ -470,24 +334,6 @@ public partial class Swarm : IAsyncDisposable
                     pp.Item2?.TipIndex ?? -1));
     }
 
-    /// <summary>
-    /// Preemptively downloads blocks from registered <see cref="Peer"/>s.
-    /// </summary>
-    /// <param name="progress">
-    /// An instance that receives progress updates for block downloads.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// A cancellation token used to propagate notification that this
-    /// operation should be canceled.
-    /// </param>
-    /// <returns>
-    /// A task without value.
-    /// You only can <c>await</c> until the method is completed.
-    /// </returns>
-    /// <remarks>This does not render downloaded <see cref="IAction"/>s, but fills states only.
-    /// </remarks>
-    /// <exception cref="AggregateException">Thrown when the given the block downloading is
-    /// failed.</exception>
     public async Task PreloadAsync(
         IProgress<double> progress = null,
         CancellationToken cancellationToken = default)
@@ -499,69 +345,28 @@ public partial class Swarm : IAsyncDisposable
             cancellationToken);
     }
 
-    /// <summary>
-    /// Preemptively downloads blocks from registered <see cref="Peer"/>s.
-    /// </summary>
-    /// <param name="dialTimeout">
-    /// When the <see cref="Swarm"/> tries to dial each peer in <see cref="Peers"/>,
-    /// the dial-up is cancelled after this timeout, and it tries another peer.
-    /// If <see langword="null"/> is given it never gives up dial-ups.
-    /// </param>
-    /// <param name="tipDeltaThreshold">The threshold of the difference between the topmost tip
-    /// among peers and the local tip.  If the local tip is still behind the topmost tip among
-    /// peers by more than this threshold after a preloading is once done, the preloading
-    /// is repeated.</param>
-    /// <param name="progress">
-    /// An instance that receives progress updates for block downloads.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// A cancellation token used to propagate notification that this
-    /// operation should be canceled.
-    /// </param>
-    /// <returns>
-    /// A task without value.
-    /// You only can <c>await</c> until the method is completed.
-    /// </returns>
-    /// <remarks>This does not render downloaded <see cref="IAction"/>s, but fills states only.
-    /// </remarks>
-    /// <exception cref="AggregateException">Thrown when the given the block downloading is
-    /// failed.</exception>
     public async Task PreloadAsync(
         TimeSpan? dialTimeout,
         long tipDeltaThreshold,
         IProgress<double> progress = null,
         CancellationToken cancellationToken = default)
     {
-        using CancellationTokenRegistration ctr = cancellationToken.Register(() =>
-            _logger.Information("Preloading is requested to be cancelled"));
-
-        _logger.Debug(
-            "Tip before preloading: #{TipIndex} {TipHash}",
-            Blockchain.Tip.Height,
-            Blockchain.Tip.BlockHash);
+        using CancellationTokenRegistration ctr = cancellationToken.Register(() => { });
 
         // FIXME: Currently `IProgress<PreloadState>` can be rewinded to the previous stage
         // as it starts from the first stage when it's still not close enough to the topmost
         // tip in the network.
         for (int i = 0; !cancellationToken.IsCancellationRequested; i++)
         {
-            _logger.Information(
-                "Fetching excerpts from {PeersCount} peers...",
-                Peers.Count);
             var peersWithExcerpts = await GetPeersWithExcerpts(
                 dialTimeout, int.MaxValue, cancellationToken);
 
             if (!peersWithExcerpts.Any())
             {
-                _logger.Information("There are no appropriate peers for preloading");
                 break;
             }
             else
             {
-                _logger.Information(
-                    "Fetched {PeersWithExcerptsCount} excerpts from {PeersCount} peers",
-                    peersWithExcerpts.Count,
-                    Peers.Count);
             }
 
             Block localTip = Blockchain.Tip;
@@ -570,33 +375,13 @@ public partial class Swarm : IAsyncDisposable
                 .Aggregate((prev, next) => prev.Height > next.Height ? prev : next);
             if (topmostTip.Height - (i > 0 ? tipDeltaThreshold : 0L) <= localTip.Height)
             {
-                const string msg =
-                    "As the local tip (#{LocalTipIndex} {LocalTipHash}) is close enough to " +
-                    "the topmost tip in the network (#{TopmostTipIndex} {TopmostTipHash}), " +
-                    "preloading is no longer needed";
-                _logger.Information(
-                    msg,
-                    localTip.Height,
-                    localTip.BlockHash,
-                    topmostTip.Height,
-                    topmostTip.BlockHash);
                 break;
             }
             else
             {
-                const string msg =
-                    "As the local tip (#{LocalTipIndex} {LocalTipHash}) is still not close " +
-                    "enough to the topmost tip in the network " +
-                    "(#{TopmostTipIndex} {TopmostTipHash}), preload one more time...";
-                _logger.Information(
-                    msg,
-                    localTip.Height,
-                    localTip.BlockHash,
-                    topmostTip.Height,
-                    topmostTip.BlockHash);
+
             }
 
-            _logger.Information("Preloading (trial #{Trial}) started...", i + 1);
 
             BlockCandidateTable.Cleanup((_) => true);
             await PullBlocksAsync(
@@ -640,15 +425,6 @@ public partial class Swarm : IAsyncDisposable
             cancellationToken);
     }
 
-    /// <summary>
-    /// Validates all <see cref="Peer"/>s in the routing table by sending a simple message.
-    /// </summary>
-    /// <param name="timeout">Timeout for this operation. If it is set to
-    /// <see langword="null"/>, wait infinitely until the requested operation is finished.
-    /// </param>
-    /// <param name="cancellationToken">A cancellation token used to propagate notification
-    /// that this operation should be canceled.</param>
-    /// <returns>An awaitable task without value.</returns>
     public async Task CheckAllPeersAsync(
         CancellationToken cancellationToken = default)
     {
@@ -660,16 +436,6 @@ public partial class Swarm : IAsyncDisposable
         await kademliaProtocol.CheckAllPeersAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// Adds <paramref name="peers"/> to routing table by sending a simple message.
-    /// </summary>
-    /// <param name="peers">A list of peers to add.</param>
-    /// <param name="timeout">Timeout for this operation. If it is set to
-    /// <see langword="null"/>, wait infinitely until the requested operation is finished.
-    /// </param>
-    /// <param name="cancellationToken">A cancellation token used to propagate notification
-    /// that this operation should be canceled.</param>
-    /// <returns>An awaitable task without value.</returns>
     public Task AddPeersAsync(
         IEnumerable<Peer> peers,
         CancellationToken cancellationToken = default)
@@ -697,10 +463,6 @@ public partial class Swarm : IAsyncDisposable
 
         const string sendMsg =
             "Sending a {MessageType} message with locator [{LocatorHead}]";
-        _logger.Debug(
-            sendMsg,
-            nameof(GetBlockHashesMessage),
-            blockHash);
 
         MessageEnvelope parsedMessage;
         try
@@ -712,9 +474,6 @@ public partial class Swarm : IAsyncDisposable
         }
         catch (CommunicationException)
         {
-            _logger.Debug(
-                "Failed to get a response for " + nameof(GetBlockHashesMessage) +
-                " due to a communication failure");
             return new List<BlockHash>();
         }
 
@@ -725,68 +484,29 @@ public partial class Swarm : IAsyncDisposable
                 if (blockHash.Equals(blockHashes.Hashes.First()))
                 {
                     List<BlockHash> hashes = blockHashes.Hashes.ToList();
-                    _logger.Debug(
-                        "Received a " + nameof(BlockHashesMessage) + " with {Length} hashes",
-                        hashes.Count);
                     return hashes;
                 }
                 else
                 {
-                    const string msg =
-                        "Received a " + nameof(BlockHashesMessage) + " but its " +
-                        "first hash {ActualBlockHash} does not match " +
-                        "the locator hash {ExpectedBlockHash}";
-                    _logger.Debug(msg, blockHashes.Hashes.First(), blockHash);
                     return new List<BlockHash>();
                 }
             }
             else
             {
-                const string msg =
-                    "Received a " + nameof(BlockHashesMessage) + " with zero hashes";
-                _logger.Debug(msg);
                 return new List<BlockHash>();
             }
         }
         else
         {
-            _logger.Debug(
-                "A response for " + nameof(GetBlockHashesMessage) +
-                " is expected to be {ExpectedType}: {ReceivedType}",
-                nameof(BlockHashesMessage),
-                parsedMessage.GetType());
             return new List<BlockHash>();
         }
     }
 
-    /// <summary>
-    /// Download <see cref="Block"/>s corresponding to <paramref name="blockHashes"/>
-    /// from <paramref name="peer"/>.
-    /// </summary>
-    /// <param name="peer">A <see cref="Peer"/> to request <see cref="Block"/>s from.
-    /// </param>
-    /// <param name="blockHashes">A <see cref="List{T}"/> of <see cref="BlockHash"/>es
-    /// of <see cref="Block"/>s to be downloaded from <paramref name="peer"/>.</param>
-    /// <param name="cancellationToken">A cancellation token used to propagate notification
-    /// that this operation should be canceled.</param>
-    /// <returns>An <see cref="IAsyncEnumerable{T}"/> of <see cref="Block"/> and
-    /// <see cref="BlockCommit"/> pairs corresponding to <paramref name="blockHashes"/>.
-    /// Returned <see cref="Block"/>s are guaranteed to correspond to the initial part of
-    /// <paramref name="blockHashes"/>, including the empty list and the full list in order.
-    /// </returns>
-    /// <exception cref="InvalidMessageContractException">Thrown when
-    /// a message other than <see cref="BlocksMessage"/> is received while
-    /// trying to get <see cref="Block"/>s from <paramref name="peer"/>.</exception>
     internal async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
         Peer peer,
         List<BlockHash> blockHashes,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        _logger.Information(
-            "Trying to download {BlockHashesCount} block(s) from {Peer}...",
-            blockHashes.Count,
-            peer);
-
         var request = new GetBlocksMessage { BlockHashes = [.. blockHashes] };
         int hashCount = blockHashes.Count;
 
@@ -805,7 +525,6 @@ public partial class Swarm : IAsyncDisposable
         var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
         var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
 
-        _logger.Debug("Received replies from {Peer}", peer);
         int count = 0;
 
         foreach (var message in aggregateMessage.Messages)
@@ -815,10 +534,6 @@ public partial class Swarm : IAsyncDisposable
             if (message is BlocksMessage blockMessage)
             {
                 var payloads = blockMessage.Payloads;
-                _logger.Information(
-                    "Received {Count} blocks from {Peer}",
-                    payloads.Length,
-                    messageEnvelope.Peer);
                 for (int i = 0; i < payloads.Length; i += 2)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -838,20 +553,11 @@ public partial class Swarm : IAsyncDisposable
                         }
                         else
                         {
-                            _logger.Debug(
-                                "Expected a block with hash {ExpectedBlockHash} but " +
-                                "received a block with hash {ActualBlockHash}",
-                                blockHashes[count],
-                                block.BlockHash);
                             yield break;
                         }
                     }
                     else
                     {
-                        _logger.Debug(
-                            "Expected to receive {BlockCount} blocks but " +
-                            "received more blocks than expected",
-                            blockHashes.Count);
                         yield break;
                     }
                 }
@@ -866,7 +572,6 @@ public partial class Swarm : IAsyncDisposable
             }
         }
 
-        _logger.Information("Downloaded {Count} block(s) from {Peer}", count, peer);
     }
 
     internal async IAsyncEnumerable<Transaction> GetTxsAsync(
@@ -877,8 +582,6 @@ public partial class Swarm : IAsyncDisposable
         var txIdsAsArray = txIds as TxId[] ?? txIds.ToArray();
         var request = new GetTransactionMessage { TxIds = [.. txIdsAsArray] };
         int txCount = txIdsAsArray.Count();
-
-        _logger.Debug("Required tx count: {Count}", txCount);
 
         var txRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
             + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(txCount);
@@ -907,41 +610,6 @@ public partial class Swarm : IAsyncDisposable
             }
         }
     }
-
-    /// <summary>
-    /// Gets all <see cref="BlockHash"/>es for <see cref="Block"/>s needed to be downloaded
-    /// by querying <see cref="Peer"/>s.
-    /// </summary>
-    /// <param name="blockChain">The <see cref="Blockchain"/> to use as a reference
-    /// for generating a <see cref="BlockLocator"/> when querying.  This may not necessarily
-    /// be <see cref="Blockchain"/>, the canonical <see cref="Blockchain"/> instance held
-    /// by this <see cref="Swarm"/> instance.</param>
-    /// <param name="peersWithExcerpts">The <see cref="List{T}"/> of <see cref="Peer"/>s
-    /// to query with their tips known.</param>
-    /// <param name="cancellationToken">The cancellation token that should be used to propagate
-    /// a notification that this operation should be canceled.</param>
-    /// <returns>An <see cref="List{T}"/> of <see cref="BlockHash"/>es together with
-    /// its source <see cref="Peer"/>.  This is guaranteed to always return a non-empty
-    /// <see cref="List{T}"/> unless an <see cref="Exception"/> is thrown.</returns>
-    /// <exception cref="AggregateException">Thrown when failed to download
-    /// <see cref="BlockHash"/>es from a <see cref="Peer"/>.</exception>
-    /// <remarks>
-    /// <para>
-    /// This method uses the tip information for each <see cref="Peer"/> provided with
-    /// <paramref name="peersWithExcerpts"/> whether to make a query in the first place.
-    /// </para>
-    /// <para>
-    /// Returned list of tuples is simply the first successful query result from a
-    /// <see cref="Peer"/> among <paramref name="peersWithExcerpts"/>.
-    /// </para>
-    /// <para>
-    /// This implicitly assumes returned <see cref="BlockHashesMessage"/> is properly
-    /// indexed with a valid branching <see cref="BlockHash"/> as its first element and
-    /// skips it when constructing the result as it is not necessary to download.
-    /// As such, returned result is simply a "dump" of possible <see cref="BlockHash"/>es
-    /// to download.
-    /// </para>
-    /// </remarks>
     internal async Task<(Peer, List<BlockHash>)> GetDemandBlockHashes(
         Blockchain blockChain,
         IList<(Peer, BlockExcerpt)> peersWithExcerpts,
@@ -952,9 +620,6 @@ public partial class Swarm : IAsyncDisposable
         {
             if (!IsBlockNeeded(excerpt))
             {
-                _logger.Verbose(
-                    "Skip peer {Peer} because its block excerpt is not needed",
-                    Peers);
                 continue;
             }
 
@@ -976,19 +641,12 @@ public partial class Swarm : IAsyncDisposable
             }
             catch (Exception e)
             {
-                const string message =
-                    "Failed to fetch demand block hashes from {Peer}; " +
-                    "retry with another peer...";
-                _logger.Debug(e, message, peer);
                 exceptions.Add(e);
                 continue;
             }
         }
 
         Peer[] peers = peersWithExcerpts.Select(p => p.Item1).ToArray();
-        _logger.Warning(
-            "Failed to fetch demand block hashes from peers: {Peers}",
-            peers);
         throw new AggregateException(
             "Failed to fetch demand block hashes from peers: " +
             string.Join(", ", peers.Select(p => p.ToString())),
@@ -1007,12 +665,6 @@ public partial class Swarm : IAsyncDisposable
 
         try
         {
-            _logger.Verbose(
-                "Request block hashes to {Peer} (height: {PeerHeight}) using " +
-                "locator [{LocatorHead}]",
-                peer,
-                peerIndex,
-                blockHash);
 
             List<BlockHash> blockHashes = await GetBlockHashes(
                 peer: peer,
@@ -1021,10 +673,6 @@ public partial class Swarm : IAsyncDisposable
 
             foreach (var item in blockHashes)
             {
-                _logger.Verbose(
-                    "Received a block hash from {Peer}: {BlockHash}",
-                    peer,
-                    item);
                 downloaded.Add(item);
             }
 
@@ -1032,20 +680,12 @@ public partial class Swarm : IAsyncDisposable
         }
         catch (Exception e)
         {
-            _logger.Error(
-                e,
-                "Failed to fetch demand block hashes from {Peer}",
-                peer);
             throw new Exception("Failed");
         }
     }
 
     private void BroadcastBlock(Address except, Block block)
     {
-        _logger.Information(
-            "Trying to broadcast block #{Index} {Hash}...",
-            block.Height,
-            block.BlockHash);
         var message = new BlockHeaderMessage { GenesisHash = Blockchain.Genesis.BlockHash, Excerpt = block };
         BroadcastMessage(except, message);
     }
@@ -1053,7 +693,6 @@ public partial class Swarm : IAsyncDisposable
     private void BroadcastTxs(Peer except, IEnumerable<Transaction> txs)
     {
         List<TxId> txIds = txs.Select(tx => tx.Id).ToList();
-        _logger.Information("Broadcasting {Count} txIds...", txIds.Count);
         BroadcastTxIds(except.Address, txIds);
     }
 
@@ -1064,19 +703,6 @@ public partial class Swarm : IAsyncDisposable
             message);
     }
 
-    /// <summary>
-    /// Gets <see cref="BlockExcerpt"/>es from randomly selected <see cref="Peer"/>s
-    /// from <see cref="Peers"/> with each <see cref="BlockExcerpt"/> tied to
-    /// its originating <see cref="Peer"/>.
-    /// </summary>
-    /// <param name="dialTimeout">Timeout for each dialing operation to
-    /// a <see cref="Peer"/> in <see cref="Peers"/>.  Not having a timeout limit
-    /// is equivalent to setting this value to <see langword="null"/>.</param>
-    /// <param name="maxPeersToDial">Maximum number of <see cref="Peer"/>s to dial.</param>
-    /// <param name="cancellationToken">A cancellation token used to propagate notification
-    /// that this operation should be canceled.</param>
-    /// <returns>An awaitable task with a <see cref="List{T}"/> of tuples
-    /// of <see cref="Peer"/> and <see cref="BlockExcerpt"/> ordered randomly.</returns>
     private async Task<List<(Peer, BlockExcerpt)>> GetPeersWithExcerpts(
         TimeSpan? dialTimeout,
         int maxPeersToDial,
@@ -1095,21 +721,6 @@ public partial class Swarm : IAsyncDisposable
             .ToList();
     }
 
-    /// <summary>
-    /// Gets <see cref="ChainStatusMessage"/>es from randomly selected <see cref="Peer"/>s
-    /// from <see cref="Peers"/> with each <see cref="ChainStatusMessage"/> tied to
-    /// its originating <see cref="Peer"/>.
-    /// </summary>
-    /// <param name="dialTimeout">Timeout for each dialing operation to
-    /// a <see cref="Peer"/> in <see cref="Peers"/>.  Not having a timeout limit
-    /// is equivalent to setting this value to <see langword="null"/>.</param>
-    /// <param name="maxPeersToDial">Maximum number of <see cref="Peer"/>s to dial.</param>
-    /// <param name="cancellationToken">A cancellation token used to propagate notification
-    /// that this operation should be canceled.</param>
-    /// <returns>An awaitable task with an <see cref="Array"/> of tuples
-    /// of <see cref="Peer"/> and <see cref="ChainStatusMessage"/> where
-    /// <see cref="ChainStatusMessage"/> can be <see langword="null"/> if dialing fails for
-    /// a selected <see cref="Peer"/>.</returns>
     private Task<(Peer, ChainStatusMessage)[]> DialExistingPeers(
         TimeSpan? dialTimeout,
         int maxPeersToDial,
@@ -1122,14 +733,8 @@ public partial class Swarm : IAsyncDisposable
             switch (task.Exception?.InnerException)
             {
                 case CommunicationException cfe:
-                    _logger.Debug(
-                        cfe,
-                        "Failed to dial {Peer}",
-                        peer);
                     break;
                 case Exception e:
-                    _logger.Error(
-                        e, "An unexpected exception occurred while dialing {Peer}", peer);
                     break;
                 default:
                     break;
@@ -1188,13 +793,10 @@ public partial class Swarm : IAsyncDisposable
             }
             catch (OperationCanceledException e)
             {
-                _logger.Warning(e, "{MethodName}() was canceled", fname);
                 throw;
             }
             catch (Exception e)
             {
-                _logger.Error(
-                    e, "An unexpected exception occurred during {MethodName}()", fname);
             }
         }
     }
@@ -1218,9 +820,6 @@ public partial class Swarm : IAsyncDisposable
 
                         if (txIds.Any())
                         {
-                            _logger.Debug(
-                                "Broadcasting {TxCount} staged transactions...",
-                                txIds.Count);
                             BroadcastTxIds(default, txIds);
                         }
                     },
@@ -1228,15 +827,10 @@ public partial class Swarm : IAsyncDisposable
             }
             catch (OperationCanceledException e)
             {
-                _logger.Warning(e, "{MethodName}() was canceled", nameof(BroadcastTxAsync));
                 throw;
             }
             catch (Exception e)
             {
-                _logger.Error(
-                    e,
-                    "An unexpected exception occurred during {MethodName}()",
-                    nameof(BroadcastTxAsync));
             }
         }
     }
@@ -1275,15 +869,10 @@ public partial class Swarm : IAsyncDisposable
             }
             catch (OperationCanceledException e)
             {
-                _logger.Warning(e, "{MethodName}() was cancelled", nameof(RefreshTableAsync));
                 throw;
             }
             catch (Exception e)
             {
-                _logger.Warning(
-                    e,
-                    "An unexpected exception occurred during {MethodName}()",
-                    nameof(RefreshTableAsync));
             }
         }
     }
@@ -1303,15 +892,10 @@ public partial class Swarm : IAsyncDisposable
             }
             catch (OperationCanceledException e)
             {
-                _logger.Warning(e, $"{nameof(RebuildConnectionAsync)}() is cancelled");
                 throw;
             }
             catch (Exception e)
             {
-                _logger.Warning(
-                    e,
-                    "Unexpected exception occurred during {MethodName}()",
-                    nameof(RebuildConnectionAsync));
             }
         }
     }

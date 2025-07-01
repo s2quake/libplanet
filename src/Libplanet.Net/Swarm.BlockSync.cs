@@ -3,203 +3,153 @@ using System.Threading.Tasks;
 using Libplanet.Types;
 using Nito.AsyncEx;
 
-namespace Libplanet.Net
+namespace Libplanet.Net;
+
+public partial class Swarm
 {
-    public partial class Swarm
+    public BlockDemandDictionary BlockDemandTable { get; private set; }
+
+    public BlockCandidateTable BlockCandidateTable { get; private set; }
+
+    internal AsyncAutoResetEvent FillBlocksAsyncStarted { get; } = new AsyncAutoResetEvent();
+
+    internal AsyncAutoResetEvent FillBlocksAsyncFailed { get; } = new AsyncAutoResetEvent();
+
+    internal AsyncAutoResetEvent ProcessFillBlocksFinished { get; } = new AsyncAutoResetEvent();
+
+    internal async Task PullBlocksAsync(
+        TimeSpan? timeout,
+        int maximumPollPeers,
+        CancellationToken cancellationToken)
     {
-        /// <summary>
-        /// Information of <see cref="Swarm"/>'s demand for new blocks.
-        /// It is empty when the <see cref="Swarm"/> does not have any block to demand.
-        /// <seealso cref="BlockDemandTable"/>
-        /// </summary>
-        public BlockDemandDictionary BlockDemandTable { get; private set; }
-
-        /// <summary>
-        /// This is a table of waiting <see cref="Block"/>s
-        /// to enter the <see cref="Blockchain"/>.
-        /// <seealso cref="BlockCandidateTable"/>
-        /// </summary>
-        public BlockCandidateTable BlockCandidateTable { get; private set; }
-
-        internal AsyncAutoResetEvent FillBlocksAsyncStarted { get; } = new AsyncAutoResetEvent();
-
-        internal AsyncAutoResetEvent FillBlocksAsyncFailed { get; } = new AsyncAutoResetEvent();
-
-        internal AsyncAutoResetEvent ProcessFillBlocksFinished { get; } = new AsyncAutoResetEvent();
-
-        /// <summary>
-        /// Fill blocks from the <see cref="Peer"/>s in the
-        /// <see cref="Swarm.RoutingTable"/>.
-        /// </summary>
-        /// <param name="timeout">
-        /// The timeout value for the request to get the tip of the block.
-        /// </param>
-        /// <param name="maximumPollPeers">The maximum targets to send request to.</param>
-        /// <param name="cancellationToken">
-        /// A cancellation token used to propagate notification that this
-        /// operation should be canceled.</param>
-        /// <returns>An awaitable task without value.</returns>
-        internal async Task PullBlocksAsync(
-            TimeSpan? timeout,
-            int maximumPollPeers,
-            CancellationToken cancellationToken)
+        if (maximumPollPeers <= 0)
         {
-            if (maximumPollPeers <= 0)
+            return;
+        }
+
+        List<(Peer, BlockExcerpt)> peersWithBlockExcerpt =
+            await GetPeersWithExcerpts(
+                timeout, maximumPollPeers, cancellationToken);
+        await PullBlocksAsync(peersWithBlockExcerpt, cancellationToken);
+    }
+
+    private async Task PullBlocksAsync(
+        List<(Peer, BlockExcerpt)> peersWithBlockExcerpt,
+        CancellationToken cancellationToken)
+    {
+        if (!peersWithBlockExcerpt.Any())
+        {
+            return;
+        }
+
+        long totalBlocksToDownload = 0L;
+        Block tempTip = Blockchain.Tip;
+        var blocks = new List<(Block, BlockCommit)>();
+
+        try
+        {
+            // NOTE: demandBlockHashes is always non-empty.
+            (var peer, var demandBlockHashes) = await GetDemandBlockHashes(
+                Blockchain,
+                peersWithBlockExcerpt,
+                cancellationToken);
+            totalBlocksToDownload = demandBlockHashes.Count;
+
+            var downloadedBlocks = GetBlocksAsync(
+                peer,
+                demandBlockHashes,
+                cancellationToken);
+
+            await foreach (
+                (Block block, BlockCommit commit) in
+                    downloadedBlocks.WithCancellation(cancellationToken))
             {
-                return;
+                cancellationToken.ThrowIfCancellationRequested();
+                blocks.Add((block, commit));
+            }
+        }
+        catch (Exception e)
+        {
+            var msg =
+                $"Unexpected exception occurred during {nameof(PullBlocksAsync)}()";
+            FillBlocksAsyncFailed.Set();
+        }
+        finally
+        {
+            if (totalBlocksToDownload > 0)
+            {
+                try
+                {
+                    var branch = blocks.ToImmutableSortedDictionary(item => item.Item1, item => item.Item2);
+                    BlockCandidateTable.Add(Blockchain.Tip, branch);
+                    BlockReceived.Set();
+                }
+                catch (ArgumentException ae)
+                {
+                }
             }
 
-            List<(Peer, BlockExcerpt)> peersWithBlockExcerpt =
-                await GetPeersWithExcerpts(
+            ProcessFillBlocksFinished.Set();
+        }
+    }
+
+    private async Task FillBlocksAsync(
+        CancellationToken cancellationToken)
+    {
+        var checkInterval = TimeSpan.FromMilliseconds(100);
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (BlockDemandTable.Any())
+            {
+                foreach (var blockDemand in BlockDemandTable.Values)
+                {
+                    BlockDemandTable.Remove(blockDemand.Peer);
+                    _ = ProcessBlockDemandAsync(
+                        blockDemand,
+                        cancellationToken);
+                }
+            }
+            else
+            {
+                await Task.Delay(checkInterval, cancellationToken);
+                continue;
+            }
+
+            BlockDemandTable.Cleanup(IsBlockNeeded);
+        }
+
+    }
+
+    private async Task PollBlocksAsync(
+        TimeSpan timeout,
+        TimeSpan tipLifespan,
+        int maximumPollPeers,
+        CancellationToken cancellationToken)
+    {
+        BlockExcerpt lastTip = Blockchain.Tip;
+        DateTimeOffset lastUpdated = DateTimeOffset.UtcNow;
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (!lastTip.BlockHash.Equals(Blockchain.Tip.BlockHash))
+            {
+                lastUpdated = DateTimeOffset.UtcNow;
+                lastTip = Blockchain.Tip;
+            }
+            else if (lastUpdated + tipLifespan < DateTimeOffset.UtcNow)
+            {
+                await PullBlocksAsync(
                     timeout, maximumPollPeers, cancellationToken);
-            await PullBlocksAsync(peersWithBlockExcerpt, cancellationToken);
+            }
+
+            await Task.Delay(1000, cancellationToken);
         }
+    }
 
-        private async Task PullBlocksAsync(
-            List<(Peer, BlockExcerpt)> peersWithBlockExcerpt,
-            CancellationToken cancellationToken)
+    private void OnBlockChainTipChanged(TipChangedInfo e)
+    {
+        if (Running)
         {
-            if (!peersWithBlockExcerpt.Any())
-            {
-                _logger.Verbose("No any excerpts to process");
-                return;
-            }
-
-            long totalBlocksToDownload = 0L;
-            Block tempTip = Blockchain.Tip;
-            var blocks = new List<(Block, BlockCommit)>();
-
-            try
-            {
-                // NOTE: demandBlockHashes is always non-empty.
-                (var peer, var demandBlockHashes) = await GetDemandBlockHashes(
-                    Blockchain,
-                    peersWithBlockExcerpt,
-                    cancellationToken);
-                totalBlocksToDownload = demandBlockHashes.Count;
-
-                _logger.Verbose(
-                    "Enqueue {BlockHashes} to demands queue...",
-                    demandBlockHashes);
-
-                var downloadedBlocks = GetBlocksAsync(
-                    peer,
-                    demandBlockHashes,
-                    cancellationToken);
-
-                await foreach (
-                    (Block block, BlockCommit commit) in
-                        downloadedBlocks.WithCancellation(cancellationToken))
-                {
-                    _logger.Verbose(
-                        "Got block #{BlockHeight} {BlockHash} from {Peer}",
-                        block.Height,
-                        block.BlockHash,
-                        peer);
-                    cancellationToken.ThrowIfCancellationRequested();
-                    blocks.Add((block, commit));
-                }
-            }
-            catch (Exception e)
-            {
-                var msg =
-                    $"Unexpected exception occurred during {nameof(PullBlocksAsync)}()";
-                _logger.Error(e, msg);
-                FillBlocksAsyncFailed.Set();
-            }
-            finally
-            {
-                if (totalBlocksToDownload > 0)
-                {
-                    try
-                    {
-                        var branch = blocks.ToImmutableSortedDictionary(item => item.Item1, item => item.Item2);
-                        BlockCandidateTable.Add(Blockchain.Tip, branch);
-                        BlockReceived.Set();
-                    }
-                    catch (ArgumentException ae)
-                    {
-                        _logger.Error(
-                            ae,
-                            "An Unexpected exception occurred during {FName}",
-                            nameof(PullBlocksAsync));
-                    }
-                }
-
-                ProcessFillBlocksFinished.Set();
-                _logger.Debug("{MethodName}() has finished", nameof(PullBlocksAsync));
-            }
-        }
-
-        private async Task FillBlocksAsync(
-            CancellationToken cancellationToken)
-        {
-            var checkInterval = TimeSpan.FromMilliseconds(100);
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                if (BlockDemandTable.Any())
-                {
-                    _logger.Debug(
-                        "{MethodName}() blockDemand count: {BlockDemandCount}",
-                        nameof(FillBlocksAsync),
-                        BlockDemandTable.Count);
-                    foreach (var blockDemand in BlockDemandTable.Values)
-                    {
-                        BlockDemandTable.Remove(blockDemand.Peer);
-                        _ = ProcessBlockDemandAsync(
-                            blockDemand,
-                            cancellationToken);
-                    }
-                }
-                else
-                {
-                    await Task.Delay(checkInterval, cancellationToken);
-                    continue;
-                }
-
-                BlockDemandTable.Cleanup(IsBlockNeeded);
-            }
-
-            _logger.Debug("{MethodName}() has finished", nameof(FillBlocksAsync));
-        }
-
-        private async Task PollBlocksAsync(
-            TimeSpan timeout,
-            TimeSpan tipLifespan,
-            int maximumPollPeers,
-            CancellationToken cancellationToken)
-        {
-            BlockExcerpt lastTip = Blockchain.Tip;
-            DateTimeOffset lastUpdated = DateTimeOffset.UtcNow;
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                if (!lastTip.BlockHash.Equals(Blockchain.Tip.BlockHash))
-                {
-                    lastUpdated = DateTimeOffset.UtcNow;
-                    lastTip = Blockchain.Tip;
-                }
-                else if (lastUpdated + tipLifespan < DateTimeOffset.UtcNow)
-                {
-                    _logger.Debug(
-                        "Tip #{TipIndex} {TipHash} has expired (last updated: {LastUpdated}); " +
-                        "pulling blocks from neighbor peers...",
-                        lastTip.Height,
-                        lastTip.BlockHash,
-                        lastUpdated);
-                    await PullBlocksAsync(
-                        timeout, maximumPollPeers, cancellationToken);
-                }
-
-                await Task.Delay(1000, cancellationToken);
-            }
-        }
-
-        private void OnBlockChainTipChanged(TipChangedInfo e)
-        {
-            if (Running)
-            {
-                BroadcastBlock(e.Tip);
-            }
+            BroadcastBlock(e.Tip);
         }
     }
 }
