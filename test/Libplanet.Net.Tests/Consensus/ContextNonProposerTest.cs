@@ -29,7 +29,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             privateKey: TestUtils.PrivateKeys[0]);
 
         var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        var stateChangedToRoundOnePreVote = new AsyncAutoResetEvent();
+        // var stateChangedToRoundOnePreVote = new AsyncAutoResetEvent();
         // using var _ = consensus.StateChanged.Subscribe(state =>
         // {
         //     if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
@@ -63,7 +63,9 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             });
 
         // Wait for round 1 prevote step.
-        await stateChangedToRoundOnePreVote.WaitAsync();
+        // await stateChangedToRoundOnePreVote.WaitAsync();
+        await consensus.WaitUntilAsync(round: 1, step: ConsensusStep.PreVote, default);
+
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(1, consensus.Round);
