@@ -62,12 +62,12 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         };
         Assert.Equal(0, blockHeader.Version);
 
-        ValidationUtility.Throws(blockHeader with
+        ValidationTest.Throws(blockHeader with
         {
             Version = BlockHeader.CurrentProtocolVersion + 1,
         }, nameof(BlockHeader.Version));
 
-        ValidationUtility.Throws(blockHeader with
+        ValidationTest.Throws(blockHeader with
         {
             Version = -1,
         }, nameof(BlockHeader.Version));
@@ -84,7 +84,7 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         };
         Assert.Equal(height, blockHeader.Height);
 
-        ValidationUtility.Throws(blockHeader with
+        ValidationTest.Throws(blockHeader with
         {
             Height = -1,
         }, nameof(BlockHeader.Height));
@@ -101,7 +101,7 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         };
         Assert.Equal(timestamp, blockHeader.Timestamp);
 
-        ValidationUtility.Throws(blockHeader with
+        ValidationTest.Throws(blockHeader with
         {
             Timestamp = default,
         }, nameof(BlockHeader.Timestamp));
@@ -118,7 +118,7 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         };
         Assert.Equal(proposer, blockHeader.Proposer);
 
-        ValidationUtility.Throws(blockHeader with
+        ValidationTest.Throws(blockHeader with
         {
             Proposer = default,
         }, nameof(BlockHeader.Proposer));

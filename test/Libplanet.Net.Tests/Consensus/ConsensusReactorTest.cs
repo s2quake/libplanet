@@ -1,140 +1,102 @@
 using System.Net;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
-using NetMQ;
-using Serilog;
-using Xunit.Abstractions;
 
-namespace Libplanet.Net.Tests.Consensus
+namespace Libplanet.Net.Tests.Consensus;
+
+[Collection("NetMQConfiguration")]
+public class ConsensusReactorTest
 {
-    [Collection("NetMQConfiguration")]
-    public class ConsensusReactorTest : IDisposable
+    private const int PropagationDelay = 25_000;
+    private const int Timeout = 60 * 1000;
+
+    [Fact(Timeout = Timeout)]
+    public async Task StartAsync()
     {
-        private const int PropagationDelay = 25_000;
-        private const int Timeout = 60 * 1000;
-        private readonly ILogger _logger;
+        var count = TestUtils.PrivateKeys.Count;
+        var consensusReactors = new ConsensusReactor[count];
+        var blockchains = new Blockchain[count];
+        using var fx = new MemoryRepositoryFixture();
+        var validatorPeers = new List<Peer>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
 
-        public ConsensusReactorTest(ITestOutputHelper output)
+        for (var i = 0; i < count; i++)
         {
-            const string outputTemplate =
-                "{Timestamp:HH:mm:ss:ffffffZ} - {Message}";
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.TestOutput(output, outputTemplate: outputTemplate)
-                .CreateLogger()
-                .ForContext<ConsensusReactorTest>();
-
-            _logger = Log.ForContext<ConsensusReactorTest>();
+            var peer = new Peer
+            {
+                Address = TestUtils.PrivateKeys[i].Address,
+                EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i),
+            };
+            validatorPeers.Add(peer);
         }
 
-        [Fact(Timeout = Timeout)]
-        public async Task StartAsync()
+        for (var i = 0; i < count; i++)
         {
-            var consensusReactors = new ConsensusReactor[4];
-            var stores = new Libplanet.Data.Repository[4];
-            var blockChains = new Blockchain[4];
-            var fx = new MemoryRepositoryFixture();
-            var validatorPeers = new List<Peer>();
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            for (var i = 0; i < 4; i++)
+            var blockchainOptions = TestUtils.BlockchainOptions with
             {
-                validatorPeers.Add(
-                    new Peer
-                    {
-                        Address = TestUtils.PrivateKeys[i].Address,
-                        EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i)
-                    });
-                var options = TestUtils.BlockchainOptions with
-                {
-                };
-                var repository = new Repository();
-                blockChains[i] = new Blockchain(fx.GenesisBlock, repository, TestUtils.BlockchainOptions);
-            }
-
-            for (var i = 0; i < 4; i++)
-            {
-                consensusReactors[i] = TestUtils.CreateConsensusReactor(
-                    blockchain: blockChains[i],
-                    key: TestUtils.PrivateKeys[i],
-                    port: 6000 + i,
-                    validatorPeers: [..validatorPeers],
-                    newHeightDelay: TimeSpan.FromMilliseconds(PropagationDelay * 2));
-            }
-
-            try
-            {
-                consensusReactors.AsParallel().ForAll(
-                    reactor => _ = reactor.StartAsync(cancellationTokenSource.Token));
-
-                Dictionary<string, JsonElement> json;
-
-                await Task.Delay(PropagationDelay, cancellationTokenSource.Token);
-                foreach (var reactor in consensusReactors)
-                {
-                    await reactor.StopAsync(cancellationTokenSource.Token);
-                }
-
-                var isPolka = new bool[4];
-
-                for (var node = 0; node < 4; ++node)
-                {
-                    json = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(
-                               consensusReactors[node].ToString())
-                           ?? throw new NullReferenceException(
-                               $"Failed to deserialize consensus reactor");
-
-                    // Genesis block exists, add 1 to the height.
-                    if (json["step"].GetString() == "EndCommit")
-                    {
-                        isPolka[node] = true;
-                    }
-                    else
-                    {
-                        Log.Error(
-                            "[Failed]: {0} {1}",
-                            json["step"].GetString(),
-                            blockChains[node].Blocks.Count);
-                        isPolka[node] = false;
-                    }
-                }
-
-                Assert.Equal(4, isPolka.Sum(x => x ? 1 : 0));
-
-                for (var node = 0; node < 4; ++node)
-                {
-                    json = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(
-                               consensusReactors[node].ToString())
-                           ?? throw new NullReferenceException(
-                               $"Failed to deserialize consensus reactor");
-
-                    Assert.Equal(
-                        validatorPeers[node].Address.ToString(),
-                        json["node_id"].GetString());
-                    Assert.Equal(1, json["height"].GetInt32());
-                    Assert.Equal(2, blockChains[node].Blocks.Count);
-                    Assert.Equal(0L, json["round"].GetInt32());
-                    Assert.Equal("EndCommit", json["step"].GetString());
-                }
-            }
-            finally
-            {
-                cancellationTokenSource.Cancel();
-                for (int i = 0; i < 4; ++i)
-                {
-                    await consensusReactors[i].StopAsync(cancellationTokenSource.Token);
-                    await consensusReactors[i].DisposeAsync();
-                }
-            }
+            };
+            var repository = new Repository();
+            blockchains[i] = new Blockchain(fx.GenesisBlock, repository, blockchainOptions);
         }
 
-        public void Dispose()
+        for (var i = 0; i < count; i++)
         {
-            NetMQConfig.Cleanup(false);
+            consensusReactors[i] = TestUtils.CreateConsensusReactor(
+                blockchain: blockchains[i],
+                key: TestUtils.PrivateKeys[i],
+                port: 6000 + i,
+                validatorPeers: [.. validatorPeers],
+                newHeightDelay: TimeSpan.FromMilliseconds(PropagationDelay * 2));
+        }
+
+        try
+        {
+            consensusReactors.AsParallel().ForAll(
+                reactor => _ = reactor.StartAsync(cancellationToken));
+
+            await Task.Delay(PropagationDelay, cancellationToken);
+            await Parallel.ForEachAsync(
+                consensusReactors,
+                cancellationToken,
+                async (consensusReactor, cancellationToken) => await consensusReactor.StopAsync(cancellationToken));
+
+            var isPolka = new bool[4];
+            for (var i = 0; i < 4; ++i)
+            {
+                // Genesis block exists, add 1 to the height.
+                if (consensusReactors[i].Step == ConsensusStep.EndCommit)
+                {
+                    isPolka[i] = true;
+                }
+                else
+                {
+                    isPolka[i] = false;
+                }
+            }
+
+            Assert.Equal(4, isPolka.Sum(x => x ? 1 : 0));
+
+            for (var i = 0; i < 4; ++i)
+            {
+                var consensusReactor = consensusReactors[i];
+                Assert.Equal(validatorPeers[i].Address, consensusReactor.Address);
+                Assert.Equal(1, consensusReactor.Height);
+                Assert.Equal(2, blockchains[i].Blocks.Count);
+                Assert.Equal(0, consensusReactor.Round);
+                Assert.Equal(ConsensusStep.EndCommit, consensusReactor.Step);
+            }
+        }
+        finally
+        {
+            await cancellationTokenSource.CancelAsync();
+            for (var i = 0; i < 4; ++i)
+            {
+                await consensusReactors[i].DisposeAsync();
+            }
         }
     }
 }

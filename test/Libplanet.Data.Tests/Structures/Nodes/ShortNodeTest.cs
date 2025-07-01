@@ -82,28 +82,28 @@ public class ShortNodeTest
             Key = string.Empty,
             Value = valueNode,
         };
-        ValidationUtility.Throws(invalidNode1, nameof(ShortNode.Key));
+        ValidationTest.Throws(invalidNode1, nameof(ShortNode.Key));
 
         var invalidNode2 = new ShortNode
         {
             Key = key,
             Value = node1,
         };
-        ValidationUtility.Throws(invalidNode2, nameof(ShortNode.Value));
+        ValidationTest.Throws(invalidNode2, nameof(ShortNode.Value));
 
         var invalidNode3 = new ShortNode
         {
             Key = key,
             Value = NullNode.Value,
         };
-        ValidationUtility.Throws(invalidNode3, nameof(ShortNode.Value));
+        ValidationTest.Throws(invalidNode3, nameof(ShortNode.Value));
 
         var invalidNode4 = new ShortNode
         {
             Key = key,
             Value = new UnexpectedNode(),
         };
-        ValidationUtility.Throws(invalidNode4, nameof(ShortNode.Value));
+        ValidationTest.Throws(invalidNode4, nameof(ShortNode.Value));
     }
 
 }

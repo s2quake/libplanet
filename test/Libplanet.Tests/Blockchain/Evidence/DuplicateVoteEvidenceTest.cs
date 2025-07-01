@@ -41,7 +41,7 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKey);
 
         // When, Then
-        ValidationUtility.Throws(
+        ValidationTest.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
             nameof(DuplicateVoteEvidence.VoteDup));
     }
@@ -79,7 +79,7 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKey);
 
         // When, Then
-        ValidationUtility.Throws(
+        ValidationTest.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, [.. validatorList]),
             nameof(DuplicateVoteEvidence.VoteDup));
     }
@@ -119,7 +119,7 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKeys[1]);
 
         // When, Then
-        ValidationUtility.Throws(
+        ValidationTest.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
             nameof(DuplicateVoteEvidence.VoteDup));
     }
@@ -157,7 +157,7 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKey);
 
         // When, Then
-        ValidationUtility.Throws(
+        ValidationTest.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
             nameof(DuplicateVoteEvidence.VoteDup));
     }
@@ -196,7 +196,7 @@ public class DuplicateVoteEvidenceTest
         }.Sign(privateKey);
 
         // When, Then
-        ValidationUtility.Throws(
+        ValidationTest.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, [.. validatorList]),
             nameof(DuplicateVoteEvidence.VoteDup));
     }

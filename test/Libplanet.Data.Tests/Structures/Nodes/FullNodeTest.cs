@@ -1,6 +1,7 @@
 using Libplanet.Data.Structures;
 using Libplanet.Data.Structures.Nodes;
 using Libplanet.Serialization;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 
 namespace Libplanet.Data.Tests.Structures.Nodes;
@@ -181,18 +182,18 @@ public class FullNodeTest
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty.SetItem('A', hashNode),
         };
-        ValidationUtility.Throws(invalidNode1, nameof(FullNode.Children));
+        ValidationTest.Throws(invalidNode1, nameof(FullNode.Children));
 
         var invalidNode2 = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty.SetItem('B', new UnexpectedNode()),
         };
-        ValidationUtility.Throws(invalidNode2, nameof(FullNode.Children));
+        ValidationTest.Throws(invalidNode2, nameof(FullNode.Children));
 
         var invalidNode3 = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty.SetItem('C', NullNode.Value),
         };
-        ValidationUtility.Throws(invalidNode3, nameof(FullNode.Children));
+        ValidationTest.Throws(invalidNode3, nameof(FullNode.Children));
     }
 }
