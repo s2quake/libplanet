@@ -30,8 +30,8 @@ namespace Libplanet.Net.Tests
 
                 foreach (var peer in peers)
                 {
-                    await a.AddPeersAsync(new[] { peer });
-                    await b.AddPeersAsync(new[] { peer });
+                    await a.AddPeersAsync(new[] { peer }, default);
+                    await b.AddPeersAsync(new[] { peer }, default);
                 }
 
                 Assert.Equal(new[] { c.AsPeer }, a.Peers.ToArray());
@@ -146,15 +146,15 @@ namespace Libplanet.Net.Tests
                 await StartAsync(e);
                 await StartAsync(f);
 
-                await a.AddPeersAsync(new[] { c.AsPeer });
-                await a.AddPeersAsync(new[] { d.AsPeer });
-                await a.AddPeersAsync(new[] { e.AsPeer });
-                await a.AddPeersAsync(new[] { f.AsPeer });
+                await a.AddPeersAsync(new[] { c.AsPeer }, default);
+                await a.AddPeersAsync(new[] { d.AsPeer }, default);
+                await a.AddPeersAsync(new[] { e.AsPeer }, default);
+                await a.AddPeersAsync(new[] { f.AsPeer }, default);
 
-                await b.AddPeersAsync(new[] { c.AsPeer });
-                await b.AddPeersAsync(new[] { d.AsPeer });
-                await b.AddPeersAsync(new[] { e.AsPeer });
-                await b.AddPeersAsync(new[] { f.AsPeer });
+                await b.AddPeersAsync(new[] { c.AsPeer }, default);
+                await b.AddPeersAsync(new[] { d.AsPeer }, default);
+                await b.AddPeersAsync(new[] { e.AsPeer }, default);
+                await b.AddPeersAsync(new[] { f.AsPeer }, default);
 
                 Assert.Equal(new[] { c.AsPeer }, a.Peers.ToArray());
                 Assert.Equal(new[] { d.AsPeer }, b.Peers.ToArray());

@@ -3,21 +3,15 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.State;
-#if NETSTANDARD2_0
-using Libplanet.Types;
-#endif
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
-using Libplanet.Net.Transports;
 using Libplanet.Serialization;
 using Libplanet.Types;
 using Nito.AsyncEx;
-using Serilog;
 using System.ServiceModel;
-using Org.BouncyCastle.Tls;
+using Libplanet.Extensions;
 
 namespace Libplanet.Net;
 
@@ -32,7 +26,7 @@ public sealed partial class Swarm : IAsyncDisposable
     private readonly EvidenceFetcher _evidenceFetcher;
     private readonly IDisposable _evidenceFetcherSubscription;
 
-    private CancellationTokenSource _workerCancellationTokenSource;
+    private CancellationTokenSource? _workerCancellationTokenSource;
     private CancellationToken _cancellationToken;
     private IDisposable? _tipChangedSubscription;
 
@@ -48,20 +42,18 @@ public sealed partial class Swarm : IAsyncDisposable
     {
         Blockchain = blockchain;
         _signer = privateKey.AsSigner();
-        LastSeenTimestamps =
-            new ConcurrentDictionary<Peer, DateTimeOffset>();
+        LastSeenTimestamps = new ConcurrentDictionary<Peer, DateTimeOffset>();
         BlockHeaderReceived = new AsyncAutoResetEvent();
         BlockAppended = new AsyncAutoResetEvent();
         BlockReceived = new AsyncAutoResetEvent();
 
         _runningMutex = new AsyncLock();
 
-
         Options = options ?? new SwarmOptions();
-        TxCompletion = new TxCompletion(Blockchain, GetTxsAsync, BroadcastTxs);
-        EvidenceCompletion =
-            new EvidenceCompletion<Peer>(
-                Blockchain, GetEvidenceAsync, BroadcastEvidence);
+        // TxCompletion = new TxCompletion(Blockchain, GetTxsAsync, BroadcastTxs);
+        // EvidenceCompletion =
+        //     new EvidenceCompletion<Peer>(
+        //         Blockchain, GetEvidenceAsync, BroadcastEvidence);
         RoutingTable = new RoutingTable(Address, Options.TableSize, Options.BucketSize);
 
         // FIXME: after the initialization of NetMQTransport is fully converted to asynchronous
@@ -114,7 +106,7 @@ public sealed partial class Swarm : IAsyncDisposable
 
     public Blockchain Blockchain { get; private set; }
 
-    public Protocol AppProtocolVersion => Transport.Protocol;
+    public Protocol Protocol => Transport.Protocol;
 
     internal RoutingTable RoutingTable { get; }
 
@@ -122,13 +114,17 @@ public sealed partial class Swarm : IAsyncDisposable
 
     internal ITransport Transport { get; }
 
-    internal TxCompletion TxCompletion { get; }
+    // internal TxCompletion TxCompletion { get; }
 
-    internal EvidenceCompletion<Peer> EvidenceCompletion { get; }
+    // internal EvidenceCompletion<Peer> EvidenceCompletion { get; }
 
-    internal AsyncAutoResetEvent TxReceived => TxCompletion?.TxReceived;
+    // internal AsyncAutoResetEvent TxReceived => TxCompletion?.TxReceived;
 
-    internal AsyncAutoResetEvent EvidenceReceived => EvidenceCompletion?.EvidenceReceived;
+    internal IObservable<ReceivedInfo<Transaction>> TxReceived => _txFetcher.Received;
+
+    internal IObservable<ReceivedInfo<EvidenceBase>> EvidenceReceived => _evidenceFetcher.Received;
+
+    // internal AsyncAutoResetEvent EvidenceReceived => EvidenceCompletion?.EvidenceReceived;
 
     internal AsyncAutoResetEvent BlockHeaderReceived { get; }
 
@@ -147,7 +143,6 @@ public sealed partial class Swarm : IAsyncDisposable
     // FIXME: This should be exposed in a better way.
     internal ConsensusReactor ConsensusReactor => _consensusReactor;
 
-
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
@@ -157,7 +152,9 @@ public sealed partial class Swarm : IAsyncDisposable
                 await _workerCancellationTokenSource.CancelAsync();
             }
 
-            TxCompletion?.Dispose();
+            _txFetcher.Dispose();
+            _evidenceFetcher.Dispose();
+            // TxCompletion?.Dispose();
             await Transport.DisposeAsync();
             await _consensusReactor.DisposeAsync();
             _workerCancellationTokenSource?.Dispose();
@@ -166,15 +163,7 @@ public sealed partial class Swarm : IAsyncDisposable
         }
     }
 
-    public async Task StopAsync(
-        CancellationToken cancellationToken = default)
-    {
-        await StopAsync(TimeSpan.FromSeconds(1), cancellationToken);
-    }
-
-    public async Task StopAsync(
-        TimeSpan waitFor,
-        CancellationToken cancellationToken = default)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
         _tipChangedSubscription?.Dispose();
         _tipChangedSubscription = null;
@@ -395,62 +384,42 @@ public sealed partial class Swarm : IAsyncDisposable
         cancellationToken.ThrowIfCancellationRequested();
     }
 
-    /// <summary>
-    /// Use <see cref="FindNeighborsMessage"/> messages to find a <see cref="Peer"/> with
-    /// <see cref="Address"/> of <paramref name="target"/>.
-    /// </summary>
-    /// <param name="target">The <see cref="Address"/> to find.</param>
-    /// <param name="depth">Target depth of recursive operation. If -1 is given,
-    /// will recursive until the closest <see cref="Peer"/> to the
-    /// <paramref name="target"/> is found.</param>
-    /// <param name="timeout">
-    /// <see cref="TimeSpan"/> for waiting reply of <see cref="FindNeighborsMessage"/>.
-    /// If <see langword="null"/> is given, <see cref="TimeoutException"/> will not be thrown.
-    /// </param>
-    /// <param name="cancellationToken">A cancellation token used to propagate notification
-    /// that this operation should be canceled.</param>
-    /// <returns>
-    /// A <see cref="Peer"/> with <see cref="Address"/> of <paramref name="target"/>.
-    /// Returns <see langword="null"/> if the peer with address does not exist.
-    /// </returns>
     public async Task<Peer> FindSpecificPeerAsync(
         Address target,
         int depth = 3,
         CancellationToken cancellationToken = default)
     {
-        Kademlia kademliaProtocol = (Kademlia)PeerDiscovery;
+        Kademlia kademliaProtocol = PeerDiscovery;
         return await kademliaProtocol.FindSpecificPeerAsync(
             target,
             depth,
             cancellationToken);
     }
 
-    public async Task CheckAllPeersAsync(
-        CancellationToken cancellationToken = default)
+    public async Task CheckAllPeersAsync(CancellationToken cancellationToken = default)
     {
         using CancellationTokenSource cts = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken, _cancellationToken);
         cancellationToken = cts.Token;
 
-        Kademlia kademliaProtocol = (Kademlia)PeerDiscovery;
+        Kademlia kademliaProtocol = PeerDiscovery;
         await kademliaProtocol.CheckAllPeersAsync(cancellationToken);
     }
 
-    public Task AddPeersAsync(
-        IEnumerable<Peer> peers,
-        CancellationToken cancellationToken = default)
+    public async Task AddPeersAsync(IEnumerable<Peer> peers, CancellationToken cancellationToken)
     {
-        if (Transport is null)
-        {
-            throw new ArgumentNullException(nameof(Transport));
-        }
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken, _cancellationToken);
 
-        if (cancellationToken == default)
-        {
-            cancellationToken = _cancellationToken;
-        }
+        await PeerDiscovery.AddPeersAsync(peers, cancellationTokenSource.Token);
+    }
 
-        return PeerDiscovery.AddPeersAsync(peers, cancellationToken);
+    internal async Task<Transaction[]> FetchTxAsync(Peer peer, TxId[] txids, CancellationToken cancellationToken)
+    {
+        var task = _txFetcher.Received.WaitAsync(cancellationToken);
+        _txFetcher.DemandMany(peer, txids);
+        var result = await task;
+        return [.. result.Items];
     }
 
     // FIXME: This would be better if it's merged with GetDemandBlockHashes
@@ -571,45 +540,47 @@ public sealed partial class Swarm : IAsyncDisposable
                 throw new InvalidMessageContractException(errorMessage);
             }
         }
-
     }
 
-    internal async IAsyncEnumerable<Transaction> GetTxsAsync(
-        Peer peer,
-        IEnumerable<TxId> txIds,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        var txIdsAsArray = txIds as TxId[] ?? txIds.ToArray();
-        var request = new GetTransactionMessage { TxIds = [.. txIdsAsArray] };
-        int txCount = txIdsAsArray.Count();
 
-        var txRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
-            + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(txCount);
-        if (txRecvTimeout > Options.TimeoutOptions.MaxTimeout)
-        {
-            txRecvTimeout = Options.TimeoutOptions.MaxTimeout;
-        }
 
-        var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
-        var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
+    // internal async IAsyncEnumerable<Transaction> GetTxsAsync(
+    //     Peer peer,
+    //     IEnumerable<TxId> txIds,
+    //     [EnumeratorCancellation] CancellationToken cancellationToken)
+    // {
+    //     var txIdsAsArray = txIds as TxId[] ?? txIds.ToArray();
+    //     var request = new GetTransactionMessage { TxIds = [.. txIdsAsArray] };
+    //     int txCount = txIdsAsArray.Count();
 
-        foreach (var message in aggregateMessage.Messages)
-        {
-            if (message is TransactionMessage parsed)
-            {
-                Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload.AsSpan());
-                yield return tx;
-            }
-            else
-            {
-                string errorMessage =
-                    $"Expected {nameof(Transaction)} messages as response of " +
-                    $"the {nameof(GetTransactionMessage)} message, but got a {message.GetType().Name} " +
-                    $"message instead: {message}";
-                throw new InvalidMessageContractException(errorMessage);
-            }
-        }
-    }
+    //     var txRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
+    //         + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(txCount);
+    //     if (txRecvTimeout > Options.TimeoutOptions.MaxTimeout)
+    //     {
+    //         txRecvTimeout = Options.TimeoutOptions.MaxTimeout;
+    //     }
+
+    //     var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
+    //     var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
+
+    //     foreach (var message in aggregateMessage.Messages)
+    //     {
+    //         if (message is TransactionMessage parsed)
+    //         {
+    //             Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload.AsSpan());
+    //             yield return tx;
+    //         }
+    //         else
+    //         {
+    //             string errorMessage =
+    //                 $"Expected {nameof(Transaction)} messages as response of " +
+    //                 $"the {nameof(GetTransactionMessage)} message, but got a {message.GetType().Name} " +
+    //                 $"message instead: {message}";
+    //             throw new InvalidMessageContractException(errorMessage);
+    //         }
+    //     }
+    // }
+
     internal async Task<(Peer, List<BlockHash>)> GetDemandBlockHashes(
         Blockchain blockChain,
         IList<(Peer, BlockExcerpt)> peersWithExcerpts,
@@ -801,9 +772,7 @@ public sealed partial class Swarm : IAsyncDisposable
         }
     }
 
-    private async Task BroadcastTxAsync(
-        TimeSpan broadcastTxInterval,
-        CancellationToken cancellationToken)
+    private async Task BroadcastTxAsync(TimeSpan broadcastTxInterval, CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -841,14 +810,6 @@ public sealed partial class Swarm : IAsyncDisposable
         BroadcastMessage(except, message);
     }
 
-    /// <summary>
-    /// Checks if the corresponding <see cref="Block"/> to a given
-    /// <see cref="BlockExcerpt"/> is needed for <see cref="Blockchain"/>.
-    /// </summary>
-    /// <param name="target">The <see cref="BlockExcerpt"/> to compare to the current
-    /// <see cref="Blockchain.Tip"/> of <see cref="Blockchain"/>.</param>
-    /// <returns><see langword="true"/> if the corresponding <see cref="Block"/> to
-    /// <paramref name="target"/> is needed, otherwise, <see langword="false"/>.</returns>
     private bool IsBlockNeeded(BlockExcerpt target)
     {
         return target.Height > Blockchain.Tip.Height;

@@ -83,7 +83,7 @@ namespace Libplanet.Net.Tests.Transports
                 }
                 finally
                 {
-                    await swarm.StopAsync();
+                    await swarm.StopAsync(default);
                 }
             }
 

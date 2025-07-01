@@ -144,7 +144,8 @@ namespace Libplanet.Net
         private void ProcessEvidenceIds(MessageEnvelope message)
         {
             var evidenceIdsMsg = (EvidenceIdsMessage)message.Message;
-            EvidenceCompletion.Demand(message.Peer, evidenceIdsMsg.Ids);
+            // EvidenceCompletion.Demand(message.Peer, evidenceIdsMsg.Ids);
+            _evidenceFetcher.DemandMany(message.Peer, [.. evidenceIdsMsg.Ids]);
         }
     }
 }
