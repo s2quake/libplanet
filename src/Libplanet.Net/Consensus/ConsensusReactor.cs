@@ -70,6 +70,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     public IObservable<Proposal> BlockPropose => _blockProposeSubject;
 
+    public Address Address => _signer.Address;
+
     private void ValidateMessageToReceive(MessageEnvelope message)
     {
         if (message.Message is ConsensusVoteMessage voteMsg)

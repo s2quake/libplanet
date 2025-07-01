@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Data;
+using Libplanet.Net;
 using Libplanet.Types;
 
 namespace Libplanet.TestUtilities;
@@ -181,5 +182,13 @@ public static partial class RandomUtility
         Header = BlockHeader(random),
         Content = BlockContent(random),
         Signature = ImmutableArray(random, Byte),
+    };
+
+    public static Peer Peer() => Peer(System.Random.Shared);
+
+    public static Peer Peer(Random random) => new()
+    {
+        Address = Address(random),
+        EndPoint = DnsEndPoint(random),
     };
 }

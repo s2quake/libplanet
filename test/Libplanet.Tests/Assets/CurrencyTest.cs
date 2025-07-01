@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 
@@ -46,10 +47,10 @@ public class CurrencyTest
         Assert.Equal(100, quux.MaximumSupply);
         Assert.Empty(quux.Minters);
 
-        ValidationUtility.Throws(Currency.Create(string.Empty, 0), nameof(Currency.Ticker));
-        ValidationUtility.Throws(Currency.Create("   \n", 1), nameof(Currency.Ticker));
-        ValidationUtility.Throws(Currency.Create("bar", 1), nameof(Currency.Ticker));
-        ValidationUtility.Throws(Currency.Create("TEST", 1, -100, []), nameof(Currency.MaximumSupply));
+        ValidationTest.Throws(Currency.Create(string.Empty, 0), nameof(Currency.Ticker));
+        ValidationTest.Throws(Currency.Create("   \n", 1), nameof(Currency.Ticker));
+        ValidationTest.Throws(Currency.Create("bar", 1), nameof(Currency.Ticker));
+        ValidationTest.Throws(Currency.Create("TEST", 1, -100, []), nameof(Currency.MaximumSupply));
     }
 
     [Fact]

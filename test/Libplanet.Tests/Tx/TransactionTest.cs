@@ -3,6 +3,7 @@ using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Types;
 using Libplanet.TestUtilities.Extensions;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Tests.Tx;
 
@@ -26,7 +27,7 @@ public class TransactionTest
         Assert.Equal(_fx.Tx, tx);
 
         var wrongTx = _fx.Tx with { Signature = _fx.TxWithActions.Signature };
-        ValidationUtility.Throws(wrongTx, nameof(Transaction.Signature));
+        ValidationTest.Throws(wrongTx, nameof(Transaction.Signature));
     }
 
     [Fact]
@@ -37,7 +38,7 @@ public class TransactionTest
         Assert.Equal(_fx.Tx, tx);
 
         var wrongKey = new PrivateKey();
-        ValidationUtility.Throws(_fx.Tx.Metadata.Sign(wrongKey), nameof(Transaction.Signature));
+        ValidationTest.Throws(_fx.Tx.Metadata.Sign(wrongKey), nameof(Transaction.Signature));
     }
 
     [Fact]

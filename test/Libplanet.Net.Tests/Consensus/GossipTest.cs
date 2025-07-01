@@ -7,19 +7,13 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus;
 
 [Collection("NetMQConfiguration")]
-public sealed class GossipTest(ITestOutputHelper output) : IDisposable
+public sealed class GossipTest
 {
     private const int Timeout = 60 * 1000;
-
-    public void Dispose()
-    {
-        // NetMQConfig.Cleanup(false);
-    }
 
     [Fact(Timeout = Timeout)]
     public async Task PublishMessage()
