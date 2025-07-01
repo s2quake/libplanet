@@ -170,7 +170,8 @@ public partial class Swarm
     private void ProcessTxIds(MessageEnvelope message)
     {
         var txIdsMsg = (TxIdsMessage)message.Message;
-        TxCompletion.DemandMany(message.Peer, txIdsMsg.Ids);
+        // TxCompletion.DemandMany(message.Peer, txIdsMsg.Ids);
+        _txFetcher.DemandMany(message.Peer, [.. txIdsMsg.Ids]);
     }
 
     private async void TransferBlocksAsync(MessageEnvelope message)

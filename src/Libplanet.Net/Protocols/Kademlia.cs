@@ -137,20 +137,13 @@ public sealed class Kademlia
 
     public async Task AddPeersAsync(IEnumerable<Peer> peers, CancellationToken cancellationToken)
     {
-        try
+        var tasks = new List<Task>();
+        foreach (var peer in peers)
         {
-            var tasks = new List<Task>();
-            foreach (var peer in peers)
-            {
-                tasks.Add(PingAsync(peer, cancellationToken));
-            }
+            tasks.Add(PingAsync(peer, cancellationToken));
+        }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-        catch (TaskCanceledException)
-        {
-            // do nothing
-        }
+        await Task.WhenAll(tasks);
     }
 
     public async Task RefreshTableAsync(TimeSpan maxAge, CancellationToken cancellationToken)

@@ -252,7 +252,8 @@ If omitted (default) explorer only the local blockchain store.")]
                     }
                     catch (OperationCanceledException)
                     {
-                        await swarm?.StopAsync(waitFor: TimeSpan.FromSeconds(1))
+                        using var cts1 = new CancellationTokenSource(1000);
+                        await swarm?.StopAsync(cts1.Token)
                             .ContinueWith(_ => NetMQConfig.Cleanup(false));
                     }
                 }
