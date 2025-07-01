@@ -64,7 +64,7 @@ namespace Libplanet.Net.Tests.Transports
                             "Each type of transport must have corresponding test case.");
                     }
                 });
-                _ = swarm.StartAsync();
+                _ = swarm.StartAsync(default);
                 try
                 {
                     Protocol receivedAPV = default;

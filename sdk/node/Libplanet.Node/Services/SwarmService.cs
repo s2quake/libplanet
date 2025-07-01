@@ -104,7 +104,7 @@ internal sealed class SwarmService(
             : (ConsensusReactorOptions?)null;
 
         _swarm = new Swarm(
-            blockChain: blockChain,
+            blockchain: blockChain,
             privateKey: privateKey,
             transport: swarmTransport,
             options: swarmOptions,
