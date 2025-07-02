@@ -53,7 +53,7 @@ public partial class Swarm
                 Blockchain,
                 peersWithBlockExcerpt,
                 cancellationToken);
-            totalBlocksToDownload = demandBlockHashes.Count;
+            totalBlocksToDownload = demandBlockHashes.Length;
 
             var downloadedBlocks = GetBlocksAsync(
                 peer,
@@ -147,7 +147,7 @@ public partial class Swarm
 
     private void OnBlockChainTipChanged(TipChangedInfo e)
     {
-        if (Running)
+        if (IsRunning)
         {
             BroadcastBlock(e.Tip);
         }

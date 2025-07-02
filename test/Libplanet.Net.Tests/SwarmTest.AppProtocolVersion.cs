@@ -26,7 +26,7 @@ namespace Libplanet.Net.Tests
                 await StartAsync(c);
                 await StartAsync(d);
 
-                var peers = new[] { c.AsPeer, d.AsPeer };
+                var peers = new[] { c.Peer, d.Peer };
 
                 foreach (var peer in peers)
                 {
@@ -34,8 +34,8 @@ namespace Libplanet.Net.Tests
                     await b.AddPeersAsync(new[] { peer }, default);
                 }
 
-                Assert.Equal(new[] { c.AsPeer }, a.Peers.ToArray());
-                Assert.Equal(new[] { d.AsPeer }, b.Peers.ToArray());
+                Assert.Equal(new[] { c.Peer }, a.Peers.ToArray());
+                Assert.Equal(new[] { d.Peer }, b.Peers.ToArray());
             }
             finally
             {
@@ -68,7 +68,7 @@ namespace Libplanet.Net.Tests
             {
                 await StartAsync(b);
 
-                await Assert.ThrowsAsync<InvalidOperationException>(() => BootstrapAsync(a, b.AsPeer));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => BootstrapAsync(a, b.Peer));
 
                 Assert.True(isCalled);
             }
@@ -146,18 +146,18 @@ namespace Libplanet.Net.Tests
                 await StartAsync(e);
                 await StartAsync(f);
 
-                await a.AddPeersAsync(new[] { c.AsPeer }, default);
-                await a.AddPeersAsync(new[] { d.AsPeer }, default);
-                await a.AddPeersAsync(new[] { e.AsPeer }, default);
-                await a.AddPeersAsync(new[] { f.AsPeer }, default);
+                await a.AddPeersAsync(new[] { c.Peer }, default);
+                await a.AddPeersAsync(new[] { d.Peer }, default);
+                await a.AddPeersAsync(new[] { e.Peer }, default);
+                await a.AddPeersAsync(new[] { f.Peer }, default);
 
-                await b.AddPeersAsync(new[] { c.AsPeer }, default);
-                await b.AddPeersAsync(new[] { d.AsPeer }, default);
-                await b.AddPeersAsync(new[] { e.AsPeer }, default);
-                await b.AddPeersAsync(new[] { f.AsPeer }, default);
+                await b.AddPeersAsync(new[] { c.Peer }, default);
+                await b.AddPeersAsync(new[] { d.Peer }, default);
+                await b.AddPeersAsync(new[] { e.Peer }, default);
+                await b.AddPeersAsync(new[] { f.Peer }, default);
 
-                Assert.Equal(new[] { c.AsPeer }, a.Peers.ToArray());
-                Assert.Equal(new[] { d.AsPeer }, b.Peers.ToArray());
+                Assert.Equal(new[] { c.Peer }, a.Peers.ToArray());
+                Assert.Equal(new[] { d.Peer }, b.Peers.ToArray());
 
                 _output.WriteLine("Logged encountered peers:");
                 foreach (KeyValuePair<Peer, Protocol> kv in logs)

@@ -100,44 +100,29 @@ namespace Libplanet.Net
             BroadcastMessage(except, message);
         }
 
-        private async Task TransferEvidenceAsync(MessageEnvelope message)
+        private async Task TransferEvidenceAsync(MessageEnvelope message, CancellationToken cancellationToken)
         {
-            if (!await _transferEvidenceSemaphore.WaitAsync(TimeSpan.Zero, _cancellationToken))
+            using var scope = await _transferEvidenceLimiter.WaitAsync(cancellationToken);
+            if (scope is null)
             {
                 return;
             }
 
-            try
+            var getEvidenceMsg = (GetEvidenceMessage)message.Message;
+            foreach (EvidenceId txid in getEvidenceMsg.EvidenceIds)
             {
-                var getEvidenceMsg = (GetEvidenceMessage)message.Message;
-                foreach (EvidenceId txid in getEvidenceMsg.EvidenceIds)
-                {
-                    try
-                    {
-                        EvidenceBase? ev = Blockchain.PendingEvidences[txid];
+                EvidenceBase? ev = Blockchain.PendingEvidences[txid];
 
-                        if (ev is null)
-                        {
-                            continue;
-                        }
-
-                        MessageBase response = new EvidenceMessage
-                        {
-                            Payload = [.. ModelSerializer.SerializeToBytes(ev)],
-                        };
-                        Transport.ReplyMessage(message.Identity, response);
-                    }
-                    catch (KeyNotFoundException)
-                    {
-                    }
-                }
-            }
-            finally
-            {
-                int count = _transferEvidenceSemaphore.Release();
-                if (count >= 0)
+                if (ev is null)
                 {
+                    continue;
                 }
+
+                MessageBase response = new EvidenceMessage
+                {
+                    Payload = [.. ModelSerializer.SerializeToBytes(ev)],
+                };
+                Transport.ReplyMessage(message.Identity, response);
             }
         }
 

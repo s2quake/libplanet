@@ -112,8 +112,8 @@ internal sealed class SwarmService(
             consensusOption: consensusReactorOption);
         _startTask = _swarm.StartAsync(cancellationToken: default);
         _logger.LogDebug("Node.Swarm is starting: {Address}", _swarm.Address);
-        await _swarm.BootstrapAsync(cancellationToken: default);
-        _logger.LogDebug("Node.Swarm is bootstrapped: {Address}", _swarm.Address);
+        // await _swarm.BootstrapAsync(cancellationToken: default);
+        // _logger.LogDebug("Node.Swarm is bootstrapped: {Address}", _swarm.Address);
         _started.OnNext(Unit.Default);
     }
 

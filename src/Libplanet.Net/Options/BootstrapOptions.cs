@@ -4,9 +4,9 @@ namespace Libplanet.Net.Options;
 
 public sealed record class BootstrapOptions
 {
-    public const int DefaultDialTimeout = 15;
+    public bool Enabled { get; init; } = true;
 
-    public TimeSpan DialTimeout { get; init; } = TimeSpan.FromSeconds(DefaultDialTimeout);
+    public TimeSpan DialTimeout { get; init; } = TimeSpan.FromSeconds(15);
 
     public ImmutableHashSet<Peer> SeedPeers { get; init; } = [];
 
