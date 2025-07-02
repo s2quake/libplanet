@@ -2,11 +2,9 @@ namespace Libplanet.Net.Options;
 
 public sealed record class PreloadOptions
 {
-    public const int DefaultDialTimeout = 5;
+    public bool Enabled { get; init; } = true;
 
-    public const long DefaultTipDeltaThreshold = 25L;
+    public TimeSpan DialTimeout { get; init; } = TimeSpan.FromSeconds(5);
 
-    public TimeSpan DialTimeout { get; set; } = TimeSpan.FromSeconds(DefaultDialTimeout);
-
-    public long TipDeltaThreshold { get; set; } = DefaultTipDeltaThreshold;
+    public long TipDeltaThreshold { get; init; } = 25L;
 }

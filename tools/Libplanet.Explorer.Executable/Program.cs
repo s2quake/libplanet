@@ -39,7 +39,7 @@ namespace Libplanet.Explorer.Executable
                 "schema",
             }.Contains(args[0]))
             {
-                Console.Error.WriteLine(
+                await Console.Error.WriteLineAsync(
                     "NOTICE: the root primary command has been deprecated and moved " +
                     "to the `serve` command. Currently the root primary command forwards " +
                     "to the `serve` command but it'll be obsoleted in the 0.47.0 release.");
@@ -318,17 +318,17 @@ If omitted (default) explorer only the local blockchain store.")]
 
             try
             {
-                Console.Error.WriteLine("Bootstrapping.");
-                await swarm.BootstrapAsync(cancellationToken);
+                await Console.Error.WriteLineAsync("Bootstrapping.");
+                // await swarm.BootstrapAsync(cancellationToken);
             }
             catch (TimeoutException)
             {
-                Console.Error.WriteLine("No any neighbors.");
+                await Console.Error.WriteLineAsync("No any neighbors.");
             }
 
-            Console.Error.WriteLine("Starts preloading.");
-            await swarm.PreloadAsync(cancellationToken: cancellationToken);
-            Console.Error.WriteLine("Finished preloading.");
+            // await Console.Error.WriteLineAsync("Starts preloading.");
+            // await swarm.PreloadAsync(cancellationToken: cancellationToken);
+            // await Console.Error.WriteLineAsync("Finished preloading.");
             Startup.PreloadedSingleton = true;
 
             await swarm.StartAsync(cancellationToken: cancellationToken);

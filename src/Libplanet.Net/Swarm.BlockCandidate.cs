@@ -68,30 +68,16 @@ public partial class Swarm
         ImmutableSortedDictionary<Block, BlockCommit> candidate,
         CancellationToken cancellationToken = default)
     {
-        Block oldTip = blockChain.Tip;
-        Block branchpoint = oldTip;
-        List<(Block, BlockCommit)> blocks = ExtractBlocksToAppend(branchpoint, candidate);
+        var oldTip = blockChain.Tip;
+        var branchpoint = oldTip;
+        var blocks = ExtractBlocksToAppend(branchpoint, candidate);
+        var verifiedBlockCount = 0;
 
-        if (!blocks.Any())
+        foreach (var (block, commit) in blocks)
         {
-        }
-
-        try
-        {
-            long verifiedBlockCount = 0;
-
-            foreach (var (block, commit) in blocks)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                blockChain.Append(block, commit);
-
-                verifiedBlockCount++;
-            }
-        }
-        catch (Exception e)
-        {
-            const string dbgMsg = "An exception occurred while appending a block";
-            throw;
+            cancellationToken.ThrowIfCancellationRequested();
+            blockChain.Append(block, commit);
+            verifiedBlockCount++;
         }
     }
 
@@ -176,12 +162,12 @@ public partial class Swarm
         var tipBlockHash = blockChain.Tip.BlockHash;
         Block tip = blockChain.Tip;
 
-        List<BlockHash> hashes = await GetBlockHashes(
+        var hashes = await GetBlockHashes(
             peer: peer,
             blockHash: tipBlockHash,
             cancellationToken: cancellationToken);
 
-        if (!hashes.Any())
+        if (hashes.Length == 0)
         {
             FillBlocksAsyncFailed.Set();
             return false;
