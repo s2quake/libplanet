@@ -17,10 +17,10 @@ internal sealed record class ChainStatusMessage : MessageBase
 
     public required BlockHash TipHash { get; init; }
 
-    public static implicit operator BlockExcerpt(ChainStatusMessage msg) => new()
+    public static implicit operator BlockSummary(ChainStatusMessage msg) => new()
     {
         Height = msg.TipIndex,
-        ProtocolVersion = msg.ProtocolVersion,
+        Version = msg.ProtocolVersion,
         BlockHash = msg.TipHash,
     };
 }

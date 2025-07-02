@@ -1,0 +1,16 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Libplanet.Net.Protocols;
+
+namespace Libplanet.Net.Tasks;
+
+internal sealed class RebuildConnectionTask(Swarm swarm) : SwarmTaskBase
+{
+    protected override TimeSpan Interval => TimeSpan.FromMinutes(30);
+
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+        var PeerDiscovery = swarm.PeerDiscovery;
+        await PeerDiscovery.RebuildConnectionAsync(Kademlia.MaxDepth, cancellationToken);
+    }
+}

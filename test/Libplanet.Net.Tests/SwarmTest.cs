@@ -516,7 +516,8 @@ namespace Libplanet.Net.Tests
 
                 var inventories = await swarmB.GetBlockHashes(
                     swarmA.Peer,
-                    genesis.BlockHash);
+                    genesis.BlockHash,
+                    default);
                 Assert.Equal(
                     new[] { genesis.BlockHash, block1.BlockHash, block2.BlockHash },
                     inventories);
@@ -567,7 +568,8 @@ namespace Libplanet.Net.Tests
 
                 var hashes = await swarmB.GetBlockHashes(
                     peer,
-                    genesis.BlockHash);
+                    genesis.BlockHash,
+                    default);
 
                 ITransport transport = swarmB.Transport;
 

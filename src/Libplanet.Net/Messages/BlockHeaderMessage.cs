@@ -10,7 +10,7 @@ internal sealed record class BlockHeaderMessage : MessageBase
     public required BlockHash GenesisHash { get; init; }
 
     [Property(1)]
-    public required BlockExcerpt Excerpt { get; init; }
+    public required BlockSummary Excerpt { get; init; }
 
     public int HeaderIndex => Excerpt.Height;
 
