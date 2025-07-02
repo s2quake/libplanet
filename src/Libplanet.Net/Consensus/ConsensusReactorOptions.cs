@@ -1,8 +1,10 @@
+using Libplanet.Net.Options;
+
 namespace Libplanet.Net.Consensus;
 
 public sealed record class ConsensusReactorOptions
 {
-    public int Port { get; init; }
+    public TransportOptions TransportOptions { get; init; } = new();
 
     public int Workers { get; init; }
 

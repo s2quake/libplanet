@@ -298,9 +298,9 @@ namespace Libplanet.Net.Tests
             var hostOptionsB = new TransportOptions { Host = IPAddress.Loopback.ToString(), Port = 20_001 };
 
             Swarm swarmA =
-                await CreateSwarm(keyA, transportOptions: hostOptionsA);
+                await CreateSwarm(keyA);
             Swarm swarmB =
-                await CreateSwarm(transportOptions: hostOptionsB);
+                await CreateSwarm();
             await StartAsync(swarmA);
             await StartAsync(swarmB);
 
@@ -341,7 +341,7 @@ namespace Libplanet.Net.Tests
             Assert.Contains(swarmB.Peer, swarm.Peers);
 
             Swarm swarmC =
-                await CreateSwarm(keyA, transportOptions: hostOptionsA);
+                await CreateSwarm(keyA, options: new SwarmOptions { TransportOptions = hostOptionsA });
             await StartAsync(swarmC);
             await AssertThatEventually(() => swarm.Peers.Contains(swarmB.Peer), 5_000);
             await AssertThatEventually(() => swarm.Peers.Contains(swarmC.Peer), 5_000);
@@ -390,7 +390,10 @@ namespace Libplanet.Net.Tests
                 new ConsensusReactorOptions
                 {
                     Validators = consensusPeers,
-                    Port = 6000 + i,
+                    TransportOptions = new TransportOptions
+                    {
+                        Port = 6000 + i,
+                    },
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(10),
                     ConsensusOptions = new ConsensusOptions(),
@@ -400,10 +403,13 @@ namespace Libplanet.Net.Tests
             {
                 swarms.Add(await CreateSwarm(
                     privateKey: TestUtils.PrivateKeys[i],
-                    transportOptions: new TransportOptions
+                    options: new SwarmOptions
                     {
-                        Host = "127.0.0.1",
-                        Port = 9000 + i,
+                        TransportOptions = new TransportOptions
+                        {
+                            Host = "127.0.0.1",
+                            Port = 9000 + i,
+                        },
                     },
                     policy: policy,
                     genesis: genesis,
@@ -659,7 +665,7 @@ namespace Libplanet.Net.Tests
                 Host = "1.2.3.4",
                 Port = 5678,
             };
-            Swarm s = await CreateSwarm(transportOptions: hostOptions);
+            Swarm s = await CreateSwarm(options: new SwarmOptions { TransportOptions = hostOptions });
             Assert.Equal(expected, s.Peer.EndPoint);
             Assert.Equal(expected, s.Peer.EndPoint);
             CleaningSwarm(s);
@@ -1068,7 +1074,7 @@ namespace Libplanet.Net.Tests
 
                 Task.WaitAll(
                 [
-                    Task.Run(() => swarmC.BlockAppended.Wait()),
+                    swarmC.BlockAppended.WaitAsync(default),
                     Task.Run(() => swarmA.BroadcastBlock(block)),
                 ]);
 
@@ -1258,8 +1264,8 @@ namespace Libplanet.Net.Tests
 
                 sender.BroadcastBlock(sender.Blockchain.Tip);
 
-                await receiver.BlockReceived.WaitAsync();
-                await receiver.BlockAppended.WaitAsync();
+                await receiver.BlockReceived.WaitAsync(default);
+                await receiver.BlockAppended.WaitAsync(default);
                 Assert.Equal(
                     7,
                     receiver.Blockchain.Blocks.Count);
@@ -1297,8 +1303,8 @@ namespace Libplanet.Net.Tests
 
                 sender.BroadcastBlock(sender.Blockchain.Tip);
 
-                await receiver.BlockReceived.WaitAsync();
-                await receiver.BlockAppended.WaitAsync();
+                await receiver.BlockReceived.WaitAsync(default);
+                await receiver.BlockAppended.WaitAsync(default);
                 Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
                 Assert.Equal(
                     2,
@@ -1337,8 +1343,8 @@ namespace Libplanet.Net.Tests
 
                 sender.BroadcastBlock(sender.Blockchain.Tip);
 
-                await receiver.BlockReceived.WaitAsync();
-                await receiver.BlockAppended.WaitAsync();
+                await receiver.BlockReceived.WaitAsync(default);
+                await receiver.BlockAppended.WaitAsync(default);
                 Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
                 sender.BroadcastBlock(sender.Blockchain.Tip);
                 Assert.Equal(
@@ -1347,8 +1353,8 @@ namespace Libplanet.Net.Tests
 
                 sender.BroadcastBlock(sender.Blockchain.Tip);
 
-                await receiver.BlockReceived.WaitAsync();
-                await receiver.BlockAppended.WaitAsync();
+                await receiver.BlockReceived.WaitAsync(default);
+                await receiver.BlockAppended.WaitAsync(default);
                 Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
                 sender.BroadcastBlock(sender.Blockchain.Tip);
                 Assert.Equal(
@@ -1357,8 +1363,8 @@ namespace Libplanet.Net.Tests
 
                 sender.BroadcastBlock(sender.Blockchain.Tip);
 
-                await receiver.BlockReceived.WaitAsync();
-                await receiver.BlockAppended.WaitAsync();
+                await receiver.BlockReceived.WaitAsync(default);
+                await receiver.BlockAppended.WaitAsync(default);
                 Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
                 sender.BroadcastBlock(sender.Blockchain.Tip);
                 Assert.Equal(
@@ -1433,18 +1439,16 @@ namespace Libplanet.Net.Tests
                 {
                     MaxTransferBlocksTaskCount = 3,
                 },
-            };
-            var transportOptions = new TransportOptions
-            {
-                Host = "localhost",
+                TransportOptions = new TransportOptions
+                {
+                    Host = "localhost",
+                },
             };
 
             var key = new PrivateKey();
-            Swarm swarm = await CreateSwarm(
-                    options: options,
-                    transportOptions: transportOptions)
+            Swarm swarm = await CreateSwarm(options: options)
                 .ConfigureAwait(false);
-            var transport = new NetMQTransport(key.AsSigner(), transportOptions);
+            var transport = swarm.Transport;
 
             try
             {
@@ -1490,18 +1494,17 @@ namespace Libplanet.Net.Tests
                 {
                     MaxTransferTxsTaskCount = 3,
                 },
-            };
-            var transportOptions = new TransportOptions
-            {
-                Host = "localhost",
+                TransportOptions = new TransportOptions
+                {
+                    Host = "localhost",
+                },
             };
 
             var key = new PrivateKey();
             Swarm swarm = await CreateSwarm(
-                    options: options,
-                    transportOptions: transportOptions)
+                    options: options)
                 .ConfigureAwait(false);
-            NetMQTransport transport = new NetMQTransport(key.AsSigner(), transportOptions);
+            var transport = swarm.Transport;
 
             try
             {

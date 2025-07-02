@@ -12,14 +12,24 @@ namespace Libplanet.Net.Tests
         public async Task DetectAppProtocolVersion()
         {
             var signer = new PrivateKey();
-            var v2 = new TransportOptions()
-            { Protocol = Protocol.Create(signer, 2) };
-            var v3 = new TransportOptions()
-            { Protocol = Protocol.Create(signer, 3) };
-            var a = await CreateSwarm(transportOptions: v2);
-            var b = await CreateSwarm(transportOptions: v3);
-            var c = await CreateSwarm(transportOptions: v2);
-            var d = await CreateSwarm(transportOptions: v3);
+            var v2 = new SwarmOptions()
+            {
+                TransportOptions = new TransportOptions()
+                {
+                    Protocol = Protocol.Create(signer, 2),
+                },
+            };
+            var v3 = new SwarmOptions
+            {
+                TransportOptions = new TransportOptions()
+                {
+                    Protocol = Protocol.Create(signer, 3),
+                },
+            };
+            var a = await CreateSwarm(options: v2);
+            var b = await CreateSwarm(options: v3);
+            var c = await CreateSwarm(options: v2);
+            var d = await CreateSwarm(options: v3);
 
             try
             {
@@ -55,14 +65,22 @@ namespace Libplanet.Net.Tests
             var isCalled = false;
 
             var signer = new PrivateKey();
-            var v1 = new TransportOptions()
+            var v1 = new SwarmOptions
             {
-                Protocol = Protocol.Create(signer, 1),
+                TransportOptions = new TransportOptions
+                {
+                    Protocol = Protocol.Create(signer, 1),
+                },
             };
-            var v2 = new TransportOptions()
-            { Protocol = Protocol.Create(signer, 2) };
-            var a = await CreateSwarm(transportOptions: v1);
-            var b = await CreateSwarm(transportOptions: v2);
+            var v2 = new SwarmOptions
+            {
+                TransportOptions = new TransportOptions
+                {
+                    Protocol = Protocol.Create(signer, 2),
+                },
+            };
+            var a = await CreateSwarm(options: v1);
+            var b = await CreateSwarm(options: v2);
 
             try
             {
@@ -108,36 +126,54 @@ namespace Libplanet.Net.Tests
 
             var trustedSigners = new[] { signer.Address }.ToImmutableSortedSet();
             var untrustedSigners = new[] { untrustedSigner.Address }.ToImmutableSortedSet();
-            var optionsA = new TransportOptions()
+            var optionsA = new SwarmOptions
             {
-                Protocol = older,
+                TransportOptions = new TransportOptions
+                {
+                    Protocol = older,
+                },
             };
-            var a = await CreateSwarm(transportOptions: optionsA);
-            var optionsB = new TransportOptions()
+            var a = await CreateSwarm(options: optionsA);
+            var optionsB = new SwarmOptions
             {
-                Protocol = newer,
+                TransportOptions = new TransportOptions
+                {
+                    Protocol = newer,
+                },
             };
-            var b = await CreateSwarm(transportOptions: optionsB);
-            var optionsC = new TransportOptions()
+            var b = await CreateSwarm(options: optionsB);
+            var optionsC = new SwarmOptions
             {
-                Protocol = older,
+                TransportOptions = new TransportOptions()
+                {
+                    Protocol = older,
+                },
             };
-            var c = await CreateSwarm(transportOptions: optionsC);
-            var optionsD = new TransportOptions()
+            var c = await CreateSwarm(options: optionsC);
+            var optionsD = new SwarmOptions
             {
-                Protocol = newer,
+                TransportOptions = new TransportOptions
+                {
+                    Protocol = newer,
+                },
             };
-            var d = await CreateSwarm(transportOptions: optionsD);
-            var optionsE = new TransportOptions()
+            var d = await CreateSwarm(options: optionsD);
+            var optionsE = new SwarmOptions
             {
-                Protocol = untrustedOlder,
+                TransportOptions = new TransportOptions
+                {
+                    Protocol = untrustedOlder,
+                },
             };
-            var e = await CreateSwarm(transportOptions: optionsE);
-            var optionsF = new TransportOptions()
+            var e = await CreateSwarm(options: optionsE);
+            var optionsF = new SwarmOptions
             {
-                Protocol = untrustedNewer,
+                TransportOptions = new TransportOptions
+                {
+                    Protocol = untrustedNewer,
+                },
             };
-            var f = await CreateSwarm(transportOptions: optionsF);
+            var f = await CreateSwarm(options: optionsF);
 
             try
             {

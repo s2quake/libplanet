@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Threading;
+using Libplanet.Net.Transports;
 using Libplanet.State;
 using Libplanet.Types;
 
@@ -17,6 +18,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private readonly Subject<(int Round, ConsensusStep Step)> _timeoutOccurredSubject = new();
 
     private readonly Subject<Proposal> _blockProposeSubject = new();
+    private readonly ITransport _transport;
     private readonly Gossip _gossip;
     private readonly ConsensusOptions _consensusOption;
     private readonly Blockchain _blockchain;
@@ -37,11 +39,12 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private bool _disposed;
 
     public ConsensusReactor(
-        ISigner signer, ITransport transport, Blockchain blockchain, ConsensusReactorOptions options)
+        ISigner signer, Blockchain blockchain, ConsensusReactorOptions options)
     {
         _signer = signer;
+        _transport = new NetMQTransport(signer, options.TransportOptions);
         _gossip = new Gossip(
-            transport,
+            _transport,
             options.Seeds,
             [.. options.Validators.Where(item => item.Address != signer.Address)],
             options.GossipOptions);
@@ -204,6 +207,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
             _consensusSubscriptions = [];
             await _consensus.DisposeAsync();
+            await _transport.DisposeAsync();
 
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
