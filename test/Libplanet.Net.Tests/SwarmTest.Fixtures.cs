@@ -123,7 +123,7 @@ namespace Libplanet.Net.Tests
         }
 
         private async Task<Swarm> CreateSwarm(
-            Blockchain blockChain,
+            Blockchain blockchain,
             PrivateKey? privateKey = null,
             TransportOptions? transportOptions = null,
             SwarmOptions? options = null,
@@ -141,8 +141,8 @@ namespace Libplanet.Net.Tests
             }
 
             var swarm = new Swarm(
-                blockChain,
-                privateKey,
+                blockchain,
+                privateKey.AsSigner(),
                 transport,
                 options,
                 consensusTransport: consensusTransport,

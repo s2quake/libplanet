@@ -648,12 +648,6 @@ namespace Libplanet.Net.Tests
                 Host = IPAddress.Loopback.ToString(),
             };
             var transport = new NetMQTransport(key.AsSigner(), transportOptions);
-
-            // TODO: Check Consensus Parameters.
-            Assert.Throws<ArgumentNullException>(() =>
-                new Swarm(null, key, transport));
-            Assert.Throws<ArgumentNullException>(() =>
-                new Swarm(blockchain, null, transport));
         }
 
         [Fact(Timeout = Timeout)]

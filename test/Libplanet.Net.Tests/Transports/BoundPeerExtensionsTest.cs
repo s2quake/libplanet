@@ -42,7 +42,7 @@ namespace Libplanet.Net.Tests.Transports
             var transport = new NetMQTransport(swarmKey.AsSigner(), transportOptions);
             await using (var swarm = new Swarm(
                 blockchain,
-                swarmKey,
+                swarmKey.AsSigner(),
                 transport,
                 options: option))
             {

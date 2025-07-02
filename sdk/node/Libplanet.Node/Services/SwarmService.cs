@@ -105,7 +105,7 @@ internal sealed class SwarmService(
 
         _swarm = new Swarm(
             blockchain: blockChain,
-            privateKey: privateKey,
+            signer: privateKey.AsSigner(),
             transport: swarmTransport,
             options: swarmOptions,
             consensusTransport: consensusTransport,
