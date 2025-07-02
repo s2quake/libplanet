@@ -237,10 +237,7 @@ public sealed class Kademlia
         }
     }
 
-    public async Task<Peer?> FindSpecificPeerAsync(
-        Address target,
-        int depth,
-        CancellationToken cancellationToken)
+    public async Task<Peer?> FindSpecificPeerAsync(Address target, int depth, CancellationToken cancellationToken)
     {
         if (_table.GetPeer(target) is Peer boundPeer)
         {
