@@ -516,7 +516,7 @@ public sealed class Swarm : IAsyncDisposable
         BroadcastTxIds(except.Address, txIds);
     }
 
-    private void BroadcastMessage(Address except, MessageBase message)
+    internal void BroadcastMessage(Address except, MessageBase message)
     {
         Transport.BroadcastMessage(
             RoutingTable.PeersToBroadcast(except, Options.MinimumBroadcastTarget),
@@ -652,13 +652,13 @@ public sealed class Swarm : IAsyncDisposable
         cancellationToken.ThrowIfCancellationRequested();
     }
 
-    private void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
+    internal void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
     {
         var message = new TxIdsMessage { Ids = [.. txIds] };
         BroadcastMessage(except, message);
     }
 
-    private bool IsBlockNeeded(BlockExcerpt target) => target.Height > Blockchain.Tip.Height;
+    internal bool IsBlockNeeded(BlockExcerpt target) => target.Height > Blockchain.Tip.Height;
 
     private async Task RefreshTableAsync(TimeSpan period, TimeSpan maxAge, CancellationToken cancellationToken)
     {
