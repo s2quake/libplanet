@@ -35,15 +35,14 @@ public sealed partial class Swarm : IAsyncDisposable
 
     public Swarm(
         Blockchain blockchain,
-        PrivateKey privateKey,
+        ISigner signer,
         ITransport transport,
         SwarmOptions? options = null,
         ITransport? consensusTransport = null,
         ConsensusReactorOptions? consensusOption = null)
     {
         Blockchain = blockchain;
-        _signer = privateKey.AsSigner();
-        LastSeenTimestamps = new ConcurrentDictionary<Peer, DateTimeOffset>();
+        _signer = signer;
         BlockHeaderReceived = new AsyncAutoResetEvent();
         BlockAppended = new AsyncAutoResetEvent();
         BlockReceived = new AsyncAutoResetEvent();
@@ -74,7 +73,7 @@ public sealed partial class Swarm : IAsyncDisposable
         if (consensusTransport is { } && consensusOption is { } consensusReactorOption)
         {
             _consensusReactor = new ConsensusReactor(
-                privateKey.AsSigner(), consensusTransport, Blockchain, consensusReactorOption);
+                signer, consensusTransport, Blockchain, consensusReactorOption);
         }
     }
 
@@ -85,8 +84,6 @@ public sealed partial class Swarm : IAsyncDisposable
     public Address Address => _signer.Address;
 
     public Peer Peer => Transport.Peer;
-
-    public IDictionary<Peer, DateTimeOffset> LastSeenTimestamps { get; private set; }
 
     public IReadOnlyList<Peer> Peers => RoutingTable.Peers;
 

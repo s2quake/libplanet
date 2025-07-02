@@ -228,7 +228,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
                     swarm = new Swarm(
                         blockChain,
-                        privateKey,
+                        privateKey.AsSigner(),
                         transport,
                         options: swarmOptions);
                 }
