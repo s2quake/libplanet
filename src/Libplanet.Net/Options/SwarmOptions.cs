@@ -22,6 +22,8 @@ public sealed record class SwarmOptions
 
     public TimeSpan TxBroadcastInterval { get; init; } = TimeSpan.FromMilliseconds(5_000);
 
+    public TimeSpan EvidenceBroadcastInterval { get; init; } = TimeSpan.FromMilliseconds(5_000);
+
     public int TableSize { get; init; } = Kademlia.TableSize;
 
     public int BucketSize { get; init; } = Kademlia.BucketSize;

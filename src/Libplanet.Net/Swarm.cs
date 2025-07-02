@@ -14,6 +14,7 @@ using Libplanet.Extensions;
 using Libplanet.Net.Transports;
 using System.Reactive;
 using System.Reactive.Subjects;
+using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
@@ -22,6 +23,10 @@ public sealed class Swarm : IAsyncDisposable
     private readonly Subject<Unit> _blockHeaderReceivedSubject = new();
     private readonly Subject<Unit> _blockReceivedSubject = new();
     private readonly Subject<Unit> _blockAppendedSubject = new();
+
+    private readonly Subject<Unit> _fillBlocksAsyncStartedSubject = new();
+    private readonly Subject<Unit> _fillBlocksAsyncFailedSubject = new();
+    private readonly Subject<Unit> _processFillBlocksFinishedSubject = new();
 
     private readonly ISigner _signer;
     private readonly ConsensusReactor? _consensusReactor;
@@ -33,6 +38,7 @@ public sealed class Swarm : IAsyncDisposable
     private readonly AccessLimiter _transferTxLimiter;
     private readonly AccessLimiter _transferEvidenceLimiter;
     private readonly ConcurrentDictionary<Peer, int> _processBlockDemandSessions = new();
+    private readonly List<Task> _taskList = [];
 
     private CancellationTokenSource? _cancellationTokenSource;
     private CancellationToken _cancellationToken;
@@ -55,7 +61,7 @@ public sealed class Swarm : IAsyncDisposable
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
         Transport.ProcessMessage.Subscribe(ProcessMessageHandler);
         PeerDiscovery = new Kademlia(RoutingTable, Transport, Address);
-        BlockDemandTable = new BlockDemandDictionary(options.BlockDemandLifespan);
+        BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
         _txFetcherSubscription = _txFetcher.Received.Subscribe(e => BroadcastTxs(e.Peer, e.Items));
         _evidenceFetcherSubscription = _evidenceFetcher.Received.Subscribe(e => BroadcastEvidence(e.Peer, e.Items));
         _transferBlockLimiter = new(options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
@@ -96,12 +102,22 @@ public sealed class Swarm : IAsyncDisposable
 
     internal IObservable<Unit> BlockAppended => _blockAppendedSubject;
 
+    [Obsolete("not used")]
+    internal IObservable<Unit> FillBlocksAsyncStarted => _fillBlocksAsyncStartedSubject;
+
+    [Obsolete("not used")]
+    internal IObservable<Unit> FillBlocksAsyncFailed => _fillBlocksAsyncFailedSubject;
+
+    [Obsolete("not used")]
+    internal IObservable<Unit> ProcessFillBlocksFinished => _processFillBlocksFinishedSubject;
+
     // FIXME: We need some sort of configuration method for it.
     internal int FindNextHashesChunkSize { get; set; } = 500;
 
     internal SwarmOptions Options { get; }
 
-    internal ConsensusReactor ConsensusReactor => _consensusReactor;
+    internal ConsensusReactor ConsensusReactor
+        => _consensusReactor ?? throw new InvalidOperationException("ConsensusReactor is not initialized.");
 
     public async ValueTask DisposeAsync()
     {
@@ -129,12 +145,59 @@ public sealed class Swarm : IAsyncDisposable
         }
     }
 
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        if (IsRunning)
+        {
+            throw new SwarmException("Swarm is already running.");
+        }
+
+        await BootstrapAsync(cancellationToken);
+        await PreloadAsync(cancellationToken);
+        // var broadcastBlockInterval = Options.BlockBroadcastInterval;
+        // var broadcastTxInterval = Options.TxBroadcastInterval;
+        // var dialTimeout = Options.TimeoutOptions.DialTimeout;
+        _cancellationTokenSource = new CancellationTokenSource();
+        _cancellationToken = _cancellationTokenSource.Token;
+
+        _tipChangedSubscription = Blockchain.TipChanged.Subscribe(OnBlockChainTipChanged);
+        await Transport.StartAsync(cancellationToken);
+
+        _taskList.AddRange(
+        [
+            BroadcastBlockAsync(Options.BlockBroadcastInterval, _cancellationToken),
+            BroadcastTxAsync(Options.TxBroadcastInterval, _cancellationToken),
+            BroadcastEvidenceAsync(Options.EvidenceBroadcastInterval, _cancellationToken),
+            FillBlocksAsync(_cancellationToken),
+            PollBlocksAsync(Options.TimeoutOptions.DialTimeout, Options.TipLifespan, Options.MaximumPollPeers, _cancellationToken),
+            ConsumeBlockCandidates(TimeSpan.FromMilliseconds(10), _cancellationToken),
+            RefreshTableAsync(Options.RefreshPeriod,Options.RefreshLifespan,_cancellationToken),
+            RebuildConnectionAsync(TimeSpan.FromMinutes(30), _cancellationToken),
+        ]);
+
+        if (_consensusReactor is { })
+        {
+            await _consensusReactor.StartAsync(cancellationToken);
+        }
+
+        if (!Options.StaticPeers.IsEmpty)
+        {
+            _taskList.Add(MaintainStaticPeerAsync(Options.StaticPeersMaintainPeriod, _cancellationToken));
+        }
+
+        IsRunning = true;
+    }
+
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (!IsRunning)
+        if (!IsRunning || _cancellationTokenSource is null)
         {
             throw new SwarmException("Swarm is not running.");
         }
+
+        await _cancellationTokenSource.CancelAsync();
+        await TaskUtility.TryWaitAll([.. _taskList]);
+        _taskList.Clear();
 
         _tipChangedSubscription?.Dispose();
         _tipChangedSubscription = null;
@@ -145,69 +208,11 @@ public sealed class Swarm : IAsyncDisposable
             await _consensusReactor.StopAsync(cancellationToken);
         }
 
-        BlockDemandTable = new BlockDemandDictionary(Options.BlockDemandLifespan);
+        BlockDemandDictionary = new BlockDemandDictionary(Options.BlockDemandLifespan);
         BlockCandidateTable.Cleanup(_ => true);
+        _cancellationTokenSource.Dispose();
+        _cancellationTokenSource = null;
         IsRunning = false;
-    }
-
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        if (IsRunning)
-        {
-            throw new SwarmException("Swarm is already running.");
-        }
-
-        await BootstrapAsync(cancellationToken);
-        await PreloadAsync(cancellationToken);
-        var broadcastBlockInterval = Options.BlockBroadcastInterval;
-        var broadcastTxInterval = Options.TxBroadcastInterval;
-        var dialTimeout = Options.TimeoutOptions.DialTimeout;
-        Task<Task> runner;
-        _cancellationTokenSource = new CancellationTokenSource();
-        _cancellationToken = _cancellationTokenSource.Token;
-
-        _tipChangedSubscription = Blockchain.TipChanged.Subscribe(OnBlockChainTipChanged);
-        await Transport.StartAsync(cancellationToken);
-
-        var tasks = new List<Func<Task>>
-        {
-            () => BroadcastBlockAsync(broadcastBlockInterval, _cancellationToken),
-            () => BroadcastTxAsync(broadcastTxInterval, _cancellationToken),
-            () => FillBlocksAsync(_cancellationToken),
-            () => PollBlocksAsync(dialTimeout,Options.TipLifespan,Options.MaximumPollPeers,_cancellationToken),
-            () => ConsumeBlockCandidates(TimeSpan.FromMilliseconds(10), _cancellationToken),
-            () => RefreshTableAsync(Options.RefreshPeriod,Options.RefreshLifespan,_cancellationToken),
-            () => RebuildConnectionAsync(TimeSpan.FromMinutes(30), _cancellationToken),
-            () => BroadcastEvidenceAsync(broadcastTxInterval, _cancellationToken),
-        };
-
-        if (_consensusReactor is { })
-        {
-            await _consensusReactor.StartAsync(cancellationToken);
-        }
-
-        if (Options.StaticPeers.Any())
-        {
-            tasks.Add(() => MaintainStaticPeerAsync(Options.StaticPeersMaintainPeriod, _cancellationToken));
-        }
-
-        runner = Task.WhenAny(tasks.Select(CreateLongRunningTask));
-
-
-        try
-        {
-            await await runner;
-        }
-        catch (OperationCanceledException e)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            throw;
-        }
-
-        IsRunning = true;
     }
 
     private async Task BootstrapAsync(CancellationToken cancellationToken)
@@ -303,15 +308,9 @@ public sealed class Swarm : IAsyncDisposable
     }
 
     public async Task<Peer> FindSpecificPeerAsync(
-        Address target,
-        int depth = 3,
-        CancellationToken cancellationToken = default)
+        Address target, int depth = 3, CancellationToken cancellationToken = default)
     {
-        Kademlia kademliaProtocol = PeerDiscovery;
-        return await kademliaProtocol.FindSpecificPeerAsync(
-            target,
-            depth,
-            cancellationToken);
+        return await PeerDiscovery.FindSpecificPeerAsync(target, depth, cancellationToken);
     }
 
     public async Task CheckAllPeersAsync(CancellationToken cancellationToken = default)
@@ -731,12 +730,6 @@ public sealed class Swarm : IAsyncDisposable
         cancellationToken.ThrowIfCancellationRequested();
     }
 
-    private async Task CreateLongRunningTask(Func<Task> f)
-    {
-        using var thread = new AsyncContextThread();
-        await thread.Factory.Run(f).WaitAsync(_cancellationToken);
-    }
-
     private void ProcessMessageHandler(MessageEnvelope messageEnvelope)
     {
         switch (messageEnvelope.Message)
@@ -745,7 +738,7 @@ public sealed class Swarm : IAsyncDisposable
             case FindNeighborsMessage _:
                 return;
 
-            case GetChainStatusMessage getChainStatus:
+            case GetChainStatusMessage:
                 {
                     // This is based on the assumption that genesis block always exists.
                     Block tip = Blockchain.Tip;
@@ -775,7 +768,7 @@ public sealed class Swarm : IAsyncDisposable
                 }
                 break;
 
-            case GetBlocksMessage getBlocksMsg:
+            case GetBlocksMessage:
                 TransferBlocksAsync(messageEnvelope);
                 break;
 
@@ -784,17 +777,17 @@ public sealed class Swarm : IAsyncDisposable
                 break;
 
             case GetEvidenceMessage getTxs:
-                TransferEvidenceAsync(messageEnvelope, _cancellationToken);
+                _ = TransferEvidenceAsync(messageEnvelope, _cancellationToken);
                 break;
 
             case TxIdsMessage txIds:
                 ProcessTxIds(messageEnvelope);
-                Transport.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+                Transport.Pong(messageEnvelope);
                 break;
 
             case EvidenceIdsMessage evidenceIds:
                 ProcessEvidenceIds(messageEnvelope);
-                Transport.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+                Transport.Pong(messageEnvelope);
                 break;
 
             case BlockHashesMessage _:
@@ -802,7 +795,7 @@ public sealed class Swarm : IAsyncDisposable
 
             case BlockHeaderMessage blockHeader:
                 ProcessBlockHeader(messageEnvelope);
-                Transport.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+                Transport.Pong(messageEnvelope);
                 break;
 
             default:
@@ -810,24 +803,16 @@ public sealed class Swarm : IAsyncDisposable
         }
     }
 
-    private void ProcessBlockHeader(MessageEnvelope message)
+    private void ProcessBlockHeader(MessageEnvelope messageEnvelope)
     {
-        var blockHeaderMsg = (BlockHeaderMessage)message.Message;
+        var blockHeaderMsg = (BlockHeaderMessage)messageEnvelope.Message;
         if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
         {
             return;
         }
 
         _blockHeaderReceivedSubject.OnNext(Unit.Default);
-        BlockExcerpt header;
-        try
-        {
-            header = blockHeaderMsg.Excerpt;
-        }
-        catch (InvalidOperationException ibe)
-        {
-            return;
-        }
+        var header = blockHeaderMsg.Excerpt;
 
         try
         {
@@ -841,14 +826,8 @@ public sealed class Swarm : IAsyncDisposable
         bool needed = IsBlockNeeded(header);
         if (needed)
         {
-            BlockDemandTable.Add(
-                IsBlockNeeded,
-                new BlockDemand(header, message.Peer, DateTimeOffset.UtcNow));
-            return;
-        }
-        else
-        {
-            return;
+            BlockDemandDictionary.Add(
+                IsBlockNeeded, new BlockDemand(header, messageEnvelope.Peer, DateTimeOffset.UtcNow));
         }
     }
 
@@ -876,14 +855,13 @@ public sealed class Swarm : IAsyncDisposable
         }
     }
 
-    private void ProcessTxIds(MessageEnvelope message)
+    private void ProcessTxIds(MessageEnvelope messageEnvelope)
     {
-        var txIdsMsg = (TxIdsMessage)message.Message;
-        // TxCompletion.DemandMany(message.Peer, txIdsMsg.Ids);
-        _txFetcher.DemandMany(message.Peer, [.. txIdsMsg.Ids]);
+        var txIdsMsg = (TxIdsMessage)messageEnvelope.Message;
+        _txFetcher.DemandMany(messageEnvelope.Peer, [.. txIdsMsg.Ids]);
     }
 
-    private async void TransferBlocksAsync(MessageEnvelope message)
+    private async Task TransferBlocksAsync(MessageEnvelope message)
     {
         using var scope = await _transferBlockLimiter.WaitAsync(_cancellationToken);
         if (scope is null)
@@ -1076,15 +1054,9 @@ public sealed class Swarm : IAsyncDisposable
         _evidenceFetcher.DemandMany(message.Peer, [.. evidenceIdsMsg.Ids]);
     }
 
-    public BlockDemandDictionary BlockDemandTable { get; private set; }
+    public BlockDemandDictionary BlockDemandDictionary { get; private set; }
 
     public BlockCandidateTable BlockCandidateTable { get; } = new BlockCandidateTable();
-
-    internal AsyncAutoResetEvent FillBlocksAsyncStarted { get; } = new AsyncAutoResetEvent();
-
-    internal AsyncAutoResetEvent FillBlocksAsyncFailed { get; } = new AsyncAutoResetEvent();
-
-    internal AsyncAutoResetEvent ProcessFillBlocksFinished { get; } = new AsyncAutoResetEvent();
 
     internal async Task PullBlocksAsync(
         TimeSpan? timeout,
@@ -1141,7 +1113,7 @@ public sealed class Swarm : IAsyncDisposable
         {
             var msg =
                 $"Unexpected exception occurred during {nameof(PullBlocksAsync)}()";
-            FillBlocksAsyncFailed.Set();
+            _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
         }
         finally
         {
@@ -1158,24 +1130,21 @@ public sealed class Swarm : IAsyncDisposable
                 }
             }
 
-            ProcessFillBlocksFinished.Set();
+            _processFillBlocksFinishedSubject.OnNext(Unit.Default);
         }
     }
 
-    private async Task FillBlocksAsync(
-        CancellationToken cancellationToken)
+    private async Task FillBlocksAsync(CancellationToken cancellationToken)
     {
         var checkInterval = TimeSpan.FromMilliseconds(100);
         while (!cancellationToken.IsCancellationRequested)
         {
-            if (BlockDemandTable.Any())
+            if (BlockDemandDictionary.Count > 0)
             {
-                foreach (var blockDemand in BlockDemandTable.Values)
+                foreach (var blockDemand in BlockDemandDictionary.Values)
                 {
-                    BlockDemandTable.Remove(blockDemand.Peer);
-                    _ = ProcessBlockDemandAsync(
-                        blockDemand,
-                        cancellationToken);
+                    BlockDemandDictionary.Remove(blockDemand.Peer);
+                    _ = ProcessBlockDemandAsync(blockDemand, cancellationToken);
                 }
             }
             else
@@ -1184,9 +1153,8 @@ public sealed class Swarm : IAsyncDisposable
                 continue;
             }
 
-            BlockDemandTable.Cleanup(IsBlockNeeded);
+            BlockDemandDictionary.Cleanup(IsBlockNeeded);
         }
-
     }
 
     private async Task PollBlocksAsync(
@@ -1261,17 +1229,17 @@ public sealed class Swarm : IAsyncDisposable
     {
         try
         {
-            FillBlocksAsyncStarted.Set();
+            _fillBlocksAsyncStartedSubject.OnNext(Unit.Default);
             AppendBranch(
                 blockChain: Blockchain,
                 candidate: candidate,
                 cancellationToken: cancellationToken);
-            ProcessFillBlocksFinished.Set();
+            _processFillBlocksFinishedSubject.OnNext(Unit.Default);
             return true;
         }
         catch (Exception e)
         {
-            FillBlocksAsyncFailed.Set();
+            _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
             return false;
         }
     }
@@ -1313,9 +1281,7 @@ public sealed class Swarm : IAsyncDisposable
         return trimmed;
     }
 
-    private async Task<bool> ProcessBlockDemandAsync(
-        BlockDemand demand,
-        CancellationToken cancellationToken)
+    private async Task<bool> ProcessBlockDemandAsync(BlockDemand demand, CancellationToken cancellationToken)
     {
         Peer peer = demand.Peer;
 
@@ -1351,11 +1317,8 @@ public sealed class Swarm : IAsyncDisposable
         {
             return false;
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            const string msg =
-                "{SessionId}: Unexpected exception occurred during " +
-                nameof(ProcessBlockDemandAsync) + "() from {Peer}";
             return false;
         }
         finally
@@ -1382,7 +1345,7 @@ public sealed class Swarm : IAsyncDisposable
 
         if (hashes.Length == 0)
         {
-            FillBlocksAsyncFailed.Set();
+            _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
             return false;
         }
 
