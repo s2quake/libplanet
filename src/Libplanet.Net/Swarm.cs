@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,13 +11,20 @@ using Libplanet.Types;
 using Nito.AsyncEx;
 using System.ServiceModel;
 using Libplanet.Extensions;
+using Libplanet.Net.Transports;
+using System.Reactive;
+using System.Reactive.Subjects;
 
 namespace Libplanet.Net;
 
-public sealed partial class Swarm : IAsyncDisposable
+public sealed class Swarm : IAsyncDisposable
 {
+    private readonly Subject<Unit> _blockHeaderReceivedSubject = new();
+    private readonly Subject<Unit> _blockReceivedSubject = new();
+    private readonly Subject<Unit> _blockAppendedSubject = new();
+
     private readonly ISigner _signer;
-    private readonly ConsensusReactor _consensusReactor;
+    private readonly ConsensusReactor? _consensusReactor;
     private readonly TxFetcher _txFetcher;
     private readonly IDisposable _txFetcherSubscription;
     private readonly EvidenceFetcher _evidenceFetcher;
@@ -26,6 +32,7 @@ public sealed partial class Swarm : IAsyncDisposable
     private readonly AccessLimiter _transferBlockLimiter;
     private readonly AccessLimiter _transferTxLimiter;
     private readonly AccessLimiter _transferEvidenceLimiter;
+    private readonly ConcurrentDictionary<Peer, int> _processBlockDemandSessions = new();
 
     private CancellationTokenSource? _cancellationTokenSource;
     private CancellationToken _cancellationToken;
@@ -34,47 +41,27 @@ public sealed partial class Swarm : IAsyncDisposable
     private bool _disposed;
 
     public Swarm(
-        Blockchain blockchain,
         ISigner signer,
-        ITransport transport,
-        SwarmOptions? options = null,
-        ITransport? consensusTransport = null,
+        Blockchain blockchain,
+        SwarmOptions options,
         ConsensusReactorOptions? consensusOption = null)
     {
-        Blockchain = blockchain;
         _signer = signer;
-        BlockHeaderReceived = new AsyncAutoResetEvent();
-        BlockAppended = new AsyncAutoResetEvent();
-        BlockReceived = new AsyncAutoResetEvent();
-        Options = options ?? new SwarmOptions();
-        RoutingTable = new RoutingTable(Address, Options.TableSize, Options.BucketSize);
-
-        // FIXME: after the initialization of NetMQTransport is fully converted to asynchronous
-        // code, the portion initializing the swarm in Agent.cs in NineChronicles should be
-        // fixed. for context, refer to
-        // https://github.com/planetarium/libplanet/discussions/2303.
-        Transport = transport;
-        _txFetcher = new TxFetcher(Blockchain, Transport, Options.TimeoutOptions);
-        _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, Options.TimeoutOptions);
-        _processBlockDemandSessions = new ConcurrentDictionary<Peer, int>();
+        Blockchain = blockchain;
+        Options = options;
+        RoutingTable = new RoutingTable(Address, options.TableSize, options.BucketSize);
+        Transport = new NetMQTransport(signer, options.TransportOptions);
+        _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
+        _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
         Transport.ProcessMessage.Subscribe(ProcessMessageHandler);
         PeerDiscovery = new Kademlia(RoutingTable, Transport, Address);
-        BlockDemandTable = new BlockDemandDictionary(Options.BlockDemandLifespan);
-        BlockCandidateTable = new BlockCandidateTable();
+        BlockDemandTable = new BlockDemandDictionary(options.BlockDemandLifespan);
         _txFetcherSubscription = _txFetcher.Received.Subscribe(e => BroadcastTxs(e.Peer, e.Items));
         _evidenceFetcherSubscription = _evidenceFetcher.Received.Subscribe(e => BroadcastEvidence(e.Peer, e.Items));
-
-        // Regulate heavy tasks. Treat negative value as 0.
-        _transferBlockLimiter = new(Options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
-        _transferTxLimiter = new(Options.TaskRegulationOptions.MaxTransferTxsTaskCount);
-        _transferEvidenceLimiter = new(Options.TaskRegulationOptions.MaxTransferTxsTaskCount);
-
-        // Initialize consensus reactor.
-        if (consensusTransport is { } && consensusOption is { } consensusReactorOption)
-        {
-            _consensusReactor = new ConsensusReactor(
-                signer, consensusTransport, Blockchain, consensusReactorOption);
-        }
+        _transferBlockLimiter = new(options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
+        _transferTxLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
+        _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
+        _consensusReactor = consensusOption is not null ? new ConsensusReactor(signer, Blockchain, consensusOption) : null;
     }
 
     public bool IsRunning { get; private set; }
@@ -103,21 +90,17 @@ public sealed partial class Swarm : IAsyncDisposable
 
     internal IObservable<ReceivedInfo<EvidenceBase>> EvidenceReceived => _evidenceFetcher.Received;
 
-    internal AsyncAutoResetEvent BlockHeaderReceived { get; }
+    internal IObservable<Unit> BlockHeaderReceived => _blockHeaderReceivedSubject;
 
-    internal AsyncAutoResetEvent BlockReceived { get; }
+    internal IObservable<Unit> BlockReceived => _blockReceivedSubject;
 
-    // FIXME: Should have a unit test.
-    internal AsyncAutoResetEvent BlockAppended { get; }
+    internal IObservable<Unit> BlockAppended => _blockAppendedSubject;
 
     // FIXME: We need some sort of configuration method for it.
     internal int FindNextHashesChunkSize { get; set; } = 500;
 
-    internal AsyncAutoResetEvent BlockDownloadStarted { get; } = new AsyncAutoResetEvent();
-
     internal SwarmOptions Options { get; }
 
-    // FIXME: This should be exposed in a better way.
     internal ConsensusReactor ConsensusReactor => _consensusReactor;
 
     public async ValueTask DisposeAsync()
@@ -163,7 +146,7 @@ public sealed partial class Swarm : IAsyncDisposable
         }
 
         BlockDemandTable = new BlockDemandDictionary(Options.BlockDemandLifespan);
-        BlockCandidateTable = new BlockCandidateTable();
+        BlockCandidateTable.Cleanup(_ => true);
         IsRunning = false;
     }
 
@@ -173,19 +156,6 @@ public sealed partial class Swarm : IAsyncDisposable
         {
             throw new SwarmException("Swarm is already running.");
         }
-        //     await StartAsync(
-        //         Options.TimeoutOptions.DialTimeout,
-        //         Options.BlockBroadcastInterval,
-        //         Options.TxBroadcastInterval,
-        //         cancellationToken);
-        // }
-
-        // public async Task StartAsync(
-        //     TimeSpan dialTimeout,
-        //     TimeSpan broadcastBlockInterval,
-        //     TimeSpan broadcastTxInterval,
-        //     CancellationToken cancellationToken = default)
-        // {
 
         await BootstrapAsync(cancellationToken);
         await PreloadAsync(cancellationToken);
@@ -765,5 +735,673 @@ public sealed partial class Swarm : IAsyncDisposable
     {
         using var thread = new AsyncContextThread();
         await thread.Factory.Run(f).WaitAsync(_cancellationToken);
+    }
+
+    private void ProcessMessageHandler(MessageEnvelope messageEnvelope)
+    {
+        switch (messageEnvelope.Message)
+        {
+            case PingMessage _:
+            case FindNeighborsMessage _:
+                return;
+
+            case GetChainStatusMessage getChainStatus:
+                {
+                    // This is based on the assumption that genesis block always exists.
+                    Block tip = Blockchain.Tip;
+                    var chainStatus = new ChainStatusMessage
+                    {
+                        ProtocolVersion = tip.Version,
+                        GenesisHash = Blockchain.Genesis.BlockHash,
+                        TipIndex = tip.Height,
+                        TipHash = tip.BlockHash,
+                    };
+
+                    Transport.ReplyMessage(messageEnvelope.Identity, chainStatus);
+                }
+                break;
+
+            case GetBlockHashesMessage getBlockHashes:
+                {
+                    var height = Blockchain.Blocks[getBlockHashes.BlockHash].Height;
+                    var hashes = Blockchain.Blocks[height..].Select(item => item.BlockHash).ToArray();
+
+                    // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
+                    //     getBlockHashes.Locator,
+                    //     FindNextHashesChunkSize);
+                    var reply = new BlockHashesMessage { Hashes = [.. hashes] };
+
+                    Transport.ReplyMessage(messageEnvelope.Identity, reply);
+                }
+                break;
+
+            case GetBlocksMessage getBlocksMsg:
+                TransferBlocksAsync(messageEnvelope);
+                break;
+
+            case GetTransactionMessage getTransactionMessage:
+                _ = TransferTxsAsync(messageEnvelope.Identity, getTransactionMessage, _cancellationToken);
+                break;
+
+            case GetEvidenceMessage getTxs:
+                TransferEvidenceAsync(messageEnvelope, _cancellationToken);
+                break;
+
+            case TxIdsMessage txIds:
+                ProcessTxIds(messageEnvelope);
+                Transport.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+                break;
+
+            case EvidenceIdsMessage evidenceIds:
+                ProcessEvidenceIds(messageEnvelope);
+                Transport.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+                break;
+
+            case BlockHashesMessage _:
+                break;
+
+            case BlockHeaderMessage blockHeader:
+                ProcessBlockHeader(messageEnvelope);
+                Transport.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+                break;
+
+            default:
+                throw new InvalidOperationException($"Failed to handle message: {messageEnvelope.Message}");
+        }
+    }
+
+    private void ProcessBlockHeader(MessageEnvelope message)
+    {
+        var blockHeaderMsg = (BlockHeaderMessage)message.Message;
+        if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
+        {
+            return;
+        }
+
+        _blockHeaderReceivedSubject.OnNext(Unit.Default);
+        BlockExcerpt header;
+        try
+        {
+            header = blockHeaderMsg.Excerpt;
+        }
+        catch (InvalidOperationException ibe)
+        {
+            return;
+        }
+
+        try
+        {
+            header.Timestamp.ValidateTimestamp();
+        }
+        catch (InvalidOperationException e)
+        {
+            return;
+        }
+
+        bool needed = IsBlockNeeded(header);
+        if (needed)
+        {
+            BlockDemandTable.Add(
+                IsBlockNeeded,
+                new BlockDemand(header, message.Peer, DateTimeOffset.UtcNow));
+            return;
+        }
+        else
+        {
+            return;
+        }
+    }
+
+    private async Task TransferTxsAsync(
+        Guid identity, GetTransactionMessage requestMessage, CancellationToken cancellationToken)
+    {
+        using var scope = await _transferTxLimiter.WaitAsync(cancellationToken);
+        if (scope is null)
+        {
+            return;
+        }
+
+        foreach (var txId in requestMessage.TxIds)
+        {
+            if (!Blockchain.Transactions.TryGetValue(txId, out var tx))
+            {
+                continue;
+            }
+
+            var replyMessage = new TransactionMessage
+            {
+                Payload = [.. ModelSerializer.SerializeToBytes(tx)],
+            };
+            Transport.ReplyMessage(identity, replyMessage);
+        }
+    }
+
+    private void ProcessTxIds(MessageEnvelope message)
+    {
+        var txIdsMsg = (TxIdsMessage)message.Message;
+        // TxCompletion.DemandMany(message.Peer, txIdsMsg.Ids);
+        _txFetcher.DemandMany(message.Peer, [.. txIdsMsg.Ids]);
+    }
+
+    private async void TransferBlocksAsync(MessageEnvelope message)
+    {
+        using var scope = await _transferBlockLimiter.WaitAsync(_cancellationToken);
+        if (scope is null)
+        {
+            return;
+        }
+
+        var blocksMsg = (GetBlocksMessage)message.Message;
+        // string reqId = !(message.Id is null) && message.Id.Length == 16
+        //     ? new Guid(message.Id).ToString()
+        //     : "unknown";
+        // _logger.Verbose(
+        //     "Preparing a {MessageType} message to reply to {Identity}...",
+        //     nameof(Messages.BlocksMessage),
+        //     reqId);
+
+        var payloads = new List<byte[]>();
+
+        List<BlockHash> hashes = blocksMsg.BlockHashes.ToList();
+        int count = 0;
+        int total = hashes.Count;
+        const string logMsg =
+            "Fetching block {Index}/{Total} {Hash} to include in " +
+            "a reply to {Identity}...";
+        foreach (BlockHash hash in hashes)
+        {
+            // _logger.Verbose(logMsg, count, total, hash, reqId);
+            if (Blockchain.Blocks.TryGetValue(hash, out var block))
+            {
+                byte[] blockPayload = ModelSerializer.SerializeToBytes(block);
+                payloads.Add(blockPayload);
+                byte[] commitPayload = Blockchain.BlockCommits[block.BlockHash] is { } commit
+                    ? ModelSerializer.SerializeToBytes(commit)
+                    : Array.Empty<byte>();
+                payloads.Add(commitPayload);
+                count++;
+            }
+
+            if (payloads.Count / 2 == blocksMsg.ChunkSize)
+            {
+                var response = new BlocksMessage { Payloads = [.. payloads] };
+                Transport.ReplyMessage(message.Identity, response);
+                payloads.Clear();
+            }
+        }
+
+        if (payloads.Any())
+        {
+            var response = new BlocksMessage { Payloads = [.. payloads] };
+            // _logger.Verbose(
+            //     "Enqueuing a blocks reply (...{Count}/{Total}) to {Identity}...",
+            //     count,
+            //     total,
+            //     reqId);
+            Transport.ReplyMessage(message.Identity, response);
+        }
+
+        if (count == 0)
+        {
+            var response = new BlocksMessage { Payloads = [.. payloads] };
+            // _logger.Verbose(
+            //     "Enqueuing a blocks reply (...{Index}/{Total}) to {Identity}...",
+            //     count,
+            //     total,
+            //     reqId);
+            Transport.ReplyMessage(message.Identity, response);
+        }
+
+        // _logger.Debug("{Count} blocks were transferred to {Identity}", count, reqId);
+
+    }
+
+    public void BroadcastEvidence(IEnumerable<EvidenceBase> evidence)
+    {
+        BroadcastEvidence(null, evidence);
+    }
+
+    internal async IAsyncEnumerable<EvidenceBase> GetEvidenceAsync(
+        Peer peer,
+        IEnumerable<EvidenceId> evidenceIds,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var evidenceIdsAsArray = evidenceIds as EvidenceId[] ?? evidenceIds.ToArray();
+        var request = new GetEvidenceMessage { EvidenceIds = [.. evidenceIdsAsArray] };
+        int evidenceCount = evidenceIdsAsArray.Count();
+
+        var evidenceRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
+            + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(evidenceCount);
+        if (evidenceRecvTimeout > Options.TimeoutOptions.MaxTimeout)
+        {
+            evidenceRecvTimeout = Options.TimeoutOptions.MaxTimeout;
+        }
+
+        var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
+        var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
+
+        foreach (var message in aggregateMessage.Messages)
+        {
+            if (message is EvidenceMessage parsed)
+            {
+                EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. parsed.Payload]);
+                yield return evidence;
+            }
+            else
+            {
+                string errorMessage =
+                    $"Expected {nameof(Transaction)} messages as response of " +
+                    $"the {nameof(GetEvidenceMessage)} message, but got a " +
+                    $"{message.GetType().Name} " +
+                    $"message instead: {message}";
+                throw new InvalidOperationException(errorMessage);
+            }
+        }
+    }
+
+    private void BroadcastEvidence(Peer? except, IEnumerable<EvidenceBase> evidence)
+    {
+        List<EvidenceId> evidenceIds = evidence.Select(evidence => evidence.Id).ToList();
+        BroadcastEvidenceIds(except?.Address ?? default, evidenceIds);
+    }
+
+    private async Task BroadcastEvidenceAsync(
+        TimeSpan broadcastTxInterval,
+        CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                await Task.Delay(broadcastTxInterval, cancellationToken);
+
+                await Task.Run(
+                    () =>
+                    {
+                        List<EvidenceId> evidenceIds = Blockchain.PendingEvidences.Keys.ToList();
+
+                        if (evidenceIds.Any())
+                        {
+                            BroadcastEvidenceIds(default, evidenceIds);
+                        }
+                    },
+                    cancellationToken);
+            }
+            catch (OperationCanceledException e)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+            }
+        }
+    }
+
+    private void BroadcastEvidenceIds(Address except, IEnumerable<EvidenceId> evidenceIds)
+    {
+        var message = new EvidenceIdsMessage { Ids = [.. evidenceIds] };
+        BroadcastMessage(except, message);
+    }
+
+    private async Task TransferEvidenceAsync(MessageEnvelope message, CancellationToken cancellationToken)
+    {
+        using var scope = await _transferEvidenceLimiter.WaitAsync(cancellationToken);
+        if (scope is null)
+        {
+            return;
+        }
+
+        var getEvidenceMsg = (GetEvidenceMessage)message.Message;
+        foreach (EvidenceId txid in getEvidenceMsg.EvidenceIds)
+        {
+            EvidenceBase? ev = Blockchain.PendingEvidences[txid];
+
+            if (ev is null)
+            {
+                continue;
+            }
+
+            MessageBase response = new EvidenceMessage
+            {
+                Payload = [.. ModelSerializer.SerializeToBytes(ev)],
+            };
+            Transport.ReplyMessage(message.Identity, response);
+        }
+    }
+
+    private void ProcessEvidenceIds(MessageEnvelope message)
+    {
+        var evidenceIdsMsg = (EvidenceIdsMessage)message.Message;
+        // EvidenceCompletion.Demand(message.Peer, evidenceIdsMsg.Ids);
+        _evidenceFetcher.DemandMany(message.Peer, [.. evidenceIdsMsg.Ids]);
+    }
+
+    public BlockDemandDictionary BlockDemandTable { get; private set; }
+
+    public BlockCandidateTable BlockCandidateTable { get; } = new BlockCandidateTable();
+
+    internal AsyncAutoResetEvent FillBlocksAsyncStarted { get; } = new AsyncAutoResetEvent();
+
+    internal AsyncAutoResetEvent FillBlocksAsyncFailed { get; } = new AsyncAutoResetEvent();
+
+    internal AsyncAutoResetEvent ProcessFillBlocksFinished { get; } = new AsyncAutoResetEvent();
+
+    internal async Task PullBlocksAsync(
+        TimeSpan? timeout,
+        int maximumPollPeers,
+        CancellationToken cancellationToken)
+    {
+        if (maximumPollPeers <= 0)
+        {
+            return;
+        }
+
+        List<(Peer, BlockExcerpt)> peersWithBlockExcerpt =
+            await GetPeersWithExcerpts(
+                timeout, maximumPollPeers, cancellationToken);
+        await PullBlocksAsync(peersWithBlockExcerpt, cancellationToken);
+    }
+
+    private async Task PullBlocksAsync(
+        List<(Peer, BlockExcerpt)> peersWithBlockExcerpt,
+        CancellationToken cancellationToken)
+    {
+        if (!peersWithBlockExcerpt.Any())
+        {
+            return;
+        }
+
+        long totalBlocksToDownload = 0L;
+        Block tempTip = Blockchain.Tip;
+        var blocks = new List<(Block, BlockCommit)>();
+
+        try
+        {
+            // NOTE: demandBlockHashes is always non-empty.
+            (var peer, var demandBlockHashes) = await GetDemandBlockHashes(
+                Blockchain,
+                peersWithBlockExcerpt,
+                cancellationToken);
+            totalBlocksToDownload = demandBlockHashes.Length;
+
+            var downloadedBlocks = GetBlocksAsync(
+                peer,
+                demandBlockHashes,
+                cancellationToken);
+
+            await foreach (
+                (Block block, BlockCommit commit) in
+                    downloadedBlocks.WithCancellation(cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                blocks.Add((block, commit));
+            }
+        }
+        catch (Exception e)
+        {
+            var msg =
+                $"Unexpected exception occurred during {nameof(PullBlocksAsync)}()";
+            FillBlocksAsyncFailed.Set();
+        }
+        finally
+        {
+            if (totalBlocksToDownload > 0)
+            {
+                try
+                {
+                    var branch = blocks.ToImmutableSortedDictionary(item => item.Item1, item => item.Item2);
+                    BlockCandidateTable.Add(Blockchain.Tip, branch);
+                    _blockReceivedSubject.OnNext(Unit.Default);
+                }
+                catch (ArgumentException ae)
+                {
+                }
+            }
+
+            ProcessFillBlocksFinished.Set();
+        }
+    }
+
+    private async Task FillBlocksAsync(
+        CancellationToken cancellationToken)
+    {
+        var checkInterval = TimeSpan.FromMilliseconds(100);
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (BlockDemandTable.Any())
+            {
+                foreach (var blockDemand in BlockDemandTable.Values)
+                {
+                    BlockDemandTable.Remove(blockDemand.Peer);
+                    _ = ProcessBlockDemandAsync(
+                        blockDemand,
+                        cancellationToken);
+                }
+            }
+            else
+            {
+                await Task.Delay(checkInterval, cancellationToken);
+                continue;
+            }
+
+            BlockDemandTable.Cleanup(IsBlockNeeded);
+        }
+
+    }
+
+    private async Task PollBlocksAsync(
+        TimeSpan timeout,
+        TimeSpan tipLifespan,
+        int maximumPollPeers,
+        CancellationToken cancellationToken)
+    {
+        BlockExcerpt lastTip = Blockchain.Tip;
+        DateTimeOffset lastUpdated = DateTimeOffset.UtcNow;
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (!lastTip.BlockHash.Equals(Blockchain.Tip.BlockHash))
+            {
+                lastUpdated = DateTimeOffset.UtcNow;
+                lastTip = Blockchain.Tip;
+            }
+            else if (lastUpdated + tipLifespan < DateTimeOffset.UtcNow)
+            {
+                await PullBlocksAsync(
+                    timeout, maximumPollPeers, cancellationToken);
+            }
+
+            await Task.Delay(1000, cancellationToken);
+        }
+    }
+
+    private void OnBlockChainTipChanged(TipChangedInfo e)
+    {
+        if (IsRunning)
+        {
+            BroadcastBlock(e.Tip);
+        }
+    }
+
+    private async Task ConsumeBlockCandidates(
+        TimeSpan? checkInterval = null,
+        CancellationToken cancellationToken = default)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (BlockCandidateTable.Count > 0)
+            {
+                BlockHeader tipHeader = Blockchain.Tip.Header;
+                if (BlockCandidateTable.GetCurrentRoundCandidate(Blockchain.Tip) is { } branch)
+                {
+                    var root = branch.Keys.First();
+                    var tip = branch.Keys.Last();
+                    _ = BlockCandidateProcess(
+                        branch,
+                        cancellationToken);
+                    _blockAppendedSubject.OnNext(Unit.Default);
+                }
+            }
+            else if (checkInterval is { } interval)
+            {
+                await Task.Delay(interval, cancellationToken);
+                continue;
+            }
+            else
+            {
+                break;
+            }
+
+            BlockCandidateTable.Cleanup(IsBlockNeeded);
+        }
+    }
+
+    private bool BlockCandidateProcess(
+        ImmutableSortedDictionary<Block, BlockCommit> candidate,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            FillBlocksAsyncStarted.Set();
+            AppendBranch(
+                blockChain: Blockchain,
+                candidate: candidate,
+                cancellationToken: cancellationToken);
+            ProcessFillBlocksFinished.Set();
+            return true;
+        }
+        catch (Exception e)
+        {
+            FillBlocksAsyncFailed.Set();
+            return false;
+        }
+    }
+
+    private void AppendBranch(
+        Blockchain blockChain,
+        ImmutableSortedDictionary<Block, BlockCommit> candidate,
+        CancellationToken cancellationToken = default)
+    {
+        var oldTip = blockChain.Tip;
+        var branchpoint = oldTip;
+        var blocks = ExtractBlocksToAppend(branchpoint, candidate);
+        var verifiedBlockCount = 0;
+
+        foreach (var (block, commit) in blocks)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            blockChain.Append(block, commit);
+            verifiedBlockCount++;
+        }
+    }
+
+    private List<(Block, BlockCommit)> ExtractBlocksToAppend(Block branchpoint, ImmutableSortedDictionary<Block, BlockCommit> branch)
+    {
+        var trimmed = new List<(Block, BlockCommit)>();
+        bool matchFound = false;
+        foreach (var (key, value) in branch)
+        {
+            if (matchFound)
+            {
+                trimmed.Add((key, value));
+            }
+            else
+            {
+                matchFound = branchpoint.BlockHash.Equals(key.BlockHash);
+            }
+        }
+
+        return trimmed;
+    }
+
+    private async Task<bool> ProcessBlockDemandAsync(
+        BlockDemand demand,
+        CancellationToken cancellationToken)
+    {
+        Peer peer = demand.Peer;
+
+        if (_processBlockDemandSessions.ContainsKey(peer))
+        {
+            // Another task has spawned for the peer.
+            return false;
+        }
+
+        var sessionRandom = new Random();
+
+        int sessionId = sessionRandom.Next();
+
+        if (demand.Height <= Blockchain.Tip.Height)
+        {
+            return false;
+        }
+
+
+        try
+        {
+            _processBlockDemandSessions.TryAdd(peer, sessionId);
+            var result = await BlockCandidateDownload(
+                peer: peer,
+                blockChain: Blockchain,
+                logSessionId: sessionId,
+                cancellationToken: cancellationToken);
+
+            _blockReceivedSubject.OnNext(Unit.Default);
+            return result;
+        }
+        catch (TimeoutException)
+        {
+            return false;
+        }
+        catch (Exception e)
+        {
+            const string msg =
+                "{SessionId}: Unexpected exception occurred during " +
+                nameof(ProcessBlockDemandAsync) + "() from {Peer}";
+            return false;
+        }
+        finally
+        {
+            // Maybe demand table can be cleaned up here, but it will be eventually
+            // cleaned up in FillBlocksAsync()
+            _processBlockDemandSessions.TryRemove(peer, out _);
+        }
+    }
+
+    private async Task<bool> BlockCandidateDownload(
+        Peer peer,
+        Blockchain blockChain,
+        int logSessionId,
+        CancellationToken cancellationToken)
+    {
+        var tipBlockHash = blockChain.Tip.BlockHash;
+        Block tip = blockChain.Tip;
+
+        var hashes = await GetBlockHashes(
+            peer: peer,
+            blockHash: tipBlockHash,
+            cancellationToken: cancellationToken);
+
+        if (hashes.Length == 0)
+        {
+            FillBlocksAsyncFailed.Set();
+            return false;
+        }
+
+        IAsyncEnumerable<(Block, BlockCommit)> blocksAsync = GetBlocksAsync(
+            peer,
+            hashes,
+            cancellationToken);
+        try
+        {
+            var items = await blocksAsync.ToArrayAsync(cancellationToken);
+            var branch = items.ToImmutableSortedDictionary(
+                item => item.Item1,
+                item => item.Item2);
+            BlockCandidateTable.Add(tip, branch);
+            return true;
+        }
+        catch (ArgumentException ae)
+        {
+            return false;
+        }
     }
 }

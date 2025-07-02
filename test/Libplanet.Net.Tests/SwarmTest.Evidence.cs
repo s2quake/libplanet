@@ -8,6 +8,7 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Nito.AsyncEx;
+using Libplanet.Net.Options;
 
 namespace Libplanet.Net.Tests
 {
@@ -31,7 +32,10 @@ namespace Libplanet.Net.Tests
                 new ConsensusReactorOptions
                 {
                     Validators = consensusPeers,
-                    Port = 6000 + i,
+                    TransportOptions = new TransportOptions
+                    {
+                        Port = 6000 + i,
+                    },
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(4),
                     ConsensusOptions = new ConsensusOptions(),

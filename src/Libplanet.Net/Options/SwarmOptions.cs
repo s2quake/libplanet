@@ -30,6 +30,8 @@ public sealed record class SwarmOptions
 
     public TimeSpan TipLifespan { get; init; } = TimeSpan.FromSeconds(60);
 
+    public TransportOptions TransportOptions { get; init; } = new();
+
     public BootstrapOptions BootstrapOptions { get; init; } = new BootstrapOptions();
 
     public PreloadOptions PreloadOptions { get; init; } = new PreloadOptions();

@@ -78,14 +78,14 @@ internal sealed class SwarmService(
 
         var nodeOptions = _options;
         var privateKey = PrivateKey.Parse(nodeOptions.PrivateKey);
-        var appProtocolVersion = Protocol.FromToken(nodeOptions.AppProtocolVersion);
+        var protocol = Protocol.FromToken(nodeOptions.AppProtocolVersion);
         var trustedAppProtocolVersionSigners = nodeOptions.TrustedAppProtocolVersionSigners
             .Select(Address.Parse).ToArray();
         var swarmEndPoint = (DnsEndPoint)EndPointUtility.Parse(nodeOptions.EndPoint);
         var swarmTransport = CreateTransport(
             signer: privateKey.AsSigner(),
             endPoint: swarmEndPoint,
-            protocol: appProtocolVersion);
+            protocol: protocol);
         var blocksyncSeedPeer = Net.Peer.Parse(nodeOptions.BlocksyncSeedPeer);
         var swarmOptions = new Net.Options.SwarmOptions
         {
@@ -97,18 +97,16 @@ internal sealed class SwarmService(
         };
 
         var consensusTransport = _validatorOptions.IsEnabled
-            ? CreateConsensusTransport(privateKey, appProtocolVersion, _validatorOptions)
+            ? CreateConsensusTransport(privateKey, protocol, _validatorOptions)
             : null;
         var consensusReactorOption = _validatorOptions.IsEnabled
             ? CreateConsensusReactorOption(privateKey, _validatorOptions)
             : (ConsensusReactorOptions?)null;
 
         _swarm = new Swarm(
-            blockchain: blockChain,
             signer: privateKey.AsSigner(),
-            transport: swarmTransport,
+            blockchain: blockChain,
             options: swarmOptions,
-            consensusTransport: consensusTransport,
             consensusOption: consensusReactorOption);
         _startTask = _swarm.StartAsync(cancellationToken: default);
         _logger.LogDebug("Node.Swarm is starting: {Address}", _swarm.Address);
@@ -191,7 +189,11 @@ internal sealed class SwarmService(
         return new ConsensusReactorOptions
         {
             Seeds = [consensusSeedPeer],
-            Port = consensusEndPoint.Port,
+            TransportOptions = new Net.Options.TransportOptions
+            {
+                Host = consensusEndPoint.Host,
+                Port = consensusEndPoint.Port,
+            },
             TargetBlockInterval = TimeSpan.FromSeconds(2),
             ConsensusOptions = new(),
         };

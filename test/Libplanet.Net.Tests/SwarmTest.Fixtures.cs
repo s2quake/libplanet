@@ -74,7 +74,6 @@ namespace Libplanet.Net.Tests
 
         private Task<Swarm> CreateConsensusSwarm(
             PrivateKey? privateKey = null,
-            TransportOptions? transportOptions = null,
             SwarmOptions? options = null,
             BlockchainOptions? policy = null,
             Block? genesis = null,
@@ -82,7 +81,6 @@ namespace Libplanet.Net.Tests
         {
             return CreateSwarm(
                 privateKey,
-                transportOptions,
                 options,
                 policy,
                 genesis,
@@ -90,7 +88,6 @@ namespace Libplanet.Net.Tests
                 {
                     Seeds = [],
                     Validators = [],
-                    Port = 0,
                     Workers = 100,
                     TargetBlockInterval = TimeSpan.FromSeconds(10),
                 });
@@ -98,7 +95,6 @@ namespace Libplanet.Net.Tests
 
         private async Task<Swarm> CreateSwarm(
             PrivateKey? privateKey = null,
-            TransportOptions? transportOptions = null,
             SwarmOptions? options = null,
             BlockchainOptions? policy = null,
             Block? genesis = null,
@@ -117,7 +113,6 @@ namespace Libplanet.Net.Tests
             return await CreateSwarm(
                 blockchain,
                 privateKey,
-                transportOptions,
                 options,
                 consensusReactorOption: consensusReactorOption);
         }
@@ -125,27 +120,25 @@ namespace Libplanet.Net.Tests
         private async Task<Swarm> CreateSwarm(
             Blockchain blockchain,
             PrivateKey? privateKey = null,
-            TransportOptions? transportOptions = null,
+            // TransportOptions? transportOptions = null,
             SwarmOptions? options = null,
             ConsensusReactorOptions? consensusReactorOption = null)
         {
             options ??= new SwarmOptions();
             privateKey ??= new PrivateKey();
-            transportOptions ??= new TransportOptions();
-            var transport = new NetMQTransport(privateKey.AsSigner(), transportOptions ?? new TransportOptions());
+            // transportOptions ??= new TransportOptions();
+            // var transport = new NetMQTransport(privateKey.AsSigner(), transportOptions ?? new TransportOptions());
             ITransport consensusTransport = null;
             if (consensusReactorOption is { } option)
             {
-                var consensusHostOptions = transportOptions with { Port = option.Port };
-                consensusTransport = new NetMQTransport(privateKey.AsSigner(), consensusHostOptions);
+                // var consensusHostOptions = transportOptions with { Port = option.Port };
+                // consensusTransport = new NetMQTransport(privateKey.AsSigner(), consensusHostOptions);
             }
 
             var swarm = new Swarm(
-                blockchain,
                 privateKey.AsSigner(),
-                transport,
+                blockchain,
                 options,
-                consensusTransport: consensusTransport,
                 consensusOption: consensusReactorOption);
             _finalizers.Add(async () =>
             {

@@ -309,21 +309,20 @@ public static class TestUtils
         key ??= PrivateKeys[1];
 
         var signer = key.AsSigner();
-        var transportOption = new TransportOptions
-        {
-            Protocol = Protocol,
-            Host = host,
-            Port = port,
-        };
-        var transport = new NetMQTransport(key.AsSigner(), transportOption);
         var consensusReactorOptions = new ConsensusReactorOptions
         {
             Validators = validatorPeers ?? Peers,
             TargetBlockInterval = newHeightDelay ?? TimeSpan.FromMilliseconds(10_000),
             ConsensusOptions = consensusOption ?? new ConsensusOptions(),
+            TransportOptions = new TransportOptions
+            {
+                Protocol = Protocol,
+                Host = host,
+                Port = port,
+            }
         };
 
-        return new ConsensusReactor(signer, transport, blockchain, consensusReactorOptions);
+        return new ConsensusReactor(signer, blockchain, consensusReactorOptions);
     }
 
     public static byte[] GetRandomBytes(int size)

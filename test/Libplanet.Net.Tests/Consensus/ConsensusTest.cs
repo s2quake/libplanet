@@ -559,7 +559,6 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         };
         var consensusReactor = new ConsensusReactor(
             privateKey0.AsSigner(),
-            transport,
             blockchain,
             options);
         // var consensus = consensusReactor.Consensus;
