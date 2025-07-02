@@ -34,7 +34,7 @@ internal sealed class FillBlocksTask(Swarm swarm) : SwarmTaskBase
 
     }
 
-    private bool IsBlockNeeded(BlockExcerpt target) => target.Height > _blockchain.Tip.Height;
+    private bool IsBlockNeeded(BlockSummary target) => target.Height > _blockchain.Tip.Height;
 
     private async Task<bool> ProcessBlockDemandAsync(BlockDemand demand, CancellationToken cancellationToken)
     {
@@ -83,7 +83,7 @@ internal sealed class FillBlocksTask(Swarm swarm) : SwarmTaskBase
             _processBlockDemandSessions.TryRemove(peer, out _);
         }
     }
-    
+
     private async Task<bool> BlockCandidateDownload(
         Peer peer,
         Blockchain blockChain,

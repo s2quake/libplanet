@@ -5,11 +5,11 @@ namespace Libplanet.Net;
 
 public sealed class BlockCandidateTable
 {
-    private readonly ConcurrentDictionary<BlockExcerpt, ImmutableSortedDictionary<Block, BlockCommit>> _table = new();
+    private readonly ConcurrentDictionary<BlockSummary, ImmutableSortedDictionary<Block, BlockCommit>> _table = new();
 
     public long Count => _table.Count;
 
-    public void Add(BlockExcerpt blockHeader, ImmutableSortedDictionary<Block, BlockCommit> branch)
+    public void Add(BlockSummary blockHeader, ImmutableSortedDictionary<Block, BlockCommit> branch)
     {
         if (_table.ContainsKey(blockHeader))
         {
@@ -19,18 +19,18 @@ public sealed class BlockCandidateTable
         _table.TryAdd(blockHeader, branch);
     }
 
-    public ImmutableSortedDictionary<Block, BlockCommit> GetCurrentRoundCandidate(BlockExcerpt thisRoundTip)
+    public ImmutableSortedDictionary<Block, BlockCommit> GetCurrentRoundCandidate(BlockSummary thisRoundTip)
     {
         return _table.TryGetValue(thisRoundTip, out var branch)
             ? branch : ImmutableSortedDictionary<Block, BlockCommit>.Empty;
     }
 
-    public bool TryRemove(BlockExcerpt header)
+    public bool TryRemove(BlockSummary header)
     {
         return _table.TryRemove(header, out _);
     }
 
-    public void Cleanup(Func<BlockExcerpt, bool> predicate)
+    public void Cleanup(Func<BlockSummary, bool> predicate)
     {
         foreach (var blockHeader in _table.Keys)
         {

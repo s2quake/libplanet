@@ -3,11 +3,11 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-[Model(Version = 1, TypeName = "BlockExcerpt")]
-public sealed partial record class BlockExcerpt
+[Model(Version = 1, TypeName = "BlockSummary")]
+public sealed partial record class BlockSummary
 {
     [Property(0)]
-    public int ProtocolVersion { get; init; }
+    public int Version { get; init; }
 
     [Property(1)]
     public int Height { get; init; }
@@ -18,9 +18,9 @@ public sealed partial record class BlockExcerpt
     [Property(3)]
     public DateTimeOffset Timestamp { get; init; }
 
-    public static implicit operator BlockExcerpt(Block block) => new()
+    public static implicit operator BlockSummary(Block block) => new()
     {
-        ProtocolVersion = block.Header.Version,
+        Version = block.Header.Version,
         Height = block.Header.Height,
         BlockHash = block.BlockHash,
         Timestamp = block.Header.Timestamp,

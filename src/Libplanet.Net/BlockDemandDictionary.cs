@@ -17,7 +17,7 @@ public sealed class BlockDemandDictionary(TimeSpan blockDemandLifetime)
 
     public BlockDemand this[Peer key] => _demandByPeer[key];
 
-    public void Add(Func<BlockExcerpt, bool> predicate, BlockDemand demand)
+    public void Add(Func<BlockSummary, bool> predicate, BlockDemand demand)
     {
         if (IsDemandNeeded(predicate, demand))
         {
@@ -27,7 +27,7 @@ public sealed class BlockDemandDictionary(TimeSpan blockDemandLifetime)
 
     public bool Remove(Peer peer) => _demandByPeer.TryRemove(peer, out _);
 
-    public void Cleanup(Func<BlockExcerpt, bool> predicate)
+    public void Cleanup(Func<BlockSummary, bool> predicate)
     {
         foreach (var demand in _demandByPeer.Values)
         {
@@ -38,7 +38,7 @@ public sealed class BlockDemandDictionary(TimeSpan blockDemandLifetime)
         }
     }
 
-    private bool IsDemandNeeded(Func<BlockExcerpt, bool> predicate, BlockDemand demand)
+    private bool IsDemandNeeded(Func<BlockSummary, bool> predicate, BlockDemand demand)
     {
         BlockDemand? oldDemand = _demandByPeer.ContainsKey(demand.Peer)
             ? _demandByPeer[demand.Peer]
