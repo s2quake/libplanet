@@ -150,60 +150,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         }
     }
 
-    // public async Task<MessageEnvelope> SendMessageAsync(
-    //     Peer peer, IMessage message, CancellationToken cancellationToken)
-    // {
-    //     ObjectDisposedException.ThrowIf(_disposed, this);
-
-    //     if (!IsRunning)
-    //     {
-    //         throw new InvalidOperationException("Transport is not running.");
-    //     }
-
-    //     using var timeoutCancellationTokenSource = new CancellationTokenSource(_options.SendTimeout);
-    //     using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-    //         _cancellationToken, cancellationToken, timeoutCancellationTokenSource.Token);
-    //     var channel = Channel.CreateUnbounded<MessageReply>();
-
-    //     try
-    //     {
-    //         var request = new MessageRequest
-    //         {
-    //             MessageEnvelope = new MessageEnvelope
-    //             {
-    //                 Identity = Guid.NewGuid(),
-    //                 Message = message,
-    //                 Protocol = _options.Protocol,
-    //                 Peer = Peer,
-    //                 Timestamp = DateTimeOffset.UtcNow,
-    //             },
-    //             Peer = peer,
-    //             Channel = channel,
-    //             CancellationToken = cancellationTokenSource.Token,
-    //         };
-    //         Interlocked.Increment(ref _requestCount);
-    //         // cancellationTokenSource.CancelAfter(_options.SendTimeout);
-    //         await _requestChannel.Writer.WriteAsync(request, cancellationTokenSource.Token);
-
-    //         var reply = await channel.Reader.ReadAsync(cancellationTokenSource.Token);
-    //         var messageEnvelope = reply.MessageEnvelope;
-    //         messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
-    //         return messageEnvelope;
-    //     }
-    //     catch (OperationCanceledException e) when (timeoutCancellationTokenSource.IsCancellationRequested)
-    //     {
-    //         throw new TimeoutException("The request timed out while waiting for a response.", e);
-    //     }
-    //     catch (ChannelClosedException e)
-    //     {
-    //         throw new CommunicationException("The channel was closed before a response could be received.", e);
-    //     }
-    //     finally
-    //     {
-    //         channel.Writer.TryComplete();
-    //     }
-    // }
-
     public async IAsyncEnumerable<IMessage> SendAsync(
         Peer peer, IMessage message, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
