@@ -169,7 +169,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : SwarmTaskBase
         CancellationToken cancellationToken = default)
     {
         var blockHashList = new List<BlockHash>();
-        var blockHashes = await swarm.GetBlockHashes(
+        var blockHashes = await swarm.Transport.GetBlockHashes(
             peer: peer,
             blockHash: blockChain.Tip.BlockHash,
             cancellationToken: cancellationToken);

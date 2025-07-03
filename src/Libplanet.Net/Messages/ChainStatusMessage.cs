@@ -13,13 +13,14 @@ internal sealed record class ChainStatusMessage : MessageBase
     public required BlockHash GenesisHash { get; init; }
 
     [Property(2)]
-    public required int TipIndex { get; init; }
+    public required int TipHeight { get; init; }
 
+    [Property(3)]
     public required BlockHash TipHash { get; init; }
 
     public static implicit operator BlockSummary(ChainStatusMessage msg) => new()
     {
-        Height = msg.TipIndex,
+        Height = msg.TipHeight,
         Version = msg.ProtocolVersion,
         BlockHash = msg.TipHash,
     };

@@ -514,7 +514,7 @@ namespace Libplanet.Net.Tests
 
                 await swarmA.AddPeersAsync([swarmB.Peer], default);
 
-                var inventories = await swarmB.GetBlockHashes(
+                var inventories = await swarmB.Transport.GetBlockHashes(
                     swarmA.Peer,
                     genesis.BlockHash,
                     default);
@@ -566,7 +566,7 @@ namespace Libplanet.Net.Tests
 
                 await swarmB.AddPeersAsync([peer], default);
 
-                var hashes = await swarmB.GetBlockHashes(
+                var hashes = await swarmB.Transport.GetBlockHashes(
                     peer,
                     genesis.BlockHash,
                     default);
@@ -582,11 +582,12 @@ namespace Libplanet.Net.Tests
                 var blockMessage = (BlocksMessage)responses[0];
 
                 Assert.Equal(2, responses.Length);
-                Assert.Equal(4, blockMessage.Payloads.Length);
+                Assert.Equal(2, blockMessage.Blocks.Length);
+                Assert.Equal(2, blockMessage.BlockCommits.Length);
 
                 blockMessage = (BlocksMessage)responses[1];
 
-                Assert.Equal(2, blockMessage.Payloads.Length);
+                Assert.Equal(1, blockMessage.Blocks.Length);
             }
             finally
             {

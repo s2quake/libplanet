@@ -174,54 +174,54 @@ internal sealed class FillBlocksTask(Swarm swarm) : SwarmTaskBase
         //     blockRecvTimeout = Options.TimeoutOptions.MaxTimeout;
         // }
 
-        var messageEnvelope = await _transport.SendMessageAsync(peer, request, cancellationToken);
-        var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
+        // var messageEnvelope = await _transport.SendMessageAsync(peer, request, cancellationToken);
+        // var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
 
-        int count = 0;
+        // int count = 0;
 
-        foreach (var message in aggregateMessage.Messages)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        // foreach (var message in aggregateMessage.Messages)
+        // {
+        //     cancellationToken.ThrowIfCancellationRequested();
 
-            if (message is BlocksMessage blockMessage)
-            {
-                var payloads = blockMessage.Payloads;
-                for (int i = 0; i < payloads.Length; i += 2)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    byte[] blockPayload = payloads[i];
-                    byte[] commitPayload = payloads[i + 1];
-                    Block block = ModelSerializer.DeserializeFromBytes<Block>(blockPayload);
-                    BlockCommit commit = commitPayload.Length == 0
-                        ? default
-                        : ModelSerializer.DeserializeFromBytes<BlockCommit>(commitPayload);
+        //     if (message is BlocksMessage blockMessage)
+        //     {
+        //         var payloads = blockMessage.Payloads;
+        //         for (int i = 0; i < payloads.Length; i += 2)
+        //         {
+        //             cancellationToken.ThrowIfCancellationRequested();
+        //             byte[] blockPayload = payloads[i];
+        //             byte[] commitPayload = payloads[i + 1];
+        //             Block block = ModelSerializer.DeserializeFromBytes<Block>(blockPayload);
+        //             BlockCommit commit = commitPayload.Length == 0
+        //                 ? default
+        //                 : ModelSerializer.DeserializeFromBytes<BlockCommit>(commitPayload);
 
-                    if (count < blockHashes.Length)
-                    {
-                        if (blockHashes[count].Equals(block.BlockHash))
-                        {
-                            yield return (block, commit);
-                            count++;
-                        }
-                        else
-                        {
-                            yield break;
-                        }
-                    }
-                    else
-                    {
-                        yield break;
-                    }
-                }
-            }
-            else
-            {
-                string errorMessage =
-                    $"Expected a {nameof(BlocksMessage)} message as a response of " +
-                    $"the {nameof(GetBlocksMessage)} message, but got a {message.GetType().Name} " +
-                    $"message instead: {message}";
-                throw new InvalidMessageContractException(errorMessage);
-            }
-        }
+        //             if (count < blockHashes.Length)
+        //             {
+        //                 if (blockHashes[count].Equals(block.BlockHash))
+        //                 {
+        //                     yield return (block, commit);
+        //                     count++;
+        //                 }
+        //                 else
+        //                 {
+        //                     yield break;
+        //                 }
+        //             }
+        //             else
+        //             {
+        //                 yield break;
+        //             }
+        //         }
+        //     }
+        //     else
+        //     {
+        //         string errorMessage =
+        //             $"Expected a {nameof(BlocksMessage)} message as a response of " +
+        //             $"the {nameof(GetBlocksMessage)} message, but got a {message.GetType().Name} " +
+        //             $"message instead: {message}";
+        //         throw new InvalidMessageContractException(errorMessage);
+        //     }
+        // }
     }
 }

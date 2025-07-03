@@ -165,7 +165,7 @@ public sealed class Swarm : IAsyncDisposable
 
         _taskList.AddRange(
         [
-            BroadcastBlockAsync(Options.BlockBroadcastInterval, _cancellationToken),
+            // BroadcastBlockAsync(Options.BlockBroadcastInterval, _cancellationToken),
             BroadcastTxAsync(Options.TxBroadcastInterval, _cancellationToken),
             BroadcastEvidenceAsync(Options.EvidenceBroadcastInterval, _cancellationToken),
             FillBlocksAsync(_cancellationToken),
@@ -262,7 +262,7 @@ public sealed class Swarm : IAsyncDisposable
             .Select(pp =>
                 new PeerChainState(
                     pp.Item1,
-                    pp.Item2?.TipIndex ?? -1));
+                    pp.Item2?.TipHeight ?? -1));
     }
 
     private async Task PreloadAsync(CancellationToken cancellationToken)
@@ -339,27 +339,6 @@ public sealed class Swarm : IAsyncDisposable
         return [.. result.Items];
     }
 
-    internal async Task<BlockHash[]> GetBlockHashes(
-        Peer peer, BlockHash blockHash, CancellationToken cancellationToken)
-    {
-        var request = new GetBlockHashesMessage { BlockHash = blockHash };
-        try
-        {
-            var reply = await Transport.SendMessageAsync(peer, request, cancellationToken);
-            var blockHashes = reply.Message is BlockHashesMessage replyMessage ? replyMessage.Hashes : [];
-            if (blockHashes.Length > 0 && blockHash == blockHashes[0])
-            {
-                return [.. blockHashes];
-            }
-        }
-        catch
-        {
-            // do nothing
-        }
-
-        return [];
-    }
-
     internal async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
         Peer peer,
         BlockHash[] blockHashes,
@@ -373,51 +352,27 @@ public sealed class Swarm : IAsyncDisposable
             yield break;
         }
 
-        TimeSpan blockRecvTimeout = Options.TimeoutOptions.GetBlocksBaseTimeout
-            + Options.TimeoutOptions.GetBlocksPerBlockHashTimeout.Multiply(hashCount);
-        if (blockRecvTimeout > Options.TimeoutOptions.MaxTimeout)
-        {
-            blockRecvTimeout = Options.TimeoutOptions.MaxTimeout;
-        }
+        // TimeSpan blockRecvTimeout = Options.TimeoutOptions.GetBlocksBaseTimeout
+        //     + Options.TimeoutOptions.GetBlocksPerBlockHashTimeout.Multiply(hashCount);
+        // if (blockRecvTimeout > Options.TimeoutOptions.MaxTimeout)
+        // {
+        //     blockRecvTimeout = Options.TimeoutOptions.MaxTimeout;
+        // }
 
         var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
         var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
 
-        int count = 0;
+        // int count = 0;
 
         foreach (var message in aggregateMessage.Messages)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (message is BlocksMessage blockMessage)
+            if (message is BlocksMessage blocksMessage)
             {
-                var payloads = blockMessage.Payloads;
-                for (int i = 0; i < payloads.Length; i += 2)
+                for (var i = 0; i < blocksMessage.Blocks.Length; i++)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    byte[] blockPayload = payloads[i];
-                    byte[] commitPayload = payloads[i + 1];
-                    Block block = ModelSerializer.DeserializeFromBytes<Block>(blockPayload);
-                    BlockCommit commit = commitPayload.Length == 0
-                        ? default
-                        : ModelSerializer.DeserializeFromBytes<BlockCommit>(commitPayload);
-
-                    if (count < blockHashes.Length)
-                    {
-                        if (blockHashes[count].Equals(block.BlockHash))
-                        {
-                            yield return (block, commit);
-                            count++;
-                        }
-                        else
-                        {
-                            yield break;
-                        }
-                    }
-                    else
-                    {
-                        yield break;
-                    }
+                    yield return (blocksMessage.Blocks[i], blocksMessage.BlockCommits[i]);
                 }
             }
             else
@@ -446,7 +401,7 @@ public sealed class Swarm : IAsyncDisposable
 
             try
             {
-                var blockHashes = await GetBlockHashes(peer, block.BlockHash, cancellationToken);
+                var blockHashes = await Transport.GetBlockHashes(peer, block.BlockHash, cancellationToken);
                 if (blockHashes.Length != 0)
                 {
                     return (peer, blockHashes);
@@ -506,7 +461,7 @@ public sealed class Swarm : IAsyncDisposable
             .Where(
                 pair => pair.Item2 is { } chainStatus &&
                     genesisHash.Equals(chainStatus.GenesisHash) &&
-                    chainStatus.TipIndex > tip.Height)
+                    chainStatus.TipHeight > tip.Height)
             .Select(pair => (pair.Item1, (BlockSummary)pair.Item2))
             .OrderBy(_ => random.Next())
             .ToArray();
@@ -515,107 +470,46 @@ public sealed class Swarm : IAsyncDisposable
     private async Task<(Peer, ChainStatusMessage)[]> DialExistingPeers(
         TimeSpan dialTimeout, int maxPeersToDial, CancellationToken cancellationToken)
     {
-        // FIXME: It would be better if it returns IAsyncEnumerable<(BoundPeer, ChainStatus)>
-        // instead.
-        // void LogException(Peer peer, Task<MessageEnvelope> task)
-        // {
-        //     switch (task.Exception?.InnerException)
-        //     {
-        //         case CommunicationException cfe:
-        //             break;
-        //         case Exception e:
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // }
-
         var peers = Peers.ToArray();
         var random = new Random();
+        var transport = Transport;
         random.Shuffle(peers);
-        peers = peers.Take(maxPeersToDial).ToArray();
+        peers = peers[..maxPeersToDial];
 
-        var tasks = peers.Select(item => SendMessageAsync(item, cancellationToken));
-        return await Task.WhenAll(tasks);
-
-        async Task<(Peer, ChainStatusMessage)> SendMessageAsync(Peer peer, CancellationToken cancellationToken)
+        var tasks = peers.Select(async item =>
         {
-            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken, _cancellationToken);
-            var message = new GetChainStatusMessage();
-            var task = Transport.SendMessageAsync(peer, message, cancellationTokenSource.Token);
-            var reply = await task.WaitAsync(dialTimeout, cancellationTokenSource.Token);
-            if (reply.Message is not ChainStatusMessage chainStatus)
-            {
-                throw new InvalidMessageContractException(
-                    $"Expected a {nameof(ChainStatusMessage)} message as a response of " +
-                    $"{nameof(GetChainStatusMessage)}, but got a {reply.Message.GetType().Name} " +
-                    $"message instead: {reply.Message}");
-            }
+            var task = transport.GetChainStatusAsync(item, cancellationToken);
+            return await task.WaitAsync(dialTimeout, cancellationToken);
+        }).ToArray();
 
-            return (peer, chainStatus);
-        }
+        await TaskUtility.TryWaitAll(tasks);
+        var query = peers.Zip(tasks).Where(item => item.Second.IsCompletedSuccessfully)
+            .Select(item => (item.First, item.Second.Result));
 
-
-        // IEnumerable<Task<(Peer, ChainStatusMessage)>> tasks = Peers.OrderBy(_ => random.Next())
-        //     .Take(maxPeersToDial)
-        //     .Select(
-        //         peer => Transport.SendMessageAsync(
-        //             peer,
-        //             new GetChainStatusMessage(),
-        //             cancellationToken)
-        //         .ContinueWith<(Peer, ChainStatusMessage)>(
-        //             task =>
-        //             {
-        //                 if (task.IsFaulted || task.IsCanceled ||
-        //                     !(task.Result.Message is ChainStatusMessage chainStatus))
-        //                 {
-        //                     // Log and mark to skip
-        //                     LogException(peer, task);
-        //                     return (peer, null);
-        //                 }
-        //                 else
-        //                 {
-        //                     return (peer, chainStatus);
-        //                 }
-        //             },
-        //             cancellationToken));
-
-        // return Task.WhenAll(tasks).ContinueWith(
-        //     task =>
-        //     {
-        //         if (task.IsFaulted)
-        //         {
-        //             throw task.Exception;
-        //         }
-
-        //         return task.Result.ToArray();
-        //     },
-        //     cancellationToken);
-
+        return [.. query];
     }
 
-    private async Task BroadcastBlockAsync(TimeSpan broadcastBlockInterval, CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                await Task.Delay(broadcastBlockInterval, cancellationToken);
-                BroadcastBlock(Blockchain.Tip);
-            }
-            catch (OperationCanceledException e)
-            {
-                throw;
-            }
-            catch
-            {
-                // do nothing
-            }
-        }
+    // private async Task BroadcastBlockAsync(TimeSpan broadcastBlockInterval, CancellationToken cancellationToken)
+    // {
+    //     while (!cancellationToken.IsCancellationRequested)
+    //     {
+    //         try
+    //         {
+    //             await Task.Delay(broadcastBlockInterval, cancellationToken);
+    //             BroadcastBlock(Blockchain.Tip);
+    //         }
+    //         catch (OperationCanceledException e)
+    //         {
+    //             throw;
+    //         }
+    //         catch
+    //         {
+    //             // do nothing
+    //         }
+    //     }
 
-        cancellationToken.ThrowIfCancellationRequested();
-    }
+    //     cancellationToken.ThrowIfCancellationRequested();
+    // }
 
     private async Task BroadcastTxAsync(TimeSpan broadcastTxInterval, CancellationToken cancellationToken)
     {
@@ -742,7 +636,7 @@ public sealed class Swarm : IAsyncDisposable
                     {
                         ProtocolVersion = tip.Version,
                         GenesisHash = Blockchain.Genesis.BlockHash,
-                        TipIndex = tip.Height,
+                        TipHeight = tip.Height,
                         TipHash = tip.BlockHash,
                     };
 
@@ -857,7 +751,7 @@ public sealed class Swarm : IAsyncDisposable
         _txFetcher.DemandMany(messageEnvelope.Peer, [.. txIdsMsg.Ids]);
     }
 
-    private async Task TransferBlocksAsync(MessageEnvelope message)
+    private async Task TransferBlocksAsync(MessageEnvelope messageEnvelope)
     {
         using var scope = await _transferBlockLimiter.WaitAsync(_cancellationToken);
         if (scope is null)
@@ -865,69 +759,45 @@ public sealed class Swarm : IAsyncDisposable
             return;
         }
 
-        var blocksMsg = (GetBlocksMessage)message.Message;
-        // string reqId = !(message.Id is null) && message.Id.Length == 16
-        //     ? new Guid(message.Id).ToString()
-        //     : "unknown";
-        // _logger.Verbose(
-        //     "Preparing a {MessageType} message to reply to {Identity}...",
-        //     nameof(Messages.BlocksMessage),
-        //     reqId);
-
-        var payloads = new List<byte[]>();
-
-        List<BlockHash> hashes = blocksMsg.BlockHashes.ToList();
+        var requestMessage = (GetBlocksMessage)messageEnvelope.Message;
+        var blockHashes = requestMessage.BlockHashes;
         int count = 0;
-        int total = hashes.Count;
-        const string logMsg =
-            "Fetching block {Index}/{Total} {Hash} to include in " +
-            "a reply to {Identity}...";
-        foreach (BlockHash hash in hashes)
+        var blockList = new List<Block>();
+        var blockCommitList = new List<BlockCommit>();
+        foreach (var blockHash in blockHashes)
         {
-            // _logger.Verbose(logMsg, count, total, hash, reqId);
-            if (Blockchain.Blocks.TryGetValue(hash, out var block))
+            if (Blockchain.Blocks.TryGetValue(blockHash, out var block)
+                && Blockchain.BlockCommits.TryGetValue(block.BlockHash, out var blockCommit))
             {
-                byte[] blockPayload = ModelSerializer.SerializeToBytes(block);
-                payloads.Add(blockPayload);
-                byte[] commitPayload = Blockchain.BlockCommits[block.BlockHash] is { } commit
-                    ? ModelSerializer.SerializeToBytes(commit)
-                    : Array.Empty<byte>();
-                payloads.Add(commitPayload);
+                blockList.Add(block);
+                blockCommitList.Add(blockCommit);
                 count++;
             }
 
-            if (payloads.Count / 2 == blocksMsg.ChunkSize)
+            if (blockList.Count == requestMessage.ChunkSize)
             {
-                var response = new BlocksMessage { Payloads = [.. payloads] };
-                Transport.ReplyMessage(message.Identity, response);
-                payloads.Clear();
+                var responseMessage = new BlocksMessage
+                {
+                    Blocks = [.. blockList],
+                    BlockCommits = [.. blockCommitList],
+                };
+
+                Transport.ReplyMessage(messageEnvelope.Identity, responseMessage);
+                blockList.Clear();
+                blockCommitList.Clear();
             }
         }
 
-        if (payloads.Any())
+        if (count is 0 || blockList.Count > 0)
         {
-            var response = new BlocksMessage { Payloads = [.. payloads] };
-            // _logger.Verbose(
-            //     "Enqueuing a blocks reply (...{Count}/{Total}) to {Identity}...",
-            //     count,
-            //     total,
-            //     reqId);
-            Transport.ReplyMessage(message.Identity, response);
+            var responseMessage = new BlocksMessage
+            {
+                Blocks = [.. blockList],
+                BlockCommits = [.. blockCommitList],
+            };
+
+            Transport.ReplyMessage(messageEnvelope.Identity, responseMessage);
         }
-
-        if (count == 0)
-        {
-            var response = new BlocksMessage { Payloads = [.. payloads] };
-            // _logger.Verbose(
-            //     "Enqueuing a blocks reply (...{Index}/{Total}) to {Identity}...",
-            //     count,
-            //     total,
-            //     reqId);
-            Transport.ReplyMessage(message.Identity, response);
-        }
-
-        // _logger.Debug("{Count} blocks were transferred to {Identity}", count, reqId);
-
     }
 
     public void BroadcastEvidence(IEnumerable<EvidenceBase> evidence)
@@ -1324,11 +1194,7 @@ public sealed class Swarm : IAsyncDisposable
         var tipBlockHash = blockChain.Tip.BlockHash;
         Block tip = blockChain.Tip;
 
-        var hashes = await GetBlockHashes(
-            peer: peer,
-            blockHash: tipBlockHash,
-            cancellationToken: cancellationToken);
-
+        var hashes = await Transport.GetBlockHashes(peer, tipBlockHash, cancellationToken);
         if (hashes.Length == 0)
         {
             _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
