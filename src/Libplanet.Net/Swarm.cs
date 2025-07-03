@@ -15,6 +15,7 @@ using Libplanet.Net.Transports;
 using System.Reactive;
 using System.Reactive.Subjects;
 using Libplanet.Types.Threading;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace Libplanet.Net;
 
@@ -359,31 +360,37 @@ public sealed class Swarm : IAsyncDisposable
         //     blockRecvTimeout = Options.TimeoutOptions.MaxTimeout;
         // }
 
-        var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
-        var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
-
-        // int count = 0;
-
-        foreach (var message in aggregateMessage.Messages)
+        await foreach (var item in Transport.SendAsync<BlocksMessage>(peer, request, cancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (message is BlocksMessage blocksMessage)
+            for (var i = 0; i < item.Blocks.Length; i++)
             {
-                for (var i = 0; i < blocksMessage.Blocks.Length; i++)
-                {
-                    yield return (blocksMessage.Blocks[i], blocksMessage.BlockCommits[i]);
-                }
-            }
-            else
-            {
-                string errorMessage =
-                    $"Expected a {nameof(BlocksMessage)} message as a response of " +
-                    $"the {nameof(GetBlocksMessage)} message, but got a {message.GetType().Name} " +
-                    $"message instead: {message}";
-                throw new InvalidMessageContractException(errorMessage);
+                yield return (item.Blocks[i], item.BlockCommits[i]);
             }
         }
+        // var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
+
+        // // int count = 0;
+
+        // foreach (var message in aggregateMessage.Messages)
+        // {
+        //     cancellationToken.ThrowIfCancellationRequested();
+
+        //     if (message is BlocksMessage blocksMessage)
+        //     {
+        //         for (var i = 0; i < blocksMessage.Blocks.Length; i++)
+        //         {
+        //             yield return (blocksMessage.Blocks[i], blocksMessage.BlockCommits[i]);
+        //         }
+        //     }
+        //     else
+        //     {
+        //         string errorMessage =
+        //             $"Expected a {nameof(BlocksMessage)} message as a response of " +
+        //             $"the {nameof(GetBlocksMessage)} message, but got a {message.GetType().Name} " +
+        //             $"message instead: {message}";
+        //         throw new InvalidMessageContractException(errorMessage);
+        //     }
+        // }
     }
 
     internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
@@ -401,7 +408,7 @@ public sealed class Swarm : IAsyncDisposable
 
             try
             {
-                var blockHashes = await Transport.GetBlockHashes(peer, block.BlockHash, cancellationToken);
+                var blockHashes = await Transport.GetBlockHashesAsync(peer, block.BlockHash, cancellationToken);
                 if (blockHashes.Length != 0)
                 {
                     return (peer, blockHashes);
@@ -446,7 +453,7 @@ public sealed class Swarm : IAsyncDisposable
 
     internal void BroadcastMessage(Address except, MessageBase message)
     {
-        Transport.BroadcastMessage(
+        Transport.Broadcast(
             RoutingTable.PeersToBroadcast(except, Options.MinimumBroadcastTarget),
             message);
     }
@@ -640,7 +647,7 @@ public sealed class Swarm : IAsyncDisposable
                         TipHash = tip.BlockHash,
                     };
 
-                    Transport.ReplyMessage(messageEnvelope.Identity, chainStatus);
+                    Transport.Reply(messageEnvelope.Identity, chainStatus);
                 }
                 break;
 
@@ -654,7 +661,7 @@ public sealed class Swarm : IAsyncDisposable
                     //     FindNextHashesChunkSize);
                     var reply = new BlockHashesMessage { Hashes = [.. hashes] };
 
-                    Transport.ReplyMessage(messageEnvelope.Identity, reply);
+                    Transport.Reply(messageEnvelope.Identity, reply);
                 }
                 break;
 
@@ -741,7 +748,7 @@ public sealed class Swarm : IAsyncDisposable
             {
                 Payload = [.. ModelSerializer.SerializeToBytes(tx)],
             };
-            Transport.ReplyMessage(identity, replyMessage);
+            Transport.Reply(identity, replyMessage);
         }
     }
 
@@ -782,7 +789,7 @@ public sealed class Swarm : IAsyncDisposable
                     BlockCommits = [.. blockCommitList],
                 };
 
-                Transport.ReplyMessage(messageEnvelope.Identity, responseMessage);
+                Transport.Reply(messageEnvelope.Identity, responseMessage);
                 blockList.Clear();
                 blockCommitList.Clear();
             }
@@ -796,7 +803,7 @@ public sealed class Swarm : IAsyncDisposable
                 BlockCommits = [.. blockCommitList],
             };
 
-            Transport.ReplyMessage(messageEnvelope.Identity, responseMessage);
+            Transport.Reply(messageEnvelope.Identity, responseMessage);
         }
     }
 
@@ -821,26 +828,29 @@ public sealed class Swarm : IAsyncDisposable
             evidenceRecvTimeout = Options.TimeoutOptions.MaxTimeout;
         }
 
-        var messageEnvelope = await Transport.SendMessageAsync(peer, request, cancellationToken);
-        var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
-
-        foreach (var message in aggregateMessage.Messages)
+        await foreach (var item in Transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
         {
-            if (message is EvidenceMessage parsed)
-            {
-                EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. parsed.Payload]);
-                yield return evidence;
-            }
-            else
-            {
-                string errorMessage =
-                    $"Expected {nameof(Transaction)} messages as response of " +
-                    $"the {nameof(GetEvidenceMessage)} message, but got a " +
-                    $"{message.GetType().Name} " +
-                    $"message instead: {message}";
-                throw new InvalidOperationException(errorMessage);
-            }
+            yield return ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. item.Payload]);
         }
+        // var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
+
+        // foreach (var message in aggregateMessage.Messages)
+        // {
+        //     if (message is EvidenceMessage parsed)
+        //     {
+        //         EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. parsed.Payload]);
+        //         yield return evidence;
+        //     }
+        //     else
+        //     {
+        //         string errorMessage =
+        //             $"Expected {nameof(Transaction)} messages as response of " +
+        //             $"the {nameof(GetEvidenceMessage)} message, but got a " +
+        //             $"{message.GetType().Name} " +
+        //             $"message instead: {message}";
+        //         throw new InvalidOperationException(errorMessage);
+        //     }
+        // }
     }
 
     private void BroadcastEvidence(Peer? except, IEnumerable<EvidenceBase> evidence)
@@ -909,7 +919,7 @@ public sealed class Swarm : IAsyncDisposable
             {
                 Payload = [.. ModelSerializer.SerializeToBytes(ev)],
             };
-            Transport.ReplyMessage(message.Identity, response);
+            Transport.Reply(message.Identity, response);
         }
     }
 
@@ -1194,7 +1204,7 @@ public sealed class Swarm : IAsyncDisposable
         var tipBlockHash = blockChain.Tip.BlockHash;
         Block tip = blockChain.Tip;
 
-        var hashes = await Transport.GetBlockHashes(peer, tipBlockHash, cancellationToken);
+        var hashes = await Transport.GetBlockHashesAsync(peer, tipBlockHash, cancellationToken);
         if (hashes.Length == 0)
         {
             _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);

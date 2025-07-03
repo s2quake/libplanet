@@ -129,29 +129,30 @@ internal sealed class FillBlocksTask(Swarm swarm) : SwarmTaskBase
         BlockHash blockHash,
         CancellationToken cancellationToken = default)
     {
-        var request = new GetBlockHashesMessage { BlockHash = blockHash };
-        MessageEnvelope parsedMessage;
-        try
-        {
-            parsedMessage = await _transport.SendMessageAsync(
-                peer,
-                request,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-        catch (CommunicationException)
-        {
-            return [];
-        }
+        return await _transport.GetBlockHashesAsync(peer, blockHash, cancellationToken);
+        // var request = new GetBlockHashesMessage { BlockHash = blockHash };
+        // MessageEnvelope parsedMessage;
+        // try
+        // {
+        //     parsedMessage = await _transport.SendAsync(
+        //         peer,
+        //         request,
+        //         cancellationToken: cancellationToken).ConfigureAwait(false);
+        // }
+        // catch (CommunicationException)
+        // {
+        //     return [];
+        // }
 
-        if (parsedMessage.Message is BlockHashesMessage blockHashes)
-        {
-            if (blockHashes.Hashes.Any() && blockHash.Equals(blockHashes.Hashes.First()))
-            {
-                return [.. blockHashes.Hashes];
-            }
-        }
+        // if (parsedMessage.Message is BlockHashesMessage blockHashes)
+        // {
+        //     if (blockHashes.Hashes.Any() && blockHash.Equals(blockHashes.Hashes.First()))
+        //     {
+        //         return [.. blockHashes.Hashes];
+        //     }
+        // }
 
-        return [];
+        // return [];
     }
 
     internal async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(

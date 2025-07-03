@@ -36,24 +36,15 @@ internal sealed class Peer(ITransport transport, Net.Peer boundPeer)
         {
             var pingMsg = new PingMessage();
             var stopwatch = Stopwatch.StartNew();
-            var replyMessage = await _transport.SendMessageAsync(
-                BoundPeer,
-                pingMsg,
-                cancellationToken);
+            var replyMessage = await _transport.SendForSingleAsync<PongMessage>(BoundPeer, pingMsg, cancellationToken);
             var latency = Stopwatch.GetElapsedTime(stopwatch.ElapsedTicks);
-
-            if (replyMessage is PongMessage)
-            {
-                Latency = latency;
-                return true;
-            }
+            Latency = latency;
+            return true;
         }
         catch
         {
-            // Ignore
+            Latency = TimeSpan.MinValue;
+            return false;
         }
-
-        Latency = TimeSpan.MinValue;
-        return false;
     }
 }

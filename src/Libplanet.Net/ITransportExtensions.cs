@@ -3,13 +3,55 @@ using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net;
 
 public static class ITransportExtensions
 {
+    public static async IAsyncEnumerable<T> SendAsync<T>(
+        this ITransport @this,
+        Peer peer,
+        IMessage message,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+        where T : IMessage
+    {
+        await foreach (var item in @this.SendAsync(peer, message, cancellationToken))
+        {
+            if (item is T typedMessage)
+            {
+                yield return typedMessage;
+            }
+            else
+            {
+                throw new InvalidMessageContractException(
+                    $"Expected a {typeof(T).Name} message as a response of " +
+                    $"{message.GetType().Name}, but got a {item.GetType().Name} " +
+                    $"message instead: {item}");
+            }
+        }
+    }
+
+    // public static async Task<IMessage> SendForSingleAsync(
+    //     this ITransport @this, Peer peer, IMessage message, CancellationToken cancellationToken)
+    //     => await @this.SendAsync<IMessage>(peer, message, cancellationToken).FirstAsync(cancellationToken);
+
+    public static async Task<T> SendForSingleAsync<T>(
+        this ITransport @this, Peer peer, IMessage message, CancellationToken cancellationToken)
+        where T : IMessage
+    {
+        var replyMessag = await @this.SendAsync<T>(peer, message, cancellationToken).FirstAsync(cancellationToken);
+        if (replyMessag is not T typedMessage)
+        {
+            throw new InvalidMessageContractException(
+                $"Expected a {typeof(T).Name} message as a response of " +
+                $"{message.GetType().Name}, but got a {replyMessag.GetType().Name} " +
+                $"message instead: {replyMessag}");
+        }
+
+        return typedMessage;
+    }
+
     public static async Task PingAsync(this ITransport @this, Peer peer, CancellationToken cancellationToken)
     {
         if (@this.Peer.Equals(peer))
@@ -17,47 +59,31 @@ public static class ITransportExtensions
             throw new InvalidOperationException("Cannot ping self");
         }
 
-        var reply = await @this.SendMessageAsync(peer, new PingMessage(), cancellationToken);
-        if (reply.Message is not PongMessage)
-        {
-            throw new InvalidOperationException($"Expected pong, but received {reply.Message}.");
-        }
-        else if (reply.Peer.Address.Equals(@this.Peer.Address))
-        {
-            throw new InvalidOperationException("Cannot receive pong from self");
-        }
+        await SendForSingleAsync<PongMessage>(@this, peer, new PingMessage(), cancellationToken);
     }
 
     public static void Pong(this ITransport @this, MessageEnvelope messageEnvelope)
-        => @this.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+        => @this.Reply(messageEnvelope.Identity, new PongMessage());
 
-    internal static async Task<BlockHash[]> GetBlockHashes(
+    internal static async Task<BlockHash[]> GetBlockHashesAsync(
         this ITransport @this, Peer peer, BlockHash blockHash, CancellationToken cancellationToken)
     {
         var request = new GetBlockHashesMessage { BlockHash = blockHash };
-        var reply = await @this.SendMessageAsync(peer, request, cancellationToken);
-        var blockHashes = reply.Message is BlockHashesMessage replyMessage ? replyMessage.Hashes : [];
-        if (blockHashes.Length > 0 && blockHash == blockHashes[0])
+        var replyMessage = await SendForSingleAsync<BlockHashesMessage>(@this, peer, request, cancellationToken);
+        var blockHashes = replyMessage.Hashes;
+        if (blockHashes.Length > 0 && blockHash != blockHashes[0])
         {
-            return [.. blockHashes];
+            throw new InvalidMessageContractException(
+                $"Expected the first block hash to be {blockHash}, but got {blockHashes[0]} instead.");
         }
 
-        return [];
+        return [.. blockHashes];
     }
 
     internal static async Task<ChainStatusMessage> GetChainStatusAsync(
         this ITransport @this, Peer peer, CancellationToken cancellationToken)
     {
         var requestMessage = new GetChainStatusMessage();
-        var reply = await @this.SendMessageAsync(peer, requestMessage, cancellationToken);
-        if (reply.Message is not ChainStatusMessage chainStatus)
-        {
-            throw new InvalidMessageContractException(
-                $"Expected a {nameof(ChainStatusMessage)} message as a response of " +
-                $"{nameof(GetChainStatusMessage)}, but got a {reply.Message.GetType().Name} " +
-                $"message instead: {reply.Message}");
-        }
-
-        return chainStatus;
+        return await SendForSingleAsync<ChainStatusMessage>(@this, peer, requestMessage, cancellationToken);
     }
 }

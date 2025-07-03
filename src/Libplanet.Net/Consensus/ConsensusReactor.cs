@@ -75,12 +75,12 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     public Address Address => _signer.Address;
 
-    private void ValidateMessageToReceive(MessageEnvelope message)
+    private void ValidateMessageToReceive((Peer Peer, IMessage Message) e)
     {
-        if (message.Message is ConsensusVoteMessage voteMsg)
+        if (e.Message is ConsensusVoteMessage voteMsg)
         {
             FilterDifferentHeightVote(voteMsg);
-            FilterHigherRoundVoteSpam(voteMsg, message.Peer);
+            FilterHigherRoundVoteSpam(voteMsg, e.Peer);
         }
     }
 

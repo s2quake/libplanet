@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
@@ -19,12 +18,9 @@ public interface ITransport : IAsyncDisposable
 
     Task StopAsync(CancellationToken cancellationToken);
 
-    Task<MessageEnvelope> SendMessageAsync(Peer peer, IMessage message, CancellationToken cancellationToken);
+    IAsyncEnumerable<IMessage> SendAsync(Peer peer, IMessage message, CancellationToken cancellationToken);
 
-    IAsyncEnumerable<IMessage> SendMessageAsStreamAsync(
-        Peer peer, IMessage message, CancellationToken cancellationToken);
+    void Broadcast(IEnumerable<Peer> peers, IMessage message);
 
-    void BroadcastMessage(IEnumerable<Peer> peers, IMessage message);
-
-    void ReplyMessage(Guid identity, IMessage message);
+    void Reply(Guid identity, IMessage message);
 }

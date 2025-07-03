@@ -13,7 +13,7 @@ public sealed class Gossip(
     : IAsyncDisposable
 {
     private const int DLazy = 6;
-    private readonly Subject<MessageEnvelope> _validateReceivedMessageSubject = new();
+    private readonly Subject<(Peer, IMessage)> _validateReceivedMessageSubject = new();
     private readonly Subject<IMessage> _validateSendingMessageSubject = new();
     private readonly Subject<IMessage> _processMessageSubject = new();
     private readonly ITransport _transport = transport;
@@ -33,7 +33,7 @@ public sealed class Gossip(
     {
     }
 
-    public IObservable<MessageEnvelope> ValidateReceivedMessage => _validateReceivedMessageSubject;
+    public IObservable<(Peer, IMessage)> ValidateReceivedMessage => _validateReceivedMessageSubject;
 
     public IObservable<IMessage> ValidateSendingMessage => _validateSendingMessageSubject;
 
@@ -147,7 +147,7 @@ public sealed class Gossip(
         foreach (var message in messages)
         {
             AddMessage(message);
-            _transport.BroadcastMessage(targetPeers, message);
+            _transport.Broadcast(targetPeers, message);
         }
     }
 
@@ -202,7 +202,7 @@ public sealed class Gossip(
 
         try
         {
-            _validateReceivedMessageSubject.OnNext(messageEnvelope);
+            _validateReceivedMessageSubject.OnNext((messageEnvelope.Peer, messageEnvelope.Message));
         }
         catch (Exception ex)
         {
@@ -241,7 +241,7 @@ public sealed class Gossip(
             {
                 var peers = GetPeersToBroadcast(table.Peers, DLazy);
                 var message = new HaveMessage { Ids = [.. ids] };
-                _transport.BroadcastMessage(peers, message);
+                _transport.Broadcast(peers, message);
             }
 
             _ = SendWantMessageAsync(cancellationToken);
@@ -309,26 +309,18 @@ public sealed class Gossip(
             {
                 MessageId[] idsToGet = pair.Value;
                 var want = new WantMessage { Ids = [.. idsToGet] };
-                MessageEnvelope replies = await _transport.SendMessageAsync(
-                    pair.Key,
-                    want,
-                    cancellationToken);
-
-                _validateReceivedMessageSubject.OnNext(replies);
-                var message = (AggregateMessage)replies.Message;
-
-                message.Messages.AsParallel().ForAll(
-                    r =>
+                await foreach (var item in _transport.SendAsync(pair.Key, want, cancellationToken))
+                {
+                    try
                     {
-                        try
-                        {
-                            AddMessage(r);
-                        }
-                        catch
-                        {
-                            // do nogthing
-                        }
-                    });
+                        AddMessage(item);
+                    }
+                    catch
+                    {
+                        // do nogthing
+                    }
+                    _validateReceivedMessageSubject.OnNext((pair.Key, item));
+                }
             });
     }
 
@@ -344,7 +336,7 @@ public sealed class Gossip(
             try
             {
                 _validateSendingMessageSubject.OnNext(message);
-                _transport.ReplyMessage(messageEnvelope.Identity, message);
+                _transport.Reply(messageEnvelope.Identity, message);
             }
             catch (Exception)
             {

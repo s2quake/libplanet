@@ -1,3 +1,4 @@
+#pragma warning disable S1751 // Loops with at most one iteration should be refactored
 using System.Collections;
 using System.Diagnostics;
 using System.Net;
@@ -73,12 +74,17 @@ public abstract class TransportTest(ITestOutputHelper output)
             async () => await transport.StartAsync(default));
         await Assert.ThrowsAsync<ObjectDisposedException>(
             async () => await transport.StopAsync(default));
-        await Assert.ThrowsAsync<ObjectDisposedException>(
-            async () => await transport.SendMessageAsync(boundPeer, message, default));
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+        {
+            await foreach (var _ in transport.SendAsync(boundPeer, message, default))
+            {
+                throw new UnreachableException("This should not be reached.");
+            }
+        });
         Assert.Throws<ObjectDisposedException>(
-            () => transport.BroadcastMessage([], message));
+            () => transport.Broadcast([], message));
         Assert.Throws<ObjectDisposedException>(
-            () => transport.ReplyMessage(Guid.NewGuid(), message));
+            () => transport.Reply(Guid.NewGuid(), message));
 
         // To check multiple Dispose() throws error or not.
         await transport.DisposeAsync();
@@ -150,13 +156,12 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(random);
 
         Trace.WriteLine("1");
-        using var subscription = transportB.ProcessMessage.Subscribe(messageEnvelope =>
+        using var subscription = transportB.ProcessMessage.Subscribe(async messageEnvelope =>
         {
-            Trace.WriteLine("12312");
             if (messageEnvelope.Message is PingMessage)
             {
-                Thread.Sleep(100); // Simulate some processing delay.
-                transportB.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+                await Task.Delay(100);
+                transportB.Reply(messageEnvelope.Identity, new PongMessage());
             }
         });
 
@@ -167,9 +172,9 @@ public abstract class TransportTest(ITestOutputHelper output)
         await Task.Delay(100);
 
         var message = new PingMessage();
-        var reply = await transportA.SendMessageAsync(transportB.Peer, message, default);
+        var replyMessage = await transportA.SendForSingleAsync<PongMessage>(transportB.Peer, message, default);
 
-        Assert.IsType<PongMessage>(reply.Message);
+        Assert.IsType<PongMessage>(replyMessage);
     }
 
     [Fact(Timeout = Timeout)]
@@ -179,15 +184,18 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+        var cancellationToken = cancellationTokenSource.Token;
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        await Assert.ThrowsAsync<OperationCanceledException>(
-            async () => await transportA.SendMessageAsync(
-                transportB.Peer,
-                new PingMessage(),
-                cancellationTokenSource.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+        {
+            await foreach (var _ in transportA.SendAsync(transportB.Peer, new PingMessage(), cancellationToken))
+            {
+                throw new UnreachableException("This should not be reached.");
+            }
+        });
     }
 
     [Fact(Timeout = Timeout)]
@@ -209,18 +217,18 @@ public abstract class TransportTest(ITestOutputHelper output)
                         new PongMessage(),
                     ]
                 };
-                transportB.ReplyMessage(messageEnvelope.Identity, replyMessage);
+                transportB.Reply(messageEnvelope.Identity, replyMessage);
             }
         });
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        var reply = await transportA.SendMessageAsync(transportB.Peer, new PingMessage(), default);
-        var replayMessage = Assert.IsType<AggregateMessage>(reply.Message);
+        var replyMessages = await transportA.SendAsync(transportB.Peer, new PingMessage(), default)
+            .ToArrayAsync(default);
 
-        Assert.Contains(replayMessage.Messages, message => message is PingMessage);
-        Assert.Contains(replayMessage.Messages, message => message is PongMessage);
+        Assert.IsType<PingMessage>(replyMessages[0]);
+        Assert.IsType<PongMessage>(replyMessages[0]);
     }
 
     // This also tests ITransport.ReplyMessage at the same time.
@@ -234,8 +242,13 @@ public abstract class TransportTest(ITestOutputHelper output)
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        await Assert.ThrowsAsync<TimeoutException>(
-            async () => await transportA.SendMessageAsync(transportB.Peer, new PingMessage(), default));
+        await Assert.ThrowsAsync<TimeoutException>(async () =>
+        {
+            await foreach (var _ in transportA.SendAsync(transportB.Peer, new PingMessage(), default))
+            {
+                throw new UnreachableException("This should not be reached.");
+            }
+        });
     }
 
     [SkippableTheory(Timeout = Timeout)]
@@ -246,8 +259,13 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transport = CreateTransport(random);
 
         await transport.StartAsync(default);
-        await Assert.ThrowsAsync<CommunicationException>(
-            async () => await transport.SendMessageAsync(invalidPeer, new PingMessage(), default));
+        await Assert.ThrowsAsync<CommunicationException>(async () =>
+        {
+            await foreach (var _ in transport.SendAsync(invalidPeer, new PingMessage(), default))
+            {
+                throw new UnreachableException("This should not be reached.");
+            }
+        });
     }
 
     [Fact(Timeout = Timeout)]
@@ -260,13 +278,18 @@ public abstract class TransportTest(ITestOutputHelper output)
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        var task = transportA.SendMessageAsync(transportB.Peer, new PingMessage(), default);
+        var query = transportA.SendAsync(transportB.Peer, new PingMessage(), default);
 
         await Task.Delay(100);
         await transportA.StopAsync(default);
         Assert.False(transportA.IsRunning);
-        await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
-        Assert.True(task.IsCanceled);
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+        {
+            await foreach (var _ in query)
+            {
+                throw new UnreachableException("This should not be reached.");
+            }
+        });
     }
 
     [Fact(Timeout = Timeout)]
@@ -309,7 +332,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportA = CreateTransport(random);
         await transportA.StartAsync(default);
 
-        transportA.BroadcastMessage(
+        transportA.Broadcast(
             table.PeersToBroadcast(transportD.Peer.Address),
             new PingMessage());
 
