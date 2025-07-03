@@ -523,7 +523,7 @@ namespace Libplanet.Net.Tests
                     inventories);
 
                 (Block, BlockCommit)[] receivedBlocks =
-                    await swarmB.GetBlocksAsync(
+                    await swarmB.Transport.GetBlocksAsync(
                         swarmA.Peer,
                         inventories,
                         cancellationToken: default)
@@ -573,19 +573,19 @@ namespace Libplanet.Net.Tests
 
                 ITransport transport = swarmB.Transport;
 
-                var request = new GetBlocksMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
+                var request = new GetBlockMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
                 var reply = await transport.SendAsync(
                     swarmA.Peer, request, default).FirstAsync(default);
                 var aggregateMessage = (AggregateMessage)reply;
                 var responses = aggregateMessage.Messages;
 
-                var blockMessage = (BlocksMessage)responses[0];
+                var blockMessage = (BlockMessage)responses[0];
 
                 Assert.Equal(2, responses.Length);
                 Assert.Equal(2, blockMessage.Blocks.Length);
                 Assert.Equal(2, blockMessage.BlockCommits.Length);
 
-                blockMessage = (BlocksMessage)responses[1];
+                blockMessage = (BlockMessage)responses[1];
 
                 Assert.Equal(1, blockMessage.Blocks.Length);
             }
@@ -1458,7 +1458,7 @@ namespace Libplanet.Net.Tests
                 await StartAsync(swarm);
                 await transport.StartAsync(default);
                 var tasks = new List<Task>();
-                var content = new GetBlocksMessage { BlockHashes = [swarm.Blockchain.Genesis.BlockHash] };
+                var content = new GetBlockMessage { BlockHashes = [swarm.Blockchain.Genesis.BlockHash] };
                 for (int i = 0; i < 5; i++)
                 {
                     tasks.Add(

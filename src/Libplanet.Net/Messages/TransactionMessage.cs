@@ -1,4 +1,5 @@
 using Libplanet.Serialization;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
@@ -6,5 +7,5 @@ namespace Libplanet.Net.Messages;
 internal sealed partial record class TransactionMessage : MessageBase
 {
     [Property(0)]
-    public ImmutableArray<byte> Payload { get; init; } = [];
+    public ImmutableArray<Transaction> Transactions { get; init; } = [];
 }

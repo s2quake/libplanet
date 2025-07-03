@@ -160,7 +160,7 @@ internal sealed class FillBlocksTask(Swarm swarm) : SwarmTaskBase
         BlockHash[] blockHashes,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var request = new GetBlocksMessage { BlockHashes = [.. blockHashes] };
+        var request = new GetBlockMessage { BlockHashes = [.. blockHashes] };
         int hashCount = blockHashes.Length;
 
         if (hashCount < 1)

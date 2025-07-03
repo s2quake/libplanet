@@ -79,7 +79,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : SwarmTaskBase
                 cancellationToken);
             totalBlocksToDownload = demandBlockHashes.Length;
 
-            var downloadedBlocks = swarm.GetBlocksAsync(
+            var downloadedBlocks = swarm.Transport.GetBlocksAsync(
                 peer,
                 demandBlockHashes,
                 cancellationToken);

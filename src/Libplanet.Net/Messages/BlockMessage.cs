@@ -4,8 +4,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "BlocksMessage")]
-internal sealed partial record class BlocksMessage : MessageBase, IValidatableObject
+[Model(Version = 1, TypeName = "BlockMessage")]
+internal sealed partial record class BlockMessage : MessageBase, IValidatableObject
 {
     [Property(0)]
     public ImmutableArray<Block> Blocks { get; init; } = [];

@@ -60,11 +60,11 @@ public sealed class Swarm : IAsyncDisposable
         Transport = new NetMQTransport(signer, options.TransportOptions);
         _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
-        Transport.ProcessMessage.Subscribe(ProcessMessageHandler);
+        Transport.Process.Subscribe(ProcessMessageHandler);
         PeerDiscovery = new Kademlia(RoutingTable, Transport, Address);
         BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
         _txFetcherSubscription = _txFetcher.Received.Subscribe(e => BroadcastTxs(e.Peer, e.Items));
-        _evidenceFetcherSubscription = _evidenceFetcher.Received.Subscribe(e => BroadcastEvidence(e.Peer, e.Items));
+        _evidenceFetcherSubscription = _evidenceFetcher.Received.Subscribe(e => BroadcastEvidence(e.Peer.Address, e.Items));
         _transferBlockLimiter = new(options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
         _transferTxLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
@@ -340,58 +340,58 @@ public sealed class Swarm : IAsyncDisposable
         return [.. result.Items];
     }
 
-    internal async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
-        Peer peer,
-        BlockHash[] blockHashes,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        var request = new GetBlocksMessage { BlockHashes = [.. blockHashes] };
-        int hashCount = blockHashes.Length;
+    // internal async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
+    //     Peer peer,
+    //     BlockHash[] blockHashes,
+    //     [EnumeratorCancellation] CancellationToken cancellationToken)
+    // {
+    //     var request = new GetBlocksMessage { BlockHashes = [.. blockHashes] };
+    //     int hashCount = blockHashes.Length;
 
-        if (hashCount < 1)
-        {
-            yield break;
-        }
+    //     if (hashCount < 1)
+    //     {
+    //         yield break;
+    //     }
 
-        // TimeSpan blockRecvTimeout = Options.TimeoutOptions.GetBlocksBaseTimeout
-        //     + Options.TimeoutOptions.GetBlocksPerBlockHashTimeout.Multiply(hashCount);
-        // if (blockRecvTimeout > Options.TimeoutOptions.MaxTimeout)
-        // {
-        //     blockRecvTimeout = Options.TimeoutOptions.MaxTimeout;
-        // }
+    //     // TimeSpan blockRecvTimeout = Options.TimeoutOptions.GetBlocksBaseTimeout
+    //     //     + Options.TimeoutOptions.GetBlocksPerBlockHashTimeout.Multiply(hashCount);
+    //     // if (blockRecvTimeout > Options.TimeoutOptions.MaxTimeout)
+    //     // {
+    //     //     blockRecvTimeout = Options.TimeoutOptions.MaxTimeout;
+    //     // }
 
-        await foreach (var item in Transport.SendAsync<BlocksMessage>(peer, request, cancellationToken))
-        {
-            for (var i = 0; i < item.Blocks.Length; i++)
-            {
-                yield return (item.Blocks[i], item.BlockCommits[i]);
-            }
-        }
-        // var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
+    //     await foreach (var item in Transport.SendAsync<BlocksMessage>(peer, request, cancellationToken))
+    //     {
+    //         for (var i = 0; i < item.Blocks.Length; i++)
+    //         {
+    //             yield return (item.Blocks[i], item.BlockCommits[i]);
+    //         }
+    //     }
+    //     // var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
 
-        // // int count = 0;
+    //     // // int count = 0;
 
-        // foreach (var message in aggregateMessage.Messages)
-        // {
-        //     cancellationToken.ThrowIfCancellationRequested();
+    //     // foreach (var message in aggregateMessage.Messages)
+    //     // {
+    //     //     cancellationToken.ThrowIfCancellationRequested();
 
-        //     if (message is BlocksMessage blocksMessage)
-        //     {
-        //         for (var i = 0; i < blocksMessage.Blocks.Length; i++)
-        //         {
-        //             yield return (blocksMessage.Blocks[i], blocksMessage.BlockCommits[i]);
-        //         }
-        //     }
-        //     else
-        //     {
-        //         string errorMessage =
-        //             $"Expected a {nameof(BlocksMessage)} message as a response of " +
-        //             $"the {nameof(GetBlocksMessage)} message, but got a {message.GetType().Name} " +
-        //             $"message instead: {message}";
-        //         throw new InvalidMessageContractException(errorMessage);
-        //     }
-        // }
-    }
+    //     //     if (message is BlocksMessage blocksMessage)
+    //     //     {
+    //     //         for (var i = 0; i < blocksMessage.Blocks.Length; i++)
+    //     //         {
+    //     //             yield return (blocksMessage.Blocks[i], blocksMessage.BlockCommits[i]);
+    //     //         }
+    //     //     }
+    //     //     else
+    //     //     {
+    //     //         string errorMessage =
+    //     //             $"Expected a {nameof(BlocksMessage)} message as a response of " +
+    //     //             $"the {nameof(GetBlocksMessage)} message, but got a {message.GetType().Name} " +
+    //     //             $"message instead: {message}";
+    //     //         throw new InvalidMessageContractException(errorMessage);
+    //     //     }
+    //     // }
+    // }
 
     internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
         Block block,
@@ -551,7 +551,7 @@ public sealed class Swarm : IAsyncDisposable
 
     internal void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
     {
-        var message = new TxIdsMessage { Ids = [.. txIds] };
+        var message = new TxIdMessage { Ids = [.. txIds] };
         BroadcastMessage(except, message);
     }
 
@@ -665,19 +665,19 @@ public sealed class Swarm : IAsyncDisposable
                 }
                 break;
 
-            case GetBlocksMessage:
-                TransferBlocksAsync(messageEnvelope);
+            case GetBlockMessage getBlockMessage:
+                _ = TransferAsync(messageEnvelope.Identity, getBlockMessage, _cancellationToken);
                 break;
 
             case GetTransactionMessage getTransactionMessage:
-                _ = TransferTxsAsync(messageEnvelope.Identity, getTransactionMessage, _cancellationToken);
+                _ = TransferAsync(messageEnvelope.Identity, getTransactionMessage, _cancellationToken);
                 break;
 
-            case GetEvidenceMessage getTxs:
-                _ = TransferEvidenceAsync(messageEnvelope, _cancellationToken);
+            case GetEvidenceMessage getEvidenceMessage:
+                _ = TransferAsync(messageEnvelope.Identity, getEvidenceMessage, _cancellationToken);
                 break;
 
-            case TxIdsMessage txIds:
+            case TxIdMessage txIds:
                 ProcessTxIds(messageEnvelope);
                 Transport.Pong(messageEnvelope);
                 break;
@@ -728,47 +728,16 @@ public sealed class Swarm : IAsyncDisposable
         }
     }
 
-    private async Task TransferTxsAsync(
-        Guid identity, GetTransactionMessage requestMessage, CancellationToken cancellationToken)
+    private async Task TransferAsync(
+        Guid identity, GetBlockMessage requestMessage, CancellationToken cancellationToken)
     {
-        using var scope = await _transferTxLimiter.WaitAsync(cancellationToken);
+        using var scope = await _transferBlockLimiter.WaitAsync(cancellationToken);
         if (scope is null)
         {
             return;
         }
 
-        foreach (var txId in requestMessage.TxIds)
-        {
-            if (!Blockchain.Transactions.TryGetValue(txId, out var tx))
-            {
-                continue;
-            }
-
-            var replyMessage = new TransactionMessage
-            {
-                Payload = [.. ModelSerializer.SerializeToBytes(tx)],
-            };
-            Transport.Reply(identity, replyMessage);
-        }
-    }
-
-    private void ProcessTxIds(MessageEnvelope messageEnvelope)
-    {
-        var txIdsMsg = (TxIdsMessage)messageEnvelope.Message;
-        _txFetcher.DemandMany(messageEnvelope.Peer, [.. txIdsMsg.Ids]);
-    }
-
-    private async Task TransferBlocksAsync(MessageEnvelope messageEnvelope)
-    {
-        using var scope = await _transferBlockLimiter.WaitAsync(_cancellationToken);
-        if (scope is null)
-        {
-            return;
-        }
-
-        var requestMessage = (GetBlocksMessage)messageEnvelope.Message;
         var blockHashes = requestMessage.BlockHashes;
-        int count = 0;
         var blockList = new List<Block>();
         var blockCommitList = new List<BlockCommit>();
         foreach (var blockHash in blockHashes)
@@ -778,85 +747,107 @@ public sealed class Swarm : IAsyncDisposable
             {
                 blockList.Add(block);
                 blockCommitList.Add(blockCommit);
-                count++;
             }
 
             if (blockList.Count == requestMessage.ChunkSize)
             {
-                var responseMessage = new BlocksMessage
-                {
-                    Blocks = [.. blockList],
-                    BlockCommits = [.. blockCommitList],
-                };
-
-                Transport.Reply(messageEnvelope.Identity, responseMessage);
+                Transport.Transfer(identity, [.. blockList], [.. blockCommitList], hasNext: true);
                 blockList.Clear();
                 blockCommitList.Clear();
             }
         }
 
-        if (count is 0 || blockList.Count > 0)
-        {
-            var responseMessage = new BlocksMessage
-            {
-                Blocks = [.. blockList],
-                BlockCommits = [.. blockCommitList],
-            };
-
-            Transport.Reply(messageEnvelope.Identity, responseMessage);
-        }
+        Transport.Transfer(identity, [.. blockList], [.. blockCommitList]);
     }
 
-    public void BroadcastEvidence(IEnumerable<EvidenceBase> evidence)
+    private async Task TransferAsync(
+        Guid identity, GetTransactionMessage requestMessage, CancellationToken cancellationToken)
     {
-        BroadcastEvidence(null, evidence);
-    }
-
-    internal async IAsyncEnumerable<EvidenceBase> GetEvidenceAsync(
-        Peer peer,
-        IEnumerable<EvidenceId> evidenceIds,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        var evidenceIdsAsArray = evidenceIds as EvidenceId[] ?? evidenceIds.ToArray();
-        var request = new GetEvidenceMessage { EvidenceIds = [.. evidenceIdsAsArray] };
-        int evidenceCount = evidenceIdsAsArray.Count();
-
-        var evidenceRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
-            + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(evidenceCount);
-        if (evidenceRecvTimeout > Options.TimeoutOptions.MaxTimeout)
+        using var scope = await _transferTxLimiter.WaitAsync(cancellationToken);
+        if (scope is null)
         {
-            evidenceRecvTimeout = Options.TimeoutOptions.MaxTimeout;
+            return;
         }
 
-        await foreach (var item in Transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
-        {
-            yield return ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. item.Payload]);
-        }
-        // var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
-
-        // foreach (var message in aggregateMessage.Messages)
-        // {
-        //     if (message is EvidenceMessage parsed)
-        //     {
-        //         EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. parsed.Payload]);
-        //         yield return evidence;
-        //     }
-        //     else
-        //     {
-        //         string errorMessage =
-        //             $"Expected {nameof(Transaction)} messages as response of " +
-        //             $"the {nameof(GetEvidenceMessage)} message, but got a " +
-        //             $"{message.GetType().Name} " +
-        //             $"message instead: {message}";
-        //         throw new InvalidOperationException(errorMessage);
-        //     }
-        // }
+        var txIds = requestMessage.TxIds;
+        var txs = txIds
+            .Select(txId => Blockchain.Transactions.TryGetValue(txId, out var tx) ? tx : null)
+            .OfType<Transaction>()
+            .ToArray();
+        Transport.Transfer(identity, txs);
     }
 
-    private void BroadcastEvidence(Peer? except, IEnumerable<EvidenceBase> evidence)
+    private async Task TransferAsync(
+        Guid identity, GetEvidenceMessage requestMessage, CancellationToken cancellationToken)
     {
-        List<EvidenceId> evidenceIds = evidence.Select(evidence => evidence.Id).ToList();
-        BroadcastEvidenceIds(except?.Address ?? default, evidenceIds);
+        using var scope = await _transferEvidenceLimiter.WaitAsync(cancellationToken);
+        if (scope is null)
+        {
+            return;
+        }
+
+        var evidenceIds = requestMessage.EvidenceIds;
+        var evidence = evidenceIds
+            .Select(evidenceId => Blockchain.PendingEvidences.TryGetValue(evidenceId, out var ev) ? ev : null)
+            .OfType<EvidenceBase>()
+            .ToArray();
+
+        Transport.Transfer(identity, evidence);
+    }
+
+    private void ProcessTxIds(MessageEnvelope messageEnvelope)
+    {
+        var txIdsMsg = (TxIdMessage)messageEnvelope.Message;
+        _txFetcher.DemandMany(messageEnvelope.Peer, [.. txIdsMsg.Ids]);
+    }
+
+    public void BroadcastEvidence(ImmutableArray<EvidenceBase> evidence) => BroadcastEvidence(default, evidence);
+
+    // internal async IAsyncEnumerable<EvidenceBase> GetEvidenceAsync(
+    //     Peer peer,
+    //     IEnumerable<EvidenceId> evidenceIds,
+    //     [EnumeratorCancellation] CancellationToken cancellationToken)
+    // {
+    //     var evidenceIdsAsArray = evidenceIds as EvidenceId[] ?? evidenceIds.ToArray();
+    //     var request = new GetEvidenceMessage { EvidenceIds = [.. evidenceIdsAsArray] };
+    //     int evidenceCount = evidenceIdsAsArray.Count();
+
+    //     var evidenceRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
+    //         + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(evidenceCount);
+    //     if (evidenceRecvTimeout > Options.TimeoutOptions.MaxTimeout)
+    //     {
+    //         evidenceRecvTimeout = Options.TimeoutOptions.MaxTimeout;
+    //     }
+
+    //     await foreach (var item in Transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
+    //     {
+    //         yield return ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. item.Evidence]);
+    //     }
+    //     // var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
+
+    //     // foreach (var message in aggregateMessage.Messages)
+    //     // {
+    //     //     if (message is EvidenceMessage parsed)
+    //     //     {
+    //     //         EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. parsed.Payload]);
+    //     //         yield return evidence;
+    //     //     }
+    //     //     else
+    //     //     {
+    //     //         string errorMessage =
+    //     //             $"Expected {nameof(Transaction)} messages as response of " +
+    //     //             $"the {nameof(GetEvidenceMessage)} message, but got a " +
+    //     //             $"{message.GetType().Name} " +
+    //     //             $"message instead: {message}";
+    //     //         throw new InvalidOperationException(errorMessage);
+    //     //     }
+    //     // }
+    // }
+
+    private void BroadcastEvidence(Address except, ImmutableArray<EvidenceBase> evidence)
+    {
+        var evidenceIds = evidence.Select(evidence => evidence.Id).ToArray();
+        BroadcastEvidenceIds(except, evidenceIds);
     }
 
     private async Task BroadcastEvidenceAsync(
@@ -895,32 +886,6 @@ public sealed class Swarm : IAsyncDisposable
     {
         var message = new EvidenceIdsMessage { Ids = [.. evidenceIds] };
         BroadcastMessage(except, message);
-    }
-
-    private async Task TransferEvidenceAsync(MessageEnvelope message, CancellationToken cancellationToken)
-    {
-        using var scope = await _transferEvidenceLimiter.WaitAsync(cancellationToken);
-        if (scope is null)
-        {
-            return;
-        }
-
-        var getEvidenceMsg = (GetEvidenceMessage)message.Message;
-        foreach (EvidenceId txid in getEvidenceMsg.EvidenceIds)
-        {
-            EvidenceBase? ev = Blockchain.PendingEvidences[txid];
-
-            if (ev is null)
-            {
-                continue;
-            }
-
-            MessageBase response = new EvidenceMessage
-            {
-                Payload = [.. ModelSerializer.SerializeToBytes(ev)],
-            };
-            Transport.Reply(message.Identity, response);
-        }
     }
 
     private void ProcessEvidenceIds(MessageEnvelope message)
@@ -967,13 +932,10 @@ public sealed class Swarm : IAsyncDisposable
                 Blockchain.Tip, peersWithBlockExcerpt, cancellationToken);
             totalBlocksToDownload = demandBlockHashes.Length;
 
-            var downloadedBlocks = GetBlocksAsync(peer, demandBlockHashes, cancellationToken);
+            var query = Transport.GetBlocksAsync(peer, demandBlockHashes, cancellationToken);
 
-            await foreach (
-                (Block block, BlockCommit commit) in
-                    downloadedBlocks.WithCancellation(cancellationToken))
+            await foreach ((Block block, BlockCommit commit) in query.WithCancellation(cancellationToken))
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 blocks.Add((block, commit));
             }
         }
@@ -1211,7 +1173,7 @@ public sealed class Swarm : IAsyncDisposable
             return false;
         }
 
-        IAsyncEnumerable<(Block, BlockCommit)> blocksAsync = GetBlocksAsync(
+        IAsyncEnumerable<(Block, BlockCommit)> blocksAsync = Transport.GetBlocksAsync(
             peer,
             hashes,
             cancellationToken);

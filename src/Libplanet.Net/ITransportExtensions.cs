@@ -32,10 +32,6 @@ public static class ITransportExtensions
         }
     }
 
-    // public static async Task<IMessage> SendForSingleAsync(
-    //     this ITransport @this, Peer peer, IMessage message, CancellationToken cancellationToken)
-    //     => await @this.SendAsync<IMessage>(peer, message, cancellationToken).FirstAsync(cancellationToken);
-
     public static async Task<T> SendForSingleAsync<T>(
         this ITransport @this, Peer peer, IMessage message, CancellationToken cancellationToken)
         where T : IMessage
@@ -85,5 +81,53 @@ public static class ITransportExtensions
     {
         var requestMessage = new GetChainStatusMessage();
         return await SendForSingleAsync<ChainStatusMessage>(@this, peer, requestMessage, cancellationToken);
+    }
+
+    internal static async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
+        this ITransport @this,
+        Peer peer,
+        BlockHash[] blockHashes,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var requestMessage = new GetBlockMessage { BlockHashes = [.. blockHashes] };
+
+        await foreach (var item in @this.SendAsync<BlockMessage>(peer, requestMessage, cancellationToken))
+        {
+            for (var i = 0; i < item.Blocks.Length; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return (item.Blocks[i], item.BlockCommits[i]);
+            }
+        }
+    }
+
+    internal static void Transfer(this ITransport @this, Guid identity, Transaction[] transactions)
+    {
+        var replyMessage = new TransactionMessage
+        {
+            Transactions = [.. transactions],
+        };
+        @this.Reply(identity, replyMessage);
+    }
+
+    internal static void Transfer(this ITransport @this, Guid identity, EvidenceBase[] evidence)
+    {
+        var replyMessage = new EvidenceMessage
+        {
+            Evidence = [.. evidence],
+        };
+        @this.Reply(identity, replyMessage);
+    }
+
+    internal static void Transfer(
+        this ITransport @this, Guid identity, Block[] blocks, BlockCommit[] blockCommits, bool hasNext = false)
+    {
+        var replyMessage = new BlockMessage
+        {
+            Blocks = [.. blocks],
+            BlockCommits = [.. blockCommits],
+            HasNext = hasNext,
+        };
+        @this.Reply(identity, replyMessage);
     }
 }

@@ -150,7 +150,7 @@ public sealed class GossipTest
         var receivedEvent = new ManualResetEvent(false);
         await using var transport1 = CreateTransport(key1, 6001);
 
-        using var s = transport1.ProcessMessage.Subscribe(messageEnvelope =>
+        using var s = transport1.Process.Subscribe(messageEnvelope =>
         {
             received = true;
             receivedEvent.Set();
@@ -174,7 +174,7 @@ public sealed class GossipTest
         await using var transport = CreateTransport(port: 6001);
         await using var gossip = CreateGossip(seeds: [transport.Peer]);
 
-        transport.ProcessMessage.Subscribe(messageEnvelope =>
+        transport.Process.Subscribe(messageEnvelope =>
         {
             if (messageEnvelope.Message is HaveMessage)
             {
@@ -205,9 +205,9 @@ public sealed class GossipTest
 
         await using var receiver = CreateGossip();
         await using var sender1 = CreateTransport();
-        using var s1 = sender1.ProcessMessage.Subscribe(ProcessMessage);
+        using var s1 = sender1.Process.Subscribe(ProcessMessage);
         await using var sender2 = CreateTransport();
-        using var s2 = sender2.ProcessMessage.Subscribe(ProcessMessage);
+        using var s2 = sender2.Process.Subscribe(ProcessMessage);
 
         await receiver.StartAsync(default);
         await sender1.StartAsync(default);

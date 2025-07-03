@@ -40,7 +40,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
     }
 
-    public IObservable<MessageEnvelope> ProcessMessage => _processMessageSubject;
+    public IObservable<MessageEnvelope> Process => _processMessageSubject;
 
     public Peer Peer
     {

@@ -59,7 +59,7 @@ public sealed class Gossip(
         await _transport.StartAsync(cancellationToken);
         _table = new RoutingTable(_transport.Peer.Address);
         _table.AddPeers(validators);
-        _transportSubscription = _transport.ProcessMessage.Subscribe(HandleMessage);
+        _transportSubscription = _transport.Process.Subscribe(HandleMessage);
         _kademlia = new Kademlia(_table, _transport, _transport.Peer.Address);
         await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);
         _tasks =
