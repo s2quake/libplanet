@@ -129,7 +129,7 @@ public sealed class RoutingTable
         GetBucker(peer).AddPeer(peer, updated);
     }
 
-    internal IReadOnlyList<Peer> PeersToBroadcast(Address except, int min = 10)
+    internal ImmutableArray<Peer> PeersToBroadcast(Address except, int min = 10)
     {
         List<Peer> peers = NonEmptyBuckets
             .Select(bucket => bucket.GetRandomPeer(except))
@@ -139,13 +139,11 @@ public sealed class RoutingTable
         if (count < min)
         {
             peers.AddRange(Peers
-                .Where(peer =>
-                    !peers.Contains(peer) &&
-                        (!(except is Address e) || !peer.Address.Equals(e)))
+                .Where(peer => !peers.Contains(peer) && (!peer.Address.Equals(except)))
                 .Take(min - count));
         }
 
-        return peers;
+        return [.. peers];
     }
 
     internal ImmutableArray<Peer> PeersToRefresh(TimeSpan maxAge)

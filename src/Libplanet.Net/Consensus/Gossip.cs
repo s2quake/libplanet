@@ -136,7 +136,7 @@ public sealed class Gossip(
         PublishMessage(GetPeersToBroadcast(_table.Peers, DLazy), message);
     }
 
-    public void PublishMessage(IEnumerable<Peer> targetPeers, params IMessage[] messages)
+    public void PublishMessage(ImmutableArray<Peer> targetPeers, params IMessage[] messages)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (!IsRunning)
@@ -181,7 +181,7 @@ public sealed class Gossip(
         _deniedPeers.Clear();
     }
 
-    private IEnumerable<Peer> GetPeersToBroadcast(IEnumerable<Peer> peers, int count)
+    private ImmutableArray<Peer> GetPeersToBroadcast(IEnumerable<Peer> peers, int count)
     {
         var random = new Random();
         var query = from peer in peers
@@ -189,7 +189,7 @@ public sealed class Gossip(
                     orderby random.Next()
                     select peer;
 
-        return query.Take(count);
+        return [.. query.Take(count)];
     }
 
     private void HandleMessage(MessageEnvelope messageEnvelope)

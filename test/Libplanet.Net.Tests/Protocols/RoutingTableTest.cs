@@ -118,14 +118,14 @@ public class RoutingTableTest
         }
 
         var broadcastCandidate = table.PeersToBroadcast(default, 0);
-        Assert.Equal(5, broadcastCandidate.Count);
+        Assert.Equal(5, broadcastCandidate.Length);
         Assert.Equal(
             new HashSet<int> { 0, 1, 2, 3, 4 },
             broadcastCandidate.Select(peer => table.GetBucketIndexOf(peer.Address))
                 .ToHashSet());
 
         broadcastCandidate = table.PeersToBroadcast(default, 10);
-        Assert.Equal(10, broadcastCandidate.Count);
+        Assert.Equal(10, broadcastCandidate.Length);
         Assert.Equal(peers.ToHashSet(), broadcastCandidate.ToHashSet());
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Protocols;
@@ -85,16 +86,32 @@ internal sealed class KademliaBucket
 
     public bool RemoveCache(Peer peer) => _replacementCache.TryRemove(peer, out _);
 
-    public Peer? GetRandomPeer(Address except = default)
+    public Peer GetRandomPeer(Address except)
     {
-        var peers = _stateByPeer.Keys.Where(item => item.Address != except).ToArray();
-        if (peers.Length == 0)
-        {
-            return null;
-        }
+        var query = from peer in _stateByPeer.Keys
+                    where peer.Address != except
+                    orderby _random.Next()
+                    select peer;
 
-        var index = _random.Next(peers.Length);
-        return peers[index];
+        try
+        {
+            return query.First();
+        }
+        catch (InvalidOperationException e)
+        {
+            throw new InvalidOperationException("No peers available to select from.", e);
+        }
+    }
+
+    public bool TryGetRandomPeer(Address except, [MaybeNullWhen(false)] out Peer value)
+    {
+        var query = from peer in _stateByPeer.Keys
+                    where peer.Address != except
+                    orderby _random.Next()
+                    select peer;
+
+        value = query.FirstOrDefault();
+        return value is not null;
     }
 
     public void Check(Peer peer, DateTimeOffset start, DateTimeOffset end)
