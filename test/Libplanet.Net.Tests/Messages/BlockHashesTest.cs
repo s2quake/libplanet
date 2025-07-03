@@ -18,8 +18,8 @@ namespace Libplanet.Net.Tests.Messages
         public void Decode()
         {
             BlockHash[] blockHashes = GenerateRandomBlockHashes(100L).ToArray();
-            var messageContent = new BlockHashesMessage { Hashes = [.. blockHashes] };
-            Assert.Equal(blockHashes, messageContent.Hashes);
+            var messageContent = new BlockHashMessage { BlockHashes = [.. blockHashes] };
+            Assert.Equal(blockHashes, messageContent.BlockHashes);
             var privateKey = new PrivateKey();
             Protocol apv = Protocol.Create(privateKey, 3);
             var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
@@ -33,8 +33,8 @@ namespace Libplanet.Net.Tests.Messages
                     Timestamp = DateTimeOffset.UtcNow,
                 },
                 privateKey.AsSigner());
-            BlockHashesMessage restored = (BlockHashesMessage)NetMQMessageCodec.Decode(encoded).Message;
-            Assert.Equal(messageContent.Hashes, restored.Hashes);
+            BlockHashMessage restored = (BlockHashMessage)NetMQMessageCodec.Decode(encoded).Message;
+            Assert.Equal(messageContent.BlockHashes, restored.BlockHashes);
         }
 
         private static IEnumerable<BlockHash> GenerateRandomBlockHashes(long count)

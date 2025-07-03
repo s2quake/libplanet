@@ -6,6 +6,8 @@ namespace Libplanet.Net;
 
 internal abstract class SwarmTaskBase : ISwarmTask
 {
+    public virtual bool IsEnabled => true;
+
     protected abstract TimeSpan Interval { get; }
 
     protected abstract Task ExecuteAsync(CancellationToken cancellationToken);

@@ -1,9 +1,7 @@
 using System.Runtime.CompilerServices;
-using System.ServiceModel;
 using System.Threading;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net;
@@ -12,7 +10,7 @@ public sealed class TxFetcher(
     Blockchain blockchain, ITransport transport, TimeoutOptions timeoutOptions)
     : FetcherBase<TxId, Transaction>
 {
-    protected override async IAsyncEnumerable<Transaction> FetchAsync(
+    public override async IAsyncEnumerable<Transaction> FetchAsync(
         Peer peer, TxId[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var request = new GetTransactionMessage { TxIds = [.. ids] };

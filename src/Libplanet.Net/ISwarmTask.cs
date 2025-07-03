@@ -5,5 +5,7 @@ namespace Libplanet.Net;
 
 internal interface ISwarmTask
 {
+    bool IsEnabled { get; }
+
     Task RunAsync(CancellationToken cancellationToken);
 }

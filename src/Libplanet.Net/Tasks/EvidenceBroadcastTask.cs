@@ -14,7 +14,7 @@ internal sealed class EvidenceBroadcastTask(Swarm swarm) : SwarmTaskBase
         var evidenceIds = blockchain.PendingEvidences.Keys.ToArray();
         if (evidenceIds.Length > 0)
         {
-            var message = new EvidenceIdsMessage { Ids = [.. evidenceIds] };
+            var message = new EvidenceIdMessage { Ids = [.. evidenceIds] };
             swarm.BroadcastMessage(default, message);
         }
 

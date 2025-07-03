@@ -65,8 +65,8 @@ public static class ITransportExtensions
         this ITransport @this, Peer peer, BlockHash blockHash, CancellationToken cancellationToken)
     {
         var request = new GetBlockHashesMessage { BlockHash = blockHash };
-        var replyMessage = await SendForSingleAsync<BlockHashesMessage>(@this, peer, request, cancellationToken);
-        var blockHashes = replyMessage.Hashes;
+        var replyMessage = await SendForSingleAsync<BlockHashMessage>(@this, peer, request, cancellationToken);
+        var blockHashes = replyMessage.BlockHashes;
         if (blockHashes.Length > 0 && blockHash != blockHashes[0])
         {
             throw new InvalidMessageContractException(

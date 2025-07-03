@@ -43,12 +43,11 @@ public abstract class FetcherBase<TId, TItem> : IDisposable
         _jobs[peer].Add(requiredIds);
     }
 
+    public abstract IAsyncEnumerable<TItem> FetchAsync(Peer peer, TId[] ids, CancellationToken cancellationToken);
+
     protected abstract bool Verify(TItem item);
 
     protected abstract HashSet<TId> GetRequiredIds(IEnumerable<TId> ids);
-
-    protected abstract IAsyncEnumerable<TItem> FetchAsync(
-        Peer peer, TId[] ids, CancellationToken cancellationToken);
 
     protected virtual void Dispose(bool disposing)
     {

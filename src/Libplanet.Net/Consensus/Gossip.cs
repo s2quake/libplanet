@@ -214,7 +214,7 @@ public sealed class Gossip(
         switch (messageEnvelope.Message)
         {
             case PingMessage:
-            case FindNeighborsMessage:
+            case GetPeerMessage:
                 break;
             case HaveMessage:
                 _transport.Pong(messageEnvelope);

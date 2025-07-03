@@ -3,8 +3,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "EvidenceIdsMessage")]
-internal sealed partial record class EvidenceIdsMessage : MessageBase
+[Model(Version = 1, TypeName = "EvidenceIdMessage")]
+internal sealed partial record class EvidenceIdMessage : MessageBase
 {
     [Property(0)]
     public ImmutableArray<EvidenceId> Ids { get; init; } = [];
