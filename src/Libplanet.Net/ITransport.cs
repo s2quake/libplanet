@@ -20,7 +20,7 @@ public interface ITransport : IAsyncDisposable
 
     IAsyncEnumerable<IMessage> SendAsync(Peer peer, IMessage message, CancellationToken cancellationToken);
 
-    void Broadcast(IEnumerable<Peer> peers, IMessage message);
+    void Broadcast(ImmutableArray<Peer> peers, IMessage message);
 
     void Reply(Guid identity, IMessage message);
 }

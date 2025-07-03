@@ -64,29 +64,20 @@ public abstract class TransportTest(ITestOutputHelper output)
         await transport.StopAsync(default);
         await transport.DisposeAsync();
 
-        var boundPeer = new Peer
-        {
-            Address = new PrivateKey().Address,
-            EndPoint = new DnsEndPoint("127.0.0.1", 1234),
-        };
+        var peer = RandomUtility.LocalPeer(random);
         var message = new PingMessage();
-        await Assert.ThrowsAsync<ObjectDisposedException>(
-            async () => await transport.StartAsync(default));
-        await Assert.ThrowsAsync<ObjectDisposedException>(
-            async () => await transport.StopAsync(default));
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await transport.StartAsync(default));
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await transport.StopAsync(default));
         await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
         {
-            await foreach (var _ in transport.SendAsync(boundPeer, message, default))
+            await foreach (var _ in transport.SendAsync(peer, message, default))
             {
                 throw new UnreachableException("This should not be reached.");
             }
         });
-        Assert.Throws<ObjectDisposedException>(
-            () => transport.Broadcast([], message));
-        Assert.Throws<ObjectDisposedException>(
-            () => transport.Reply(Guid.NewGuid(), message));
+        Assert.Throws<ObjectDisposedException>(() => transport.Broadcast([], message));
+        Assert.Throws<ObjectDisposedException>(() => transport.Reply(Guid.NewGuid(), message));
 
-        // To check multiple Dispose() throws error or not.
         await transport.DisposeAsync();
     }
 
@@ -178,7 +169,7 @@ public abstract class TransportTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task SendMessageCancelAsync()
+    public async Task SendAsync_Cancel()
     {
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
@@ -233,7 +224,7 @@ public abstract class TransportTest(ITestOutputHelper output)
 
     // This also tests ITransport.ReplyMessage at the same time.
     [Fact(Timeout = Timeout)]
-    public async Task SendMessageAsyncTimeout()
+    public async Task SendAsync_Timeout()
     {
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
@@ -293,10 +284,10 @@ public abstract class TransportTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task BroadcastMessage()
+    public async Task Broadcast()
     {
         var random = RandomUtility.GetRandom(output);
-        var address = new PrivateKey().Address;
+        var address = RandomUtility.Address(random);
         var transportB = CreateTransport(random, GeneratePrivateKeyOfBucketIndex(address, 0));
         var transportC = CreateTransport(random, GeneratePrivateKeyOfBucketIndex(address, 1));
         var transportD = CreateTransport(random, GeneratePrivateKeyOfBucketIndex(address, 2));
@@ -311,11 +302,11 @@ public abstract class TransportTest(ITestOutputHelper output)
 
         Action<MessageEnvelope> MessageHandler(TaskCompletionSource<MessageEnvelope> tcs)
         {
-            return message =>
+            return messageEnvelope =>
             {
-                if (message.Message is PingMessage)
+                if (messageEnvelope.Message is PingMessage)
                 {
-                    tcs.SetResult(message);
+                    tcs.SetResult(messageEnvelope);
                 }
             };
         }

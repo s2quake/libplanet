@@ -213,7 +213,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         }
     }
 
-    public void Broadcast(IEnumerable<Peer> peers, IMessage message)
+    public void Broadcast(ImmutableArray<Peer> peers, IMessage message)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
