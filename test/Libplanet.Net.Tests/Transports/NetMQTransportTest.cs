@@ -43,7 +43,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
         using var scope = new PropertyScope(typeof(NetMQConfig), nameof(NetMQConfig.MaxSockets), 12);
 
         await using var transport = new NetMQTransport(new PrivateKey().AsSigner());
-        using var _ = transport.ProcessMessage.Subscribe(transport.Pong);
+        using var _ = transport.Process.Subscribe(transport.Pong);
         var invalidHost = Guid.NewGuid().ToString();
         var invalidPeer = new Peer
         {
@@ -82,7 +82,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        using var subscription = transportB.ProcessMessage.Subscribe(async messageEnvelope =>
+        using var subscription = transportB.Process.Subscribe(async messageEnvelope =>
         {
             if (messageEnvelope.Message is PingMessage)
             {

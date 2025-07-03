@@ -83,7 +83,7 @@ public abstract class FetcherBase<TId, TItem> : IDisposable
 
         if (itemList.Count > 0)
         {
-            _receivedSubject.OnNext(new(peer, itemList));
+            _receivedSubject.OnNext(new(peer, [.. itemList]));
         }
     }
 

@@ -36,7 +36,7 @@ public sealed class Kademlia
         _findConcurrency = findConcurrency;
         _table = table;
         _requestTimeout = requestTimeout ?? TimeSpan.FromMilliseconds(5000);
-        _transport.ProcessMessage.Subscribe(ProcessMessageHandler);
+        _transport.Process.Subscribe(ProcessMessageHandler);
     }
 
     public static Address CalculateDifference(Address left, Address right)

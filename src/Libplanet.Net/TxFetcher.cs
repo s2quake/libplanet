@@ -19,7 +19,11 @@ public sealed class TxFetcher(
         using var cancellationTokenSource = CreateCancellationTokenSource();
         await foreach (var item in transport.SendAsync<TransactionMessage>(peer, request, cancellationToken))
         {
-            yield return ModelSerializer.DeserializeFromBytes<Transaction>(item.Payload.AsSpan());
+            for (var i = 0; i < item.Transactions.Length; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return item.Transactions[i];
+            }
         }
 
         CancellationTokenSource CreateCancellationTokenSource()
