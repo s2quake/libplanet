@@ -2,9 +2,9 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-public sealed record class BlockDemand(BlockSummary BlockExcerpt, Peer Peer, DateTimeOffset Timestamp)
+public sealed record class BlockDemand(BlockSummary BlockSummary, Peer Peer, DateTimeOffset Timestamp)
 {
-    public long Height => BlockExcerpt.Height;
+    public long Height => BlockSummary.Height;
 
-    public BlockHash BlockHash => BlockExcerpt.BlockHash;
+    public BlockHash BlockHash => BlockSummary.BlockHash;
 }

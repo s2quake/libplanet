@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Transports;
 using Libplanet.Types;
 using Random = System.Random;
 
@@ -82,27 +81,18 @@ public sealed class Kademlia
     public static IEnumerable<Peer> SortByDistance(IEnumerable<Peer> peers, Address target)
         => peers.OrderBy(peer => CalculateDistance(target, peer.Address));
 
-    public async Task BootstrapAsync(IEnumerable<Peer> bootstrapPeers, int depth, CancellationToken cancellationToken)
+    public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int depth, CancellationToken cancellationToken)
     {
         var findPeerTasks = new List<Task>();
         var history = new ConcurrentBag<Peer>();
         var dialHistory = new ConcurrentBag<Peer>();
 
-        if (!bootstrapPeers.Any())
-        {
-            // throw new InvalidOperationException(
-            //     "No seeds are provided.  If it is intended you should conditionally invoke " +
-            //     $"{nameof(BootstrapAsync)}() only when there are seed peers.");
-            return;
-        }
-
-        foreach (Peer peer in bootstrapPeers.Where(peer => !peer.Address.Equals(_address)))
+        foreach (var peer in peers.Where(peer => !peer.Address.Equals(_address)))
         {
             // Guarantees at least one connection (seed peer)
             try
             {
-                await PingAsync(peer, cancellationToken)
-                    .ConfigureAwait(false);
+                await PingAsync(peer, cancellationToken);
                 findPeerTasks.Add(
                     FindPeerAsync(
                         history,
@@ -135,60 +125,17 @@ public sealed class Kademlia
         await Task.WhenAll(findPeerTasks).ConfigureAwait(false);
     }
 
-    public async Task AddPeersAsync(IEnumerable<Peer> peers, CancellationToken cancellationToken)
-    {
-        var tasks = new List<Task>();
-        foreach (var peer in peers)
-        {
-            tasks.Add(PingAsync(peer, cancellationToken));
-        }
-
-        await Task.WhenAll(tasks);
-    }
+    public Task AddPeersAsync(ImmutableArray<Peer> peers, CancellationToken cancellationToken)
+        => Parallel.ForEachAsync(peers, cancellationToken, PingAsync);
 
     public async Task RefreshTableAsync(TimeSpan maxAge, CancellationToken cancellationToken)
     {
-        // TODO: Add timeout parameter for this method
-        try
-        {
-            IReadOnlyList<Peer> peers = _table.PeersToRefresh(maxAge);
-
-            await Parallel.ForEachAsync(peers,
-                cancellationToken,
-                async (peer, cancellationToken) =>
-                {
-                    try
-                    {
-                        await ValidateAsync(peer, cancellationToken);
-                    }
-                    catch (TimeoutException)
-                    {
-                        // do nothing
-                    }
-                });
-            cancellationToken.ThrowIfCancellationRequested();
-        }
-        catch (TimeoutException)
-        {
-            // do nothing
-        }
+        var peers = _table.PeersToRefresh(maxAge);
+        await Parallel.ForEachAsync(peers, cancellationToken, ValidateAsync);
     }
 
-    public async Task CheckAllPeersAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            foreach (var peer in _table.Peers)
-            {
-                await ValidateAsync(peer, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-        }
-        catch (TimeoutException)
-        {
-            // do nothing
-        }
-    }
+    public Task CheckAllPeersAsync(CancellationToken cancellationToken)
+        => Parallel.ForEachAsync(_table.Peers, cancellationToken, ValidateAsync);
 
     public async Task RebuildConnectionAsync(int depth, CancellationToken cancellationToken)
     {
@@ -316,7 +263,7 @@ public sealed class Kademlia
         return null;
     }
 
-    internal async Task PingAsync(Peer peer, CancellationToken cancellationToken)
+    internal async ValueTask PingAsync(Peer peer, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
         {
@@ -353,7 +300,7 @@ public sealed class Kademlia
         AddPeer(messageEnvelope.Peer);
     }
 
-    private async Task ValidateAsync(Peer peer, CancellationToken cancellationToken = default)
+    private async ValueTask ValidateAsync(Peer peer, CancellationToken cancellationToken)
     {
         try
         {
@@ -370,12 +317,12 @@ public sealed class Kademlia
 
     private void AddPeer(Peer peer)
     {
-        _table.AddPeer(peer);
+        _table.Add(peer);
     }
 
     private void RemovePeer(Peer peer)
     {
-        _table.RemovePeer(peer);
+        _table.Remove(peer);
     }
 
     private async Task FindPeerAsync(
@@ -485,16 +432,15 @@ public sealed class Kademlia
 
         peers = Kademlia.SortByDistance(peers, target).ToList();
 
-        IReadOnlyList<Peer> closestCandidate =
-            _table.Neighbors(target, _table.BucketSize, false);
+        var closestCandidate = _table.Neighbors(target, _table.BucketSize, false);
 
         List<Task> tasks = peers
             .Where(peer => !dialHistory.Contains(peer))
             .Select(
-                peer =>
+                async peer =>
                 {
                     dialHistory.Add(peer);
-                    return PingAsync(peer, cancellationToken);
+                    await PingAsync(peer, cancellationToken);
                 })
             .ToList();
         Task aggregateTask = Task.WhenAll(tasks);

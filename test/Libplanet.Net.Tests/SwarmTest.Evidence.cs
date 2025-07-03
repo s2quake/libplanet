@@ -27,7 +27,7 @@ namespace Libplanet.Net.Tests
                 {
                     Address = privateKeys[i].Address,
                     EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i)
-                }).ToImmutableArray();
+                }).ToImmutableHashSet();
             var reactorOptions = Enumerable.Range(0, count).Select(i =>
                 new ConsensusReactorOptions
                 {
@@ -56,7 +56,7 @@ namespace Libplanet.Net.Tests
                 await Task.WhenAll(startTasks);
                 var addPeerTasks = swarms.Select(
                     (swarm, index) => swarm.AddPeersAsync(
-                        swarms.Where((_, i) => i != index).Select(item => item.Peer), default));
+                        swarms.Where((_, i) => i != index).Select(item => item.Peer).ToImmutableArray(), default));
                 await Task.WhenAll(addPeerTasks);
 
                 var consensusContext = swarms[0].ConsensusReactor;

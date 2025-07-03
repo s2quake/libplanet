@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-internal sealed class AccessLimiter(int maxCount) : IDisposable
+internal sealed class AccessLimiter(int maximum) : IDisposable
 {
-    private readonly SemaphoreSlim? _semaphore = maxCount > 0 ? new SemaphoreSlim(maxCount, maxCount) : null;
+    private readonly SemaphoreSlim? _semaphore = maximum > 0 ? new SemaphoreSlim(maximum, maximum) : null;
 
     public void Dispose() => _semaphore?.Dispose();
 
-    public async Task<IDisposable?> WaitAsync(CancellationToken cancellationToken)
+    public async Task<IDisposable?> CanAccessAsync(CancellationToken cancellationToken)
     {
         if (_semaphore is { } sema)
         {

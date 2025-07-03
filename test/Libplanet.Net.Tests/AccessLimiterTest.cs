@@ -12,7 +12,7 @@ public class AccessLimiterTest
         int count = 0;
         async Task SampleTask(AccessLimiter sema)
         {
-            if (await sema.WaitAsync(default) is not null)
+            if (await sema.CanAccessAsync(default) is not null)
             {
                 await Task.Delay(1000);
                 Interlocked.Increment(ref count);
@@ -38,7 +38,7 @@ public class AccessLimiterTest
         int count = 0;
         async Task SampleTask(AccessLimiter sema)
         {
-            if (await sema.WaitAsync(default) is not null)
+            if (await sema.CanAccessAsync(default) is not null)
             {
                 await Task.Delay(1000);
                 Interlocked.Increment(ref count);
@@ -63,7 +63,7 @@ public class AccessLimiterTest
         int count = 0;
         async Task SampleTask(AccessLimiter sema)
         {
-            using var _ = await sema.WaitAsync(default);
+            using var _ = await sema.CanAccessAsync(default);
             await Task.Delay(1000);
             Interlocked.Increment(ref count);
         }

@@ -31,7 +31,7 @@ public sealed class BlockDemandDictionary(TimeSpan blockDemandLifetime)
     {
         foreach (var demand in _demandByPeer.Values)
         {
-            if (!predicate(demand.BlockExcerpt) || IsDemandStale(demand))
+            if (!predicate(demand.BlockSummary) || IsDemandStale(demand))
             {
                 _demandByPeer.TryRemove(demand.Peer, out _);
             }
@@ -49,7 +49,7 @@ public sealed class BlockDemandDictionary(TimeSpan blockDemandLifetime)
         {
             needed = false;
         }
-        else if (predicate(demand.BlockExcerpt))
+        else if (predicate(demand.BlockSummary))
         {
             if (oldDemand is { } old)
             {

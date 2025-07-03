@@ -9,7 +9,7 @@ using Libplanet.Types.Threading;
 namespace Libplanet.Net.Consensus;
 
 public sealed class Gossip(
-    ITransport transport, ImmutableArray<Peer> seeds, ImmutableArray<Peer> validators, GossipOptions options)
+    ITransport transport, ImmutableHashSet<Peer> seeds, ImmutableHashSet<Peer> validators, GossipOptions options)
     : IAsyncDisposable
 {
     private const int DLazy = 6;
@@ -58,7 +58,7 @@ public sealed class Gossip(
         _cancellationTokenSource = new CancellationTokenSource();
         await _transport.StartAsync(cancellationToken);
         _table = new RoutingTable(_transport.Peer.Address);
-        _table.AddPeers(validators);
+        _table.AddRange(validators);
         _transportSubscription = _transport.Process.Subscribe(HandleMessage);
         _kademlia = new Kademlia(_table, _transport, _transport.Peer.Address);
         await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);

@@ -39,7 +39,7 @@ internal sealed class BlockBroadcastTask : SwarmTaskBase, IDisposable
         var message = new BlockHeaderMessage
         {
             GenesisHash = blockchain.Genesis.BlockHash,
-            Excerpt = block
+            BlockSummary = block
         };
         _swarm.BroadcastMessage(except, message);
     }
