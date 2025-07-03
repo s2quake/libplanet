@@ -1,9 +1,7 @@
 using System.Runtime.CompilerServices;
-using System.ServiceModel;
 using System.Threading;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net;
@@ -12,7 +10,7 @@ public sealed class EvidenceFetcher(
     Blockchain blockchain, ITransport transport, TimeoutOptions timeoutOptions)
     : FetcherBase<EvidenceId, EvidenceBase>
 {
-    protected override async IAsyncEnumerable<EvidenceBase> FetchAsync(
+    public override async IAsyncEnumerable<EvidenceBase> FetchAsync(
         Peer peer, EvidenceId[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var request = new GetEvidenceMessage { EvidenceIds = [.. ids] };

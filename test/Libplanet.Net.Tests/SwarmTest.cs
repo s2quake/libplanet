@@ -632,7 +632,8 @@ namespace Libplanet.Net.Tests
                 //         new[] { tx.Id },
                 //         cancellationToken: default)
                 //     .ToListAsync();
-                var txs = await swarmA.FetchTxAsync(swarmB.Peer, [tx.Id], default);
+                var fetcher = new TxFetcher(swarmA.Blockchain, swarmA.Transport, swarmA.Options.TimeoutOptions);
+                var txs = await fetcher.FetchAsync(swarmB.Peer, [tx.Id], default).ToArrayAsync(default);
 
                 Assert.Equal(new[] { tx }, txs);
             }

@@ -1,21 +1,16 @@
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
-using Libplanet.Serialization;
 using Libplanet.Types;
-using Nito.AsyncEx;
-using System.ServiceModel;
-using Libplanet.Extensions;
 using Libplanet.Net.Transports;
 using System.Reactive;
 using System.Reactive.Subjects;
 using Libplanet.Types.Threading;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using Libplanet.Net.Tasks;
 
 namespace Libplanet.Net;
 
@@ -39,11 +34,11 @@ public sealed class Swarm : IAsyncDisposable
     private readonly AccessLimiter _transferTxLimiter;
     private readonly AccessLimiter _transferEvidenceLimiter;
     private readonly ConcurrentDictionary<Peer, int> _processBlockDemandSessions = new();
-    private readonly List<Task> _taskList = [];
+    private readonly List<ISwarmTask> _backgroundList;
 
     private CancellationTokenSource? _cancellationTokenSource;
     private CancellationToken _cancellationToken;
-    private IDisposable? _tipChangedSubscription;
+    private Task[] _tasks = [];
 
     private bool _disposed;
 
@@ -69,6 +64,18 @@ public sealed class Swarm : IAsyncDisposable
         _transferTxLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _consensusReactor = consensusOption is not null ? new ConsensusReactor(signer, Blockchain, consensusOption) : null;
+        _backgroundList =
+        [
+            new BlockBroadcastTask(this),
+            new TxBroadcastTask(this),
+            new EvidenceBroadcastTask(this),
+            new FillBlocksTask(this),
+            new PollBlocksTask(this),
+            new ConsumeBlockCandidatesTask(this),
+            new RefreshTableTask(this),
+            new RebuildConnectionTask(this),
+            new MaintainStaticPeerTask(this),
+        ];
     }
 
     public bool IsRunning { get; private set; }
@@ -137,9 +144,12 @@ public sealed class Swarm : IAsyncDisposable
             _evidenceFetcher.Dispose();
             _txFetcherSubscription.Dispose();
             _evidenceFetcherSubscription.Dispose();
-            // TxCompletion?.Dispose();
             await Transport.DisposeAsync();
-            await _consensusReactor.DisposeAsync();
+            if (_consensusReactor is not null)
+            {
+                await _consensusReactor.DisposeAsync();
+            }
+
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
             _disposed = true;
@@ -155,37 +165,14 @@ public sealed class Swarm : IAsyncDisposable
 
         await BootstrapAsync(cancellationToken);
         await PreloadAsync(cancellationToken);
-        // var broadcastBlockInterval = Options.BlockBroadcastInterval;
-        // var broadcastTxInterval = Options.TxBroadcastInterval;
-        // var dialTimeout = Options.TimeoutOptions.DialTimeout;
         _cancellationTokenSource = new CancellationTokenSource();
         _cancellationToken = _cancellationTokenSource.Token;
-
-        _tipChangedSubscription = Blockchain.TipChanged.Subscribe(OnBlockChainTipChanged);
         await Transport.StartAsync(cancellationToken);
-
-        _taskList.AddRange(
-        [
-            // BroadcastBlockAsync(Options.BlockBroadcastInterval, _cancellationToken),
-            BroadcastTxAsync(Options.TxBroadcastInterval, _cancellationToken),
-            BroadcastEvidenceAsync(Options.EvidenceBroadcastInterval, _cancellationToken),
-            FillBlocksAsync(_cancellationToken),
-            PollBlocksAsync(Options.TimeoutOptions.DialTimeout, Options.TipLifespan, Options.MaximumPollPeers, _cancellationToken),
-            ConsumeBlockCandidates(TimeSpan.FromMilliseconds(10), _cancellationToken),
-            RefreshTableAsync(Options.RefreshPeriod, Options.RefreshLifespan,_cancellationToken),
-            RebuildConnectionAsync(TimeSpan.FromMinutes(30), _cancellationToken),
-        ]);
-
-        if (_consensusReactor is { })
+        if (_consensusReactor is not null)
         {
             await _consensusReactor.StartAsync(cancellationToken);
         }
-
-        if (!Options.StaticPeers.IsEmpty)
-        {
-            _taskList.Add(MaintainStaticPeerAsync(Options.StaticPeersMaintainPeriod, _cancellationToken));
-        }
-
+        _tasks = [.. _backgroundList.Where(item => item.IsEnabled).Select(item => item.RunAsync(_cancellationToken))];
         IsRunning = true;
     }
 
@@ -197,11 +184,8 @@ public sealed class Swarm : IAsyncDisposable
         }
 
         await _cancellationTokenSource.CancelAsync();
-        await TaskUtility.TryWaitAll([.. _taskList]);
-        _taskList.Clear();
-
-        _tipChangedSubscription?.Dispose();
-        _tipChangedSubscription = null;
+        await TaskUtility.TryWaitAll(_tasks);
+        _tasks = [];
 
         await Transport.StopAsync(cancellationToken);
         if (_consensusReactor is not null)
@@ -301,7 +285,7 @@ public sealed class Swarm : IAsyncDisposable
 
             BlockCandidateTable.Cleanup((_) => true);
             await PullBlocksAsync(peersWithExcerpts, cancellationToken);
-            await ConsumeBlockCandidates(cancellationToken: cancellationToken);
+            // await ConsumeBlockCandidates(cancellationToken: cancellationToken);
             i++;
         }
 
@@ -332,65 +316,12 @@ public sealed class Swarm : IAsyncDisposable
         await PeerDiscovery.AddPeersAsync(peers, cancellationTokenSource.Token);
     }
 
-    internal async Task<Transaction[]> FetchTxAsync(Peer peer, TxId[] txids, CancellationToken cancellationToken)
-    {
-        var task = _txFetcher.Received.WaitAsync(cancellationToken);
-        _txFetcher.DemandMany(peer, txids);
-        var result = await task;
-        return [.. result.Items];
-    }
-
-    // internal async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
-    //     Peer peer,
-    //     BlockHash[] blockHashes,
-    //     [EnumeratorCancellation] CancellationToken cancellationToken)
+    // internal async Task<Transaction[]> FetchTxAsync(Peer peer, TxId[] txids, CancellationToken cancellationToken)
     // {
-    //     var request = new GetBlocksMessage { BlockHashes = [.. blockHashes] };
-    //     int hashCount = blockHashes.Length;
-
-    //     if (hashCount < 1)
-    //     {
-    //         yield break;
-    //     }
-
-    //     // TimeSpan blockRecvTimeout = Options.TimeoutOptions.GetBlocksBaseTimeout
-    //     //     + Options.TimeoutOptions.GetBlocksPerBlockHashTimeout.Multiply(hashCount);
-    //     // if (blockRecvTimeout > Options.TimeoutOptions.MaxTimeout)
-    //     // {
-    //     //     blockRecvTimeout = Options.TimeoutOptions.MaxTimeout;
-    //     // }
-
-    //     await foreach (var item in Transport.SendAsync<BlocksMessage>(peer, request, cancellationToken))
-    //     {
-    //         for (var i = 0; i < item.Blocks.Length; i++)
-    //         {
-    //             yield return (item.Blocks[i], item.BlockCommits[i]);
-    //         }
-    //     }
-    //     // var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
-
-    //     // // int count = 0;
-
-    //     // foreach (var message in aggregateMessage.Messages)
-    //     // {
-    //     //     cancellationToken.ThrowIfCancellationRequested();
-
-    //     //     if (message is BlocksMessage blocksMessage)
-    //     //     {
-    //     //         for (var i = 0; i < blocksMessage.Blocks.Length; i++)
-    //     //         {
-    //     //             yield return (blocksMessage.Blocks[i], blocksMessage.BlockCommits[i]);
-    //     //         }
-    //     //     }
-    //     //     else
-    //     //     {
-    //     //         string errorMessage =
-    //     //             $"Expected a {nameof(BlocksMessage)} message as a response of " +
-    //     //             $"the {nameof(GetBlocksMessage)} message, but got a {message.GetType().Name} " +
-    //     //             $"message instead: {message}";
-    //     //         throw new InvalidMessageContractException(errorMessage);
-    //     //     }
-    //     // }
+    //     var task = _txFetcher.Received.WaitAsync(cancellationToken);
+    //     _txFetcher.DemandMany(peer, txids);
+    //     var result = await task;
+    //     return [.. result.Items];
     // }
 
     internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
@@ -430,10 +361,6 @@ public sealed class Swarm : IAsyncDisposable
             string.Join(", ", peers.Select(p => p.ToString())),
             exceptionList);
     }
-
-    // internal async Task<BlockHash[]> GetDemandBlockHashesFromPeer(
-    //     Peer peer, Block block, CancellationToken cancellationToken)
-    //     => await GetBlockHashes(peer, block.BlockHash, cancellationToken);
 
     private void BroadcastBlock(Address except, Block block)
     {
@@ -496,16 +423,25 @@ public sealed class Swarm : IAsyncDisposable
         return [.. query];
     }
 
-    // private async Task BroadcastBlockAsync(TimeSpan broadcastBlockInterval, CancellationToken cancellationToken)
+    // private async Task BroadcastTxAsync(TimeSpan broadcastTxInterval, CancellationToken cancellationToken)
     // {
     //     while (!cancellationToken.IsCancellationRequested)
     //     {
     //         try
     //         {
-    //             await Task.Delay(broadcastBlockInterval, cancellationToken);
-    //             BroadcastBlock(Blockchain.Tip);
+    //             await Task.Delay(broadcastTxInterval, cancellationToken);
+    //             await Task.Run(
+    //                 () =>
+    //                 {
+    //                     var txIds = Blockchain.StagedTransactions.Keys.ToArray();
+    //                     if (txIds.Length > 0)
+    //                     {
+    //                         BroadcastTxIds(default, txIds);
+    //                     }
+    //                 },
+    //                 cancellationToken);
     //         }
-    //         catch (OperationCanceledException e)
+    //         catch (OperationCanceledException)
     //         {
     //             throw;
     //         }
@@ -518,37 +454,6 @@ public sealed class Swarm : IAsyncDisposable
     //     cancellationToken.ThrowIfCancellationRequested();
     // }
 
-    private async Task BroadcastTxAsync(TimeSpan broadcastTxInterval, CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                await Task.Delay(broadcastTxInterval, cancellationToken);
-                await Task.Run(
-                    () =>
-                    {
-                        var txIds = Blockchain.StagedTransactions.Keys.ToArray();
-                        if (txIds.Length > 0)
-                        {
-                            BroadcastTxIds(default, txIds);
-                        }
-                    },
-                    cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch
-            {
-                // do nothing
-            }
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-    }
-
     internal void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
     {
         var message = new TxIdMessage { Ids = [.. txIds] };
@@ -557,89 +462,89 @@ public sealed class Swarm : IAsyncDisposable
 
     internal bool IsBlockNeeded(BlockSummary blockSummary) => blockSummary.Height > Blockchain.Tip.Height;
 
-    private async Task RefreshTableAsync(TimeSpan period, TimeSpan maxAge, CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                await PeerDiscovery.RefreshTableAsync(maxAge, cancellationToken);
-                await PeerDiscovery.CheckReplacementCacheAsync(cancellationToken);
-                await Task.Delay(period, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch
-            {
-                // do nothing
-            }
-        }
+    // private async Task RefreshTableAsync(TimeSpan period, TimeSpan maxAge, CancellationToken cancellationToken)
+    // {
+    //     while (!cancellationToken.IsCancellationRequested)
+    //     {
+    //         try
+    //         {
+    //             await PeerDiscovery.RefreshTableAsync(maxAge, cancellationToken);
+    //             await PeerDiscovery.CheckReplacementCacheAsync(cancellationToken);
+    //             await Task.Delay(period, cancellationToken);
+    //         }
+    //         catch (OperationCanceledException)
+    //         {
+    //             throw;
+    //         }
+    //         catch
+    //         {
+    //             // do nothing
+    //         }
+    //     }
 
-        cancellationToken.ThrowIfCancellationRequested();
-    }
+    //     cancellationToken.ThrowIfCancellationRequested();
+    // }
 
-    private async Task RebuildConnectionAsync(TimeSpan period, CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                await Task.Delay(period, cancellationToken);
-                await PeerDiscovery.RebuildConnectionAsync(Kademlia.MaxDepth, cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch
-            {
-                // do nothing
-            }
-        }
+    // private async Task RebuildConnectionAsync(TimeSpan period, CancellationToken cancellationToken)
+    // {
+    //     while (!cancellationToken.IsCancellationRequested)
+    //     {
+    //         try
+    //         {
+    //             await Task.Delay(period, cancellationToken);
+    //             await PeerDiscovery.RebuildConnectionAsync(Kademlia.MaxDepth, cancellationToken);
+    //         }
+    //         catch (OperationCanceledException)
+    //         {
+    //             throw;
+    //         }
+    //         catch
+    //         {
+    //             // do nothing
+    //         }
+    //     }
 
-        cancellationToken.ThrowIfCancellationRequested();
-    }
+    //     cancellationToken.ThrowIfCancellationRequested();
+    // }
 
-    private async Task MaintainStaticPeerAsync(TimeSpan period, CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            var tasks = Options.StaticPeers
-                .Where(peer => !RoutingTable.Contains(peer))
-                .Select(async peer =>
-                {
-                    try
-                    {
-                        var timeout = TimeSpan.FromSeconds(3);
-                        await AddPeersAsync([peer], cancellationToken).WaitAsync(timeout, cancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // do nothing
-                    }
-                });
-            await Task.WhenAll(tasks);
-            await Task.Delay(period, cancellationToken);
-        }
+    // private async Task MaintainStaticPeerAsync(TimeSpan period, CancellationToken cancellationToken)
+    // {
+    //     while (!cancellationToken.IsCancellationRequested)
+    //     {
+    //         var tasks = Options.StaticPeers
+    //             .Where(peer => !RoutingTable.Contains(peer))
+    //             .Select(async peer =>
+    //             {
+    //                 try
+    //                 {
+    //                     var timeout = TimeSpan.FromSeconds(3);
+    //                     await AddPeersAsync([peer], cancellationToken).WaitAsync(timeout, cancellationToken);
+    //                 }
+    //                 catch (OperationCanceledException)
+    //                 {
+    //                     // do nothing
+    //                 }
+    //             });
+    //         await Task.WhenAll(tasks);
+    //         await Task.Delay(period, cancellationToken);
+    //     }
 
-        cancellationToken.ThrowIfCancellationRequested();
-    }
+    //     cancellationToken.ThrowIfCancellationRequested();
+    // }
 
     private void ProcessMessageHandler(MessageEnvelope messageEnvelope)
     {
         switch (messageEnvelope.Message)
         {
             case PingMessage _:
-            case FindNeighborsMessage _:
+            case GetPeerMessage _:
                 return;
 
             case GetChainStatusMessage:
                 {
                     // This is based on the assumption that genesis block always exists.
-                    Block tip = Blockchain.Tip;
-                    var chainStatus = new ChainStatusMessage
+                    var tip = Blockchain.Tip;
+                    var replyMessage = new ChainStatusMessage
                     {
                         ProtocolVersion = tip.Version,
                         GenesisHash = Blockchain.Genesis.BlockHash,
@@ -647,7 +552,7 @@ public sealed class Swarm : IAsyncDisposable
                         TipHash = tip.BlockHash,
                     };
 
-                    Transport.Reply(messageEnvelope.Identity, chainStatus);
+                    Transport.Reply(messageEnvelope.Identity, replyMessage);
                 }
                 break;
 
@@ -659,9 +564,9 @@ public sealed class Swarm : IAsyncDisposable
                     // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
                     //     getBlockHashes.Locator,
                     //     FindNextHashesChunkSize);
-                    var reply = new BlockHashesMessage { Hashes = [.. hashes] };
+                    var replyMessage = new BlockHashMessage { BlockHashes = [.. hashes] };
 
-                    Transport.Reply(messageEnvelope.Identity, reply);
+                    Transport.Reply(messageEnvelope.Identity, replyMessage);
                 }
                 break;
 
@@ -677,17 +582,17 @@ public sealed class Swarm : IAsyncDisposable
                 _ = TransferAsync(messageEnvelope.Identity, getEvidenceMessage, _cancellationToken);
                 break;
 
-            case TxIdMessage txIds:
-                ProcessTxIds(messageEnvelope);
+            case TxIdMessage txIdMessage:
+                _txFetcher.DemandMany(messageEnvelope.Peer, [.. txIdMessage.Ids]);
                 Transport.Pong(messageEnvelope);
                 break;
 
-            case EvidenceIdsMessage evidenceIds:
-                ProcessEvidenceIds(messageEnvelope);
+            case EvidenceIdMessage evidenceIdMessage:
+                _evidenceFetcher.DemandMany(messageEnvelope.Peer, [.. evidenceIdMessage.Ids]);
                 Transport.Pong(messageEnvelope);
                 break;
 
-            case BlockHashesMessage _:
+            case BlockHashMessage _:
                 break;
 
             case BlockHeaderMessage blockHeader:
@@ -795,105 +700,46 @@ public sealed class Swarm : IAsyncDisposable
         Transport.Transfer(identity, evidence);
     }
 
-    private void ProcessTxIds(MessageEnvelope messageEnvelope)
-    {
-        var txIdsMsg = (TxIdMessage)messageEnvelope.Message;
-        _txFetcher.DemandMany(messageEnvelope.Peer, [.. txIdsMsg.Ids]);
-    }
-
     public void BroadcastEvidence(ImmutableArray<EvidenceBase> evidence) => BroadcastEvidence(default, evidence);
-
-    // internal async IAsyncEnumerable<EvidenceBase> GetEvidenceAsync(
-    //     Peer peer,
-    //     IEnumerable<EvidenceId> evidenceIds,
-    //     [EnumeratorCancellation] CancellationToken cancellationToken)
-    // {
-    //     var evidenceIdsAsArray = evidenceIds as EvidenceId[] ?? evidenceIds.ToArray();
-    //     var request = new GetEvidenceMessage { EvidenceIds = [.. evidenceIdsAsArray] };
-    //     int evidenceCount = evidenceIdsAsArray.Count();
-
-    //     var evidenceRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
-    //         + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(evidenceCount);
-    //     if (evidenceRecvTimeout > Options.TimeoutOptions.MaxTimeout)
-    //     {
-    //         evidenceRecvTimeout = Options.TimeoutOptions.MaxTimeout;
-    //     }
-
-    //     await foreach (var item in Transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
-    //     {
-    //         yield return ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. item.Evidence]);
-    //     }
-    //     // var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
-
-    //     // foreach (var message in aggregateMessage.Messages)
-    //     // {
-    //     //     if (message is EvidenceMessage parsed)
-    //     //     {
-    //     //         EvidenceBase evidence = ModelSerializer.DeserializeFromBytes<EvidenceBase>([.. parsed.Payload]);
-    //     //         yield return evidence;
-    //     //     }
-    //     //     else
-    //     //     {
-    //     //         string errorMessage =
-    //     //             $"Expected {nameof(Transaction)} messages as response of " +
-    //     //             $"the {nameof(GetEvidenceMessage)} message, but got a " +
-    //     //             $"{message.GetType().Name} " +
-    //     //             $"message instead: {message}";
-    //     //         throw new InvalidOperationException(errorMessage);
-    //     //     }
-    //     // }
-    // }
 
     private void BroadcastEvidence(Address except, ImmutableArray<EvidenceBase> evidence)
     {
         var evidenceIds = evidence.Select(evidence => evidence.Id).ToArray();
-        BroadcastEvidenceIds(except, evidenceIds);
+        var replyMessage = new EvidenceIdMessage { Ids = [.. evidenceIds] };
+        BroadcastMessage(except, replyMessage);
     }
 
-    private async Task BroadcastEvidenceAsync(
-        TimeSpan broadcastTxInterval,
-        CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
-            {
-                await Task.Delay(broadcastTxInterval, cancellationToken);
+    // private async Task BroadcastEvidenceAsync(
+    //     TimeSpan broadcastTxInterval,
+    //     CancellationToken cancellationToken)
+    // {
+    //     while (!cancellationToken.IsCancellationRequested)
+    //     {
+    //         try
+    //         {
+    //             await Task.Delay(broadcastTxInterval, cancellationToken);
 
-                await Task.Run(
-                    () =>
-                    {
-                        List<EvidenceId> evidenceIds = Blockchain.PendingEvidences.Keys.ToList();
+    //             await Task.Run(
+    //                 () =>
+    //                 {
+    //                     List<EvidenceId> evidenceIds = Blockchain.PendingEvidences.Keys.ToList();
 
-                        if (evidenceIds.Any())
-                        {
-                            BroadcastEvidenceIds(default, evidenceIds);
-                        }
-                    },
-                    cancellationToken);
-            }
-            catch (OperationCanceledException e)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-            }
-        }
-    }
-
-    private void BroadcastEvidenceIds(Address except, IEnumerable<EvidenceId> evidenceIds)
-    {
-        var message = new EvidenceIdsMessage { Ids = [.. evidenceIds] };
-        BroadcastMessage(except, message);
-    }
-
-    private void ProcessEvidenceIds(MessageEnvelope message)
-    {
-        var evidenceIdsMsg = (EvidenceIdsMessage)message.Message;
-        // EvidenceCompletion.Demand(message.Peer, evidenceIdsMsg.Ids);
-        _evidenceFetcher.DemandMany(message.Peer, [.. evidenceIdsMsg.Ids]);
-    }
+    //                     if (evidenceIds.Any())
+    //                     {
+    //                         BroadcastEvidenceIds(default, evidenceIds);
+    //                     }
+    //                 },
+    //                 cancellationToken);
+    //         }
+    //         catch (OperationCanceledException e)
+    //         {
+    //             throw;
+    //         }
+    //         catch (Exception e)
+    //         {
+    //         }
+    //     }
+    // }
 
     public BlockDemandDictionary BlockDemandDictionary { get; private set; }
 
@@ -962,94 +808,94 @@ public sealed class Swarm : IAsyncDisposable
         }
     }
 
-    private async Task FillBlocksAsync(CancellationToken cancellationToken)
-    {
-        var checkInterval = TimeSpan.FromMilliseconds(100);
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            if (BlockDemandDictionary.Count > 0)
-            {
-                foreach (var blockDemand in BlockDemandDictionary.Values)
-                {
-                    BlockDemandDictionary.Remove(blockDemand.Peer);
-                    _ = ProcessBlockDemandAsync(blockDemand, cancellationToken);
-                }
-            }
-            else
-            {
-                await Task.Delay(checkInterval, cancellationToken);
-                continue;
-            }
+    // private async Task FillBlocksAsync(CancellationToken cancellationToken)
+    // {
+    //     var checkInterval = TimeSpan.FromMilliseconds(100);
+    //     while (!cancellationToken.IsCancellationRequested)
+    //     {
+    //         if (BlockDemandDictionary.Count > 0)
+    //         {
+    //             foreach (var blockDemand in BlockDemandDictionary.Values)
+    //             {
+    //                 BlockDemandDictionary.Remove(blockDemand.Peer);
+    //                 _ = ProcessBlockDemandAsync(blockDemand, cancellationToken);
+    //             }
+    //         }
+    //         else
+    //         {
+    //             await Task.Delay(checkInterval, cancellationToken);
+    //             continue;
+    //         }
 
-            BlockDemandDictionary.Cleanup(IsBlockNeeded);
-        }
-    }
+    //         BlockDemandDictionary.Cleanup(IsBlockNeeded);
+    //     }
+    // }
 
-    private async Task PollBlocksAsync(
-        TimeSpan timeout,
-        TimeSpan tipLifespan,
-        int maximumPollPeers,
-        CancellationToken cancellationToken)
-    {
-        BlockSummary lastTip = Blockchain.Tip;
-        DateTimeOffset lastUpdated = DateTimeOffset.UtcNow;
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            if (!lastTip.BlockHash.Equals(Blockchain.Tip.BlockHash))
-            {
-                lastUpdated = DateTimeOffset.UtcNow;
-                lastTip = Blockchain.Tip;
-            }
-            else if (lastUpdated + tipLifespan < DateTimeOffset.UtcNow)
-            {
-                await PullBlocksAsync(
-                    timeout, maximumPollPeers, cancellationToken);
-            }
+    // private async Task PollBlocksAsync(
+    //     TimeSpan timeout,
+    //     TimeSpan tipLifespan,
+    //     int maximumPollPeers,
+    //     CancellationToken cancellationToken)
+    // {
+    //     BlockSummary lastTip = Blockchain.Tip;
+    //     DateTimeOffset lastUpdated = DateTimeOffset.UtcNow;
+    //     while (!cancellationToken.IsCancellationRequested)
+    //     {
+    //         if (!lastTip.BlockHash.Equals(Blockchain.Tip.BlockHash))
+    //         {
+    //             lastUpdated = DateTimeOffset.UtcNow;
+    //             lastTip = Blockchain.Tip;
+    //         }
+    //         else if (lastUpdated + tipLifespan < DateTimeOffset.UtcNow)
+    //         {
+    //             await PullBlocksAsync(
+    //                 timeout, maximumPollPeers, cancellationToken);
+    //         }
 
-            await Task.Delay(1000, cancellationToken);
-        }
-    }
+    //         await Task.Delay(1000, cancellationToken);
+    //     }
+    // }
 
-    private void OnBlockChainTipChanged(TipChangedInfo e)
-    {
-        if (IsRunning)
-        {
-            BroadcastBlock(e.Tip);
-        }
-    }
+    // private void OnBlockChainTipChanged(TipChangedInfo e)
+    // {
+    //     if (IsRunning)
+    //     {
+    //         BroadcastBlock(e.Tip);
+    //     }
+    // }
 
-    private async Task ConsumeBlockCandidates(
-        TimeSpan? checkInterval = null,
-        CancellationToken cancellationToken = default)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            if (BlockCandidateTable.Count > 0)
-            {
-                BlockHeader tipHeader = Blockchain.Tip.Header;
-                if (BlockCandidateTable.GetCurrentRoundCandidate(Blockchain.Tip) is { } branch)
-                {
-                    var root = branch.Keys.First();
-                    var tip = branch.Keys.Last();
-                    _ = BlockCandidateProcess(
-                        branch,
-                        cancellationToken);
-                    _blockAppendedSubject.OnNext(Unit.Default);
-                }
-            }
-            else if (checkInterval is { } interval)
-            {
-                await Task.Delay(interval, cancellationToken);
-                continue;
-            }
-            else
-            {
-                break;
-            }
+    // private async Task ConsumeBlockCandidates(
+    //     TimeSpan? checkInterval = null,
+    //     CancellationToken cancellationToken = default)
+    // {
+    //     while (!cancellationToken.IsCancellationRequested)
+    //     {
+    //         if (BlockCandidateTable.Count > 0)
+    //         {
+    //             BlockHeader tipHeader = Blockchain.Tip.Header;
+    //             if (BlockCandidateTable.GetCurrentRoundCandidate(Blockchain.Tip) is { } branch)
+    //             {
+    //                 var root = branch.Keys.First();
+    //                 var tip = branch.Keys.Last();
+    //                 _ = BlockCandidateProcess(
+    //                     branch,
+    //                     cancellationToken);
+    //                 _blockAppendedSubject.OnNext(Unit.Default);
+    //             }
+    //         }
+    //         else if (checkInterval is { } interval)
+    //         {
+    //             await Task.Delay(interval, cancellationToken);
+    //             continue;
+    //         }
+    //         else
+    //         {
+    //             break;
+    //         }
 
-            BlockCandidateTable.Cleanup(IsBlockNeeded);
-        }
-    }
+    //         BlockCandidateTable.Cleanup(IsBlockNeeded);
+    //     }
+    // }
 
     internal bool BlockCandidateProcess(
         ImmutableSortedDictionary<Block, BlockCommit> candidate,

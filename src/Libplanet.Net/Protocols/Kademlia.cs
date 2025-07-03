@@ -337,7 +337,7 @@ public sealed class Kademlia
                     break;
                 }
 
-            case FindNeighborsMessage:
+            case GetPeerMessage:
                 {
                     ReceiveFindPeer(messageEnvelope);
                     break;
@@ -439,12 +439,12 @@ public sealed class Kademlia
 
     private async Task<IEnumerable<Peer>> GetNeighbors(Peer peer, Address target, CancellationToken cancellationToken)
     {
-        var findPeer = new FindNeighborsMessage { Target = target };
+        var findPeer = new GetPeerMessage { Target = target };
         try
         {
-            var replyMessage = await _transport.SendForSingleAsync<NeighborsMessage>(
+            var replyMessage = await _transport.SendForSingleAsync<PeerMessage>(
                 peer, findPeer, cancellationToken);
-            return replyMessage.Found;
+            return replyMessage.Peers;
         }
         catch (InvalidOperationException cfe)
         {
@@ -542,9 +542,9 @@ public sealed class Kademlia
 
     private void ReceiveFindPeer(MessageEnvelope messageEnvelope)
     {
-        var findNeighbors = (FindNeighborsMessage)messageEnvelope.Message;
+        var findNeighbors = (GetPeerMessage)messageEnvelope.Message;
         var found = _table.Neighbors(findNeighbors.Target, _table.BucketSize, true);
-        var neighbors = new NeighborsMessage { Found = [.. found] };
+        var neighbors = new PeerMessage { Peers = [.. found] };
         _transport.Reply(messageEnvelope.Identity, neighbors);
     }
 }

@@ -142,11 +142,11 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
 
         switch (message.Message)
         {
-            case FindNeighborsMessage:
+            case GetPeerMessage:
                 var alivePeers = peers.Where(item => item.IsAlive)
                                       .Select(item => item.BoundPeer)
                                       .ToArray();
-                var neighborsMsg = new NeighborsMessage { Found = [.. alivePeers] };
+                var neighborsMsg = new PeerMessage { Peers = [.. alivePeers] };
                 transport.Reply(messageIdentity, neighborsMsg);
                 break;
 
