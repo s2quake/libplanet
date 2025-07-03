@@ -55,26 +55,24 @@ public sealed class RoutingTable
 
     internal ImmutableArray<KademliaBucket> NonEmptyBuckets => [.. _buckets.Where(bucket => !bucket.IsEmpty)];
 
-    public void AddPeer(Peer peer) => AddPeer(peer, DateTimeOffset.UtcNow);
+    public void Add(Peer peer) => AddPeer(peer, DateTimeOffset.UtcNow);
 
-    public void AddPeers(IEnumerable<Peer> peers)
+    public void AddRange(IEnumerable<Peer> peers)
     {
         foreach (var peer in peers)
         {
-            AddPeer(peer);
+            Add(peer);
         }
     }
 
-    public bool RemovePeer(Peer peer)
+    public bool Remove(Peer peer)
     {
-        if (peer.Address.Equals(_address))
+        if (peer.Address != _address)
         {
-            throw new ArgumentException(
-                "A node is disallowed to remove itself from its routing table.",
-                nameof(peer));
+            return GetBucker(peer).Remove(peer);
         }
 
-        return GetBucker(peer).Remove(peer);
+        return false;
     }
 
     public bool Contains(Peer peer)
@@ -129,27 +127,34 @@ public sealed class RoutingTable
         GetBucker(peer).AddPeer(peer, updated);
     }
 
-    internal ImmutableArray<Peer> PeersToBroadcast(Address except, int min = 10)
+    internal ImmutableArray<Peer> PeersToBroadcast(Address except, int minimum = 10)
     {
-        List<Peer> peers = NonEmptyBuckets
-            .Select(bucket => bucket.GetRandomPeer(except))
-            .OfType<Peer>()
-            .ToList();
-        int count = peers.Count;
-        if (count < min)
+        var query = from bucket in NonEmptyBuckets
+                    let peer = bucket.TryGetRandomPeer(except, out var v) ? v : null
+                    where peer is not null
+                    select peer;
+        var peerList = query.ToList();
+        var count = peerList.Count;
+        if (count < minimum)
         {
-            peers.AddRange(Peers
-                .Where(peer => !peers.Contains(peer) && (!peer.Address.Equals(except)))
-                .Take(min - count));
+            var rest = Peers.Except(peerList)
+                .Where(peer => peer.Address != except)
+                .Take(minimum - count);
+            peerList.AddRange(rest);
         }
 
-        return [.. peers];
+        return [.. peerList];
     }
 
-    internal ImmutableArray<Peer> PeersToRefresh(TimeSpan maxAge)
-        => [.. NonEmptyBuckets
-        .Where(bucket => bucket.IsEmpty && bucket.Tail.LastUpdated + maxAge < DateTimeOffset.UtcNow)
-        .Select(bucket => bucket.Tail.Peer)];
+    internal ImmutableArray<Peer> PeersToRefresh(TimeSpan maximumAge)
+    {
+        var dateTimeOffset = DateTimeOffset.UtcNow;
+        var query = from bucket in NonEmptyBuckets
+                    where bucket.IsEmpty && bucket.Tail.LastUpdated + maximumAge < dateTimeOffset
+                    select bucket.Tail.Peer;
+
+        return [.. query];
+    }
 
     internal bool RemoveCache(Peer peer)
     {
@@ -163,10 +168,7 @@ public sealed class RoutingTable
         return GetBucker(index);
     }
 
-    internal KademliaBucket GetBucker(int index)
-    {
-        return _buckets[index];
-    }
+    internal KademliaBucket GetBucker(int index) => _buckets[index];
 
     internal int GetBucketIndexOf(Address address)
     {

@@ -19,7 +19,7 @@ public class MessageTest
         var apv = Protocol.Create(new PrivateKey(), 1);
         var dateTimeOffset = DateTimeOffset.UtcNow;
         Block genesis = ProposeGenesisBlock(GenesisProposer);
-        var messageContent = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, Excerpt = genesis };
+        var messageContent = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, BlockSummary = genesis };
         NetMQMessage raw = NetMQMessageCodec.Encode(
             new MessageEnvelope
             {
@@ -114,7 +114,7 @@ public class MessageTest
         var apv = Protocol.Create(new PrivateKey(), 1);
         var dateTimeOffset = DateTimeOffset.MinValue + TimeSpan.FromHours(6.1234);
         Block genesis = ProposeGenesisBlock(GenesisProposer);
-        var message = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, Excerpt = genesis };
+        var message = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, BlockSummary = genesis };
         Assert.Equal(
             new MessageId(ByteUtility.ParseHex(
                 "e1acbdc4d0cc1eb156cec60d0bf6d40fae3a90192e95719b12e6ee944c71b742")),

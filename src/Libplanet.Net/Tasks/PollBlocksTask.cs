@@ -1,10 +1,6 @@
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
-using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Net.Messages;
-using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Tasks;
@@ -120,7 +116,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : SwarmTaskBase
     internal bool IsBlockNeeded(BlockSummary target) => target.Height > _blockchain.Tip.Height;
 
     internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
-        Blockchain blockChain,
+        Blockchain blockchain,
         IList<(Peer, BlockSummary)> peersWithExcerpts,
         CancellationToken cancellationToken = default)
     {
@@ -135,7 +131,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : SwarmTaskBase
             try
             {
                 var downloadedHashes = await GetDemandBlockHashesFromPeer(
-                    blockChain,
+                    blockchain,
                     peer,
                     excerpt,
                     cancellationToken);
@@ -163,7 +159,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : SwarmTaskBase
     }
 
     internal async Task<BlockHash[]> GetDemandBlockHashesFromPeer(
-        Blockchain blockChain,
+        Blockchain blockchain,
         Peer peer,
         BlockSummary excerpt,
         CancellationToken cancellationToken = default)
@@ -171,7 +167,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : SwarmTaskBase
         var blockHashList = new List<BlockHash>();
         var blockHashes = await swarm.Transport.GetBlockHashesAsync(
             peer: peer,
-            blockHash: blockChain.Tip.BlockHash,
+            blockHash: blockchain.Tip.BlockHash,
             cancellationToken: cancellationToken);
 
         foreach (var blockHash in blockHashes)

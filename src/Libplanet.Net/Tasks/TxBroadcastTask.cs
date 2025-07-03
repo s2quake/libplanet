@@ -5,12 +5,14 @@ namespace Libplanet.Net.Tasks;
 
 internal sealed class TxBroadcastTask(Swarm swarm) : SwarmTaskBase
 {
+    private readonly Blockchain _blockchain = swarm.Blockchain;
+
     protected override TimeSpan Interval => swarm.Options.TxBroadcastInterval;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var blockchain = swarm.Blockchain;
-        var txIds = blockchain.StagedTransactions.Keys.ToArray();
+        var stagedTransactions = _blockchain.StagedTransactions;
+        var txIds = stagedTransactions.Keys.ToArray();
         if (txIds.Length > 0)
         {
             swarm.BroadcastTxIds(default, txIds);

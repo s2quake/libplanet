@@ -287,7 +287,6 @@ public partial class Consensus(
 
     public void Post(Proposal proposal)
     {
-        Trace.WriteLine(proposal.GetType());
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (_dispatcher is null)
         {

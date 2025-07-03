@@ -231,8 +231,8 @@ public sealed class GossipTest
     private static Gossip CreateGossip(
         PrivateKey? privateKey = null,
         int? port = null,
-        ImmutableArray<Peer>? validators = null,
-        ImmutableArray<Peer>? seeds = null)
+        ImmutableHashSet<Peer>? validators = null,
+        ImmutableHashSet<Peer>? seeds = null)
     {
         var transport = CreateTransport(privateKey, port);
         var options = new GossipOptions

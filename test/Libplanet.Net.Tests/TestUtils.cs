@@ -26,7 +26,7 @@ public static class TestUtils
     public static readonly ImmutableList<PrivateKey> PrivateKeys =
         Libplanet.Tests.TestUtils.ValidatorPrivateKeys;
 
-    public static readonly ImmutableArray<Peer> Peers =
+    public static readonly ImmutableHashSet<Peer> Peers =
     [
         new Peer { Address = PrivateKeys[0].Address, EndPoint = new DnsEndPoint("1.0.0.0", 1000)},
         new Peer { Address = PrivateKeys[1].Address, EndPoint = new DnsEndPoint("1.0.0.1", 1001)},
@@ -301,7 +301,7 @@ public static class TestUtils
         PrivateKey? key = null,
         string host = "127.0.0.1",
         int port = 0,
-        ImmutableArray<Peer>? validatorPeers = null,
+        ImmutableHashSet<Peer>? validatorPeers = null,
         TimeSpan? newHeightDelay = null,
         ConsensusOptions? consensusOption = null)
     {

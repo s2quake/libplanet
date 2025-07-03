@@ -537,8 +537,8 @@ namespace Libplanet.Net.Tests
                 Assert.Equal(
                     new HashSet<TxId> { tx1.Id, tx2.Id },
                     chainB.StagedTransactions.Keys.ToHashSet());
-                swarmA.RoutingTable.RemovePeer(swarmB.Peer);
-                swarmB.RoutingTable.RemovePeer(swarmA.Peer);
+                swarmA.RoutingTable.Remove(swarmB.Peer);
+                swarmB.RoutingTable.Remove(swarmA.Peer);
 
                 chainA.StagedTransactions.Remove(tx2.Id);
                 Assert.Equal(1, chainA.GetNextTxNonce(privateKey.Address));
@@ -546,8 +546,8 @@ namespace Libplanet.Net.Tests
                 await StopAsync(swarmA);
                 await StopAsync(swarmB);
 
-                swarmA.RoutingTable.RemovePeer(swarmB.Peer);
-                swarmB.RoutingTable.RemovePeer(swarmA.Peer);
+                swarmA.RoutingTable.Remove(swarmB.Peer);
+                swarmB.RoutingTable.Remove(swarmA.Peer);
                 Assert.Empty(swarmA.Peers);
                 Assert.Empty(swarmB.Peers);
 
@@ -984,7 +984,7 @@ namespace Libplanet.Net.Tests
                 var blockHeaderMsg1 = new BlockHeaderMessage
                 {
                     GenesisHash = receiver.Blockchain.Genesis.BlockHash,
-                    Excerpt = block1
+                    BlockSummary = block1
                 };
                 await mockTransport.SendAsync(
                     receiver.Peer,
@@ -1007,7 +1007,7 @@ namespace Libplanet.Net.Tests
                 var blockHeaderMsg2 = new BlockHeaderMessage
                 {
                     GenesisHash = receiver.Blockchain.Genesis.BlockHash,
-                    Excerpt = block2
+                    BlockSummary = block2
                 };
                 await mockTransport.SendAsync(
                     receiver.Peer,

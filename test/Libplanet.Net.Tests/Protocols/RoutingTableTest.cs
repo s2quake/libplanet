@@ -31,7 +31,7 @@ public class RoutingTableTest
         var pubKey = new PrivateKey().PublicKey;
         var table = new RoutingTable(pubKey.Address);
         var peer = new Peer { Address = pubKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-        Assert.Throws<ArgumentException>(() => table.AddPeer(peer));
+        Assert.Throws<ArgumentException>(() => table.Add(peer));
     }
 
     [Fact]
@@ -45,11 +45,11 @@ public class RoutingTableTest
         var peer1 = new Peer { Address = pubKey1.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         var peer2 = new Peer { Address = pubKey2.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         var peer3 = new Peer { Address = pubKey3.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-        table.AddPeer(peer1);
-        table.AddPeer(peer2);
-        table.AddPeer(peer3);
-        table.AddPeer(peer1);
-        table.AddPeer(peer3);
+        table.Add(peer1);
+        table.Add(peer2);
+        table.Add(peer3);
+        table.Add(peer1);
+        table.Add(peer3);
         Assert.Equal(
             new HashSet<Peer> { peer1, peer2 },
             table.Peers.ToHashSet());
@@ -64,12 +64,12 @@ public class RoutingTableTest
         var peer1 = new Peer { Address = pubKey1.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         var peer2 = new Peer { Address = pubKey2.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
 
-        Assert.Throws<ArgumentException>(() => table.RemovePeer(peer1));
+        Assert.Throws<ArgumentException>(() => table.Remove(peer1));
 
-        bool ret = table.RemovePeer(peer2);
+        bool ret = table.Remove(peer2);
         Assert.False(ret);
-        table.AddPeer(peer2);
-        ret = table.RemovePeer(peer2);
+        table.Add(peer2);
+        ret = table.Remove(peer2);
         Assert.True(ret);
     }
 
@@ -113,7 +113,7 @@ public class RoutingTableTest
         for (var i = 0; i < peers.Length; i++)
         {
             var peer = peers[i];
-            table.AddPeer(peer);
+            table.Add(peer);
             Assert.Equal(i / 2, table.GetBucketIndexOf(peer.Address));
         }
 
@@ -183,7 +183,7 @@ public class RoutingTableTest
         for (int i = 0; i < peerCount; i++)
         {
             Assert.Equal(peers[i], table.PeersToRefresh(TimeSpan.FromMinutes(1)).First());
-            table.AddPeer(peers[i]);
+            table.Add(peers[i]);
         }
 
         Assert.Empty(table.PeersToRefresh(TimeSpan.FromMinutes(1)));
