@@ -2,5 +2,7 @@ namespace Libplanet.Net.Messages;
 
 public interface IMessage
 {
-    public MessageId Id { get; }
+    MessageId Id { get; }
+
+    bool HasNext { get; init; }
 }

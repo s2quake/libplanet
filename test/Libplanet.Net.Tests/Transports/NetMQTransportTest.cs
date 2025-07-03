@@ -68,6 +68,33 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
         Assert.IsType<PongMessage>(reply.Message);
     }
 
+    [Fact]
+    public async Task SendMessageAsStreamAsync()
+    {
+        var random = RandomUtility.GetRandom(output);
+        await using var transportA = CreateTransport(random);
+        await using var transportB = CreateTransport(random);
+
+        using var subscription = transportB.ProcessMessage.Subscribe(async messageEnvelope =>
+        {
+            if (messageEnvelope.Message is PingMessage)
+            {
+                transportB.ReplyMessage(messageEnvelope.Identity, new PingMessage { HasNext = true });
+                await Task.Delay(100, default);
+                transportB.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+            }
+        });
+
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+
+        var replyMessage = await transportA.SendMessageAsStreamAsync(transportB.Peer, new PingMessage(), default)
+            .ToArrayAsync();
+        Assert.Equal(2, replyMessage.Length);
+        Assert.IsType<PingMessage>(replyMessage[0]);
+        Assert.IsType<PongMessage>(replyMessage[1]);
+    }
+
     public void Dispose()
     {
         Dispose(true);
