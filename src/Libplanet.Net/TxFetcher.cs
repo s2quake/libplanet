@@ -17,23 +17,9 @@ public sealed class TxFetcher(
     {
         var request = new GetTransactionMessage { TxIds = [.. ids] };
         using var cancellationTokenSource = CreateCancellationTokenSource();
-        var messageEnvelop = await transport.SendMessageAsync(peer, request, cancellationToken);
-        var aggregateMessage = (AggregateMessage)messageEnvelop.Message;
-
-        foreach (var message in aggregateMessage.Messages)
+        await foreach (var item in transport.SendAsync<TransactionMessage>(peer, request, cancellationToken))
         {
-            if (message is TransactionMessage parsed)
-            {
-                yield return ModelSerializer.DeserializeFromBytes<Transaction>(parsed.Payload.AsSpan());
-            }
-            else
-            {
-                string errorMessage =
-                    $"Expected {nameof(Transaction)} messages as response of " +
-                    $"the {nameof(GetTransactionMessage)} message, but got a {message.GetType().Name} " +
-                    $"message instead: {message}";
-                throw new InvalidMessageContractException(errorMessage);
-            }
+            yield return ModelSerializer.DeserializeFromBytes<Transaction>(item.Payload.AsSpan());
         }
 
         CancellationTokenSource CreateCancellationTokenSource()

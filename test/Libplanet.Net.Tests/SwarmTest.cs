@@ -514,7 +514,7 @@ namespace Libplanet.Net.Tests
 
                 await swarmA.AddPeersAsync([swarmB.Peer], default);
 
-                var inventories = await swarmB.Transport.GetBlockHashes(
+                var inventories = await swarmB.Transport.GetBlockHashesAsync(
                     swarmA.Peer,
                     genesis.BlockHash,
                     default);
@@ -566,7 +566,7 @@ namespace Libplanet.Net.Tests
 
                 await swarmB.AddPeersAsync([peer], default);
 
-                var hashes = await swarmB.Transport.GetBlockHashes(
+                var hashes = await swarmB.Transport.GetBlockHashesAsync(
                     peer,
                     genesis.BlockHash,
                     default);
@@ -574,9 +574,9 @@ namespace Libplanet.Net.Tests
                 ITransport transport = swarmB.Transport;
 
                 var request = new GetBlocksMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
-                var reply = await transport.SendMessageAsync(
-                    swarmA.Peer, request, default);
-                var aggregateMessage = (AggregateMessage)reply.Message;
+                var reply = await transport.SendAsync(
+                    swarmA.Peer, request, default).FirstAsync(default);
+                var aggregateMessage = (AggregateMessage)reply;
                 var responses = aggregateMessage.Messages;
 
                 var blockMessage = (BlocksMessage)responses[0];
@@ -1462,10 +1462,10 @@ namespace Libplanet.Net.Tests
                 for (int i = 0; i < 5; i++)
                 {
                     tasks.Add(
-                        Task.Run(async () => await transport.SendMessageAsync(
+                        Task.Run(async () => await transport.SendAsync(
                             swarm.Peer,
                             content,
-                            default)));
+                            default).FirstAsync(default)));
                 }
 
                 try
@@ -1519,10 +1519,10 @@ namespace Libplanet.Net.Tests
                 for (int i = 0; i < 5; i++)
                 {
                     tasks.Add(
-                        transport.SendMessageAsync(
+                        transport.SendAsync(
                             swarm.Peer,
                             content,
-                            default));
+                            default).FirstAsync(default).AsTask());
                 }
 
                 try

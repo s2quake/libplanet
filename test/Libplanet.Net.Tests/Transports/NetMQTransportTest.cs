@@ -1,3 +1,5 @@
+#pragma warning disable S1751 // Loops with at most one iteration should be refactored
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.ServiceModel;
@@ -55,8 +57,13 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
         // really fails lookup before moving to the next step.
         Assert.ThrowsAny<SocketException>(() => Dns.GetHostEntry(invalidHost));
 
-        var exc = await Assert.ThrowsAsync<CommunicationException>(
-            () => transport.SendMessageAsync(invalidPeer, new PingMessage(), default));
+        var exc = await Assert.ThrowsAsync<CommunicationException>(async () =>
+        {
+            await foreach (var _ in transport.SendAsync(invalidPeer, new PingMessage(), default))
+            {
+                throw new UnreachableException("This should not be reached.");
+            }
+        });
 
         // Expecting SocketException about host resolving since `invalidPeer` has an
         // invalid hostname
@@ -64,8 +71,8 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
         Assert.IsType<SocketException>(exc.InnerException?.InnerException, exactMatch: false);
 
         // Check sending/receiving after exceptions exceeding NetMQConifg.MaxSockets.
-        var reply = await transport.SendMessageAsync(transport.Peer, new PingMessage(), default);
-        Assert.IsType<PongMessage>(reply.Message);
+        var replyMessage = await transport.SendAsync(transport.Peer, new PingMessage(), default).FirstAsync(default);
+        Assert.IsType<PongMessage>(replyMessage);
     }
 
     [Fact]
@@ -79,16 +86,16 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
         {
             if (messageEnvelope.Message is PingMessage)
             {
-                transportB.ReplyMessage(messageEnvelope.Identity, new PingMessage { HasNext = true });
+                transportB.Reply(messageEnvelope.Identity, new PingMessage { HasNext = true });
                 await Task.Delay(100, default);
-                transportB.ReplyMessage(messageEnvelope.Identity, new PongMessage());
+                transportB.Reply(messageEnvelope.Identity, new PongMessage());
             }
         });
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        var replyMessage = await transportA.SendMessageAsStreamAsync(transportB.Peer, new PingMessage(), default)
+        var replyMessage = await transportA.SendAsync(transportB.Peer, new PingMessage(), default)
             .ToArrayAsync();
         Assert.Equal(2, replyMessage.Length);
         Assert.IsType<PingMessage>(replyMessage[0]);

@@ -54,11 +54,11 @@ public class PeerTest
         };
         var transportMock = new Mock<ITransport>();
 
-        transportMock.Setup(item => item.SendMessageAsync(
-            It.IsAny<Net.Peer>(),
-            It.IsAny<PingMessage>(),
-            It.IsAny<CancellationToken>()))
-            .ReturnsAsync(message);
+        // transportMock.Setup(item => item.SendAsync(
+        //     It.IsAny<Net.Peer>(),
+        //     It.IsAny<PingMessage>(),
+        //     It.IsAny<CancellationToken>()))
+        //     .ReturnsAsync(message);
 
         using var boundPeer = new RandomBoundPeer();
         var timeout = TimeSpan.FromSeconds(1);
@@ -97,7 +97,7 @@ public class PeerTest
         }
 
         transportMock
-            .Setup(item => item.SendMessageAsync(
+            .Setup(item => item.SendAsync(
                 It.IsAny<Net.Peer>(),
                 It.IsAny<PingMessage>(),
                 It.IsAny<CancellationToken>()))

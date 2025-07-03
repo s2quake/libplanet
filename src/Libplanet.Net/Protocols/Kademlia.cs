@@ -437,25 +437,14 @@ public sealed class Kademlia
         return found;
     }
 
-    private async Task<IEnumerable<Peer>> GetNeighbors(
-        Peer peer,
-        Address target,
-        CancellationToken cancellationToken)
+    private async Task<IEnumerable<Peer>> GetNeighbors(Peer peer, Address target, CancellationToken cancellationToken)
     {
         var findPeer = new FindNeighborsMessage { Target = target };
         try
         {
-            MessageEnvelope reply = await _transport.SendMessageAsync(
-                peer,
-                findPeer,
-                cancellationToken)
-            .ConfigureAwait(false);
-            if (reply.Message is not NeighborsMessage neighbors)
-            {
-                throw new InvalidOperationException("");
-            }
-
-            return neighbors.Found;
+            var replyMessage = await _transport.SendForSingleAsync<NeighborsMessage>(
+                peer, findPeer, cancellationToken);
+            return replyMessage.Found;
         }
         catch (InvalidOperationException cfe)
         {
@@ -472,7 +461,7 @@ public sealed class Kademlia
         }
 
         var pongMessage = new PongMessage();
-        _transport.ReplyMessage(messageEnvelope.Identity, pongMessage);
+        _transport.Reply(messageEnvelope.Identity, pongMessage);
     }
 
     private async Task ProcessFoundAsync(
@@ -556,6 +545,6 @@ public sealed class Kademlia
         var findNeighbors = (FindNeighborsMessage)messageEnvelope.Message;
         var found = _table.Neighbors(findNeighbors.Target, _table.BucketSize, true);
         var neighbors = new NeighborsMessage { Found = [.. found] };
-        _transport.ReplyMessage(messageEnvelope.Identity, neighbors);
+        _transport.Reply(messageEnvelope.Identity, neighbors);
     }
 }

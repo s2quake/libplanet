@@ -17,23 +17,9 @@ public sealed class EvidenceFetcher(
     {
         var request = new GetEvidenceMessage { EvidenceIds = [.. ids] };
         using var cancellationTokenSource = CreateCancellationTokenSource();
-        var messageEnvelope = await transport.SendMessageAsync(peer, request, cancellationToken);
-        var aggregateMessage = (AggregateMessage)messageEnvelope.Message;
-
-        foreach (var message in aggregateMessage.Messages)
+        await foreach (var evidenceMessage in transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
         {
-            if (message is EvidenceMessage evidenceMessage)
-            {
-                yield return ModelSerializer.DeserializeFromBytes<EvidenceBase>(evidenceMessage.Payload.AsSpan());
-            }
-            else
-            {
-                string errorMessage =
-                    $"Expected {nameof(Transaction)} messages as response of " +
-                    $"the {nameof(GetTransactionMessage)} message, but got a {message.GetType().Name} " +
-                    $"message instead: {message}";
-                throw new InvalidMessageContractException(errorMessage);
-            }
+            yield return ModelSerializer.DeserializeFromBytes<EvidenceBase>(evidenceMessage.Payload.AsSpan());
         }
 
         CancellationTokenSource CreateCancellationTokenSource()
