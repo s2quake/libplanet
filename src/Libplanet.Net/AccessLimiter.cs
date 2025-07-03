@@ -20,16 +20,6 @@ internal sealed class AccessLimiter(int maxCount) : IDisposable
         return new Releaser(_semaphore);
     }
 
-    // public int Release()
-    // {
-    //     if (_semaphore is { } sema)
-    //     {
-    //         return sema.Release();
-    //     }
-
-    //     return -1;
-    // }
-
     private sealed class Releaser(SemaphoreSlim? semaphore) : IDisposable
     {
         public void Dispose() => semaphore?.Release();
