@@ -96,22 +96,19 @@ public sealed class RoutingTable
 
     public ImmutableArray<Peer> Neighbors(Address target, int k, bool includeTarget)
     {
-        var sorted = _buckets
-            .Where(b => !b.IsEmpty)
-            .SelectMany(b => b.Peers)
-            .ToImmutableArray();
-
-        sorted = [.. Kademlia.SortByDistance(sorted, target)];
+        var query = from bucket in _buckets
+                    where !bucket.IsEmpty
+                    from peer in bucket.Peers
+                    orderby AddressUtility.GetDistance(target, peer.Address)
+                    select peer;
+        var sorted = query.ToImmutableArray();
 
         // Select maximum k * 2 peers excluding the target itself.
-        bool containsTarget = sorted.Any(peer => peer.Address.Equals(target));
-        int maxCount = (includeTarget && containsTarget) ? (k * 2) + 1 : k * 2;
+        var containsTarget = sorted.Any(peer => peer.Address.Equals(target));
+        var maximum = (includeTarget && containsTarget) ? (k * 2) + 1 : k * 2;
+        var peers = includeTarget ? sorted : sorted.Where(peer => peer.Address != target);
 
-        IEnumerable<Peer> peers = includeTarget
-            ? sorted
-            : sorted.Where(peer => !peer.Address.Equals(target));
-
-        return [.. peers.Take(maxCount)];
+        return [.. peers.Take(maximum)];
     }
 
     public void Check(Peer peer, DateTimeOffset startTime, DateTimeOffset endTime)
@@ -172,7 +169,7 @@ public sealed class RoutingTable
 
     internal int GetBucketIndexOf(Address address)
     {
-        var length = Kademlia.CommonPrefixLength(address, _address);
+        var length = AddressUtility.CommonPrefixLength(address, _address);
         return Math.Min(length, _buckets.Length - 1);
     }
 }

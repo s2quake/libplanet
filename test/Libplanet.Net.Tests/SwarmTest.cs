@@ -79,7 +79,7 @@ namespace Libplanet.Net.Tests
             Assert.True(swarm.IsRunning);
             Assert.True(t.IsFaulted);
             Assert.True(
-                t.Exception.InnerException is SwarmException,
+                t.Exception.InnerException is InvalidOperationException,
                 $"Expected SwarmException, but actual exception was: {t.Exception.InnerException}");
 
             await CleaningSwarm(swarm);
