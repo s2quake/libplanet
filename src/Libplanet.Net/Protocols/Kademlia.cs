@@ -254,8 +254,8 @@ public sealed class Kademlia
         {
             var startTime = DateTimeOffset.UtcNow;
             await PingAsync(peer, cancellationToken);
-            var endTime = DateTimeOffset.UtcNow;
-            _table.Check(peer, startTime, endTime);
+            var latency = DateTimeOffset.UtcNow - startTime;
+            _table.Check(peer, startTime, latency);
         }
         catch
         {
