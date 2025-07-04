@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 using Random = System.Random;
+using static Libplanet.Net.Protocols.AddressUtility;
 
 namespace Libplanet.Net.Protocols;
 
@@ -29,78 +30,38 @@ public sealed class Kademlia
         TimeSpan? requestTimeout = null)
     {
         _transport = transport;
-
         _address = address;
-        _random = new System.Random();
+        _random = new Random();
         _findConcurrency = findConcurrency;
         _table = table;
         _requestTimeout = requestTimeout ?? TimeSpan.FromMilliseconds(5000);
         _transport.Process.Subscribe(ProcessMessageHandler);
     }
 
-    public static Address CalculateDifference(Address left, Address right)
-    {
-        var bytes = new byte[Address.Size];
-        var bytes1 = left.Bytes;
-        var bytes2 = right.Bytes;
-
-        for (var i = 0; i < Address.Size; i++)
-        {
-            bytes[i] = (byte)(bytes1[i] ^ bytes2[i]);
-        }
-
-        return new Address(bytes);
-    }
-
-    public static int CommonPrefixLength(Address left, Address right)
-    {
-        var bytes = CalculateDifference(left, right).Bytes;
-        var length = 0;
-
-        foreach (byte @byte in bytes)
-        {
-            var mask = 1 << 7;
-            while (mask != 0)
-            {
-                if ((mask & @byte) != 0)
-                {
-                    return length;
-                }
-
-                length++;
-                mask >>= 1;
-            }
-        }
-
-        return length;
-    }
-
-    public static int CalculateDistance(Address left, Address right) => (Address.Size * 8)
-        - CommonPrefixLength(left, right);
-
-    public static IEnumerable<Peer> SortByDistance(IEnumerable<Peer> peers, Address target)
-        => peers.OrderBy(peer => CalculateDistance(target, peer.Address));
-
     public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int depth, CancellationToken cancellationToken)
     {
-        var findPeerTasks = new List<Task>();
+        if (peers.Any(item => item.Address == _address))
+        {
+            throw new InvalidOperationException(
+                $"Cannot bootstrap with self address {_address} in the peer list.");
+        }
+
         var history = new ConcurrentBag<Peer>();
         var dialHistory = new ConcurrentBag<Peer>();
 
-        foreach (var peer in peers.Where(peer => !peer.Address.Equals(_address)))
+        foreach (var peer in peers)
         {
             // Guarantees at least one connection (seed peer)
             try
             {
                 await PingAsync(peer, cancellationToken);
-                findPeerTasks.Add(
-                    FindPeerAsync(
-                        history,
-                        dialHistory,
-                        _address,
-                        peer,
-                        depth,
-                        cancellationToken));
+                await FindPeerAsync(
+                    history,
+                    dialHistory,
+                    _address,
+                    peer,
+                    depth,
+                    cancellationToken);
             }
             catch (InvalidOperationException)
             {
@@ -121,8 +82,6 @@ public sealed class Kademlia
         // {
         //     throw new InvalidOperationException("Bootstrap failed.");
         // }
-
-        await Task.WhenAll(findPeerTasks).ConfigureAwait(false);
     }
 
     public Task AddPeersAsync(ImmutableArray<Peer> peers, CancellationToken cancellationToken)
@@ -165,7 +124,7 @@ public sealed class Kademlia
                 cancellationToken));
         try
         {
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await Task.WhenAll(tasks);
         }
         catch (TimeoutException)
         {
@@ -179,7 +138,7 @@ public sealed class Kademlia
             foreach (Peer replacement in cache)
             {
                 _table.RemoveCache(replacement);
-                await PingAsync(replacement, cancellationToken).ConfigureAwait(false);
+                await PingAsync(replacement, cancellationToken);
             }
         }
     }
@@ -190,8 +149,7 @@ public sealed class Kademlia
         {
             try
             {
-                await PingAsync(boundPeer, cancellationToken)
-                    .ConfigureAwait(false);
+                await PingAsync(boundPeer, cancellationToken);
             }
             catch (Exception)
             {
@@ -234,8 +192,7 @@ public sealed class Kademlia
             {
                 try
                 {
-                    await PingAsync(found, cancellationToken)
-                        .ConfigureAwait(false);
+                    await PingAsync(found, cancellationToken);
                     if (found.Address.Equals(target))
                     {
                         return found;
@@ -265,11 +222,6 @@ public sealed class Kademlia
 
     internal async ValueTask PingAsync(Peer peer, CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return;
-        }
-
         await _transport.PingAsync(peer, cancellationToken);
         AddPeer(peer);
     }
@@ -279,16 +231,20 @@ public sealed class Kademlia
         switch (messageEnvelope.Message)
         {
             case PingMessage:
+                if (messageEnvelope.Peer.Address.Equals(_address))
                 {
-                    ReceivePing(messageEnvelope);
-                    break;
+                    throw new InvalidOperationException("Cannot receive ping from self.");
                 }
 
-            case GetPeerMessage:
-                {
-                    ReceiveFindPeer(messageEnvelope);
-                    break;
-                }
+                var pongMessage = new PongMessage();
+                _transport.Reply(messageEnvelope.Identity, pongMessage);
+                break;
+
+            case GetPeerMessage getPeerMessage:
+                var found = _table.Neighbors(getPeerMessage.Target, _table.BucketSize, true);
+                var neighbors = new PeerMessage { Peers = [.. found] };
+                _transport.Reply(messageEnvelope.Identity, neighbors);
+                break;
         }
 
         // Kademlia protocol registers handle of ITransport with the services
@@ -305,7 +261,7 @@ public sealed class Kademlia
         try
         {
             var startTime = DateTimeOffset.UtcNow;
-            await PingAsync(peer, cancellationToken).ConfigureAwait(false);
+            await PingAsync(peer, cancellationToken);
             var endTime = DateTimeOffset.UtcNow;
             _table.Check(peer, startTime, endTime);
         }
@@ -315,15 +271,9 @@ public sealed class Kademlia
         }
     }
 
-    private void AddPeer(Peer peer)
-    {
-        _table.Add(peer);
-    }
+    private void AddPeer(Peer peer) => _table.Add(peer);
 
-    private void RemovePeer(Peer peer)
-    {
-        _table.Remove(peer);
-    }
+    private void RemovePeer(Peer peer) => _table.Remove(peer);
 
     private async Task FindPeerAsync(
         ConcurrentBag<Peer> history,
@@ -341,13 +291,11 @@ public sealed class Kademlia
         IEnumerable<Peer> found;
         if (viaPeer is null)
         {
-            found = await QueryNeighborsAsync(history, target, cancellationToken)
-                .ConfigureAwait(false);
+            found = await QueryNeighborsAsync(history, target, cancellationToken);
         }
         else
         {
-            found = await GetNeighbors(viaPeer, target, cancellationToken)
-                .ConfigureAwait(false);
+            found = await GetNeighbors(viaPeer, target, cancellationToken);
             history.Add(viaPeer);
         }
 
@@ -361,27 +309,23 @@ public sealed class Kademlia
             found,
             target,
             depth,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     private async Task<IEnumerable<Peer>> QueryNeighborsAsync(
-        ConcurrentBag<Peer> history,
-        Address target,
-        CancellationToken cancellationToken)
+        ConcurrentBag<Peer> history, Address target, CancellationToken cancellationToken)
     {
-        List<Peer> neighbors = _table.Neighbors(target, _table.BucketSize, false).ToList();
-        var found = new List<Peer>();
-        int count = Math.Min(neighbors.Count, _findConcurrency);
+        var neighbors = _table.Neighbors(target, _table.BucketSize, false);
+        var foundList = new List<Peer>();
+        var count = Math.Min(neighbors.Length, _findConcurrency);
         for (var i = 0; i < count; i++)
         {
-            var peers =
-                await GetNeighbors(neighbors[i], target, cancellationToken)
-                .ConfigureAwait(false);
+            var peers = await GetNeighbors(neighbors[i], target, cancellationToken);
             history.Add(neighbors[i]);
-            found.AddRange(peers.Where(peer => !found.Contains(peer)));
+            foundList.AddRange(peers.Where(peer => !foundList.Contains(peer)));
         }
 
-        return found;
+        return foundList;
     }
 
     private async Task<IEnumerable<Peer>> GetNeighbors(Peer peer, Address target, CancellationToken cancellationToken)
@@ -400,17 +344,6 @@ public sealed class Kademlia
         }
     }
 
-    private void ReceivePing(MessageEnvelope messageEnvelope)
-    {
-        if (messageEnvelope.Peer.Address.Equals(_address))
-        {
-            throw new InvalidOperationException("Cannot receive ping from self.");
-        }
-
-        var pongMessage = new PongMessage();
-        _transport.Reply(messageEnvelope.Identity, pongMessage);
-    }
-
     private async Task ProcessFoundAsync(
         ConcurrentBag<Peer> history,
         ConcurrentBag<Peer> dialHistory,
@@ -419,18 +352,11 @@ public sealed class Kademlia
         int depth,
         CancellationToken cancellationToken)
     {
-        List<Peer> peers = found.Where(
-            peer =>
-                !peer.Address.Equals(_address) &&
-                !_table.Contains(peer) &&
-                !history.Contains(peer)).ToList();
-
-        if (peers.Count == 0)
-        {
-            return;
-        }
-
-        peers = Kademlia.SortByDistance(peers, target).ToList();
+        var query = from peer in found
+                    where peer.Address != _address && !_table.Contains(peer) && !history.Contains(peer)
+                    orderby GetDistance(target, peer.Address)
+                    select peer;
+        var peers = query.ToImmutableArray();
 
         var closestCandidate = _table.Neighbors(target, _table.BucketSize, false);
 
@@ -444,7 +370,7 @@ public sealed class Kademlia
                 })
             .ToList();
         Task aggregateTask = Task.WhenAll(tasks);
-        await aggregateTask.ConfigureAwait(false);
+        await aggregateTask;
 
         var findPeerTasks = new List<Task>();
         Peer? closestKnownPeer = closestCandidate.FirstOrDefault();
@@ -453,8 +379,8 @@ public sealed class Kademlia
         {
             if (closestKnownPeer is { } ckp &&
                string.CompareOrdinal(
-                   Kademlia.CalculateDifference(peer.Address, target).ToString("raw", null),
-                   Kademlia.CalculateDifference(ckp.Address, target).ToString("raw", null)) >= 1)
+                   GetDifference(peer.Address, target).ToString("raw", null),
+                   GetDifference(ckp.Address, target).ToString("raw", null)) >= 1)
             {
                 break;
             }
@@ -477,20 +403,6 @@ public sealed class Kademlia
             }
         }
 
-        try
-        {
-            await Task.WhenAll(findPeerTasks).ConfigureAwait(false);
-        }
-        catch (Exception e)
-        {
-        }
-    }
-
-    private void ReceiveFindPeer(MessageEnvelope messageEnvelope)
-    {
-        var findNeighbors = (GetPeerMessage)messageEnvelope.Message;
-        var found = _table.Neighbors(findNeighbors.Target, _table.BucketSize, true);
-        var neighbors = new PeerMessage { Peers = [.. found] };
-        _transport.Reply(messageEnvelope.Identity, neighbors);
+        await Task.WhenAll(findPeerTasks);
     }
 }
