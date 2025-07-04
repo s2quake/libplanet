@@ -4,31 +4,20 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class KademliaBucket
+internal sealed class Bucket(int capacity)
 {
-    private readonly int _size;
-    private readonly Random _random;
+    private readonly int _capacity = ValidateSize(capacity);
+    private readonly Random _random = new();
     private readonly ConcurrentDictionary<Peer, PeerState> _stateByPeer = new();
     private readonly ConcurrentDictionary<Peer, PeerState> _replacementCache = new();
     private PeerState? _head;
     private PeerState? _tail;
 
-    public KademliaBucket(int size, Random random)
-    {
-        if (size <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(size), $"The value of {nameof(size)} must be positive.");
-        }
-
-        _size = size;
-        _random = random;
-    }
-
     public int Count => _stateByPeer.Count;
 
     public bool IsEmpty => _stateByPeer.IsEmpty;
 
-    public bool IsFull => _stateByPeer.Count >= _size;
+    public bool IsFull => _stateByPeer.Count >= _capacity;
 
     public PeerState Head => _head ??= GetHead(_stateByPeer);
 
@@ -48,11 +37,11 @@ internal sealed class KademliaBucket
             LastUpdated = timestamp,
         };
 
-        if (_stateByPeer.Count < _size || _stateByPeer.ContainsKey(peer))
+        if (_stateByPeer.Count < _capacity || _stateByPeer.ContainsKey(peer))
         {
             _stateByPeer.AddOrUpdate(peer, peerState, (_, _) => peerState);
         }
-        else if (_replacementCache.Count < _size || _replacementCache.ContainsKey(peer))
+        else if (_replacementCache.Count < _capacity || _replacementCache.ContainsKey(peer))
         {
             _replacementCache.AddOrUpdate(peer, peerState, (_, _) => peerState);
         }
@@ -72,6 +61,7 @@ internal sealed class KademliaBucket
     public void Clear()
     {
         _stateByPeer.Clear();
+        _replacementCache.Clear();
         _head = null;
         _tail = null;
     }
@@ -145,5 +135,15 @@ internal sealed class KademliaBucket
         }
 
         return peerStates.Values.OrderByDescending(ps => ps.LastUpdated).First();
+    }
+
+    private static int ValidateSize(int size)
+    {
+        if (size <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(size), $"The value of {nameof(size)} must be positive.");
+        }
+
+        return size;
     }
 }

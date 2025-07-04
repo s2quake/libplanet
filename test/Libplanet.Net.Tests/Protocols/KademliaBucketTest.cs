@@ -10,7 +10,7 @@ public class KademliaBucketTest
     [Fact]
     public async Task BucketTest()
     {
-        var bucket = new KademliaBucket(4, new Random());
+        var bucket = new Bucket(4, new Random());
         var peer1 = new Peer
         {
             Address = new PrivateKey().Address,

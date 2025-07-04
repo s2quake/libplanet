@@ -5,7 +5,7 @@ namespace Libplanet.Net.Protocols;
 public sealed class RoutingTable
 {
     private readonly Address _address;
-    private readonly KademliaBucket[] _buckets;
+    private readonly Bucket[] _buckets;
 
     public RoutingTable(Address address, int tableSize = Kademlia.TableSize, int bucketSize = Kademlia.BucketSize)
     {
@@ -24,10 +24,10 @@ public sealed class RoutingTable
         BucketSize = bucketSize;
 
         var random = new Random();
-        _buckets = new KademliaBucket[tableSize];
+        _buckets = new Bucket[tableSize];
         for (int i = 0; i < tableSize; i++)
         {
-            _buckets[i] = new KademliaBucket(BucketSize, random);
+            _buckets[i] = new Bucket(BucketSize, random);
         }
     }
 
@@ -51,9 +51,9 @@ public sealed class RoutingTable
         }
     }
 
-    internal ImmutableArray<KademliaBucket> NonFullBuckets => [.. _buckets.Where(bucket => !bucket.IsFull)];
+    internal ImmutableArray<Bucket> NonFullBuckets => [.. _buckets.Where(bucket => !bucket.IsFull)];
 
-    internal ImmutableArray<KademliaBucket> NonEmptyBuckets => [.. _buckets.Where(bucket => !bucket.IsEmpty)];
+    internal ImmutableArray<Bucket> NonEmptyBuckets => [.. _buckets.Where(bucket => !bucket.IsEmpty)];
 
     public void Add(Peer peer) => AddPeer(peer, DateTimeOffset.UtcNow);
 
@@ -159,13 +159,13 @@ public sealed class RoutingTable
         return bucket.RemoveCache(peer);
     }
 
-    internal KademliaBucket GetBucker(Peer peer)
+    internal Bucket GetBucker(Peer peer)
     {
         var index = GetBucketIndexOf(peer.Address);
         return GetBucker(index);
     }
 
-    internal KademliaBucket GetBucker(int index) => _buckets[index];
+    internal Bucket GetBucker(int index) => _buckets[index];
 
     internal int GetBucketIndexOf(Address address)
     {
