@@ -15,26 +15,18 @@ public sealed class Kademlia
     public const int FindConcurrency = 3;
     public const int MaxDepth = 3;
 
-    private readonly TimeSpan _requestTimeout;
+    private readonly TimeSpan _requestTimeout = TimeSpan.FromMilliseconds(5000);
     private readonly ITransport _transport;
     private readonly Address _address;
-    private readonly Random _random;
+    private readonly Random _random = new();
     private readonly RoutingTable _table;
-    private readonly int _findConcurrency;
+    private readonly int _findConcurrency = FindConcurrency;
 
-    public Kademlia(
-        RoutingTable table,
-        ITransport transport,
-        Address address,
-        int findConcurrency = FindConcurrency,
-        TimeSpan? requestTimeout = null)
+    public Kademlia(RoutingTable table, ITransport transport, Address address)
     {
         _transport = transport;
         _address = address;
-        _random = new Random();
-        _findConcurrency = findConcurrency;
         _table = table;
-        _requestTimeout = requestTimeout ?? TimeSpan.FromMilliseconds(5000);
         _transport.Process.Subscribe(ProcessMessageHandler);
     }
 
