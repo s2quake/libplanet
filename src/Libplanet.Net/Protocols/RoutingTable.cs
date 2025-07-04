@@ -23,11 +23,10 @@ public sealed class RoutingTable
         _address = address;
         BucketSize = bucketSize;
 
-        var random = new Random();
         _buckets = new Bucket[tableSize];
         for (int i = 0; i < tableSize; i++)
         {
-            _buckets[i] = new Bucket(BucketSize, random);
+            _buckets[i] = new Bucket(BucketSize);
         }
     }
 
@@ -111,8 +110,8 @@ public sealed class RoutingTable
         return [.. peers.Take(maximum)];
     }
 
-    public void Check(Peer peer, DateTimeOffset startTime, DateTimeOffset endTime)
-        => GetBucker(peer).Check(peer, startTime, endTime);
+    public void Check(Peer peer, DateTimeOffset startTime, TimeSpan latency)
+        => GetBucker(peer).Check(peer, startTime, latency);
 
     internal void AddPeer(Peer peer, DateTimeOffset updated)
     {
@@ -121,7 +120,7 @@ public sealed class RoutingTable
             throw new ArgumentException("A node is disallowed to add itself to its routing table.", nameof(peer));
         }
 
-        GetBucker(peer).AddPeer(peer, updated);
+        GetBucker(peer).AddOrUpdate(peer, updated);
     }
 
     internal ImmutableArray<Peer> PeersToBroadcast(Address except, int minimum = 10)

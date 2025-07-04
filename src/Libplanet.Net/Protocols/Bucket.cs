@@ -29,9 +29,9 @@ internal sealed class Bucket(int capacity)
 
     public IReadOnlyDictionary<Peer, PeerState> ReplacementCache => _replacementCache;
 
-    public void AddPeer(Peer peer, DateTimeOffset timestamp)
+    public void AddOrUpdate(Peer peer, DateTimeOffset timestamp)
     {
-        var peerState = new PeerState
+        var state = new PeerState
         {
             Peer = peer,
             LastUpdated = timestamp,
@@ -39,17 +39,17 @@ internal sealed class Bucket(int capacity)
 
         if (_stateByPeer.Count < _capacity || _stateByPeer.ContainsKey(peer))
         {
-            _stateByPeer.AddOrUpdate(peer, peerState, (_, _) => peerState);
+            _stateByPeer.AddOrUpdate(peer, state, (_, _) => state);
         }
         else if (_replacementCache.Count < _capacity || _replacementCache.ContainsKey(peer))
         {
-            _replacementCache.AddOrUpdate(peer, peerState, (_, _) => peerState);
+            _replacementCache.AddOrUpdate(peer, state, (_, _) => state);
         }
         else
         {
             var oldestPeer = _replacementCache.OrderBy(ps => ps.Value.LastUpdated).First().Key;
             _replacementCache.TryRemove(oldestPeer, out var _);
-            _replacementCache.AddOrUpdate(peer, peerState, (_, _) => peerState);
+            _replacementCache.AddOrUpdate(peer, state, (_, _) => state);
         }
 
         _head = null;
@@ -104,16 +104,20 @@ internal sealed class Bucket(int capacity)
         return value is not null;
     }
 
-    public void Check(Peer peer, DateTimeOffset start, DateTimeOffset end)
+    public void Check(Peer peer, DateTimeOffset start, TimeSpan latency)
     {
         if (_stateByPeer.TryGetValue(peer, out var peerState1))
         {
             var peerState2 = peerState1 with
             {
                 LastChecked = start,
-                Latency = end - start
+                Latency = latency,
             };
             _stateByPeer.TryUpdate(peer, peerState2, peerState1);
+        }
+        else
+        {
+            throw new KeyNotFoundException($"Peer {peer} not found in the bucket.");
         }
     }
 
