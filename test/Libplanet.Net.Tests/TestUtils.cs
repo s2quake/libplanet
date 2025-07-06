@@ -82,7 +82,7 @@ public static class TestUtils
         {
             privateKey = new PrivateKey();
         }
-        while (table.GetBucketIndexOf(privateKey.Address) != target);
+        while (table.GetBucketIndex(privateKey.Address) != target);
 
         return privateKey;
     }

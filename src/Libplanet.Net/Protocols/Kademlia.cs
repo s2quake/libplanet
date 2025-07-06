@@ -8,7 +8,7 @@ using static Libplanet.Net.Protocols.AddressUtility;
 
 namespace Libplanet.Net.Protocols;
 
-public sealed class Kademlia
+internal sealed class Kademlia
 {
     public const int BucketSize = 16;
     public const int TableSize = Address.Size * 8;
@@ -170,9 +170,7 @@ public sealed class Kademlia
             }
 
             history.Add(viaPeer);
-            IEnumerable<Peer> foundPeers =
-                await GetNeighbors(viaPeer, target, cancellationToken)
-                .ConfigureAwait(false);
+            IEnumerable<Peer> foundPeers = await GetNeighbors(viaPeer, target, cancellationToken);
             IEnumerable<Peer> filteredPeers = foundPeers
                 .Where(peer =>
                     !history.Contains(peer) &&
@@ -233,7 +231,7 @@ public sealed class Kademlia
                 break;
 
             case GetPeerMessage getPeerMessage:
-                var found = _table.Neighbors(getPeerMessage.Target, _table.BucketSize, true);
+                var found = _table.Neighbors(getPeerMessage.Target, _table.Buckets.Count, true);
                 var neighbors = new PeerMessage { Peers = [.. found] };
                 _transport.Reply(messageEnvelope.Identity, neighbors);
                 break;
@@ -307,7 +305,7 @@ public sealed class Kademlia
     private async Task<IEnumerable<Peer>> QueryNeighborsAsync(
         ConcurrentBag<Peer> history, Address target, CancellationToken cancellationToken)
     {
-        var neighbors = _table.Neighbors(target, _table.BucketSize, false);
+        var neighbors = _table.Neighbors(target, _table.Buckets.Count, false);
         var foundList = new List<Peer>();
         var count = Math.Min(neighbors.Length, _findConcurrency);
         for (var i = 0; i < count; i++)
@@ -320,19 +318,19 @@ public sealed class Kademlia
         return foundList;
     }
 
-    private async Task<IEnumerable<Peer>> GetNeighbors(Peer peer, Address target, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<Peer>> GetNeighbors(Peer peer, Address target, CancellationToken cancellationToken)
     {
-        var findPeer = new GetPeerMessage { Target = target };
+        var requestMessage = new GetPeerMessage { Target = target };
         try
         {
-            var replyMessage = await _transport.SendForSingleAsync<PeerMessage>(
-                peer, findPeer, cancellationToken);
-            return replyMessage.Peers;
+            var responseMessage = await _transport.SendForSingleAsync<PeerMessage>(
+                peer, requestMessage, cancellationToken);
+            return responseMessage.Peers;
         }
         catch (InvalidOperationException cfe)
         {
             RemovePeer(peer);
-            return ImmutableArray<Peer>.Empty;
+            return [];
         }
     }
 
@@ -350,7 +348,7 @@ public sealed class Kademlia
                     select peer;
         var peers = query.ToImmutableArray();
 
-        var closestCandidate = _table.Neighbors(target, _table.BucketSize, false);
+        var closestCandidate = _table.Neighbors(target, _table.Buckets.Count, false);
 
         List<Task> tasks = peers
             .Where(peer => !dialHistory.Contains(peer))
