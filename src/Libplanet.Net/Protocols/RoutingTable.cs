@@ -1,63 +1,39 @@
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class RoutingTable
+internal sealed class RoutingTable(
+    Address address,
+    int tableSize = Kademlia.TableSize,
+    int bucketSize = Kademlia.BucketSize)
+    : IReadOnlyDictionary<Peer, PeerState>
 {
-    private readonly Address _address;
+    public BucketCollection Buckets { get; } = new BucketCollection(address, tableSize, bucketSize);
 
-    public RoutingTable(Address address, int tableSize = Kademlia.TableSize, int bucketSize = Kademlia.BucketSize)
-    {
-        if (tableSize <= 0)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(tableSize), $"The value of {nameof(tableSize)} must be positive.");
-        }
-        else if (bucketSize <= 0)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(bucketSize), $"The value of {nameof(bucketSize)} must be positive.");
-        }
-
-        _address = address;
-        Buckets = new BucketCollection(address, tableSize, bucketSize);
-    }
-
-    public int Count => Buckets.Sum(bucket => bucket.Count);
-
-    public BucketCollection Buckets { get; }
-
-    // public Bucket this[Peer peer]
-    // {
-    //     get
-    //     {
-    //         var address = peer.Address;
-    //         var index = AddressUtility.CommonPrefixLength(address, _address) / Buckets.Length;
-    //         return Buckets[index];
-    //     }
-    // }
-
-    public ImmutableArray<Peer> Peers => [.. NonEmptyBuckets.SelectMany(bucket => bucket.Peers)];
-
-    public ImmutableArray<PeerState> PeerStates => [.. NonEmptyBuckets.SelectMany(bucket => bucket.PeerStates)];
-
-    internal ImmutableArray<ImmutableArray<Peer>> CachesToCheck
+    internal ImmutableArray<Peer> CachesToCheck
     {
         get
         {
-            return [.. NonFullBuckets.Select(
-                bucket => bucket.ReplacementCache.Values
-                    .OrderBy(peerState => peerState.LastUpdated)
-                    .Select(peerState => peerState.Peer)
-                    .ToImmutableArray())];
+            var query = from bucket in Buckets
+                        where !bucket.IsFull
+                        from peerState in bucket.ReplacementCache.Values
+                        orderby peerState.LastUpdated
+                        select peerState.Peer;
+            return [.. query];
         }
     }
 
-    internal ImmutableArray<Bucket> NonFullBuckets => [.. Buckets.Where(bucket => !bucket.IsFull)];
+    public IEnumerable<Peer> Keys => Buckets.SelectMany(bucket => bucket.Keys);
 
-    internal ImmutableArray<Bucket> NonEmptyBuckets => [.. Buckets.Where(bucket => !bucket.IsEmpty)];
+    public IEnumerable<PeerState> Values => Buckets.SelectMany(bucket => bucket.Values);
 
-    public void Add(Peer peer) => AddPeer(peer, DateTimeOffset.UtcNow);
+    public int Count => Buckets.Sum(item => item.Count);
+
+    public PeerState this[Peer key] => throw new NotImplementedException();
+
+    public void Add(Peer key) => AddPeer(key, DateTimeOffset.UtcNow);
 
     public void AddRange(IEnumerable<Peer> peers)
     {
@@ -69,7 +45,7 @@ internal sealed class RoutingTable
 
     public bool Remove(Peer peer)
     {
-        if (peer.Address != _address)
+        if (peer.Address != address)
         {
             return Buckets[peer].Remove(peer);
         }
@@ -77,13 +53,10 @@ internal sealed class RoutingTable
         return false;
     }
 
-    public bool Contains(Peer peer)
-    {
-        return Buckets[peer].Contains(peer);
-    }
+    public bool ContainsKey(Peer key) => Buckets[key].ContainsKey(key);
 
     public Peer? GetPeer(Address addr) =>
-        Peers.FirstOrDefault(peer => peer.Address.Equals(addr));
+        Keys.FirstOrDefault(peer => peer.Address.Equals(addr));
 
     public void Clear()
     {
@@ -100,7 +73,7 @@ internal sealed class RoutingTable
     {
         var query = from bucket in Buckets
                     where !bucket.IsEmpty
-                    from peer in bucket.Peers
+                    from peer in bucket.Keys
                     orderby AddressUtility.GetDistance(target, peer.Address)
                     select peer;
         var sorted = query.ToImmutableArray();
@@ -118,7 +91,7 @@ internal sealed class RoutingTable
 
     internal void AddPeer(Peer peer, DateTimeOffset updated)
     {
-        if (peer.Address.Equals(_address))
+        if (peer.Address.Equals(address))
         {
             throw new ArgumentException("A node is disallowed to add itself to its routing table.", nameof(peer));
         }
@@ -137,7 +110,7 @@ internal sealed class RoutingTable
         var count = peerList.Count;
         if (count < minimum)
         {
-            var rest = Peers.Except(peerList)
+            var rest = Keys.Except(peerList)
                 .Where(peer => peer.Address != except)
                 .Take(minimum - count);
             peerList.AddRange(rest);
@@ -149,25 +122,29 @@ internal sealed class RoutingTable
     internal ImmutableArray<Peer> PeersToRefresh(TimeSpan maximumAge)
     {
         var dateTimeOffset = DateTimeOffset.UtcNow;
-        var query = from bucket in NonEmptyBuckets
+        var query = from bucket in Buckets
+                    where !bucket.IsEmpty
                     where bucket.IsEmpty && bucket.Tail.LastUpdated + maximumAge < dateTimeOffset
                     select bucket.Tail.Peer;
 
         return [.. query];
     }
 
-    internal bool RemoveCache(Peer peer)
+    internal bool RemoveCache(Peer peer) => Buckets[peer].RemoveCache(peer);
+
+    public bool TryGetValue(Peer key, [MaybeNullWhen(false)] out PeerState value)
+        => Buckets[key].TryGetValue(key, out value);
+
+    public IEnumerator<KeyValuePair<Peer, PeerState>> GetEnumerator()
     {
-        var bucket = Buckets[peer];
-        return bucket.RemoveCache(peer);
+        foreach (var bucket in Buckets)
+        {
+            foreach (var pair in bucket)
+            {
+                yield return pair;
+            }
+        }
     }
 
-    // internal Bucket GetBucket(Peer peer)
-    // {
-    //     var address = peer.Address;
-    //     var index = AddressUtility.CommonPrefixLength(address, _address) / Buckets.Length;
-    //     return GetBucket(index);
-    // }
-
-    // internal Bucket GetBucket(int index) => Buckets[index];
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

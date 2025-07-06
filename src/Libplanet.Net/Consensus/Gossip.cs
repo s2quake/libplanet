@@ -43,7 +43,8 @@ public sealed class Gossip(
 
     public Peer Peer => _transport.Peer;
 
-    public ImmutableArray<Peer> Peers => _table?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
+    public ImmutableArray<Peer> Peers
+        => _table?.Keys.ToImmutableArray() ?? throw new InvalidOperationException("Gossip is not running.");
 
     public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
@@ -133,7 +134,7 @@ public sealed class Gossip(
             throw new InvalidOperationException("Gossip is not running.");
         }
 
-        PublishMessage(GetPeersToBroadcast(_table.Peers, DLazy), message);
+        PublishMessage(GetPeersToBroadcast(_table.Keys, DLazy), message);
     }
 
     public void PublishMessage(ImmutableArray<Peer> targetPeers, params IMessage[] messages)
@@ -239,7 +240,7 @@ public sealed class Gossip(
             var ids = _messageById.Keys.ToArray();
             if (ids.Length > 0)
             {
-                var peers = GetPeersToBroadcast(table.Peers, DLazy);
+                var peers = GetPeersToBroadcast(table.Keys, DLazy);
                 var message = new HaveMessage { Ids = [.. ids] };
                 _transport.Broadcast(peers, message);
             }

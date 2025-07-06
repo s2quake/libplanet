@@ -86,7 +86,7 @@ internal sealed class Kademlia
     }
 
     public Task CheckAllPeersAsync(CancellationToken cancellationToken)
-        => Parallel.ForEachAsync(_table.Peers, cancellationToken, ValidateAsync);
+        => Parallel.ForEachAsync(_table.Keys, cancellationToken, ValidateAsync);
 
     public async Task RebuildConnectionAsync(int depth, CancellationToken cancellationToken)
     {
@@ -125,13 +125,10 @@ internal sealed class Kademlia
 
     public async Task CheckReplacementCacheAsync(CancellationToken cancellationToken)
     {
-        foreach (IEnumerable<Peer> cache in _table.CachesToCheck)
+        foreach (var replacement in _table.CachesToCheck)
         {
-            foreach (Peer replacement in cache)
-            {
-                _table.RemoveCache(replacement);
-                await PingAsync(replacement, cancellationToken);
-            }
+            _table.RemoveCache(replacement);
+            await PingAsync(replacement, cancellationToken);
         }
     }
 
@@ -343,7 +340,7 @@ internal sealed class Kademlia
         CancellationToken cancellationToken)
     {
         var query = from peer in found
-                    where peer.Address != _address && !_table.Contains(peer) && !history.Contains(peer)
+                    where peer.Address != _address && !_table.ContainsKey(peer) && !history.Contains(peer)
                     orderby GetDistance(target, peer.Address)
                     select peer;
         var peers = query.ToImmutableArray();

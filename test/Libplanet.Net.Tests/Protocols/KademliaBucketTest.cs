@@ -40,8 +40,8 @@ public class KademliaBucketTest
         // Checks for an empty bucket.
         Assert.True(bucket.IsEmpty);
         Assert.False(bucket.IsFull);
-        Assert.Empty(bucket.Peers);
-        Assert.Empty(bucket.PeerStates);
+        Assert.Empty(bucket.Keys);
+        Assert.Empty(bucket.Values);
         Assert.Throws<InvalidOperationException>(() => bucket.GetRandomPeer(default));
         Assert.Null(bucket.Head);
         Assert.Null(bucket.Tail);
@@ -50,8 +50,8 @@ public class KademliaBucketTest
         bucket.AddOrUpdate(peer1, DateTimeOffset.UtcNow);
         Assert.False(bucket.IsEmpty);
         Assert.False(bucket.IsFull);
-        Assert.True(bucket.Contains(peer1));
-        Assert.False(bucket.Contains(peer2));
+        Assert.True(bucket.ContainsKey(peer1));
+        Assert.False(bucket.ContainsKey(peer2));
         Assert.Equal(peer1, bucket.GetRandomPeer(default));
         Assert.Null(bucket.GetRandomPeer(peer1.Address));
         Assert.NotNull(bucket.GetRandomPeer(peer2.Address));
@@ -71,7 +71,7 @@ public class KademliaBucketTest
         bucket.AddOrUpdate(peer4, DateTimeOffset.UtcNow);
         Assert.True(bucket.IsFull);
         Assert.Equal(
-            [.. bucket.Peers],
+            [.. bucket.Keys],
             new HashSet<Peer> { peer1, peer2, peer3, peer4 });
         Assert.Contains(
             bucket.GetRandomPeer(default),
@@ -79,9 +79,9 @@ public class KademliaBucketTest
         await Task.Delay(100);
         bucket.AddOrUpdate(peer5, DateTimeOffset.UtcNow);
         Assert.Equal(
-            [.. bucket.Peers],
+            [.. bucket.Keys],
             new HashSet<Peer> { peer1, peer2, peer3, peer4 });
-        Assert.False(bucket.Contains(peer5));
+        Assert.False(bucket.ContainsKey(peer5));
         Assert.Equal(peer4, bucket.Head?.Peer);
         Assert.Equal(peer1, bucket.Tail?.Peer);
 
@@ -93,13 +93,13 @@ public class KademliaBucketTest
 
         Assert.False(bucket.Remove(peer5));
         Assert.True(bucket.Remove(peer1));
-        Assert.DoesNotContain(peer1, bucket.Peers);
-        Assert.Equal(3, bucket.Peers.Count());
+        Assert.DoesNotContain(peer1, bucket.Keys);
+        Assert.Equal(3, bucket.Keys.Count());
 
         // Clear the bucket.
         bucket.Clear();
         Assert.True(bucket.IsEmpty);
-        Assert.Empty(bucket.Peers);
+        Assert.Empty(bucket.Keys);
         Assert.Null(bucket.Head);
         Assert.Null(bucket.Tail);
         Assert.Throws<InvalidOperationException>(() => bucket.GetRandomPeer(default));
