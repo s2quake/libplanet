@@ -1,10 +1,11 @@
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class Bucket(int capacity)
+internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState>
 {
     private readonly int _capacity = ValidateSize(capacity);
     private readonly Random _random = new();
@@ -23,11 +24,13 @@ internal sealed class Bucket(int capacity)
 
     public PeerState Tail => _tail ??= GetTail(_stateByPeer);
 
-    public IEnumerable<Peer> Peers => _stateByPeer.Keys;
+    public IEnumerable<Peer> Keys => _stateByPeer.Keys;
 
-    public IEnumerable<PeerState> PeerStates => _stateByPeer.Values;
+    public IEnumerable<PeerState> Values => _stateByPeer.Values;
 
     public IReadOnlyDictionary<Peer, PeerState> ReplacementCache => _replacementCache;
+
+    public PeerState this[Peer key] => _stateByPeer[key];
 
     public void AddOrUpdate(Peer peer, DateTimeOffset timestamp)
     {
@@ -56,7 +59,7 @@ internal sealed class Bucket(int capacity)
         _tail = null;
     }
 
-    public bool Contains(Peer peer) => _stateByPeer.ContainsKey(peer);
+    public bool ContainsKey(Peer key) => _stateByPeer.ContainsKey(key);
 
     public void Clear()
     {
@@ -66,9 +69,9 @@ internal sealed class Bucket(int capacity)
         _tail = null;
     }
 
-    public bool Remove(Peer peer)
+    public bool Remove(Peer key)
     {
-        var result = _stateByPeer.TryRemove(peer, out _);
+        var result = _stateByPeer.TryRemove(key, out _);
         _head = null;
         _tail = null;
         return result;
@@ -150,4 +153,16 @@ internal sealed class Bucket(int capacity)
 
         return size;
     }
+
+    public bool TryGetValue(Peer key, [MaybeNullWhen(false)] out PeerState value) => _stateByPeer.TryGetValue(key, out value);
+
+    public IEnumerator<KeyValuePair<Peer, PeerState>> GetEnumerator()
+    {
+        foreach (var pair in _stateByPeer)
+        {
+            yield return pair;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

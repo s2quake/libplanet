@@ -264,12 +264,12 @@ namespace Libplanet.Net.Tests
 
                 Assert.Contains(swarmB.Peer, swarmC.Peers);
                 Assert.Contains(swarmC.Peer, swarmB.Peers);
-                foreach (PeerState state in swarmB.RoutingTable.PeerStates)
+                foreach (PeerState state in swarmB.RoutingTable.Values)
                 {
                     Assert.InRange(state.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
                 }
 
-                foreach (PeerState state in swarmC.RoutingTable.PeerStates)
+                foreach (PeerState state in swarmC.RoutingTable.Values)
                 {
                     if (state.Peer.Address == swarmD.Peer.Address)
                     {

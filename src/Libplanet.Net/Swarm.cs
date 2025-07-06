@@ -86,7 +86,7 @@ public sealed class Swarm : IAsyncDisposable
 
     public Peer Peer => Transport.Peer;
 
-    public IReadOnlyList<Peer> Peers => RoutingTable.Peers;
+    public IEnumerable<Peer> Peers => RoutingTable.Keys;
 
     public ImmutableArray<Peer> Validators => _consensusReactor?.Validators ?? [];
 
@@ -210,7 +210,7 @@ public sealed class Swarm : IAsyncDisposable
         var seedPeers = Options.BootstrapOptions.SeedPeers;
         var searchDepth = Options.BootstrapOptions.SearchDepth;
 
-        IReadOnlyList<Peer> peersBeforeBootstrap = RoutingTable.Peers;
+        var peersBeforeBootstrap = RoutingTable.Keys;
 
         await PeerDiscovery.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
 
@@ -218,7 +218,7 @@ public sealed class Swarm : IAsyncDisposable
         {
             // Mark added peers as stale if bootstrap is called before transport is running
             // FIXME: Peers added before bootstrap might be updated.
-            foreach (Peer peer in RoutingTable.Peers.Except(peersBeforeBootstrap))
+            foreach (Peer peer in RoutingTable.Keys.Except(peersBeforeBootstrap))
             {
                 RoutingTable.AddPeer(peer, DateTimeOffset.MinValue);
             }

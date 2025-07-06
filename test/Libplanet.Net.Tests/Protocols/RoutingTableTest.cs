@@ -52,7 +52,7 @@ public class RoutingTableTest
         table.Add(peer3);
         Assert.Equal(
             new HashSet<Peer> { peer1, peer2 },
-            table.Peers.ToHashSet());
+            table.Keys.ToHashSet());
     }
 
     [Fact]
@@ -90,14 +90,14 @@ public class RoutingTableTest
             count++;
             publicKey = new PrivateKey().PublicKey;
         }
-        while (table.GetBucketIndex(publicKey.Address) != targetBucket);
+        while (GetBucketIndex(table, publicKey.Address) != targetBucket);
 
         Log.Debug(
             "Found public key of bucket index {Index} in {Count} tries: {Key}",
-            table.GetBucketIndex(publicKey.Address),
+            GetBucketIndex(table, publicKey.Address),
             count,
             ByteArrayToString(publicKey.ToByteArray(true)));
-        Assert.Equal(targetBucket, table.GetBucketIndex(publicKey.Address));
+        Assert.Equal(targetBucket, GetBucketIndex(table, publicKey.Address));
     }
 
     [Fact]
@@ -114,14 +114,14 @@ public class RoutingTableTest
         {
             var peer = peers[i];
             table.Add(peer);
-            Assert.Equal(i / 2, table.GetBucketIndex(peer.Address));
+            Assert.Equal(i / 2, GetBucketIndex(table, peer.Address));
         }
 
         var broadcastCandidate = table.PeersToBroadcast(default, 0);
         Assert.Equal(5, broadcastCandidate.Length);
         Assert.Equal(
             new HashSet<int> { 0, 1, 2, 3, 4 },
-            broadcastCandidate.Select(peer => table.GetBucketIndex(peer.Address))
+            broadcastCandidate.Select(peer => GetBucketIndex(table, peer.Address))
                 .ToHashSet());
 
         broadcastCandidate = table.PeersToBroadcast(default, 10);
@@ -150,7 +150,7 @@ public class RoutingTableTest
                 DateTimeOffset.UtcNow - (i % 2 == 0 ? TimeSpan.Zero : TimeSpan.FromMinutes(2)));
         }
 
-        Assert.Equal(peerCount, table.Peers.Length);
+        Assert.Equal(peerCount, table.Keys.Count());
         Assert.Equal(
             Enumerable
                 .Range(0, peerCount / 2)
@@ -179,7 +179,7 @@ public class RoutingTableTest
                 DateTimeOffset.UtcNow - TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(i));
         }
 
-        Assert.Equal(peerCount, table.Peers.Length);
+        Assert.Equal(peerCount, table.Keys.Count());
         for (int i = 0; i < peerCount; i++)
         {
             Assert.Equal(peers[i], table.PeersToRefresh(TimeSpan.FromMinutes(1)).First());
@@ -226,5 +226,19 @@ public class RoutingTableTest
         str = "0x" + str.Replace("-", ", 0x").ToLower();
 
         return str + ",";
+    }
+
+    private static int GetBucketIndex(RoutingTable table, Address address)
+    {
+        var bucket = table.Buckets[address];
+        for (var i = 0; i < table.Buckets.Count; i++)
+        {
+            if (table.Buckets[i] == bucket)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }

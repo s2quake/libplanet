@@ -4,14 +4,16 @@ using static Libplanet.Net.Protocols.AddressUtility;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class BucketCollection(Address address, int count, int capacity)
+internal sealed class BucketCollection(Address owner, int count, int capacity)
     : IEnumerable<Bucket>
 {
     private readonly ImmutableArray<Bucket> _buckets = Create(count, capacity);
 
     public Bucket this[int index] => _buckets[index];
 
-    public Bucket this[Peer peer] => _buckets[CommonPrefixLength(peer.Address, address) / _buckets.Length];
+    public Bucket this[Peer peer] => this[peer.Address];
+
+    public Bucket this[Address address] => _buckets[CommonPrefixLength(address, owner) / _buckets.Length];
 
     public int Count => _buckets.Length;
 

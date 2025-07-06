@@ -77,12 +77,13 @@ public static class TestUtils
     public static PrivateKey GeneratePrivateKeyOfBucketIndex(Address tableAddress, int target)
     {
         var table = new RoutingTable(tableAddress);
+        var targetBucket = table.Buckets[target];
         PrivateKey privateKey;
         do
         {
             privateKey = new PrivateKey();
         }
-        while (table.GetBucketIndex(privateKey.Address) != target);
+        while (table.Buckets[privateKey.Address] != targetBucket);
 
         return privateKey;
     }
