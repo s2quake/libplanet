@@ -90,14 +90,14 @@ public class RoutingTableTest
             count++;
             publicKey = new PrivateKey().PublicKey;
         }
-        while (table.GetBucketIndexOf(publicKey.Address) != targetBucket);
+        while (table.GetBucketIndex(publicKey.Address) != targetBucket);
 
         Log.Debug(
             "Found public key of bucket index {Index} in {Count} tries: {Key}",
-            table.GetBucketIndexOf(publicKey.Address),
+            table.GetBucketIndex(publicKey.Address),
             count,
             ByteArrayToString(publicKey.ToByteArray(true)));
-        Assert.Equal(targetBucket, table.GetBucketIndexOf(publicKey.Address));
+        Assert.Equal(targetBucket, table.GetBucketIndex(publicKey.Address));
     }
 
     [Fact]
@@ -114,14 +114,14 @@ public class RoutingTableTest
         {
             var peer = peers[i];
             table.Add(peer);
-            Assert.Equal(i / 2, table.GetBucketIndexOf(peer.Address));
+            Assert.Equal(i / 2, table.GetBucketIndex(peer.Address));
         }
 
         var broadcastCandidate = table.PeersToBroadcast(default, 0);
         Assert.Equal(5, broadcastCandidate.Length);
         Assert.Equal(
             new HashSet<int> { 0, 1, 2, 3, 4 },
-            broadcastCandidate.Select(peer => table.GetBucketIndexOf(peer.Address))
+            broadcastCandidate.Select(peer => table.GetBucketIndex(peer.Address))
                 .ToHashSet());
 
         broadcastCandidate = table.PeersToBroadcast(default, 10);
