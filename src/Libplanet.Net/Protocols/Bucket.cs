@@ -93,7 +93,7 @@ internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState
         return value is not null;
     }
 
-    public void Check(Peer peer, DateTimeOffset start, TimeSpan latency)
+    public void Update(Peer peer, DateTimeOffset start, TimeSpan latency)
     {
         if (_stateByPeer.TryGetValue(peer, out var peerState1))
         {

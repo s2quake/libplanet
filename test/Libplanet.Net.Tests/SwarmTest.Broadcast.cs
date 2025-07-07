@@ -125,7 +125,7 @@ namespace Libplanet.Net.Tests
 
                 await swarmA.AddPeersAsync([seed.Peer], default);
                 await StopAsync(swarmA);
-                await seed.RoutingTable.RefreshTableAsync(
+                await seed.RoutingTable.RefreshAsync(
                     TimeSpan.Zero,
                     default);
 

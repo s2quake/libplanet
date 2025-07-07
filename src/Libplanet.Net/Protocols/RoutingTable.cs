@@ -18,7 +18,6 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
 
     private readonly Address _owner;
     private readonly Random _random = new();
-    // private readonly Kademlia _kademlia;
     private readonly ITransport _transport;
     private readonly int _findConcurrency = FindConcurrency;
 
@@ -29,7 +28,6 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
     {
         _transport = transport;
         _owner = transport.Peer.Address;
-        // _kademlia = new Kademlia(this, transport);
         Buckets = new BucketCollection(_owner, bucketCount, bucketCapacity);
     }
 
@@ -71,7 +69,7 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
             }
             catch (InvalidOperationException)
             {
-                RemovePeer(peer);
+                Remove(peer);
             }
             catch (Exception)
             {
@@ -125,9 +123,15 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
         }
     }
 
-    public async Task RefreshTableAsync(TimeSpan maxAge, CancellationToken cancellationToken)
+    public async Task RefreshAsync(TimeSpan maxAge, CancellationToken cancellationToken)
     {
-        var peers = PeersToRefresh(maxAge);
+        var dateTimeOffset = DateTimeOffset.UtcNow;
+        var query = from bucket in Buckets
+                    where !bucket.IsEmpty
+                    where bucket.IsEmpty && bucket.Tail.LastUpdated + maxAge < dateTimeOffset
+                    select bucket.Tail.Peer;
+
+        var peers = query.ToImmutableArray();
         await Parallel.ForEachAsync(peers, cancellationToken, ValidateAsync);
     }
 
@@ -136,13 +140,15 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
         try
         {
             var startTime = DateTimeOffset.UtcNow;
-            await PingAsync(peer, cancellationToken);
+            await _transport.PingAsync(peer, cancellationToken);
+            // AddOrUpdate(peer, startTime);
             var latency = DateTimeOffset.UtcNow - startTime;
-            Check(peer, startTime, latency);
+            Buckets[peer].Update(peer, startTime, latency);
+            // Check(peer, startTime, latency);
         }
         catch
         {
-            RemovePeer(peer);
+            Remove(peer);
         }
     }
 
@@ -172,8 +178,7 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
 
     public async Task CheckAllPeersAsync(CancellationToken cancellationToken)
     {
-        Parallel.ForEachAsync(Keys, cancellationToken, ValidateAsync);
-        // await _kademlia.CheckAllPeersAsync(cancellationToken);
+        await Parallel.ForEachAsync(Keys, cancellationToken, ValidateAsync);
     }
 
     public bool Add(Peer key) => AddOrUpdate(key, DateTimeOffset.UtcNow);
@@ -225,8 +230,8 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
         return [.. peers.Take(count)];
     }
 
-    public void Check(Peer peer, DateTimeOffset startTime, TimeSpan latency)
-        => Buckets[peer].Check(peer, startTime, latency);
+    // public void Check(Peer peer, DateTimeOffset startTime, TimeSpan latency)
+    //     => Buckets[peer].Check(peer, startTime, latency);
 
     internal bool AddOrUpdate(Peer peer, DateTimeOffset updated)
     {
@@ -258,16 +263,16 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
         return [.. peerList];
     }
 
-    internal ImmutableArray<Peer> PeersToRefresh(TimeSpan maximumAge)
-    {
-        var dateTimeOffset = DateTimeOffset.UtcNow;
-        var query = from bucket in Buckets
-                    where !bucket.IsEmpty
-                    where bucket.IsEmpty && bucket.Tail.LastUpdated + maximumAge < dateTimeOffset
-                    select bucket.Tail.Peer;
+    // internal ImmutableArray<Peer> PeersToRefresh(TimeSpan maximumAge)
+    // {
+    //     var dateTimeOffset = DateTimeOffset.UtcNow;
+    //     var query = from bucket in Buckets
+    //                 where !bucket.IsEmpty
+    //                 where bucket.IsEmpty && bucket.Tail.LastUpdated + maximumAge < dateTimeOffset
+    //                 select bucket.Tail.Peer;
 
-        return [.. query];
-    }
+    //     return [.. query];
+    // }
 
     public bool TryGetValue(Peer key, [MaybeNullWhen(false)] out PeerState value)
         => Buckets[key].TryGetValue(key, out value);
@@ -380,7 +385,7 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
         }
         catch (InvalidOperationException cfe)
         {
-            RemovePeer(peer);
+            Remove(peer);
             return [];
         }
     }
@@ -447,7 +452,7 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
         await Task.WhenAll(findPeerTasks);
     }
 
-    private void RemovePeer(Peer peer) => Remove(peer);
+    // private void RemovePeer(Peer peer) => Remove(peer);
 
     internal async ValueTask PingAsync(Peer peer, CancellationToken cancellationToken)
     {
@@ -465,7 +470,7 @@ internal sealed class RoutingTable : IReadOnlyDictionary<Peer, PeerState>
             }
             catch (Exception)
             {
-                RemovePeer(boundPeer);
+                Remove(boundPeer);
                 return null;
             }
 
