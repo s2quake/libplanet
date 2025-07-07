@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Libplanet.Net;
 
@@ -99,6 +100,15 @@ public static class ITransportExtensions
                 yield return (item.Blocks[i], item.BlockCommits[i]);
             }
         }
+    }
+
+    internal async static Task<ImmutableArray<Peer>> GetNeighbors(
+        this ITransport @this, Peer peer, Address target, CancellationToken cancellationToken)
+    {
+        var requestMessage = new GetPeerMessage { Target = target };
+        var responseMessage = await @this.SendForSingleAsync<PeerMessage>(
+            peer, requestMessage, cancellationToken);
+        return responseMessage.Peers;
     }
 
     internal static void Transfer(this ITransport @this, Guid identity, Transaction[] transactions)

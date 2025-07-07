@@ -51,12 +51,12 @@ public sealed class Swarm : IAsyncDisposable
         _signer = signer;
         Blockchain = blockchain;
         Options = options;
-        RoutingTable = new RoutingTable(Address, options.TableSize, options.BucketSize);
         Transport = new NetMQTransport(signer, options.TransportOptions);
+        RoutingTable = new RoutingTable(Transport, options.TableSize, options.BucketSize);
         _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
         Transport.Process.Subscribe(ProcessMessageHandler);
-        PeerDiscovery = new Kademlia(RoutingTable, Transport, Address);
+        // PeerDiscovery = new Kademlia(RoutingTable, Transport, Address);
         BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
         _txFetcherSubscription = _txFetcher.Received.Subscribe(e => BroadcastTxs(e.Peer, e.Items));
         _evidenceFetcherSubscription = _evidenceFetcher.Received.Subscribe(e => BroadcastEvidence(e.Peer.Address, e.Items));
@@ -96,7 +96,7 @@ public sealed class Swarm : IAsyncDisposable
 
     internal RoutingTable RoutingTable { get; }
 
-    internal Kademlia PeerDiscovery { get; }
+    // internal Kademlia PeerDiscovery { get; }
 
     internal ITransport Transport { get; }
 
@@ -212,7 +212,7 @@ public sealed class Swarm : IAsyncDisposable
 
         var peersBeforeBootstrap = RoutingTable.Keys;
 
-        await PeerDiscovery.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
+        await RoutingTable.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
 
         if (!Transport.IsRunning)
         {
@@ -291,7 +291,7 @@ public sealed class Swarm : IAsyncDisposable
     public async Task<Peer> FindSpecificPeerAsync(
         Address target, int depth = 3, CancellationToken cancellationToken = default)
     {
-        return await PeerDiscovery.FindSpecificPeerAsync(target, depth, cancellationToken);
+        return await RoutingTable.FindSpecificPeerAsync(target, depth, cancellationToken);
     }
 
     public async Task CheckAllPeersAsync(CancellationToken cancellationToken = default)
@@ -300,7 +300,7 @@ public sealed class Swarm : IAsyncDisposable
             .CreateLinkedTokenSource(cancellationToken, _cancellationToken);
         cancellationToken = cts.Token;
 
-        Kademlia kademliaProtocol = PeerDiscovery;
+        var kademliaProtocol = RoutingTable;
         await kademliaProtocol.CheckAllPeersAsync(cancellationToken);
     }
 
@@ -309,7 +309,7 @@ public sealed class Swarm : IAsyncDisposable
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken, _cancellationToken);
 
-        await PeerDiscovery.AddPeersAsync(peers, cancellationTokenSource.Token);
+        await RoutingTable.AddPeersAsync(peers, cancellationTokenSource.Token);
     }
 
     internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(

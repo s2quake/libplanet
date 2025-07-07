@@ -21,7 +21,7 @@ public sealed class Gossip(
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
     private readonly HashSet<Peer> _deniedPeers = [];
     private RoutingTable? _table;
-    private Kademlia? _kademlia;
+    // private Kademlia? _kademlia;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
     private CancellationTokenSource? _cancellationTokenSource;
     private Task[] _tasks = [];
@@ -58,11 +58,11 @@ public sealed class Gossip(
 
         _cancellationTokenSource = new CancellationTokenSource();
         await _transport.StartAsync(cancellationToken);
-        _table = new RoutingTable(_transport.Peer.Address);
+        _table = new RoutingTable(_transport);
         _table.AddRange(validators);
         _transportSubscription = _transport.Process.Subscribe(HandleMessage);
-        _kademlia = new Kademlia(_table, _transport, _transport.Peer.Address);
-        await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);
+        // _kademlia = new Kademlia(_table, _transport);
+        await _table.BootstrapAsync(seeds, 3, cancellationToken);
         _tasks =
         [
             RunTableRefreshAsync(_cancellationTokenSource.Token),
@@ -91,7 +91,7 @@ public sealed class Gossip(
         _transportSubscription = null;
         await _transport.StopAsync(cancellationToken);
         _table = null;
-        _kademlia = null;
+        // _kademlia = null;
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
         IsRunning = false;
@@ -348,14 +348,14 @@ public sealed class Gossip(
 
     private async Task RunTableRebuildAsync(CancellationToken cancellationToken)
     {
-        var kademlia = _kademlia ?? throw new InvalidOperationException("Gossip is not running.");
+        var kademlia = _table ?? throw new InvalidOperationException("Gossip is not running.");
         var interval = _options.RebuildTableInterval;
         while (!cancellationToken.IsCancellationRequested)
         {
             await Task.Delay(interval, cancellationToken);
             try
             {
-                await kademlia.BootstrapAsync(seeds, Kademlia.MaxDepth, cancellationToken);
+                await kademlia.BootstrapAsync(seeds, RoutingTable.MaxDepth, cancellationToken);
             }
             catch
             {
@@ -366,7 +366,7 @@ public sealed class Gossip(
 
     private async Task RunTableRefreshAsync(CancellationToken cancellationToken)
     {
-        var kademlia = _kademlia ?? throw new InvalidOperationException("Gossip is not running.");
+        var kademlia = _table ?? throw new InvalidOperationException("Gossip is not running.");
         while (!cancellationToken.IsCancellationRequested)
         {
             try

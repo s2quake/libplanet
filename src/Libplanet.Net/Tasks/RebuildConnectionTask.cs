@@ -10,7 +10,7 @@ internal sealed class RebuildConnectionTask(Swarm swarm) : SwarmTaskBase
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var PeerDiscovery = swarm.PeerDiscovery;
-        await PeerDiscovery.RebuildConnectionAsync(Kademlia.MaxDepth, cancellationToken);
+        var PeerDiscovery = swarm.RoutingTable;
+        await PeerDiscovery.RebuildConnectionAsync(RoutingTable.MaxDepth, cancellationToken);
     }
 }
