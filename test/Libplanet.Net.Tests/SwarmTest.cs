@@ -264,12 +264,12 @@ namespace Libplanet.Net.Tests
 
                 Assert.Contains(swarmB.Peer, swarmC.Peers);
                 Assert.Contains(swarmC.Peer, swarmB.Peers);
-                foreach (PeerState state in swarmB.RoutingTable.Values)
+                foreach (PeerState state in swarmB.RoutingTable)
                 {
                     Assert.InRange(state.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
                 }
 
-                foreach (PeerState state in swarmC.RoutingTable.Values)
+                foreach (PeerState state in swarmC.RoutingTable)
                 {
                     if (state.Peer.Address == swarmD.Peer.Address)
                     {
@@ -329,12 +329,12 @@ namespace Libplanet.Net.Tests
             await CleaningSwarm(swarmA);
             await swarmA.DisposeAsync();
             await Task.Delay(100);
-            await swarm.PeerDiscovery.RefreshTableAsync(
+            await swarm.PeerDiscovery.RefreshAsync(
                 TimeSpan.Zero,
                 default);
             // Invoke once more in case of swarmA and swarmB is in the same bucket,
             // and swarmA is last updated.
-            await swarm.PeerDiscovery.RefreshTableAsync(
+            await swarm.PeerDiscovery.RefreshAsync(
                 TimeSpan.Zero,
                 default);
             Assert.DoesNotContain(swarmA.Peer, swarm.Peers);

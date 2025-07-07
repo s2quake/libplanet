@@ -44,7 +44,17 @@ public sealed class Gossip(
     public Peer Peer => _transport.Peer;
 
     public ImmutableArray<Peer> Peers
-        => _table?.Keys.ToImmutableArray() ?? throw new InvalidOperationException("Gossip is not running.");
+    {
+        get
+        {
+            if (_table is null)
+            {
+                throw new InvalidOperationException("Gossip is not running.");
+            }
+
+            return [.. _table.Select(item => item.Peer)];
+        }
+    }
 
     public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
@@ -134,7 +144,7 @@ public sealed class Gossip(
             throw new InvalidOperationException("Gossip is not running.");
         }
 
-        PublishMessage(GetPeersToBroadcast(_table.Keys, DLazy), message);
+        PublishMessage(GetPeersToBroadcast(_table.Select(item => item.Peer), DLazy), message);
     }
 
     public void PublishMessage(ImmutableArray<Peer> targetPeers, params IMessage[] messages)
@@ -240,7 +250,7 @@ public sealed class Gossip(
             var ids = _messageById.Keys.ToArray();
             if (ids.Length > 0)
             {
-                var peers = GetPeersToBroadcast(table.Keys, DLazy);
+                var peers = GetPeersToBroadcast(table.Select(item => item.Peer), DLazy);
                 var message = new HaveMessage { Ids = [.. ids] };
                 _transport.Broadcast(peers, message);
             }
@@ -371,7 +381,7 @@ public sealed class Gossip(
         {
             try
             {
-                await kademlia.RefreshTableAsync(_options.RefreshLifespan, cancellationToken);
+                await kademlia.RefreshAsync(_options.RefreshLifespan, cancellationToken);
                 await kademlia.CheckReplacementCacheAsync(cancellationToken);
                 await Task.Delay(_options.RefreshTableInterval, cancellationToken);
             }

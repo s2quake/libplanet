@@ -12,7 +12,7 @@ internal sealed class MaintainStaticPeerTask(Swarm swarm) : SwarmTaskBase
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var tasks = swarm.Options.StaticPeers
-            .Where(peer => !swarm.RoutingTable.ContainsKey(peer))
+            .Where(peer => !swarm.RoutingTable.Contains(peer))
             .Select(async peer =>
             {
                 try

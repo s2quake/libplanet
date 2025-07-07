@@ -1,80 +1,104 @@
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState>
+internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
 {
-    private readonly int _capacity = ValidateSize(capacity);
+    private readonly int _capacity = ValidateCapacity(capacity);
     private readonly Random _random = new();
-    private readonly ConcurrentDictionary<Peer, PeerState> _stateByPeer = new();
-    private PeerState? _head;
-    private PeerState? _tail;
+    private readonly Dictionary<Address, PeerState> _itemByAddress = [];
+    private ImmutableSortedSet<PeerState> _items = [];
 
-    public int Count => _stateByPeer.Count;
+    public int Count => _items.Count;
 
-    public bool IsEmpty => _stateByPeer.IsEmpty;
+    public bool IsEmpty => _items.IsEmpty;
 
-    public bool IsFull => _stateByPeer.Count >= _capacity;
+    public bool IsFull => _items.Count == _capacity;
 
-    public PeerState Head => _head ??= GetHead(_stateByPeer);
+    public IEnumerable<Peer> Peers => _items.Select(item => item.Peer);
 
-    public PeerState Tail => _tail ??= GetTail(_stateByPeer);
+    public PeerState Head => _items.FirstOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
 
-    public IEnumerable<Peer> Keys => _stateByPeer.Keys;
+    public PeerState Tail => _items.LastOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
 
-    public IEnumerable<PeerState> Values => _stateByPeer.Values;
+    public PeerState this[int index] => _items[index];
 
-    public PeerState this[Peer key] => _stateByPeer[key];
+    public PeerState this[Peer peer]
+    {
+        get
+        {
+            var peerState = _itemByAddress[peer.Address];
+            if (peerState.Peer != peer)
+            {
+                throw new KeyNotFoundException($"Peer {peer} not found in the bucket.");
+            }
+
+            return peerState;
+        }
+    }
+
+    public PeerState this[Address address] => _itemByAddress[address];
 
     public bool AddOrUpdate(Peer peer, DateTimeOffset timestamp)
     {
-        var state = new PeerState
+        var address = peer.Address;
+        var peerState = new PeerState
         {
             Peer = peer,
             LastUpdated = timestamp,
         };
 
-        if (_stateByPeer.Count < _capacity || _stateByPeer.ContainsKey(peer))
+        if (_items.Count < _capacity || _itemByAddress.ContainsKey(address))
         {
-            _stateByPeer.AddOrUpdate(peer, state, (_, _) => state);
-            _head = null;
-            _tail = null;
+            _itemByAddress[address] = peerState;
+            _items = _items.Add(peerState);
             return true;
         }
 
         return false;
     }
 
-    public bool ContainsKey(Peer key) => _stateByPeer.ContainsKey(key);
+    public bool Contains(Peer peer)
+    {
+        if (_itemByAddress.TryGetValue(peer.Address, out var peerState))
+        {
+            return peerState.Peer == peer;
+        }
+
+        return false;
+    }
 
     public void Clear()
     {
-        _stateByPeer.Clear();
-        _head = null;
-        _tail = null;
+        _items = [];
+        _itemByAddress.Clear();
     }
 
-    public bool Remove(Peer key)
+    public bool Remove(Peer peer)
     {
-        var result = _stateByPeer.TryRemove(key, out _);
-        _head = null;
-        _tail = null;
-        return result;
+        var address = peer.Address;
+        if (_itemByAddress.TryGetValue(address, out var peerState) && peerState.Peer.Address == address)
+        {
+            _itemByAddress.Remove(address);
+            _items = _items.Remove(peerState);
+            return true;
+        }
+
+        return false;
     }
 
     public Peer GetRandomPeer(Address except)
     {
-        var query = from peer in _stateByPeer.Keys
-                    where peer.Address != except
+        var query = from item in _items
+                    where item.Address != except
                     orderby _random.Next()
-                    select peer;
+                    select item;
 
         try
         {
-            return query.First();
+            return query.First().Peer;
         }
         catch (InvalidOperationException e)
         {
@@ -84,25 +108,33 @@ internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState
 
     public bool TryGetRandomPeer(Address except, [MaybeNullWhen(false)] out Peer value)
     {
-        var query = from peer in _stateByPeer.Keys
-                    where peer.Address != except
+        var query = from item in _items
+                    where item.Address != except
                     orderby _random.Next()
-                    select peer;
+                    select item;
 
-        value = query.FirstOrDefault();
-        return value is not null;
+        if (query.FirstOrDefault() is { } peerState)
+        {
+            value = peerState.Peer;
+            return true;
+        }
+
+        value = default;
+        return false;
     }
 
-    public void Check(Peer peer, DateTimeOffset start, TimeSpan latency)
+    public void Check(Peer peer, TimeSpan latency)
     {
-        if (_stateByPeer.TryGetValue(peer, out var peerState1))
+        var address = peer.Address;
+        if (_itemByAddress.TryGetValue(address, out var peerState1))
         {
             var peerState2 = peerState1 with
             {
-                LastChecked = start,
                 Latency = latency,
             };
-            _stateByPeer.TryUpdate(peer, peerState2, peerState1);
+
+            _itemByAddress[address] = peerState2;
+            _items = _items.Remove(peerState1).Add(peerState2);
         }
         else
         {
@@ -110,45 +142,20 @@ internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState
         }
     }
 
-    private static PeerState GetHead(ConcurrentDictionary<Peer, PeerState> peerStates)
+    public IEnumerator<PeerState> GetEnumerator()
     {
-        if (peerStates.IsEmpty)
+        foreach (var item in _items)
         {
-            throw new InvalidOperationException("The bucket is empty.");
-        }
-
-        return peerStates.Values.OrderBy(ps => ps.LastUpdated).First();
-    }
-
-    private static PeerState GetTail(ConcurrentDictionary<Peer, PeerState> peerStates)
-    {
-        if (peerStates.IsEmpty)
-        {
-            throw new InvalidOperationException("The bucket is empty.");
-        }
-
-        return peerStates.Values.OrderByDescending(ps => ps.LastUpdated).First();
-    }
-
-    private static int ValidateSize(int size)
-    {
-        if (size <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(size), $"The value of {nameof(size)} must be positive.");
-        }
-
-        return size;
-    }
-
-    public bool TryGetValue(Peer key, [MaybeNullWhen(false)] out PeerState value) => _stateByPeer.TryGetValue(key, out value);
-
-    public IEnumerator<KeyValuePair<Peer, PeerState>> GetEnumerator()
-    {
-        foreach (var pair in _stateByPeer)
-        {
-            yield return pair;
+            yield return item;
         }
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private static int ValidateCapacity(int capacity)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
+
+        return capacity;
+    }
 }

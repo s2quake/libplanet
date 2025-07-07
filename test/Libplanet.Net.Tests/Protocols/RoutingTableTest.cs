@@ -52,7 +52,7 @@ public class RoutingTableTest
         table.Add(peer3);
         Assert.Equal(
             new HashSet<Peer> { peer1, peer2 },
-            table.Keys.ToHashSet());
+            table.Peers.ToHashSet());
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class RoutingTableTest
                 DateTimeOffset.UtcNow - (i % 2 == 0 ? TimeSpan.Zero : TimeSpan.FromMinutes(2)));
         }
 
-        Assert.Equal(peerCount, table.Keys.Count());
+        Assert.Equal(peerCount, table.Count);
         Assert.Equal(
             Enumerable
                 .Range(0, peerCount / 2)
@@ -179,7 +179,7 @@ public class RoutingTableTest
                 DateTimeOffset.UtcNow - TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(i));
         }
 
-        Assert.Equal(peerCount, table.Keys.Count());
+        Assert.Equal(peerCount, table.Count);
         for (int i = 0; i < peerCount; i++)
         {
             Assert.Equal(peers[i], table.PeersToRefresh(TimeSpan.FromMinutes(1)).First());

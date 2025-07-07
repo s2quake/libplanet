@@ -86,7 +86,7 @@ public sealed class Swarm : IAsyncDisposable
 
     public Peer Peer => Transport.Peer;
 
-    public IEnumerable<Peer> Peers => RoutingTable.Keys;
+    public IEnumerable<Peer> Peers => RoutingTable.Select(item => item.Peer);
 
     public ImmutableArray<Peer> Validators => _consensusReactor?.Validators ?? [];
 
@@ -210,7 +210,7 @@ public sealed class Swarm : IAsyncDisposable
         var seedPeers = Options.BootstrapOptions.SeedPeers;
         var searchDepth = Options.BootstrapOptions.SearchDepth;
 
-        var peersBeforeBootstrap = RoutingTable.Keys;
+        var peersBeforeBootstrap = RoutingTable;
 
         await PeerDiscovery.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
 
@@ -218,9 +218,9 @@ public sealed class Swarm : IAsyncDisposable
         {
             // Mark added peers as stale if bootstrap is called before transport is running
             // FIXME: Peers added before bootstrap might be updated.
-            foreach (Peer peer in RoutingTable.Keys.Except(peersBeforeBootstrap))
+            foreach (var peer in RoutingTable.Except(peersBeforeBootstrap))
             {
-                RoutingTable.AddOrUpdate(peer, DateTimeOffset.MinValue);
+                RoutingTable.AddOrUpdate(peer.Peer, DateTimeOffset.MinValue);
             }
         }
     }
@@ -294,23 +294,23 @@ public sealed class Swarm : IAsyncDisposable
         return await PeerDiscovery.FindSpecificPeerAsync(target, depth, cancellationToken);
     }
 
-    public async Task CheckAllPeersAsync(CancellationToken cancellationToken = default)
-    {
-        using CancellationTokenSource cts = CancellationTokenSource
-            .CreateLinkedTokenSource(cancellationToken, _cancellationToken);
-        cancellationToken = cts.Token;
+    // public async Task CheckAllPeersAsync(CancellationToken cancellationToken = default)
+    // {
+    //     using CancellationTokenSource cts = CancellationTokenSource
+    //         .CreateLinkedTokenSource(cancellationToken, _cancellationToken);
+    //     cancellationToken = cts.Token;
 
-        Kademlia kademliaProtocol = PeerDiscovery;
-        await kademliaProtocol.CheckAllPeersAsync(cancellationToken);
-    }
+    //     Kademlia kademliaProtocol = PeerDiscovery;
+    //     await kademliaProtocol.CheckAllPeersAsync(cancellationToken);
+    // }
 
-    public async Task AddPeersAsync(ImmutableArray<Peer> peers, CancellationToken cancellationToken)
-    {
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken, _cancellationToken);
+    // public async Task AddPeersAsync(ImmutableArray<Peer> peers, CancellationToken cancellationToken)
+    // {
+    //     using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+    //         cancellationToken, _cancellationToken);
 
-        await PeerDiscovery.AddPeersAsync(peers, cancellationTokenSource.Token);
-    }
+    //     await PeerDiscovery.AddPeersAsync(peers, cancellationTokenSource.Token);
+    // }
 
     internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
         Block block,

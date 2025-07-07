@@ -77,17 +77,14 @@ internal sealed class Kademlia
         // }
     }
 
-    public Task AddPeersAsync(ImmutableArray<Peer> peers, CancellationToken cancellationToken)
-        => Parallel.ForEachAsync(peers, cancellationToken, PingAsync);
+    // public Task AddPeersAsync(ImmutableArray<Peer> peers, CancellationToken cancellationToken)
+    //     => Parallel.ForEachAsync(peers, cancellationToken, PingAsync);
 
-    public async Task RefreshTableAsync(TimeSpan maxAge, CancellationToken cancellationToken)
+    public async Task RefreshAsync(TimeSpan maxAge, CancellationToken cancellationToken)
     {
         var peers = _routingTable.PeersToRefresh(maxAge);
         await Parallel.ForEachAsync(peers, cancellationToken, ValidateAsync);
     }
-
-    public Task CheckAllPeersAsync(CancellationToken cancellationToken)
-        => Parallel.ForEachAsync(_routingTable.Keys, cancellationToken, ValidateAsync);
 
     public async Task RebuildConnectionAsync(int depth, CancellationToken cancellationToken)
     {
@@ -126,7 +123,7 @@ internal sealed class Kademlia
 
     public async Task CheckReplacementCacheAsync(CancellationToken cancellationToken)
     {
-        var query = from peerState in _pool.Values
+        var query = from peerState in _pool
                     orderby peerState.LastUpdated
                     select peerState.Peer;
         var items = query.ToArray();
@@ -212,10 +209,13 @@ internal sealed class Kademlia
         return null;
     }
 
-    internal async ValueTask PingAsync(Peer peer, CancellationToken cancellationToken)
+    private async ValueTask<TimeSpan> PingAsync(Peer peer, CancellationToken cancellationToken)
     {
+        var startTime = DateTimeOffset.UtcNow;
         await _transport.PingAsync(peer, cancellationToken);
+        var latency = DateTimeOffset.UtcNow - startTime;
         AddPeer(peer);
+        return latency;
     }
 
     private async void ProcessMessageHandler(MessageEnvelope messageEnvelope)
@@ -254,10 +254,8 @@ internal sealed class Kademlia
     {
         try
         {
-            var startTime = DateTimeOffset.UtcNow;
-            await PingAsync(peer, cancellationToken);
-            var latency = DateTimeOffset.UtcNow - startTime;
-            _routingTable.Check(peer, startTime, latency);
+            var latency = await PingAsync(peer, cancellationToken);
+            _routingTable.Check(peer, latency);
         }
         catch
         {
@@ -272,7 +270,7 @@ internal sealed class Kademlia
 
         if (!_routingTable.AddOrUpdate(peer, updated) && !_pool.AddOrUpdate(peer, updated))
         {
-            var oldestPeer = _pool.OrderBy(ps => ps.Value.LastUpdated).First().Key;
+            var oldestPeer = _pool.OrderBy(ps => ps.LastUpdated).First().Peer;
             _pool.Remove(oldestPeer);
             _pool.AddOrUpdate(peer, updated);
         }
@@ -358,7 +356,7 @@ internal sealed class Kademlia
         CancellationToken cancellationToken)
     {
         var query = from peer in found
-                    where peer.Address != _address && !_routingTable.ContainsKey(peer) && !history.Contains(peer)
+                    where peer.Address != _address && !_routingTable.Contains(peer) && !history.Contains(peer)
                     orderby GetDistance(target, peer.Address)
                     select peer;
         var peers = query.ToImmutableArray();

@@ -11,7 +11,7 @@ internal sealed class RefreshTableTask(Swarm swarm) : SwarmTaskBase
     {
         var maxAge = swarm.Options.RefreshLifespan;
         var PeerDiscovery = swarm.PeerDiscovery;
-        await PeerDiscovery.RefreshTableAsync(maxAge, cancellationToken);
+        await PeerDiscovery.RefreshAsync(maxAge, cancellationToken);
         await PeerDiscovery.CheckReplacementCacheAsync(cancellationToken);
     }
 }
