@@ -10,7 +10,6 @@ internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState
     private readonly int _capacity = ValidateSize(capacity);
     private readonly Random _random = new();
     private readonly ConcurrentDictionary<Peer, PeerState> _stateByPeer = new();
-    private readonly ConcurrentDictionary<Peer, PeerState> _replacementCache = new();
     private PeerState? _head;
     private PeerState? _tail;
 
@@ -28,11 +27,9 @@ internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState
 
     public IEnumerable<PeerState> Values => _stateByPeer.Values;
 
-    public IReadOnlyDictionary<Peer, PeerState> ReplacementCache => _replacementCache;
-
     public PeerState this[Peer key] => _stateByPeer[key];
 
-    public void AddOrUpdate(Peer peer, DateTimeOffset timestamp)
+    public bool AddOrUpdate(Peer peer, DateTimeOffset timestamp)
     {
         var state = new PeerState
         {
@@ -43,20 +40,12 @@ internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState
         if (_stateByPeer.Count < _capacity || _stateByPeer.ContainsKey(peer))
         {
             _stateByPeer.AddOrUpdate(peer, state, (_, _) => state);
-        }
-        else if (_replacementCache.Count < _capacity || _replacementCache.ContainsKey(peer))
-        {
-            _replacementCache.AddOrUpdate(peer, state, (_, _) => state);
-        }
-        else
-        {
-            var oldestPeer = _replacementCache.OrderBy(ps => ps.Value.LastUpdated).First().Key;
-            _replacementCache.TryRemove(oldestPeer, out var _);
-            _replacementCache.AddOrUpdate(peer, state, (_, _) => state);
+            _head = null;
+            _tail = null;
+            return true;
         }
 
-        _head = null;
-        _tail = null;
+        return false;
     }
 
     public bool ContainsKey(Peer key) => _stateByPeer.ContainsKey(key);
@@ -64,7 +53,6 @@ internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState
     public void Clear()
     {
         _stateByPeer.Clear();
-        _replacementCache.Clear();
         _head = null;
         _tail = null;
     }
@@ -76,8 +64,6 @@ internal sealed class Bucket(int capacity) : IReadOnlyDictionary<Peer, PeerState
         _tail = null;
         return result;
     }
-
-    public bool RemoveCache(Peer peer) => _replacementCache.TryRemove(peer, out _);
 
     public Peer GetRandomPeer(Address except)
     {

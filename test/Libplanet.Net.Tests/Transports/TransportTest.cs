@@ -315,7 +315,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await transportC.StartAsync(default);
         await transportD.StartAsync(default);
 
-        var table = new RoutingTable(address, bucketSize: 1);
+        var table = new RoutingTable(address, bucketCapacity: 1);
         table.Add(transportB.Peer);
         table.Add(transportC.Peer);
         table.Add(transportD.Peer);

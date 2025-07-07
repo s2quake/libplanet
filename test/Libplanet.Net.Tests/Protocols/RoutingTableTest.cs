@@ -145,7 +145,7 @@ public class RoutingTableTest
             .ToArray();
         for (var i = 0; i < peerCount; i++)
         {
-            table.AddPeer(
+            table.AddOrUpdate(
                 peers[i],
                 DateTimeOffset.UtcNow - (i % 2 == 0 ? TimeSpan.Zero : TimeSpan.FromMinutes(2)));
         }
@@ -174,7 +174,7 @@ public class RoutingTableTest
             .ToArray();
         for (int i = 0; i < peerCount; i++)
         {
-            table.AddPeer(
+            table.AddOrUpdate(
                 peers[i],
                 DateTimeOffset.UtcNow - TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(i));
         }

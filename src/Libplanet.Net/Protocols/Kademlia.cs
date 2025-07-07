@@ -10,8 +10,8 @@ namespace Libplanet.Net.Protocols;
 
 internal sealed class Kademlia
 {
-    public const int BucketSize = 16;
-    public const int TableSize = Address.Size * 8;
+    public const int BucketCapacity = 16;
+    public const int BucketCount = Address.Size * 8;
     public const int FindConcurrency = 3;
     public const int MaxDepth = 3;
 
@@ -19,14 +19,16 @@ internal sealed class Kademlia
     private readonly ITransport _transport;
     private readonly Address _address;
     private readonly Random _random = new();
-    private readonly RoutingTable _table;
+    private readonly RoutingTable _routingTable;
+    private readonly Bucket _pool = new Bucket(256);
+
     private readonly int _findConcurrency = FindConcurrency;
 
-    public Kademlia(RoutingTable table, ITransport transport, Address address)
+    public Kademlia(RoutingTable routingTable, ITransport transport, Address address)
     {
         _transport = transport;
         _address = address;
-        _table = table;
+        _routingTable = routingTable;
         _transport.Process.Subscribe(ProcessMessageHandler);
     }
 
@@ -34,8 +36,7 @@ internal sealed class Kademlia
     {
         if (peers.Any(item => item.Address == _address))
         {
-            throw new InvalidOperationException(
-                $"Cannot bootstrap with self address {_address} in the peer list.");
+            throw new InvalidOperationException($"Cannot bootstrap with self address {_address} in the peer list.");
         }
 
         var history = new ConcurrentBag<Peer>();
@@ -81,12 +82,12 @@ internal sealed class Kademlia
 
     public async Task RefreshTableAsync(TimeSpan maxAge, CancellationToken cancellationToken)
     {
-        var peers = _table.PeersToRefresh(maxAge);
+        var peers = _routingTable.PeersToRefresh(maxAge);
         await Parallel.ForEachAsync(peers, cancellationToken, ValidateAsync);
     }
 
     public Task CheckAllPeersAsync(CancellationToken cancellationToken)
-        => Parallel.ForEachAsync(_table.Keys, cancellationToken, ValidateAsync);
+        => Parallel.ForEachAsync(_routingTable.Keys, cancellationToken, ValidateAsync);
 
     public async Task RebuildConnectionAsync(int depth, CancellationToken cancellationToken)
     {
@@ -125,16 +126,20 @@ internal sealed class Kademlia
 
     public async Task CheckReplacementCacheAsync(CancellationToken cancellationToken)
     {
-        foreach (var replacement in _table.CachesToCheck)
+        var query = from peerState in _pool.Values
+                    orderby peerState.LastUpdated
+                    select peerState.Peer;
+        var items = query.ToArray();
+        foreach (var item in items)
         {
-            _table.RemoveCache(replacement);
-            await PingAsync(replacement, cancellationToken);
+            _pool.Remove(item);
+            await PingAsync(item, cancellationToken);
         }
     }
 
     public async Task<Peer?> FindSpecificPeerAsync(Address target, int depth, CancellationToken cancellationToken)
     {
-        if (_table.GetPeer(target) is Peer boundPeer)
+        if (_routingTable.GetPeer(target) is Peer boundPeer)
         {
             try
             {
@@ -151,7 +156,7 @@ internal sealed class Kademlia
 
         HashSet<Peer> history = new HashSet<Peer>();
         Queue<Tuple<Peer, int>> peersToFind = new Queue<Tuple<Peer, int>>();
-        foreach (Peer peer in _table.Neighbors(target, _findConcurrency, false))
+        foreach (Peer peer in _routingTable.GetNeighbors(target, _findConcurrency))
         {
             peersToFind.Enqueue(new Tuple<Peer, int>(peer, 0));
         }
@@ -228,9 +233,11 @@ internal sealed class Kademlia
                 break;
 
             case GetPeerMessage getPeerMessage:
-                var found = _table.Neighbors(getPeerMessage.Target, _table.Buckets.Count, true);
-                var neighbors = new PeerMessage { Peers = [.. found] };
-                _transport.Reply(messageEnvelope.Identity, neighbors);
+                var target = getPeerMessage.Target;
+                var k = _routingTable.Buckets.Count;
+                var peers = _routingTable.GetNeighbors(target, k, includeTarget: true);
+                var peerMessage = new PeerMessage { Peers = [.. peers] };
+                _transport.Reply(messageEnvelope.Identity, peerMessage);
                 break;
         }
 
@@ -250,7 +257,7 @@ internal sealed class Kademlia
             var startTime = DateTimeOffset.UtcNow;
             await PingAsync(peer, cancellationToken);
             var latency = DateTimeOffset.UtcNow - startTime;
-            _table.Check(peer, startTime, latency);
+            _routingTable.Check(peer, startTime, latency);
         }
         catch
         {
@@ -258,9 +265,20 @@ internal sealed class Kademlia
         }
     }
 
-    private void AddPeer(Peer peer) => _table.Add(peer);
+    private void AddPeer(Peer peer)
+    {
+        var updated = DateTimeOffset.UtcNow;
+        _routingTable.AddOrUpdate(peer, updated);
 
-    private void RemovePeer(Peer peer) => _table.Remove(peer);
+        if (!_routingTable.AddOrUpdate(peer, updated) && !_pool.AddOrUpdate(peer, updated))
+        {
+            var oldestPeer = _pool.OrderBy(ps => ps.Value.LastUpdated).First().Key;
+            _pool.Remove(oldestPeer);
+            _pool.AddOrUpdate(peer, updated);
+        }
+    }
+
+    private void RemovePeer(Peer peer) => _routingTable.Remove(peer);
 
     private async Task FindPeerAsync(
         ConcurrentBag<Peer> history,
@@ -302,7 +320,7 @@ internal sealed class Kademlia
     private async Task<IEnumerable<Peer>> QueryNeighborsAsync(
         ConcurrentBag<Peer> history, Address target, CancellationToken cancellationToken)
     {
-        var neighbors = _table.Neighbors(target, _table.Buckets.Count, false);
+        var neighbors = _routingTable.GetNeighbors(target, _routingTable.Buckets.Count);
         var foundList = new List<Peer>();
         var count = Math.Min(neighbors.Length, _findConcurrency);
         for (var i = 0; i < count; i++)
@@ -340,12 +358,12 @@ internal sealed class Kademlia
         CancellationToken cancellationToken)
     {
         var query = from peer in found
-                    where peer.Address != _address && !_table.ContainsKey(peer) && !history.Contains(peer)
+                    where peer.Address != _address && !_routingTable.ContainsKey(peer) && !history.Contains(peer)
                     orderby GetDistance(target, peer.Address)
                     select peer;
         var peers = query.ToImmutableArray();
 
-        var closestCandidate = _table.Neighbors(target, _table.Buckets.Count, false);
+        var closestCandidate = _routingTable.GetNeighbors(target, _routingTable.Buckets.Count);
 
         List<Task> tasks = peers
             .Where(peer => !dialHistory.Contains(peer))
