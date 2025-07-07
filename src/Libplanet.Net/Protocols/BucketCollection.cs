@@ -39,6 +39,5 @@ internal sealed class BucketCollection(Address owner, int count, int capacity)
         }
 
         return builder.ToImmutable();
-
     }
 }

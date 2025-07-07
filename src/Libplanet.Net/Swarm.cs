@@ -220,7 +220,7 @@ public sealed class Swarm : IAsyncDisposable
             // FIXME: Peers added before bootstrap might be updated.
             foreach (Peer peer in RoutingTable.Keys.Except(peersBeforeBootstrap))
             {
-                RoutingTable.AddPeer(peer, DateTimeOffset.MinValue);
+                RoutingTable.AddOrUpdate(peer, DateTimeOffset.MinValue);
             }
         }
     }
