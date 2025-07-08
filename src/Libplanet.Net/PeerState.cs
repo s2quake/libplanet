@@ -8,9 +8,9 @@ public sealed record class PeerState : IComparable<PeerState>
 
     public required DateTimeOffset LastUpdated { get; init; }
 
-    public Address Address => Peer.Address;
+    public TimeSpan Latency { get; init; } = TimeSpan.Zero;
 
-    public TimeSpan Latency { get; init; }
+    public Address Address => Peer.Address;
 
     public int CompareTo(PeerState? other)
     {
@@ -21,4 +21,6 @@ public sealed record class PeerState : IComparable<PeerState>
 
         return LastUpdated.CompareTo(other.LastUpdated);
     }
+
+    public bool IsStale(TimeSpan staleThreshold) => DateTimeOffset.UtcNow - LastUpdated > staleThreshold;
 }

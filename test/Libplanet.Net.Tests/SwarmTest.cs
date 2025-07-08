@@ -258,7 +258,7 @@ namespace Libplanet.Net.Tests
                 await StartAsync(swarmD);
 
                 var bootstrappedAt = DateTimeOffset.UtcNow;
-                swarmC.RoutingTable.Add(swarmD.Peer);
+                swarmC.RoutingTable.AddOrUpdate(swarmD.Peer);
                 await BootstrapAsync(swarmB, swarmA.Peer);
                 await BootstrapAsync(swarmC, swarmA.Peer);
 

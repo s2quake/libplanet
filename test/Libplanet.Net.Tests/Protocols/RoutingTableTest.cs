@@ -31,7 +31,7 @@ public class RoutingTableTest
         var pubKey = new PrivateKey().PublicKey;
         var table = new RoutingTable(pubKey.Address);
         var peer = new Peer { Address = pubKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-        Assert.Throws<ArgumentException>(() => table.Add(peer));
+        Assert.Throws<ArgumentException>(() => table.AddOrUpdate(peer));
     }
 
     [Fact]
@@ -45,11 +45,11 @@ public class RoutingTableTest
         var peer1 = new Peer { Address = pubKey1.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         var peer2 = new Peer { Address = pubKey2.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         var peer3 = new Peer { Address = pubKey3.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-        table.Add(peer1);
-        table.Add(peer2);
-        table.Add(peer3);
-        table.Add(peer1);
-        table.Add(peer3);
+        table.AddOrUpdate(peer1);
+        table.AddOrUpdate(peer2);
+        table.AddOrUpdate(peer3);
+        table.AddOrUpdate(peer1);
+        table.AddOrUpdate(peer3);
         Assert.Equal(
             new HashSet<Peer> { peer1, peer2 },
             table.Peers.ToHashSet());
@@ -68,7 +68,7 @@ public class RoutingTableTest
 
         bool ret = table.Remove(peer2);
         Assert.False(ret);
-        table.Add(peer2);
+        table.AddOrUpdate(peer2);
         ret = table.Remove(peer2);
         Assert.True(ret);
     }
@@ -113,7 +113,7 @@ public class RoutingTableTest
         for (var i = 0; i < peers.Length; i++)
         {
             var peer = peers[i];
-            table.Add(peer);
+            table.AddOrUpdate(peer);
             Assert.Equal(i / 2, GetBucketIndex(table, peer.Address));
         }
 
@@ -145,9 +145,12 @@ public class RoutingTableTest
             .ToArray();
         for (var i = 0; i < peerCount; i++)
         {
-            table.AddOrUpdate(
-                peers[i],
-                DateTimeOffset.UtcNow - (i % 2 == 0 ? TimeSpan.Zero : TimeSpan.FromMinutes(2)));
+            var peerState = new PeerState
+            {
+                Peer = peers[i],
+                LastUpdated = DateTimeOffset.UtcNow - (i % 2 == 0 ? TimeSpan.Zero : TimeSpan.FromMinutes(2)),
+            };
+            table.AddOrUpdate(peerState);
         }
 
         Assert.Equal(peerCount, table.Count);
@@ -174,16 +177,19 @@ public class RoutingTableTest
             .ToArray();
         for (int i = 0; i < peerCount; i++)
         {
-            table.AddOrUpdate(
-                peers[i],
-                DateTimeOffset.UtcNow - TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(i));
+            var peerState = new PeerState
+            {
+                Peer = peers[i],
+                LastUpdated = DateTimeOffset.UtcNow - TimeSpan.FromMinutes(2) + TimeSpan.FromSeconds(i),
+            };
+            table.AddOrUpdate(peerState);
         }
 
         Assert.Equal(peerCount, table.Count);
         for (int i = 0; i < peerCount; i++)
         {
             Assert.Equal(peers[i], table.PeersToRefresh(TimeSpan.FromMinutes(1)).First());
-            table.Add(peers[i]);
+            table.AddOrUpdate(peers[i]);
         }
 
         Assert.Empty(table.PeersToRefresh(TimeSpan.FromMinutes(1)));

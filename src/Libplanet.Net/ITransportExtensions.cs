@@ -48,14 +48,16 @@ public static class ITransportExtensions
         return typedMessage;
     }
 
-    public static async Task PingAsync(this ITransport @this, Peer peer, CancellationToken cancellationToken)
+    public static async Task<TimeSpan> PingAsync(this ITransport @this, Peer peer, CancellationToken cancellationToken)
     {
         if (@this.Peer.Equals(peer))
         {
             throw new InvalidOperationException("Cannot ping self");
         }
 
+        var dateTimeOffset = DateTimeOffset.UtcNow;
         await SendForSingleAsync<PongMessage>(@this, peer, new PingMessage(), cancellationToken);
+        return DateTimeOffset.UtcNow - dateTimeOffset;
     }
 
     public static void Pong(this ITransport @this, MessageEnvelope messageEnvelope)
@@ -99,6 +101,15 @@ public static class ITransportExtensions
                 yield return (item.Blocks[i], item.BlockCommits[i]);
             }
         }
+    }
+
+    public static async Task<ImmutableArray<Peer>> GetNeighborsAsync(
+        this ITransport @this, Peer peer, Address target, CancellationToken cancellationToken)
+    {
+        var requestMessage = new GetPeerMessage { Target = target };
+        var responseMessage = await @this.SendForSingleAsync<PeerMessage>(
+            peer, requestMessage, cancellationToken);
+        return responseMessage.Peers;
     }
 
     internal static void Transfer(this ITransport @this, Guid identity, Transaction[] transactions)
