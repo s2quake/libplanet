@@ -288,11 +288,11 @@ public sealed class Swarm : IAsyncDisposable
         cancellationToken.ThrowIfCancellationRequested();
     }
 
-    public async Task<Peer> FindSpecificPeerAsync(
-        Address target, int depth = 3, CancellationToken cancellationToken = default)
-    {
-        return await PeerDiscovery.FindPeerAsync(target, depth, cancellationToken);
-    }
+    public Task<Peer> FindPeerAsync(Address address, CancellationToken cancellationToken)
+        => FindPeerAsync(address, depth: 3, cancellationToken);
+
+    public Task<Peer> FindPeerAsync(Address address, int depth, CancellationToken cancellationToken)
+        => PeerDiscovery.FindPeerAsync(address, depth, cancellationToken);
 
     // public async Task CheckAllPeersAsync(CancellationToken cancellationToken = default)
     // {

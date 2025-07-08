@@ -39,18 +39,16 @@ internal sealed class Kademlia
             throw new InvalidOperationException($"Cannot bootstrap with self address {_address} in the peer list.");
         }
 
-        var history = new ConcurrentBag<Peer>();
-        var dialHistory = new ConcurrentBag<Peer>();
+        var visited = new ConcurrentBag<Peer>();
 
         foreach (var peer in peers)
         {
             // Guarantees at least one connection (seed peer)
             try
             {
-                await TryRefreshAsync(peer, cancellationToken);
-                await UpdatePeersAsync(
-                    history,
-                    dialHistory,
+                await RefreshAsync(peer, cancellationToken);
+                await ExplorePeersAsync(
+                    visited,
                     _address,
                     peer,
                     depth,
@@ -62,10 +60,10 @@ internal sealed class Kademlia
             }
         }
 
-        // if (!_table.Peers.Any())
-        // {
-        //     throw new InvalidOperationException("All seeds are unreachable.");
-        // }
+        if (!_table.Peers.Any())
+        {
+            throw new InvalidOperationException("All seeds are unreachable.");
+        }
 
         // if (findPeerTasks.Count == 0)
         // {
@@ -79,7 +77,7 @@ internal sealed class Kademlia
         var taskList = new List<Task>(peers.Length);
         foreach (var peer in peers)
         {
-            var task = TryRefreshAsync(peer, cancellationToken);
+            var task = RefreshAsync(peer, cancellationToken);
             taskList.Add(task);
         }
 
@@ -89,37 +87,30 @@ internal sealed class Kademlia
     public async Task RebuildConnectionAsync(int depth, CancellationToken cancellationToken)
     {
         var buffer = new byte[20];
-        var tasks = new List<Task>();
+        var taskList = new List<Task>();
         var history = new ConcurrentBag<Peer>();
-        var dialHistory = new ConcurrentBag<Peer>();
-        for (int i = 0; i < _findConcurrency; i++)
+        var addressList = new List<Address>
+        {
+            _address,
+        };
+        for (var i = 0; i < _findConcurrency; i++)
         {
             _random.NextBytes(buffer);
-            tasks.Add(UpdatePeersAsync(
-                history,
-                dialHistory,
-                new Address([.. buffer]),
-                null,
-                depth,
-                cancellationToken));
+            addressList.Add(new Address([.. buffer]));
         }
 
-        tasks.Add(
-            UpdatePeersAsync(
+        foreach (var address in addressList)
+        {
+            var task = ExplorePeersAsync(
                 history,
-                dialHistory,
-                _address,
+                address,
                 null,
                 depth,
-                cancellationToken));
-        try
-        {
-            await Task.WhenAll(tasks);
+                cancellationToken);
+            taskList.Add(task);
         }
-        catch (TimeoutException)
-        {
-            // do nothing
-        }
+
+        await Task.WhenAll(taskList);
     }
 
     public async Task CheckReplacementCacheAsync(CancellationToken cancellationToken)
@@ -131,77 +122,64 @@ internal sealed class Kademlia
         foreach (var peer in peers)
         {
             _pool.Remove(peer);
-            await TryRefreshAsync(peer, cancellationToken);
+            await RefreshAsync(peer, cancellationToken);
         }
     }
 
-    public async Task<Peer?> FindPeerAsync(Address target, int depth, CancellationToken cancellationToken)
+    public async Task<Peer> FindPeerAsync(Address address, int depth, CancellationToken cancellationToken)
     {
-        if (_table.TryGetPeer(target, out var peer) && await TryRefreshAsync(peer, cancellationToken))
+        ArgumentOutOfRangeException.ThrowIfNegative(depth);
+
+        if (_table.TryGetPeer(address, out var value))
         {
-            return peer;
+            return value;
         }
 
-        var history = new HashSet<Peer>();
-        var peersToFind = new Queue<(Peer Peer, int Depth)>();
-        var localNeighbors = _table.GetNeighbors(target, _findConcurrency);
-        foreach (var localNeighbor in localNeighbors)
+        var visited = new HashSet<Peer>();
+        var queue = new Queue<(Peer Peer, int Depth)>();
+        var localPeers = _table.GetNeighbors(address, _findConcurrency);
+        foreach (var peer in localPeers)
         {
-            peersToFind.Enqueue((localNeighbor, 0));
+            queue.Enqueue((peer, 1));
+            visited.Add(peer);
         }
 
-        while (peersToFind.Count > 0)
+        while (queue.Count > 0)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var (viaPeer, curDepth) = peersToFind.Dequeue();
-            if (depth != -1 && curDepth >= depth)
+            var (currentPeer, currentDepth) = queue.Dequeue();
+            if (currentDepth > depth)
             {
                 continue;
             }
 
-            history.Add(viaPeer);
-            var remoteNeighbors = await _transport.GetNeighborsAsync(viaPeer, target, cancellationToken);
-            IEnumerable<Peer> filteredPeers = remoteNeighbors
-                .Where(peer =>
-                    !history.Contains(peer) &&
-                    !peersToFind.Any(item => item.Peer == peer) &&
-                    peer.Address != _address)
-                .Take(_findConcurrency);
+            var neighbors = await _transport.GetNeighborsAsync(currentPeer, address, cancellationToken);
             var count = 0;
-            foreach (var found in filteredPeers)
+            foreach (var neighbor in neighbors)
             {
-                try
+                if (neighbor.Address == _address || visited.Contains(neighbor))
                 {
-                    await TryRefreshAsync(found, cancellationToken);
-                    if (found.Address == target)
-                    {
-                        return found;
-                    }
+                    continue;
+                }
 
-                    peersToFind.Enqueue((found, curDepth + 1));
+                if (neighbor.Address == address)
+                {
+                    return neighbor;
+                }
 
-                    if (count++ >= _findConcurrency)
-                    {
-                        break;
-                    }
-                }
-                catch (TaskCanceledException)
+                if (count++ >= _findConcurrency)
                 {
-                    throw new TaskCanceledException(
-                        $"Task is cancelled during {nameof(FindPeerAsync)}()");
+                    break;
                 }
-                finally
-                {
-                    history.Add(found);
-                }
+
+                visited.Add(neighbor);
+                queue.Enqueue((neighbor, currentDepth + 1));
             }
         }
 
-        return null;
+        throw new PeerNotFoundException("Failed to find peer.");
     }
 
-    private async Task<bool> TryRefreshAsync(Peer peer, CancellationToken cancellationToken)
+    private async Task RefreshAsync(Peer peer, CancellationToken cancellationToken)
     {
         try
         {
@@ -220,17 +198,15 @@ internal sealed class Kademlia
                 _pool.Remove(oldestAddress);
                 _pool.AddOrUpdate(peerState);
             }
-
-            return true;
         }
         catch (OperationCanceledException)
         {
-            return false;
+            throw;
         }
         catch
         {
             _table.Remove(peer);
-            return false;
+            throw;
         }
     }
 
@@ -258,9 +234,8 @@ internal sealed class Kademlia
         }
     }
 
-    private async Task UpdatePeersAsync(
-        ConcurrentBag<Peer> history,
-        ConcurrentBag<Peer> dialHistory,
+    private async Task ExplorePeersAsync(
+        ConcurrentBag<Peer> visited,
         Address target,
         Peer? viaPeer,
         int depth,
@@ -279,34 +254,31 @@ internal sealed class Kademlia
         {
             var localNeighbor = localNeighbors[i];
             var remoteNeighbors = await _transport.GetNeighborsAsync(localNeighbor, target, cancellationToken);
-            history.Add(localNeighbor);
+            visited.Add(localNeighbor);
             neighborList.AddRange(remoteNeighbors);
         }
 
         neighborList.RemoveAll(peer => peer.Address == _address);
 
         var query = from peer in neighborList
-                    where peer.Address != _address && !_table.Contains(peer) && !history.Contains(peer)
+                    where peer.Address != _address && !_table.Contains(peer) && !visited.Contains(peer)
                     orderby GetDistance(target, peer.Address)
                     select peer;
         var peers = query.ToImmutableArray();
-
-        // var k = _table.Buckets.Count;
-        var closestCandidate = _table.GetNeighbors(target, k);
-
-        var tasks = peers
-            .Where(peer => !dialHistory.Contains(peer))
-            .Select(
-                async peer =>
-                {
-                    dialHistory.Add(peer);
-                    await TryRefreshAsync(peer, cancellationToken);
-                })
-            .ToArray();
-        await Task.WhenAll(tasks);
+        var closestNeighbors = _table.GetNeighbors(target, k);
+        // var tasks = peers
+        //     // .Where(peer => !dialHistory.Contains(peer))
+        //     .Select(
+        //         async peer =>
+        //         {
+        //             dialHistory.Add(peer);
+        //             await RefreshAsync(peer, cancellationToken);
+        //         })
+        //     .ToArray();
+        // await Task.WhenAll(tasks);
 
         var findTaskList = new List<Task>();
-        Peer? closestPeer = closestCandidate.FirstOrDefault();
+        Peer? closestPeer = closestNeighbors.FirstOrDefault();
         count = 0;
         foreach (var peer in peers)
         {
@@ -316,14 +288,13 @@ internal sealed class Kademlia
                 break;
             }
 
-            if (history.Contains(peer))
+            if (visited.Contains(peer))
             {
                 continue;
             }
 
-            var findTask = UpdatePeersAsync(
-                history,
-                dialHistory,
+            var findTask = ExplorePeersAsync(
+                visited,
                 target,
                 peer,
                 depth == -1 ? depth : depth - 1,

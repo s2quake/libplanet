@@ -1133,16 +1133,12 @@ namespace Libplanet.Net.Tests
                 await swarmB.AddPeersAsync([swarmC.Peer], default);
                 await swarmC.AddPeersAsync([swarmD.Peer], default);
 
-                Peer foundPeer = await swarmA.FindSpecificPeerAsync(
-                    swarmB.Peer.Address,
-                    -1);
+                Peer foundPeer = await swarmA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
 
                 Assert.Equal(swarmB.Peer.Address, foundPeer.Address);
                 Assert.DoesNotContain(swarmC.Peer, swarmA.Peers);
 
-                foundPeer = await swarmA.FindSpecificPeerAsync(
-                    swarmD.Peer.Address,
-                    -1);
+                foundPeer = await swarmA.FindPeerAsync(swarmD.Peer.Address, int.MaxValue, default);
 
                 Assert.Equal(swarmD.Peer.Address, foundPeer.Address);
                 Assert.Contains(swarmC.Peer, swarmA.Peers);
@@ -1174,15 +1170,11 @@ namespace Libplanet.Net.Tests
 
                 CleaningSwarm(swarmB);
 
-                Peer foundPeer = await swarmA.FindSpecificPeerAsync(
-                    swarmB.Peer.Address,
-                    -1);
+                Peer foundPeer = await swarmA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
 
                 Assert.Null(foundPeer);
 
-                foundPeer = await swarmA.FindSpecificPeerAsync(
-                    swarmC.Peer.Address,
-                    -1);
+                foundPeer = await swarmA.FindPeerAsync(swarmC.Peer.Address, int.MaxValue, default);
 
                 Assert.Null(foundPeer);
                 Assert.DoesNotContain(swarmC.Peer, swarmA.Peers);
@@ -1218,18 +1210,14 @@ namespace Libplanet.Net.Tests
                 await swarmB.AddPeersAsync([swarmC.Peer], default);
                 await swarmC.AddPeersAsync([swarmD.Peer], default);
 
-                Peer foundPeer = await swarmA.FindSpecificPeerAsync(
-                    swarmC.Peer.Address,
-                    1);
+                Peer foundPeer = await swarmA.FindPeerAsync(swarmC.Peer.Address, 1, default);
 
                 Assert.Equal(swarmC.Peer.Address, foundPeer.Address);
                 swarmA.RoutingTable.Clear();
                 Assert.Empty(swarmA.Peers);
                 await swarmA.AddPeersAsync([swarmB.Peer], default);
 
-                foundPeer = await swarmA.FindSpecificPeerAsync(
-                    swarmD.Peer.Address,
-                    1);
+                foundPeer = await swarmA.FindPeerAsync(swarmD.Peer.Address, 1, default);
 
                 Assert.Null(foundPeer);
             }
