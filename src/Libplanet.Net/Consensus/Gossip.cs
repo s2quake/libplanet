@@ -381,7 +381,7 @@ public sealed class Gossip(
         {
             try
             {
-                await kademlia.RefreshAsync(_options.RefreshLifespan, cancellationToken);
+                await kademlia.RefreshPeersAsync(_options.RefreshLifespan, cancellationToken);
                 await kademlia.CheckReplacementCacheAsync(cancellationToken);
                 await Task.Delay(_options.RefreshTableInterval, cancellationToken);
             }

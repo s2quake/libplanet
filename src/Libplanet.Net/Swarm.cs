@@ -51,7 +51,7 @@ public sealed class Swarm : IAsyncDisposable
         _signer = signer;
         Blockchain = blockchain;
         Options = options;
-        RoutingTable = new RoutingTable(Address, options.TableSize, options.BucketSize);
+        RoutingTable = new RoutingTable(Address);
         Transport = new NetMQTransport(signer, options.TransportOptions);
         _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);

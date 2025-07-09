@@ -329,12 +329,12 @@ namespace Libplanet.Net.Tests
             await CleaningSwarm(swarmA);
             await swarmA.DisposeAsync();
             await Task.Delay(100);
-            await swarm.PeerDiscovery.RefreshAsync(
+            await swarm.PeerDiscovery.RefreshPeersAsync(
                 TimeSpan.Zero,
                 default);
             // Invoke once more in case of swarmA and swarmB is in the same bucket,
             // and swarmA is last updated.
-            await swarm.PeerDiscovery.RefreshAsync(
+            await swarm.PeerDiscovery.RefreshPeersAsync(
                 TimeSpan.Zero,
                 default);
             Assert.DoesNotContain(swarmA.Peer, swarm.Peers);

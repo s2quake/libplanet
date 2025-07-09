@@ -4,13 +4,12 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class RoutingTable(
-    Address address,
-    int bucketCount = Kademlia.BucketCount,
-    int bucketCapacity = Kademlia.BucketCapacity)
-    : IEnumerable<PeerState>
+internal sealed class RoutingTable(Address address) : IEnumerable<PeerState>
 {
-    public BucketCollection Buckets { get; } = new BucketCollection(address, bucketCount, bucketCapacity);
+    private const int BucketCapacity = 16;
+    private const int BucketCount = Address.Size * 8;
+
+    public BucketCollection Buckets { get; } = new BucketCollection(address, BucketCount, BucketCapacity);
 
     public int Count => Buckets.Sum(item => item.Count);
 
@@ -90,7 +89,7 @@ internal sealed class RoutingTable(
         return [.. peerList.Select(item => item)];
     }
 
-    internal ImmutableArray<Peer> PeersToRefresh(TimeSpan staleThreshold)
+    internal ImmutableArray<Peer> GetStalePeers(TimeSpan staleThreshold)
     {
         var query = from bucket in Buckets
                     where !bucket.IsEmpty && bucket.Tail.IsStale(staleThreshold)

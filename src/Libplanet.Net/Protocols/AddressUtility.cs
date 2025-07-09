@@ -4,6 +4,8 @@ namespace Libplanet.Net.Protocols;
 
 public static class AddressUtility
 {
+    private static readonly Random _random = new();
+
     public static Address GetDifference(Address left, Address right)
     {
         var bytes = new byte[Address.Size];
@@ -42,4 +44,11 @@ public static class AddressUtility
     }
 
     public static int GetDistance(Address left, Address right) => (Address.Size * 8) - CommonPrefixLength(left, right);
+
+    public static Address GetRandomAddress()
+    {
+        var bytes = new byte[Address.Size];
+        _random.NextBytes(bytes);
+        return new Address(bytes);
+    }
 }

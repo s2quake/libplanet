@@ -41,7 +41,7 @@ public class RoutingTableTest
         var pubKey1 = new PrivateKey().PublicKey;
         var pubKey2 = new PrivateKey().PublicKey;
         var pubKey3 = new PrivateKey().PublicKey;
-        var table = new RoutingTable(pubKey0.Address, 1, 2);
+        var table = new RoutingTable(pubKey0.Address);
         var peer1 = new Peer { Address = pubKey1.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         var peer2 = new Peer { Address = pubKey2.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         var peer3 = new Peer { Address = pubKey3.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
@@ -60,7 +60,7 @@ public class RoutingTableTest
     {
         var pubKey1 = new PrivateKey().PublicKey;
         var pubKey2 = new PrivateKey().PublicKey;
-        var table = new RoutingTable(pubKey1.Address, 1, 2);
+        var table = new RoutingTable(pubKey1.Address);
         var peer1 = new Peer { Address = pubKey1.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         var peer2 = new Peer { Address = pubKey2.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
 
@@ -158,14 +158,14 @@ public class RoutingTableTest
             Enumerable
                 .Range(0, peerCount / 2)
                 .Select(i => peers[(i * 2) + 1]).ToHashSet(),
-            table.PeersToRefresh(TimeSpan.FromMinutes(1)).ToHashSet());
+            table.GetStalePeers(TimeSpan.FromMinutes(1)).ToHashSet());
     }
 
     [Fact]
     public void PeersToRefreshInSingleBucket()
     {
         var publicKey = new PrivateKey().PublicKey;
-        var table = new RoutingTable(publicKey.Address, 1);
+        var table = new RoutingTable(publicKey.Address);
         const int peerCount = 10;
         Peer[] peers = Enumerable.Range(0, peerCount)
             .Select(
@@ -188,11 +188,11 @@ public class RoutingTableTest
         Assert.Equal(peerCount, table.Count);
         for (int i = 0; i < peerCount; i++)
         {
-            Assert.Equal(peers[i], table.PeersToRefresh(TimeSpan.FromMinutes(1)).First());
+            Assert.Equal(peers[i], table.GetStalePeers(TimeSpan.FromMinutes(1)).First());
             table.AddOrUpdate(peers[i]);
         }
 
-        Assert.Empty(table.PeersToRefresh(TimeSpan.FromMinutes(1)));
+        Assert.Empty(table.GetStalePeers(TimeSpan.FromMinutes(1)));
     }
 
     private (PublicKey, PublicKey[]) GeneratePeersDifferentBuckets()
