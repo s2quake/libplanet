@@ -1,14 +1,10 @@
-using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.Types;
 using Xunit.Abstractions;
-using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Protocols;
 
@@ -38,30 +34,28 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await task;
     }
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task Ping()
-    // {
-    //     var transportA = CreateNetMQTransport();
-    //     var transportB = CreateNetMQTransport();
+    [Fact(Timeout = Timeout)]
+    public async Task Ping()
+    {
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
+        var task = transportB.Process.WaitAsync(m =>
+        {
+            if (m.Message is PingMessage && m.Sender == transportA.Peer)
+            {
+                transportB.Reply(m.Identity, new PongMessage());
+                return true;
+            }
 
-    //     try
-    //     {
-    //         await StartNetMQTransportAsync(transportA);
-    //         await StartNetMQTransportAsync(transportB);
-    //         transportA.SendPing(transportB.Peer);
-    //         await transportA.MessageReceived.WaitAsync();
-    //         await Task.Delay(100);
+            return false;
+        }, default);
 
-    //         Assert.Single(transportA.ReceivedMessages);
-    //         Assert.Single(transportB.ReceivedMessages);
-    //         Assert.Contains(transportA.Peer, transportB.Peers);
-    //     }
-    //     finally
-    //     {
-    //         await transportA.StopAsync(default);
-    //         await transportB.StopAsync(default);
-    //     }
-    // }
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await transportA.PingAsync(transportB.Peer, default);
+        await task;
+        Assert.True(task.IsCompletedSuccessfully);
+    }
 
     // [Fact(Timeout = Timeout)]
     // public async Task PingTwice()
