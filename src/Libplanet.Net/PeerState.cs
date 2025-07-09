@@ -22,5 +22,5 @@ public sealed record class PeerState : IComparable<PeerState>
         return LastUpdated.CompareTo(other.LastUpdated);
     }
 
-    public bool IsStale(TimeSpan staleThreshold) => DateTimeOffset.UtcNow - LastUpdated > staleThreshold;
+    public bool IsStale(TimeSpan staleThreshold) => LastUpdated + staleThreshold < DateTimeOffset.UtcNow;
 }

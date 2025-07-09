@@ -1,127 +1,76 @@
 using System.Net;
 using Libplanet.Net.Protocols;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
-using Serilog;
 using Xunit.Abstractions;
-#if NETFRAMEWORK && (NET47 || NET471)
-using static Libplanet.Tests.HashSetExtensions;
-#endif
 
 namespace Libplanet.Net.Tests.Protocols;
 
-public class RoutingTableTest
+public sealed class RoutingTableTest(ITestOutputHelper output)
 {
-
-    private static readonly PrivateKey VersionSigner = new PrivateKey();
-
-    public RoutingTableTest(ITestOutputHelper output)
-    {
-        const string outputTemplate =
-            "{Timestamp:HH:mm:ss:ffffff} - {Message}";
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-            .WriteTo.TestOutput(output, outputTemplate: outputTemplate)
-            .CreateLogger()
-            .ForContext<RoutingTableTest>();
-    }
-
     [Fact]
     public void AddSelf()
     {
-        var pubKey = new PrivateKey().PublicKey;
-        var table = new RoutingTable(pubKey.Address);
-        var peer = new Peer { Address = pubKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
+        var random = RandomUtility.GetRandom(output);
+        var owner = RandomUtility.Address(random);
+        var table = new RoutingTable(owner);
+        var peer = new Peer { Address = owner, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         Assert.Throws<ArgumentException>(() => table.AddOrUpdate(peer));
     }
 
     [Fact]
     public void AddPeer()
     {
-        var pubKey0 = new PrivateKey().PublicKey;
-        var pubKey1 = new PrivateKey().PublicKey;
-        var pubKey2 = new PrivateKey().PublicKey;
-        var pubKey3 = new PrivateKey().PublicKey;
-        var table = new RoutingTable(pubKey0.Address);
-        var peer1 = new Peer { Address = pubKey1.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-        var peer2 = new Peer { Address = pubKey2.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-        var peer3 = new Peer { Address = pubKey3.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-        table.AddOrUpdate(peer1);
-        table.AddOrUpdate(peer2);
-        table.AddOrUpdate(peer3);
-        table.AddOrUpdate(peer1);
-        table.AddOrUpdate(peer3);
-        Assert.Equal(
-            new HashSet<Peer> { peer1, peer2 },
-            table.Peers.ToHashSet());
+        var random = RandomUtility.GetRandom(output);
+        var owner = RandomUtility.Address(random);
+        var peer1 = RandomUtility.LocalPeer(random);
+        var peer2 = RandomUtility.LocalPeer(random);
+        var peer3 = RandomUtility.LocalPeer(random);
+        var table = new RoutingTable(owner, 1, 2);
+
+        Assert.True(table.AddOrUpdate(peer1));
+        Assert.True(table.AddOrUpdate(peer2));
+        Assert.False(table.AddOrUpdate(peer3));
+        Assert.True(table.AddOrUpdate(peer1));
+        Assert.False(table.AddOrUpdate(peer3));
+        Assert.Equal([peer2, peer1], table.Peers);
     }
 
     [Fact]
     public void RemovePeer()
     {
-        var pubKey1 = new PrivateKey().PublicKey;
-        var pubKey2 = new PrivateKey().PublicKey;
-        var table = new RoutingTable(pubKey1.Address);
-        var peer1 = new Peer { Address = pubKey1.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-        var peer2 = new Peer { Address = pubKey2.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
+        var random = RandomUtility.GetRandom(output);
+        var peer1 = RandomUtility.LocalPeer(random);
+        var peer2 = RandomUtility.LocalPeer(random);
+        var table = new RoutingTable(peer1.Address, 1, 2);
 
-        Assert.Throws<ArgumentException>(() => table.Remove(peer1));
-
-        bool ret = table.Remove(peer2);
-        Assert.False(ret);
+        Assert.False(table.Remove(peer1));
+        Assert.False(table.Remove(peer2));
         table.AddOrUpdate(peer2);
-        ret = table.Remove(peer2);
-        Assert.True(ret);
-    }
-
-    [Fact]
-    public void Generate()
-    {
-        var table = new RoutingTable(
-            new Address(
-                [
-                    0xaa, 0xba, 0xf4, 0x9a, 0x08, 0x49, 0xaf, 0xa2, 0x43, 0x0b, 0x8e, 0x2b,
-                    0xf7, 0xaf, 0x9c, 0x48, 0x05, 0xb7, 0x63, 0xb9,
-                ]));
-        const int targetBucket = 5;
-        int count = 0;
-        PublicKey publicKey;
-        do
-        {
-            count++;
-            publicKey = new PrivateKey().PublicKey;
-        }
-        while (GetBucketIndex(table, publicKey.Address) != targetBucket);
-
-        Log.Debug(
-            "Found public key of bucket index {Index} in {Count} tries: {Key}",
-            GetBucketIndex(table, publicKey.Address),
-            count,
-            ByteArrayToString(publicKey.ToByteArray(true)));
-        Assert.Equal(targetBucket, GetBucketIndex(table, publicKey.Address));
+        Assert.True(table.Remove(peer2));
     }
 
     [Fact]
     public void PeersToBroadcast()
     {
-        var (publicKey, publicKeys) = GeneratePeersDifferentBuckets();
-
-        var table = new RoutingTable(publicKey.Address);
-        var peers = publicKeys
-            .Select(pk => new Peer { Address = pk.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) })
+        var (address, addresses) = GeneratePeersDifferentBuckets();
+        var table = new RoutingTable(address);
+        var peers = addresses
+            .Select(address => new Peer { Address = address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) })
             .ToArray();
         Assert.Equal(10, peers.Length);
         for (var i = 0; i < peers.Length; i++)
         {
             var peer = peers[i];
             table.AddOrUpdate(peer);
-            Assert.Equal(i / 2, GetBucketIndex(table, peer.Address));
+            Assert.Equal(i / 2, table.Buckets.IndexOf(peer.Address));
         }
 
         var broadcastCandidate = table.PeersToBroadcast(default, 0);
         Assert.Equal(5, broadcastCandidate.Length);
         Assert.Equal(
             new HashSet<int> { 0, 1, 2, 3, 4 },
-            broadcastCandidate.Select(peer => GetBucketIndex(table, peer.Address))
+            broadcastCandidate.Select(peer => table.Buckets.IndexOf(peer.Address))
                 .ToHashSet());
 
         broadcastCandidate = table.PeersToBroadcast(default, 10);
@@ -130,18 +79,13 @@ public class RoutingTableTest
     }
 
     [Fact]
-    public void PeersToRefresh()
+    public void GetStalePeers()
     {
-        var (publicKey, publicKeys) = GeneratePeersDifferentBuckets();
-        var table = new RoutingTable(publicKey.Address);
-        int peerCount = publicKeys.Length;
-        Peer[] peers = publicKeys
-            .Select(
-                key => new Peer
-                {
-                    Address = key.Address,
-                    EndPoint = new DnsEndPoint("0.0.0.0", 1234),
-                })
+        var (address, addresses) = GeneratePeersDifferentBuckets();
+        var table = new RoutingTable(address);
+        int peerCount = addresses.Length;
+        var peers = addresses
+            .Select(address => new Peer { Address = address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) })
             .ToArray();
         for (var i = 0; i < peerCount; i++)
         {
@@ -155,27 +99,18 @@ public class RoutingTableTest
 
         Assert.Equal(peerCount, table.Count);
         Assert.Equal(
-            Enumerable
-                .Range(0, peerCount / 2)
-                .Select(i => peers[(i * 2) + 1]).ToHashSet(),
-            table.GetStalePeers(TimeSpan.FromMinutes(1)).ToHashSet());
+            Enumerable.Range(0, peerCount / 2).Select(i => peers[(i * 2) + 1]),
+            table.GetStalePeers(TimeSpan.FromMinutes(1)));
     }
 
     [Fact]
-    public void PeersToRefreshInSingleBucket()
+    public void GetStalePeers_InSingleBucket()
     {
-        var publicKey = new PrivateKey().PublicKey;
-        var table = new RoutingTable(publicKey.Address);
-        const int peerCount = 10;
-        Peer[] peers = Enumerable.Range(0, peerCount)
-            .Select(
-                i => new Peer
-                {
-                    Address = new PrivateKey().Address,
-                    EndPoint = new DnsEndPoint("0.0.0.0", 1000 + i),
-                })
-            .ToArray();
-        for (int i = 0; i < peerCount; i++)
+        var random = RandomUtility.GetRandom(output);
+        var owner = RandomUtility.Address(random);
+        var table = new RoutingTable(owner, 1);
+        var peers = RandomUtility.Array(random, RandomUtility.LocalPeer, 10);
+        for (var i = 0; i < peers.Length; i++)
         {
             var peerState = new PeerState
             {
@@ -185,8 +120,9 @@ public class RoutingTableTest
             table.AddOrUpdate(peerState);
         }
 
-        Assert.Equal(peerCount, table.Count);
-        for (int i = 0; i < peerCount; i++)
+        Assert.Equal(peers.Length, table.Count);
+
+        for (var i = 0; i < peers.Length; i++)
         {
             Assert.Equal(peers[i], table.GetStalePeers(TimeSpan.FromMinutes(1)).First());
             table.AddOrUpdate(peers[i]);
@@ -195,7 +131,7 @@ public class RoutingTableTest
         Assert.Empty(table.GetStalePeers(TimeSpan.FromMinutes(1)));
     }
 
-    private (PublicKey, PublicKey[]) GeneratePeersDifferentBuckets()
+    private static (Address, Address[]) GeneratePeersDifferentBuckets()
     {
         var publicKey = PublicKey.Parse(
             "031df3534d8dee5d35d26cf41c52629326fc20bf96d49bdd6c4596db491896daf7");
@@ -223,28 +159,6 @@ public class RoutingTableTest
             PublicKey.Parse("024c11057c7e18d604d45b01dbba6c03f06c9545a99850bc8e9b7c65be4197ce5c"),
         };
 
-        return (publicKey, publicKeys);
-    }
-
-    private string ByteArrayToString(byte[] bytes)
-    {
-        var str = BitConverter.ToString(bytes);
-        str = "0x" + str.Replace("-", ", 0x").ToLower();
-
-        return str + ",";
-    }
-
-    private static int GetBucketIndex(RoutingTable table, Address address)
-    {
-        var bucket = table.Buckets[address];
-        for (var i = 0; i < table.Buckets.Count; i++)
-        {
-            if (table.Buckets[i] == bucket)
-            {
-                return i;
-            }
-        }
-
-        return -1;
+        return (publicKey.Address, publicKeys.Select(item => item.Address).ToArray());
     }
 }

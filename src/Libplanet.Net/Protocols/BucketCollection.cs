@@ -4,18 +4,27 @@ using static Libplanet.Net.Protocols.AddressUtility;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class BucketCollection(Address owner, int count, int capacity)
+internal sealed class BucketCollection(Address owner, ImmutableArray<Bucket> _buckets)
     : IEnumerable<Bucket>
 {
-    private readonly ImmutableArray<Bucket> _buckets = Create(count, capacity);
-
     public Bucket this[int index] => _buckets[index];
 
     public Bucket this[Peer peer] => this[peer.Address];
 
-    public Bucket this[Address address] => _buckets[CommonPrefixLength(address, owner) / _buckets.Length];
+    public Bucket this[Address address] => _buckets[IndexOf(address)];
 
     public int Count => _buckets.Length;
+
+    public int IndexOf(Address address)
+    {
+        if (_buckets.Length == RoutingTable.BucketCount)
+        {
+            return CommonPrefixLength(address, owner);
+        }
+
+        var factor = (double)_buckets.Length / RoutingTable.BucketCount;
+        return (int)(CommonPrefixLength(address, owner) * factor);
+    }
 
     public IEnumerator<Bucket> GetEnumerator()
     {
@@ -26,18 +35,4 @@ internal sealed class BucketCollection(Address owner, int count, int capacity)
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    private static ImmutableArray<Bucket> Create(int count, int capacity)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
-
-        var builder = ImmutableArray.CreateBuilder<Bucket>(count);
-        for (var i = 0; i < count; i++)
-        {
-            builder.Add(new Bucket(capacity));
-        }
-
-        return builder.ToImmutable();
-    }
 }

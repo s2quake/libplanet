@@ -1,30 +1,58 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Libplanet.Types;
+using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class RoutingTable(Address address) : IEnumerable<PeerState>
+internal sealed class RoutingTable(
+    Address owner,
+    int bucketCount = RoutingTable.BucketCount,
+    int bucketCapacity = RoutingTable.BucketCapacity) : IEnumerable<PeerState>
 {
-    private const int BucketCapacity = 16;
-    private const int BucketCount = Address.Size * 8;
+    public const int BucketCount = Address.Size * 8;
+    public const int BucketCapacity = 16;
+    private readonly ReaderWriterLockSlim _lock = new();
 
-    public BucketCollection Buckets { get; } = new BucketCollection(address, BucketCount, BucketCapacity);
+    public BucketCollection Buckets { get; } = new(owner, Create(bucketCount, bucketCapacity));
 
-    public int Count => Buckets.Sum(item => item.Count);
+    public int Count
+    {
+        get
+        {
+            using var scope = new ReadScope(_lock);
+            return Buckets.Sum(item => item.Count);
+        }
+    }
 
-    public IEnumerable<Peer> Peers => Buckets.SelectMany(bucket => bucket.Select(item => item.Peer));
+    public IEnumerable<Peer> Peers
+    {
+        get
+        {
+            using var scope = new ReadScope(_lock);
+            return Buckets.SelectMany(bucket => bucket.Select(item => item.Peer));
+        }
+    }
 
     public PeerState this[Peer peer] => Buckets[peer.Address][peer.Address];
 
     public bool AddOrUpdate(Peer peer)
         => AddOrUpdate(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
 
-    public bool AddOrUpdate(PeerState peerState) => Buckets[peerState.Address].AddOrUpdate(peerState);
+    public bool AddOrUpdate(PeerState peerState)
+    {
+        if (owner == peerState.Address)
+        {
+            throw new ArgumentException("Cannot add self address to the routing table.", nameof(peerState));
+        }
+
+        return Buckets[peerState.Address].AddOrUpdate(peerState);
+    }
 
     public bool Remove(Peer peer)
     {
-        if (peer.Address != address)
+        if (peer.Address != owner)
         {
             return Buckets[peer].Remove(peer);
         }
@@ -110,4 +138,18 @@ internal sealed class RoutingTable(Address address) : IEnumerable<PeerState>
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private static ImmutableArray<Bucket> Create(int count, int capacity)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
+
+        var builder = ImmutableArray.CreateBuilder<Bucket>(count);
+        for (var i = 0; i < count; i++)
+        {
+            builder.Add(new Bucket(capacity));
+        }
+
+        return builder.ToImmutable();
+    }
 }

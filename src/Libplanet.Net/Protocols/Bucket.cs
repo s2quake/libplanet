@@ -1,87 +1,34 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Libplanet.Types;
-using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Protocols;
 
 internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
 {
-    private readonly ReaderWriterLockSlim _lock = new();
     private readonly int _capacity = ValidateCapacity(capacity);
     private readonly Random _random = new();
     private readonly Dictionary<Address, PeerState> _itemByAddress = [];
     private ImmutableSortedSet<PeerState> _items = [];
 
-    public int Count
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return _items.Count;
-        }
-    }
+    public int Count => _items.Count;
 
-    public bool IsEmpty
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return _items.IsEmpty;
-        }
-    }
+    public bool IsEmpty => _items.IsEmpty;
 
-    public bool IsFull
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return _items.Count == _capacity;
-        }
-    }
+    public bool IsFull => _items.Count == _capacity;
 
-    public IEnumerable<Peer> Peers
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return _items.Select(item => item.Peer).ToArray();
-        }
-    }
+    public IEnumerable<Peer> Peers => _items.Select(item => item.Peer);
 
-    public PeerState Newest
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return _items.LastOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
-        }
-    }
+    public PeerState Newest => _items.LastOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
 
-    public PeerState Oldest
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return _items.FirstOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
-        }
-    }
+    public PeerState Oldest => _items.FirstOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
 
-    public PeerState this[int index]
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return _items[index];
-        }
-    }
+    public PeerState this[int index] => _items[index];
 
     public PeerState this[Peer peer]
     {
         get
         {
-            using var scope = new ReadScope(_lock);
             var peerState = _itemByAddress[peer.Address];
             if (peerState.Peer != peer)
             {
@@ -92,18 +39,10 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
         }
     }
 
-    public PeerState this[Address address]
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return _itemByAddress[address];
-        }
-    }
+    public PeerState this[Address address] => _itemByAddress[address];
 
     public bool AddOrUpdate(PeerState peerState)
     {
-        using var scope = new WriteScope(_lock);
         var address = peerState.Address;
         if (_itemByAddress.TryGetValue(address, out var value))
         {
@@ -123,7 +62,6 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
 
     public bool Contains(Peer peer)
     {
-        using var scope = new ReadScope(_lock);
         if (_itemByAddress.TryGetValue(peer.Address, out var peerState))
         {
             return peerState.Peer == peer;
@@ -134,14 +72,12 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
 
     public void Clear()
     {
-        using var scope = new WriteScope(_lock);
         _items = [];
         _itemByAddress.Clear();
     }
 
     public bool Remove(Peer peer)
     {
-        using var scope = new WriteScope(_lock);
         var address = peer.Address;
         if (_itemByAddress.TryGetValue(address, out var peerState) && peerState.Peer.Address == address)
         {
@@ -155,7 +91,6 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
 
     public bool Remove(Address address)
     {
-        using var scope = new WriteScope(_lock);
         if (_itemByAddress.TryGetValue(address, out var peerState))
         {
             _itemByAddress.Remove(address);
@@ -166,9 +101,20 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
         return false;
     }
 
+    public bool TryGetPeer(Address address, [MaybeNullWhen(false)] out Peer value)
+    {
+        if (_itemByAddress.TryGetValue(address, out var peerState))
+        {
+            value = peerState.Peer;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
     public Peer GetRandomPeer(Address except)
     {
-        using var scope = new ReadScope(_lock);
         var query = from item in _items
                     where item.Address != except
                     orderby _random.Next()
@@ -184,22 +130,8 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
         }
     }
 
-    public bool TryGetPeer(Address address, [MaybeNullWhen(false)] out Peer value)
-    {
-        using var scope = new ReadScope(_lock);
-        if (_itemByAddress.TryGetValue(address, out var peerState))
-        {
-            value = peerState.Peer;
-            return true;
-        }
-
-        value = default;
-        return false;
-    }
-
     public bool TryGetRandomPeer(Address except, [MaybeNullWhen(false)] out Peer value)
     {
-        using var scope = new ReadScope(_lock);
         var query = from item in _items
                     where item.Address != except
                     orderby _random.Next()
@@ -217,9 +149,10 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
 
     public IEnumerator<PeerState> GetEnumerator()
     {
-        using var scope = new ReadScope(_lock);
-        var items = _items.ToArray();
-        return ((IEnumerable<PeerState>)items).GetEnumerator();
+        foreach (var item in _items)
+        {
+            yield return item;
+        }
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

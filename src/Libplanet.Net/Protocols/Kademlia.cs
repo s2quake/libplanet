@@ -187,7 +187,7 @@ internal sealed class Kademlia
 
             case GetPeerMessage getPeerMessage:
                 var target = getPeerMessage.Target;
-                var k = _table.Buckets.Count;
+                var k = RoutingTable.BucketCount;
                 var peers = _table.GetNeighbors(target, k, includeTarget: true);
                 var peerMessage = new PeerMessage { Peers = [.. peers] };
                 _transport.Reply(messageEnvelope.Identity, peerMessage);
