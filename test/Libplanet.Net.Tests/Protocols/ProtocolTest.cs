@@ -3,6 +3,7 @@ using Libplanet.Extensions;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Xunit.Abstractions;
 
@@ -57,65 +58,55 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         Assert.True(task.IsCompletedSuccessfully);
     }
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task PingTwice()
-    // {
-    //     var transportA = CreateNetMQTransport();
-    //     var transportB = CreateNetMQTransport();
+    [Fact(Timeout = Timeout)]
+    public async Task PingTwice()
+    {
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
+        var taskA = transportA.WaitPingAsync(transportB.Peer);
+        var taskB = transportB.WaitPingAsync(transportA.Peer);
 
-    //     try
-    //     {
-    //         await StartNetMQTransportAsync(transportA);
-    //         await StartNetMQTransportAsync(transportB);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
 
-    //         transportA.SendPing(transportB.Peer);
-    //         await transportA.MessageReceived.WaitAsync();
-    //         await transportB.MessageReceived.WaitAsync();
-    //         transportB.SendPing(transportA.Peer);
-    //         await transportA.MessageReceived.WaitAsync();
-    //         await transportB.MessageReceived.WaitAsync();
+        await transportA.PingAsync(transportB.Peer, default);
+        await taskB;
+        await transportB.PingAsync(transportA.Peer, default);
+        await taskA;
 
-    //         Assert.Equal(2, transportA.ReceivedMessages.Count);
-    //         Assert.Equal(2, transportB.ReceivedMessages.Count);
-    //         Assert.Contains(transportA.Peer, transportB.Peers);
-    //         Assert.Contains(transportB.Peer, transportA.Peers);
-    //     }
-    //     finally
-    //     {
-    //         await transportA.StopAsync(default);
-    //         await transportB.StopAsync(default);
-    //     }
-    // }
+        Assert.True(taskA.IsCompletedSuccessfully);
+        Assert.True(taskB.IsCompletedSuccessfully);
+    }
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task PingToClosedPeer()
-    // {
-    //     var transportA = CreateNetMQTransport();
-    //     var transportB = CreateNetMQTransport();
-    //     var transportC = CreateNetMQTransport();
+    [Fact(Timeout = Timeout)]
+    public async Task PingToClosedPeer()
+    {
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var transportC = TestUtils.CreateTransport();
+        var peerA = transportA.Peer;
+        var peerB = transportB.Peer;
+        var peerC = transportC.Peer;
 
-    //     await StartNetMQTransportAsync(transportA);
-    //     await StartNetMQTransportAsync(transportB);
-    //     await StartNetMQTransportAsync(transportC);
+        var taskB = transportB.WaitPingAsync(peerA);
+        var taskC = transportC.WaitPingAsync(peerA);
 
-    //     await transportA.AddPeersAsync(new[] { transportB.Peer, transportC.Peer }, null);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await transportC.StartAsync(default);
 
-    //     Assert.Contains(transportB.Peer, transportA.Peers);
-    //     Assert.Contains(transportC.Peer, transportA.Peers);
+        await transportA.PingAsync(peerB, default);
+        await transportA.PingAsync(peerC, default);
+        await Task.WhenAll(taskB, taskC);
 
-    //     await transportC.StopAsync(default);
-    //     await Assert.ThrowsAsync<TimeoutException>(
-    //         () => transportA.AddPeersAsync(
-    //             new[] { transportC.Peer },
-    //             TimeSpan.FromSeconds(3)));
-    //     await transportA.AddPeersAsync(new[] { transportB.Peer }, null);
+        await transportC.StopAsync(default);
+        await Assert.ThrowsAsync<TimeoutException>(async () => await transportA.PingAsync(peerB, default));
+        taskC = transportC.WaitPingAsync(peerA);
+        await transportA.PingAsync(peerC, default);
 
-    //     Assert.Contains(transportB.Peer, transportA.Peers);
-
-    //     transportA.Dispose();
-    //     transportB.Dispose();
-    //     transportC.Dispose();
-    // }
+        await taskC;
+        Assert.True(taskC.IsCompletedSuccessfully);
+    }
 
     // [Fact(Timeout = Timeout)]
     // public async Task BootstrapException()
