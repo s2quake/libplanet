@@ -156,7 +156,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
                 break;
         }
 
-        if (message.Peer is Net.Peer boundPeer)
+        if (message.Sender is Net.Peer boundPeer)
         {
             peers.AddOrUpdate(boundPeer, transport);
         }

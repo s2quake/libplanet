@@ -48,11 +48,11 @@ public static class TestUtils
         },
     };
 
-    public static readonly Protocol Protocol = new ProtocolMetadata
-    {
-        Version = 1,
-        Signer = PrivateKeys[0].Address,
-    }.Sign(PrivateKeys[0]);
+    // public static readonly Protocol Protocol = new ProtocolMetadata
+    // {
+    //     Version = 1,
+    //     Signer = PrivateKeys[0].Address,
+    // }.Sign(PrivateKeys[0]);
 
     private static readonly Random Random = new();
 
@@ -260,7 +260,6 @@ public static class TestUtils
     {
         options ??= new TransportOptions
         {
-            Protocol = TestUtils.Protocol,
             Host = "127.0.0.1",
             Port = port ?? 0,
         };
@@ -317,7 +316,6 @@ public static class TestUtils
             ConsensusOptions = consensusOption ?? new ConsensusOptions(),
             TransportOptions = new TransportOptions
             {
-                Protocol = Protocol,
                 Host = host,
                 Port = port,
             }

@@ -49,7 +49,7 @@ public class PeerTest
             Identity = Guid.NewGuid(),
             Message = pongMsg,
             Protocol = protocol,
-            Peer = messageBoundPeer,
+            Sender = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
         };
         var transportMock = new Mock<ITransport>();
@@ -81,7 +81,7 @@ public class PeerTest
             Identity = Guid.NewGuid(),
             Message = pongMessage,
             Protocol = protocol,
-            Peer = messageBoundPeer,
+            Sender = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
         };
         var transportMock = new Mock<ITransport>();

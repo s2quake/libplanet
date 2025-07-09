@@ -24,7 +24,7 @@ public static class BoundPeerExtensions
                 Identity = Guid.NewGuid(),
                 Message = ping,
                 Protocol = default,
-                Peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) },
+                Sender = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 0) },
                 Timestamp = DateTimeOffset.UtcNow,
             },
             privateKey.AsSigner());

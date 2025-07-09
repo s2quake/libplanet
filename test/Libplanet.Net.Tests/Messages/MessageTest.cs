@@ -26,11 +26,11 @@ public class MessageTest
                 Identity = Guid.NewGuid(),
                 Message = messageContent,
                 Protocol = apv,
-                Peer = peer,
+                Sender = peer,
                 Timestamp = dateTimeOffset,
             }, privateKey.AsSigner());
         var parsed = NetMQMessageCodec.Decode(raw);
-        Assert.Equal(peer, parsed.Peer);
+        Assert.Equal(peer, parsed.Sender);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class MessageTest
                     Identity = Guid.NewGuid(),
                     Message = ping,
                     Protocol = apv,
-                    Peer = peer,
+                    Sender = peer,
                     Timestamp = timestamp
                 }, badPrivateKey.AsSigner()));
     }
@@ -69,7 +69,7 @@ public class MessageTest
                 Identity = Guid.NewGuid(),
                 Message = ping,
                 Protocol = apv,
-                Peer = peer,
+                Sender = peer,
                 Timestamp = timestamp
             }, privateKey.AsSigner()).ToArray();
 
@@ -81,7 +81,7 @@ public class MessageTest
                 Identity = Guid.NewGuid(),
                 Message = ping,
                 Protocol = apv,
-                Peer = fakePeer,
+                Sender = fakePeer,
                 Timestamp = timestamp,
             }, privateKey.AsSigner()).ToArray();
 

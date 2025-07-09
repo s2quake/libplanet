@@ -8,11 +8,11 @@ internal static class NetMQMessageCodec
 {
     public static NetMQMessage Encode(MessageEnvelope messageEnvelope, ISigner signer)
     {
-        if (!signer.Address.Equals(messageEnvelope.Peer.Address))
+        if (!signer.Address.Equals(messageEnvelope.Sender.Address))
         {
             throw new ArgumentException(
                 $"The provided private key's address {signer.Address} does not match " +
-                $"the remote peer's address {messageEnvelope.Peer.Address}.",
+                $"the remote peer's address {messageEnvelope.Sender.Address}.",
                 nameof(signer));
         }
 
@@ -40,7 +40,7 @@ internal static class NetMQMessageCodec
         var signature = encoded[1].ToByteArray();
 
         var messageEnvelope = ModelSerializer.DeserializeFromBytes<MessageEnvelope>(bytes);
-        var address = messageEnvelope.Peer.Address;
+        var address = messageEnvelope.Sender.Address;
         if (!address.Verify(bytes, signature))
         {
             throw new InvalidOperationException("Signature verification failed.");

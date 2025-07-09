@@ -571,12 +571,12 @@ public sealed class Swarm : IAsyncDisposable
                 break;
 
             case TxIdMessage txIdMessage:
-                _txFetcher.DemandMany(messageEnvelope.Peer, [.. txIdMessage.Ids]);
+                _txFetcher.DemandMany(messageEnvelope.Sender, [.. txIdMessage.Ids]);
                 Transport.Pong(messageEnvelope);
                 break;
 
             case EvidenceIdMessage evidenceIdMessage:
-                _evidenceFetcher.DemandMany(messageEnvelope.Peer, [.. evidenceIdMessage.Ids]);
+                _evidenceFetcher.DemandMany(messageEnvelope.Sender, [.. evidenceIdMessage.Ids]);
                 Transport.Pong(messageEnvelope);
                 break;
 
@@ -617,7 +617,7 @@ public sealed class Swarm : IAsyncDisposable
         if (needed)
         {
             BlockDemandDictionary.Add(
-                IsBlockNeeded, new BlockDemand(header, messageEnvelope.Peer, DateTimeOffset.UtcNow));
+                IsBlockNeeded, new BlockDemand(header, messageEnvelope.Sender, DateTimeOffset.UtcNow));
         }
     }
 

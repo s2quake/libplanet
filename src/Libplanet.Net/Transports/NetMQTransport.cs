@@ -31,7 +31,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     private CancellationToken _cancellationToken;
     private Task _processTask = Task.CompletedTask;
 
-    private long _requestCount;
     private long _socketCount;
     private bool _disposed;
 
@@ -116,7 +115,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
         _peer = null;
-        _requestCount = 0;
         IsRunning = false;
     }
 
@@ -150,8 +148,77 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         }
     }
 
+    private async Task<Channel<MessageReply>> WriteAsync(
+        Peer receiver, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+    {
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(_options.SendTimeout);
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            _cancellationToken, cancellationToken, timeoutCancellationTokenSource.Token);
+        var channel = Channel.CreateUnbounded<MessageReply>();
+
+        try
+        {
+            var messageRequest = new MessageRequest
+            {
+                MessageEnvelope = messageEnvelope,
+                Receiver = receiver,
+                Channel = channel,
+                CancellationToken = cancellationTokenSource.Token,
+            };
+            await _requestChannel.Writer.WriteAsync(messageRequest, cancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException e) when (timeoutCancellationTokenSource.IsCancellationRequested)
+        {
+            channel.Writer.TryComplete(e);
+            throw new TimeoutException("The request timed out while waiting for a response.", e);
+        }
+        catch (ChannelClosedException e)
+        {
+            channel.Writer.TryComplete(e);
+            throw new CommunicationException("The channel was closed before a response could be received.", e);
+        }
+        catch (Exception e)
+        {
+            channel.Writer.TryComplete(e);
+            throw;
+        }
+
+        return channel;
+    }
+
+    private async Task<MessageEnvelope> ReadAsync(
+        Channel<MessageReply> channel, CancellationToken cancellationToken)
+    {
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(_options.ReceiveTimeout);
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            _cancellationToken, cancellationToken, timeoutCancellationTokenSource.Token);
+
+        try
+        {
+            var reply = await channel.Reader.ReadAsync(cancellationTokenSource.Token);
+            var messageEnvelope = reply.MessageEnvelope;
+            messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
+            return messageEnvelope;
+        }
+        catch (OperationCanceledException e) when (timeoutCancellationTokenSource.IsCancellationRequested)
+        {
+            channel.Writer.TryComplete(e);
+            throw new TimeoutException("The read operation timed out while waiting for a response.", e);
+        }
+        catch (ChannelClosedException e)
+        {
+            channel.Writer.TryComplete(e);
+            throw new CommunicationException("The channel was closed before a response could be received.", e);
+        }
+        catch (Exception e)
+        {
+            channel.Writer.TryComplete(e);
+            throw new InvalidOperationException("An error occurred while reading the message.", e);
+        }
+    }
+
     public async IAsyncEnumerable<IMessage> SendAsync(
-        Peer peer, IMessage message, [EnumeratorCancellation] CancellationToken cancellationToken)
+        Peer receiver, IMessage message, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -160,57 +227,24 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             throw new InvalidOperationException("Transport is not running.");
         }
 
-        using var timeoutCancellationTokenSource = new CancellationTokenSource(_options.SendTimeout);
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            _cancellationToken, cancellationToken, timeoutCancellationTokenSource.Token);
-        var channel = Channel.CreateUnbounded<MessageReply>();
-
-        try
+        var messageEnvelope = new MessageEnvelope
         {
-            var request = new MessageRequest
-            {
-                MessageEnvelope = new MessageEnvelope
-                {
-                    Identity = Guid.NewGuid(),
-                    Message = message,
-                    Protocol = _options.Protocol,
-                    Peer = Peer,
-                    Timestamp = DateTimeOffset.UtcNow,
-                },
-                Peer = peer,
-                Channel = channel,
-                CancellationToken = cancellationTokenSource.Token,
-            };
-            Interlocked.Increment(ref _requestCount);
-            await _requestChannel.Writer.WriteAsync(request, cancellationTokenSource.Token);
-        }
-        catch (OperationCanceledException e) when (timeoutCancellationTokenSource.IsCancellationRequested)
+            Identity = Guid.NewGuid(),
+            Message = message,
+            Protocol = _options.Protocol,
+            Sender = Peer,
+            Timestamp = DateTimeOffset.UtcNow,
+        };
+        var channel = await WriteAsync(receiver, messageEnvelope, cancellationToken);
+        var hasNext = true;
+        while (hasNext)
         {
-            channel.Writer.TryComplete();
-            throw new TimeoutException("The request timed out while waiting for a response.", e);
-        }
-        catch (ChannelClosedException e)
-        {
-            channel.Writer.TryComplete();
-            throw new CommunicationException("The channel was closed before a response could be received.", e);
+            var response = await ReadAsync(channel, cancellationToken);
+            hasNext = response.Message.HasNext;
+            yield return response.Message;
         }
 
-        try
-        {
-            var hasNext = true;
-            while (hasNext)
-            {
-                var reply = await channel.Reader.ReadAsync(cancellationToken);
-                var messageEnvelope = reply.MessageEnvelope;
-                messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
-                hasNext = messageEnvelope.Message.HasNext;
-                yield return messageEnvelope.Message;
-            }
-        }
-        finally
-        {
-            channel.Writer.TryComplete();
-        }
+        channel.Writer.TryComplete();
     }
 
     public void Broadcast(ImmutableArray<Peer> peers, IMessage message)
@@ -265,7 +299,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                 Identity = identity,
                 Message = message,
                 Protocol = _options.Protocol,
-                Peer = Peer,
+                Sender = Peer,
                 Timestamp = DateTimeOffset.UtcNow,
             },
         };
@@ -332,7 +366,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         var requestReader = _requestChannel.Reader;
         await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
         {
-            Interlocked.Decrement(ref _requestCount);
             _ = RequestMessageAsync(request, request.CancellationToken);
         }
     }
@@ -345,7 +378,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
         try
         {
-            var peer = request.Peer;
+            var peer = request.Receiver;
             var address = await peer.ResolveNetMQAddressAsync(cancellationToken);
             using var dealerSocket = new DealerSocket();
             dealerSocket.Options.DisableTimeWait = true;
@@ -394,7 +427,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
         public required MessageEnvelope MessageEnvelope { get; init; }
 
-        public required Peer Peer { get; init; }
+        public required Peer Receiver { get; init; }
 
         public required Channel<MessageReply> Channel { get; init; }
 

@@ -29,7 +29,7 @@ namespace Libplanet.Net.Tests.Messages
                     Identity = Guid.NewGuid(),
                     Message = messageContent,
                     Protocol = apv,
-                    Peer = peer,
+                    Sender = peer,
                     Timestamp = DateTimeOffset.UtcNow,
                 },
                 privateKey.AsSigner());

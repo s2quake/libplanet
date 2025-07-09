@@ -205,7 +205,7 @@ public sealed class Gossip(
 
     private void HandleMessage(MessageEnvelope messageEnvelope)
     {
-        if (_deniedPeers.Contains(messageEnvelope.Peer))
+        if (_deniedPeers.Contains(messageEnvelope.Sender))
         {
             _transport.Pong(messageEnvelope);
             return;
@@ -213,7 +213,7 @@ public sealed class Gossip(
 
         try
         {
-            _validateReceivedMessageSubject.OnNext((messageEnvelope.Peer, messageEnvelope.Message));
+            _validateReceivedMessageSubject.OnNext((messageEnvelope.Sender, messageEnvelope.Message));
         }
         catch (Exception ex)
         {
@@ -269,7 +269,7 @@ public sealed class Gossip(
             return;
         }
 
-        var peer = messageEnvelope.Peer;
+        var peer = messageEnvelope.Sender;
         if (!_haveDict.TryGetValue(peer, out HashSet<MessageId>? value))
         {
             value = [];

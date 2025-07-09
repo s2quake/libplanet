@@ -247,7 +247,6 @@ public sealed class GossipTest
     {
         var options = new TransportOptions
         {
-            Protocol = TestUtils.Protocol,
             Host = "127.0.0.1",
             Port = port ?? 0,
         };

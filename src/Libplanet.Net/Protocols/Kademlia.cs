@@ -176,7 +176,7 @@ internal sealed class Kademlia
         switch (messageEnvelope.Message)
         {
             case PingMessage:
-                if (messageEnvelope.Peer.Address.Equals(_address))
+                if (messageEnvelope.Sender.Address.Equals(_address))
                 {
                     throw new InvalidOperationException("Cannot receive ping from self.");
                 }

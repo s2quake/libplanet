@@ -18,7 +18,7 @@ public interface ITransport : IAsyncDisposable
 
     Task StopAsync(CancellationToken cancellationToken);
 
-    IAsyncEnumerable<IMessage> SendAsync(Peer peer, IMessage message, CancellationToken cancellationToken);
+    IAsyncEnumerable<IMessage> SendAsync(Peer receiver, IMessage message, CancellationToken cancellationToken);
 
     void Broadcast(ImmutableArray<Peer> peers, IMessage message);
 

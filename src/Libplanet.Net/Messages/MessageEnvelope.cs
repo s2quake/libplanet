@@ -15,7 +15,7 @@ public sealed record class MessageEnvelope
     public required Protocol Protocol { get; init; }
 
     [Property(3)]
-    public required Peer Peer { get; init; }
+    public required Peer Sender { get; init; }
 
     [Property(4)]
     public DateTimeOffset Timestamp { get; init; }
