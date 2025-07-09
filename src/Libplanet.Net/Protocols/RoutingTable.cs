@@ -92,8 +92,8 @@ internal sealed class RoutingTable(Address address) : IEnumerable<PeerState>
     internal ImmutableArray<Peer> GetStalePeers(TimeSpan staleThreshold)
     {
         var query = from bucket in Buckets
-                    where !bucket.IsEmpty && bucket.Tail.IsStale(staleThreshold)
-                    select bucket.Tail.Peer;
+                    where !bucket.IsEmpty && bucket.Oldest.IsStale(staleThreshold)
+                    select bucket.Oldest.Peer;
 
         return [.. query];
     }

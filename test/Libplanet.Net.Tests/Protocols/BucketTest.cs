@@ -1,39 +1,41 @@
 using System.Net;
 using System.Threading.Tasks;
 using Libplanet.Net.Protocols;
-using Libplanet.Types;
+using Libplanet.TestUtilities;
+using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Protocols;
 
-public class KademliaBucketTest
+public class BucketTest(ITestOutputHelper output)
 {
     [Fact]
-    public async Task BucketTest()
+    public async Task BaseTest()
     {
+        var random = RandomUtility.GetRandom(output);
         var bucket = new Bucket(4);
         var peer1 = new Peer
         {
-            Address = new PrivateKey().Address,
+            Address = RandomUtility.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
         var peer2 = new Peer
         {
-            Address = new PrivateKey().Address,
+            Address = RandomUtility.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
         var peer3 = new Peer
         {
-            Address = new PrivateKey().Address,
+            Address = RandomUtility.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
         var peer4 = new Peer
         {
-            Address = new PrivateKey().Address,
+            Address = RandomUtility.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
         var peer5 = new Peer
         {
-            Address = new PrivateKey().Address,
+            Address = RandomUtility.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
 
@@ -43,8 +45,8 @@ public class KademliaBucketTest
         Assert.Empty(bucket.Peers);
         Assert.Empty(bucket);
         Assert.Throws<InvalidOperationException>(() => bucket.GetRandomPeer(default));
-        Assert.Null(bucket.Head);
-        Assert.Null(bucket.Tail);
+        Assert.Throws<InvalidOperationException>(() => bucket.Newest);
+        Assert.Throws<InvalidOperationException>(() => bucket.Oldest);
 
         // Checks for a partially filled bucket.
         bucket.AddOrUpdate(new() { Peer = peer1, LastUpdated = DateTimeOffset.UtcNow });
@@ -53,10 +55,10 @@ public class KademliaBucketTest
         Assert.True(bucket.Contains(peer1));
         Assert.False(bucket.Contains(peer2));
         Assert.Equal(peer1, bucket.GetRandomPeer(default));
-        Assert.Null(bucket.GetRandomPeer(peer1.Address));
+        Assert.Throws<InvalidOperationException>(() => bucket.GetRandomPeer(peer1.Address));
         Assert.NotNull(bucket.GetRandomPeer(peer2.Address));
-        Assert.Equal(peer1, bucket.Head?.Peer);
-        Assert.Equal(peer1, bucket.Tail?.Peer);
+        Assert.Equal(peer1, bucket.Newest.Peer);
+        Assert.Equal(peer1, bucket.Oldest.Peer);
 
         // Sleep statement is used to distinguish updated times.
         await Task.Delay(100);
@@ -72,7 +74,7 @@ public class KademliaBucketTest
         Assert.True(bucket.IsFull);
         Assert.Equal(
             [.. bucket.Peers],
-            new HashSet<Peer> { peer1, peer2, peer3, peer4 });
+            [peer1, peer2, peer3, peer4]);
         Assert.Contains(
             bucket.GetRandomPeer(default),
             new[] { peer1, peer2, peer3, peer4 });
@@ -80,16 +82,16 @@ public class KademliaBucketTest
         bucket.AddOrUpdate(new() { Peer = peer5, LastUpdated = DateTimeOffset.UtcNow });
         Assert.Equal(
             [.. bucket.Peers],
-            new HashSet<Peer> { peer1, peer2, peer3, peer4 });
+            [peer1, peer2, peer3, peer4]);
         Assert.False(bucket.Contains(peer5));
-        Assert.Equal(peer4, bucket.Head?.Peer);
-        Assert.Equal(peer1, bucket.Tail?.Peer);
+        Assert.Equal(peer4, bucket.Newest.Peer);
+        Assert.Equal(peer1, bucket.Oldest.Peer);
 
         // Check order has changed.
         await Task.Delay(100);
         bucket.AddOrUpdate(new() { Peer = peer1, LastUpdated = DateTimeOffset.UtcNow });
-        Assert.Equal(peer1, bucket.Head?.Peer);
-        Assert.Equal(peer2, bucket.Tail?.Peer);
+        Assert.Equal(peer1, bucket.Newest?.Peer);
+        Assert.Equal(peer2, bucket.Oldest?.Peer);
 
         Assert.False(bucket.Remove(peer5));
         Assert.True(bucket.Remove(peer1));
@@ -100,8 +102,8 @@ public class KademliaBucketTest
         bucket.Clear();
         Assert.True(bucket.IsEmpty);
         Assert.Empty(bucket.Peers);
-        Assert.Null(bucket.Head);
-        Assert.Null(bucket.Tail);
+        Assert.Throws<InvalidOperationException>(() => bucket.Newest);
+        Assert.Throws<InvalidOperationException>(() => bucket.Oldest);
         Assert.Throws<InvalidOperationException>(() => bucket.GetRandomPeer(default));
     }
 }

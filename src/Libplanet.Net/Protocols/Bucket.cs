@@ -50,21 +50,21 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
         }
     }
 
-    public PeerState Head
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return _items.FirstOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
-        }
-    }
-
-    public PeerState Tail
+    public PeerState Newest
     {
         get
         {
             using var scope = new ReadScope(_lock);
             return _items.LastOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
+        }
+    }
+
+    public PeerState Oldest
+    {
+        get
+        {
+            using var scope = new ReadScope(_lock);
+            return _items.FirstOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
         }
     }
 
@@ -180,7 +180,7 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
         }
         catch (InvalidOperationException e)
         {
-            throw new InvalidOperationException("No peers available to select from.", e);
+            throw new InvalidOperationException($"No peer found in the bucket except {except}.", e);
         }
     }
 

@@ -1,9 +1,7 @@
-using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
-using Random = System.Random;
 using static Libplanet.Net.Protocols.AddressUtility;
 
 namespace Libplanet.Net.Protocols;
@@ -13,13 +11,10 @@ internal sealed class Kademlia
     public const int FindConcurrency = 3;
     public const int MaxDepth = 3;
 
-    private readonly TimeSpan _requestTimeout = TimeSpan.FromMilliseconds(5000);
     private readonly ITransport _transport;
     private readonly Address _address;
     private readonly RoutingTable _table;
     private readonly Bucket _replacementCache = new(256);
-
-    private readonly int _findConcurrency = FindConcurrency;
 
     public Kademlia(RoutingTable table, ITransport transport, Address address)
     {
@@ -29,19 +24,26 @@ internal sealed class Kademlia
         _transport.Process.Subscribe(ProcessMessageHandler);
     }
 
-    public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int depth, CancellationToken cancellationToken)
+    public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int maxDepth, CancellationToken cancellationToken)
     {
         if (peers.Any(item => item.Address == _address))
         {
-            throw new InvalidOperationException($"Cannot bootstrap with self address {_address} in the peer list.");
+            throw new ArgumentException("Peer list cannot contain self address.", nameof(peers));
         }
+
+        if (peers.Count is 0)
+        {
+            throw new ArgumentException("Peer list cannot be empty.", nameof(peers));
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegative(maxDepth);
 
         foreach (var peer in peers)
         {
             try
             {
                 await RefreshPeerAsync(peer, cancellationToken);
-                await ExplorePeersAsync(peer.Address, depth, cancellationToken);
+                await ExplorePeersAsync(peer.Address, maxDepth, cancellationToken);
             }
             catch (Exception)
             {
@@ -51,13 +53,8 @@ internal sealed class Kademlia
 
         if (!_table.Peers.Any())
         {
-            throw new InvalidOperationException("All seeds are unreachable.");
+            throw new InvalidOperationException("There is no peer in the routing table after bootstrapping.");
         }
-
-        // if (findPeerTasks.Count == 0)
-        // {
-        //     throw new InvalidOperationException("Bootstrap failed.");
-        // }
     }
 
     public async Task RefreshPeersAsync(TimeSpan staleThreshold, CancellationToken cancellationToken)
@@ -78,7 +75,7 @@ internal sealed class Kademlia
         Address[] addresses =
         [
             _address,
-            .. Enumerable.Range(0, _findConcurrency).Select(_ => GetRandomAddress())
+            .. Enumerable.Range(0, FindConcurrency).Select(_ => GetRandomAddress())
         ];
 
         foreach (var address in addresses)
@@ -130,7 +127,7 @@ internal sealed class Kademlia
                     return neighbor;
                 }
 
-                if (count++ >= _findConcurrency)
+                if (count++ >= FindConcurrency)
                 {
                     break;
                 }
@@ -221,7 +218,7 @@ internal sealed class Kademlia
 
                 await RefreshPeerAsync(neighbor, cancellationToken);
 
-                if (count++ >= _findConcurrency)
+                if (count++ >= FindConcurrency)
                 {
                     break;
                 }
