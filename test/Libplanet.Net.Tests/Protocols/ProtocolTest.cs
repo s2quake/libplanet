@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
@@ -291,6 +292,8 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     public async Task BroadcastMessage(int count)
     {
         await using var seed = TestUtils.CreateTransport();
+        var seedTable = new RoutingTable(seed.Peer.Address);
+        _ = new PeerDiscovery(seedTable, seed);
         await seed.StartAsync(default);
         var transports = new NetMQTransport[count];
         var tables = new RoutingTable[count];
@@ -302,12 +305,16 @@ public sealed class ProtocolTest(ITestOutputHelper output)
             peerDiscoveries[i] = new PeerDiscovery(tables[i], transports[i]);
             await transports[i].StartAsync(default);
         }
-        await using var _ = new AsyncDisposerCollection(transports);
+        await using var _1 = new AsyncDisposerCollection(transports);
 
+        // var pingTaks = new List<Task>();
         for (var i = 0; i < count; i++)
         {
+            // pingTaks.Add(transports[i].PingAsync(seed.Peer, default));
             await peerDiscoveries[i].BootstrapAsync([seed.Peer], 3, default);
         }
+
+        // await Task.WhenAll(pingTaks);
 
         var taskList = new List<Task>();
         for (var i = 0; i < count; i++)
@@ -316,9 +323,12 @@ public sealed class ProtocolTest(ITestOutputHelper output)
             taskList.Add(task);
         }
 
+        Trace.WriteLine("1");
         seed.Broadcast([.. transports.Select(t => t.Peer)], new TestMessage { Data = "foo" });
+        Trace.WriteLine("2");
 
         await Task.WhenAll(taskList);
+        Trace.WriteLine("3");
     }
 
     // [Fact(Timeout = Timeout)]

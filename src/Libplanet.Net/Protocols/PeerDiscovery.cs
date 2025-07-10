@@ -48,12 +48,13 @@ internal sealed class PeerDiscovery
 
         ArgumentOutOfRangeException.ThrowIfNegative(maxDepth);
 
+        var taskList = new List<Task>(peers.Count);
         foreach (var peer in peers)
         {
             try
             {
                 await RefreshPeerAsync(peer, cancellationToken);
-                await ExplorePeersAsync(peer.Address, maxDepth, cancellationToken);
+                taskList.Add(ExplorePeersAsync(peer, _address, maxDepth, cancellationToken));
             }
             catch (Exception)
             {
@@ -65,6 +66,8 @@ internal sealed class PeerDiscovery
         {
             throw new InvalidOperationException("There is no peer in the routing table after bootstrapping.");
         }
+
+        await Task.WhenAll(taskList);
     }
 
     public async Task RefreshPeersAsync(TimeSpan staleThreshold, CancellationToken cancellationToken)
@@ -90,7 +93,7 @@ internal sealed class PeerDiscovery
 
         foreach (var address in addresses)
         {
-            await ExplorePeersAsync(address, depth, cancellationToken);
+            await ExplorePeersAsync(_transport.Peer, address, depth, cancellationToken);
         }
     }
 
@@ -196,6 +199,11 @@ internal sealed class PeerDiscovery
                 break;
 
             case GetPeerMessage getPeerMessage:
+                if (messageEnvelope.Sender.Address.Equals(_address))
+                {
+                    throw new InvalidOperationException("Cannot receive ping from self.");
+                }
+
                 var target = getPeerMessage.Target;
                 var k = RoutingTable.BucketCount;
                 var peers = _table.GetNeighbors(target, k, includeTarget: true);
@@ -222,10 +230,10 @@ internal sealed class PeerDiscovery
         }
     }
 
-    private async Task ExplorePeersAsync(Address address, int maxDepth, CancellationToken cancellationToken)
+    private async Task ExplorePeersAsync(Peer viaPeer, Address address, int maxDepth, CancellationToken cancellationToken)
     {
         var visited = new HashSet<Peer>();
-        var queue = new Queue<(Peer Peer, int Depth)>([(_transport.Peer, 0)]);
+        var queue = new Queue<(Peer Peer, int Depth)>([(viaPeer, 0)]);
         while (queue.Count > 0)
         {
             var (peer, depth) = queue.Dequeue();
@@ -234,7 +242,9 @@ internal sealed class PeerDiscovery
                 continue;
             }
 
-            var neighbors = await _transport.GetNeighborsAsync(peer, address, cancellationToken);
+            var neighbors = peer.Address == _address
+                ? _table.GetNeighbors(address, FindConcurrency, includeTarget: true)
+                : await _transport.GetNeighborsAsync(peer, address, cancellationToken);
             var count = 0;
             foreach (var neighbor in neighbors)
             {

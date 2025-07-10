@@ -1,4 +1,4 @@
-using System.Net;
+using System.Diagnostics;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using System.ServiceModel;
@@ -19,7 +19,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 {
     private readonly Channel<MessageRequest> _requestChannel = Channel.CreateUnbounded<MessageRequest>();
 
-    private readonly Subject<MessageEnvelope> _processMessageSubject = new();
+    private readonly Subject<MessageEnvelope> _processSubject = new();
     private readonly NetMQRouterSocket _router = new(signer.Address, options.Host, options.Port);
     private readonly NetMQQueue<MessageReply> _replyQueue = new();
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
@@ -37,7 +37,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
     }
 
-    public IObservable<MessageEnvelope> Process => _processMessageSubject;
+    public IObservable<MessageEnvelope> Process => _processSubject;
 
     public Peer Peer => _router.Peer;
 
@@ -59,12 +59,16 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         _poller = [_router, _replyQueue];
         _router.ReceiveReady += Router_ReceiveReady;
         _replyQueue.ReceiveReady += ReplyQueue_ReceiveReady;
-        _processTask = Task.Run(() =>
-        {
-            using var runtime = new NetMQRuntime();
-            var task = ProcessRequestAsync(_cancellationToken);
-            runtime.Run(task);
-        }, _cancellationToken);
+        _processTask = Task.Factory.StartNew(
+            () =>
+            {
+                using var runtime = new NetMQRuntime();
+                var task = ProcessRequestAsync(_cancellationToken);
+                runtime.Run(task);
+            },
+            _cancellationToken,
+            TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
         await _poller.StartAsync(cancellationToken);
 
         IsRunning = true;
@@ -122,7 +126,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             _cancellationTokenSource = null;
             _replyQueue.Dispose();
             _router.Dispose();
-            _processMessageSubject.Dispose();
+            _processSubject.Dispose();
 
             _disposed = true;
         }
@@ -244,15 +248,27 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             {
                 using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                     _cancellationToken);
-                cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
+
                 await Parallel.ForEachAsync(
                     peers,
                     cancellationTokenSource.Token,
                     async (peer, cancellationToken) =>
                     {
-                        await foreach (var _ in SendAsync(peer, message, cancellationToken))
+                        Trace.WriteLine("Broadcasting message to: " + peer);
+                        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                            cancellationToken);
+                        _ = SendAsync(peer, message, cancellationTokenSource.Token);
+                        // cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(1));
+                        try
                         {
-                            // do nothing
+
+                            {
+                                // do nothing
+                            }
+                        }
+                        catch
+                        {
+
                         }
                     });
             }
@@ -286,17 +302,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         _replyQueue.Enqueue(messageReply);
     }
 
-    // private static int Initialize(RouterSocket routerSocket, int port)
-    // {
-    //     if (port == 0)
-    //     {
-    //         return routerSocket.BindRandomPort("tcp://*");
-    //     }
-
-    //     routerSocket.Bind($"tcp://*:{port}");
-    //     return port;
-    // }
-
     private void Router_ReceiveReady(object? sender, NetMQSocketEventArgs e)
     {
         try
@@ -315,7 +320,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
             messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
-            _processMessageSubject.OnNext(messageEnvelope);
+            Trace.WriteLine($"Received {messageEnvelope.Message.GetType().Name}: {messageEnvelope.Sender}");
+            _processSubject.OnNext(messageEnvelope);
         }
         catch
         {
