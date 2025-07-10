@@ -9,13 +9,15 @@ namespace Libplanet.Net.Protocols;
 internal sealed class RoutingTable(
     Address owner,
     int bucketCount = RoutingTable.BucketCount,
-    int bucketCapacity = RoutingTable.BucketCapacity) : IEnumerable<PeerState>
+    int capacityPerBucket = RoutingTable.CapacityPerBucket) : IEnumerable<PeerState>
 {
     public const int BucketCount = Address.Size * 8;
-    public const int BucketCapacity = 16;
+    public const int CapacityPerBucket = 16;
     private readonly ReaderWriterLockSlim _lock = new();
 
-    public BucketCollection Buckets { get; } = new(owner, Create(bucketCount, bucketCapacity));
+    public BucketCollection Buckets { get; } = new(owner, bucketCount, capacityPerBucket);
+
+    public Address Owner => owner;
 
     public int Count
     {
@@ -38,7 +40,9 @@ internal sealed class RoutingTable(
     public PeerState this[Peer peer] => Buckets[peer.Address][peer.Address];
 
     public bool AddOrUpdate(Peer peer)
-        => AddOrUpdate(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
+    {
+        return AddOrUpdate(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
+    }
 
     public bool AddOrUpdate(PeerState peerState)
     {
@@ -64,6 +68,9 @@ internal sealed class RoutingTable(
 
     public bool TryGetPeer(Address address, [MaybeNullWhen(false)] out Peer peer)
         => Buckets[address].TryGetPeer(address, out peer);
+
+    public bool TryGetValue(Address address, [MaybeNullWhen(false)] out PeerState value)
+        => Buckets[address].TryGetValue(address, out value);
 
     public void Clear()
     {

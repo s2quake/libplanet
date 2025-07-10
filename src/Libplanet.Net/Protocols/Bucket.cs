@@ -70,6 +70,8 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
         return false;
     }
 
+    public bool Contains(Address address) => _itemByAddress.ContainsKey(address);
+
     public void Clear()
     {
         _items = [];
@@ -100,6 +102,9 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
 
         return false;
     }
+
+    public bool TryGetValue(Address address, [MaybeNullWhen(false)] out PeerState value)
+        => _itemByAddress.TryGetValue(address, out value);
 
     public bool TryGetPeer(Address address, [MaybeNullWhen(false)] out Peer value)
     {

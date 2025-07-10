@@ -31,7 +31,7 @@ public static class TaskUtility
         {
             return false;
         }
-        
+
         try
         {
             await Task.Delay(delay, cancellationToken);
@@ -56,7 +56,20 @@ public static class TaskUtility
         }
     }
 
-    public static async Task<bool> TryWaitAll(params Task[] tasks)
+    public static async Task<bool> TryWhenAll(params Task[] tasks)
+    {
+        try
+        {
+            await Task.WhenAll(tasks);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public static async Task<bool> TryWhenAll(IEnumerable<Task> tasks)
     {
         try
         {

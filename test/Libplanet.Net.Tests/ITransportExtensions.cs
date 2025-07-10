@@ -21,4 +21,17 @@ public static class ITransportExtensions
 
         }, default);
     }
+
+    public static IDisposable RegisterPingHandler(this ITransport @this) => @this.RegisterPingHandler([]);
+
+    public static IDisposable RegisterPingHandler(this ITransport @this, ImmutableArray<Peer> peers)
+    {
+        return @this.Process.Subscribe(m =>
+        {
+            if (m.Message is PingMessage && (peers.Length is 0 || peers.Contains(m.Sender)))
+            {
+                @this.Reply(m.Identity, new PongMessage());
+            }
+        });
+    }
 }

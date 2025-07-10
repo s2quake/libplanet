@@ -2,26 +2,36 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
+using Libplanet.Types.Threading;
 using static Libplanet.Net.Protocols.AddressUtility;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class Kademlia
+internal sealed class PeerDiscovery
 {
     public const int FindConcurrency = 3;
     public const int MaxDepth = 3;
 
-    private readonly ITransport _transport;
-    private readonly Address _address;
     private readonly RoutingTable _table;
-    private readonly Bucket _replacementCache = new(256);
+    private readonly Address _address;
+    private readonly ITransport _transport;
+    // private readonly Bucket _replacementCache = new(256);
+    private readonly BucketCollection _replacementCache;
 
-    public Kademlia(RoutingTable table, ITransport transport, Address address)
+    public PeerDiscovery(RoutingTable table, ITransport transport)
     {
-        _transport = transport;
-        _address = address;
+        if (table.Owner != transport.Peer.Address)
+        {
+            throw new ArgumentException(
+                "The routing table owner must match the transport peer address.",
+                nameof(table));
+        }
+
         _table = table;
+        _address = table.Owner;
+        _transport = transport;
         _transport.Process.Subscribe(ProcessMessageHandler);
+        _replacementCache = new BucketCollection(_address, table.Buckets.Count, table.Buckets.CapacityPerBucket);
     }
 
     public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int maxDepth, CancellationToken cancellationToken)
@@ -86,10 +96,10 @@ internal sealed class Kademlia
 
     public async Task CheckReplacementCacheAsync(CancellationToken cancellationToken)
     {
-        var peers = _replacementCache.Select(item => item.Peer).ToArray();
+        var peers = _replacementCache.SelectMany(item => item.Peers).ToArray();
         foreach (var peer in peers)
         {
-            _replacementCache.Remove(peer);
+            _replacementCache[peer].Remove(peer);
             await RefreshPeerAsync(peer, cancellationToken);
         }
     }
@@ -140,7 +150,7 @@ internal sealed class Kademlia
         throw new PeerNotFoundException("Failed to find peer.");
     }
 
-    private async Task RefreshPeerAsync(Peer peer, CancellationToken cancellationToken)
+    public async Task RefreshPeerAsync(Peer peer, CancellationToken cancellationToken)
     {
         try
         {
@@ -154,20 +164,15 @@ internal sealed class Kademlia
 
             if (!_table.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
             {
-                var oldestPeerState = _replacementCache.OrderBy(ps => ps.LastUpdated).First();
+                var oldestPeerState = _replacementCache.Oldest;
                 var oldestAddress = oldestPeerState.Address;
                 _replacementCache.Remove(oldestAddress);
                 _replacementCache.AddOrUpdate(peerState);
             }
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch
+        catch (TimeoutException)
         {
             _table.Remove(peer);
-            throw;
         }
     }
 
@@ -192,6 +197,22 @@ internal sealed class Kademlia
                 var peerMessage = new PeerMessage { Peers = [.. peers] };
                 _transport.Reply(messageEnvelope.Identity, peerMessage);
                 break;
+        }
+
+        if (messageEnvelope.Sender.Address != _address)
+        {
+            var peer = messageEnvelope.Sender;
+            var peerState = _table.TryGetValue(peer.Address, out var v)
+                ? v with { LastUpdated = DateTimeOffset.UtcNow }
+                : new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow };
+
+            if (!_table.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
+            {
+                var oldestPeerState = _replacementCache.Oldest;
+                var oldestAddress = oldestPeerState.Address;
+                _replacementCache.Remove(oldestAddress);
+                _replacementCache.AddOrUpdate(peerState);
+            }
         }
     }
 
@@ -227,7 +248,5 @@ internal sealed class Kademlia
                 queue.Enqueue((neighbor, depth + 1));
             }
         }
-
-        throw new PeerNotFoundException("Failed to find peer.");
     }
 }

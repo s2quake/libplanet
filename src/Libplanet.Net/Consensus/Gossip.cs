@@ -21,7 +21,7 @@ public sealed class Gossip(
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
     private readonly HashSet<Peer> _deniedPeers = [];
     private RoutingTable? _table;
-    private Kademlia? _kademlia;
+    private PeerDiscovery? _kademlia;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
     private CancellationTokenSource? _cancellationTokenSource;
     private Task[] _tasks = [];
@@ -71,7 +71,7 @@ public sealed class Gossip(
         _table = new RoutingTable(_transport.Peer.Address);
         _table.AddRange(validators);
         _transportSubscription = _transport.Process.Subscribe(HandleMessage);
-        _kademlia = new Kademlia(_table, _transport, _transport.Peer.Address);
+        _kademlia = new PeerDiscovery(_table, _transport);
         await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);
         _tasks =
         [
@@ -95,7 +95,7 @@ public sealed class Gossip(
             await _cancellationTokenSource.CancelAsync();
         }
 
-        await TaskUtility.TryWaitAll(_tasks);
+        await TaskUtility.TryWhenAll(_tasks);
         _tasks = [];
         _transportSubscription?.Dispose();
         _transportSubscription = null;
@@ -365,7 +365,7 @@ public sealed class Gossip(
             await Task.Delay(interval, cancellationToken);
             try
             {
-                await kademlia.BootstrapAsync(seeds, Kademlia.MaxDepth, cancellationToken);
+                await kademlia.BootstrapAsync(seeds, PeerDiscovery.MaxDepth, cancellationToken);
             }
             catch
             {

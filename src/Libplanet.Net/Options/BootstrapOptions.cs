@@ -10,5 +10,5 @@ public sealed record class BootstrapOptions
 
     public ImmutableHashSet<Peer> SeedPeers { get; init; } = [];
 
-    public int SearchDepth { get; init; } = Kademlia.MaxDepth;
+    public int SearchDepth { get; init; } = PeerDiscovery.MaxDepth;
 }

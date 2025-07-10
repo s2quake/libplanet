@@ -19,7 +19,7 @@ internal sealed class NetMQRouterSocket : RouterSocket
 
     protected override void Dispose(bool disposing)
     {
-        Unbind($"tcp://*:{Peer.EndPoint.Port}");
+        Unbind($"tcp://{Peer.EndPoint.Host}:{Peer.EndPoint.Port}");
         base.Dispose(disposing);
     }
 

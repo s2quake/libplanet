@@ -95,12 +95,25 @@ public abstract class TransportTest(ITestOutputHelper output)
         var host = IPAddress.Loopback.ToString();
         await using var transport = CreateTransport(random, privateKey: privateKey);
 
-        Assert.Throws<InvalidOperationException>(() => transport.Peer);
+        var peer1 = transport.Peer;
+        Assert.Equal(privateKey.Address, peer1.Address);
+        Assert.Equal(host, peer1.EndPoint.Host);
+        Assert.NotEqual(0, peer1.EndPoint.Port);
         await transport.StartAsync(default);
 
-        var peer = transport.Peer;
-        Assert.Equal(privateKey.Address, peer.Address);
-        Assert.Equal(host, peer.EndPoint.Host);
+        var peer2 = transport.Peer;
+        Assert.Equal(privateKey.Address, peer2.Address);
+        Assert.Equal(host, peer2.EndPoint.Host);
+        Assert.NotEqual(0, peer2.EndPoint.Port);
+        Assert.Equal(peer1, peer2);
+
+        await transport.StopAsync(default);
+
+        var peer3 = transport.Peer;
+        Assert.Equal(privateKey.Address, peer3.Address);
+        Assert.Equal(host, peer3.EndPoint.Host);
+        Assert.NotEqual(0, peer3.EndPoint.Port);
+        Assert.Equal(peer2, peer3);
     }
 
     [Fact(Timeout = Timeout)]

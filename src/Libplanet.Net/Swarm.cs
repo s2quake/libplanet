@@ -51,12 +51,12 @@ public sealed class Swarm : IAsyncDisposable
         _signer = signer;
         Blockchain = blockchain;
         Options = options;
-        RoutingTable = new RoutingTable(Address);
+        RoutingTable = new RoutingTable(signer.Address);
         Transport = new NetMQTransport(signer, options.TransportOptions);
         _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
         Transport.Process.Subscribe(ProcessMessageHandler);
-        PeerDiscovery = new Kademlia(RoutingTable, Transport, Address);
+        PeerDiscovery = new PeerDiscovery(RoutingTable, Transport);
         BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
         _txFetcherSubscription = _txFetcher.Received.Subscribe(e => BroadcastTxs(e.Peer, e.Items));
         _evidenceFetcherSubscription = _evidenceFetcher.Received.Subscribe(e => BroadcastEvidence(e.Peer.Address, e.Items));
@@ -96,7 +96,7 @@ public sealed class Swarm : IAsyncDisposable
 
     internal RoutingTable RoutingTable { get; }
 
-    internal Kademlia PeerDiscovery { get; }
+    internal PeerDiscovery PeerDiscovery { get; }
 
     internal ITransport Transport { get; }
 
@@ -184,7 +184,7 @@ public sealed class Swarm : IAsyncDisposable
         }
 
         await _cancellationTokenSource.CancelAsync();
-        await TaskUtility.TryWaitAll(_tasks);
+        await TaskUtility.TryWhenAll(_tasks);
         _tasks = [];
 
         await Transport.StopAsync(cancellationToken);
@@ -404,7 +404,7 @@ public sealed class Swarm : IAsyncDisposable
             return await task.WaitAsync(dialTimeout, cancellationToken);
         }).ToArray();
 
-        await TaskUtility.TryWaitAll(tasks);
+        await TaskUtility.TryWhenAll(tasks);
         var query = peers.Zip(tasks).Where(item => item.Second.IsCompletedSuccessfully)
             .Select(item => (item.First, item.Second.Result));
 

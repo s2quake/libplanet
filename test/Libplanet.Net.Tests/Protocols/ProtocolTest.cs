@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
+using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
@@ -100,152 +101,148 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await Task.WhenAll(taskB, taskC);
 
         await transportC.StopAsync(default);
-        await Assert.ThrowsAsync<TimeoutException>(async () => await transportA.PingAsync(peerB, default));
-        taskC = transportC.WaitPingAsync(peerA);
-        await transportA.PingAsync(peerC, default);
+        await Assert.ThrowsAsync<TimeoutException>(async () => await transportA.PingAsync(peerC, default));
+        taskC = transportB.WaitPingAsync(peerA);
+        await transportA.PingAsync(peerB, default);
 
         await taskC;
         Assert.True(taskC.IsCompletedSuccessfully);
     }
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task BootstrapException()
-    // {
-    //     var transportA = CreateNetMQTransport();
-    //     var transportB = CreateNetMQTransport();
+    [Fact(Timeout = Timeout)]
+    public async Task Bootstrap_Throw()
+    {
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
 
-    //     await Assert.ThrowsAsync<InvalidOperationException>(
-    //         () => transportB.BootstrapAsync(
-    //             new[] { transportA.Peer },
-    //             TimeSpan.FromSeconds(3)));
+        var tableB = new RoutingTable(transportB.Peer.Address);
+        var peerDiscoveryB = new PeerDiscovery(tableB, transportB);
 
-    //     transportA.Dispose();
-    //     transportB.Dispose();
-    // }
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await peerDiscoveryB.BootstrapAsync([transportA.Peer], 3, default));
+    }
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task BootstrapAsyncTest()
-    // {
-    //     var transportA = CreateNetMQTransport();
-    //     var transportB = CreateNetMQTransport();
-    //     var transportC = CreateNetMQTransport();
+    [Fact(Timeout = Timeout)]
+    public async Task BootstrapAsync()
+    {
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
+        await using var transportC = TestUtils.CreateTransport();
+        var tableA = new RoutingTable(transportA.Peer.Address);
+        var tableB = new RoutingTable(transportB.Peer.Address);
+        var tableC = new RoutingTable(transportC.Peer.Address);
+        var peerDiscoveryA = new PeerDiscovery(tableA, transportA);
+        var peerDiscoveryB = new PeerDiscovery(tableB, transportB);
+        var peerDiscoveryC = new PeerDiscovery(tableC, transportC);
 
-    //     try
-    //     {
-    //         await StartNetMQTransportAsync(transportA);
-    //         await StartNetMQTransportAsync(transportB);
-    //         await StartNetMQTransportAsync(transportC);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await transportC.StartAsync(default);
 
-    //         await transportB.BootstrapAsync(new[] { transportA.Peer });
-    //         await transportC.BootstrapAsync(new[] { transportA.Peer });
+        await peerDiscoveryB.BootstrapAsync([transportA.Peer], 3, default);
+        await peerDiscoveryC.BootstrapAsync([transportA.Peer], 3, default);
 
-    //         Assert.Contains(transportB.Peer, transportC.Peers);
-    //         Assert.Contains(transportC.Peer, transportB.Peers);
+        Assert.True(tableB.Contains(transportC.Peer));
+        Assert.True(tableC.Contains(transportB.Peer));
 
-    //         transportA.Table.Clear();
-    //         transportB.Table.Clear();
-    //         transportC.Table.Clear();
+        tableA.Clear();
+        tableB.Clear();
+        tableC.Clear();
 
-    //         await transportB.AddPeersAsync(new[] { transportC.Peer }, null);
-    //         await transportC.StopAsync(default);
-    //         await transportA.BootstrapAsync(new[] { transportB.Peer });
-    //         Assert.Contains(transportB.Peer, transportA.Peers);
-    //         Assert.DoesNotContain(transportC.Peer, transportA.Peers);
-    //     }
-    //     finally
-    //     {
-    //         transportA.Dispose();
-    //         transportB.Dispose();
-    //         transportC.Dispose();
-    //     }
-    // }
+        await transportB.PingAsync(transportC.Peer, default);
+        await transportC.StopAsync(default);
+        await peerDiscoveryA.BootstrapAsync([transportB.Peer], 3, default);
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task RemoveStalePeers()
-    // {
-    //     var transportA = CreateNetMQTransport();
-    //     var transportB = CreateNetMQTransport();
+        Assert.True(tableB.Contains(transportA.Peer));
+        Assert.False(tableC.Contains(transportA.Peer));
+    }
 
-    //     await StartNetMQTransportAsync(transportA);
-    //     await StartNetMQTransportAsync(transportB);
+    [Fact(Timeout = Timeout)]
+    public async Task RemoveStalePeers()
+    {
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
 
-    //     await transportA.AddPeersAsync(new[] { transportB.Peer }, null);
-    //     Assert.Single(transportA.Peers);
+        var tableA = new RoutingTable(transportA.Peer.Address);
+        var peerDiscoveryA = new PeerDiscovery(tableA, transportA);
+        using var _ = transportB.RegisterPingHandler();
 
-    //     await transportB.StopAsync(default);
-    //     await Task.Delay(100);
-    //     await transportA.Kademlia.RefreshTableAsync(TimeSpan.Zero, default);
-    //     Assert.Empty(transportA.Peers);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
 
-    //     transportA.Dispose();
-    //     transportB.Dispose();
-    // }
+        await peerDiscoveryA.RefreshPeerAsync(transportB.Peer, default);
+        Assert.Single(tableA);
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task RoutingTableFull()
-    // {
-    //     var transport = CreateNetMQTransport(tableSize: 1, bucketSize: 1);
-    //     var transportA = CreateNetMQTransport();
-    //     var transportB = CreateNetMQTransport();
-    //     var transportC = CreateNetMQTransport();
+        await transportB.StopAsync(default);
+        await Task.Delay(100);
+        await peerDiscoveryA.RefreshPeersAsync(TimeSpan.Zero, default);
+        Assert.Empty(tableA);
+    }
 
-    //     await StartNetMQTransportAsync(transport);
-    //     await StartNetMQTransportAsync(transportA);
-    //     await StartNetMQTransportAsync(transportB);
-    //     await StartNetMQTransportAsync(transportC);
+    [Fact(Timeout = Timeout)]
+    public async Task RoutingTableFull()
+    {
+        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
+        await using var transportC = TestUtils.CreateTransport();
 
-    //     await transportA.AddPeersAsync(new[] { transport.Peer }, null);
-    //     await transportB.AddPeersAsync(new[] { transport.Peer }, null);
-    //     await transportC.AddPeersAsync(new[] { transport.Peer }, null);
+        var table = new RoutingTable(transport.Peer.Address, bucketCount: 1, capacityPerBucket: 1);
+        var _ = new PeerDiscovery(table, transport);
 
-    //     Assert.Single(transportA.Peers);
-    //     Assert.Contains(transportA.Peer, transport.Peers);
-    //     Assert.DoesNotContain(transportB.Peer, transport.Peers);
-    //     Assert.DoesNotContain(transportC.Peer, transport.Peers);
+        await transport.StartAsync(default);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await transportC.StartAsync(default);
 
-    //     transport.Dispose();
-    //     transportA.Dispose();
-    //     transportB.Dispose();
-    //     transportC.Dispose();
-    // }
+        await transportA.PingAsync(transport.Peer, default);
+        await transportB.PingAsync(transport.Peer, default);
+        await transportC.PingAsync(transport.Peer, default);
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task ReplacementCache()
-    // {
-    //     var transport = CreateNetMQTransport(tableSize: 1, bucketSize: 1);
-    //     var transportA = CreateNetMQTransport();
-    //     var transportB = CreateNetMQTransport();
-    //     var transportC = CreateNetMQTransport();
+        Assert.Single(table.Peers);
+        Assert.Contains(transportA.Peer, table.Peers);
+        Assert.DoesNotContain(transportB.Peer, table.Peers);
+        Assert.DoesNotContain(transportC.Peer, table.Peers);
+    }
 
-    //     await StartNetMQTransportAsync(transport);
-    //     await StartNetMQTransportAsync(transportA);
-    //     await StartNetMQTransportAsync(transportB);
-    //     await StartNetMQTransportAsync(transportC);
+    [Fact(Timeout = Timeout)]
+    public async Task ReplacementCache()
+    {
+        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
+        await using var transportC = TestUtils.CreateTransport();
 
-    //     await transportA.AddPeersAsync(new[] { transport.Peer }, null);
-    //     await transportB.AddPeersAsync(new[] { transport.Peer }, null);
-    //     await Task.Delay(100);
-    //     await transportC.AddPeersAsync(new[] { transport.Peer }, null);
+        var table = new RoutingTable(transport.Peer.Address, bucketCount: 1, capacityPerBucket: 1);
+        var peerDiscovery = new PeerDiscovery(table, transport);
+        using var _1 = transportA.RegisterPingHandler();
+        using var _2 = transportB.RegisterPingHandler();
+        using var _3 = transportC.RegisterPingHandler();
 
-    //     Assert.Single(transportA.Peers);
-    //     Assert.Contains(transportA.Peer, transport.Peers);
-    //     Assert.DoesNotContain(transportB.Peer, transport.Peers);
-    //     Assert.DoesNotContain(transportC.Peer, transport.Peers);
+        await transport.StartAsync(default);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await transportC.StartAsync(default);
 
-    //     await transportA.StopAsync(default);
-    //     await transport.Kademlia.RefreshTableAsync(TimeSpan.Zero, default);
-    //     await transport.Kademlia.CheckReplacementCacheAsync(default);
+        await transportA.PingAsync(transport.Peer, default);
+        await transportB.PingAsync(transport.Peer, default);
+        await Task.Delay(100);
+        await transportC.PingAsync(transport.Peer, default);
 
-    //     Assert.Single(transport.Peers);
-    //     Assert.DoesNotContain(transportA.Peer, transport.Peers);
-    //     Assert.DoesNotContain(transportB.Peer, transport.Peers);
-    //     Assert.Contains(transportC.Peer, transport.Peers);
+        Assert.Single(table.Peers);
+        Assert.Contains(transportA.Peer, table.Peers);
+        Assert.DoesNotContain(transportB.Peer, table.Peers);
+        Assert.DoesNotContain(transportC.Peer, table.Peers);
 
-    //     transport.Dispose();
-    //     transportA.Dispose();
-    //     transportB.Dispose();
-    //     transportC.Dispose();
-    // }
+        await transportA.StopAsync(default);
+        await peerDiscovery.RefreshPeersAsync(TimeSpan.Zero, default);
+        await peerDiscovery.CheckReplacementCacheAsync(default);
+
+        Assert.Single(table.Peers);
+        Assert.DoesNotContain(transportA.Peer, table.Peers);
+        Assert.DoesNotContain(transportB.Peer, table.Peers);
+        Assert.Contains(transportC.Peer, table.Peers);
+    }
 
     // [Fact(Timeout = Timeout)]
     // public async Task RemoveDeadReplacementCache()
