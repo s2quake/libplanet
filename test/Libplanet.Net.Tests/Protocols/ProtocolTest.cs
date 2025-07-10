@@ -307,14 +307,10 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         }
         await using var _1 = new AsyncDisposerCollection(transports);
 
-        // var pingTaks = new List<Task>();
         for (var i = 0; i < count; i++)
         {
-            // pingTaks.Add(transports[i].PingAsync(seed.Peer, default));
             await peerDiscoveries[i].BootstrapAsync([seed.Peer], 3, default);
         }
-
-        // await Task.WhenAll(pingTaks);
 
         var taskList = new List<Task>();
         for (var i = 0; i < count; i++)
