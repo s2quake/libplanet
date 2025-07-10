@@ -1,3 +1,5 @@
+using System.ServiceModel.Channels;
+using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
@@ -20,6 +22,17 @@ public static class ITransportExtensions
             return false;
 
         }, default);
+    }
+
+    public static Task WaitMessageAsync<T>(this ITransport @this, CancellationToken cancellationToken)
+        => WaitMessageAsync<T>(@this, m => true, cancellationToken);
+
+    public static async Task WaitMessageAsync<T>(
+        this ITransport @this, Func<T, bool> predicate, CancellationToken cancellationToken)
+    {
+        await @this.Process.WaitAsync(Predicate, cancellationToken);
+
+        bool Predicate(MessageEnvelope messageEnvelope) => messageEnvelope.Message is T message && predicate(message);
     }
 
     public static IDisposable RegisterPingHandler(this ITransport @this) => @this.RegisterPingHandler([]);

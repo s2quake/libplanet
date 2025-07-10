@@ -244,87 +244,82 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         Assert.Contains(transportC.Peer, table.Peers);
     }
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task RemoveDeadReplacementCache()
-    // {
-    //     var transport = CreateNetMQTransport(tableSize: 1, bucketSize: 1);
-    //     var transportA = CreateNetMQTransport();
-    //     var transportB = CreateNetMQTransport();
-    //     var transportC = CreateNetMQTransport();
+    [Fact(Timeout = Timeout)]
+    public async Task RemoveDeadReplacementCache()
+    {
+        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
+        await using var transportC = TestUtils.CreateTransport();
 
-    //     await StartNetMQTransportAsync(transport);
-    //     await StartNetMQTransportAsync(transportA);
-    //     await StartNetMQTransportAsync(transportB);
-    //     await StartNetMQTransportAsync(transportC);
+        var table = new RoutingTable(transport.Peer.Address, bucketCount: 1, capacityPerBucket: 1);
+        var peerDiscovery = new PeerDiscovery(table, transport);
+        using var _1 = transportA.RegisterPingHandler();
+        using var _2 = transportB.RegisterPingHandler();
+        using var _3 = transportC.RegisterPingHandler();
 
-    //     await transportA.AddPeersAsync(new[] { transport.Peer }, null);
-    //     await transportB.AddPeersAsync(new[] { transport.Peer }, null);
+        await transport.StartAsync(default);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await transportC.StartAsync(default);
 
-    //     Assert.Single(transport.Peers);
-    //     Assert.Contains(transportA.Peer, transport.Peers);
-    //     Assert.DoesNotContain(transportB.Peer, transport.Peers);
+        await transportA.PingAsync(transport.Peer, default);
+        await transportB.PingAsync(transport.Peer, default);
 
-    //     await transportA.StopAsync(default);
-    //     await transportB.StopAsync(default);
+        Assert.Single(table.Peers);
+        Assert.Contains(transportA.Peer, table.Peers);
+        Assert.DoesNotContain(transportB.Peer, table.Peers);
 
-    //     await transportC.AddPeersAsync(new[] { transport.Peer }, null);
-    //     await transport.Kademlia.RefreshTableAsync(TimeSpan.Zero, default);
-    //     await transport.Kademlia.CheckReplacementCacheAsync(default);
+        await transportA.StopAsync(default);
+        await transportB.StopAsync(default);
 
-    //     Assert.Single(transport.Peers);
-    //     Assert.DoesNotContain(transportA.Peer, transport.Peers);
-    //     Assert.DoesNotContain(transportB.Peer, transport.Peers);
-    //     Assert.Contains(transportC.Peer, transport.Peers);
+        await transportC.PingAsync(transport.Peer, default);
+        await peerDiscovery.RefreshPeersAsync(TimeSpan.Zero, default);
+        await peerDiscovery.CheckReplacementCacheAsync(default);
 
-    //     transport.Dispose();
-    //     transportA.Dispose();
-    //     transportB.Dispose();
-    //     transportC.Dispose();
-    // }
+        Assert.Single(table.Peers);
+        Assert.DoesNotContain(transportA.Peer, table.Peers);
+        Assert.DoesNotContain(transportB.Peer, table.Peers);
+        Assert.Contains(transportC.Peer, table.Peers);
+    }
 
-    // [Theory(Timeout = 2 * Timeout)]
-    // [InlineData(1)]
-    // [InlineData(5)]
-    // [InlineData(20)]
-    // [InlineData(50)]
-    // public async Task BroadcastMessage(int count)
-    // {
-    //     var seed = CreateNetMQTransport();
-    //     await StartNetMQTransportAsync(seed);
-    //     var transports = new NetMQTransport[count];
-    //     for (var i = 0; i < count; i++)
-    //     {
-    //         transports[i] = CreateNetMQTransport();
-    //         await StartNetMQTransportAsync(transports[i]);
-    //     }
+    [Theory(Timeout = 2 * Timeout)]
+    [InlineData(1)]
+    [InlineData(5)]
+    [InlineData(20)]
+    [InlineData(50)]
+    public async Task BroadcastMessage(int count)
+    {
+        await using var seed = TestUtils.CreateTransport();
+        await seed.StartAsync(default);
+        var transports = new NetMQTransport[count];
+        var tables = new RoutingTable[count];
+        var peerDiscoveries = new PeerDiscovery[count];
+        for (var i = 0; i < count; i++)
+        {
+            transports[i] = TestUtils.CreateTransport();
+            tables[i] = new RoutingTable(transports[i].Peer.Address);
+            peerDiscoveries[i] = new PeerDiscovery(tables[i], transports[i]);
+            await transports[i].StartAsync(default);
+        }
+        await using var _ = new AsyncDisposerCollection(transports);
 
-    //     try
-    //     {
-    //         foreach (var transport in transports)
-    //         {
-    //             await transport.BootstrapAsync(new[] { seed.Peer });
-    //         }
+        for (var i = 0; i < count; i++)
+        {
+            await peerDiscoveries[i].BootstrapAsync([seed.Peer], 3, default);
+        }
 
-    //         Log.Debug("Bootstrap completed");
+        var taskList = new List<Task>();
+        for (var i = 0; i < count; i++)
+        {
+            var task = transports[i].WaitMessageAsync<TestMessage>(m => m.Data == "foo", default);
+            taskList.Add(task);
+        }
 
-    //         var tasks =
-    //             transports.Select(transport => transport.WaitForTestMessageWithData("foo"));
+        seed.Broadcast([.. transports.Select(t => t.Peer)], new TestMessage { Data = "foo" });
 
-    //         seed.BroadcastTestMessage(default, "foo");
-    //         Log.Debug("Broadcast completed");
-
-    //         await Task.WhenAll(tasks);
-    //     }
-    //     finally
-    //     {
-    //         seed.Dispose();
-    //         foreach (var transport in transports)
-    //         {
-    //             Assert.True(transport.ReceivedTestMessageOfData("foo"));
-    //             transport.Dispose();
-    //         }
-    //     }
-    // }
+        await Task.WhenAll(taskList);
+    }
 
     // [Fact(Timeout = Timeout)]
     // public async Task BroadcastGuarantee()

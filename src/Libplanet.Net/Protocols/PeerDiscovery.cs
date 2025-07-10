@@ -16,7 +16,7 @@ internal sealed class PeerDiscovery
     private readonly Address _address;
     private readonly ITransport _transport;
     // private readonly Bucket _replacementCache = new(256);
-    private readonly BucketCollection _replacementCache;
+    private readonly RoutingTable _replacementCache;
 
     public PeerDiscovery(RoutingTable table, ITransport transport)
     {
@@ -31,7 +31,7 @@ internal sealed class PeerDiscovery
         _address = table.Owner;
         _transport = transport;
         _transport.Process.Subscribe(ProcessMessageHandler);
-        _replacementCache = new BucketCollection(_address, table.Buckets.Count, table.Buckets.CapacityPerBucket);
+        _replacementCache = new RoutingTable(_address, table.Buckets.Count, table.Buckets.CapacityPerBucket);
     }
 
     public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int maxDepth, CancellationToken cancellationToken)
@@ -96,10 +96,14 @@ internal sealed class PeerDiscovery
 
     public async Task CheckReplacementCacheAsync(CancellationToken cancellationToken)
     {
-        var peers = _replacementCache.SelectMany(item => item.Peers).ToArray();
+        var query = from bucket in _replacementCache.Buckets
+                    from peerState in bucket
+                    orderby peerState.LastUpdated
+                    select peerState.Peer;
+        var peers = query.ToArray();
         foreach (var peer in peers)
         {
-            _replacementCache[peer].Remove(peer);
+            _replacementCache.Remove(peer);
             await RefreshPeerAsync(peer, cancellationToken);
         }
     }
@@ -164,10 +168,11 @@ internal sealed class PeerDiscovery
 
             if (!_table.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
             {
-                var oldestPeerState = _replacementCache.Oldest;
+                var bucket = _replacementCache.Buckets[peer.Address];
+                var oldestPeerState = bucket.Oldest;
                 var oldestAddress = oldestPeerState.Address;
-                _replacementCache.Remove(oldestAddress);
-                _replacementCache.AddOrUpdate(peerState);
+                bucket.Remove(oldestAddress);
+                bucket.AddOrUpdate(peerState);
             }
         }
         catch (TimeoutException)
@@ -208,10 +213,11 @@ internal sealed class PeerDiscovery
 
             if (!_table.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
             {
-                var oldestPeerState = _replacementCache.Oldest;
+                var bucket = _replacementCache.Buckets[peer.Address];
+                var oldestPeerState = bucket.Oldest;
                 var oldestAddress = oldestPeerState.Address;
-                _replacementCache.Remove(oldestAddress);
-                _replacementCache.AddOrUpdate(peerState);
+                bucket.Remove(oldestAddress);
+                bucket.AddOrUpdate(peerState);
             }
         }
     }

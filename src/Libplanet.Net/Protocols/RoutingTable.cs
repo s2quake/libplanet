@@ -145,18 +145,4 @@ internal sealed class RoutingTable(
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    private static ImmutableArray<Bucket> Create(int count, int capacity)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
-
-        var builder = ImmutableArray.CreateBuilder<Bucket>(count);
-        for (var i = 0; i < count; i++)
-        {
-            builder.Add(new Bucket(capacity));
-        }
-
-        return builder.ToImmutable();
-    }
 }
