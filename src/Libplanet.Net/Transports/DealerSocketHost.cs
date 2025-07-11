@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Subjects;
@@ -27,11 +28,22 @@ internal sealed class DealerSocketHost(ISigner signer) : IAsyncDisposable
 
     public IObservable<MessageEnvelope> Process => _processSubject;
 
-    public bool Send(Peer peer, MessageEnvelope messageEnvelope)
+    public void Send(Peer peer, MessageEnvelope messageEnvelope)
     {
+        if (messageEnvelope.Sender.Address != signer.Address)
+        {
+            throw new ArgumentException(
+                $"The provided private key's address {signer.Address} does not match " +
+                $"the remote peer's address {messageEnvelope.Sender.Address}.",
+                nameof(messageEnvelope));
+        }
+
         var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
-        var dealerSocket = GetDealerSocket(peer);
-        return dealerSocket.TrySendMultipartMessage(rawMessage);
+        var dealerSocket = GetDealerSocket(peer, messageEnvelope.Sender);
+        if (!dealerSocket.TrySendMultipartMessage(rawMessage))
+        {
+            throw new InvalidOperationException("Failed to send message to the dealer socket.");
+        }
     }
 
     // public async Task<MessageEnvelope> ReceiveAsync(Guid identity, CancellationToken cancellationToken)
@@ -44,7 +56,7 @@ internal sealed class DealerSocketHost(ISigner signer) : IAsyncDisposable
     //     // return NetMQMessageCodec.Decode(receivedRawMessage);
     // }
 
-    public DealerSocket GetDealerSocket(Peer peer)
+    public DealerSocket GetDealerSocket(Peer peer, Peer sender)
     {
         lock (_lock)
         {
@@ -53,7 +65,9 @@ internal sealed class DealerSocketHost(ISigner signer) : IAsyncDisposable
                 var address = GetAddress(peer);
                 socket = new DealerSocket();
                 socket.Options.DisableTimeWait = true;
-                socket.Options.Identity = Encoding.UTF8.GetBytes(peer.ToString());
+                socket.Options.Identity = Encoding.UTF8.GetBytes(sender.ToString());
+                Trace.WriteLine($"dealer 1: {sender}");
+                Trace.WriteLine($"dealer 2: {ByteUtility.Hex(socket.Options.Identity)}");
                 socket.Connect(address);
                 _socketsByPeer[peer] = socket;
                 _taskList.Add(RunAsync(socket, _cancellationTokenSource.Token));

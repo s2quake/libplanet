@@ -949,13 +949,13 @@ namespace Libplanet.Net.Tests
             var mockTransport = new NetMQTransport(new PrivateKey().AsSigner(), transportOptions);
             int requestCount = 0;
 
-            void MessageHandler(MessageEnvelope message)
+            void MessageHandler(IReplyContext message)
             {
                 _logger.Debug("Received message: {Content}", message);
                 switch (message.Message)
                 {
                     case PingMessage ping:
-                        mockTransport.Reply(message.Identity, new PongMessage());
+                        message.Reply(new PongMessage());
                         break;
 
                     case GetBlockHashesMessage gbhm:

@@ -42,11 +42,11 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     {
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
-        var task = transportB.Process.WaitAsync(m =>
+        var task = transportB.Process.WaitAsync(replyContext =>
         {
-            if (m.Message is PingMessage && m.Sender == transportA.Peer)
+            if (replyContext.Message is PingMessage && replyContext.Sender == transportA.Peer)
             {
-                transportB.Reply(m.Identity, new PongMessage());
+                replyContext.Pong();
                 return true;
             }
 

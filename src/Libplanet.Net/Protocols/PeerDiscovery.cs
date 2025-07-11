@@ -184,7 +184,7 @@ internal sealed class PeerDiscovery
         }
     }
 
-    private void ProcessMessageHandler(MessageEnvelope messageEnvelope)
+    private void ProcessMessageHandler(IReplyContext messageEnvelope)
     {
         switch (messageEnvelope.Message)
         {
@@ -194,8 +194,7 @@ internal sealed class PeerDiscovery
                     throw new InvalidOperationException("Cannot receive ping from self.");
                 }
 
-                var pongMessage = new PongMessage();
-                _transport.Reply(messageEnvelope.Identity, pongMessage);
+                messageEnvelope.Pong();
                 break;
 
             case GetPeerMessage getPeerMessage:
@@ -208,7 +207,7 @@ internal sealed class PeerDiscovery
                 var k = RoutingTable.BucketCount;
                 var peers = _table.GetNeighbors(target, k, includeTarget: true);
                 var peerMessage = new PeerMessage { Peers = [.. peers] };
-                _transport.Reply(messageEnvelope.Identity, peerMessage);
+                messageEnvelope.Reply(peerMessage);
                 break;
         }
 

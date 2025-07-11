@@ -1,8 +1,9 @@
+using Libplanet.Net;
 using Libplanet.Net.Messages;
 
 namespace Libplanet.Node.Services;
 
-internal sealed class SeedMessageEventArgs(MessageEnvelope message) : EventArgs
+internal sealed class SeedMessageEventArgs(IReplyContext message) : EventArgs
 {
-    public MessageEnvelope Message { get; } = message;
+    public IReplyContext Message { get; } = message;
 }

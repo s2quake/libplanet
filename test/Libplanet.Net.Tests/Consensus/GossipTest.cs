@@ -195,9 +195,9 @@ public sealed class GossipTest
     public async Task DoNotSendDuplicateMessageRequest()
     {
         var received = 0;
-        void ProcessMessage(MessageEnvelope messageEnvelope)
+        void ProcessMessage(IReplyContext replyContext)
         {
-            if (messageEnvelope.Message is WantMessage)
+            if (replyContext.Message is WantMessage)
             {
                 received++;
             }

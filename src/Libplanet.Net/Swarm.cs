@@ -520,7 +520,7 @@ public sealed class Swarm : IAsyncDisposable
     //     cancellationToken.ThrowIfCancellationRequested();
     // }
 
-    private void ProcessMessageHandler(MessageEnvelope messageEnvelope)
+    private void ProcessMessageHandler(IReplyContext messageEnvelope)
     {
         switch (messageEnvelope.Message)
         {
@@ -540,7 +540,7 @@ public sealed class Swarm : IAsyncDisposable
                         TipHash = tip.BlockHash,
                     };
 
-                    Transport.Reply(messageEnvelope.Identity, replyMessage);
+                    messageEnvelope.Reply(replyMessage);
                 }
                 break;
 
@@ -554,30 +554,30 @@ public sealed class Swarm : IAsyncDisposable
                     //     FindNextHashesChunkSize);
                     var replyMessage = new BlockHashMessage { BlockHashes = [.. hashes] };
 
-                    Transport.Reply(messageEnvelope.Identity, replyMessage);
+                    messageEnvelope.Reply(replyMessage);
                 }
                 break;
 
             case GetBlockMessage getBlockMessage:
-                _ = TransferAsync(messageEnvelope.Identity, getBlockMessage, _cancellationToken);
+                _ = TransferAsync(messageEnvelope, getBlockMessage, _cancellationToken);
                 break;
 
             case GetTransactionMessage getTransactionMessage:
-                _ = TransferAsync(messageEnvelope.Identity, getTransactionMessage, _cancellationToken);
+                _ = TransferAsync(messageEnvelope, getTransactionMessage, _cancellationToken);
                 break;
 
             case GetEvidenceMessage getEvidenceMessage:
-                _ = TransferAsync(messageEnvelope.Identity, getEvidenceMessage, _cancellationToken);
+                _ = TransferAsync(messageEnvelope, getEvidenceMessage, _cancellationToken);
                 break;
 
             case TxIdMessage txIdMessage:
                 _txFetcher.DemandMany(messageEnvelope.Sender, [.. txIdMessage.Ids]);
-                Transport.Pong(messageEnvelope);
+                messageEnvelope.Pong();
                 break;
 
             case EvidenceIdMessage evidenceIdMessage:
                 _evidenceFetcher.DemandMany(messageEnvelope.Sender, [.. evidenceIdMessage.Ids]);
-                Transport.Pong(messageEnvelope);
+                messageEnvelope.Pong();
                 break;
 
             case BlockHashMessage _:
@@ -585,7 +585,7 @@ public sealed class Swarm : IAsyncDisposable
 
             case BlockHeaderMessage blockHeader:
                 ProcessBlockHeader(messageEnvelope);
-                Transport.Pong(messageEnvelope);
+                messageEnvelope.Pong();
                 break;
 
             default:
@@ -593,7 +593,7 @@ public sealed class Swarm : IAsyncDisposable
         }
     }
 
-    private void ProcessBlockHeader(MessageEnvelope messageEnvelope)
+    private void ProcessBlockHeader(IReplyContext messageEnvelope)
     {
         var blockHeaderMsg = (BlockHeaderMessage)messageEnvelope.Message;
         if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
@@ -622,7 +622,7 @@ public sealed class Swarm : IAsyncDisposable
     }
 
     private async Task TransferAsync(
-        Guid identity, GetBlockMessage requestMessage, CancellationToken cancellationToken)
+        IReplyContext replyContext, GetBlockMessage requestMessage, CancellationToken cancellationToken)
     {
         using var scope = await _transferBlockLimiter.CanAccessAsync(cancellationToken);
         if (scope is null)
@@ -644,17 +644,17 @@ public sealed class Swarm : IAsyncDisposable
 
             if (blockList.Count == requestMessage.ChunkSize)
             {
-                Transport.Transfer(identity, [.. blockList], [.. blockCommitList], hasNext: true);
+                replyContext.Transfer([.. blockList], [.. blockCommitList], hasNext: true);
                 blockList.Clear();
                 blockCommitList.Clear();
             }
         }
 
-        Transport.Transfer(identity, [.. blockList], [.. blockCommitList]);
+        replyContext.Transfer([.. blockList], [.. blockCommitList]);
     }
 
     private async Task TransferAsync(
-        Guid identity, GetTransactionMessage requestMessage, CancellationToken cancellationToken)
+        IReplyContext replyContext, GetTransactionMessage requestMessage, CancellationToken cancellationToken)
     {
         using var scope = await _transferTxLimiter.CanAccessAsync(cancellationToken);
         if (scope is null)
@@ -667,11 +667,11 @@ public sealed class Swarm : IAsyncDisposable
             .Select(txId => Blockchain.Transactions.TryGetValue(txId, out var tx) ? tx : null)
             .OfType<Transaction>()
             .ToArray();
-        Transport.Transfer(identity, txs);
+        replyContext.Transfer(txs);
     }
 
     private async Task TransferAsync(
-        Guid identity, GetEvidenceMessage requestMessage, CancellationToken cancellationToken)
+        IReplyContext replyContext, GetEvidenceMessage requestMessage, CancellationToken cancellationToken)
     {
         using var scope = await _transferEvidenceLimiter.CanAccessAsync(cancellationToken);
         if (scope is null)
@@ -685,7 +685,7 @@ public sealed class Swarm : IAsyncDisposable
             .OfType<EvidenceBase>()
             .ToArray();
 
-        Transport.Transfer(identity, evidence);
+        replyContext.Transfer(evidence);
     }
 
     public void BroadcastEvidence(ImmutableArray<EvidenceBase> evidence) => BroadcastEvidence(default, evidence);

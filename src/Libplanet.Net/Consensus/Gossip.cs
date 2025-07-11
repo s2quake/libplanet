@@ -203,17 +203,17 @@ public sealed class Gossip(
         return [.. query.Take(count)];
     }
 
-    private void HandleMessage(MessageEnvelope messageEnvelope)
+    private void HandleMessage(IReplyContext replyContext)
     {
-        if (_deniedPeers.Contains(messageEnvelope.Sender))
+        if (_deniedPeers.Contains(replyContext.Sender))
         {
-            _transport.Pong(messageEnvelope);
+            replyContext.Pong();
             return;
         }
 
         try
         {
-            _validateReceivedMessageSubject.OnNext((messageEnvelope.Sender, messageEnvelope.Message));
+            _validateReceivedMessageSubject.OnNext((replyContext.Sender, replyContext.Message));
         }
         catch (Exception ex)
         {
@@ -222,21 +222,21 @@ public sealed class Gossip(
             return;
         }
 
-        switch (messageEnvelope.Message)
+        switch (replyContext.Message)
         {
             case PingMessage:
             case GetPeerMessage:
                 break;
             case HaveMessage:
-                _transport.Pong(messageEnvelope);
-                HandleHaveMessage(messageEnvelope);
+                replyContext.Pong();
+                HandleHaveMessage(replyContext);
                 break;
             case WantMessage:
-                HandleWantMessage(messageEnvelope);
+                HandleWantMessage(replyContext);
                 break;
             default:
-                _transport.Pong(messageEnvelope);
-                AddMessage(messageEnvelope.Message);
+                replyContext.Pong();
+                AddMessage(replyContext.Message);
                 break;
         }
     }
@@ -260,7 +260,7 @@ public sealed class Gossip(
         }
     }
 
-    private void HandleHaveMessage(MessageEnvelope messageEnvelope)
+    private void HandleHaveMessage(IReplyContext messageEnvelope)
     {
         var haveMessage = (HaveMessage)messageEnvelope.Message;
         var ids = haveMessage.Ids.Where(id => !_messageById.ContainsKey(id)).ToArray();
@@ -335,19 +335,19 @@ public sealed class Gossip(
             });
     }
 
-    private void HandleWantMessage(MessageEnvelope messageEnvelope)
+    private void HandleWantMessage(IReplyContext replyContext)
     {
-        var wantMessage = (WantMessage)messageEnvelope.Message;
-        var contents = wantMessage.Ids.Select(id => _messageById[id]).ToArray();
+        var wantMessage = (WantMessage)replyContext.Message;
+        var messages = wantMessage.Ids.Select(id => _messageById[id]).ToArray();
 
-        Parallel.ForEach(contents, Invoke);
+        Parallel.ForEach(messages, Invoke);
 
         void Invoke(IMessage message)
         {
             try
             {
                 _validateSendingMessageSubject.OnNext(message);
-                _transport.Reply(messageEnvelope.Identity, message);
+                replyContext.Reply(message);
             }
             catch (Exception)
             {

@@ -76,7 +76,7 @@ public abstract class TransportTest(ITestOutputHelper output)
             }
         });
         Assert.Throws<ObjectDisposedException>(() => transport.Broadcast([], message));
-        Assert.Throws<ObjectDisposedException>(() => transport.Reply(Guid.NewGuid(), message));
+        // Assert.Throws<ObjectDisposedException>(() => transport.Reply(Guid.NewGuid(), message));
 
         await transport.DisposeAsync();
     }
@@ -160,12 +160,12 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(random);
 
         Trace.WriteLine("1");
-        using var subscription = transportB.Process.Subscribe(async messageEnvelope =>
+        using var subscription = transportB.Process.Subscribe(async replyContext =>
         {
-            if (messageEnvelope.Message is PingMessage)
+            if (replyContext.Message is PingMessage)
             {
                 await Task.Delay(100);
-                transportB.Reply(messageEnvelope.Identity, new PongMessage());
+                replyContext.Pong();
             }
         });
 
@@ -179,6 +179,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         var replyMessage = await transportA.SendForSingleAsync<PongMessage>(transportB.Peer, message, default);
 
         Assert.IsType<PongMessage>(replyMessage);
+        Trace.WriteLine("2");
     }
 
     [Fact(Timeout = Timeout)]
@@ -209,9 +210,9 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        using var subscription = transportB.Process.Subscribe(messageEnvelope =>
+        using var subscription = transportB.Process.Subscribe(replyContext =>
         {
-            if (messageEnvelope.Message is PingMessage)
+            if (replyContext.Message is PingMessage)
             {
                 var replyMessage = new AggregateMessage
                 {
@@ -221,7 +222,7 @@ public abstract class TransportTest(ITestOutputHelper output)
                         new PongMessage(),
                     ]
                 };
-                transportB.Reply(messageEnvelope.Identity, replyMessage);
+                replyContext.Reply(replyMessage);
             }
         });
 
@@ -305,15 +306,15 @@ public abstract class TransportTest(ITestOutputHelper output)
         var transportC = CreateTransport(random, GeneratePrivateKeyOfBucketIndex(address, 1));
         var transportD = CreateTransport(random, GeneratePrivateKeyOfBucketIndex(address, 2));
 
-        var tcsB = new TaskCompletionSource<MessageEnvelope>();
-        var tcsC = new TaskCompletionSource<MessageEnvelope>();
-        var tcsD = new TaskCompletionSource<MessageEnvelope>();
+        var tcsB = new TaskCompletionSource<IReplyContext>();
+        var tcsC = new TaskCompletionSource<IReplyContext>();
+        var tcsD = new TaskCompletionSource<IReplyContext>();
 
         transportB.Process.Subscribe(item => MessageHandler(tcsB)(item));
         transportC.Process.Subscribe(item => MessageHandler(tcsC)(item));
         transportD.Process.Subscribe(item => MessageHandler(tcsD)(item));
 
-        Action<MessageEnvelope> MessageHandler(TaskCompletionSource<MessageEnvelope> tcs)
+        Action<IReplyContext> MessageHandler(TaskCompletionSource<IReplyContext> tcs)
         {
             return messageEnvelope =>
             {

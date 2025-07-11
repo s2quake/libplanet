@@ -60,8 +60,8 @@ public static class ITransportExtensions
         return DateTimeOffset.UtcNow - dateTimeOffset;
     }
 
-    public static void Pong(this ITransport @this, MessageEnvelope messageEnvelope)
-        => @this.Reply(messageEnvelope.Identity, new PongMessage());
+    // public static void Pong(this ITransport @this, MessageEnvelope messageEnvelope)
+    //     => @this.Reply(messageEnvelope.Identity, new PongMessage());
 
     internal static async Task<BlockHash[]> GetBlockHashesAsync(
         this ITransport @this, Peer peer, BlockHash blockHash, CancellationToken cancellationToken)
@@ -112,26 +112,26 @@ public static class ITransportExtensions
         return responseMessage.Peers;
     }
 
-    internal static void Transfer(this ITransport @this, Guid identity, Transaction[] transactions)
+    internal static void Transfer(this IReplyContext @this, Transaction[] transactions)
     {
         var replyMessage = new TransactionMessage
         {
             Transactions = [.. transactions],
         };
-        @this.Reply(identity, replyMessage);
+        @this.Reply(replyMessage);
     }
 
-    internal static void Transfer(this ITransport @this, Guid identity, EvidenceBase[] evidence)
+    internal static void Transfer(this IReplyContext @this,  EvidenceBase[] evidence)
     {
         var replyMessage = new EvidenceMessage
         {
             Evidence = [.. evidence],
         };
-        @this.Reply(identity, replyMessage);
+        @this.Reply(replyMessage);
     }
 
     internal static void Transfer(
-        this ITransport @this, Guid identity, Block[] blocks, BlockCommit[] blockCommits, bool hasNext = false)
+        this IReplyContext @this, Block[] blocks, BlockCommit[] blockCommits, bool hasNext = false)
     {
         var replyMessage = new BlockMessage
         {
@@ -139,6 +139,6 @@ public static class ITransportExtensions
             BlockCommits = [.. blockCommits],
             HasNext = hasNext,
         };
-        @this.Reply(identity, replyMessage);
+        @this.Reply(replyMessage);
     }
 }

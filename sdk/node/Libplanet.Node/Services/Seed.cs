@@ -129,38 +129,38 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         }
     }
 
-    private void ReceiveMessageAsync(MessageEnvelope message)
+    private void ReceiveMessageAsync(IReplyContext replyContext)
     {
         if (_transport is null || _cancellationTokenSource is null)
         {
             throw new InvalidOperationException("Seed node is not running.");
         }
 
-        var messageIdentity = message.Identity;
+        // var messageIdentity = message.Identity;
         var transport = _transport;
         var peers = Peers;
 
-        switch (message.Message)
+        switch (replyContext.Message)
         {
             case GetPeerMessage:
                 var alivePeers = peers.Where(item => item.IsAlive)
                                       .Select(item => item.BoundPeer)
                                       .ToArray();
                 var neighborsMsg = new PeerMessage { Peers = [.. alivePeers] };
-                transport.Reply(messageIdentity, neighborsMsg);
+                replyContext.Reply(neighborsMsg);
                 break;
 
             default:
                 var pongMsg = new PongMessage();
-                transport.Reply(messageIdentity, pongMsg);
+                replyContext.Reply(pongMsg);
                 break;
         }
 
-        if (message.Sender is Net.Peer boundPeer)
+        if (replyContext.Sender is Net.Peer boundPeer)
         {
             peers.AddOrUpdate(boundPeer, transport);
         }
 
-        MessageReceived?.Invoke(this, new SeedMessageEventArgs(message));
+        MessageReceived?.Invoke(this, new SeedMessageEventArgs(replyContext));
     }
 }

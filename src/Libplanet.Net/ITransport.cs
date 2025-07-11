@@ -6,7 +6,7 @@ namespace Libplanet.Net;
 
 public interface ITransport : IAsyncDisposable
 {
-    IObservable<MessageEnvelope> Process { get; }
+    IObservable<IReplyContext> Process { get; }
 
     Peer Peer { get; }
 
@@ -22,5 +22,5 @@ public interface ITransport : IAsyncDisposable
 
     void Broadcast(ImmutableArray<Peer> peers, IMessage message);
 
-    void Reply(Guid identity, IMessage message);
+    // void Reply(MessageEnvelope requestEnvelope, IMessage message);
 }
