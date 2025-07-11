@@ -13,13 +13,27 @@ internal sealed class NetMQReplyContext(NetMQTransport transport, MessageEnvelop
 
     public DateTimeOffset Timestamp => messageEnvelope.Timestamp;
 
-    public void Dispose()
+    public void Next(IMessage message)
     {
+        if (!message.HasNext)
+        {
+            throw new ArgumentException(
+                "The message must have 'HasNext' set to true to be replied.",
+                nameof(message));
+        }
 
+        transport.Reply(messageEnvelope, message);
     }
 
-    public void Reply(IMessage message)
+    public void Complete(IMessage message)
     {
+        if (message.HasNext)
+        {
+            throw new ArgumentException(
+                "The message must have 'HasNext' set to false to be completed.",
+                nameof(message));
+        }
+
         transport.Reply(messageEnvelope, message);
     }
 }

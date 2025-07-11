@@ -540,7 +540,7 @@ public sealed class Swarm : IAsyncDisposable
                         TipHash = tip.BlockHash,
                     };
 
-                    messageEnvelope.Reply(replyMessage);
+                    messageEnvelope.Next(replyMessage);
                 }
                 break;
 
@@ -554,7 +554,7 @@ public sealed class Swarm : IAsyncDisposable
                     //     FindNextHashesChunkSize);
                     var replyMessage = new BlockHashMessage { BlockHashes = [.. hashes] };
 
-                    messageEnvelope.Reply(replyMessage);
+                    messageEnvelope.Next(replyMessage);
                 }
                 break;
 

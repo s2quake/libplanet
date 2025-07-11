@@ -147,12 +147,12 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
                                       .Select(item => item.BoundPeer)
                                       .ToArray();
                 var neighborsMsg = new PeerMessage { Peers = [.. alivePeers] };
-                replyContext.Reply(neighborsMsg);
+                replyContext.Next(neighborsMsg);
                 break;
 
             default:
                 var pongMsg = new PongMessage();
-                replyContext.Reply(pongMsg);
+                replyContext.Next(pongMsg);
                 break;
         }
 

@@ -955,7 +955,7 @@ namespace Libplanet.Net.Tests
                 switch (message.Message)
                 {
                     case PingMessage ping:
-                        message.Reply(new PongMessage());
+                        message.Next(new PongMessage());
                         break;
 
                     case GetBlockHashesMessage gbhm:

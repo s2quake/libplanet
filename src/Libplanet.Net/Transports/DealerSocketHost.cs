@@ -1,7 +1,9 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Subjects;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,10 +23,6 @@ internal sealed class DealerSocketHost(ISigner signer) : IAsyncDisposable
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly List<Task> _taskList = [];
     private bool _disposed;
-
-    // private NetMQDealerSocket(Peer peer) => Peer = peer;
-
-    // public Peer Peer { get; }
 
     public IObservable<MessageEnvelope> Process => _processSubject;
 
@@ -46,15 +44,47 @@ internal sealed class DealerSocketHost(ISigner signer) : IAsyncDisposable
         }
     }
 
-    // public async Task<MessageEnvelope> ReceiveAsync(Guid identity, CancellationToken cancellationToken)
-    // {
-    //     Process.Subscribe()
-    //     // var dealerSocket = GetDealerSocket(peer);
-    //     // var receivedRawMessage = await dealerSocket.ReceiveMultipartMessageAsync(
-    //     //     expectedFrameCount: 3,
-    //     //     cancellationToken: cancellationToken);
-    //     // return NetMQMessageCodec.Decode(receivedRawMessage);
-    // }
+    public async IAsyncEnumerable<MessageEnvelope> ReceiveAsync(
+        Guid identity, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var queue = new ConcurrentQueue<MessageEnvelope>();
+        using var resetEvent = new AutoResetEvent(false);
+        using var _ = _processSubject.Subscribe(e =>
+        {
+            if (e.Identity == identity)
+            {
+                queue.Enqueue(e);
+                resetEvent.Set();
+            }
+        });
+
+        while (true)
+        {
+            await Task.Run(resetEvent.WaitOne, cancellationToken);
+
+            while (queue.TryDequeue(out var messageEnvelope))
+            {
+                yield return messageEnvelope;
+            }
+
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!_disposed)
+        {
+            await _cancellationTokenSource.CancelAsync();
+            await TaskUtility.TryWhenAll(_taskList);
+            foreach (var socket in _socketsByPeer.Values)
+            {
+                socket.Dispose();
+            }
+
+            _cancellationTokenSource.Dispose();
+            _disposed = true;
+        }
+    }
 
     public DealerSocket GetDealerSocket(Peer peer, Peer sender)
     {
@@ -92,30 +122,14 @@ internal sealed class DealerSocketHost(ISigner signer) : IAsyncDisposable
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var receivedRawMessage = await dealerSocket.ReceiveMultipartMessageAsync(
+            var rawMessage = await dealerSocket.ReceiveMultipartMessageAsync(
                 expectedFrameCount: 3,
                 cancellationToken: cancellationToken);
-            var messageEnvelope = NetMQMessageCodec.Decode(receivedRawMessage);
+            var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
             _processSubject.OnNext(messageEnvelope);
             await Task.Yield();
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (!_disposed)
-        {
-            await _cancellationTokenSource.CancelAsync();
-            await TaskUtility.TryWhenAll(_taskList);
-            foreach (var socket in _socketsByPeer.Values)
-            {
-                socket.Dispose();
-            }
-
-            _cancellationTokenSource.Dispose();
-            _disposed = true;
-        }
     }
 }

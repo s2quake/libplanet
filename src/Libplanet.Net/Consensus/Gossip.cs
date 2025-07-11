@@ -347,7 +347,7 @@ public sealed class Gossip(
             try
             {
                 _validateSendingMessageSubject.OnNext(message);
-                replyContext.Reply(message);
+                replyContext.Next(message);
             }
             catch (Exception)
             {

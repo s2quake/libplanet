@@ -86,9 +86,9 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
         {
             if (replyContext.Message is PingMessage)
             {
-                replyContext.Reply(new PingMessage { HasNext = true });
+                replyContext.Next(new PingMessage { HasNext = true });
                 await Task.Delay(100, default);
-                replyContext.Reply(new PongMessage());
+                replyContext.Complete(new PongMessage());
             }
         });
 

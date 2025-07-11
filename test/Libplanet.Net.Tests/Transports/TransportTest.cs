@@ -222,7 +222,7 @@ public abstract class TransportTest(ITestOutputHelper output)
                         new PongMessage(),
                     ]
                 };
-                replyContext.Reply(replyMessage);
+                replyContext.Next(replyMessage);
             }
         });
 

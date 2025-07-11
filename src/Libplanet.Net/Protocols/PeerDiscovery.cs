@@ -207,7 +207,7 @@ internal sealed class PeerDiscovery
                 var k = RoutingTable.BucketCount;
                 var peers = _table.GetNeighbors(target, k, includeTarget: true);
                 var peerMessage = new PeerMessage { Peers = [.. peers] };
-                messageEnvelope.Reply(peerMessage);
+                messageEnvelope.Next(peerMessage);
                 break;
         }
 

@@ -118,7 +118,7 @@ public static class ITransportExtensions
         {
             Transactions = [.. transactions],
         };
-        @this.Reply(replyMessage);
+        @this.Next(replyMessage);
     }
 
     internal static void Transfer(this IReplyContext @this,  EvidenceBase[] evidence)
@@ -127,7 +127,7 @@ public static class ITransportExtensions
         {
             Evidence = [.. evidence],
         };
-        @this.Reply(replyMessage);
+        @this.Next(replyMessage);
     }
 
     internal static void Transfer(
@@ -139,6 +139,6 @@ public static class ITransportExtensions
             BlockCommits = [.. blockCommits],
             HasNext = hasNext,
         };
-        @this.Reply(replyMessage);
+        @this.Next(replyMessage);
     }
 }

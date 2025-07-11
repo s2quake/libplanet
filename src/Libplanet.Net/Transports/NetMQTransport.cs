@@ -24,13 +24,12 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     private readonly NetMQRouterSocket _router = new(signer.Address, options.Host, options.Port);
     private readonly NetMQQueue<MessageResponse> _replyQueue = new();
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
-    private readonly DealerSocketHost _dealerSocketHost = new(signer);
-    private NetMQPoller? _poller;
 
+    private NetMQPoller? _poller;
+    private DealerSocketHost? _dealerSocketHost;
     private CancellationTokenSource? _cancellationTokenSource = new();
     private CancellationToken _cancellationToken;
     private Task _processTask = Task.CompletedTask;
-
     private bool _disposed;
 
     public NetMQTransport(ISigner signer)
@@ -71,6 +70,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
         await _poller.StartAsync(cancellationToken);
+        _dealerSocketHost = new DealerSocketHost(signer);
 
         IsRunning = true;
     }
@@ -82,6 +82,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         if (!IsRunning)
         {
             throw new InvalidOperationException("Transport is not running.");
+        }
+
+        if (_dealerSocketHost is not null)
+        {
+            await _dealerSocketHost.DisposeAsync();
         }
 
         if (_cancellationTokenSource is not null)
@@ -112,7 +117,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
             _replyQueue.ReceiveReady -= ReplyQueue_ReceiveReady;
             _router.ReceiveReady -= Router_ReceiveReady;
-            await _dealerSocketHost.DisposeAsync();
+            if (_dealerSocketHost is not null)
+            {
+                await _dealerSocketHost.DisposeAsync();
+            }
+
             if (_cancellationTokenSource is not null)
             {
                 await _cancellationTokenSource.CancelAsync();
@@ -129,7 +138,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             _replyQueue.Dispose();
             _router.Dispose();
             _processSubject.Dispose();
-
             _disposed = true;
         }
     }
@@ -263,45 +271,34 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     private async Task RequestMessageAsync(MessageRequest request, CancellationToken cancellationToken)
     {
+        if (_dealerSocketHost is null)
+        {
+            throw new InvalidOperationException("DealerSocketHost is not initialized.");
+        }
+
         var requestWriter = request.Channel?.Writer;
 
         try
         {
-            var peer = request.Receiver;
-            var messageEnvelope = request.MessageEnvelope;
-            // var address = await peer.ResolveNetMQAddressAsync(cancellationToken);
-            // using var dealerSocket = new DealerSocket();
-            // dealerSocket.Options.DisableTimeWait = true;
-            // dealerSocket.Options.Identity = request.MessageEnvelope.Identity.ToByteArray();
-            // dealerSocket.Connect(address);
-
-            // var rawMessage = NetMQMessageCodec.Encode(request.MessageEnvelope, signer);
-            // if (!dealerSocket.TrySendMultipartMessage(rawMessage))
-            // {
-            //     throw new InvalidOperationException();
-            // }
+            var dealerSocketHost = _dealerSocketHost;
+            var receiver = request.Receiver;
+            var requestMessageEnvelope = request.MessageEnvelope;
             var hasNext = true;
 
-            _dealerSocketHost.Send(peer, messageEnvelope);
+            dealerSocketHost.Send(receiver, requestMessageEnvelope);
             while (hasNext && requestWriter is not null)
             {
-                var me = await _dealerSocketHost.Process.WaitAsync(m =>
-                {
-                    return m.Identity == messageEnvelope.Identity;
-                }, cancellationToken);
-                // var receivedRawMessage = await dealerSocket.ReceiveMultipartMessageAsync(
-                //     expectedFrameCount: 3,
-                //     cancellationToken: cancellationToken);
-                // var messageEnvelope = NetMQMessageCodec.Decode(receivedRawMessage);
+                var responseMessageEnvelope = await dealerSocketHost.Process.WaitAsync(
+                    m => m.Identity == requestMessageEnvelope.Identity, cancellationToken);
                 var messageResponse = new MessageResponse
                 {
-                    MessageEnvelope = me,
+                    MessageEnvelope = responseMessageEnvelope,
                     Receiver = Peer,
                 };
                 Trace.WriteLine("Received 123: ");
 
                 await requestWriter.WriteAsync(messageResponse, cancellationToken);
-                hasNext = messageEnvelope.Message.HasNext;
+                hasNext = responseMessageEnvelope.Message.HasNext;
                 Trace.WriteLine("Received 1234: ");
             }
 

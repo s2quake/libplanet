@@ -2,7 +2,7 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net;
 
-public interface IReplyContext : IDisposable
+public interface IReplyContext
 {
     IMessage Message { get; }
 
@@ -12,7 +12,9 @@ public interface IReplyContext : IDisposable
 
     DateTimeOffset Timestamp { get; }
 
-    void Reply(IMessage message);
+    void Next(IMessage message);
 
-    void Pong() => Reply(new PongMessage());
+    void Complete(IMessage message);
+
+    void Pong() => Complete(new PongMessage());
 }
