@@ -18,25 +18,9 @@ using Xunit.Abstractions;
 namespace Libplanet.Net.Tests.Transports;
 
 [Collection("NetMQConfiguration")]
-public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest(output), IDisposable
+public sealed class NetMQTransportTest(ITestOutputHelper output)
+    : TransportTest(output)
 {
-    private bool _disposed;
-
-    // public NetMQTransportTest(ITestOutputHelper testOutputHelper)
-    // {
-    //     TransportConstructor = CreateNetMQTransport;
-
-    //     const string outputTemplate =
-    //         "{Timestamp:HH:mm:ss:ffffff}[{ThreadId}] - {Message}";
-    //     Log.Logger = new LoggerConfiguration()
-    //         .MinimumLevel.Verbose()
-    //         .Enrich.WithThreadId()
-    //         .WriteTo.TestOutput(testOutputHelper, outputTemplate: outputTemplate)
-    //         .CreateLogger()
-    //         .ForContext<NetMQTransportTest>();
-    //     Logger = Log.ForContext<NetMQTransportTest>();
-    // }
-
     [Fact]
     public async Task SendAsync_NetMQSocketLeak()
     {
@@ -100,25 +84,6 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
         Assert.Equal(2, replyMessage.Length);
         Assert.IsType<PingMessage>(replyMessage[0]);
         Assert.IsType<PongMessage>(replyMessage[1]);
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                // NetMQConfig.Cleanup(false);
-            }
-
-            _disposed = true;
-        }
     }
 
     protected override ITransport CreateTransport(PrivateKey privateKey, TransportOptions transportOptions)

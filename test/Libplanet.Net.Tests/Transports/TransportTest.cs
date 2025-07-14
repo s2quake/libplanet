@@ -171,7 +171,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             if (replyContext.Message is PingMessage)
             {
-                replyContext.Next(new PingMessage { HasNext = true});
+                replyContext.Next(new PingMessage { HasNext = true });
                 replyContext.Complete(new PongMessage());
             }
         });
@@ -229,22 +229,29 @@ public abstract class TransportTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
+        using var _ = transportB.Process.Subscribe(async replyContext =>
+        {
+            while (true)
+            {
+                replyContext.Next(new PingMessage());
+            }
+        });
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        var query = transportA.SendAsync(transportB.Peer, new PingMessage(), default);
+        var task = Task.Run(async () =>
+        {
+            await foreach (var _ in transportA.SendAsync(transportB.Peer, new PingMessage(), default))
+            {
+                // do nothing
+            }
+        });
 
         await Task.Delay(100);
         await transportA.StopAsync(default);
         Assert.False(transportA.IsRunning);
-        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
-        {
-            await foreach (var _ in query)
-            {
-                throw new UnreachableException("This should not be reached.");
-            }
-        });
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
     }
 
     [Fact(Timeout = Timeout)]
@@ -304,9 +311,18 @@ public abstract class TransportTest(ITestOutputHelper output)
     {
         public IEnumerator<object[]> GetEnumerator()
         {
+            var l = new TcpListener(IPAddress.Loopback, 0);
+            l.Start();
+            int port = ((IPEndPoint)l.LocalEndpoint).Port;
+            l.Stop();
+
             yield return new[]
             {
-                RandomUtility.Peer()
+                new Peer
+                {
+                    Address = new PrivateKey().Address,
+                    EndPoint = new DnsEndPoint("0.0.0.0", port),
+                },
             };
         }
 

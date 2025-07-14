@@ -22,7 +22,6 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         var transportOptionsA = new TransportOptions
         {
             SendTimeout = TimeSpan.FromMilliseconds(500),
-            ReceiveTimeout = TimeSpan.FromMilliseconds(500),
         };
         await using var transportA = TestUtils.CreateTransport(options: transportOptionsA);
         await using var transportB = TestUtils.CreateTransport();

@@ -16,7 +16,7 @@ using NetMQ.Sockets;
 
 namespace Libplanet.Net.Transports;
 
-internal sealed class NetMQDealerSocket(ISigner signer, Peer peer) : IAsyncDisposable
+internal sealed class NetMQDealerSocket(ISigner signer) : IAsyncDisposable
 {
     private static readonly object _lock = new();
     private readonly SynchronizationContext _synchronizationContext
@@ -29,9 +29,7 @@ internal sealed class NetMQDealerSocket(ISigner signer, Peer peer) : IAsyncDispo
     private readonly List<Task> _taskList = [];
     private bool _disposed;
 
-    public IObservable<MessageResponse> Process => _processSubject;
-
-    public void Send(Peer peer, MessageRequest request)
+    public void Send(Peer receiver, MessageRequest request)
     {
         if (_synchronizationContext != SynchronizationContext.Current)
         {
@@ -49,7 +47,7 @@ internal sealed class NetMQDealerSocket(ISigner signer, Peer peer) : IAsyncDispo
 
         var messageEnvelope = request.MessageEnvelope;
         var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
-        var dealerSocket = GetDealerSocket(peer, request.Sender);
+        var dealerSocket = GetDealerSocket(request.Sender, receiver);
         request.CancellationToken.ThrowIfCancellationRequested();
         if (!dealerSocket.TrySendMultipartMessage(rawMessage))
         {
@@ -66,7 +64,6 @@ internal sealed class NetMQDealerSocket(ISigner signer, Peer peer) : IAsyncDispo
             if (response.Identity == identity)
             {
                 channel.Writer.TryWrite(response);
-
             }
         });
 
@@ -84,40 +81,34 @@ internal sealed class NetMQDealerSocket(ISigner signer, Peer peer) : IAsyncDispo
     {
         if (!_disposed)
         {
-            Trace.WriteLine("dealer socket disposing.");
             await _cancellationTokenSource.CancelAsync();
             await TaskUtility.TryWhenAll(_taskList);
             await _synchronizationContext.PostAsync(() =>
             {
-                Trace.WriteLine("dealer socket items disposing.");
                 foreach (var socket in _socketsByPeer.Values)
                 {
                     socket.Dispose();
                 }
-                Trace.WriteLine("dealer socket items disposed.");
             }, default);
 
             _cancellationTokenSource.Dispose();
-            Trace.WriteLine("dealer socket disposed.");
             _disposed = true;
         }
     }
 
-    public DealerSocket GetDealerSocket(Peer peer, Peer sender)
+    private DealerSocket GetDealerSocket(Peer sender, Peer receiver)
     {
         lock (_lock)
         {
-            if (!_socketsByPeer.TryGetValue(peer, out var socket))
+            if (!_socketsByPeer.TryGetValue(receiver, out var socket))
             {
-                var address = GetAddress(peer);
+                var address = GetAddress(receiver);
                 socket = new DealerSocket();
                 socket.Options.DisableTimeWait = true;
                 socket.Options.Identity = Encoding.UTF8.GetBytes(sender.ToString());
-                Trace.WriteLine($"dealer 1: {sender}");
-                Trace.WriteLine($"dealer 2: {ByteUtility.Hex(socket.Options.Identity)}");
                 socket.Connect(address);
-                _socketsByPeer[peer] = socket;
-                _taskList.Add(RunAsync(socket, _cancellationTokenSource.Token));
+                _socketsByPeer[receiver] = socket;
+                _taskList.Add(RunAsync(socket, sender, _cancellationTokenSource.Token));
             }
 
             return socket;
@@ -135,7 +126,7 @@ internal sealed class NetMQDealerSocket(ISigner signer, Peer peer) : IAsyncDispo
         return $"tcp://{ipv4}:{port}";
     }
 
-    private async Task RunAsync(DealerSocket dealerSocket, CancellationToken cancellationToken)
+    private async Task RunAsync(DealerSocket dealerSocket, Peer sender, CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -147,7 +138,7 @@ internal sealed class NetMQDealerSocket(ISigner signer, Peer peer) : IAsyncDispo
             var messageResponse = new MessageResponse
             {
                 MessageEnvelope = messageEnvelope,
-                Receiver = peer,
+                Receiver = sender,
                 HasNext = hasNext,
             };
             _processSubject.OnNext(messageResponse);

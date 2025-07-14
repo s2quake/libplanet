@@ -56,7 +56,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         _cancellationToken = _cancellationTokenSource.Token;
         _requestChannel = Channel.CreateUnbounded<MessageRequest>();
         _poller = [_router, _replyQueue];
-        Trace.WriteLine($"NetMQPoller({_poller.GetHashCode()}) starting...");
         _router.ReceiveReady += Router_ReceiveReady;
         _replyQueue.ReceiveReady += ReplyQueue_ReceiveReady;
 
@@ -66,11 +65,9 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             {
                 using var runtime = new NetMQRuntime();
                 var task = RunRequestChannelAsync(_requestChannel, _cancellationToken);
-                _dealerSocket = new NetMQDealerSocket(signer, Peer);
-                Trace.WriteLine($"SynchronizationContext({SynchronizationContext.Current?.GetHashCode()})");
+                _dealerSocket = new NetMQDealerSocket(signer);
                 e.Set();
                 runtime.Run(task);
-                Trace.WriteLine($"NetMQRuntime({runtime.GetHashCode()}) stop. {_cancellationToken.IsCancellationRequested}");
             },
             _cancellationToken,
             TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
@@ -138,7 +135,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                 await _dealerSocket.DisposeAsync();
             }
 
-            Trace.WriteLine("123123123");
             _requestChannel?.Writer.TryComplete();
             _requestChannel = null;
             if (_cancellationTokenSource is not null)
@@ -181,14 +177,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         while (hasNext)
         {
             var response = await ReadAsync(channel, cancellationToken);
-            Trace.WriteLine("sendasync: 2");
             hasNext = response.HasNext;
             yield return response.MessageEnvelope.Message;
         }
 
-        Trace.WriteLine("sendasync: 3");
         channel.Writer.TryComplete();
-        Trace.WriteLine("sendasync: 4");
     }
 
     public void Broadcast(ImmutableArray<Peer> peers, IMessage message)
@@ -246,7 +239,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
             messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
-            Trace.WriteLine($"Received {messageEnvelope.Message.GetType().Name}: {messageEnvelope.Sender}");
             var replyContext = new NetMQReplyContext(this, messageEnvelope);
             _processSubject.OnNext(replyContext);
         }
@@ -263,8 +255,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             var messageEnvelope = messageResponse.MessageEnvelope;
             var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
             var identity = Encoding.UTF8.GetBytes(messageResponse.Receiver.ToString());
-            Trace.WriteLine($"reply 1: {messageResponse.Receiver}");
-            Trace.WriteLine($"reply 2: {ByteUtility.Hex(identity)}");
             rawMessage.Push(identity);
             rawMessage.Append(messageResponse.HasNext ? 1 : 0);
             if (_router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), rawMessage))
@@ -281,13 +271,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     private async Task RunRequestChannelAsync(
         Channel<MessageRequest> channel, CancellationToken cancellationToken)
     {
-        Trace.WriteLine("RunRequestChannelAsync begin.");
         var requestReader = channel.Reader;
         await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
         {
             _ = RequestMessageAsync(request, request.CancellationToken);
         }
-        Trace.WriteLine("RunRequestChannelAsync end.");
     }
 
     private async Task RequestMessageAsync(MessageRequest request, CancellationToken cancellationToken)
@@ -310,15 +298,13 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                 }
 
                 requestWriter.Complete();
-                Trace.WriteLine("Received 12345: ");
             }
             catch (Exception e)
             {
                 requestWriter.TryComplete(e);
+                throw;
             }
         }
-
-        Trace.WriteLine("Received 123456: ");
     }
 
     private async Task<Channel<MessageResponse>> WriteAsync(
@@ -367,7 +353,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     private async Task<MessageResponse> ReadAsync(
         Channel<MessageResponse> channel, CancellationToken cancellationToken)
     {
-        using var timeoutCancellationTokenSource = new CancellationTokenSource(_options.ReceiveTimeout);
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(_options.SendTimeout);
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _cancellationToken, cancellationToken, timeoutCancellationTokenSource.Token);
 
