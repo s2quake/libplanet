@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Subjects;
@@ -16,13 +15,10 @@ using NetMQ.Sockets;
 
 namespace Libplanet.Net.Transports;
 
-internal sealed class NetMQDealerSocket(ISigner signer) : IAsyncDisposable
+internal sealed class NetMQDealerSocket(ISigner signer, SynchronizationContext synchronizationContext)
+    : IAsyncDisposable
 {
     private static readonly object _lock = new();
-    private readonly SynchronizationContext _synchronizationContext
-        = SynchronizationContext.Current ?? throw new InvalidOperationException(
-            "SynchronizationContext.Current is null. " +
-            "Ensure that this code is running in a context that supports synchronization contexts.");
     private readonly Subject<MessageResponse> _processSubject = new();
     private readonly Dictionary<Peer, DealerSocket> _socketsByPeer = [];
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -31,7 +27,7 @@ internal sealed class NetMQDealerSocket(ISigner signer) : IAsyncDisposable
 
     public void Send(Peer receiver, MessageRequest request)
     {
-        if (_synchronizationContext != SynchronizationContext.Current)
+        if (synchronizationContext != SynchronizationContext.Current)
         {
             throw new InvalidOperationException(
                 "Send method must be called from the same synchronization context as the one used to create this instance.");
@@ -83,7 +79,7 @@ internal sealed class NetMQDealerSocket(ISigner signer) : IAsyncDisposable
         {
             await _cancellationTokenSource.CancelAsync();
             await TaskUtility.TryWhenAll(_taskList);
-            await _synchronizationContext.PostAsync(() =>
+            await synchronizationContext.PostAsync(() =>
             {
                 foreach (var socket in _socketsByPeer.Values)
                 {
