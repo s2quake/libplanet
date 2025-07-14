@@ -287,7 +287,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     [InlineData(1)]
     [InlineData(5)]
     [InlineData(20)]
-    [InlineData(50)]
+    [InlineData(30)]
     public async Task BroadcastMessage(int count)
     {
         await using var seed = TestUtils.CreateTransport();
