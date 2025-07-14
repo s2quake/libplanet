@@ -21,6 +21,4 @@ public interface ITransport : IAsyncDisposable
     IAsyncEnumerable<IMessage> SendAsync(Peer receiver, IMessage message, CancellationToken cancellationToken);
 
     void Broadcast(ImmutableArray<Peer> peers, IMessage message);
-
-    // void Reply(MessageEnvelope requestEnvelope, IMessage message);
 }

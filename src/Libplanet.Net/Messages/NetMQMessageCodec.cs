@@ -31,9 +31,9 @@ internal static class NetMQMessageCodec
 
     public static MessageEnvelope Decode(NetMQMessage encoded)
     {
-        if (encoded.FrameCount is not 2)
+        if (encoded.FrameCount < 2)
         {
-            throw new ArgumentException("Can't parse empty NetMQMessage.");
+            throw new ArgumentException("Invalid NetMQMessage: must contain at least 2 frames.");
         }
 
         var bytes = encoded[0].ToByteArray();

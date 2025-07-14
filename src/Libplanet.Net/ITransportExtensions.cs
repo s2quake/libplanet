@@ -60,9 +60,6 @@ public static class ITransportExtensions
         return DateTimeOffset.UtcNow - dateTimeOffset;
     }
 
-    // public static void Pong(this ITransport @this, MessageEnvelope messageEnvelope)
-    //     => @this.Reply(messageEnvelope.Identity, new PongMessage());
-
     internal static async Task<BlockHash[]> GetBlockHashesAsync(
         this ITransport @this, Peer peer, BlockHash blockHash, CancellationToken cancellationToken)
     {

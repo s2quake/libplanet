@@ -38,7 +38,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
     // }
 
     [Fact]
-    public async Task SendMessageAsyncNetMQSocketLeak()
+    public async Task SendAsync_NetMQSocketLeak()
     {
         using var scope = new PropertyScope(typeof(NetMQConfig), nameof(NetMQConfig.MaxSockets), 12);
 
@@ -76,7 +76,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output) : TransportTest
     }
 
     [Fact]
-    public async Task SendMessageAsStreamAsync()
+    public async Task SendAsync_AsStream()
     {
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);

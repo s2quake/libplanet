@@ -13,4 +13,8 @@ internal sealed record class MessageRequest
     public Channel<MessageResponse>? Channel { get; init; }
 
     public CancellationToken CancellationToken { get; init; }
+
+    public Guid Identity => MessageEnvelope.Identity;
+
+    public Peer Sender => MessageEnvelope.Sender;
 }

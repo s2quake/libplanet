@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NetMQ;
@@ -17,6 +18,7 @@ internal static class NetMQPollerExtensions
 
     public static async Task StopAsync(this NetMQPoller @this, CancellationToken cancellationToken)
     {
+        Trace.WriteLine("NetMQPoller stopping.");
         @this.StopAsync();
         while (@this.IsRunning)
         {
@@ -24,10 +26,12 @@ internal static class NetMQPollerExtensions
         }
 
         @this.Dispose();
+        Trace.WriteLine("NetMQPoller stopped.");
     }
 
     public static async ValueTask DisposeAsync(this NetMQPoller @this)
     {
+        Trace.WriteLine("NetMQPoller disposing.");
         @this.StopAsync();
         while (@this.IsRunning)
         {
@@ -35,5 +39,6 @@ internal static class NetMQPollerExtensions
         }
 
         @this.Dispose();
+        Trace.WriteLine($"NetMQPoller{@this.GetHashCode()} disposed.");
     }
 }

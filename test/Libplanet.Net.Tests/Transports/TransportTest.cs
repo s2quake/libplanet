@@ -41,7 +41,7 @@ public abstract class TransportTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task RestartAsync()
+    public async Task Restart()
     {
         var random = RandomUtility.GetRandom(output);
         await using var transport = CreateTransport(random);
@@ -50,12 +50,13 @@ public abstract class TransportTest(ITestOutputHelper output)
         Assert.True(transport.IsRunning);
         await transport.StopAsync(default);
         Assert.False(transport.IsRunning);
+        Trace.WriteLine("--------------------------------");
         await transport.StartAsync(default);
         Assert.True(transport.IsRunning);
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task DisposeAsyncTest()
+    public async Task DisposeAsync_Test()
     {
         var random = RandomUtility.GetRandom(output);
         await using var transport = CreateTransport(random);
@@ -79,12 +80,6 @@ public abstract class TransportTest(ITestOutputHelper output)
         // Assert.Throws<ObjectDisposedException>(() => transport.Reply(Guid.NewGuid(), message));
 
         await transport.DisposeAsync();
-    }
-
-    [Fact(Timeout = Timeout)]
-    public async Task PeerAsync()
-    {
-
     }
 
     [Fact(Timeout = Timeout)]
@@ -117,49 +112,12 @@ public abstract class TransportTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task SendMessageAsync()
+    public async Task SendAsync()
     {
-        // using var router = new RouterSocket();
-        // using var poller = new NetMQPoller() { router };
-        // poller.RunAsync();
-        // poller.Stop();
-
-        // return;
-        // var id = Guid.NewGuid();
-        // var router = new RouterSocket();
-        // // router.Options.RouterHandover = true;
-        // router.Bind("tcp://*:4000");
-        // var dealer = new DealerSocket();
-        // // dealer.Options.DisableTimeWait = true;
-        // dealer.Options.Identity = id.ToByteArray();
-        // dealer.Connect("tcp://127.0.0.1:4000");
-
-        // using var runtime = new NetMQRuntime();
-        // var task1 = Task.Run(() =>
-        // {
-        //     var m = dealer.ReceiveMultipartMessage();
-        //     int qwr = 0;
-        // });
-
-        // var task2 = Task.Run(() =>
-        // {
-        //     var m1 = router.ReceiveMultipartMessage();
-        //     var m = new NetMQMessage();
-        //     m.Push(id.ToByteArray());
-        //     m.Append([0, 1]);
-        //     router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), m);
-        //     int qwr = 0;
-        // });
-
-        // dealer.TrySendMultipartMessage(new NetMQMessage([new NetMQFrame([0, 1])]));
-
-        // runtime.Run(task1, task2);
-
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        Trace.WriteLine("1");
         using var subscription = transportB.Process.Subscribe(async replyContext =>
         {
             if (replyContext.Message is PingMessage)
@@ -179,7 +137,6 @@ public abstract class TransportTest(ITestOutputHelper output)
         var replyMessage = await transportA.SendForSingleAsync<PongMessage>(transportB.Peer, message, default);
 
         Assert.IsType<PongMessage>(replyMessage);
-        Trace.WriteLine("2");
     }
 
     [Fact(Timeout = Timeout)]
@@ -204,7 +161,7 @@ public abstract class TransportTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task SendMessageMultipleRepliesAsync()
+    public async Task SendAsync_MultipleReplies()
     {
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
@@ -214,15 +171,8 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             if (replyContext.Message is PingMessage)
             {
-                var replyMessage = new AggregateMessage
-                {
-                    Messages =
-                    [
-                        new PingMessage(),
-                        new PongMessage(),
-                    ]
-                };
-                replyContext.Next(replyMessage);
+                replyContext.Next(new PingMessage { HasNext = true});
+                replyContext.Complete(new PongMessage());
             }
         });
 
@@ -233,7 +183,7 @@ public abstract class TransportTest(ITestOutputHelper output)
             .ToArrayAsync(default);
 
         Assert.IsType<PingMessage>(replyMessages[0]);
-        Assert.IsType<PongMessage>(replyMessages[0]);
+        Assert.IsType<PongMessage>(replyMessages[1]);
     }
 
     // This also tests ITransport.ReplyMessage at the same time.
@@ -258,13 +208,13 @@ public abstract class TransportTest(ITestOutputHelper output)
 
     [SkippableTheory(Timeout = Timeout)]
     [ClassData(typeof(TransportTestInvalidPeers))]
-    public async Task SendMessageToInvalidPeerAsync(Peer invalidPeer)
+    public async Task SendAsync_ToInvalidPeerAsync(Peer invalidPeer)
     {
         var random = RandomUtility.GetRandom(output);
         await using var transport = CreateTransport(random);
 
         await transport.StartAsync(default);
-        await Assert.ThrowsAsync<CommunicationException>(async () =>
+        await Assert.ThrowsAsync<TimeoutException>(async () =>
         {
             await foreach (var _ in transport.SendAsync(invalidPeer, new PingMessage(), default))
             {
@@ -274,7 +224,7 @@ public abstract class TransportTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task SendMessageAsyncCancelWhenTransportStop()
+    public async Task SendAsync_CancelWhenTransportStop()
     {
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
@@ -354,19 +304,9 @@ public abstract class TransportTest(ITestOutputHelper output)
     {
         public IEnumerator<object[]> GetEnumerator()
         {
-            // Make sure the tcp port is invalid.
-            var l = new TcpListener(IPAddress.Loopback, 0);
-            l.Start();
-            int port = ((IPEndPoint)l.LocalEndpoint).Port;
-            l.Stop();
-
             yield return new[]
             {
-                new Peer
-                {
-                    Address = new PrivateKey().Address,
-                    EndPoint = new DnsEndPoint("0.0.0.0", port),
-                },
+                RandomUtility.Peer()
             };
         }
 
