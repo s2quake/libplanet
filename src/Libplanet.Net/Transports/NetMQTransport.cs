@@ -20,10 +20,10 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     private readonly NetMQQueue<MessageResponse> _responseQueue = new();
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
 
-    private NetMQPoller? _poller;
     private CancellationTokenSource? _cancellationTokenSource = new();
     private CancellationToken _cancellationToken;
     private NetMQRequestWorker? _requestWorker;
+    private NetMQPoller? _poller;
     private bool _disposed;
 
     public NetMQTransport(ISigner signer)
@@ -73,6 +73,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         if (_poller is not null)
         {
             await _poller.StopAsync(cancellationToken);
+            _poller.Dispose();
             _poller = null;
         }
 
