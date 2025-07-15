@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Types.Threading;
 using Nito.AsyncEx.Synchronous;
+using Org.BouncyCastle.Asn1.Cms;
 
 namespace Libplanet.Net.Tests;
 
@@ -103,6 +104,120 @@ public sealed class ServiceBaseTest
         await Assert.ThrowsAsync<InvalidOperationException>(service.RecoverAsync);
     }
 
+    [Fact]
+    public async Task RecoverAsync_Failed()
+    {
+        await using var service = new Service
+        {
+            StartTask = _ => throw new InvalidOperationException("Cannot start."),
+            RecoverTask = Task.FromException(new InvalidOperationException("Cannot recover.")),
+        };
+        var e1 = await Assert.ThrowsAsync<InvalidOperationException>(() => service.StartAsync(default));
+        Assert.Equal("Cannot start.", e1.Message);
+        var e2 = await Assert.ThrowsAsync<InvalidOperationException>(service.RecoverAsync);
+        Assert.Equal("Cannot recover.", e2.Message);
+        Assert.Equal(ServiceState.Faluted, service.State);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Test()
+    {
+        var service1 = new Service();
+        await service1.DisposeAsync();
+        Assert.Equal(ServiceState.Disposed, service1.State);
+
+        var service2 = new Service();
+        await service2.StartAsync(default);
+        await service2.DisposeAsync();
+        Assert.Equal(ServiceState.Disposed, service2.State);
+
+        var service3 = new Service();
+        await service3.StartAsync(default);
+        await service3.StopAsync(default);
+        await service3.DisposeAsync();
+        Assert.Equal(ServiceState.Disposed, service3.State);
+
+        var service4 = new Service()
+        {
+            StartTask = _ => throw new InvalidOperationException("Cannot start."),
+        };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service4.StartAsync(default));
+        await service4.DisposeAsync();
+        Assert.Equal(ServiceState.Disposed, service2.State);
+
+        var service5 = new Service();
+        await service5.DisposeAsync();
+        await service5.DisposeAsync();
+        Assert.Equal(ServiceState.Disposed, service2.State);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Transitioning()
+    {
+        var service1 = new Service();
+        await Parallel.ForEachAsync(
+            Enumerable.Range(0, 10),
+            async (_, _) => await service1.DisposeAsync());
+        Assert.Equal(ServiceState.Disposed, service1.State);
+
+        var service2 = new Service();
+        await Task.WhenAll(
+            service2.StartAsync(default),
+            service2.DisposeAsync().AsTask());
+        Assert.Equal(ServiceState.Disposed, service2.State);
+
+        var service3 = new Service();
+        await service3.StartAsync(default);
+        await Task.WhenAll(
+            service3.StopAsync(default),
+            service3.DisposeAsync().AsTask());
+        Assert.Equal(ServiceState.Disposed, service2.State);
+
+        var service4 = new Service
+        {
+            StartTask = _ => throw new InvalidOperationException("Cannot start."),
+        };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service4.StartAsync(default));
+        await Task.WhenAll(
+            service4.RecoverAsync(),
+            service4.DisposeAsync().AsTask());
+        Assert.Equal(ServiceState.Disposed, service4.State);
+
+        var service5 = new Service();
+#pragma warning disable S5034 // "ValueTask" should be consumed correctly
+        await Task.WhenAll(
+            service5.DisposeAsync().AsTask(),
+            service5.DisposeAsync().AsTask());
+#pragma warning restore S5034 // "ValueTask" should be consumed correctly
+        await service5.DisposeAsync();
+        Assert.Equal(ServiceState.Disposed, service5.State);
+    }
+
+    [Fact]
+    public async Task CreateCancellationTokenSource()
+    {
+        await using var service1 = new Service();
+        await service1.StartAsync(default);
+        var task1 = service1.DelayAsync(TimeSpan.FromSeconds(10), default);
+        await service1.StopAsync(default);
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await task1);
+
+        var service2 = new Service();
+        await service2.StartAsync(default);
+        var task2 = service2.DelayAsync(TimeSpan.FromSeconds(10), default);
+        await service2.DisposeAsync();
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await task2);
+    }
+
+    [Fact]
+    public async Task CreateCancellationTokenSource_Throw_WhenStateIsNotStarted()
+    {
+        await using var service = new Service();
+        var e = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await service.DelayAsync(TimeSpan.FromSeconds(10), default));
+        Assert.StartsWith("Cannot create a cancellation token source", e.Message);
+    }
+
     private sealed class Service : ServiceBase
     {
         public Func<CancellationToken, Task> StartTask { get; init; } = _ => Task.Delay(100);
@@ -112,6 +227,13 @@ public sealed class ServiceBaseTest
         public Task RecoverTask { get; init; } = Task.Delay(100);
 
         public Task DisposeTask { get; init; } = Task.Delay(100);
+
+        public async Task DelayAsync(TimeSpan delay, CancellationToken cancellationToken)
+        {
+            using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
+            await TaskUtility.TryDelay(delay, cancellationTokenSource.Token);
+            cancellationTokenSource.Token.ThrowIfCancellationRequested();
+        }
 
         protected override Task OnRecoverAsync() => RecoverTask;
 
