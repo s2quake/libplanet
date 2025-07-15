@@ -6,6 +6,7 @@ namespace Libplanet.Net;
 
 public abstract class ServiceBase : IAsyncDisposable
 {
+    private static readonly object _lock = new();
     private ServiceState _state = ServiceState.None;
     private CancellationTokenSource? _cancellationTokenSource;
     private CancellationToken _cancellationToken;
@@ -14,10 +15,7 @@ public abstract class ServiceBase : IAsyncDisposable
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (SetState(ServiceState.Transitioning) is { } prevState && prevState != ServiceState.None)
-        {
-            throw new InvalidOperationException($"Cannot start service in the state of {prevState}.");
-        }
+        SetState([ServiceState.None], ServiceState.Transitioning);
 
         try
         {
@@ -105,12 +103,16 @@ public abstract class ServiceBase : IAsyncDisposable
         return CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken);
     }
 
-    private ServiceState SetState(ServiceState state)
+    private void SetState(IEnumerable<ServiceState> oldStates, ServiceState newState)
     {
-        var prevState = (ServiceState)Interlocked.CompareExchange(
-            ref Unsafe.As<ServiceState, int>(ref _state),
-            (int)state,
-            (int)_state);
-        return prevState;
+        lock (_lock)
+        {
+            if (!oldStates.Contains(_state))
+            {
+                throw new InvalidOperationException($"Cannot change the state from {_state} to {newState}.");
+            }
+
+            _state = newState;
+        }
     }
 }
