@@ -76,7 +76,7 @@ public abstract class TransportTest(ITestOutputHelper output)
                 throw new UnreachableException("This should not be reached.");
             }
         });
-        Assert.Throws<ObjectDisposedException>(() => transport.Broadcast([], message));
+        Assert.Throws<ObjectDisposedException>(() => transport.Send([], message));
         // Assert.Throws<ObjectDisposedException>(() => transport.Reply(Guid.NewGuid(), message));
 
         await transport.DisposeAsync();
@@ -294,7 +294,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportA = CreateTransport(random);
         await transportA.StartAsync(default);
 
-        transportA.Broadcast(
+        transportA.Send(
             table.PeersToBroadcast(transportD.Peer.Address),
             new PingMessage());
 

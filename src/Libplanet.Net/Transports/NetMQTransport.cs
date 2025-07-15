@@ -156,7 +156,35 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         channel.Writer.TryComplete();
     }
 
-    public void Broadcast(ImmutableArray<Peer> peers, IMessage message)
+    public void Send(Peer receiver, IMessage message)
+    {
+        if (_requestWorker is null)
+        {
+            throw new InvalidOperationException("Transport is not running");
+        }
+
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            _cancellationToken);
+
+        var messageEnvelope = new MessageEnvelope
+        {
+            Identity = Guid.NewGuid(),
+            Message = message,
+            Protocol = _options.Protocol,
+            Sender = Peer,
+            Timestamp = DateTimeOffset.UtcNow,
+        };
+        var messageRequest = new MessageRequest
+        {
+            MessageEnvelope = messageEnvelope,
+            Receiver = receiver,
+            CancellationToken = cancellationTokenSource.Token,
+        };
+
+        _ = _requestWorker.WriteAsync(messageRequest, cancellationTokenSource.Token);
+    }
+
+    public void Send(ImmutableArray<Peer> receivers, IMessage message)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -165,7 +193,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             throw new InvalidOperationException("Transport is not running.");
         }
 
-        Parallel.ForEach(peers, peer => Post(peer, message));
+        Parallel.ForEach(receivers, peer => Send(peer, message));
     }
 
     public void Reply(MessageEnvelope requestEnvelope, IMessage message, bool hasNext)
@@ -312,33 +340,5 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             channel.Writer.TryComplete(e);
             throw;
         }
-    }
-
-    private void Post(Peer receiver, IMessage message)
-    {
-        if (_requestWorker is null)
-        {
-            throw new InvalidOperationException("Transport is not running");
-        }
-
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            _cancellationToken);
-
-        var messageEnvelope = new MessageEnvelope
-        {
-            Identity = Guid.NewGuid(),
-            Message = message,
-            Protocol = _options.Protocol,
-            Sender = Peer,
-            Timestamp = DateTimeOffset.UtcNow,
-        };
-        var messageRequest = new MessageRequest
-        {
-            MessageEnvelope = messageEnvelope,
-            Receiver = receiver,
-            CancellationToken = cancellationTokenSource.Token,
-        };
-
-        _ = _requestWorker.WriteAsync(messageRequest, cancellationTokenSource.Token);
     }
 }

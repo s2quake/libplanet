@@ -321,7 +321,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         }
 
         Trace.WriteLine("1");
-        seed.Broadcast([.. transports.Select(t => t.Peer)], new TestMessage { Data = "foo" });
+        seed.Send([.. transports.Select(t => t.Peer)], new TestMessage { Data = "foo" });
         Trace.WriteLine("2");
 
         await Task.WhenAll(taskList);
@@ -434,7 +434,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         var taskB = transportB.WaitMessageAsync<TestMessage>(m => m.Data == "foo", default);
         var taskC = transportC.WaitMessageAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
         var peers = tableA.PeersToBroadcast(default);
-        transportA.Broadcast(peers, new TestMessage { Data = "foo" });
+        transportA.Send(peers, new TestMessage { Data = "foo" });
 
         await Assert.ThrowsAsync<OperationCanceledException>(async () => await taskA);
         await taskB;

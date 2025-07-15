@@ -368,7 +368,7 @@ public sealed class Swarm : IAsyncDisposable
 
     internal void BroadcastMessage(Address except, MessageBase message)
     {
-        Transport.Broadcast(
+        Transport.Send(
             RoutingTable.PeersToBroadcast(except, Options.MinimumBroadcastTarget),
             message);
     }
@@ -772,7 +772,7 @@ public sealed class Swarm : IAsyncDisposable
         {
             _fillBlocksAsyncStartedSubject.OnNext(Unit.Default);
             AppendBranch(
-                blockChain: Blockchain,
+                blockchain: Blockchain,
                 candidate: candidate,
                 cancellationToken: cancellationToken);
             _processFillBlocksFinishedSubject.OnNext(Unit.Default);
@@ -786,11 +786,11 @@ public sealed class Swarm : IAsyncDisposable
     }
 
     private void AppendBranch(
-        Blockchain blockChain,
+        Blockchain blockchain,
         ImmutableSortedDictionary<Block, BlockCommit> candidate,
         CancellationToken cancellationToken = default)
     {
-        var oldTip = blockChain.Tip;
+        var oldTip = blockchain.Tip;
         var branchpoint = oldTip;
         var blocks = ExtractBlocksToAppend(branchpoint, candidate);
         var verifiedBlockCount = 0;
@@ -798,7 +798,7 @@ public sealed class Swarm : IAsyncDisposable
         foreach (var (block, commit) in blocks)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            blockChain.Append(block, commit);
+            blockchain.Append(block, commit);
             verifiedBlockCount++;
         }
     }
