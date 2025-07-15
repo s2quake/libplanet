@@ -48,14 +48,16 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             throw new InvalidOperationException("Transport is already running.");
         }
 
-        _cancellationTokenSource = new CancellationTokenSource();
+        var cancellationTokenSource = new CancellationTokenSource();
+        using var _ = cancellationToken.Register(cancellationTokenSource.Cancel);
+        _cancellationTokenSource = cancellationTokenSource;
         _cancellationToken = _cancellationTokenSource.Token;
         _requestWorker = new NetMQRequestWorker(signer);
         _poller = [_router, _responseQueue];
         _router.ReceiveReady += Router_ReceiveReady;
         _responseQueue.ReceiveReady += ResponseQueue_ReceiveReady;
         await _poller.StartAsync(cancellationToken);
-
+        cancellationToken.ThrowIfCancellationRequested();
         IsRunning = true;
     }
 
@@ -90,6 +92,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
+        cancellationToken.ThrowIfCancellationRequested();
         IsRunning = false;
     }
 

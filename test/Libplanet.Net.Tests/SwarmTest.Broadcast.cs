@@ -263,7 +263,6 @@ namespace Libplanet.Net.Tests
                 CleaningSwarm(b);
             }
 
-            _logger.CompareBothChains(LogEventLevel.Debug, "A", chainA, "B", chainB);
             Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
         }
 
@@ -951,7 +950,6 @@ namespace Libplanet.Net.Tests
 
             void MessageHandler(IReplyContext message)
             {
-                _logger.Debug("Received message: {Content}", message);
                 switch (message.Message)
                 {
                     case PingMessage ping:

@@ -7,7 +7,7 @@ internal sealed class MaintainStaticPeerTask(Swarm swarm) : SwarmTaskBase
 {
     public override bool IsEnabled => !swarm.Options.StaticPeers.IsEmpty;
 
-    protected override TimeSpan Interval => TimeSpan.FromMinutes(30);
+    protected override TimeSpan Interval => swarm.Options.StaticPeersMaintainPeriod;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {

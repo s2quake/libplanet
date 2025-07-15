@@ -17,7 +17,7 @@ namespace Libplanet.Net.Tests
     {
         private static Block[] _fixtureBlocksForPreloadAsyncCancellationTest;
 
-        private readonly List<Func<Task>> _finalizers;
+        // private readonly List<Func<Task>> _finalizers;
 
         private static (Address, Block[])
             MakeFixtureBlocksForPreloadAsyncCancellationTest()
@@ -140,18 +140,18 @@ namespace Libplanet.Net.Tests
                 blockchain,
                 options,
                 consensusOption: consensusReactorOption);
-            _finalizers.Add(async () =>
-            {
-                try
-                {
-                    await StopAsync(swarm);
-                    await swarm.DisposeAsync();
-                }
-                catch (ObjectDisposedException)
-                {
-                    _logger.Debug("Swarm {Swarm} is already disposed", swarm);
-                }
-            });
+            // _finalizers.Add(async () =>
+            // {
+            //     try
+            //     {
+            //         await StopAsync(swarm);
+            //         await swarm.DisposeAsync();
+            //     }
+            //     catch (ObjectDisposedException)
+            //     {
+            //         // logging
+            //     }
+            // });
             return swarm;
         }
     }

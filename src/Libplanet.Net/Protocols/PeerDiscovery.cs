@@ -184,6 +184,27 @@ internal sealed class PeerDiscovery
         }
     }
 
+    public async Task AddPeersAsync(ImmutableArray<Peer> peers, CancellationToken cancellationToken)
+    {
+        if (peers.Any(item => item.Address == _address))
+        {
+            throw new ArgumentException("Peer list cannot contain self address.", nameof(peers));
+        }
+
+        if (peers.Length is 0)
+        {
+            throw new ArgumentException("Peer list cannot be empty.", nameof(peers));
+        }
+
+        var taskList = new List<Task>(peers.Length);
+        foreach (var peer in peers)
+        {
+            taskList.Add(RefreshPeerAsync(peer, cancellationToken));
+        }
+
+        await Task.WhenAll(taskList);
+    }
+
     private void ProcessMessageHandler(IReplyContext messageEnvelope)
     {
         switch (messageEnvelope.Message)

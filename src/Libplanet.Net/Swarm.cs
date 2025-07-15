@@ -163,9 +163,10 @@ public sealed class Swarm : IAsyncDisposable
             throw new InvalidOperationException("Swarm is already running.");
         }
 
-        await PreloadAsync(cancellationToken);
         _cancellationTokenSource = new CancellationTokenSource();
         _cancellationToken = _cancellationTokenSource.Token;
+        using var _ = cancellationToken.Register(() => _cancellationTokenSource.Cancel());
+        await PreloadAsync(cancellationToken);
         await Transport.StartAsync(cancellationToken);
         await BootstrapAsync(cancellationToken);
         if (_consensusReactor is not null)
@@ -173,6 +174,7 @@ public sealed class Swarm : IAsyncDisposable
             await _consensusReactor.StartAsync(cancellationToken);
         }
         _tasks = [.. _backgroundList.Where(item => item.IsEnabled).Select(item => item.RunAsync(_cancellationToken))];
+        cancellationToken.ThrowIfCancellationRequested();
         IsRunning = true;
     }
 
@@ -212,7 +214,10 @@ public sealed class Swarm : IAsyncDisposable
 
         var peersBeforeBootstrap = RoutingTable;
 
-        await PeerDiscovery.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
+        if (seedPeers.Count > 0)
+        {
+            await PeerDiscovery.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
+        }
 
         // if (!Transport.IsRunning)
         // {
@@ -309,7 +314,7 @@ public sealed class Swarm : IAsyncDisposable
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             cancellationToken, _cancellationToken);
 
-        // await PeerDiscovery.AddPeersAsync(peers, cancellationTokenSource.Token);
+        await PeerDiscovery.AddPeersAsync(peers, cancellationTokenSource.Token);
     }
 
     internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
@@ -396,7 +401,7 @@ public sealed class Swarm : IAsyncDisposable
         var random = new Random();
         var transport = Transport;
         random.Shuffle(peers);
-        peers = peers[..maxPeersToDial];
+        peers = peers.Take(maxPeersToDial).ToArray();
 
         var tasks = peers.Select(async item =>
         {
