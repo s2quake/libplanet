@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
@@ -7,6 +8,7 @@ using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
+using Nethereum.Util;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Protocols;
@@ -330,189 +332,162 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     // public async Task BroadcastGuarantee()
     // {
     //     // Make sure t1 and t2 is in same bucket of seed's routing table.
-    //     var privateKey0 = new PrivateKey(new byte[]
-    //     {
+    //     var privateKey0 = new PrivateKey(
+    //     [
     //         0x1a, 0x55, 0x30, 0x84, 0xe8, 0x9e, 0xee, 0x1e, 0x9f, 0xe2, 0xd1, 0x49, 0xe7, 0xa9,
     //         0x53, 0xa9, 0xb4, 0xe4, 0xfe, 0x5a, 0xc1, 0x6c, 0x61, 0x9f, 0x54, 0x8f, 0x5e, 0xd9,
     //         0x7f, 0xa3, 0xa0, 0x79,
-    //     });
-    //     var privateKey1 = new PrivateKey(new byte[]
-    //     {
+    //     ]);
+    //     var privateKey1 = new PrivateKey(
+    //     [
     //         0x8e, 0x26, 0x31, 0x4a, 0xee, 0x84, 0xd, 0x8a, 0xea, 0x7b, 0x6, 0xf8, 0x81, 0x5f,
     //         0x69, 0xb3, 0x44, 0x46, 0xe0, 0x27, 0x65, 0x17, 0x1, 0x16, 0x58, 0x26, 0x69, 0x93,
     //         0x48, 0xbb, 0xf, 0xb4,
-    //     });
-    //     var privateKey2 = new PrivateKey(new byte[]
-    //     {
+    //     ]);
+    //     var privateKey2 = new PrivateKey(
+    //     [
     //         0xd4, 0x6b, 0x4b, 0x38, 0xde, 0x39, 0x25, 0x3b, 0xd8, 0x1, 0x9d, 0x2, 0x2, 0x7a,
     //         0x90, 0x9, 0x46, 0x2f, 0xc1, 0xd3, 0xd9, 0xa, 0xa6, 0xf4, 0xfa, 0x9a, 0x6, 0xa3,
     //         0x60, 0xed, 0xf3, 0xd7,
-    //     });
+    //     ]);
 
-    //     var seed = CreateNetMQTransport(privateKey0);
-    //     var t1 = CreateNetMQTransport(privateKey1, true);
-    //     var t2 = CreateNetMQTransport(privateKey2);
-    //     await StartNetMQTransportAsync(seed);
-    //     await StartNetMQTransportAsync(t1);
-    //     await StartNetMQTransportAsync(t2);
+    //     await using var seed = TestUtils.CreateTransport(privateKey0);
+    //     await using var t1 = TestUtils.CreateTransport(privateKey1, true);
+    //     await using var t2 = TestUtils.CreateTransport(privateKey2);
+    //     var seedTable = new RoutingTable(seed.Peer.Address);
+    //     _ = new PeerDiscovery(seedTable, seed);
+    //     var t1Table = new RoutingTable(t1.Peer.Address);
+    //     var t2Table = new RoutingTable(t2.Peer.Address);
+    //     var peerDiscovery1 = new PeerDiscovery(t1Table, t1);
+    //     var peerDiscovery2 = new PeerDiscovery(t2Table, t2);
 
-    //     try
-    //     {
-    //         await t1.BootstrapAsync(new[] { seed.Peer });
-    //         await t2.BootstrapAsync(new[] { seed.Peer });
+    //     await seed.StartAsync(default);
+    //     await t1.StartAsync(default);
+    //     await t2.StartAsync(default);
 
-    //         Log.Debug("Bootstrap completed");
+    //     await peerDiscovery1.BootstrapAsync([seed.Peer], 3, default);
+    //     await peerDiscovery2.BootstrapAsync([seed.Peer], 3, default);
 
-    //         var tcs = new CancellationTokenSource();
-    //         var task = t2.WaitForTestMessageWithData("foo", tcs.Token);
+    //     var tcs = new CancellationTokenSource();
+    //     var task = t2.WaitForTestMessageWithData("foo", tcs.Token);
 
-    //         seed.BroadcastTestMessage(default, "foo");
-    //         Log.Debug("Broadcast \"foo\" completed");
+    //     seed.BroadcastTestMessage(default, "foo");
 
-    //         tcs.CancelAfter(TimeSpan.FromSeconds(5));
-    //         await task;
+    //     tcs.CancelAfter(TimeSpan.FromSeconds(5));
+    //     await task;
 
-    //         Assert.True(t2.ReceivedTestMessageOfData("foo"));
+    //     Assert.True(t2.ReceivedTestMessageOfData("foo"));
 
-    //         tcs = new CancellationTokenSource();
-    //         task = t2.WaitForTestMessageWithData("bar", tcs.Token);
+    //     var tcs1 = new CancellationTokenSource();
+    //     task = t2.WaitForTestMessageWithData("bar", tcs.Token);
 
-    //         seed.BroadcastTestMessage(default, "bar");
-    //         Log.Debug("Broadcast \"bar\" completed");
+    //     seed.BroadcastTestMessage(default, "bar");
 
-    //         tcs.CancelAfter(TimeSpan.FromSeconds(5));
-    //         await task;
+    //     tcs.CancelAfter(TimeSpan.FromSeconds(5));
+    //     await task;
 
-    //         Assert.True(t2.ReceivedTestMessageOfData("bar"));
+    //     Assert.True(t2.ReceivedTestMessageOfData("bar"));
 
-    //         tcs = new CancellationTokenSource();
-    //         task = t2.WaitForTestMessageWithData("baz", tcs.Token);
+    //     tcs = new CancellationTokenSource();
+    //     task = t2.WaitForTestMessageWithData("baz", tcs.Token);
 
-    //         seed.BroadcastTestMessage(default, "baz");
-    //         Log.Debug("Broadcast \"baz\" completed");
+    //     seed.BroadcastTestMessage(default, "baz");
 
-    //         tcs.CancelAfter(TimeSpan.FromSeconds(5));
-    //         await task;
+    //     tcs.CancelAfter(TimeSpan.FromSeconds(5));
+    //     await task;
 
-    //         Assert.True(t2.ReceivedTestMessageOfData("baz"));
+    //     Assert.True(t2.ReceivedTestMessageOfData("baz"));
 
-    //         tcs = new CancellationTokenSource();
-    //         task = t2.WaitForTestMessageWithData("qux", tcs.Token);
+    //     tcs = new CancellationTokenSource();
+    //     task = t2.WaitForTestMessageWithData("qux", tcs.Token);
 
-    //         seed.BroadcastTestMessage(default, "qux");
-    //         Log.Debug("Broadcast \"qux\" completed");
+    //     seed.BroadcastTestMessage(default, "qux");
 
-    //         tcs.CancelAfter(TimeSpan.FromSeconds(5));
-    //         await task;
+    //     tcs.CancelAfter(TimeSpan.FromSeconds(5));
+    //     await task;
 
-    //         Assert.True(t2.ReceivedTestMessageOfData("qux"));
-    //     }
-    //     finally
-    //     {
-    //         seed.Dispose();
-    //         t1.Dispose();
-    //         t2.Dispose();
-    //     }
+    //     Assert.True(t2.ReceivedTestMessageOfData("qux"));
     // }
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task DoNotBroadcastToSourcePeer()
-    // {
-    //     NetMQTransport transportA = CreateNetMQTransport(new PrivateKey());
-    //     NetMQTransport transportB = CreateNetMQTransport(new PrivateKey());
-    //     NetMQTransport transportC = CreateNetMQTransport(new PrivateKey());
+    [Fact(Timeout = Timeout)]
+    public async Task DoNotBroadcastToSourcePeer()
+    {
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
+        await using var transportC = TestUtils.CreateTransport();
+        var tableA = new RoutingTable(transportA.Peer.Address);
+        var tableB = new RoutingTable(transportB.Peer.Address);
+        var tableC = new RoutingTable(transportC.Peer.Address);
+        _ = new PeerDiscovery(tableA, transportA);
+        _ = new PeerDiscovery(tableB, transportB);
+        _ = new PeerDiscovery(tableC, transportC);
 
-    //     await StartNetMQTransportAsync(transportA);
-    //     await StartNetMQTransportAsync(transportB);
-    //     await StartNetMQTransportAsync(transportC);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await transportC.StartAsync(default);
 
-    //     try
-    //     {
-    //         await transportA.AddPeersAsync(new[] { transportB.Peer }, null);
-    //         await transportB.AddPeersAsync(new[] { transportC.Peer }, null);
+        await transportB.PingAsync(transportA.Peer, default);
+        await transportC.PingAsync(transportB.Peer, default);
 
-    //         transportA.BroadcastTestMessage(default, "foo");
-    //         await transportC.WaitForTestMessageWithData("foo");
-    //         await Task.Delay(100);
+        using var cancellationTokenSource = new CancellationTokenSource(10000);
+        var taskA = transportA.WaitMessageAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
+        var taskB = transportB.WaitMessageAsync<TestMessage>(m => m.Data == "foo", default);
+        var taskC = transportC.WaitMessageAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
+        var peers = tableA.PeersToBroadcast(default);
+        transportA.Broadcast(peers, new TestMessage { Data = "foo" });
 
-    //         Assert.True(transportC.ReceivedTestMessageOfData("foo"));
-    //         Assert.False(transportA.ReceivedTestMessageOfData("foo"));
-    //     }
-    //     finally
-    //     {
-    //         transportA.Dispose();
-    //         transportB.Dispose();
-    //         transportC.Dispose();
-    //     }
-    // }
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await taskA);
+        await taskB;
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await taskC);
+    }
 
-    // [Fact(Timeout = Timeout)]
-    // public async Task RefreshTable()
-    // {
-    //     const int peersCount = 10;
-    //     var privateKey = new PrivateKey();
-    //     var privateKeys = Enumerable.Range(0, peersCount).Select(
-    //         i => GeneratePrivateKeyOfBucketIndex(privateKey.Address, i / 2));
-    //     NetMQTransport transport = CreateNetMQTransport(privateKey);
-    //     NetMQTransport[] transports =
-    //         privateKeys.Select(key => CreateNetMQTransport(key)).ToArray();
+    [Fact(Timeout = Timeout)]
+    public async Task RefreshTable()
+    {
+        const int peersCount = 10;
+        var privateKey = new PrivateKey();
+        var privateKeys = Enumerable.Range(0, peersCount).Select(
+            i => TestUtils.GeneratePrivateKeyOfBucketIndex(privateKey.Address, i / 2));
+        await using var transport = TestUtils.CreateTransport(privateKey);
+        var transports = privateKeys.Select(key => TestUtils.CreateTransport(key)).ToArray();
+        var table = new RoutingTable(transport.Peer.Address);
+        var tables = transports.Select(t => new RoutingTable(t.Peer.Address)).ToArray();
+        var peerDiscovery = new PeerDiscovery(table, transport);
+        _ = transports.Select((t, i) => new PeerDiscovery(tables[i], t)).ToArray();
+        await using var _1 = new AsyncDisposerCollection(transports);
 
-    //     await StartNetMQTransportAsync(transport);
-    //     foreach (var t in transports)
-    //     {
-    //         await StartNetMQTransportAsync(t);
-    //     }
+        await transport.StartAsync(default);
 
-    //     try
-    //     {
-    //         foreach (var t in transports)
-    //         {
-    //             transport.Table.AddPeer(
-    //                 t.Peer,
-    //                 DateTimeOffset.UtcNow - TimeSpan.FromMinutes(2));
-    //         }
+        for (var i = 0; i < transports.Length; i++)
+        {
+            await transports[i].StartAsync(default);
+        }
 
-    //         IReadOnlyList<Peer> refreshCandidates =
-    //             transport.Table.PeersToRefresh(TimeSpan.FromMinutes(1));
-    //         Assert.Equal(peersCount, transport.Peers.Count());
-    //         Assert.Equal(peersCount / 2, refreshCandidates.Count);
-    //         Assert.Equal(peersCount / 2, transport.Table.NonEmptyBuckets.Count());
+        for (var i = 0; i < transports.Length; i++)
+        {
+            var peerState = new PeerState
+            {
+                Peer = transports[i].Peer,
+                LastUpdated = DateTimeOffset.UtcNow - TimeSpan.FromMinutes(2),
+            };
+            Assert.True(table.AddOrUpdate(peerState));
+        }
 
-    //         await transport.Kademlia.RefreshTableAsync(TimeSpan.FromMinutes(1), default);
-    //         Assert.NotEqual(
-    //             refreshCandidates.ToHashSet(),
-    //             transport.Table.PeersToRefresh(TimeSpan.FromMinutes(1)).ToHashSet());
-    //         Assert.Equal(
-    //             peersCount / 2,
-    //             transport.Table.PeersToRefresh(TimeSpan.FromMinutes(1)).Count());
-    //         Assert.Equal(peersCount / 2, transport.Table.NonEmptyBuckets.Count());
+        var stalePeers = table.GetStalePeers(TimeSpan.FromMinutes(1));
+        Assert.Equal(peersCount, table.Peers.Count());
+        Assert.Equal(peersCount / 2, stalePeers.Length);
+        Assert.Equal(peersCount / 2, table.Buckets.Count(item => !item.IsEmpty));
 
-    //         await transport.Kademlia.RefreshTableAsync(TimeSpan.FromMinutes(1), default);
-    //         Assert.Empty(transport.Table.PeersToRefresh(TimeSpan.FromMinutes(1)));
-    //     }
-    //     finally
-    //     {
-    //         transport.Dispose();
-    //         foreach (var t in transports)
-    //         {
-    //             t.Dispose();
-    //         }
-    //     }
-    // }
+        await peerDiscovery.RefreshPeersAsync(TimeSpan.FromMinutes(1), default);
+        Assert.NotEqual(
+            stalePeers,
+            table.GetStalePeers(TimeSpan.FromMinutes(1)));
+        Assert.Equal(
+            peersCount / 2,
+            table.GetStalePeers(TimeSpan.FromMinutes(1)).Length);
+        Assert.Equal(peersCount / 2, table.Buckets.Count(item => !item.IsEmpty));
 
-    // private NetMQTransport CreateNetMQTransport(
-    //     PrivateKey privateKey = null,
-    //     bool blockBroadcast = false,
-    //     int tableSize = Kademlia.TableSize,
-    //     int bucketSize = Kademlia.BucketSize,
-    //     TimeSpan? networkDelay = null)
-    // {
-    //     return new NetMQTransport(
-    //         _transports,
-    //         privateKey ?? new PrivateKey(),
-    //         blockBroadcast,
-    //         tableSize,
-    //         bucketSize,
-    //         networkDelay);
-    // }
+        await peerDiscovery.RefreshPeersAsync(TimeSpan.FromMinutes(1), default);
+        Assert.Empty(table.GetStalePeers(TimeSpan.FromMinutes(1)));
+    }
 }

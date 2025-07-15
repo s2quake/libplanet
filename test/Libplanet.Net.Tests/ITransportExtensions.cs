@@ -2,6 +2,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
+using Libplanet.Net.Protocols;
+using Libplanet.Net.Tests.Protocols;
 
 namespace Libplanet.Net.Tests;
 

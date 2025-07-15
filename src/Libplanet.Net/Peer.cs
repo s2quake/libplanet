@@ -9,7 +9,7 @@ using Libplanet.Types;
 namespace Libplanet.Net;
 
 [ModelConverter(typeof(PeerModelConverter), typeName: "peer")]
-public sealed record class Peer : IValidatableObject
+public sealed record class Peer : IValidatableObject, IComparable<Peer>
 {
     [NotDefault]
     public required Address Address { get; init; }
@@ -32,6 +32,26 @@ public sealed record class Peer : IValidatableObject
             Address = address,
             EndPoint = new DnsEndPoint(host, port),
         };
+    }
+
+    public int CompareTo(Peer? other)
+    {
+        if (other is null)
+        {
+            return 1;
+        }
+
+        var i = Address.CompareTo(other.Address);
+        if (i == 0)
+        {
+            i = EndPoint.Host.CompareTo(other.EndPoint.Host);
+            if (i == 0)
+            {
+                i = EndPoint.Port.CompareTo(other.EndPoint.Port);
+            }
+        }
+
+        return i;
     }
 
     public override string ToString() => $"{Address},{EndPoint.Host},{EndPoint.Port}";

@@ -19,7 +19,17 @@ public sealed record class PeerState : IComparable<PeerState>
             return 1;
         }
 
-        return LastUpdated.CompareTo(other.LastUpdated);
+        var i = LastUpdated.CompareTo(other.LastUpdated);
+        if (i == 0)
+        {
+            i = Peer.CompareTo(other.Peer);
+            if (i == 0)
+            {
+                i = Latency.CompareTo(other.Latency);
+            }
+        }
+
+        return i;
     }
 
     public bool IsStale(TimeSpan staleThreshold) => LastUpdated + staleThreshold < DateTimeOffset.UtcNow;
