@@ -14,7 +14,7 @@ using Libplanet.Net.Tasks;
 
 namespace Libplanet.Net;
 
-public sealed class Swarm : IAsyncDisposable
+public sealed class Swarm : ServiceBase, IServiceProvider
 {
     private readonly Subject<Unit> _blockHeaderReceivedSubject = new();
     private readonly Subject<Unit> _blockReceivedSubject = new();
@@ -34,12 +34,7 @@ public sealed class Swarm : IAsyncDisposable
     private readonly AccessLimiter _transferTxLimiter;
     private readonly AccessLimiter _transferEvidenceLimiter;
     private readonly ConcurrentDictionary<Peer, int> _processBlockDemandSessions = new();
-    private readonly Services _services;
-
-    private CancellationTokenSource? _cancellationTokenSource;
-    private CancellationToken _cancellationToken;
-
-    private bool _disposed;
+    private readonly ServicesCollection _services;
 
     public Swarm(
         ISigner signer,
@@ -75,8 +70,6 @@ public sealed class Swarm : IAsyncDisposable
             new MaintainStaticPeerTask(this)
         );
     }
-
-    public bool IsRunning { get; private set; }
 
     public bool ConsensusRunning => _consensusReactor?.IsRunning ?? false;
 
@@ -125,81 +118,6 @@ public sealed class Swarm : IAsyncDisposable
     internal ConsensusReactor ConsensusReactor
         => _consensusReactor ?? throw new InvalidOperationException("ConsensusReactor is not initialized.");
 
-    public async ValueTask DisposeAsync()
-    {
-        if (!_disposed)
-        {
-            if (_cancellationTokenSource is not null)
-            {
-                await _cancellationTokenSource.CancelAsync();
-            }
-
-            _transferEvidenceLimiter.Dispose();
-            _transferTxLimiter.Dispose();
-            _transferBlockLimiter.Dispose();
-
-            _txFetcher.Dispose();
-            _evidenceFetcher.Dispose();
-            _txFetcherSubscription.Dispose();
-            _evidenceFetcherSubscription.Dispose();
-            await Transport.DisposeAsync();
-            if (_consensusReactor is not null)
-            {
-                await _consensusReactor.DisposeAsync();
-            }
-
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
-            _disposed = true;
-        }
-    }
-
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        if (IsRunning)
-        {
-            throw new InvalidOperationException("Swarm is already running.");
-        }
-
-        _cancellationTokenSource = new CancellationTokenSource();
-        _cancellationToken = _cancellationTokenSource.Token;
-        using var _ = cancellationToken.Register(() => _cancellationTokenSource.Cancel());
-        await PreloadAsync(cancellationToken);
-        await Transport.StartAsync(cancellationToken);
-        await BootstrapAsync(cancellationToken);
-        if (_consensusReactor is not null)
-        {
-            await _consensusReactor.StartAsync(cancellationToken);
-        }
-
-        await _services.StartAsync(cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();
-        IsRunning = true;
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        if (!IsRunning || _cancellationTokenSource is null)
-        {
-            throw new InvalidOperationException("Swarm is not running.");
-        }
-
-        await _cancellationTokenSource.CancelAsync();
-        await _services.StopAsync(cancellationToken);
-
-        await Transport.StopAsync(cancellationToken);
-        if (_consensusReactor is not null)
-        {
-            await _consensusReactor.StopAsync(cancellationToken);
-        }
-
-        BlockDemandDictionary = new BlockDemandDictionary(Options.BlockDemandLifespan);
-        BlockCandidateTable.Cleanup(_ => true);
-        _cancellationTokenSource.Dispose();
-        _cancellationTokenSource = null;
-        IsRunning = false;
-    }
-
     private async Task BootstrapAsync(CancellationToken cancellationToken)
     {
         if (!Options.BootstrapOptions.Enabled)
@@ -209,23 +127,10 @@ public sealed class Swarm : IAsyncDisposable
 
         var seedPeers = Options.BootstrapOptions.SeedPeers;
         var searchDepth = Options.BootstrapOptions.SearchDepth;
-
-        var peersBeforeBootstrap = RoutingTable;
-
         if (seedPeers.Count > 0)
         {
             await PeerDiscovery.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
         }
-
-        // if (!Transport.IsRunning)
-        // {
-        //     // Mark added peers as stale if bootstrap is called before transport is running
-        //     // FIXME: Peers added before bootstrap might be updated.
-        //     foreach (var peer in RoutingTable.Except(peersBeforeBootstrap))
-        //     {
-        //         RoutingTable.AddOrUpdate(peer.Peer, DateTimeOffset.MinValue);
-        //     }
-        // }
     }
 
     public void BroadcastBlock(Block block)
@@ -297,20 +202,9 @@ public sealed class Swarm : IAsyncDisposable
     public Task<Peer> FindPeerAsync(Address address, int depth, CancellationToken cancellationToken)
         => PeerDiscovery.FindPeerAsync(address, depth, cancellationToken);
 
-    // public async Task CheckAllPeersAsync(CancellationToken cancellationToken = default)
-    // {
-    //     using CancellationTokenSource cts = CancellationTokenSource
-    //         .CreateLinkedTokenSource(cancellationToken, _cancellationToken);
-    //     cancellationToken = cts.Token;
-
-    //     Kademlia kademliaProtocol = PeerDiscovery;
-    //     await kademliaProtocol.CheckAllPeersAsync(cancellationToken);
-    // }
-
     public async Task AddPeersAsync(ImmutableArray<Peer> peers, CancellationToken cancellationToken)
     {
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationToken, _cancellationToken);
+        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
 
         await PeerDiscovery.AddPeersAsync(peers, cancellationTokenSource.Token);
     }
@@ -351,6 +245,52 @@ public sealed class Swarm : IAsyncDisposable
             "Failed to fetch demand block hashes from peers: " +
             string.Join(", ", peers.Select(p => p.ToString())),
             exceptionList);
+    }
+
+    protected override async Task OnStartAsync(CancellationToken cancellationToken)
+    {
+        await PreloadAsync(cancellationToken);
+        await Transport.StartAsync(cancellationToken);
+        await BootstrapAsync(cancellationToken);
+        if (_consensusReactor is not null)
+        {
+            await _consensusReactor.StartAsync(cancellationToken);
+        }
+
+        await _services.StartAsync(cancellationToken);
+    }
+
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        await _services.StopAsync(cancellationToken);
+        await Transport.StopAsync(cancellationToken);
+        if (_consensusReactor is not null)
+        {
+            await _consensusReactor.StopAsync(cancellationToken);
+        }
+
+        BlockDemandDictionary = new BlockDemandDictionary(Options.BlockDemandLifespan);
+        BlockCandidateTable.Cleanup(_ => true);
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        _transferEvidenceLimiter.Dispose();
+        _transferTxLimiter.Dispose();
+        _transferBlockLimiter.Dispose();
+
+        _txFetcher.Dispose();
+        _evidenceFetcher.Dispose();
+        _txFetcherSubscription.Dispose();
+        _evidenceFetcherSubscription.Dispose();
+        await _services.DisposeAsync();
+        await Transport.DisposeAsync();
+        if (_consensusReactor is not null)
+        {
+            await _consensusReactor.DisposeAsync();
+        }
+
+        await base.DisposeAsyncCore();
     }
 
     private void BroadcastBlock(Address except, Block block)
@@ -562,15 +502,15 @@ public sealed class Swarm : IAsyncDisposable
                 break;
 
             case GetBlockMessage getBlockMessage:
-                _ = TransferAsync(messageEnvelope, getBlockMessage, _cancellationToken);
+                _ = TransferAsync(messageEnvelope, getBlockMessage);
                 break;
 
             case GetTransactionMessage getTransactionMessage:
-                _ = TransferAsync(messageEnvelope, getTransactionMessage, _cancellationToken);
+                _ = TransferAsync(messageEnvelope, getTransactionMessage);
                 break;
 
             case GetEvidenceMessage getEvidenceMessage:
-                _ = TransferAsync(messageEnvelope, getEvidenceMessage, _cancellationToken);
+                _ = TransferAsync(messageEnvelope, getEvidenceMessage);
                 break;
 
             case TxIdMessage txIdMessage:
@@ -624,10 +564,10 @@ public sealed class Swarm : IAsyncDisposable
         }
     }
 
-    private async Task TransferAsync(
-        IReplyContext replyContext, GetBlockMessage requestMessage, CancellationToken cancellationToken)
+    private async Task TransferAsync(IReplyContext replyContext, GetBlockMessage requestMessage)
     {
-        using var scope = await _transferBlockLimiter.CanAccessAsync(cancellationToken);
+        using var cancellationTokenSource = CreateCancellationTokenSource();
+        using var scope = await _transferBlockLimiter.CanAccessAsync(cancellationTokenSource.Token);
         if (scope is null)
         {
             return;
@@ -657,9 +597,10 @@ public sealed class Swarm : IAsyncDisposable
     }
 
     private async Task TransferAsync(
-        IReplyContext replyContext, GetTransactionMessage requestMessage, CancellationToken cancellationToken)
+        IReplyContext replyContext, GetTransactionMessage requestMessage)
     {
-        using var scope = await _transferTxLimiter.CanAccessAsync(cancellationToken);
+        using var cancellationTokenSource = CreateCancellationTokenSource();
+        using var scope = await _transferTxLimiter.CanAccessAsync(cancellationTokenSource.Token);
         if (scope is null)
         {
             return;
@@ -673,10 +614,10 @@ public sealed class Swarm : IAsyncDisposable
         replyContext.Transfer(txs);
     }
 
-    private async Task TransferAsync(
-        IReplyContext replyContext, GetEvidenceMessage requestMessage, CancellationToken cancellationToken)
+    private async Task TransferAsync(IReplyContext replyContext, GetEvidenceMessage requestMessage)
     {
-        using var scope = await _transferEvidenceLimiter.CanAccessAsync(cancellationToken);
+        using var cancellationTokenSource = CreateCancellationTokenSource();
+        using var scope = await _transferEvidenceLimiter.CanAccessAsync(cancellationTokenSource.Token);
         if (scope is null)
         {
             return;
@@ -760,6 +701,7 @@ public sealed class Swarm : IAsyncDisposable
                 }
                 catch (ArgumentException ae)
                 {
+                    // logging
                 }
             }
 
@@ -906,5 +848,33 @@ public sealed class Swarm : IAsyncDisposable
         {
             return false;
         }
+    }
+
+    public object? GetService(Type serviceType)
+    {
+        if (serviceType == typeof(ITransport))
+        {
+            return Transport;
+        }
+
+        if (serviceType == typeof(ConsensusReactor))
+        {
+            return _consensusReactor;
+        }
+
+        if (serviceType == typeof(PeerDiscovery))
+        {
+            return PeerDiscovery;
+        }
+
+        foreach (var service in _services)
+        {
+            if (serviceType.IsInstanceOfType(service))
+            {
+                return service;
+            }
+        }
+
+        return null;
     }
 }
