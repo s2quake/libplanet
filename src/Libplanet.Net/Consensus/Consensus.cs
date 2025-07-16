@@ -13,13 +13,13 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public partial class Consensus(
+public sealed class Consensus(
     Blockchain blockchain,
     int height,
     ISigner signer,
     ImmutableSortedSet<Validator> validators,
     ConsensusOptions options)
-    : IAsyncDisposable
+    : ServiceBase
 {
     private readonly Subject<int> _roundChangedSubject = new();
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
@@ -48,13 +48,11 @@ public partial class Consensus(
         .Build();
 
     private Dispatcher? _dispatcher;
-    private CancellationTokenSource? _cancellationTokenSource;
     private Block? _lockedBlock;
     private int _lockedRound = -1;
     private Block? _validBlock;
     private int _validRound = -1;
     private Block? _decidedBlock;
-    private bool _disposed;
     private ConsensusStep _step;
     private Proposal? _proposal;
 
@@ -91,8 +89,6 @@ public partial class Consensus(
 
     public int Round { get; private set; } = -1;
 
-    public bool IsRunning { get; private set; }
-
     public ConsensusStep Step
     {
         get => _step;
@@ -116,39 +112,6 @@ public partial class Consensus(
                 _proposal = value;
                 _proposalChangedSubject.OnNext(value);
             }
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (!_disposed)
-        {
-            if (_cancellationTokenSource is not null)
-            {
-                await _cancellationTokenSource.CancelAsync();
-            }
-
-            if (_dispatcher is not null)
-            {
-                await _dispatcher.DisposeAsync();
-            }
-
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
-            _dispatcher = null;
-            _roundChangedSubject.Dispose();
-            _exceptionOccurredSubject.Dispose();
-            _stepChangedSubject.Dispose();
-            _proposalChangedSubject.Dispose();
-            _completedSubject.Dispose();
-            _voteAddedSubject.Dispose();
-            _preVoteSubject.Dispose();
-            _preCommitSubject.Dispose();
-            _quorumReachSubject.Dispose();
-            _proposalClaimSubject.Dispose();
-            _blockProposeSubject.Dispose();
-            _disposed = true;
-            GC.SuppressFinalize(this);
         }
     }
 
@@ -242,52 +205,9 @@ public partial class Consensus(
         };
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        if (IsRunning)
-        {
-            throw new InvalidOperationException("Consensus is already running.");
-        }
-
-        _lockedBlock = null;
-        _lockedRound = -1;
-        _validBlock = null;
-        _validRound = -1;
-        _decidedBlock = null;
-        Round = -1;
-        _cancellationTokenSource = new CancellationTokenSource();
-        _dispatcher = new Dispatcher(this);
-        _dispatcher.UnhandledException += Dispatcher_UnhandledException;
-        await _dispatcher.InvokeAsync(_ =>
-        {
-            StartRound(0);
-            ProcessGenericUponRules();
-        }, _cancellationTokenSource.Token);
-        IsRunning = true;
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        if (!IsRunning || _cancellationTokenSource is null || _dispatcher is null)
-        {
-            throw new InvalidOperationException("Consensus is not running.");
-        }
-
-        await _cancellationTokenSource.CancelAsync();
-        _dispatcher.UnhandledException -= Dispatcher_UnhandledException;
-        await _dispatcher.DisposeAsync();
-        _dispatcher = null;
-
-        _cancellationTokenSource.Dispose();
-        _cancellationTokenSource = null;
-
-        Step = ConsensusStep.Default;
-        IsRunning = false;
-    }
-
     public void Post(Proposal proposal)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
@@ -302,7 +222,7 @@ public partial class Consensus(
 
     public void Post(Vote vote)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
@@ -338,6 +258,57 @@ public partial class Consensus(
         {
             Post(proposalMessage.Proposal);
         }
+    }
+
+    protected override async Task OnStartAsync(CancellationToken cancellationToken)
+    {
+        _lockedBlock = null;
+        _lockedRound = -1;
+        _validBlock = null;
+        _validRound = -1;
+        _decidedBlock = null;
+        Round = -1;
+        _dispatcher = new Dispatcher(this);
+        _dispatcher.UnhandledException += Dispatcher_UnhandledException;
+        await _dispatcher.InvokeAsync(_ =>
+        {
+            StartRound(0);
+            ProcessGenericUponRules();
+        }, cancellationToken);
+    }
+
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        if (_dispatcher is not null)
+        {
+            _dispatcher.UnhandledException -= Dispatcher_UnhandledException;
+            await _dispatcher.DisposeAsync();
+            _dispatcher = null;
+        }
+
+        Step = ConsensusStep.Default;
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        if (_dispatcher is not null)
+        {
+            await _dispatcher.DisposeAsync();
+            _dispatcher = null;
+        }
+
+        _roundChangedSubject.Dispose();
+        _exceptionOccurredSubject.Dispose();
+        _stepChangedSubject.Dispose();
+        _proposalChangedSubject.Dispose();
+        _completedSubject.Dispose();
+        _voteAddedSubject.Dispose();
+        _preVoteSubject.Dispose();
+        _preCommitSubject.Dispose();
+        _quorumReachSubject.Dispose();
+        _proposalClaimSubject.Dispose();
+        _blockProposeSubject.Dispose();
+        await base.DisposeAsyncCore();
     }
 
     private Block ProposeBlock() => blockchain.ProposeBlock(signer);
@@ -379,7 +350,7 @@ public partial class Consensus(
 
     private void EnterPreCommitWait(int round, BlockHash blockHash)
     {
-        if (_dispatcher is null || _cancellationTokenSource is null)
+        if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
         }
@@ -391,8 +362,7 @@ public partial class Consensus(
         }
 
         var delay = options.EnterPreCommitDelay;
-        var cancellationToken = _cancellationTokenSource.Token;
-        _ = _dispatcher.PostAfterAsync(Invoke, delay, cancellationToken);
+        _ = _dispatcher.PostAfterAsync(Invoke, delay, default);
 
         void Invoke(CancellationToken _)
         {
@@ -403,7 +373,7 @@ public partial class Consensus(
 
     private void EnterEndCommitWait(int round)
     {
-        if (_dispatcher is null || _cancellationTokenSource is null)
+        if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
         }
@@ -415,9 +385,7 @@ public partial class Consensus(
         }
 
         var delay = options.EnterEndCommitDelay;
-        var cancellationToken = _cancellationTokenSource.Token;
-
-        _ = _dispatcher.PostAfterAsync(Invoke, delay, cancellationToken);
+        _ = _dispatcher.PostAfterAsync(Invoke, delay, default);
 
         void Invoke(CancellationToken _)
         {
@@ -428,7 +396,7 @@ public partial class Consensus(
 
     private void PostProposeTimeout(int round)
     {
-        if (_dispatcher is null || _cancellationTokenSource is null)
+        if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
         }
@@ -436,8 +404,7 @@ public partial class Consensus(
         _dispatcher.VerifyAccess();
 
         var timeout = options.TimeoutPropose(round);
-        var cancellationToken = _cancellationTokenSource.Token;
-        _ = _dispatcher.PostAfterAsync(Invoke, timeout, cancellationToken);
+        _ = _dispatcher.PostAfterAsync(Invoke, timeout, default);
 
         void Invoke(CancellationToken _)
         {
@@ -452,7 +419,7 @@ public partial class Consensus(
 
     private void PostPreVoteTimeout(int round)
     {
-        if (_dispatcher is null || _cancellationTokenSource is null)
+        if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
         }
@@ -464,8 +431,7 @@ public partial class Consensus(
         }
 
         var timeout = options.TimeoutPreVote(round);
-        var cancellationToken = _cancellationTokenSource.Token;
-        _ = _dispatcher.PostAfterAsync(Invoke, timeout, cancellationToken);
+        _ = _dispatcher.PostAfterAsync(Invoke, timeout, default);
 
         void Invoke(CancellationToken _)
         {
@@ -480,7 +446,7 @@ public partial class Consensus(
 
     private void PostPreCommitTimeout(int round)
     {
-        if (_dispatcher is null || _cancellationTokenSource is null)
+        if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
         }
@@ -491,8 +457,7 @@ public partial class Consensus(
         }
 
         var timeout = options.TimeoutPreCommit(round);
-        var cancellationToken = _cancellationTokenSource.Token;
-        _ = _dispatcher.PostAfterAsync(Invoke, timeout, cancellationToken);
+        _ = _dispatcher.PostAfterAsync(Invoke, timeout, default);
 
         void Invoke(CancellationToken _)
         {
