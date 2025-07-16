@@ -123,7 +123,7 @@ public abstract class TransportTest(ITestOutputHelper output)
             if (replyContext.Message is PingMessage)
             {
                 await Task.Delay(100);
-                replyContext.Pong();
+                replyContext.PongAsync();
             }
         });
 
@@ -171,8 +171,8 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             if (replyContext.Message is PingMessage)
             {
-                replyContext.Next(new PingMessage { HasNext = true });
-                replyContext.Complete(new PongMessage());
+                replyContext.NextAsync(new PingMessage { HasNext = true });
+                replyContext.CompleteAsync(new PongMessage());
             }
         });
 
@@ -233,7 +233,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         {
             while (true)
             {
-                replyContext.Next(new PingMessage());
+                replyContext.NextAsync(new PingMessage());
             }
         });
 

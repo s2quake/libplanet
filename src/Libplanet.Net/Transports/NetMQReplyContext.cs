@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.Transports;
@@ -13,7 +14,7 @@ internal sealed class NetMQReplyContext(NetMQTransport transport, MessageEnvelop
 
     public DateTimeOffset Timestamp => messageEnvelope.Timestamp;
 
-    public void Next(IMessage message) => transport.Reply(messageEnvelope, message, hasNext: true);
+    public ValueTask NextAsync(IMessage message) => transport.ReplyAsync(messageEnvelope, message, hasNext: true);
 
-    public void Complete(IMessage message) => transport.Reply(messageEnvelope, message, hasNext: false);
+    public ValueTask CompleteAsync(IMessage message) => transport.ReplyAsync(messageEnvelope, message, hasNext: false);
 }

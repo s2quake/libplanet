@@ -15,7 +15,7 @@ public static class ITransportExtensions
         {
             if (replyContext.Message is PingMessage && (peers.Length is 0 || peers.Contains(replyContext.Sender)))
             {
-                replyContext.Pong();
+                replyContext.PongAsync();
                 return true;
             }
 
@@ -43,7 +43,7 @@ public static class ITransportExtensions
         {
             if (replyContext.Message is PingMessage && (peers.Length is 0 || peers.Contains(replyContext.Sender)))
             {
-                replyContext.Pong();
+                replyContext.PongAsync();
             }
         });
     }

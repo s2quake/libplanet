@@ -249,7 +249,7 @@ public sealed class Gossip(
     {
         if (_deniedPeers.Contains(replyContext.Sender))
         {
-            replyContext.Pong();
+            replyContext.PongAsync();
             return;
         }
 
@@ -270,14 +270,14 @@ public sealed class Gossip(
             case GetPeerMessage:
                 break;
             case HaveMessage:
-                replyContext.Pong();
+                replyContext.PongAsync();
                 HandleHaveMessage(replyContext);
                 break;
             case WantMessage:
                 HandleWantMessage(replyContext);
                 break;
             default:
-                replyContext.Pong();
+                replyContext.PongAsync();
                 AddMessage(replyContext.Message);
                 break;
         }
@@ -391,7 +391,7 @@ public sealed class Gossip(
             try
             {
                 _validateSendingMessageSubject.OnNext(message);
-                replyContext.Next(message);
+                replyContext.NextAsync(message);
             }
             catch (Exception)
             {

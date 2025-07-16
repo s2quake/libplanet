@@ -47,7 +47,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         {
             if (replyContext.Message is PingMessage && replyContext.Sender == transportA.Peer)
             {
-                replyContext.Pong();
+                replyContext.PongAsync();
                 return true;
             }
 

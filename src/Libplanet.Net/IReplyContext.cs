@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 
 namespace Libplanet.Net;
@@ -12,9 +13,9 @@ public interface IReplyContext
 
     DateTimeOffset Timestamp { get; }
 
-    void Next(IMessage message);
+    ValueTask NextAsync(IMessage message);
 
-    void Complete(IMessage message);
+    ValueTask CompleteAsync(IMessage message);
 
-    void Pong() => Complete(new PongMessage());
+    ValueTask PongAsync() => CompleteAsync(new PongMessage());
 }

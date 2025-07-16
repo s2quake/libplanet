@@ -99,7 +99,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         Parallel.ForEach(receivers, peer => Send(peer, message));
     }
 
-    public void Reply(MessageEnvelope requestEnvelope, IMessage message, bool hasNext)
+    public ValueTask ReplyAsync(MessageEnvelope requestEnvelope, IMessage message, bool hasNext)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
@@ -122,6 +122,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             HasNext = hasNext,
         };
         _responseQueue.Enqueue(messageResponse);
+        return ValueTask.CompletedTask;
     }
 
     private void Router_ReceiveReady(object? sender, NetMQSocketEventArgs e)

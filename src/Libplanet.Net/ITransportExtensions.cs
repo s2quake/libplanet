@@ -109,25 +109,25 @@ public static class ITransportExtensions
         return responseMessage.Peers;
     }
 
-    internal static void Transfer(this IReplyContext @this, Transaction[] transactions)
+    internal static async ValueTask TransferAsync(this IReplyContext @this, Transaction[] transactions)
     {
         var replyMessage = new TransactionMessage
         {
             Transactions = [.. transactions],
         };
-        @this.Next(replyMessage);
+        await @this.NextAsync(replyMessage);
     }
 
-    internal static void Transfer(this IReplyContext @this,  EvidenceBase[] evidence)
+    internal static async ValueTask TransferAsync(this IReplyContext @this,  EvidenceBase[] evidence)
     {
         var replyMessage = new EvidenceMessage
         {
             Evidence = [.. evidence],
         };
-        @this.Next(replyMessage);
+        await @this.NextAsync(replyMessage);
     }
 
-    internal static void Transfer(
+    internal static async ValueTask TransferAsync(
         this IReplyContext @this, Block[] blocks, BlockCommit[] blockCommits, bool hasNext = false)
     {
         var replyMessage = new BlockMessage
@@ -136,6 +136,6 @@ public static class ITransportExtensions
             BlockCommits = [.. blockCommits],
             HasNext = hasNext,
         };
-        @this.Next(replyMessage);
+        await @this.NextAsync(replyMessage);
     }
 }

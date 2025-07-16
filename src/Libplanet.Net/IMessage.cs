@@ -1,4 +1,4 @@
-namespace Libplanet.Net.Messages;
+namespace Libplanet.Net;
 
 public interface IMessage
 {

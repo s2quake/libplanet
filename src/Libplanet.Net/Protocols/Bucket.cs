@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Libplanet.Net.Protocols;
 
@@ -49,22 +48,12 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
         {
             _itemByAddress[address] = peerState;
             _items = _items.Remove(value).Add(peerState);
-            if (_itemByAddress.Count != _items.Count)
-            {
-                int eqwr = 0;
-            }
             return true;
         }
         else if (_items.Count < _capacity)
         {
             _itemByAddress[address] = peerState;
-            var i = _items;
             _items = _items.Add(peerState);
-            if (_itemByAddress.Count != _items.Count)
-            {
-                var i2 = i.Add(peerState);
-                int eqwr = 0;
-            }
             return true;
         }
 
@@ -96,10 +85,6 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
         {
             _itemByAddress.Remove(address);
             _items = _items.Remove(peerState);
-            if (_itemByAddress.Count != _items.Count)
-            {
-                int eqwr = 0;
-            }
             return true;
         }
 
@@ -112,10 +97,6 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
         {
             _itemByAddress.Remove(address);
             _items = _items.Remove(peerState);
-            if (_itemByAddress.Count != _items.Count)
-            {
-                int eqwr = 0;
-            }
             return true;
         }
 

@@ -33,7 +33,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     private readonly AccessLimiter _transferBlockLimiter;
     private readonly AccessLimiter _transferTxLimiter;
     private readonly AccessLimiter _transferEvidenceLimiter;
-    private readonly ConcurrentDictionary<Peer, int> _processBlockDemandSessions = new();
     private readonly ServicesCollection _services;
 
     public Swarm(
@@ -100,15 +99,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     internal IObservable<Unit> BlockReceived => _blockReceivedSubject;
 
     internal IObservable<Unit> BlockAppended => _blockAppendedSubject;
-
-    [Obsolete("not used")]
-    internal IObservable<Unit> FillBlocksAsyncStarted => _fillBlocksAsyncStartedSubject;
-
-    [Obsolete("not used")]
-    internal IObservable<Unit> FillBlocksAsyncFailed => _fillBlocksAsyncFailedSubject;
-
-    [Obsolete("not used")]
-    internal IObservable<Unit> ProcessFillBlocksFinished => _processFillBlocksFinishedSubject;
 
     // FIXME: We need some sort of configuration method for it.
     internal int FindNextHashesChunkSize { get; set; } = 500;
@@ -354,37 +344,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         return [.. query];
     }
 
-    // private async Task BroadcastTxAsync(TimeSpan broadcastTxInterval, CancellationToken cancellationToken)
-    // {
-    //     while (!cancellationToken.IsCancellationRequested)
-    //     {
-    //         try
-    //         {
-    //             await Task.Delay(broadcastTxInterval, cancellationToken);
-    //             await Task.Run(
-    //                 () =>
-    //                 {
-    //                     var txIds = Blockchain.StagedTransactions.Keys.ToArray();
-    //                     if (txIds.Length > 0)
-    //                     {
-    //                         BroadcastTxIds(default, txIds);
-    //                     }
-    //                 },
-    //                 cancellationToken);
-    //         }
-    //         catch (OperationCanceledException)
-    //         {
-    //             throw;
-    //         }
-    //         catch
-    //         {
-    //             // do nothing
-    //         }
-    //     }
-
-    //     cancellationToken.ThrowIfCancellationRequested();
-    // }
-
     internal void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
     {
         var message = new TxIdMessage { Ids = [.. txIds] };
@@ -393,79 +352,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     internal bool IsBlockNeeded(BlockSummary blockSummary) => blockSummary.Height > Blockchain.Tip.Height;
 
-    // private async Task RefreshTableAsync(TimeSpan period, TimeSpan maxAge, CancellationToken cancellationToken)
-    // {
-    //     while (!cancellationToken.IsCancellationRequested)
-    //     {
-    //         try
-    //         {
-    //             await PeerDiscovery.RefreshTableAsync(maxAge, cancellationToken);
-    //             await PeerDiscovery.CheckReplacementCacheAsync(cancellationToken);
-    //             await Task.Delay(period, cancellationToken);
-    //         }
-    //         catch (OperationCanceledException)
-    //         {
-    //             throw;
-    //         }
-    //         catch
-    //         {
-    //             // do nothing
-    //         }
-    //     }
-
-    //     cancellationToken.ThrowIfCancellationRequested();
-    // }
-
-    // private async Task RebuildConnectionAsync(TimeSpan period, CancellationToken cancellationToken)
-    // {
-    //     while (!cancellationToken.IsCancellationRequested)
-    //     {
-    //         try
-    //         {
-    //             await Task.Delay(period, cancellationToken);
-    //             await PeerDiscovery.RebuildConnectionAsync(Kademlia.MaxDepth, cancellationToken);
-    //         }
-    //         catch (OperationCanceledException)
-    //         {
-    //             throw;
-    //         }
-    //         catch
-    //         {
-    //             // do nothing
-    //         }
-    //     }
-
-    //     cancellationToken.ThrowIfCancellationRequested();
-    // }
-
-    // private async Task MaintainStaticPeerAsync(TimeSpan period, CancellationToken cancellationToken)
-    // {
-    //     while (!cancellationToken.IsCancellationRequested)
-    //     {
-    //         var tasks = Options.StaticPeers
-    //             .Where(peer => !RoutingTable.Contains(peer))
-    //             .Select(async peer =>
-    //             {
-    //                 try
-    //                 {
-    //                     var timeout = TimeSpan.FromSeconds(3);
-    //                     await AddPeersAsync([peer], cancellationToken).WaitAsync(timeout, cancellationToken);
-    //                 }
-    //                 catch (OperationCanceledException)
-    //                 {
-    //                     // do nothing
-    //                 }
-    //             });
-    //         await Task.WhenAll(tasks);
-    //         await Task.Delay(period, cancellationToken);
-    //     }
-
-    //     cancellationToken.ThrowIfCancellationRequested();
-    // }
-
-    private void ProcessMessageHandler(IReplyContext messageEnvelope)
+    private void ProcessMessageHandler(IReplyContext replyContext)
     {
-        switch (messageEnvelope.Message)
+        switch (replyContext.Message)
         {
             case PingMessage _:
             case GetPeerMessage _:
@@ -483,7 +372,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
                         TipHash = tip.BlockHash,
                     };
 
-                    messageEnvelope.Next(replyMessage);
+                    replyContext.NextAsync(replyMessage);
                 }
                 break;
 
@@ -497,42 +386,42 @@ public sealed class Swarm : ServiceBase, IServiceProvider
                     //     FindNextHashesChunkSize);
                     var replyMessage = new BlockHashMessage { BlockHashes = [.. hashes] };
 
-                    messageEnvelope.Next(replyMessage);
+                    replyContext.NextAsync(replyMessage);
                 }
                 break;
 
             case GetBlockMessage getBlockMessage:
-                _ = TransferAsync(messageEnvelope, getBlockMessage);
+                _ = TransferAsync(replyContext, getBlockMessage);
                 break;
 
             case GetTransactionMessage getTransactionMessage:
-                _ = TransferAsync(messageEnvelope, getTransactionMessage);
+                _ = TransferAsync(replyContext, getTransactionMessage);
                 break;
 
             case GetEvidenceMessage getEvidenceMessage:
-                _ = TransferAsync(messageEnvelope, getEvidenceMessage);
+                _ = TransferAsync(replyContext, getEvidenceMessage);
                 break;
 
             case TxIdMessage txIdMessage:
-                _txFetcher.DemandMany(messageEnvelope.Sender, [.. txIdMessage.Ids]);
-                messageEnvelope.Pong();
+                _txFetcher.DemandMany(replyContext.Sender, [.. txIdMessage.Ids]);
+                replyContext.PongAsync();
                 break;
 
             case EvidenceIdMessage evidenceIdMessage:
-                _evidenceFetcher.DemandMany(messageEnvelope.Sender, [.. evidenceIdMessage.Ids]);
-                messageEnvelope.Pong();
+                _evidenceFetcher.DemandMany(replyContext.Sender, [.. evidenceIdMessage.Ids]);
+                replyContext.PongAsync();
                 break;
 
             case BlockHashMessage _:
                 break;
 
             case BlockHeaderMessage blockHeader:
-                ProcessBlockHeader(messageEnvelope);
-                messageEnvelope.Pong();
+                ProcessBlockHeader(replyContext);
+                replyContext.PongAsync();
                 break;
 
             default:
-                throw new InvalidOperationException($"Failed to handle message: {messageEnvelope.Message}");
+                throw new InvalidOperationException($"Failed to handle message: {replyContext.Message}");
         }
     }
 
@@ -587,13 +476,13 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
             if (blockList.Count == requestMessage.ChunkSize)
             {
-                replyContext.Transfer([.. blockList], [.. blockCommitList], hasNext: true);
+                replyContext.TransferAsync([.. blockList], [.. blockCommitList], hasNext: true);
                 blockList.Clear();
                 blockCommitList.Clear();
             }
         }
 
-        replyContext.Transfer([.. blockList], [.. blockCommitList]);
+        replyContext.TransferAsync([.. blockList], [.. blockCommitList]);
     }
 
     private async Task TransferAsync(
@@ -611,7 +500,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             .Select(txId => Blockchain.Transactions.TryGetValue(txId, out var tx) ? tx : null)
             .OfType<Transaction>()
             .ToArray();
-        replyContext.Transfer(txs);
+        replyContext.TransferAsync(txs);
     }
 
     private async Task TransferAsync(IReplyContext replyContext, GetEvidenceMessage requestMessage)
@@ -629,7 +518,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             .OfType<EvidenceBase>()
             .ToArray();
 
-        replyContext.Transfer(evidence);
+        replyContext.TransferAsync(evidence);
     }
 
     public void BroadcastEvidence(ImmutableArray<EvidenceBase> evidence) => BroadcastEvidence(default, evidence);
@@ -765,89 +654,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         }
 
         return trimmed;
-    }
-
-    private async Task<bool> ProcessBlockDemandAsync(BlockDemand demand, CancellationToken cancellationToken)
-    {
-        Peer peer = demand.Peer;
-
-        if (_processBlockDemandSessions.ContainsKey(peer))
-        {
-            // Another task has spawned for the peer.
-            return false;
-        }
-
-        var sessionRandom = new Random();
-
-        int sessionId = sessionRandom.Next();
-
-        if (demand.Height <= Blockchain.Tip.Height)
-        {
-            return false;
-        }
-
-
-        try
-        {
-            _processBlockDemandSessions.TryAdd(peer, sessionId);
-            var result = await BlockCandidateDownload(
-                peer: peer,
-                blockChain: Blockchain,
-                logSessionId: sessionId,
-                cancellationToken: cancellationToken);
-
-            _blockReceivedSubject.OnNext(Unit.Default);
-            return result;
-        }
-        catch (TimeoutException)
-        {
-            return false;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-        finally
-        {
-            // Maybe demand table can be cleaned up here, but it will be eventually
-            // cleaned up in FillBlocksAsync()
-            _processBlockDemandSessions.TryRemove(peer, out _);
-        }
-    }
-
-    private async Task<bool> BlockCandidateDownload(
-        Peer peer,
-        Blockchain blockChain,
-        int logSessionId,
-        CancellationToken cancellationToken)
-    {
-        var tipBlockHash = blockChain.Tip.BlockHash;
-        Block tip = blockChain.Tip;
-
-        var hashes = await Transport.GetBlockHashesAsync(peer, tipBlockHash, cancellationToken);
-        if (hashes.Length == 0)
-        {
-            _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
-            return false;
-        }
-
-        IAsyncEnumerable<(Block, BlockCommit)> blocksAsync = Transport.GetBlocksAsync(
-            peer,
-            hashes,
-            cancellationToken);
-        try
-        {
-            var items = await blocksAsync.ToArrayAsync(cancellationToken);
-            var branch = items.ToImmutableSortedDictionary(
-                item => item.Item1,
-                item => item.Item2);
-            BlockCandidateTable.Add(tip, branch);
-            return true;
-        }
-        catch (ArgumentException ae)
-        {
-            return false;
-        }
     }
 
     public object? GetService(Type serviceType)

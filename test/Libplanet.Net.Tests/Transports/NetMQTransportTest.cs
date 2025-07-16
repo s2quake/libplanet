@@ -27,7 +27,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output)
         using var scope = new PropertyScope(typeof(NetMQConfig), nameof(NetMQConfig.MaxSockets), 12);
 
         await using var transport = new NetMQTransport(new PrivateKey().AsSigner());
-        using var _ = transport.Process.Subscribe(c => c.Pong());
+        using var _ = transport.Process.Subscribe(c => c.PongAsync());
         var invalidHost = Guid.NewGuid().ToString();
         var invalidPeer = new Peer
         {
@@ -70,9 +70,9 @@ public sealed class NetMQTransportTest(ITestOutputHelper output)
         {
             if (replyContext.Message is PingMessage)
             {
-                replyContext.Next(new PingMessage { HasNext = true });
+                replyContext.NextAsync(new PingMessage { HasNext = true });
                 await Task.Delay(100, default);
-                replyContext.Complete(new PongMessage());
+                replyContext.CompleteAsync(new PongMessage());
             }
         });
 

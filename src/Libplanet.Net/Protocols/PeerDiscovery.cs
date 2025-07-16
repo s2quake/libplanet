@@ -15,7 +15,6 @@ internal sealed class PeerDiscovery
     private readonly RoutingTable _table;
     private readonly Address _address;
     private readonly ITransport _transport;
-    // private readonly Bucket _replacementCache = new(256);
     private readonly RoutingTable _replacementCache;
 
     public PeerDiscovery(RoutingTable table, ITransport transport)
@@ -215,7 +214,7 @@ internal sealed class PeerDiscovery
                     throw new InvalidOperationException("Cannot receive ping from self.");
                 }
 
-                messageEnvelope.Pong();
+                messageEnvelope.PongAsync();
                 break;
 
             case GetPeerMessage getPeerMessage:
@@ -228,7 +227,7 @@ internal sealed class PeerDiscovery
                 var k = RoutingTable.BucketCount;
                 var peers = _table.GetNeighbors(target, k, includeTarget: true);
                 var peerMessage = new PeerMessage { Peers = [.. peers] };
-                messageEnvelope.Next(peerMessage);
+                messageEnvelope.NextAsync(peerMessage);
                 break;
         }
 

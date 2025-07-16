@@ -2,7 +2,7 @@ using Libplanet.Net.ModelConverters;
 using Libplanet.Serialization;
 using Libplanet.Types;
 
-namespace Libplanet.Net.Messages;
+namespace Libplanet.Net;
 
 [ModelConverter(typeof(MessageIdModelConverter), "msgid")]
 public readonly record struct MessageId(in ImmutableArray<byte> Bytes)
