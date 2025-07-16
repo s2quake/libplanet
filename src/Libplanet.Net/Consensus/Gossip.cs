@@ -21,12 +21,10 @@ public sealed class Gossip(
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
     private readonly HashSet<Peer> _deniedPeers = [];
     private RoutingTable? _table;
-    private PeerDiscovery? _kademlia;
+    private PeerDiscovery? peerDiscovery;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
-    // private CancellationTokenSource? _cancellationTokenSource;
     private Task[] _tasks = [];
     private IDisposable? _transportSubscription;
-    // private bool _disposed;
 
     public Gossip(ITransport transport)
         : this(transport, [], [], new GossipOptions())
@@ -38,8 +36,6 @@ public sealed class Gossip(
     public IObservable<IMessage> ValidateSendingMessage => _validateSendingMessageSubject;
 
     public IObservable<IMessage> ProcessMessage => _processMessageSubject;
-
-    // public bool IsRunning { get; private set; }
 
     public Peer Peer => _transport.Peer;
 
@@ -58,84 +54,10 @@ public sealed class Gossip(
 
     public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
-    // public async Task StartAsync(CancellationToken cancellationToken)
-    // {
-    //     ObjectDisposedException.ThrowIf(_disposed, this);
-    //     if (IsRunning)
-    //     {
-    //         throw new InvalidOperationException("Gossip is already running.");
-    //     }
-
-    //     _cancellationTokenSource = new CancellationTokenSource();
-    //     await _transport.StartAsync(cancellationToken);
-    //     _table = new RoutingTable(_transport.Peer.Address);
-    //     _table.AddRange(validators);
-    //     _transportSubscription = _transport.Process.Subscribe(HandleMessage);
-    //     _kademlia = new PeerDiscovery(_table, _transport);
-    //     await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);
-    //     _tasks =
-    //     [
-    //         RunTableRefreshAsync(_cancellationTokenSource.Token),
-    //         RunTableRebuildAsync(_cancellationTokenSource.Token),
-    //         RunHeartbeatAsync(_cancellationTokenSource.Token)
-    //     ];
-    //     IsRunning = true;
-    // }
-
-    // public async Task StopAsync(CancellationToken cancellationToken)
-    // {
-    //     ObjectDisposedException.ThrowIf(_disposed, this);
-    //     if (!IsRunning)
-    //     {
-    //         throw new InvalidOperationException("Gossip is not running.");
-    //     }
-
-    //     if (_cancellationTokenSource is not null)
-    //     {
-    //         await _cancellationTokenSource.CancelAsync();
-    //     }
-
-    //     await TaskUtility.TryWhenAll(_tasks);
-    //     _tasks = [];
-    //     _transportSubscription?.Dispose();
-    //     _transportSubscription = null;
-    //     await _transport.StopAsync(cancellationToken);
-    //     _table = null;
-    //     _kademlia = null;
-    //     _cancellationTokenSource?.Dispose();
-    //     _cancellationTokenSource = null;
-    //     IsRunning = false;
-    // }
-
     public void ClearCache()
     {
         _messageById.Clear();
     }
-
-    // public async ValueTask DisposeAsync()
-    // {
-    //     if (!_disposed)
-    //     {
-    //         if (_cancellationTokenSource is not null)
-    //         {
-    //             await _cancellationTokenSource.CancelAsync();
-    //         }
-
-    //         _transportSubscription?.Dispose();
-    //         _transportSubscription = null;
-
-    //         // Subject들을 정리
-    //         _validateReceivedMessageSubject.Dispose();
-    //         _validateSendingMessageSubject.Dispose();
-    //         _processMessageSubject.Dispose();
-
-    //         _cancellationTokenSource?.Dispose();
-    //         _cancellationTokenSource = null;
-    //         _messageById.Clear();
-    //         await _transport.DisposeAsync();
-    //         _disposed = true;
-    //     }
-    // }
 
     public void PublishMessage(IMessage message)
     {
@@ -198,8 +120,8 @@ public sealed class Gossip(
         _table = new RoutingTable(_transport.Peer.Address);
         _table.AddRange(validators);
         _transportSubscription = _transport.Process.Subscribe(HandleMessage);
-        _kademlia = new PeerDiscovery(_table, _transport);
-        await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);
+        peerDiscovery = new PeerDiscovery(_table, _transport);
+        await peerDiscovery.BootstrapAsync(seeds, 3, cancellationToken);
         _tasks =
         [
             RunTableRefreshAsync(),
@@ -216,7 +138,7 @@ public sealed class Gossip(
         _transportSubscription = null;
         await _transport.StopAsync(cancellationToken);
         _table = null;
-        _kademlia = null;
+        peerDiscovery = null;
     }
 
     protected override async ValueTask DisposeAsyncCore()
@@ -404,7 +326,7 @@ public sealed class Gossip(
     {
         using var cancellationTokenSource = CreateCancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
-        var kademlia = _kademlia ?? throw new InvalidOperationException("Gossip is not running.");
+        var kademlia = peerDiscovery ?? throw new InvalidOperationException("Gossip is not running.");
         var interval = _options.RebuildTableInterval;
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -424,7 +346,7 @@ public sealed class Gossip(
     {
         using var cancellationTokenSource = CreateCancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
-        var kademlia = _kademlia ?? throw new InvalidOperationException("Gossip is not running.");
+        var kademlia = peerDiscovery ?? throw new InvalidOperationException("Gossip is not running.");
         while (!cancellationToken.IsCancellationRequested)
         {
             try
