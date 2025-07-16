@@ -135,11 +135,16 @@ public abstract class ServiceBase : IAsyncDisposable
 
     protected abstract Task OnStopAsync(CancellationToken cancellationToken);
 
-    protected abstract Task OnRecoverAsync();
+    protected virtual async Task OnRecoverAsync()
+    {
+        await Task.CompletedTask;
+        throw new NotSupportedException(
+            "RecoverAsync is not supported by default. Override this method to implement recovery logic.");
+    }
 
     protected virtual ValueTask DisposeAsyncCore() => ValueTask.CompletedTask;
 
-    protected CancellationTokenSource CreateCancellationTokenSource(CancellationToken cancellationToken)
+    protected CancellationTokenSource CreateCancellationTokenSource(params CancellationToken[] cancellationTokens)
     {
         ObjectDisposedException.ThrowIf(_state == ServiceState.Disposed, this);
 
@@ -148,13 +153,15 @@ public abstract class ServiceBase : IAsyncDisposable
             throw new InvalidOperationException($"Cannot create a cancellation token source in the state of {_state}.");
         }
 
-        return CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken, cancellationToken);
+        return CancellationTokenSource.CreateLinkedTokenSource([_cancellationToken, .. cancellationTokens]);
     }
 
     private void SetState(IEnumerable<ServiceState> oldStates, ServiceState newState)
     {
         lock (_lock)
         {
+            ObjectDisposedException.ThrowIf(_state == ServiceState.Disposed, this);
+
             if (!oldStates.Contains(_state))
             {
                 throw new InvalidOperationException($"Cannot change the state from {_state} to {newState}.");

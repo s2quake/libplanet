@@ -13,18 +13,15 @@ using NetMQ;
 namespace Libplanet.Net.Transports;
 
 public sealed class NetMQTransport(ISigner signer, TransportOptions options)
-    : ITransport
+    : ServiceBase, ITransport
 {
     private readonly Subject<IReplyContext> _processSubject = new();
     private readonly NetMQRouterSocket _router = new(signer.Address, options.Host, options.Port);
     private readonly NetMQQueue<MessageResponse> _responseQueue = new();
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
 
-    private CancellationTokenSource? _cancellationTokenSource = new();
-    private CancellationToken _cancellationToken;
     private NetMQRequestWorker? _requestWorker;
     private NetMQPoller? _poller;
-    private bool _disposed;
 
     public NetMQTransport(ISigner signer)
         : this(signer, new TransportOptions())
@@ -35,110 +32,14 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     public Peer Peer => _router.Peer;
 
-    public bool IsRunning { get; private set; }
-
     public Protocol Protocol => _options.Protocol;
-
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        if (IsRunning)
-        {
-            throw new InvalidOperationException("Transport is already running.");
-        }
-
-        var cancellationTokenSource = new CancellationTokenSource();
-        using var _ = cancellationToken.Register(cancellationTokenSource.Cancel);
-        _cancellationTokenSource = cancellationTokenSource;
-        _cancellationToken = _cancellationTokenSource.Token;
-        _requestWorker = new NetMQRequestWorker(signer);
-        _poller = [_router, _responseQueue];
-        _router.ReceiveReady += Router_ReceiveReady;
-        _responseQueue.ReceiveReady += ResponseQueue_ReceiveReady;
-        await _poller.StartAsync(cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();
-        IsRunning = true;
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Transport is not running.");
-        }
-
-        _responseQueue.ReceiveReady -= ResponseQueue_ReceiveReady;
-        _router.ReceiveReady -= Router_ReceiveReady;
-        if (_poller is not null)
-        {
-            await _poller.StopAsync(cancellationToken);
-            _poller.Dispose();
-            _poller = null;
-        }
-
-        if (_requestWorker is not null)
-        {
-            await _requestWorker.DisposeAsync();
-            _requestWorker = null;
-        }
-
-        if (_cancellationTokenSource is not null)
-        {
-            await _cancellationTokenSource.CancelAsync();
-        }
-
-        _cancellationTokenSource?.Dispose();
-        _cancellationTokenSource = null;
-        cancellationToken.ThrowIfCancellationRequested();
-        IsRunning = false;
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (!_disposed)
-        {
-            _responseQueue.ReceiveReady -= ResponseQueue_ReceiveReady;
-            _router.ReceiveReady -= Router_ReceiveReady;
-
-            if (_poller is not null)
-            {
-                await _poller.DisposeAsync();
-                _poller = null;
-            }
-
-            if (_requestWorker is not null)
-            {
-                await _requestWorker.DisposeAsync();
-                _requestWorker = null;
-            }
-
-            if (_cancellationTokenSource is not null)
-            {
-                await _cancellationTokenSource.CancelAsync();
-            }
-
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
-            _responseQueue.Dispose();
-            _router.Dispose();
-            _processSubject.Dispose();
-            _disposed = true;
-        }
-    }
 
     public async IAsyncEnumerable<IMessage> SendAsync(
         Peer receiver, IMessage message, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Transport is not running.");
-        }
-
+        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         var messageEnvelope = new MessageEnvelope
         {
             Identity = Guid.NewGuid(),
@@ -147,11 +48,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             Sender = Peer,
             Timestamp = DateTimeOffset.UtcNow,
         };
-        var channel = await WriteAsync(receiver, messageEnvelope, cancellationToken);
+        var channel = await WriteAsync(receiver, messageEnvelope, cancellationTokenSource.Token);
         var hasNext = true;
         while (hasNext)
         {
-            var response = await ReadAsync(channel, cancellationToken);
+            var response = await ReadAsync(channel, cancellationTokenSource.Token);
             hasNext = response.HasNext;
             yield return response.MessageEnvelope.Message;
         }
@@ -166,8 +67,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             throw new InvalidOperationException("Transport is not running");
         }
 
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            _cancellationToken);
+        using var cancellationTokenSource = CreateCancellationTokenSource();
 
         var messageEnvelope = new MessageEnvelope
         {
@@ -189,7 +89,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     public void Send(ImmutableArray<Peer> receivers, IMessage message)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
 
         if (!IsRunning)
         {
@@ -201,7 +101,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     public void Reply(MessageEnvelope requestEnvelope, IMessage message, bool hasNext)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
 
         if (!IsRunning || _responseQueue is null)
         {
@@ -230,11 +130,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         {
             var receivedMessage = new NetMQMessage();
             if (!e.Socket.TryReceiveMultipartMessage(TimeSpan.Zero, ref receivedMessage))
-            {
-                return;
-            }
-
-            if (_cancellationToken.IsCancellationRequested)
             {
                 return;
             }
@@ -280,8 +175,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         }
 
         using var timeoutCancellationTokenSource = new CancellationTokenSource(_options.SendTimeout);
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            _cancellationToken, cancellationToken, timeoutCancellationTokenSource.Token);
+        using var cancellationTokenSource = CreateCancellationTokenSource(
+            cancellationToken, timeoutCancellationTokenSource.Token);
         var channel = Channel.CreateUnbounded<MessageResponse>();
 
         try
@@ -318,8 +213,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         Channel<MessageResponse> channel, CancellationToken cancellationToken)
     {
         using var timeoutCancellationTokenSource = new CancellationTokenSource(_options.SendTimeout);
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-            _cancellationToken, cancellationToken, timeoutCancellationTokenSource.Token);
+        using var cancellationTokenSource = CreateCancellationTokenSource(
+            cancellationToken, timeoutCancellationTokenSource.Token);
 
         try
         {
@@ -343,5 +238,56 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             channel.Writer.TryComplete(e);
             throw;
         }
+    }
+
+    protected override async Task OnStartAsync(CancellationToken cancellationToken)
+    {
+        _requestWorker = new NetMQRequestWorker(signer);
+        _poller = [_router, _responseQueue];
+        _router.ReceiveReady += Router_ReceiveReady;
+        _responseQueue.ReceiveReady += ResponseQueue_ReceiveReady;
+        await _poller.StartAsync(cancellationToken);
+    }
+
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        _responseQueue.ReceiveReady -= ResponseQueue_ReceiveReady;
+        _router.ReceiveReady -= Router_ReceiveReady;
+        if (_poller is not null)
+        {
+            await _poller.StopAsync(cancellationToken);
+            _poller.Dispose();
+            _poller = null;
+        }
+
+        if (_requestWorker is not null)
+        {
+            await _requestWorker.DisposeAsync();
+            _requestWorker = null;
+        }
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        _responseQueue.ReceiveReady -= ResponseQueue_ReceiveReady;
+        _router.ReceiveReady -= Router_ReceiveReady;
+
+        if (_poller is not null)
+        {
+            await _poller.DisposeAsync();
+            _poller = null;
+        }
+
+        if (_requestWorker is not null)
+        {
+            await _requestWorker.DisposeAsync();
+            _requestWorker = null;
+        }
+
+        _responseQueue.Dispose();
+        _router.Dispose();
+        _processSubject.Dispose();
+
+        await base.DisposeAsyncCore();
     }
 }

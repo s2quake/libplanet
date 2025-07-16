@@ -1,8 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Types.Threading;
-using Nito.AsyncEx.Synchronous;
-using Org.BouncyCastle.Asn1.Cms;
 
 namespace Libplanet.Net.Tests;
 
@@ -45,6 +43,14 @@ public sealed class ServiceBaseTest
     }
 
     [Fact]
+    public async Task StartAsync_Throw_AfterDisposed()
+    {
+        var service = new Service();
+        await service.DisposeAsync();
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await service.StartAsync(default));
+    }
+
+    [Fact]
     public async Task StopAsync()
     {
         await using var service = new Service();
@@ -77,15 +83,32 @@ public sealed class ServiceBaseTest
     }
 
     [Fact]
+    public async Task StopAsync_Throw_AfterDisposed()
+    {
+        var service = new Service();
+        await service.DisposeAsync();
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await service.StopAsync(default));
+    }
+
+    [Fact]
     public async Task RecoverAsync()
     {
-        await using var service = new Service
+        await using var service1 = new Service
         {
             StartTask = _ => throw new InvalidOperationException("Cannot start."),
         };
-        await TaskUtility.TryWait(service.StartAsync(default));
-        await service.RecoverAsync();
-        Assert.Equal(ServiceState.None, service.State);
+        await TaskUtility.TryWait(service1.StartAsync(default));
+        await Assert.ThrowsAsync<NotSupportedException>(service1.RecoverAsync);
+        Assert.Equal(ServiceState.Faluted, service1.State);
+
+        await using var service2 = new Service
+        {
+            StartTask = _ => throw new InvalidOperationException("Cannot start."),
+            RecoverTask = Task.Delay(100),
+        };
+        await TaskUtility.TryWait(service2.StartAsync(default));
+        await service2.RecoverAsync();
+        Assert.Equal(ServiceState.None, service2.State);
     }
 
     [Fact]
@@ -98,9 +121,6 @@ public sealed class ServiceBaseTest
         await Assert.ThrowsAsync<InvalidOperationException>(service.RecoverAsync);
 
         await service.StopAsync(default);
-        await Assert.ThrowsAsync<InvalidOperationException>(service.RecoverAsync);
-
-        await service.DisposeAsync();
         await Assert.ThrowsAsync<InvalidOperationException>(service.RecoverAsync);
     }
 
@@ -117,6 +137,14 @@ public sealed class ServiceBaseTest
         var e2 = await Assert.ThrowsAsync<InvalidOperationException>(service.RecoverAsync);
         Assert.Equal("Cannot recover.", e2.Message);
         Assert.Equal(ServiceState.Faluted, service.State);
+    }
+
+    [Fact]
+    public async Task RecoverAsync_Throw_AfterDisposed()
+    {
+        var service = new Service();
+        await service.DisposeAsync();
+        await Assert.ThrowsAsync<ObjectDisposedException>(service.RecoverAsync);
     }
 
     [Fact]
@@ -176,6 +204,7 @@ public sealed class ServiceBaseTest
         var service4 = new Service
         {
             StartTask = _ => throw new InvalidOperationException("Cannot start."),
+            RecoverTask = Task.Delay(100),
         };
         await Assert.ThrowsAsync<InvalidOperationException>(() => service4.StartAsync(default));
         await Task.WhenAll(
@@ -218,13 +247,22 @@ public sealed class ServiceBaseTest
         Assert.StartsWith("Cannot create a cancellation token source", e.Message);
     }
 
+    [Fact]
+    public async Task CreateCancellationTokenSource_Throw_WhenDisposed()
+    {
+        var service = new Service();
+        await service.DisposeAsync();
+        await Assert.ThrowsAsync<ObjectDisposedException>(
+            async () => await service.DelayAsync(TimeSpan.FromSeconds(10), default));
+    }
+
     private sealed class Service : ServiceBase
     {
         public Func<CancellationToken, Task> StartTask { get; init; } = _ => Task.Delay(100);
 
         public Func<CancellationToken, Task> StopTask { get; init; } = _ => Task.Delay(100);
 
-        public Task RecoverTask { get; init; } = Task.Delay(100);
+        public Task? RecoverTask { get; init; }
 
         public Task DisposeTask { get; init; } = Task.Delay(100);
 
@@ -235,7 +273,7 @@ public sealed class ServiceBaseTest
             cancellationTokenSource.Token.ThrowIfCancellationRequested();
         }
 
-        protected override Task OnRecoverAsync() => RecoverTask;
+        protected override Task OnRecoverAsync() => RecoverTask ?? base.OnRecoverAsync();
 
         protected override async Task OnStartAsync(CancellationToken cancellationToken)
             => await StartTask(cancellationToken);
