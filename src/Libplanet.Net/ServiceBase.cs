@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-public abstract class ServiceBase : IAsyncDisposable
+public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
 {
     private static readonly object _lock = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);

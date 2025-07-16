@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class RefreshTableTask(Swarm swarm) : SwarmTaskBase
+internal sealed class RefreshTableTask(Swarm swarm) : BackgroundServiceBase
 {
     protected override TimeSpan Interval => swarm.Options.RefreshPeriod;
 

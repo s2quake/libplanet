@@ -5,7 +5,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class PollBlocksTask(Swarm swarm) : SwarmTaskBase
+internal sealed class PollBlocksTask(Swarm swarm) : BackgroundServiceBase
 {
     private readonly ITransport _transport = swarm.Transport;
     private readonly Blockchain _blockchain = swarm.Blockchain;

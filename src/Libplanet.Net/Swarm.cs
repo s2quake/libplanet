@@ -34,11 +34,10 @@ public sealed class Swarm : IAsyncDisposable
     private readonly AccessLimiter _transferTxLimiter;
     private readonly AccessLimiter _transferEvidenceLimiter;
     private readonly ConcurrentDictionary<Peer, int> _processBlockDemandSessions = new();
-    private readonly List<ISwarmTask> _backgroundList;
+    private readonly Services _services;
 
     private CancellationTokenSource? _cancellationTokenSource;
     private CancellationToken _cancellationToken;
-    private Task[] _tasks = [];
 
     private bool _disposed;
 
@@ -64,8 +63,7 @@ public sealed class Swarm : IAsyncDisposable
         _transferTxLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _consensusReactor = consensusOption is not null ? new ConsensusReactor(signer, Blockchain, consensusOption) : null;
-        _backgroundList =
-        [
+        _services = new(
             new BlockBroadcastTask(this),
             new TxBroadcastTask(this),
             new EvidenceBroadcastTask(this),
@@ -74,8 +72,8 @@ public sealed class Swarm : IAsyncDisposable
             new ConsumeBlockCandidatesTask(this),
             new RefreshTableTask(this),
             new RebuildConnectionTask(this),
-            new MaintainStaticPeerTask(this),
-        ];
+            new MaintainStaticPeerTask(this)
+        );
     }
 
     public bool IsRunning { get; private set; }
@@ -173,7 +171,8 @@ public sealed class Swarm : IAsyncDisposable
         {
             await _consensusReactor.StartAsync(cancellationToken);
         }
-        _tasks = [.. _backgroundList.Where(item => item.IsEnabled).Select(item => item.RunAsync(_cancellationToken))];
+
+        await _services.StartAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         IsRunning = true;
     }
@@ -186,8 +185,7 @@ public sealed class Swarm : IAsyncDisposable
         }
 
         await _cancellationTokenSource.CancelAsync();
-        await TaskUtility.TryWhenAll(_tasks);
-        _tasks = [];
+        await _services.StopAsync(cancellationToken);
 
         await Transport.StopAsync(cancellationToken);
         if (_consensusReactor is not null)

@@ -4,7 +4,7 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class EvidenceBroadcastTask(Swarm swarm) : SwarmTaskBase
+internal sealed class EvidenceBroadcastTask(Swarm swarm) : BackgroundServiceBase
 {
     protected override TimeSpan Interval => swarm.Options.EvidenceBroadcastInterval;
 

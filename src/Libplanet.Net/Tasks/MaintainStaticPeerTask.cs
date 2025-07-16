@@ -3,14 +3,17 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class MaintainStaticPeerTask(Swarm swarm) : SwarmTaskBase
+internal sealed class MaintainStaticPeerTask(Swarm swarm) : BackgroundServiceBase
 {
-    public override bool IsEnabled => !swarm.Options.StaticPeers.IsEmpty;
-
     protected override TimeSpan Interval => swarm.Options.StaticPeersMaintainPeriod;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
+        if (swarm.Options.StaticPeers.IsEmpty)
+        {
+            return;
+        }
+
         var tasks = swarm.Options.StaticPeers
             .Where(peer => !swarm.RoutingTable.Contains(peer))
             .Select(async peer =>

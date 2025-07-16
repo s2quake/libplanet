@@ -5,7 +5,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class BlockBroadcastTask : SwarmTaskBase, IDisposable
+internal sealed class BlockBroadcastTask : BackgroundServiceBase
 {
     private readonly Swarm _swarm;
     private readonly IDisposable _tipChangedSubscription;
@@ -21,16 +21,17 @@ internal sealed class BlockBroadcastTask : SwarmTaskBase, IDisposable
 
     protected override TimeSpan Interval => _swarm.Options.BlockBroadcastInterval;
 
-    public void Dispose()
-    {
-        _tipChangedSubscription.Dispose();
-    }
-
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var blockchain = _swarm.Blockchain;
         BroadcastBlock(default, blockchain.Tip);
         await Task.CompletedTask;
+    }
+
+    protected override ValueTask DisposeAsyncCore()
+    {
+        _tipChangedSubscription.Dispose();
+        return base.DisposeAsyncCore();
     }
 
     private void BroadcastBlock(Address except, Block block)

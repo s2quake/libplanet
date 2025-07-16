@@ -4,7 +4,7 @@ using Libplanet.Net.Protocols;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class RebuildConnectionTask(Swarm swarm) : SwarmTaskBase
+internal sealed class RebuildConnectionTask(Swarm swarm) : BackgroundServiceBase
 {
     protected override TimeSpan Interval => TimeSpan.FromMinutes(30);
 

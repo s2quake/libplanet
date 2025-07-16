@@ -5,7 +5,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class ConsumeBlockCandidatesTask(Swarm swarm) : SwarmTaskBase
+internal sealed class ConsumeBlockCandidatesTask(Swarm swarm) : BackgroundServiceBase
 {
     protected override TimeSpan Interval => TimeSpan.FromMilliseconds(10);
 
