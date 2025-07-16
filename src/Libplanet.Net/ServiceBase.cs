@@ -53,15 +53,15 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
         await _semaphore.WaitAsync(cancellationToken);
         try
         {
-            await OnStopAsync(cancellationToken).ConfigureAwait(false);
             if (_cancellationTokenSource is not null)
             {
                 await _cancellationTokenSource.CancelAsync();
-                _cancellationTokenSource.Dispose();
-                _cancellationTokenSource = null;
-                _cancellationToken = default;
             }
 
+            await OnStopAsync(cancellationToken).ConfigureAwait(false);
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+            _cancellationToken = default;
             cancellationToken.ThrowIfCancellationRequested();
             SetState(ServiceState.None);
         }
@@ -83,15 +83,15 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
         await _semaphore.WaitAsync();
         try
         {
-            await OnRecoverAsync().ConfigureAwait(false);
             if (_cancellationTokenSource is not null)
             {
                 await _cancellationTokenSource.CancelAsync();
-                _cancellationTokenSource.Dispose();
-                _cancellationTokenSource = null;
-                _cancellationToken = default;
             }
 
+            await OnRecoverAsync().ConfigureAwait(false);
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+            _cancellationToken = default;
             SetState(ServiceState.None);
         }
         catch
@@ -112,15 +112,15 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
         {
             if (_state != ServiceState.Disposed)
             {
-                await DisposeAsyncCore().ConfigureAwait(false);
                 if (_cancellationTokenSource is not null)
                 {
                     await _cancellationTokenSource.CancelAsync();
-                    _cancellationTokenSource.Dispose();
-                    _cancellationTokenSource = null;
-                    _cancellationToken = default;
                 }
 
+                await DisposeAsyncCore().ConfigureAwait(false);
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
+                _cancellationToken = default;
                 SetState(ServiceState.Disposed);
                 GC.SuppressFinalize(this);
             }

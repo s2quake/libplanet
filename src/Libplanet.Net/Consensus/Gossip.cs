@@ -10,7 +10,7 @@ namespace Libplanet.Net.Consensus;
 
 public sealed class Gossip(
     ITransport transport, ImmutableHashSet<Peer> seeds, ImmutableHashSet<Peer> validators, GossipOptions options)
-    : IAsyncDisposable
+    : ServiceBase
 {
     private const int DLazy = 6;
     private readonly Subject<(Peer, IMessage)> _validateReceivedMessageSubject = new();
@@ -23,10 +23,10 @@ public sealed class Gossip(
     private RoutingTable? _table;
     private PeerDiscovery? _kademlia;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
-    private CancellationTokenSource? _cancellationTokenSource;
+    // private CancellationTokenSource? _cancellationTokenSource;
     private Task[] _tasks = [];
     private IDisposable? _transportSubscription;
-    private bool _disposed;
+    // private bool _disposed;
 
     public Gossip(ITransport transport)
         : this(transport, [], [], new GossipOptions())
@@ -39,7 +39,7 @@ public sealed class Gossip(
 
     public IObservable<IMessage> ProcessMessage => _processMessageSubject;
 
-    public bool IsRunning { get; private set; }
+    // public bool IsRunning { get; private set; }
 
     public Peer Peer => _transport.Peer;
 
@@ -58,84 +58,84 @@ public sealed class Gossip(
 
     public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        if (IsRunning)
-        {
-            throw new InvalidOperationException("Gossip is already running.");
-        }
+    // public async Task StartAsync(CancellationToken cancellationToken)
+    // {
+    //     ObjectDisposedException.ThrowIf(_disposed, this);
+    //     if (IsRunning)
+    //     {
+    //         throw new InvalidOperationException("Gossip is already running.");
+    //     }
 
-        _cancellationTokenSource = new CancellationTokenSource();
-        await _transport.StartAsync(cancellationToken);
-        _table = new RoutingTable(_transport.Peer.Address);
-        _table.AddRange(validators);
-        _transportSubscription = _transport.Process.Subscribe(HandleMessage);
-        _kademlia = new PeerDiscovery(_table, _transport);
-        await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);
-        _tasks =
-        [
-            RunTableRefreshAsync(_cancellationTokenSource.Token),
-            RunTableRebuildAsync(_cancellationTokenSource.Token),
-            RunHeartbeatAsync(_cancellationTokenSource.Token)
-        ];
-        IsRunning = true;
-    }
+    //     _cancellationTokenSource = new CancellationTokenSource();
+    //     await _transport.StartAsync(cancellationToken);
+    //     _table = new RoutingTable(_transport.Peer.Address);
+    //     _table.AddRange(validators);
+    //     _transportSubscription = _transport.Process.Subscribe(HandleMessage);
+    //     _kademlia = new PeerDiscovery(_table, _transport);
+    //     await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);
+    //     _tasks =
+    //     [
+    //         RunTableRefreshAsync(_cancellationTokenSource.Token),
+    //         RunTableRebuildAsync(_cancellationTokenSource.Token),
+    //         RunHeartbeatAsync(_cancellationTokenSource.Token)
+    //     ];
+    //     IsRunning = true;
+    // }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException("Gossip is not running.");
-        }
+    // public async Task StopAsync(CancellationToken cancellationToken)
+    // {
+    //     ObjectDisposedException.ThrowIf(_disposed, this);
+    //     if (!IsRunning)
+    //     {
+    //         throw new InvalidOperationException("Gossip is not running.");
+    //     }
 
-        if (_cancellationTokenSource is not null)
-        {
-            await _cancellationTokenSource.CancelAsync();
-        }
+    //     if (_cancellationTokenSource is not null)
+    //     {
+    //         await _cancellationTokenSource.CancelAsync();
+    //     }
 
-        await TaskUtility.TryWhenAll(_tasks);
-        _tasks = [];
-        _transportSubscription?.Dispose();
-        _transportSubscription = null;
-        await _transport.StopAsync(cancellationToken);
-        _table = null;
-        _kademlia = null;
-        _cancellationTokenSource?.Dispose();
-        _cancellationTokenSource = null;
-        IsRunning = false;
-    }
+    //     await TaskUtility.TryWhenAll(_tasks);
+    //     _tasks = [];
+    //     _transportSubscription?.Dispose();
+    //     _transportSubscription = null;
+    //     await _transport.StopAsync(cancellationToken);
+    //     _table = null;
+    //     _kademlia = null;
+    //     _cancellationTokenSource?.Dispose();
+    //     _cancellationTokenSource = null;
+    //     IsRunning = false;
+    // }
 
     public void ClearCache()
     {
         _messageById.Clear();
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        if (!_disposed)
-        {
-            if (_cancellationTokenSource is not null)
-            {
-                await _cancellationTokenSource.CancelAsync();
-            }
+    // public async ValueTask DisposeAsync()
+    // {
+    //     if (!_disposed)
+    //     {
+    //         if (_cancellationTokenSource is not null)
+    //         {
+    //             await _cancellationTokenSource.CancelAsync();
+    //         }
 
-            _transportSubscription?.Dispose();
-            _transportSubscription = null;
+    //         _transportSubscription?.Dispose();
+    //         _transportSubscription = null;
 
-            // Subject들을 정리
-            _validateReceivedMessageSubject.Dispose();
-            _validateSendingMessageSubject.Dispose();
-            _processMessageSubject.Dispose();
+    //         // Subject들을 정리
+    //         _validateReceivedMessageSubject.Dispose();
+    //         _validateSendingMessageSubject.Dispose();
+    //         _processMessageSubject.Dispose();
 
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
-            _messageById.Clear();
-            await _transport.DisposeAsync();
-            _disposed = true;
-        }
-    }
+    //         _cancellationTokenSource?.Dispose();
+    //         _cancellationTokenSource = null;
+    //         _messageById.Clear();
+    //         await _transport.DisposeAsync();
+    //         _disposed = true;
+    //     }
+    // }
 
     public void PublishMessage(IMessage message)
     {
@@ -149,7 +149,7 @@ public sealed class Gossip(
 
     public void PublishMessage(ImmutableArray<Peer> targetPeers, params IMessage[] messages)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (!IsRunning)
         {
             throw new InvalidOperationException("Gossip is not running.");
@@ -190,6 +190,48 @@ public sealed class Gossip(
     public void ClearDenySet()
     {
         _deniedPeers.Clear();
+    }
+
+    protected override async Task OnStartAsync(CancellationToken cancellationToken)
+    {
+        await _transport.StartAsync(cancellationToken);
+        _table = new RoutingTable(_transport.Peer.Address);
+        _table.AddRange(validators);
+        _transportSubscription = _transport.Process.Subscribe(HandleMessage);
+        _kademlia = new PeerDiscovery(_table, _transport);
+        await _kademlia.BootstrapAsync(seeds, 3, cancellationToken);
+        _tasks =
+        [
+            RunTableRefreshAsync(),
+            RunTableRebuildAsync(),
+            RunHeartbeatAsync()
+        ];
+    }
+
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        await TaskUtility.TryWhenAll(_tasks);
+        _tasks = [];
+        _transportSubscription?.Dispose();
+        _transportSubscription = null;
+        await _transport.StopAsync(cancellationToken);
+        _table = null;
+        _kademlia = null;
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        _transportSubscription?.Dispose();
+        _transportSubscription = null;
+
+        // Subject들을 정리
+        _validateReceivedMessageSubject.Dispose();
+        _validateSendingMessageSubject.Dispose();
+        _processMessageSubject.Dispose();
+
+        _messageById.Clear();
+        await _transport.DisposeAsync();
+        await base.DisposeAsyncCore();
     }
 
     private ImmutableArray<Peer> GetPeersToBroadcast(IEnumerable<Peer> peers, int count)
@@ -241,8 +283,10 @@ public sealed class Gossip(
         }
     }
 
-    private async Task RunHeartbeatAsync(CancellationToken cancellationToken)
+    private async Task RunHeartbeatAsync()
     {
+        using var cancellationTokenSource = CreateCancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
         var table = _table ?? throw new InvalidOperationException("Gossip is not running.");
         var interval = _options.HeartbeatInterval;
         while (!cancellationToken.IsCancellationRequested)
@@ -356,8 +400,10 @@ public sealed class Gossip(
         }
     }
 
-    private async Task RunTableRebuildAsync(CancellationToken cancellationToken)
+    private async Task RunTableRebuildAsync()
     {
+        using var cancellationTokenSource = CreateCancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
         var kademlia = _kademlia ?? throw new InvalidOperationException("Gossip is not running.");
         var interval = _options.RebuildTableInterval;
         while (!cancellationToken.IsCancellationRequested)
@@ -374,8 +420,10 @@ public sealed class Gossip(
         }
     }
 
-    private async Task RunTableRefreshAsync(CancellationToken cancellationToken)
+    private async Task RunTableRefreshAsync()
     {
+        using var cancellationTokenSource = CreateCancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
         var kademlia = _kademlia ?? throw new InvalidOperationException("Gossip is not running.");
         while (!cancellationToken.IsCancellationRequested)
         {
