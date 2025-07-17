@@ -1,6 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
+using Libplanet.Net.Protocols.PeerDiscoveryMessageHandlers;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 using static Libplanet.Net.Protocols.AddressUtility;
@@ -16,7 +18,9 @@ internal sealed class PeerDiscovery : IDisposable
     private readonly Address _address;
     private readonly ITransport _transport;
     private readonly RoutingTable _replacementCache;
-    private readonly IDisposable _transportSubscription;
+    // private readonly IDisposable _transportSubscription;
+    // private readonly IMessageHandler[] _handlers;
+    private readonly IMessageHandler _handler;
     private bool _disposed;
 
     public PeerDiscovery(RoutingTable table, ITransport transport)
@@ -31,7 +35,21 @@ internal sealed class PeerDiscovery : IDisposable
         _table = table;
         _address = table.Owner;
         _transport = transport;
-        _transportSubscription = _transport.Process.Subscribe(ProcessMessageHandler);
+        _handler = new PeerDiscoveryMessageHandler
+        {
+            Handlers =
+            [
+                new PingMessageHandler(_transport),
+                new GetPeerMessageHandler(_address, _table),
+            ],
+        };
+        // _handlers =
+        // [
+        //     new PingMessageHandler(),
+        //     new GetPeerMessageHandler(_address, _table),
+        // ];
+        _transport.MessageHandlers.Add(_handler);
+        // _transportSubscription = _transport.Process.Subscribe(ProcessMessageHandler);
         _replacementCache = new RoutingTable(_address, table.Buckets.Count, table.Buckets.CapacityPerBucket);
     }
 
@@ -291,7 +309,7 @@ internal sealed class PeerDiscovery : IDisposable
     {
         if (!_disposed)
         {
-            _transportSubscription?.Dispose();
+            // _transportSubscription?.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }

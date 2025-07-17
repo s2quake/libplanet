@@ -1,4 +1,3 @@
-using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using System.ServiceModel;
 using System.Text;
@@ -15,11 +14,9 @@ namespace Libplanet.Net.Transports;
 public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     : ServiceBase, ITransport
 {
-    private readonly Subject<IReplyContext> _processSubject = new();
     private readonly NetMQRouterSocket _router = new(signer.Address, options.Host, options.Port);
     private readonly NetMQQueue<MessageResponse> _responseQueue = new();
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
-
     private NetMQRequestWorker? _requestWorker;
     private NetMQPoller? _poller;
 
@@ -28,39 +25,39 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
     }
 
-    public IObservable<IReplyContext> Process => _processSubject;
+    public MessageHandlerCollection MessageHandlers { get; } = [];
 
     public Peer Peer => _router.Peer;
 
     public Protocol Protocol => _options.Protocol;
 
-    public async IAsyncEnumerable<IMessage> SendAsync(
-        Peer receiver, IMessage message, [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
+    // public async IAsyncEnumerable<IMessage> SendAsync(
+    //     Peer receiver, IMessage message, [EnumeratorCancellation] CancellationToken cancellationToken)
+    // {
+    //     ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
-        var messageEnvelope = new MessageEnvelope
-        {
-            Identity = Guid.NewGuid(),
-            Message = message,
-            Protocol = _options.Protocol,
-            Sender = Peer,
-            Timestamp = DateTimeOffset.UtcNow,
-        };
-        var channel = await WriteAsync(receiver, messageEnvelope, cancellationTokenSource.Token);
-        var hasNext = true;
-        while (hasNext)
-        {
-            var response = await ReadAsync(channel, cancellationTokenSource.Token);
-            hasNext = response.HasNext;
-            yield return response.MessageEnvelope.Message;
-        }
+    //     using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
+    //     var messageEnvelope = new MessageEnvelope
+    //     {
+    //         Identity = Guid.NewGuid(),
+    //         Message = message,
+    //         Protocol = _options.Protocol,
+    //         Sender = Peer,
+    //         Timestamp = DateTimeOffset.UtcNow,
+    //     };
+    //     var channel = await WriteAsync(receiver, messageEnvelope, cancellationTokenSource.Token);
+    //     var hasNext = true;
+    //     while (hasNext)
+    //     {
+    //         var response = await ReadAsync(channel, cancellationTokenSource.Token);
+    //         hasNext = response.HasNext;
+    //         yield return response.MessageEnvelope.Message;
+    //     }
 
-        channel.Writer.TryComplete();
-    }
+    //     channel.Writer.TryComplete();
+    // }
 
-    public void Send(Peer receiver, IMessage message)
+    public MessageEnvelope Send(Peer receiver, IMessage message, Guid? replyTo = null)
     {
         if (_requestWorker is null)
         {
@@ -76,6 +73,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             Protocol = _options.Protocol,
             Sender = Peer,
             Timestamp = DateTimeOffset.UtcNow,
+            ReplyTo = replyTo,
         };
         var messageRequest = new MessageRequest
         {
@@ -85,6 +83,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         };
 
         _ = _requestWorker.WriteAsync(messageRequest, cancellationTokenSource.Token);
+        return messageEnvelope;
     }
 
     public void Send(ImmutableArray<Peer> receivers, IMessage message)
@@ -138,8 +137,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
             var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
             messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
-            var replyContext = new NetMQReplyContext(this, messageEnvelope);
-            _processSubject.OnNext(replyContext);
+            // var replyContext = new NetMQReplyContext(this, messageEnvelope);
+            MessageHandlers.Handle(messageEnvelope);
         }
         catch
         {
@@ -287,7 +286,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
         _responseQueue.Dispose();
         _router.Dispose();
-        _processSubject.Dispose();
+        MessageHandlers.Dispose();
 
         await base.DisposeAsyncCore();
     }

@@ -2,8 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Protocols;
-using Libplanet.Net.Tests.Protocols;
 
 namespace Libplanet.Net.Tests;
 
@@ -11,40 +9,55 @@ public static class ITransportExtensions
 {
     public static async Task WaitPingAsync(this ITransport @this, params Peer[] peers)
     {
-        await @this.Process.WaitAsync(replyContext =>
+        var manualResetEvent = new ManualResetEventSlim(false);
+        var messageHandler = @this.MessageHandlers.Add<PingMessage>((message, messageEnvelope) =>
         {
-            if (replyContext.Message is PingMessage && (peers.Length is 0 || peers.Contains(replyContext.Sender)))
+            if (peers.Length is 0 || peers.Contains(messageEnvelope.Sender))
             {
-                replyContext.PongAsync();
-                return true;
+                @this.Send(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
+                manualResetEvent.Set();
             }
+        });
 
-            return false;
-
-        }, default);
+        try
+        {
+            await Task.Run(manualResetEvent.Wait, default);
+        }
+        finally
+        {
+            @this.MessageHandlers.Remove(messageHandler);
+        }
     }
 
     public static Task WaitMessageAsync<T>(this ITransport @this, CancellationToken cancellationToken)
-        => WaitMessageAsync<T>(@this, m => true, cancellationToken);
+        where T : IMessage
+        => WaitMessageAsync<T>(@this, (_, _) => true, cancellationToken);
 
     public static async Task WaitMessageAsync<T>(
         this ITransport @this, Func<T, bool> predicate, CancellationToken cancellationToken)
+        where T : IMessage
+        => await WaitMessageAsync<T>(@this, (m, _) => predicate(m), cancellationToken);
+
+    public static async Task WaitMessageAsync<T>(
+        this ITransport @this, Func<T, MessageEnvelope, bool> predicate, CancellationToken cancellationToken)
+        where T : IMessage
     {
-        await @this.Process.WaitAsync(Predicate, cancellationToken);
-
-        bool Predicate(IReplyContext replyContext) => replyContext.Message is T message && predicate(message);
-    }
-
-    public static IDisposable RegisterPingHandler(this ITransport @this) => @this.RegisterPingHandler([]);
-
-    public static IDisposable RegisterPingHandler(this ITransport @this, ImmutableArray<Peer> peers)
-    {
-        return @this.Process.Subscribe(replyContext =>
+        var manualResetEvent = new ManualResetEventSlim(false);
+        var messageHandler = @this.MessageHandlers.Add<T>((message, messageEnvelope) =>
         {
-            if (replyContext.Message is PingMessage && (peers.Length is 0 || peers.Contains(replyContext.Sender)))
+            if (predicate(message, messageEnvelope))
             {
-                replyContext.PongAsync();
+                manualResetEvent.Set();
             }
         });
+
+        try
+        {
+            await Task.Run(manualResetEvent.Wait, cancellationToken);
+        }
+        finally
+        {
+            @this.MessageHandlers.Remove(messageHandler);
+        }
     }
 }

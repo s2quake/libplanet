@@ -1,11 +1,13 @@
+using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.Messages;
 
 namespace Libplanet.Net;
 
 public interface ITransport : IAsyncDisposable
 {
-    IObservable<IReplyContext> Process { get; }
+    MessageHandlerCollection MessageHandlers { get; }
 
     Peer Peer { get; }
 
@@ -17,9 +19,7 @@ public interface ITransport : IAsyncDisposable
 
     Task StopAsync(CancellationToken cancellationToken);
 
-    IAsyncEnumerable<IMessage> SendAsync(Peer receiver, IMessage message, CancellationToken cancellationToken);
-
-    void Send(Peer receiver, IMessage message);
+    MessageEnvelope Send(Peer receiver, IMessage message, Guid? replyTo = null);
 
     void Send(ImmutableArray<Peer> receivers, IMessage message);
 }

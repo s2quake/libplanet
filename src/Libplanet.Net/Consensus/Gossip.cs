@@ -26,7 +26,8 @@ public sealed class Gossip : ServiceBase
     private RoutingTable? _table;
     private PeerDiscovery? _peerDiscovery;
     private ServicesCollection? _services;
-    private IDisposable? _transportSubscription;
+    // private IDisposable? _transportSubscription;
+    private IMessageHandler[] _handlers = [];
 
     public Gossip(
         ITransport transport, ImmutableHashSet<Peer> seeds, ImmutableHashSet<Peer> validators, GossipOptions options)
@@ -35,7 +36,7 @@ public sealed class Gossip : ServiceBase
         _options = options;
         _seeds = seeds;
         _validators = validators;
-        MessageHandlers =
+        _handlers =
         [
             new EmptyHandler<PingMessage>(),
             new EmptyHandler<GetPeerMessage>(),
@@ -43,6 +44,7 @@ public sealed class Gossip : ServiceBase
             new WantMessageHandler(_messageById, _haveDict),
             new MessageHandler(this),
         ];
+        _transport.MessageHandlers.AddRange(_handlers);
     }
 
     public Gossip(ITransport transport)
@@ -56,7 +58,7 @@ public sealed class Gossip : ServiceBase
 
     // public IObservable<IMessage> ProcessMessage => _processMessageSubject;
 
-    public MessageHandlerCollection MessageHandlers { get; }
+    // public MessageHandlerCollection MessageHandlers { get; }
 
     public MessageValidatorCollection MessageValidators { get; } = [];
 
@@ -141,7 +143,7 @@ public sealed class Gossip : ServiceBase
         await _transport.StartAsync(cancellationToken);
         _table = new RoutingTable(_transport.Peer.Address);
         _table.AddRange(_validators);
-        _transportSubscription = _transport.Process.Subscribe(HandleMessage);
+        // _transportSubscription = _transport.Process.Subscribe(HandleMessage);
         _peerDiscovery = new PeerDiscovery(_table, _transport);
         _services =
         [
@@ -164,8 +166,8 @@ public sealed class Gossip : ServiceBase
 
         _peerDiscovery?.Dispose();
         _peerDiscovery = null;
-        _transportSubscription?.Dispose();
-        _transportSubscription = null;
+        // _transportSubscription?.Dispose();
+        // _transportSubscription = null;
         await _transport.StopAsync(cancellationToken);
     }
 
@@ -179,8 +181,8 @@ public sealed class Gossip : ServiceBase
 
         _peerDiscovery?.Dispose();
         _peerDiscovery = null;
-        _transportSubscription?.Dispose();
-        _transportSubscription = null;
+        // _transportSubscription?.Dispose();
+        // _transportSubscription = null;
 
         // Subject들을 정리
         // _validateReceivedMessageSubject.Dispose();
@@ -214,29 +216,29 @@ public sealed class Gossip : ServiceBase
 
     private async void HandleMessage(IReplyContext replyContext)
     {
-        if (_deniedPeers.Contains(replyContext.Sender))
-        {
-            await replyContext.PongAsync();
-            return;
-        }
+        // if (_deniedPeers.Contains(replyContext.Sender))
+        // {
+        //     await replyContext.PongAsync();
+        //     return;
+        // }
 
-        try
-        {
-            // _validateReceivedMessageSubject.OnNext((replyContext.Sender, replyContext.Message));
-            if (MessageHandlers!.TryGetHandler(replyContext.Message.GetType(), out var handler))
-            {
-                await handler.HandleAsync(replyContext, default);
-            }
-            else
-            {
-                await replyContext.PongAsync();
-                AddMessage(replyContext.Message);
-            }
-        }
-        catch
-        {
-            // do nothing
-        }
+        // try
+        // {
+        //     // _validateReceivedMessageSubject.OnNext((replyContext.Sender, replyContext.Message));
+        //     if (MessageHandlers!.TryGetHandler(replyContext.Message.GetType(), out var handler))
+        //     {
+        //         await handler.HandleAsync(replyContext, default);
+        //     }
+        //     else
+        //     {
+        //         await replyContext.PongAsync();
+        //         AddMessage(replyContext.Message);
+        //     }
+        // }
+        // catch
+        // {
+        //     // do nothing
+        // }
     }
 
     private async Task SendWantMessageAsync(CancellationToken cancellationToken)
@@ -276,21 +278,21 @@ public sealed class Gossip : ServiceBase
             {
                 MessageId[] idsToGet = pair.Value;
                 var want = new WantMessage { Ids = [.. idsToGet] };
-                await foreach (var item in _transport.SendAsync(pair.Key, want, cancellationToken))
-                {
-                    try
-                    {
-                        AddMessage(item);
-                    }
-                    catch
-                    {
-                        // do nogthing
-                    }
+                // await foreach (var item in _transport.SendAsync(pair.Key, want, cancellationToken))
+                // {
+                //     try
+                //     {
+                //         AddMessage(item);
+                //     }
+                //     catch
+                //     {
+                //         // do nogthing
+                //     }
 
-                    // Messagehandlers.HandleAsync(item)
-                    // _validateReceivedMessageSubject.OnNext((pair.Key, item));
-                    MessageValidators.Validate(item);
-                }
+                //     // Messagehandlers.HandleAsync(item)
+                //     // _validateReceivedMessageSubject.OnNext((pair.Key, item));
+                //     MessageValidators.Validate(item);
+                // }
             });
     }
 }

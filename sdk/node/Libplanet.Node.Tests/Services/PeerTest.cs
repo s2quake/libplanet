@@ -86,22 +86,22 @@ public class PeerTest
         };
         var transportMock = new Mock<ITransport>();
 
-        async Task<MessageEnvelope> SendMessageAsync(
-            Net.Peer peer,
-            IMessage content,
-            TimeSpan? timeout,
-            CancellationToken cancellationToken)
-        {
-            await Task.Delay(1000, cancellationToken);
-            return message;
-        }
+        // async Task<MessageEnvelope> SendMessageAsync(
+        //     Net.Peer peer,
+        //     IMessage content,
+        //     TimeSpan? timeout,
+        //     CancellationToken cancellationToken)
+        // {
+        //     await Task.Delay(1000, cancellationToken);
+        //     return message;
+        // }
 
-        transportMock
-            .Setup(item => item.SendAsync(
-                It.IsAny<Net.Peer>(),
-                It.IsAny<PingMessage>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(SendMessageAsync);
+        // transportMock
+        //     .Setup(item => item.Send(
+        //         It.IsAny<Net.Peer>(),
+        //         It.IsAny<PingMessage>(),
+        //         It.IsAny<Guid?>()))
+        //     .Returns(SendMessageAsync);
 
         using var boundPeer = new RandomBoundPeer();
         var timeout = TimeSpan.FromSeconds(1);

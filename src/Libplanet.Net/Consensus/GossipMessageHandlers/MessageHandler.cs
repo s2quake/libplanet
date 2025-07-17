@@ -1,15 +1,12 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
+using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.Consensus.GossipMessageHandlers;
 
 internal sealed class MessageHandler(Gossip gossip) : MessageHandlerBase<IMessage>
 {
-    protected override async ValueTask OnHandleAsync(
-        IMessage message, IReplyContext replyContext, CancellationToken cancellationToken)
+    protected override void OnHandle(IMessage message, MessageEnvelope messageEnvelope)
     {
-        await replyContext.PongAsync();
         gossip.AddMessage(message);
     }
 }

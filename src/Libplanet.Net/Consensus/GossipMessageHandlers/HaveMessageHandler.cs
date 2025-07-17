@@ -1,6 +1,4 @@
 using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 
@@ -11,17 +9,15 @@ internal sealed class HaveMessageHandler(
     ConcurrentDictionary<Peer, HashSet<MessageId>> haveDict)
     : MessageHandlerBase<HaveMessage>
 {
-    protected override async ValueTask OnHandleAsync(
-        HaveMessage message, IReplyContext replyContext, CancellationToken cancellationToken)
+    protected override void OnHandle(HaveMessage message, MessageEnvelope messageEnvelope)
     {
-        await replyContext.PongAsync();
         var ids = message.Ids.Where(id => !messageById.ContainsKey(id)).ToArray();
         if (ids.Length is 0)
         {
             return;
         }
 
-        var peer = replyContext.Sender;
+        var peer = messageEnvelope.Sender;
         if (!haveDict.TryGetValue(peer, out HashSet<MessageId>? value))
         {
             value = [];

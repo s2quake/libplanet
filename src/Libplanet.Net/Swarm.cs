@@ -48,7 +48,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         Transport = new NetMQTransport(signer, options.TransportOptions);
         _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
-        Transport.Process.Subscribe(ProcessMessageHandler);
+        // Transport.Process.Subscribe(ProcessMessageHandler);
         PeerDiscovery = new PeerDiscovery(RoutingTable, Transport);
         BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
         _txFetcherSubscription = _txFetcher.Received.Subscribe(e => BroadcastTxs(e.Peer, e.Items));

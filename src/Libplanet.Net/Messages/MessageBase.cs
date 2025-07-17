@@ -6,7 +6,4 @@ namespace Libplanet.Net.Messages;
 public abstract record class MessageBase : IMessage
 {
     public MessageId Id => new(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
-
-    [Property(0)]
-    public bool HasNext { get; init; }
 }

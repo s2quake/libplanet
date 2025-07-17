@@ -16,20 +16,22 @@ public static class ITransportExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken)
         where T : IMessage
     {
-        await foreach (var item in @this.SendAsync(peer, message, cancellationToken))
-        {
-            if (item is T typedMessage)
-            {
-                yield return typedMessage;
-            }
-            else
-            {
-                throw new InvalidMessageContractException(
-                    $"Expected a {typeof(T).Name} message as a response of " +
-                    $"{message.GetType().Name}, but got a {item.GetType().Name} " +
-                    $"message instead: {item}");
-            }
-        }
+
+        yield break;
+        // await foreach (var item in @this.SendAsync(peer, message, cancellationToken))
+        // {
+        //     if (item is T typedMessage)
+        //     {
+        //         yield return typedMessage;
+        //     }
+        //     else
+        //     {
+        //         throw new InvalidMessageContractException(
+        //             $"Expected a {typeof(T).Name} message as a response of " +
+        //             $"{message.GetType().Name}, but got a {item.GetType().Name} " +
+        //             $"message instead: {item}");
+        //     }
+        // }
     }
 
     public static async Task<T> SendForSingleAsync<T>(
@@ -134,7 +136,6 @@ public static class ITransportExtensions
         {
             Blocks = [.. blocks],
             BlockCommits = [.. blockCommits],
-            HasNext = hasNext,
         };
         await @this.NextAsync(replyMessage);
     }

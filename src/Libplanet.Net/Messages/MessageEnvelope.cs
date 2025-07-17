@@ -20,6 +20,9 @@ public sealed record class MessageEnvelope
     [Property(4)]
     public DateTimeOffset Timestamp { get; init; }
 
+    [Property(5)]
+    public Guid? ReplyTo { get; init; }
+
     public void Validate(Protocol protocol, TimeSpan lifetime)
     {
         if (lifetime < TimeSpan.Zero)

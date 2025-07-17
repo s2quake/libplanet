@@ -1,5 +1,4 @@
-using System.Threading;
-using System.Threading.Tasks;
+using Libplanet.Net.Messages;
 
 namespace Libplanet.Net;
 
@@ -7,5 +6,5 @@ public interface IMessageHandler
 {
     Type MessageType { get; }
 
-    ValueTask HandleAsync(IReplyContext replyContext, CancellationToken cancellationToken);
+    void Handle(MessageEnvelope messageEnvelope);
 }

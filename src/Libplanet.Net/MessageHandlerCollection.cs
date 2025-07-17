@@ -1,13 +1,20 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.Messages;
 
 namespace Libplanet.Net;
 
-public sealed class MessageHandlerCollection
+public sealed class MessageHandlerCollection(IEnumerable<IMessageHandler> handlers)
     : IEnumerable<IMessageHandler>, IDisposable
 {
-    private readonly Dictionary<Type, IMessageHandler> _handlerByType = [];
+    private readonly Dictionary<Type, IMessageHandler> _handlerByType = handlers.ToDictionary(item => item.MessageType);
+
+    public MessageHandlerCollection()
+        : this([])
+    {
+    }
 
     public int Count => _handlerByType.Count;
 
@@ -22,6 +29,22 @@ public sealed class MessageHandlerCollection
         }
 
         _handlerByType.Add(handler.MessageType, handler);
+    }
+
+    public IMessageHandler Add<T>(Action<T, MessageEnvelope> action)
+        where T : IMessage
+    {
+        var messageHandler = new RelayMessageHandler<T>(action);
+        Add(messageHandler);
+        return messageHandler;
+    }
+
+    public IMessageHandler Add<T>(Action<T> action)
+        where T : IMessage
+    {
+        var messageHandler = new RelayMessageHandler<T>(action);
+        Add(messageHandler);
+        return messageHandler;
     }
 
     public void AddRange(IEnumerable<IMessageHandler> handlers)
@@ -55,15 +78,15 @@ public sealed class MessageHandlerCollection
     public bool TryGetHandler(Type messageType, [MaybeNullWhen(false)] out IMessageHandler handler)
         => _handlerByType.TryGetValue(messageType, out handler);
 
-    public async ValueTask HandleAsync(IReplyContext replyContext)
+    public void Handle(MessageEnvelope messageEnvelope)
     {
-        var message = replyContext.Message;
+        var message = messageEnvelope.Message;
         var messageType = message.GetType();
         while (messageType is not null && typeof(IMessage).IsAssignableFrom(messageType))
         {
             if (TryGetHandler(messageType, out var handler))
             {
-                await handler.HandleAsync(replyContext, default);
+                handler.Handle(messageEnvelope);
                 return;
             }
 
@@ -72,7 +95,7 @@ public sealed class MessageHandlerCollection
 
         if (TryGetHandler(typeof(IMessage), out var handler2))
         {
-            await handler2.HandleAsync(replyContext, default);
+            handler2.Handle(messageEnvelope);
         }
     }
 

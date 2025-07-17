@@ -26,23 +26,34 @@ public sealed class GossipTest
         var receivedEvent = new ManualResetEvent(false);
         var peer1 = CreatePeer(key1, 6001);
         var peer2 = CreatePeer(key2, 6002);
-        await using var gossip1 = CreateGossip(key1, 6001, [peer2]);
-        await using var gossip2 = CreateGossip(key2, 6002, [peer1]);
-        using var s1 = gossip1.ProcessMessage.Subscribe(message =>
+        var transport1 = CreateTransport(key1, 6001);
+        var transport2 = CreateTransport(key2, 6002);
+        await using var gossip1 = CreateGossip(transport1, [peer2]);
+        await using var gossip2 = CreateGossip(transport2, [peer1]);
+        transport1.MessageHandlers.Add(new RelayMessageHandler<ConsensusProposalMessage>(message =>
         {
-            if (message is ConsensusProposalMessage)
-            {
-                received1 = true;
-            }
-        });
-        using var s2 = gossip2.ProcessMessage.Subscribe(message =>
+            received1 = true;
+        }));
+        transport2.MessageHandlers.Add(new RelayMessageHandler<ConsensusProposalMessage>(message =>
         {
-            if (message is ConsensusProposalMessage)
-            {
-                received2 = true;
-                receivedEvent.Set();
-            }
-        });
+            received2 = true;
+            receivedEvent.Set();
+        }));
+        // gossip1.ProcessMessage.Subscribe(message =>
+        // {
+        //     if (message is ConsensusProposalMessage)
+        //     {
+        //         received1 = true;
+        //     }
+        // });
+        // using var s2 = gossip2.ProcessMessage.Subscribe(message =>
+        // {
+        //     if (message is ConsensusProposalMessage)
+        //     {
+        //         received2 = true;
+        //         receivedEvent.Set();
+        //     }
+        // });
         await gossip1.StartAsync(default);
         await gossip2.StartAsync(default);
         gossip1.PublishMessage(TestUtils.CreateConsensusPropose(fx.Block1, new PrivateKey(), 0));
@@ -64,23 +75,34 @@ public sealed class GossipTest
         var receivedEvent = new ManualResetEvent(false);
         var peer1 = CreatePeer(key1, 6001);
         var peer2 = CreatePeer(key2, 6002);
-        await using var gossip1 = CreateGossip(key1, 6001, [peer2]);
-        await using var gossip2 = CreateGossip(key2, 6002, [peer1]);
-        using var s1 = gossip1.ProcessMessage.Subscribe(message =>
+        var transport1 = CreateTransport(key1, 6001);
+        var transport2 = CreateTransport(key2, 6002);
+        await using var gossip1 = CreateGossip(transport1, [peer2]);
+        await using var gossip2 = CreateGossip(transport2, [peer1]);
+        transport1.MessageHandlers.Add(new RelayMessageHandler<ConsensusProposalMessage>(message =>
         {
-            if (message is ConsensusProposalMessage)
-            {
-                received1 = true;
-            }
-        });
-        using var s2 = gossip2.ProcessMessage.Subscribe(message =>
+            received1 = true;
+        }));
+        transport2.MessageHandlers.Add(new RelayMessageHandler<ConsensusProposalMessage>(message =>
         {
-            if (message is ConsensusProposalMessage)
-            {
-                received2 = true;
-                receivedEvent.Set();
-            }
-        });
+            received2 = true;
+            receivedEvent.Set();
+        }));
+        // using var s1 = gossip1.ProcessMessage.Subscribe(message =>
+        // {
+        //     if (message is ConsensusProposalMessage)
+        //     {
+        //         received1 = true;
+        //     }
+        // });
+        // using var s2 = gossip2.ProcessMessage.Subscribe(message =>
+        // {
+        //     if (message is ConsensusProposalMessage)
+        //     {
+        //         received2 = true;
+        //         receivedEvent.Set();
+        //     }
+        // });
 
         await gossip1.StartAsync(default);
         await gossip2.StartAsync(default);
@@ -101,27 +123,41 @@ public sealed class GossipTest
         var receivedEvent = new ManualResetEvent(false);
         var peer1 = CreatePeer(key1, 6001);
         var peer2 = CreatePeer(key2, 6002);
-        await using var gossip1 = CreateGossip(key1, 6001, [peer2]);
-        await using var gossip2 = CreateGossip(key2, 6002, [peer1]);
-        using var g1 = gossip1.ProcessMessage.Subscribe(message =>
+        var transport1 = CreateTransport(key1, 6001);
+        var transport2 = CreateTransport(key2, 6002);
+        await using var gossip1 = CreateGossip(transport1, [peer2]);
+        await using var gossip2 = CreateGossip(transport2, [peer1]);
+        transport1.MessageHandlers.Add<ConsensusProposalMessage>(message =>
         {
-            if (message is ConsensusProposalMessage)
-            {
-                received1++;
-            }
+            received1++;
         });
-        using var g2 = gossip2.ProcessMessage.Subscribe(message =>
+        transport2.MessageHandlers.Add<ConsensusProposalMessage>(message =>
         {
-            if (message is ConsensusProposalMessage)
-            {
-                received2++;
-            }
-
+            received2++;
             if (received2 == 4)
             {
                 receivedEvent.Set();
             }
         });
+        // using var g1 = gossip1.ProcessMessage.Subscribe(message =>
+        //     {
+        //         if (message is ConsensusProposalMessage)
+        //         {
+        //             received1++;
+        //         }
+        //     });
+        // using var g2 = gossip2.ProcessMessage.Subscribe(message =>
+        // {
+        //     if (message is ConsensusProposalMessage)
+        //     {
+        //         received2++;
+        //     }
+
+        //     if (received2 == 4)
+        //     {
+        //         receivedEvent.Set();
+        //     }
+        // });
 
         await gossip1.StartAsync(default);
         await gossip2.StartAsync(default);
@@ -149,18 +185,23 @@ public sealed class GossipTest
         var received = false;
         var receivedEvent = new ManualResetEvent(false);
         await using var transport1 = CreateTransport(key1, 6001);
-
-        using var s = transport1.Process.Subscribe(messageEnvelope =>
+        transport1.MessageHandlers.Add<HaveMessage>(message =>
         {
             received = true;
             receivedEvent.Set();
         });
+
+        // using var s = transport1.Process.Subscribe(messageEnvelope =>
+        // {
+        //     received = true;
+        //     receivedEvent.Set();
+        // });
         await using var gossip = new Gossip(transport1);
         await using var transport2 = CreateTransport(key2, 6002);
 
         await gossip.StartAsync(default);
         await transport2.StartAsync(default);
-        await transport2.SendAsync(gossip.Peer, new HaveMessage(), default).FirstAsync(default);
+        transport2.Send(gossip.Peer, new HaveMessage(), default);
 
         receivedEvent.WaitOne();
         Assert.True(received);
@@ -174,13 +215,18 @@ public sealed class GossipTest
         await using var transport = CreateTransport(port: 6001);
         await using var gossip = CreateGossip(seeds: [transport.Peer]);
 
-        transport.Process.Subscribe(messageEnvelope =>
+        transport.MessageHandlers.Add(new RelayMessageHandler<HaveMessage>(message =>
         {
-            if (messageEnvelope.Message is HaveMessage)
-            {
-                received = true;
-            }
-        });
+            received = true;
+        }));
+
+        // transport.Process.Subscribe(messageEnvelope =>
+        // {
+        //     if (messageEnvelope.Message is HaveMessage)
+        //     {
+        //         received = true;
+        //     }
+        // });
 
         await transport.StartAsync(default);
         await gossip.StartAsync(default);
@@ -195,9 +241,9 @@ public sealed class GossipTest
     public async Task DoNotSendDuplicateMessageRequest()
     {
         var received = 0;
-        void ProcessMessage(IReplyContext replyContext)
+        void ProcessMessage(IMessage message)
         {
-            if (replyContext.Message is WantMessage)
+            if (message is WantMessage)
             {
                 received++;
             }
@@ -205,17 +251,19 @@ public sealed class GossipTest
 
         await using var receiver = CreateGossip();
         await using var sender1 = CreateTransport();
-        using var s1 = sender1.Process.Subscribe(ProcessMessage);
+        sender1.MessageHandlers.Add(new RelayMessageHandler<IMessage>(ProcessMessage));
+        // using var s1 = sender1.Process.Subscribe(ProcessMessage);
         await using var sender2 = CreateTransport();
-        using var s2 = sender2.Process.Subscribe(ProcessMessage);
+        sender2.MessageHandlers.Add(new RelayMessageHandler<IMessage>(ProcessMessage));
+        // using var s2 = sender2.Process.Subscribe(ProcessMessage);
 
         await receiver.StartAsync(default);
         await sender1.StartAsync(default);
         await sender2.StartAsync(default);
         var msg1 = new PingMessage();
         var msg2 = new PongMessage();
-        await sender1.SendAsync(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] }, default).FirstAsync(default);
-        await sender2.SendAsync(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] }, default).FirstAsync(default);
+        sender1.Send(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] });
+        sender2.Send(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] });
 
         // Wait heartbeat interval * 2.
         await Task.Delay(2 * 1000);
@@ -235,6 +283,17 @@ public sealed class GossipTest
         ImmutableHashSet<Peer>? seeds = null)
     {
         var transport = CreateTransport(privateKey, port);
+        var options = new GossipOptions
+        {
+        };
+        return new Gossip(transport, seeds ?? [], validators ?? [], options);
+    }
+
+    private static Gossip CreateGossip(
+        ITransport transport,
+        ImmutableHashSet<Peer>? validators = null,
+        ImmutableHashSet<Peer>? seeds = null)
+    {
         var options = new GossipOptions
         {
         };

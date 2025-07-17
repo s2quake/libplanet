@@ -1,7 +1,5 @@
 using System.Reactive;
 using System.Reactive.Subjects;
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 
@@ -12,38 +10,30 @@ internal sealed class BlockHeaderMessageHandler(Blockchain blockchain, BlockDema
 {
     private readonly Subject<Unit> _blockHeaderReceivedSubject = new();
 
-    protected override async ValueTask OnHandleAsync(
-        BlockHeaderMessage message, IReplyContext replyContext, CancellationToken cancellationToken)
+    protected override void OnHandle(BlockHeaderMessage message, MessageEnvelope messageEnvelope)
     {
+        if (!message.GenesisHash.Equals(blockchain.Genesis.BlockHash))
+        {
+            return;
+        }
+
+        _blockHeaderReceivedSubject.OnNext(Unit.Default);
+        var header = message.BlockSummary;
+
         try
         {
-            if (!message.GenesisHash.Equals(blockchain.Genesis.BlockHash))
-            {
-                return;
-            }
-
-            _blockHeaderReceivedSubject.OnNext(Unit.Default);
-            var header = message.BlockSummary;
-
-            try
-            {
-                header.Timestamp.ValidateTimestamp();
-            }
-            catch (InvalidOperationException e)
-            {
-                return;
-            }
-
-            bool needed = IsBlockNeeded(header);
-            if (needed)
-            {
-                blockDemandDictionary.Add(
-                    IsBlockNeeded, new BlockDemand(header, replyContext.Sender, DateTimeOffset.UtcNow));
-            }
+            header.Timestamp.ValidateTimestamp();
         }
-        finally
+        catch (InvalidOperationException e)
         {
-            await replyContext.PongAsync();
+            return;
+        }
+
+        bool needed = IsBlockNeeded(header);
+        if (needed)
+        {
+            blockDemandDictionary.Add(
+                IsBlockNeeded, new BlockDemand(header, messageEnvelope.Sender, DateTimeOffset.UtcNow));
         }
     }
 

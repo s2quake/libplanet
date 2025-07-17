@@ -1,5 +1,4 @@
-using System.Threading;
-using System.Threading.Tasks;
+using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.MessageHandlers;
 
@@ -8,9 +7,8 @@ internal abstract class MessageHandlerBase<T> : IMessageHandler
 {
     Type IMessageHandler.MessageType { get; } = typeof(T);
 
-    protected abstract ValueTask OnHandleAsync(
-        T message, IReplyContext replyContext, CancellationToken cancellationToken);
+    protected abstract void OnHandle(T message, MessageEnvelope messageEnvelope);
 
-    ValueTask IMessageHandler.HandleAsync(IReplyContext replyContext, CancellationToken cancellationToken)
-        => OnHandleAsync((T)replyContext.Message, replyContext, cancellationToken);
+    void IMessageHandler.Handle(MessageEnvelope messageEnvelope)
+        => OnHandle((T)messageEnvelope.Message, messageEnvelope);
 }

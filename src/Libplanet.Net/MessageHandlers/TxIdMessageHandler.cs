@@ -7,10 +7,9 @@ namespace Libplanet.Net.MessageHandlers;
 internal sealed class TxIdMessageHandler(TxFetcher txFetcher)
     : MessageHandlerBase<TxIdMessage>
 {
-    protected override async ValueTask OnHandleAsync(
-        TxIdMessage message, IReplyContext replyContext, CancellationToken cancellationToken)
+    protected override void OnHandle(TxIdMessage message, MessageEnvelope messageEnvelope)
     {
-        txFetcher.DemandMany(replyContext.Sender, [.. message.Ids]);
-        await replyContext.PongAsync();
+        txFetcher.DemandMany(messageEnvelope.Sender, [.. message.Ids]);
+        // await replyContext.PongAsync();
     }
 }

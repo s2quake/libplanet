@@ -948,12 +948,12 @@ namespace Libplanet.Net.Tests
             var mockTransport = new NetMQTransport(new PrivateKey().AsSigner(), transportOptions);
             int requestCount = 0;
 
-            void MessageHandler(IReplyContext message)
+            void MessageHandler(IMessage message, MessageEnvelope messageEnvelope)
             {
-                switch (message.Message)
+                switch (message)
                 {
                     case PingMessage ping:
-                        message.NextAsync(new PongMessage());
+                        mockTransport.Send(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
                         break;
 
                     case GetBlockHashesMessage gbhm:
@@ -962,7 +962,7 @@ namespace Libplanet.Net.Tests
                 }
             }
 
-            mockTransport.Process.Subscribe(MessageHandler);
+            mockTransport.MessageHandlers.Add<IMessage>(MessageHandler);
 
             Block block1 = ProposeNextBlock(
                 receiver.Blockchain.Genesis,
@@ -984,20 +984,16 @@ namespace Libplanet.Net.Tests
                     GenesisHash = receiver.Blockchain.Genesis.BlockHash,
                     BlockSummary = block1
                 };
-                await mockTransport.SendAsync(
-                    receiver.Peer,
-                    blockHeaderMsg1,
-                    default).FirstAsync(default);
+                mockTransport.Send(receiver.Peer, blockHeaderMsg1);
                 await receiver.BlockHeaderReceived.WaitAsync(default);
 
                 // Wait until FillBlockAsync task has spawned block demand task.
                 await Task.Delay(1000);
 
                 // Re-send block header for block 1, make sure it does not spawn new task.
-                await mockTransport.SendAsync(
+                mockTransport.Send(
                     receiver.Peer,
-                    blockHeaderMsg1,
-                    default).FirstAsync(default);
+                    blockHeaderMsg1);
                 await receiver.BlockHeaderReceived.WaitAsync(default);
                 await Task.Delay(1000);
 
@@ -1007,10 +1003,7 @@ namespace Libplanet.Net.Tests
                     GenesisHash = receiver.Blockchain.Genesis.BlockHash,
                     BlockSummary = block2
                 };
-                await mockTransport.SendAsync(
-                    receiver.Peer,
-                    blockHeaderMsg2,
-                    default).FirstAsync(default);
+                mockTransport.Send(receiver.Peer, blockHeaderMsg2);
                 await receiver.BlockHeaderReceived.WaitAsync(default);
                 await Task.Delay(1000);
 

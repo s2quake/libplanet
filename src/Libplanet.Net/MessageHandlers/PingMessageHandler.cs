@@ -1,15 +1,17 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class PingMessageHandler
+internal sealed class PingMessageHandler(ITransport transport, params Peer[] peers)
     : MessageHandlerBase<PingMessage>
 {
-    protected override async ValueTask OnHandleAsync(
-        PingMessage message, IReplyContext replyContext, CancellationToken cancellationToken)
+    protected override void OnHandle(
+        PingMessage message, MessageEnvelope messageEnvelope)
     {
-        await replyContext.PongAsync();
+        if (peers.Length is 0 || peers.Contains(messageEnvelope.Sender))
+        {
+            transport.Send(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
+            // await replyContext.PongAsync();
+        }
     }
 }

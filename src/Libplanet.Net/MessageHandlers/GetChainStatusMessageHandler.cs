@@ -7,8 +7,7 @@ namespace Libplanet.Net.MessageHandlers;
 internal sealed class GetChainStatusMessageHandler(Blockchain blockchain)
     : MessageHandlerBase<GetChainStatusMessage>
 {
-    protected override async ValueTask OnHandleAsync(
-        GetChainStatusMessage message, IReplyContext replyContext, CancellationToken cancellationToken)
+    protected override void OnHandle(GetChainStatusMessage message, MessageEnvelope messageEnvelope)
     {
         // This is based on the assumption that genesis block always exists.
         var tip = blockchain.Tip;
@@ -20,6 +19,6 @@ internal sealed class GetChainStatusMessageHandler(Blockchain blockchain)
             TipHash = tip.BlockHash,
         };
 
-        await replyContext.NextAsync(replyMessage);
+        // await replyContext.NextAsync(replyMessage);
     }
 }

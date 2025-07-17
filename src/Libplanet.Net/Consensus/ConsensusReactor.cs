@@ -29,7 +29,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private readonly EvidenceCollector _evidenceCollector = new();
     private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
     private readonly IDisposable[] _blockchainSubscriptions;
-    private readonly MessageHandlerCollection _messageHandlers;
+    private readonly IMessageHandler[] _messageHandlers;
 
     private Dispatcher? _dispatcher;
     private Consensus _consensus;
@@ -70,7 +70,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
             new ConsensusProposalClaimMessageHandler(this, _gossip),
             new ConsensusMessageHandler(this),
         ];
-        _gossip.MessageHandlers.AddRange(_messageHandlers);
+        _transport.MessageHandlers.AddRange(_messageHandlers);
+        // _gossip.MessageHandlers.AddRange(_messageHandlers);
     }
 
     public IObservable<int> HeightChanged => _heightChangedSubject;
@@ -206,8 +207,8 @@ public sealed class ConsensusReactor : IAsyncDisposable
     {
         if (!_disposed)
         {
-            _gossip.MessageHandlers.RemoveRange(_messageHandlers);
-            _messageHandlers.Dispose();
+            // _gossip.MessageHandlers.RemoveRange(_messageHandlers);
+            // _messageHandlers.Dispose();
             // Array.ForEach(_gossipSubscriptions, subscription => subscription.Dispose());
             await _gossip.DisposeAsync();
             if (_cancellationTokenSource is not null)

@@ -1,14 +1,11 @@
-using System.Threading;
-using System.Threading.Tasks;
+using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.MessageHandlers;
 
 internal sealed class EmptyHandler<T> : MessageHandlerBase<T>
     where T : IMessage
 {
-    protected override async ValueTask OnHandleAsync(
-        T message, IReplyContext replyContext, CancellationToken cancellationToken)
+    protected override void OnHandle(T message, MessageEnvelope messageEnvelope)
     {
-        await ValueTask.CompletedTask;
     }
 }

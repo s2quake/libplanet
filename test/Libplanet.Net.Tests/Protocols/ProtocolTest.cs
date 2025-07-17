@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Extensions;
+using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
@@ -27,7 +29,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         };
         await using var transportA = TestUtils.CreateTransport(options: transportOptionsA);
         await using var transportB = TestUtils.CreateTransport();
-        var task = transportB.Process.WaitAsync(m => m.Message is PingMessage, default);
+        var task = transportB.WaitMessageAsync<PingMessage>(default);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await transportA.PingAsync(transportB.Peer, default));
@@ -43,11 +45,11 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     {
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
-        var task = transportB.Process.WaitAsync(replyContext =>
+        var task = transportB.WaitMessageAsync<PingMessage>((m, e) =>
         {
-            if (replyContext.Message is PingMessage && replyContext.Sender == transportA.Peer)
+            if (e.Sender == transportA.Peer)
             {
-                replyContext.PongAsync();
+                transportB.Send(e.Sender, new PongMessage(), e.Identity);
                 return true;
             }
 
@@ -167,7 +169,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         var tableA = new RoutingTable(transportA.Peer.Address);
         var peerDiscoveryA = new PeerDiscovery(tableA, transportA);
-        using var _ = transportB.RegisterPingHandler();
+        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
@@ -217,9 +219,9 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         var table = new RoutingTable(transport.Peer.Address, bucketCount: 1, capacityPerBucket: 1);
         var peerDiscovery = new PeerDiscovery(table, transport);
-        using var _1 = transportA.RegisterPingHandler();
-        using var _2 = transportB.RegisterPingHandler();
-        using var _3 = transportC.RegisterPingHandler();
+        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
+        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
+        transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
 
         await transport.StartAsync(default);
         await transportA.StartAsync(default);
@@ -256,9 +258,9 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         var table = new RoutingTable(transport.Peer.Address, bucketCount: 1, capacityPerBucket: 1);
         var peerDiscovery = new PeerDiscovery(table, transport);
-        using var _1 = transportA.RegisterPingHandler();
-        using var _2 = transportB.RegisterPingHandler();
-        using var _3 = transportC.RegisterPingHandler();
+        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
+        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
+        transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
 
         await transport.StartAsync(default);
         await transportA.StartAsync(default);

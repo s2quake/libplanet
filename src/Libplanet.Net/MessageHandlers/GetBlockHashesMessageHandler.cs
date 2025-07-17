@@ -7,7 +7,7 @@ namespace Libplanet.Net.MessageHandlers;
 internal sealed class GetBlockHashesMessageHandler(Blockchain blockchain)
     : MessageHandlerBase<GetBlockHashesMessage>
 {
-    protected override async ValueTask OnHandleAsync(GetBlockHashesMessage message, IReplyContext replyContext, CancellationToken cancellationToken)
+    protected override void OnHandle(GetBlockHashesMessage message, MessageEnvelope messageEnvelope)
     {
         var height = blockchain.Blocks[message.BlockHash].Height;
         var hashes = blockchain.Blocks[height..].Select(item => item.BlockHash).ToArray();
@@ -17,6 +17,6 @@ internal sealed class GetBlockHashesMessageHandler(Blockchain blockchain)
         //     FindNextHashesChunkSize);
         var replyMessage = new BlockHashMessage { BlockHashes = [.. hashes] };
 
-        await replyContext.NextAsync(replyMessage);
+        // await replyContext.NextAsync(replyMessage);
     }
 }
