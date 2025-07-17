@@ -65,6 +65,14 @@ public class Dispatcher : IAsyncDisposable
         _ = WaitAsync(task);
     }
 
+    public async ValueTask PostAsync(Action action)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+        var task = _factory.StartNew(action, _cancellationToken);
+        await WaitAsync(task);
+    }
+
     public void Invoke(Action action)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);

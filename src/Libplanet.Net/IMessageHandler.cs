@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-internal interface IMessageHandler
+public interface IMessageHandler
 {
     Type MessageType { get; }
 

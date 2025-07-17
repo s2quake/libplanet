@@ -4,49 +4,64 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-internal sealed class ServicesCollection(params IService[] services)
-    : IEnumerable<IService>, IAsyncDisposable
+internal sealed class ServicesCollection
+    : ServiceBase, IEnumerable<IService>
 {
-    private readonly ImmutableArray<IService> services = [.. services];
+    private readonly List<IService> serviceList = [];
 
-    public int Count => services.Length;
+    public int Count => serviceList.Count;
 
-    public IService this[int index] => services[index];
+    public IService this[int index] => serviceList[index];
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public void Add(IService service)
     {
-        for (var i = 0; i < services.Length; i++)
-        {
-            await services[i].StartAsync(cancellationToken);
-        }
-    }
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        for (var i = 0; i < services.Length; i++)
+        if (State != ServiceState.None)
         {
-            await services[i].StopAsync(cancellationToken);
+            throw new InvalidOperationException(
+                "Cannot add services after the collection has started or stopped.");
         }
-    }
 
-    public async ValueTask DisposeAsync()
-    {
-        for (var i = 0; i < services.Length; i++)
-        {
-            if (services[i] is IAsyncDisposable asyncDisposable)
-            {
-                await asyncDisposable.DisposeAsync();
-            }
-        }
+        serviceList.Add(service);
     }
 
     public IEnumerator<IService> GetEnumerator()
     {
-        foreach(var service in services)
+        foreach (var service in serviceList)
         {
             yield return service;
         }
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    protected override async Task OnStartAsync(CancellationToken cancellationToken)
+    {
+        for (var i = 0; i < serviceList.Count; i++)
+        {
+            await serviceList[i].StartAsync(cancellationToken);
+        }
+    }
+
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        for (var i = 0; i < serviceList.Count; i++)
+        {
+            await serviceList[i].StopAsync(cancellationToken);
+        }
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        for (var i = 0; i < serviceList.Count; i++)
+        {
+            if (serviceList[i] is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+        }
+
+        await base.DisposeAsyncCore();
+    }
 }

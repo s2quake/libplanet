@@ -57,17 +57,18 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         _transferTxLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _consensusReactor = consensusOption is not null ? new ConsensusReactor(signer, Blockchain, consensusOption) : null;
-        _services = new(
+        _services =
+        [
             new BlockBroadcastTask(this),
             new TxBroadcastTask(this),
             new EvidenceBroadcastTask(this),
             new FillBlocksTask(this),
             new PollBlocksTask(this),
             new ConsumeBlockCandidatesTask(this),
-            new RefreshTableTask(this),
+            new RefreshTableTask(PeerDiscovery, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
-            new MaintainStaticPeerTask(this)
-        );
+            new MaintainStaticPeerTask(this),
+        ];
     }
 
     public bool ConsensusRunning => _consensusReactor?.IsRunning ?? false;

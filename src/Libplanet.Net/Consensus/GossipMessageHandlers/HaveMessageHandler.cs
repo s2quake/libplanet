@@ -1,9 +1,10 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 
-namespace Libplanet.Net.MessageHandlers;
+namespace Libplanet.Net.Consensus.GossipMessageHandlers;
 
 internal sealed class HaveMessageHandler(
     ConcurrentDictionary<MessageId, IMessage> messageById,

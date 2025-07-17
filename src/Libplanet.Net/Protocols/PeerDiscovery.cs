@@ -7,7 +7,7 @@ using static Libplanet.Net.Protocols.AddressUtility;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class PeerDiscovery
+internal sealed class PeerDiscovery : IDisposable
 {
     public const int FindConcurrency = 3;
     public const int MaxDepth = 3;
@@ -16,6 +16,8 @@ internal sealed class PeerDiscovery
     private readonly Address _address;
     private readonly ITransport _transport;
     private readonly RoutingTable _replacementCache;
+    private readonly IDisposable _transportSubscription;
+    private bool _disposed;
 
     public PeerDiscovery(RoutingTable table, ITransport transport)
     {
@@ -29,7 +31,7 @@ internal sealed class PeerDiscovery
         _table = table;
         _address = table.Owner;
         _transport = transport;
-        _transport.Process.Subscribe(ProcessMessageHandler);
+        _transportSubscription = _transport.Process.Subscribe(ProcessMessageHandler);
         _replacementCache = new RoutingTable(_address, table.Buckets.Count, table.Buckets.CapacityPerBucket);
     }
 
@@ -282,6 +284,16 @@ internal sealed class PeerDiscovery
                 visited.Add(neighbor);
                 queue.Enqueue((neighbor, depth + 1));
             }
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _transportSubscription?.Dispose();
+            _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.Consensus.ConsensusMessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Threading;
 using Libplanet.Net.Transports;
@@ -28,11 +29,12 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private readonly EvidenceCollector _evidenceCollector = new();
     private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
     private readonly IDisposable[] _blockchainSubscriptions;
+    private readonly MessageHandlerCollection _messageHandlers;
 
     private Dispatcher? _dispatcher;
     private Consensus _consensus;
     private ConsensusCommunicator _communicator;
-    private IDisposable[] _gossipSubscriptions = [];
+    // private IDisposable[] _gossipSubscriptions = [];
     private IDisposable[] _consensusSubscriptions;
     private CancellationTokenSource? _cancellationTokenSource;
     private DateTimeOffset _tipChangedTime;
@@ -61,6 +63,14 @@ public sealed class ConsensusReactor : IAsyncDisposable
             _blockchain.TipChanged.Subscribe(OnTipChanged),
             _blockchain.BlockExecuted.Subscribe(OnBlockExecuted),
         ];
+        _messageHandlers =
+        [
+            new ConsensusVoteSetBitsMessageHandler(this, _gossip),
+            new ConsensusMaj23MessageHandler(this, _gossip),
+            new ConsensusProposalClaimMessageHandler(this, _gossip),
+            new ConsensusMessageHandler(this),
+        ];
+        _gossip.MessageHandlers.AddRange(_messageHandlers);
     }
 
     public IObservable<int> HeightChanged => _heightChangedSubject;
@@ -196,7 +206,9 @@ public sealed class ConsensusReactor : IAsyncDisposable
     {
         if (!_disposed)
         {
-            Array.ForEach(_gossipSubscriptions, subscription => subscription.Dispose());
+            _gossip.MessageHandlers.RemoveRange(_messageHandlers);
+            _messageHandlers.Dispose();
+            // Array.ForEach(_gossipSubscriptions, subscription => subscription.Dispose());
             await _gossip.DisposeAsync();
             if (_cancellationTokenSource is not null)
             {
@@ -224,12 +236,13 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
 
         _dispatcher = new Dispatcher();
-        _gossipSubscriptions =
-        [
-            _gossip.ValidateReceivedMessage.Subscribe(ValidateMessageToReceive),
-            _gossip.ValidateSendingMessage.Subscribe(ValidateMessageToSend),
-            _gossip.ProcessMessage.Subscribe(ProcessMessage),
-        ];
+        // _gossipSubscriptions =
+        // [
+        //     // _gossip.ValidateReceivedMessage.Subscribe(ValidateMessageToReceive),
+        //     // _gossip.ValidateSendingMessage.Subscribe(ValidateMessageToSend),
+        //     // _gossip.ProcessMessage.Subscribe(ProcessMessage),
+        // ];
+
         await _gossip.StartAsync(cancellationToken);
         await _consensus.StartAsync(default);
         IsRunning = true;
@@ -244,7 +257,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
 
         await _gossip.StopAsync(cancellationToken);
-        Array.ForEach(_gossipSubscriptions, subscription => subscription.Dispose());
+        // Array.ForEach(_gossipSubscriptions, subscription => subscription.Dispose());
         await _dispatcher.DisposeAsync();
         _dispatcher = null;
         IsRunning = false;
@@ -304,7 +317,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
         return _dispatcher.InvokeAsync(_ => HandleMessage(consensusMessage), cancellationToken);
     }
 
-    private bool HandleMessage(ConsensusMessage consensusMessage)
+    internal bool HandleMessage(ConsensusMessage consensusMessage)
     {
         if (_dispatcher is null)
         {
@@ -386,7 +399,7 @@ public sealed class ConsensusReactor : IAsyncDisposable
             }
         }
 
-        return Array.Empty<ConsensusMessage>();
+        return [];
     }
 
     public Proposal? HandleProposalClaim(ProposalClaim proposalClaim)
@@ -454,77 +467,82 @@ public sealed class ConsensusReactor : IAsyncDisposable
         }
     }
 
-    private void ProcessMessage(IMessage message)
-    {
-        if (_dispatcher is null)
-        {
-            throw new InvalidOperationException("Consensus reactor is not running.");
-        }
+    // private void ProcessMessage(IMessage message)
+    // {
+    //     if (_dispatcher is null)
+    //     {
+    //         throw new InvalidOperationException("Consensus reactor is not running.");
+    //     }
 
-        _dispatcher.Post(() =>
-{
-    switch (message)
-    {
-        case ConsensusVoteSetBitsMessage voteSetBits:
-            // Note: ConsensusVoteSetBitsMsg will not be stored to context's message log.
-            var messages = HandleVoteSetBits(voteSetBits.VoteSetBits);
-            try
-            {
-                var sender = _gossip.Peers.First(peer => peer.Address.Equals(voteSetBits.Validator));
-                _gossip.PublishMessage([sender], [.. messages]);
-            }
-            catch (InvalidOperationException)
-            {
-                // logging
-            }
+    //     _dispatcher.Post(() =>
+    //     {
+    //         // if (_messageHandlers.TryGetHandler(message, out var handler))
+    //         // {
+    //         //     handler.HandleAsync(message, default).GetAwaiter().GetResult();
+    //         //     return;
+    //         // }
+    //         switch (message)
+    //         {
+    //             case ConsensusVoteSetBitsMessage voteSetBits:
+    //                 // Note: ConsensusVoteSetBitsMsg will not be stored to context's message log.
+    //                 var messages = HandleVoteSetBits(voteSetBits.VoteSetBits);
+    //                 try
+    //                 {
+    //                     var sender = _gossip.Peers.First(peer => peer.Address.Equals(voteSetBits.Validator));
+    //                     _gossip.PublishMessage([sender], [.. messages]);
+    //                 }
+    //                 catch (InvalidOperationException)
+    //                 {
+    //                     // logging
+    //                 }
 
-            break;
+    //                 break;
 
-        case ConsensusMaj23Message maj23Message:
-            try
-            {
-                VoteSetBits? voteSetBits = HandleMaj23(maj23Message.Maj23);
-                if (voteSetBits is null)
-                {
-                    break;
-                }
+    //             case ConsensusMaj23Message maj23Message:
+    //                 try
+    //                 {
+    //                     VoteSetBits? voteSetBits = HandleMaj23(maj23Message.Maj23);
+    //                     if (voteSetBits is null)
+    //                     {
+    //                         break;
+    //                     }
 
-                var sender = _gossip.Peers.First(peer => peer.Address.Equals(maj23Message.Validator));
-                _gossip.PublishMessage(
-                    [sender],
-                    new ConsensusVoteSetBitsMessage { VoteSetBits = voteSetBits });
-            }
-            catch (InvalidOperationException)
-            {
-                // logging
-            }
+    //                     var sender = _gossip.Peers.First(peer => peer.Address.Equals(maj23Message.Validator));
+    //                     _gossip.PublishMessage(
+    //                         [sender],
+    //                         new ConsensusVoteSetBitsMessage { VoteSetBits = voteSetBits });
+    //                 }
+    //                 catch (InvalidOperationException)
+    //                 {
+    //                     // logging
+    //                 }
 
-            break;
+    //                 break;
 
-        case ConsensusProposalClaimMessage proposalClaimmessage:
-            try
-            {
-                Proposal? proposal = HandleProposalClaim(proposalClaimmessage.ProposalClaim);
-                if (proposal is { } proposalNotNull)
-                {
-                    var reply = new ConsensusProposalMessage { Proposal = proposalNotNull };
-                    var sender = _gossip.Peers.First(
-                        peer => peer.Address.Equals(proposalClaimmessage.Validator));
+    //             case ConsensusProposalClaimMessage proposalClaimmessage:
+    //                 try
+    //                 {
+    //                     Proposal? proposal = HandleProposalClaim(proposalClaimmessage.ProposalClaim);
+    //                     if (proposal is { } proposalNotNull)
+    //                     {
+    //                         var reply = new ConsensusProposalMessage { Proposal = proposalNotNull };
+    //                         var sender = _gossip.Peers.First(
+    //                             peer => peer.Address.Equals(proposalClaimmessage.Validator));
 
-                    _gossip.PublishMessage([sender], reply);
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                // logging
-            }
+    //                         _gossip.PublishMessage([sender], reply);
+    //                     }
+    //                 }
+    //                 catch (InvalidOperationException)
+    //                 {
+    //                     // logging
+    //                 }
 
-            break;
+    //                 break;
 
-        case ConsensusMessage consensusMessage:
-            HandleMessage(consensusMessage);
-            break;
-    }
-});
-    }
+    //             case ConsensusMessage consensusMessage:
+    //                 HandleMessage(consensusMessage);
+    //                 break;
+    //         }
+    //     });
+    // }
 }
