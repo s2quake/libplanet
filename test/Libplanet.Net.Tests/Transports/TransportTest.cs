@@ -126,16 +126,17 @@ public abstract class TransportTest(ITestOutputHelper output)
             transportB.Send(e.Sender, new PongMessage(), e.Identity);
         });
 
-
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
         await Task.Delay(100);
 
-        var message = new PingMessage();
-        var replyMessage = await transportA.SendForSingleAsync<PongMessage>(transportB.Peer, message, default);
+        var waitTask = transportA.WaitMessageAsync<PongMessage>(default);
+        var request = transportA.Send(transportB.Peer, new PingMessage());
+        var response = await waitTask;
 
-        Assert.IsType<PongMessage>(replyMessage);
+        Assert.IsType<PongMessage>(response.Message);
+        Assert.Equal(request.Identity, response.ReplyTo);
     }
 
     [Fact(Timeout = Timeout)]

@@ -22,8 +22,8 @@ internal sealed class NetMQRequestWorker : IAsyncDisposable
             () =>
             {
                 using var runtime = new NetMQRuntime();
-                var task = RunRequestChannelAsync(_requestChannel, _cancellationTokenSource.Token);
                 _dealerSocket = new NetMQDealerSocket(signer, SynchronizationContext.Current!);
+                var task = RunRequestChannelAsync(_requestChannel, _cancellationTokenSource.Token);
                 resetEvent.Set();
                 runtime.Run(task);
             },
@@ -60,39 +60,45 @@ internal sealed class NetMQRequestWorker : IAsyncDisposable
     private async Task RunRequestChannelAsync(
         Channel<MessageRequest> channel, CancellationToken cancellationToken)
     {
-        var requestReader = channel.Reader;
-        await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
-        {
-            _ = RequestMessageAsync(request, request.CancellationToken);
-        }
-    }
-
-    private async Task RequestMessageAsync(MessageRequest request, CancellationToken cancellationToken)
-    {
-        if (_dealerSocket is null)
+        if (_dealerSocket is not { } dealerSocket)
         {
             throw new InvalidOperationException("DealerSocketHost is not initialized.");
         }
 
-        var receiver = request.Receiver;
-        _dealerSocket.Send(receiver, request);
-
-        if (request.Channel?.Writer is { } requestWriter)
+        var requestReader = channel.Reader;
+        await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
         {
-            try
-            {
-                await foreach (var response in _dealerSocket.ReceiveAsync(request.Identity, cancellationToken))
-                {
-                    await requestWriter.WriteAsync(response, cancellationToken);
-                }
-
-                requestWriter.Complete();
-            }
-            catch (Exception e)
-            {
-                requestWriter.TryComplete(e);
-                throw;
-            }
+            dealerSocket.Send(request);
+            // _ = RequestMessageAsync(request, request.CancellationToken);
         }
     }
+
+    // private async Task RequestMessageAsync(MessageRequest request, CancellationToken cancellationToken)
+    // {
+    //     if (_dealerSocket is null)
+    //     {
+    //         throw new InvalidOperationException("DealerSocketHost is not initialized.");
+    //     }
+
+    //     var receiver = request.Receiver;
+    //     _dealerSocket.Send(receiver, request);
+
+    //     // if (request.Channel?.Writer is { } requestWriter)
+    //     // {
+    //     //     try
+    //     //     {
+    //     //         await foreach (var response in _dealerSocket.ReceiveAsync(request.Identity, cancellationToken))
+    //     //         {
+    //     //             await requestWriter.WriteAsync(response, cancellationToken);
+    //     //         }
+
+    //     //         requestWriter.Complete();
+    //     //     }
+    //     //     catch (Exception e)
+    //     //     {
+    //     //         requestWriter.TryComplete(e);
+    //     //         throw;
+    //     //     }
+    //     // }
+    // }
 }

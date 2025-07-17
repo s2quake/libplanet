@@ -79,7 +79,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         {
             MessageEnvelope = messageEnvelope,
             Receiver = receiver,
-            CancellationToken = cancellationTokenSource.Token,
+            // CancellationToken = cancellationTokenSource.Token,
         };
 
         _ = _requestWorker.WriteAsync(messageRequest, cancellationTokenSource.Token);
@@ -98,31 +98,31 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         Parallel.ForEach(receivers, peer => Send(peer, message));
     }
 
-    public ValueTask ReplyAsync(MessageEnvelope requestEnvelope, IMessage message, bool hasNext)
-    {
-        ObjectDisposedException.ThrowIf(IsDisposed, this);
+    // public ValueTask ReplyAsync(MessageEnvelope requestEnvelope, IMessage message, bool hasNext)
+    // {
+    //     ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-        if (!IsRunning || _responseQueue is null)
-        {
-            throw new InvalidOperationException("Transport is not running.");
-        }
+    //     if (!IsRunning || _responseQueue is null)
+    //     {
+    //         throw new InvalidOperationException("Transport is not running.");
+    //     }
 
-        var messageResponse = new MessageResponse
-        {
-            MessageEnvelope = new MessageEnvelope
-            {
-                Identity = requestEnvelope.Identity,
-                Message = message,
-                Protocol = _options.Protocol,
-                Sender = Peer,
-                Timestamp = DateTimeOffset.UtcNow,
-            },
-            Receiver = requestEnvelope.Sender,
-            HasNext = hasNext,
-        };
-        _responseQueue.Enqueue(messageResponse);
-        return ValueTask.CompletedTask;
-    }
+    //     var messageResponse = new MessageResponse
+    //     {
+    //         MessageEnvelope = new MessageEnvelope
+    //         {
+    //             Identity = requestEnvelope.Identity,
+    //             Message = message,
+    //             Protocol = _options.Protocol,
+    //             Sender = Peer,
+    //             Timestamp = DateTimeOffset.UtcNow,
+    //         },
+    //         Receiver = requestEnvelope.Sender,
+    //         // HasNext = hasNext,
+    //     };
+    //     _responseQueue.Enqueue(messageResponse);
+    //     return ValueTask.CompletedTask;
+    // }
 
     private void Router_ReceiveReady(object? sender, NetMQSocketEventArgs e)
     {
@@ -154,7 +154,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
             var identity = Encoding.UTF8.GetBytes(messageResponse.Receiver.ToString());
             rawMessage.Push(identity);
-            rawMessage.Append(messageResponse.HasNext ? 1 : 0);
+            // rawMessage.Append(messageResponse.HasNext ? 1 : 0);
             if (_router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), rawMessage))
             {
                 // Successfully sent the message
@@ -185,8 +185,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             {
                 MessageEnvelope = messageEnvelope,
                 Receiver = receiver,
-                Channel = channel,
-                CancellationToken = cancellationTokenSource.Token,
+                // Channel = channel,
+                // CancellationToken = cancellationTokenSource.Token,
             };
             await _requestWorker.WriteAsync(messageRequest, cancellationTokenSource.Token);
         }

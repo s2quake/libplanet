@@ -5,8 +5,7 @@ namespace Libplanet.Net.MessageHandlers;
 internal sealed class PingMessageHandler(ITransport transport, params Peer[] peers)
     : MessageHandlerBase<PingMessage>
 {
-    protected override void OnHandle(
-        PingMessage message, MessageEnvelope messageEnvelope)
+    protected override void OnHandle(PingMessage message, MessageEnvelope messageEnvelope)
     {
         if (peers.Length is 0 || peers.Contains(messageEnvelope.Sender))
         {

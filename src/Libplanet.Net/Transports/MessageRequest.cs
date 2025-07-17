@@ -10,9 +10,9 @@ internal sealed record class MessageRequest
 
     public required Peer Receiver { get; init; }
 
-    public Channel<MessageResponse>? Channel { get; init; }
+    // public Channel<MessageResponse>? Channel { get; init; }
 
-    public CancellationToken CancellationToken { get; init; }
+    // public CancellationToken CancellationToken { get; init; }
 
     public Guid Identity => MessageEnvelope.Identity;
 

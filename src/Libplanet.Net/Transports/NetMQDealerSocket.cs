@@ -25,7 +25,7 @@ internal sealed class NetMQDealerSocket(ISigner signer, SynchronizationContext s
     private readonly List<Task> _taskList = [];
     private bool _disposed;
 
-    public void Send(Peer receiver, MessageRequest request)
+    public void Send(MessageRequest request)
     {
         if (synchronizationContext != SynchronizationContext.Current)
         {
@@ -43,8 +43,8 @@ internal sealed class NetMQDealerSocket(ISigner signer, SynchronizationContext s
 
         var messageEnvelope = request.MessageEnvelope;
         var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
-        var dealerSocket = GetDealerSocket(request.Sender, receiver);
-        request.CancellationToken.ThrowIfCancellationRequested();
+        var dealerSocket = GetDealerSocket(request.Sender, request.Receiver);
+        // request.CancellationToken.ThrowIfCancellationRequested();
         if (!dealerSocket.TrySendMultipartMessage(rawMessage))
         {
             throw new InvalidOperationException("Failed to send message to the dealer socket.");
@@ -66,10 +66,10 @@ internal sealed class NetMQDealerSocket(ISigner signer, SynchronizationContext s
         await foreach (var response in channel.Reader.ReadAllAsync(cancellationToken))
         {
             yield return response;
-            if (!response.HasNext)
-            {
-                break;
-            }
+            // if (!response.HasNext)
+            // {
+            //     break;
+            // }
         }
     }
 
@@ -135,7 +135,7 @@ internal sealed class NetMQDealerSocket(ISigner signer, SynchronizationContext s
             {
                 MessageEnvelope = messageEnvelope,
                 Receiver = sender,
-                HasNext = hasNext,
+                // HasNext = hasNext,
             };
             _processSubject.OnNext(messageResponse);
             await Task.Yield();
