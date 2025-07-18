@@ -15,14 +15,20 @@ public sealed class TxFetcher(
     {
         var request = new GetTransactionMessage { TxIds = [.. ids] };
         using var cancellationTokenSource = CreateCancellationTokenSource();
-        await foreach (var item in transport.SendAsync<TransactionMessage>(peer, request, cancellationToken))
+        var response = await transport.SendAndWaitAsync<TransactionMessage>(peer, request, cancellationTokenSource.Token);
+        foreach (var item in response.Transactions)
         {
-            for (var i = 0; i < item.Transactions.Length; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                yield return item.Transactions[i];
-            }
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return item;
         }
+        // await foreach (var item in transport.SendAsync<TransactionMessage>(peer, request, cancellationToken))
+        // {
+        //     for (var i = 0; i < item.Transactions.Length; i++)
+        //     {
+        //         cancellationToken.ThrowIfCancellationRequested();
+        //         yield return item.Transactions[i];
+        //     }
+        // }
 
         CancellationTokenSource CreateCancellationTokenSource()
         {

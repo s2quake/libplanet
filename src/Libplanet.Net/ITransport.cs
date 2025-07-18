@@ -1,4 +1,3 @@
-using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
@@ -13,13 +12,9 @@ public interface ITransport : IAsyncDisposable
 
     bool IsRunning { get; }
 
-    Protocol Protocol { get; }
-
     Task StartAsync(CancellationToken cancellationToken);
 
     Task StopAsync(CancellationToken cancellationToken);
 
-    MessageEnvelope Send(Peer receiver, IMessage message, Guid? replyTo = null);
-
-    void Send(ImmutableArray<Peer> receivers, IMessage message);
+    MessageEnvelope Send(Peer receiver, IMessage message, Guid? replyTo);
 }

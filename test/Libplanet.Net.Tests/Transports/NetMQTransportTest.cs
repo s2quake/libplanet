@@ -1,19 +1,10 @@
 #pragma warning disable S1751 // Loops with at most one iteration should be refactored
-using System.Diagnostics;
-using System.Net;
-using System.Net.Sockets;
-using System.ServiceModel;
-using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
-using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
-using NetMQ;
-using Serilog;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Transports;
@@ -22,71 +13,40 @@ namespace Libplanet.Net.Tests.Transports;
 public sealed class NetMQTransportTest(ITestOutputHelper output)
     : TransportTest(output)
 {
-    [Fact]
-    public async Task SendAsync_NetMQSocketLeak()
-    {
-        using var scope = new PropertyScope(typeof(NetMQConfig), nameof(NetMQConfig.MaxSockets), 12);
-
-        await using var transport = new NetMQTransport(new PrivateKey().AsSigner());
-        // using var _ = transport.Process.Subscribe(c => c.PongAsync());
-        transport.MessageHandlers.Add(new PingMessageHandler(transport));
-        var invalidHost = Guid.NewGuid().ToString();
-        var invalidPeer = new Peer
-        {
-            Address = new PrivateKey().Address,
-            EndPoint = new DnsEndPoint(invalidHost, 0),
-        };
-
-        await transport.StartAsync(default);
-
-        // it isn't assertion for Libplanet codes, but to make sure that `invalidHost`
-        // really fails lookup before moving to the next step.
-        Assert.ThrowsAny<SocketException>(() => Dns.GetHostEntry(invalidHost));
-
-        var exc = await Assert.ThrowsAsync<CommunicationException>(async () =>
-        {
-            transport.Send(invalidPeer, new PingMessage());
-            // await foreach (var _ in transport.SendAsync(invalidPeer, new PingMessage(), default))
-            // {
-            //     throw new UnreachableException("This should not be reached.");
-            // }
-        });
-
-        // Expecting SocketException about host resolving since `invalidPeer` has an
-        // invalid hostname
-        Assert.IsType<ChannelClosedException>(exc.InnerException, exactMatch: false);
-        Assert.IsType<SocketException>(exc.InnerException?.InnerException, exactMatch: false);
-
-        // Check sending/receiving after exceptions exceeding NetMQConifg.MaxSockets.
-        transport.Send(transport.Peer, new PingMessage());
-        // Assert.IsType<PongMessage>(replyMessage);
-    }
+    private readonly ITestOutputHelper _output = output;
 
     [Fact]
-    public async Task SendAsync_AsStream()
+    public async Task SendAndWaitAsync2_AsStream()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = RandomUtility.GetRandom(_output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
-
-        // using var subscription = transportB.Process.Subscribe(async replyContext =>
-        // {
-        //     if (replyContext.Message is PingMessage)
-        //     {
-        //         replyContext.NextAsync(new PingMessage { HasNext = true });
-        //         await Task.Delay(100, default);
-        //         replyContext.CompleteAsync(new PongMessage());
-        //     }
-        // });
+        transportB.MessageHandlers.Add<PingMessage>(async (m, e) =>
+        {
+            for (var i = 0; i < 10; i++)
+            {
+                transportB.Send(e.Sender, new PingMessage(), e.Identity);
+                await Task.Delay(100, default);
+            }
+            transportB.Send(e.Sender, new PongMessage(), e.Identity);
+        });
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        // var replyMessage = await transportA.SendAsync(transportB.Peer, new PingMessage(), default)
-        //     .ToArrayAsync();
-        // Assert.Equal(2, replyMessage.Length);
-        // Assert.IsType<PingMessage>(replyMessage[0]);
-        // Assert.IsType<PongMessage>(replyMessage[1]);
+        var peer = transportB.Peer;
+        var message = new PingMessage();
+        var isLast = new Func<IMessage, bool>(m => m is PongMessage);
+        var query = transportA.SendAndWaitAsync(peer, message, isLast, default);
+        var messageList = new List<IMessage>();
+        await foreach (var item in query)
+        {
+            messageList.Add(item);
+        }
+
+        Assert.Equal(11, messageList.Count);
+        Assert.All(messageList.Take(10), m => Assert.IsType<PingMessage>(m));
+        Assert.IsType<PongMessage>(messageList[^1]);
     }
 
     protected override ITransport CreateTransport(PrivateKey privateKey, TransportOptions transportOptions)

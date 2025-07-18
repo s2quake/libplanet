@@ -15,12 +15,13 @@ public sealed class EvidenceFetcher(
     {
         var request = new GetEvidenceMessage { EvidenceIds = [.. ids] };
         using var cancellationTokenSource = CreateCancellationTokenSource();
-        await foreach (var item in transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
+        var response = await transport.SendAndWaitAsync<EvidenceMessage>(peer, request, cancellationTokenSource.Token);
+        // await foreach (var item in transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
         {
-            for (var i = 0; i < item.Evidence.Length; i++)
+            for (var i = 0; i < response.Evidence.Length; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                yield return item.Evidence[i];
+                yield return response.Evidence[i];
             }
         }
 

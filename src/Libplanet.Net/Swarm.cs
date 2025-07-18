@@ -83,8 +83,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public Blockchain Blockchain { get; private set; }
 
-    public Protocol Protocol => Transport.Protocol;
-
     internal RoutingTable RoutingTable { get; }
 
     internal PeerDiscovery PeerDiscovery { get; }

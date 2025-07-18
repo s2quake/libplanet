@@ -36,7 +36,7 @@ internal sealed class Peer(ITransport transport, Net.Peer boundPeer)
         {
             var pingMsg = new PingMessage();
             var stopwatch = Stopwatch.StartNew();
-            var replyMessage = await _transport.SendForSingleAsync<PongMessage>(BoundPeer, pingMsg, cancellationToken);
+            var replyMessage = await _transport.SendAndWaitAsync<PongMessage>(BoundPeer, pingMsg, cancellationToken);
             var latency = Stopwatch.GetElapsedTime(stopwatch.ElapsedTicks);
             Latency = latency;
             return true;

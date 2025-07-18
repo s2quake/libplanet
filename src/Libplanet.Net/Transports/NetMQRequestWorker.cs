@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -69,36 +70,6 @@ internal sealed class NetMQRequestWorker : IAsyncDisposable
         await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
         {
             dealerSocket.Send(request);
-            // _ = RequestMessageAsync(request, request.CancellationToken);
         }
     }
-
-    // private async Task RequestMessageAsync(MessageRequest request, CancellationToken cancellationToken)
-    // {
-    //     if (_dealerSocket is null)
-    //     {
-    //         throw new InvalidOperationException("DealerSocketHost is not initialized.");
-    //     }
-
-    //     var receiver = request.Receiver;
-    //     _dealerSocket.Send(receiver, request);
-
-    //     // if (request.Channel?.Writer is { } requestWriter)
-    //     // {
-    //     //     try
-    //     //     {
-    //     //         await foreach (var response in _dealerSocket.ReceiveAsync(request.Identity, cancellationToken))
-    //     //         {
-    //     //             await requestWriter.WriteAsync(response, cancellationToken);
-    //     //         }
-
-    //     //         requestWriter.Complete();
-    //     //     }
-    //     //     catch (Exception e)
-    //     //     {
-    //     //         requestWriter.TryComplete(e);
-    //     //         throw;
-    //     //     }
-    //     // }
-    // }
 }
