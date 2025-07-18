@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
@@ -65,19 +66,19 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     {
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
-        var taskA = transportA.WaitPingAsync(transportB.Peer);
-        var taskB = transportB.WaitPingAsync(transportA.Peer);
+        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
+        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        await transportA.PingAsync(transportB.Peer, default);
-        await taskB;
-        await transportB.PingAsync(transportA.Peer, default);
-        await taskA;
-
-        Assert.True(taskA.IsCompletedSuccessfully);
-        Assert.True(taskB.IsCompletedSuccessfully);
+        var tasks = new List<Task<TimeSpan>>
+        {
+            transportA.PingAsync(transportB.Peer, default),
+            transportB.PingAsync(transportA.Peer, default),
+        };
+        var latencies = await Task.WhenAll(tasks);
+        Assert.All(latencies, latency => Assert.True(latency > TimeSpan.Zero));
     }
 
     [Fact(Timeout = Timeout)]
@@ -102,9 +103,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await Task.WhenAll(taskB, taskC);
 
         await transportC.StopAsync(default);
-        using var cancellationTokenSource = new CancellationTokenSource(500);
-        await Assert.ThrowsAsync<OperationCanceledException>(
-            async () => await transportA.PingAsync(peerC, cancellationTokenSource.Token));
+        await Assert.ThrowsAsync<TimeoutException>(async () => await transportA.PingAsync(peerC, default));
         taskC = transportB.WaitPingAsync(peerA);
         await transportA.PingAsync(peerB, default);
 
@@ -322,7 +321,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         }
 
         Trace.WriteLine("1");
-        seed.Send([.. transports.Select(t => t.Peer)], new TestMessage { Data = "foo" });
+        seed.Post([.. transports.Select(t => t.Peer)], new TestMessage { Data = "foo" });
         Trace.WriteLine("2");
 
         await Task.WhenAll(taskList);
@@ -435,7 +434,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         var taskB = transportB.WaitMessageAsync<TestMessage>(m => m.Data == "foo", default);
         var taskC = transportC.WaitMessageAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
         var peers = tableA.PeersToBroadcast(default);
-        transportA.Send(peers, new TestMessage { Data = "foo" });
+        transportA.Post(peers, new TestMessage { Data = "foo" });
 
         await Assert.ThrowsAsync<OperationCanceledException>(async () => await taskA);
         await taskB;

@@ -15,7 +15,7 @@ public static class ITransportExtensions
     public static MessageEnvelope Post(this ITransport @this, Peer receiver, IMessage message)
         => @this.Post(receiver, message, null);
 
-    public static void Send(this ITransport @this, ImmutableArray<Peer> receivers, IMessage message)
+    public static void Post(this ITransport @this, ImmutableArray<Peer> receivers, IMessage message)
         => Parallel.ForEach(receivers, peer => @this.Post(peer, message, replyTo: null));
 
     public static async Task<T> SendAsync<T>(

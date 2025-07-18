@@ -105,7 +105,7 @@ public sealed class Gossip : ServiceBase
         foreach (var message in messages)
         {
             AddMessage(message);
-            _transport.Send(targetPeers, message);
+            _transport.Post(targetPeers, message);
         }
     }
 
@@ -132,7 +132,7 @@ public sealed class Gossip : ServiceBase
         {
             var peers = GetPeersToBroadcast(table.Select(item => item.Peer), DLazy);
             var message = new HaveMessage { Ids = [.. ids] };
-            _transport.Send(peers, message);
+            _transport.Post(peers, message);
         }
 
         await SendWantMessageAsync(cancellationToken);

@@ -317,7 +317,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         var peers = receivers.Select(t => t.Peer).ToImmutableArray();
 
         var waitTasks = receivers.Select(item => item.WaitMessageAsync<TestMessage>(default)).ToArray();
-        sender.Send(peers, new TestMessage { Data = "Hello, World!" });
+        sender.Post(peers, new TestMessage { Data = "Hello, World!" });
         await Task.WhenAll(waitTasks);
 
         for (var i = 0; i < waitTasks.Length; i++)
@@ -338,7 +338,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await transport.StartAsync(default);
         await transport.DisposeAsync();
         var peers = RandomUtility.Array(random, RandomUtility.LocalPeer).ToImmutableArray();
-        var e = Assert.Throws<AggregateException>(() => transport.Send(peers, new PingMessage()));
+        var e = Assert.Throws<AggregateException>(() => transport.Post(peers, new PingMessage()));
         Assert.All(e.InnerExceptions, e => Assert.IsType<ObjectDisposedException>(e));
     }
 
@@ -349,7 +349,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transport = CreateTransport(random);
 
         var peers = RandomUtility.Array(random, RandomUtility.LocalPeer).ToImmutableArray();
-        var e = Assert.Throws<AggregateException>(() => transport.Send(peers, new PingMessage()));
+        var e = Assert.Throws<AggregateException>(() => transport.Post(peers, new PingMessage()));
         Assert.All(e.InnerExceptions, e => Assert.IsType<InvalidOperationException>(e));
     }
 }

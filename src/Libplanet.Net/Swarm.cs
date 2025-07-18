@@ -300,7 +300,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     internal void BroadcastMessage(Address except, MessageBase message)
     {
-        Transport.Send(
+        Transport.Post(
             RoutingTable.PeersToBroadcast(except, Options.MinimumBroadcastTarget),
             message);
     }
