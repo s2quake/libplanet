@@ -44,7 +44,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         {
             if (e.Sender == transportA.Peer)
             {
-                transportB.Send(e.Sender, new PongMessage(), e.Identity);
+                transportB.Post(e.Sender, new PongMessage(), e.Identity);
                 return true;
             }
 

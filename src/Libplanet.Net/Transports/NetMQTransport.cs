@@ -26,7 +26,9 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     public Peer Peer => _router.Peer;
 
-    public MessageEnvelope Send(Peer receiver, IMessage message, Guid? replyTo)
+    CancellationToken ITransport.StoppingToken => StoppingToken;
+
+    public MessageEnvelope Post(Peer receiver, IMessage message, Guid? replyTo)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
@@ -43,6 +45,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             Sender = Peer,
             Timestamp = DateTimeOffset.UtcNow,
             ReplyTo = replyTo,
+            Lifespan = _options.MessageLifetime,
+            ReplyTimeout = _options.ReplyTimeout,
         };
         var messageRequest = new MessageRequest
         {

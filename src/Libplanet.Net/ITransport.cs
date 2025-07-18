@@ -12,9 +12,11 @@ public interface ITransport : IAsyncDisposable
 
     bool IsRunning { get; }
 
+    CancellationToken StoppingToken { get; }
+
     Task StartAsync(CancellationToken cancellationToken);
 
     Task StopAsync(CancellationToken cancellationToken);
 
-    MessageEnvelope Send(Peer receiver, IMessage message, Guid? replyTo);
+    MessageEnvelope Post(Peer receiver, IMessage message, Guid? replyTo);
 }

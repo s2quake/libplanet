@@ -23,6 +23,12 @@ public sealed record class MessageEnvelope
     [Property(5)]
     public Guid? ReplyTo { get; init; }
 
+    [Property(6)]
+    public TimeSpan Lifespan { get; init; }
+
+    [Property(7)]
+    public TimeSpan ReplyTimeout { get; init; }
+
     public void Validate(Protocol protocol, TimeSpan lifetime)
     {
         if (lifetime < TimeSpan.Zero)

@@ -17,6 +17,6 @@ internal sealed class GetPeerMessageHandler(ITransport transport, RoutingTable t
         var k = RoutingTable.BucketCount;
         var peers = table.GetNeighbors(target, k, includeTarget: true);
         var peerMessage = new PeerMessage { Peers = [.. peers] };
-        transport.Send(messageEnvelope.Sender, peerMessage, messageEnvelope.Identity);
+        transport.Post(messageEnvelope.Sender, peerMessage, messageEnvelope.Identity);
     }
 }

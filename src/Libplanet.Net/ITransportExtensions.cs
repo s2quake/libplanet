@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.ServiceModel;
 using System.Threading;
@@ -6,26 +7,26 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
-using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
 public static class ITransportExtensions
 {
-    public static MessageEnvelope Send(this ITransport @this, Peer receiver, IMessage message)
-        => @this.Send(receiver, message, null);
+    public static MessageEnvelope Post(this ITransport @this, Peer receiver, IMessage message)
+        => @this.Post(receiver, message, null);
 
     public static void Send(this ITransport @this, ImmutableArray<Peer> receivers, IMessage message)
-        => Parallel.ForEach(receivers, peer => @this.Send(peer, message, replyTo: null));
+        => Parallel.ForEach(receivers, peer => @this.Post(peer, message, replyTo: null));
 
-    public static async Task<T> SendAndWaitAsync<T>(
+    public static async Task<T> SendAsync<T>(
         this ITransport @this, Peer peer, IMessage message, CancellationToken cancellationToken)
         where T : IMessage
     {
-        var request = @this.Send(peer, message, replyTo: null);
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var cancelTask = CancellationTask(@this, cancellationTokenSource);
-        using var resetEvent = new ManualResetEventSlim(false);
+        var request = @this.Post(peer, message, replyTo: null);
+        using var timeoutCancellationTokenSource = new CancellationTokenSource(request.ReplyTimeout);
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            @this.StoppingToken, cancellationToken, timeoutCancellationTokenSource.Token);
+        var resetEvent = new ManualResetEventSlim(false);
         MessageEnvelope? response = null;
         var handler = @this.MessageHandlers.Add<T>((m, e) =>
         {
@@ -35,7 +36,6 @@ public static class ITransportExtensions
                 resetEvent.Set();
             }
         });
-        using var _1 = new MessageHandlerScope(@this.MessageHandlers, handler);
 
         try
         {
@@ -47,14 +47,21 @@ public static class ITransportExtensions
 
             return (T)response.Message;
         }
+        catch (OperationCanceledException e) when (timeoutCancellationTokenSource.IsCancellationRequested)
+        {
+            throw new TimeoutException($"No response received within {request.ReplyTimeout.TotalSeconds} seconds.", e);
+        }
+        catch (OperationCanceledException e) when (@this.StoppingToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException($"{@this} has been stopped.", e, @this.StoppingToken);
+        }
         finally
         {
-            await cancellationTokenSource.CancelAsync();
-            await TaskUtility.TryWait(cancelTask);
+            @this.MessageHandlers.Remove(handler);
         }
     }
 
-    public static async IAsyncEnumerable<T> SendAndWaitAsync<T>(
+    public static async IAsyncEnumerable<T> SendAsync<T>(
         this ITransport @this,
         Peer peer,
         IMessage message,
@@ -62,9 +69,7 @@ public static class ITransportExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken)
         where T : IMessage
     {
-        var request = @this.Send(peer, message, replyTo: null);
-        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var cancelTask = CancellationTask(@this, cancellationTokenSource);
+        var request = @this.Post(peer, message, replyTo: null);
         var channel = Channel.CreateUnbounded<MessageEnvelope>();
         var handler = @this.MessageHandlers.Add<T>((m, e) =>
         {
@@ -75,21 +80,34 @@ public static class ITransportExtensions
         });
         using var _1 = new MessageHandlerScope(@this.MessageHandlers, handler);
 
-        try
+        while (true)
         {
-            await foreach (var item in channel.Reader.ReadAllAsync(cancellationTokenSource.Token))
+            var response = await ReadAsync();
+            yield return (T)response.Message;
+            if (isLast((T)response.Message))
             {
-                yield return (T)item.Message;
-                if (isLast((T)item.Message))
-                {
-                    yield break;
-                }
+                break;
             }
         }
-        finally
+
+        async Task<MessageEnvelope> ReadAsync()
         {
-            await cancellationTokenSource.CancelAsync();
-            await TaskUtility.TryWait(cancelTask);
+            using var timeoutCancellationTokenSource = new CancellationTokenSource(request.ReplyTimeout);
+            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                @this.StoppingToken, cancellationToken, timeoutCancellationTokenSource.Token);
+
+            try
+            {
+                return await channel.Reader.ReadAsync(cancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException e) when (timeoutCancellationTokenSource.IsCancellationRequested)
+            {
+                throw new TimeoutException($"No response received within {request.ReplyTimeout.TotalSeconds} seconds.", e);
+            }
+            catch (OperationCanceledException e) when (@this.StoppingToken.IsCancellationRequested)
+            {
+                throw new OperationCanceledException($"{@this} has been stopped.", e, @this.StoppingToken);
+            }
         }
     }
 
@@ -101,7 +119,7 @@ public static class ITransportExtensions
         }
 
         var dateTimeOffset = DateTimeOffset.UtcNow;
-        await SendAndWaitAsync<PongMessage>(@this, peer, new PingMessage(), cancellationToken);
+        await SendAsync<PongMessage>(@this, peer, new PingMessage(), cancellationToken);
         return DateTimeOffset.UtcNow - dateTimeOffset;
     }
 
@@ -109,7 +127,7 @@ public static class ITransportExtensions
         this ITransport @this, Peer peer, BlockHash blockHash, CancellationToken cancellationToken)
     {
         var request = new GetBlockHashesMessage { BlockHash = blockHash };
-        var replyMessage = await SendAndWaitAsync<BlockHashMessage>(@this, peer, request, cancellationToken);
+        var replyMessage = await SendAsync<BlockHashMessage>(@this, peer, request, cancellationToken);
         var blockHashes = replyMessage.BlockHashes;
         if (blockHashes.Length > 0 && blockHash != blockHashes[0])
         {
@@ -124,7 +142,7 @@ public static class ITransportExtensions
         this ITransport @this, Peer peer, CancellationToken cancellationToken)
     {
         var requestMessage = new GetChainStatusMessage();
-        return await SendAndWaitAsync<ChainStatusMessage>(@this, peer, requestMessage, cancellationToken);
+        return await SendAsync<ChainStatusMessage>(@this, peer, requestMessage, cancellationToken);
     }
 
     internal static async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
@@ -134,7 +152,7 @@ public static class ITransportExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var request = new GetBlockMessage { BlockHashes = [.. blockHashes] };
-        var response = await @this.SendAndWaitAsync<BlockMessage>(peer, request, cancellationToken);
+        var response = await @this.SendAsync<BlockMessage>(peer, request, cancellationToken);
         for (var i = 0; i < response.Blocks.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -155,7 +173,7 @@ public static class ITransportExtensions
         this ITransport @this, Peer peer, Address target, CancellationToken cancellationToken)
     {
         var request = new GetPeerMessage { Target = target };
-        var response = await @this.SendAndWaitAsync<PeerMessage>(peer, request, cancellationToken);
+        var response = await @this.SendAsync<PeerMessage>(peer, request, cancellationToken);
         return response.Peers;
     }
 
@@ -187,20 +205,4 @@ public static class ITransportExtensions
     //     };
     //     await @this.NextAsync(replyMessage);
     // }
-
-    private static async Task CancellationTask(ITransport transport, CancellationTokenSource cancellationTokenSource)
-    {
-        var cancellationToken = cancellationTokenSource.Token;
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            if (!@transport.IsRunning)
-            {
-                await cancellationTokenSource.CancelAsync();
-            }
-            else if (!await TaskUtility.TryDelay(100, cancellationToken))
-            {
-                break;
-            }
-        }
-    }
 }

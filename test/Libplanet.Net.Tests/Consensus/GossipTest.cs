@@ -201,7 +201,7 @@ public sealed class GossipTest
 
         await gossip.StartAsync(default);
         await transport2.StartAsync(default);
-        transport2.Send(gossip.Peer, new HaveMessage(), default);
+        transport2.Post(gossip.Peer, new HaveMessage(), default);
 
         receivedEvent.WaitOne();
         Assert.True(received);
@@ -262,8 +262,8 @@ public sealed class GossipTest
         await sender2.StartAsync(default);
         var msg1 = new PingMessage();
         var msg2 = new PongMessage();
-        sender1.Send(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] });
-        sender2.Send(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] });
+        sender1.Post(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] });
+        sender2.Post(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] });
 
         // Wait heartbeat interval * 2.
         await Task.Delay(2 * 1000);

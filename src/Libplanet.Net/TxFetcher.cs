@@ -15,7 +15,7 @@ public sealed class TxFetcher(
     {
         var request = new GetTransactionMessage { TxIds = [.. ids] };
         using var cancellationTokenSource = CreateCancellationTokenSource();
-        var response = await transport.SendAndWaitAsync<TransactionMessage>(peer, request, cancellationTokenSource.Token);
+        var response = await transport.SendAsync<TransactionMessage>(peer, request, cancellationTokenSource.Token);
         foreach (var item in response.Transactions)
         {
             cancellationToken.ThrowIfCancellationRequested();

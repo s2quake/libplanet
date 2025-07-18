@@ -25,10 +25,10 @@ public sealed class NetMQTransportTest(ITestOutputHelper output)
         {
             for (var i = 0; i < 10; i++)
             {
-                transportB.Send(e.Sender, new PingMessage(), e.Identity);
+                transportB.Post(e.Sender, new PingMessage(), e.Identity);
                 await Task.Delay(100, default);
             }
-            transportB.Send(e.Sender, new PongMessage(), e.Identity);
+            transportB.Post(e.Sender, new PongMessage(), e.Identity);
         });
 
         await transportA.StartAsync(default);
@@ -37,7 +37,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output)
         var peer = transportB.Peer;
         var message = new PingMessage();
         var isLast = new Func<IMessage, bool>(m => m is PongMessage);
-        var query = transportA.SendAndWaitAsync(peer, message, isLast, default);
+        var query = transportA.SendAsync(peer, message, isLast, default);
         var messageList = new List<IMessage>();
         await foreach (var item in query)
         {

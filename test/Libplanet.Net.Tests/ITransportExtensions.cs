@@ -15,7 +15,7 @@ public static class ITransportExtensions
         {
             if (peers.Length is 0 || peers.Contains(messageEnvelope.Sender))
             {
-                @this.Send(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
+                @this.Post(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
                 manualResetEvent.Set();
             }
         });

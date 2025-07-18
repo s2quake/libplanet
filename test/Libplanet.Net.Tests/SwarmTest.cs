@@ -467,7 +467,7 @@ public partial class SwarmTest : IDisposable
             ITransport transport = swarmB.Transport;
 
             var request = new GetBlockMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
-            transport.Send(
+            transport.Post(
                 swarmA.Peer, request);
             // var aggregateMessage = (AggregateMessage)reply;
             // var responses = aggregateMessage.Messages;
@@ -1344,7 +1344,7 @@ public partial class SwarmTest : IDisposable
             for (int i = 0; i < 5; i++)
             {
                 tasks.Add(
-                    Task.Run(async () => transport.Send(swarm.Peer, content)));
+                    Task.Run(async () => transport.Post(swarm.Peer, content)));
             }
 
             try
@@ -1398,7 +1398,7 @@ public partial class SwarmTest : IDisposable
             for (int i = 0; i < 5; i++)
             {
                 tasks.Add(
-                    Task.Run(async () => transport.Send(swarm.Peer, content)));
+                    Task.Run(async () => transport.Post(swarm.Peer, content)));
             }
 
             try

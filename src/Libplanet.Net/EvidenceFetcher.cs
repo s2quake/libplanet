@@ -15,7 +15,7 @@ public sealed class EvidenceFetcher(
     {
         var request = new GetEvidenceMessage { EvidenceIds = [.. ids] };
         using var cancellationTokenSource = CreateCancellationTokenSource();
-        var response = await transport.SendAndWaitAsync<EvidenceMessage>(peer, request, cancellationTokenSource.Token);
+        var response = await transport.SendAsync<EvidenceMessage>(peer, request, cancellationTokenSource.Token);
         // await foreach (var item in transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
         {
             for (var i = 0; i < response.Evidence.Length; i++)

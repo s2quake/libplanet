@@ -9,7 +9,7 @@ internal sealed class PingMessageHandler(ITransport transport, params Peer[] pee
     {
         if (peers.Length is 0 || peers.Contains(messageEnvelope.Sender))
         {
-            transport.Send(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
+            transport.Post(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
         }
     }
 }

@@ -20,6 +20,8 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
 
     public bool IsDisposed => _state == ServiceState.Disposed;
 
+    protected CancellationToken StoppingToken => _cancellationToken;
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         SetState([ServiceState.None], ServiceState.Transitioning);
@@ -61,7 +63,6 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
             await OnStopAsync(cancellationToken).ConfigureAwait(false);
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
-            _cancellationToken = default;
             cancellationToken.ThrowIfCancellationRequested();
             SetState(ServiceState.None);
         }
@@ -91,7 +92,6 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
             await OnRecoverAsync().ConfigureAwait(false);
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
-            _cancellationToken = default;
             SetState(ServiceState.None);
         }
         catch
@@ -120,7 +120,6 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
                 await DisposeAsyncCore().ConfigureAwait(false);
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
-                _cancellationToken = default;
                 SetState(ServiceState.Disposed);
                 GC.SuppressFinalize(this);
             }
@@ -147,7 +146,6 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
     protected CancellationTokenSource CreateCancellationTokenSource(params CancellationToken[] cancellationTokens)
     {
         ObjectDisposedException.ThrowIf(_state == ServiceState.Disposed, this);
-
         if (_state != ServiceState.Started)
         {
             throw new InvalidOperationException($"Cannot create a cancellation token source in the state of {_state}.");

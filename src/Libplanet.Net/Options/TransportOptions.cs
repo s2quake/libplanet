@@ -16,5 +16,5 @@ public sealed record class TransportOptions
 
     public TimeSpan MessageLifetime { get; init; } = TimeSpan.MaxValue;
 
-    public TimeSpan WaitTimeout { get; init; } = TimeSpan.FromSeconds(3);
+    public TimeSpan ReplyTimeout { get; init; } = TimeSpan.FromSeconds(3);
 }
