@@ -145,34 +145,34 @@ public static class ITransportExtensions
         return responseMessage.Peers;
     }
 
-    internal static async ValueTask TransferAsync(this IReplyContext @this, Transaction[] transactions)
-    {
-        var replyMessage = new TransactionMessage
-        {
-            Transactions = [.. transactions],
-        };
-        await @this.NextAsync(replyMessage);
-    }
+    // internal static async ValueTask TransferAsync(this IReplyContext @this, Transaction[] transactions)
+    // {
+    //     var replyMessage = new TransactionMessage
+    //     {
+    //         Transactions = [.. transactions],
+    //     };
+    //     await @this.NextAsync(replyMessage);
+    // }
 
-    internal static async ValueTask TransferAsync(this IReplyContext @this, EvidenceBase[] evidence)
-    {
-        var replyMessage = new EvidenceMessage
-        {
-            Evidence = [.. evidence],
-        };
-        await @this.NextAsync(replyMessage);
-    }
+    // internal static async ValueTask TransferAsync(this IReplyContext @this, EvidenceBase[] evidence)
+    // {
+    //     var replyMessage = new EvidenceMessage
+    //     {
+    //         Evidence = [.. evidence],
+    //     };
+    //     await @this.NextAsync(replyMessage);
+    // }
 
-    internal static async ValueTask TransferAsync(
-        this IReplyContext @this, Block[] blocks, BlockCommit[] blockCommits, bool hasNext = false)
-    {
-        var replyMessage = new BlockMessage
-        {
-            Blocks = [.. blocks],
-            BlockCommits = [.. blockCommits],
-        };
-        await @this.NextAsync(replyMessage);
-    }
+    // internal static async ValueTask TransferAsync(
+    //     this IReplyContext @this, Block[] blocks, BlockCommit[] blockCommits, bool hasNext = false)
+    // {
+    //     var replyMessage = new BlockMessage
+    //     {
+    //         Blocks = [.. blocks],
+    //         BlockCommits = [.. blockCommits],
+    //     };
+    //     await @this.NextAsync(replyMessage);
+    // }
 
     private static async Task CancellationTask(ITransport transport, CancellationTokenSource cancellationTokenSource)
     {

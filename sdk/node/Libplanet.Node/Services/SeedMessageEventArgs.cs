@@ -3,7 +3,7 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Node.Services;
 
-internal sealed class SeedMessageEventArgs(IReplyContext message) : EventArgs
+internal sealed class SeedMessageEventArgs(object message) : EventArgs
 {
-    public IReplyContext Message { get; } = message;
+    public object Message { get; } = message;
 }

@@ -1,10 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
-using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols.PeerDiscoveryMessageHandlers;
 using Libplanet.Types;
-using Libplanet.Types.Threading;
 using static Libplanet.Net.Protocols.AddressUtility;
 
 namespace Libplanet.Net.Protocols;
@@ -18,9 +16,7 @@ internal sealed class PeerDiscovery : IDisposable
     private readonly Address _address;
     private readonly ITransport _transport;
     private readonly RoutingTable _replacementCache;
-    // private readonly IDisposable _transportSubscription;
-    // private readonly IMessageHandler[] _handlers;
-    private readonly IMessageHandler _handler;
+    private readonly IMessageHandler[] _handlers;
     private bool _disposed;
 
     public PeerDiscovery(RoutingTable table, ITransport transport)
@@ -35,22 +31,14 @@ internal sealed class PeerDiscovery : IDisposable
         _table = table;
         _address = table.Owner;
         _transport = transport;
-        _handler = new PeerDiscoveryMessageHandler
-        {
-            Handlers =
-            [
-                new PingMessageHandler(_transport),
-                new GetPeerMessageHandler(_address, _table),
-            ],
-        };
-        // _handlers =
-        // [
-        //     new PingMessageHandler(),
-        //     new GetPeerMessageHandler(_address, _table),
-        // ];
-        _transport.MessageHandlers.Add(_handler);
-        // _transportSubscription = _transport.Process.Subscribe(ProcessMessageHandler);
         _replacementCache = new RoutingTable(_address, table.Buckets.Count, table.Buckets.CapacityPerBucket);
+        _handlers =
+        [
+            new PingMessageHandler(_transport),
+            new GetPeerMessageHandler(_transport, _table),
+            new DefaultMessageHandler(_address, _table, _replacementCache),
+        ];
+        _transport.MessageHandlers.AddRange(_handlers);
     }
 
     public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int maxDepth, CancellationToken cancellationToken)
@@ -224,50 +212,50 @@ internal sealed class PeerDiscovery : IDisposable
         await Task.WhenAll(taskList);
     }
 
-    private void ProcessMessageHandler(IReplyContext messageEnvelope)
-    {
-        switch (messageEnvelope.Message)
-        {
-            case PingMessage:
-                if (messageEnvelope.Sender.Address.Equals(_address))
-                {
-                    throw new InvalidOperationException("Cannot receive ping from self.");
-                }
+    // private void ProcessMessageHandler(IReplyContext messageEnvelope)
+    // {
+    //     switch (messageEnvelope.Message)
+    //     {
+    //         case PingMessage:
+    //             if (messageEnvelope.Sender.Address.Equals(_address))
+    //             {
+    //                 throw new InvalidOperationException("Cannot receive ping from self.");
+    //             }
 
-                messageEnvelope.PongAsync();
-                break;
+    //             messageEnvelope.PongAsync();
+    //             break;
 
-            case GetPeerMessage getPeerMessage:
-                if (messageEnvelope.Sender.Address.Equals(_address))
-                {
-                    throw new InvalidOperationException("Cannot receive ping from self.");
-                }
+    //         case GetPeerMessage getPeerMessage:
+    //             if (messageEnvelope.Sender.Address.Equals(_address))
+    //             {
+    //                 throw new InvalidOperationException("Cannot receive ping from self.");
+    //             }
 
-                var target = getPeerMessage.Target;
-                var k = RoutingTable.BucketCount;
-                var peers = _table.GetNeighbors(target, k, includeTarget: true);
-                var peerMessage = new PeerMessage { Peers = [.. peers] };
-                messageEnvelope.NextAsync(peerMessage);
-                break;
-        }
+    //             var target = getPeerMessage.Target;
+    //             var k = RoutingTable.BucketCount;
+    //             var peers = _table.GetNeighbors(target, k, includeTarget: true);
+    //             var peerMessage = new PeerMessage { Peers = [.. peers] };
+    //             messageEnvelope.NextAsync(peerMessage);
+    //             break;
+    //     }
 
-        if (messageEnvelope.Sender.Address != _address)
-        {
-            var peer = messageEnvelope.Sender;
-            var peerState = _table.TryGetValue(peer.Address, out var v)
-                ? v with { LastUpdated = DateTimeOffset.UtcNow }
-                : new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow };
+    //     if (messageEnvelope.Sender.Address != _address)
+    //     {
+    //         var peer = messageEnvelope.Sender;
+    //         var peerState = _table.TryGetValue(peer.Address, out var v)
+    //             ? v with { LastUpdated = DateTimeOffset.UtcNow }
+    //             : new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow };
 
-            if (!_table.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
-            {
-                var bucket = _replacementCache.Buckets[peer.Address];
-                var oldestPeerState = bucket.Oldest;
-                var oldestAddress = oldestPeerState.Address;
-                bucket.Remove(oldestAddress);
-                bucket.AddOrUpdate(peerState);
-            }
-        }
-    }
+    //         if (!_table.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
+    //         {
+    //             var bucket = _replacementCache.Buckets[peer.Address];
+    //             var oldestPeerState = bucket.Oldest;
+    //             var oldestAddress = oldestPeerState.Address;
+    //             bucket.Remove(oldestAddress);
+    //             bucket.AddOrUpdate(peerState);
+    //         }
+    //     }
+    // }
 
     private async Task ExplorePeersAsync(Peer viaPeer, Address address, int maxDepth, CancellationToken cancellationToken)
     {
@@ -309,7 +297,7 @@ internal sealed class PeerDiscovery : IDisposable
     {
         if (!_disposed)
         {
-            // _transportSubscription?.Dispose();
+            _transport.MessageHandlers.RemoveRange(_handlers);
             _disposed = true;
             GC.SuppressFinalize(this);
         }

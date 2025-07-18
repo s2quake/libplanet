@@ -1,8 +1,6 @@
 using System.Diagnostics;
-using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Extensions;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
@@ -10,7 +8,6 @@ using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
-using Nethereum.Util;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Protocols;
@@ -18,16 +15,11 @@ namespace Libplanet.Net.Tests.Protocols;
 public sealed class ProtocolTest(ITestOutputHelper output)
 {
     private const int Timeout = 60 * 1000;
-    private readonly Dictionary<Address, NetMQTransport> _transports = [];
 
     [Fact(Timeout = Timeout)]
     public async Task Start()
     {
-        var transportOptionsA = new TransportOptions
-        {
-            SendTimeout = TimeSpan.FromMilliseconds(500),
-        };
-        await using var transportA = TestUtils.CreateTransport(options: transportOptionsA);
+        await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
         var task = transportB.WaitMessageAsync<PingMessage>(default);
 
@@ -36,7 +28,10 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        await Assert.ThrowsAsync<TimeoutException>(() => transportA.PingAsync(transportB.Peer, default));
+        using var cancellationTokenSource = new CancellationTokenSource(500);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => transportA.PingAsync(transportB.Peer, cancellationTokenSource.Token));
         await task;
     }
 
@@ -58,9 +53,11 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
-        await transportA.PingAsync(transportB.Peer, default);
-        await task;
-        Assert.True(task.IsCompletedSuccessfully);
+        var latency = await transportA.PingAsync(transportB.Peer, default);
+        var response = await task;
+        Assert.IsType<PingMessage>(response.Message);
+        Assert.Equal(transportA.Peer, response.Sender);
+        Assert.True(latency > TimeSpan.Zero);
     }
 
     [Fact(Timeout = Timeout)]

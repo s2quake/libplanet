@@ -214,32 +214,32 @@ public sealed class Gossip : ServiceBase
         return [.. query.Take(count)];
     }
 
-    private async void HandleMessage(IReplyContext replyContext)
-    {
-        // if (_deniedPeers.Contains(replyContext.Sender))
-        // {
-        //     await replyContext.PongAsync();
-        //     return;
-        // }
+    // private async void HandleMessage(IReplyContext replyContext)
+    // {
+    //     // if (_deniedPeers.Contains(replyContext.Sender))
+    //     // {
+    //     //     await replyContext.PongAsync();
+    //     //     return;
+    //     // }
 
-        // try
-        // {
-        //     // _validateReceivedMessageSubject.OnNext((replyContext.Sender, replyContext.Message));
-        //     if (MessageHandlers!.TryGetHandler(replyContext.Message.GetType(), out var handler))
-        //     {
-        //         await handler.HandleAsync(replyContext, default);
-        //     }
-        //     else
-        //     {
-        //         await replyContext.PongAsync();
-        //         AddMessage(replyContext.Message);
-        //     }
-        // }
-        // catch
-        // {
-        //     // do nothing
-        // }
-    }
+    //     // try
+    //     // {
+    //     //     // _validateReceivedMessageSubject.OnNext((replyContext.Sender, replyContext.Message));
+    //     //     if (MessageHandlers!.TryGetHandler(replyContext.Message.GetType(), out var handler))
+    //     //     {
+    //     //         await handler.HandleAsync(replyContext, default);
+    //     //     }
+    //     //     else
+    //     //     {
+    //     //         await replyContext.PongAsync();
+    //     //         AddMessage(replyContext.Message);
+    //     //     }
+    //     // }
+    //     // catch
+    //     // {
+    //     //     // do nothing
+    //     // }
+    // }
 
     private async Task SendWantMessageAsync(CancellationToken cancellationToken)
     {

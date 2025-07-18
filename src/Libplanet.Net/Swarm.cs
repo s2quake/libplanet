@@ -351,174 +351,174 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     internal bool IsBlockNeeded(BlockSummary blockSummary) => blockSummary.Height > Blockchain.Tip.Height;
 
-    private void ProcessMessageHandler(IReplyContext replyContext)
-    {
-        switch (replyContext.Message)
-        {
-            case PingMessage _:
-            case GetPeerMessage _:
-                return;
+    // private void ProcessMessageHandler(IReplyContext replyContext)
+    // {
+    //     switch (replyContext.Message)
+    //     {
+    //         case PingMessage _:
+    //         case GetPeerMessage _:
+    //             return;
 
-            case GetChainStatusMessage:
-                {
-                    // This is based on the assumption that genesis block always exists.
-                    var tip = Blockchain.Tip;
-                    var replyMessage = new ChainStatusMessage
-                    {
-                        ProtocolVersion = tip.Version,
-                        GenesisHash = Blockchain.Genesis.BlockHash,
-                        TipHeight = tip.Height,
-                        TipHash = tip.BlockHash,
-                    };
+    //         case GetChainStatusMessage:
+    //             {
+    //                 // This is based on the assumption that genesis block always exists.
+    //                 var tip = Blockchain.Tip;
+    //                 var replyMessage = new ChainStatusMessage
+    //                 {
+    //                     ProtocolVersion = tip.Version,
+    //                     GenesisHash = Blockchain.Genesis.BlockHash,
+    //                     TipHeight = tip.Height,
+    //                     TipHash = tip.BlockHash,
+    //                 };
 
-                    replyContext.NextAsync(replyMessage);
-                }
-                break;
+    //                 replyContext.NextAsync(replyMessage);
+    //             }
+    //             break;
 
-            case GetBlockHashesMessage getBlockHashes:
-                {
-                    var height = Blockchain.Blocks[getBlockHashes.BlockHash].Height;
-                    var hashes = Blockchain.Blocks[height..].Select(item => item.BlockHash).ToArray();
+    //         case GetBlockHashesMessage getBlockHashes:
+    //             {
+    //                 var height = Blockchain.Blocks[getBlockHashes.BlockHash].Height;
+    //                 var hashes = Blockchain.Blocks[height..].Select(item => item.BlockHash).ToArray();
 
-                    // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
-                    //     getBlockHashes.Locator,
-                    //     FindNextHashesChunkSize);
-                    var replyMessage = new BlockHashMessage { BlockHashes = [.. hashes] };
+    //                 // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
+    //                 //     getBlockHashes.Locator,
+    //                 //     FindNextHashesChunkSize);
+    //                 var replyMessage = new BlockHashMessage { BlockHashes = [.. hashes] };
 
-                    replyContext.NextAsync(replyMessage);
-                }
-                break;
+    //                 replyContext.NextAsync(replyMessage);
+    //             }
+    //             break;
 
-            case GetBlockMessage getBlockMessage:
-                _ = TransferAsync(replyContext, getBlockMessage);
-                break;
+    //         case GetBlockMessage getBlockMessage:
+    //             _ = TransferAsync(replyContext, getBlockMessage);
+    //             break;
 
-            case GetTransactionMessage getTransactionMessage:
-                _ = TransferAsync(replyContext, getTransactionMessage);
-                break;
+    //         case GetTransactionMessage getTransactionMessage:
+    //             _ = TransferAsync(replyContext, getTransactionMessage);
+    //             break;
 
-            case GetEvidenceMessage getEvidenceMessage:
-                _ = TransferAsync(replyContext, getEvidenceMessage);
-                break;
+    //         case GetEvidenceMessage getEvidenceMessage:
+    //             _ = TransferAsync(replyContext, getEvidenceMessage);
+    //             break;
 
-            case TxIdMessage txIdMessage:
-                _txFetcher.DemandMany(replyContext.Sender, [.. txIdMessage.Ids]);
-                replyContext.PongAsync();
-                break;
+    //         case TxIdMessage txIdMessage:
+    //             _txFetcher.DemandMany(replyContext.Sender, [.. txIdMessage.Ids]);
+    //             replyContext.PongAsync();
+    //             break;
 
-            case EvidenceIdMessage evidenceIdMessage:
-                _evidenceFetcher.DemandMany(replyContext.Sender, [.. evidenceIdMessage.Ids]);
-                replyContext.PongAsync();
-                break;
+    //         case EvidenceIdMessage evidenceIdMessage:
+    //             _evidenceFetcher.DemandMany(replyContext.Sender, [.. evidenceIdMessage.Ids]);
+    //             replyContext.PongAsync();
+    //             break;
 
-            case BlockHashMessage _:
-                break;
+    //         case BlockHashMessage _:
+    //             break;
 
-            case BlockHeaderMessage blockHeader:
-                ProcessBlockHeader(replyContext);
-                replyContext.PongAsync();
-                break;
+    //         case BlockHeaderMessage blockHeader:
+    //             ProcessBlockHeader(replyContext);
+    //             replyContext.PongAsync();
+    //             break;
 
-            default:
-                throw new InvalidOperationException($"Failed to handle message: {replyContext.Message}");
-        }
-    }
+    //         default:
+    //             throw new InvalidOperationException($"Failed to handle message: {replyContext.Message}");
+    //     }
+    // }
 
-    private void ProcessBlockHeader(IReplyContext messageEnvelope)
-    {
-        var blockHeaderMsg = (BlockHeaderMessage)messageEnvelope.Message;
-        if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
-        {
-            return;
-        }
+    // private void ProcessBlockHeader(IReplyContext messageEnvelope)
+    // {
+    //     var blockHeaderMsg = (BlockHeaderMessage)messageEnvelope.Message;
+    //     if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
+    //     {
+    //         return;
+    //     }
 
-        _blockHeaderReceivedSubject.OnNext(Unit.Default);
-        var header = blockHeaderMsg.BlockSummary;
+    //     _blockHeaderReceivedSubject.OnNext(Unit.Default);
+    //     var header = blockHeaderMsg.BlockSummary;
 
-        try
-        {
-            header.Timestamp.ValidateTimestamp();
-        }
-        catch (InvalidOperationException e)
-        {
-            return;
-        }
+    //     try
+    //     {
+    //         header.Timestamp.ValidateTimestamp();
+    //     }
+    //     catch (InvalidOperationException e)
+    //     {
+    //         return;
+    //     }
 
-        bool needed = IsBlockNeeded(header);
-        if (needed)
-        {
-            BlockDemandDictionary.Add(
-                IsBlockNeeded, new BlockDemand(header, messageEnvelope.Sender, DateTimeOffset.UtcNow));
-        }
-    }
+    //     bool needed = IsBlockNeeded(header);
+    //     if (needed)
+    //     {
+    //         BlockDemandDictionary.Add(
+    //             IsBlockNeeded, new BlockDemand(header, messageEnvelope.Sender, DateTimeOffset.UtcNow));
+    //     }
+    // }
 
-    private async Task TransferAsync(IReplyContext replyContext, GetBlockMessage requestMessage)
-    {
-        using var cancellationTokenSource = CreateCancellationTokenSource();
-        using var scope = await _transferBlockLimiter.CanAccessAsync(cancellationTokenSource.Token);
-        if (scope is null)
-        {
-            return;
-        }
+    // private async Task TransferAsync(IReplyContext replyContext, GetBlockMessage requestMessage)
+    // {
+    //     using var cancellationTokenSource = CreateCancellationTokenSource();
+    //     using var scope = await _transferBlockLimiter.CanAccessAsync(cancellationTokenSource.Token);
+    //     if (scope is null)
+    //     {
+    //         return;
+    //     }
 
-        var blockHashes = requestMessage.BlockHashes;
-        var blockList = new List<Block>();
-        var blockCommitList = new List<BlockCommit>();
-        foreach (var blockHash in blockHashes)
-        {
-            if (Blockchain.Blocks.TryGetValue(blockHash, out var block)
-                && Blockchain.BlockCommits.TryGetValue(block.BlockHash, out var blockCommit))
-            {
-                blockList.Add(block);
-                blockCommitList.Add(blockCommit);
-            }
+    //     var blockHashes = requestMessage.BlockHashes;
+    //     var blockList = new List<Block>();
+    //     var blockCommitList = new List<BlockCommit>();
+    //     foreach (var blockHash in blockHashes)
+    //     {
+    //         if (Blockchain.Blocks.TryGetValue(blockHash, out var block)
+    //             && Blockchain.BlockCommits.TryGetValue(block.BlockHash, out var blockCommit))
+    //         {
+    //             blockList.Add(block);
+    //             blockCommitList.Add(blockCommit);
+    //         }
 
-            if (blockList.Count == requestMessage.ChunkSize)
-            {
-                replyContext.TransferAsync([.. blockList], [.. blockCommitList], hasNext: true);
-                blockList.Clear();
-                blockCommitList.Clear();
-            }
-        }
+    //         if (blockList.Count == requestMessage.ChunkSize)
+    //         {
+    //             replyContext.TransferAsync([.. blockList], [.. blockCommitList], hasNext: true);
+    //             blockList.Clear();
+    //             blockCommitList.Clear();
+    //         }
+    //     }
 
-        replyContext.TransferAsync([.. blockList], [.. blockCommitList]);
-    }
+    //     replyContext.TransferAsync([.. blockList], [.. blockCommitList]);
+    // }
 
-    private async Task TransferAsync(
-        IReplyContext replyContext, GetTransactionMessage requestMessage)
-    {
-        using var cancellationTokenSource = CreateCancellationTokenSource();
-        using var scope = await _transferTxLimiter.CanAccessAsync(cancellationTokenSource.Token);
-        if (scope is null)
-        {
-            return;
-        }
+    // private async Task TransferAsync(
+    //     IReplyContext replyContext, GetTransactionMessage requestMessage)
+    // {
+    //     using var cancellationTokenSource = CreateCancellationTokenSource();
+    //     using var scope = await _transferTxLimiter.CanAccessAsync(cancellationTokenSource.Token);
+    //     if (scope is null)
+    //     {
+    //         return;
+    //     }
 
-        var txIds = requestMessage.TxIds;
-        var txs = txIds
-            .Select(txId => Blockchain.Transactions.TryGetValue(txId, out var tx) ? tx : null)
-            .OfType<Transaction>()
-            .ToArray();
-        replyContext.TransferAsync(txs);
-    }
+    //     var txIds = requestMessage.TxIds;
+    //     var txs = txIds
+    //         .Select(txId => Blockchain.Transactions.TryGetValue(txId, out var tx) ? tx : null)
+    //         .OfType<Transaction>()
+    //         .ToArray();
+    //     replyContext.TransferAsync(txs);
+    // }
 
-    private async Task TransferAsync(IReplyContext replyContext, GetEvidenceMessage requestMessage)
-    {
-        using var cancellationTokenSource = CreateCancellationTokenSource();
-        using var scope = await _transferEvidenceLimiter.CanAccessAsync(cancellationTokenSource.Token);
-        if (scope is null)
-        {
-            return;
-        }
+    // private async Task TransferAsync(IReplyContext replyContext, GetEvidenceMessage requestMessage)
+    // {
+    //     using var cancellationTokenSource = CreateCancellationTokenSource();
+    //     using var scope = await _transferEvidenceLimiter.CanAccessAsync(cancellationTokenSource.Token);
+    //     if (scope is null)
+    //     {
+    //         return;
+    //     }
 
-        var evidenceIds = requestMessage.EvidenceIds;
-        var evidence = evidenceIds
-            .Select(evidenceId => Blockchain.PendingEvidences.TryGetValue(evidenceId, out var ev) ? ev : null)
-            .OfType<EvidenceBase>()
-            .ToArray();
+    //     var evidenceIds = requestMessage.EvidenceIds;
+    //     var evidence = evidenceIds
+    //         .Select(evidenceId => Blockchain.PendingEvidences.TryGetValue(evidenceId, out var ev) ? ev : null)
+    //         .OfType<EvidenceBase>()
+    //         .ToArray();
 
-        replyContext.TransferAsync(evidence);
-    }
+    //     replyContext.TransferAsync(evidence);
+    // }
 
     public void BroadcastEvidence(ImmutableArray<EvidenceBase> evidence) => BroadcastEvidence(default, evidence);
 

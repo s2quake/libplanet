@@ -129,38 +129,38 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
         }
     }
 
-    private void ReceiveMessageAsync(IReplyContext replyContext)
-    {
-        if (_transport is null || _cancellationTokenSource is null)
-        {
-            throw new InvalidOperationException("Seed node is not running.");
-        }
+    // private void ReceiveMessageAsync(IReplyContext replyContext)
+    // {
+    //     if (_transport is null || _cancellationTokenSource is null)
+    //     {
+    //         throw new InvalidOperationException("Seed node is not running.");
+    //     }
 
-        // var messageIdentity = message.Identity;
-        var transport = _transport;
-        var peers = Peers;
+    //     // var messageIdentity = message.Identity;
+    //     var transport = _transport;
+    //     var peers = Peers;
 
-        switch (replyContext.Message)
-        {
-            case GetPeerMessage:
-                var alivePeers = peers.Where(item => item.IsAlive)
-                                      .Select(item => item.BoundPeer)
-                                      .ToArray();
-                var neighborsMsg = new PeerMessage { Peers = [.. alivePeers] };
-                replyContext.NextAsync(neighborsMsg);
-                break;
+    //     switch (replyContext.Message)
+    //     {
+    //         case GetPeerMessage:
+    //             var alivePeers = peers.Where(item => item.IsAlive)
+    //                                   .Select(item => item.BoundPeer)
+    //                                   .ToArray();
+    //             var neighborsMsg = new PeerMessage { Peers = [.. alivePeers] };
+    //             replyContext.NextAsync(neighborsMsg);
+    //             break;
 
-            default:
-                var pongMsg = new PongMessage();
-                replyContext.NextAsync(pongMsg);
-                break;
-        }
+    //         default:
+    //             var pongMsg = new PongMessage();
+    //             replyContext.NextAsync(pongMsg);
+    //             break;
+    //     }
 
-        if (replyContext.Sender is Net.Peer boundPeer)
-        {
-            peers.AddOrUpdate(boundPeer, transport);
-        }
+    //     if (replyContext.Sender is Net.Peer boundPeer)
+    //     {
+    //         peers.AddOrUpdate(boundPeer, transport);
+    //     }
 
-        MessageReceived?.Invoke(this, new SeedMessageEventArgs(replyContext));
-    }
+    //     MessageReceived?.Invoke(this, new SeedMessageEventArgs(replyContext));
+    // }
 }

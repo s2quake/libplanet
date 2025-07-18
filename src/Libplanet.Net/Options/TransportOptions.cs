@@ -15,6 +15,4 @@ public sealed record class TransportOptions
     public Protocol Protocol { get; init; } = Protocol.Empty;
 
     public TimeSpan MessageLifetime { get; init; } = TimeSpan.MaxValue;
-    
-    public TimeSpan SendTimeout { get; init; } = TimeSpan.FromSeconds(3);
 }
