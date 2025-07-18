@@ -102,7 +102,9 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await Task.WhenAll(taskB, taskC);
 
         await transportC.StopAsync(default);
-        await Assert.ThrowsAsync<TimeoutException>(async () => await transportA.PingAsync(peerC, default));
+        using var cancellationTokenSource = new CancellationTokenSource(500);
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            async () => await transportA.PingAsync(peerC, cancellationTokenSource.Token));
         taskC = transportB.WaitPingAsync(peerA);
         await transportA.PingAsync(peerB, default);
 

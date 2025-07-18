@@ -5,8 +5,7 @@ namespace Libplanet.Types.Threading;
 
 public static class TaskUtility
 {
-    public static async Task<bool> TryDelay(
-        int millisecondsDelay, CancellationToken cancellationToken)
+    public static async Task<bool> TryDelay(int millisecondsDelay, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
         {
@@ -24,8 +23,7 @@ public static class TaskUtility
         }
     }
 
-    public static async Task<bool> TryDelay(
-        TimeSpan delay, CancellationToken cancellationToken)
+    public static async Task<bool> TryDelay(TimeSpan delay, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
         {

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Libplanet.Net;
 
@@ -25,8 +24,8 @@ public static class ITransportExtensions
     {
         var request = @this.Send(peer, message, replyTo: null);
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _ = CancellationTask(@this, cancellationTokenSource);
-        var resetEvent = new ManualResetEventSlim(false);
+        var cancelTask = CancellationTask(@this, cancellationTokenSource);
+        using var resetEvent = new ManualResetEventSlim(false);
         MessageEnvelope? response = null;
         var handler = @this.MessageHandlers.Add<T>((m, e) =>
         {
@@ -38,13 +37,21 @@ public static class ITransportExtensions
         });
         using var _1 = new MessageHandlerScope(@this.MessageHandlers, handler);
 
-        await Task.Run(() => resetEvent.Wait(cancellationTokenSource.Token), cancellationTokenSource.Token);
-        if (response is null)
+        try
         {
-            throw new UnreachableException("No response received before cancellation.");
-        }
+            await Task.Run(() => resetEvent.Wait(cancellationTokenSource.Token), cancellationTokenSource.Token);
+            if (response is null)
+            {
+                throw new UnreachableException("No response received before cancellation.");
+            }
 
-        return (T)response.Message;
+            return (T)response.Message;
+        }
+        finally
+        {
+            await cancellationTokenSource.CancelAsync();
+            await TaskUtility.TryWait(cancelTask);
+        }
     }
 
     public static async IAsyncEnumerable<T> SendAndWaitAsync<T>(
@@ -57,7 +64,7 @@ public static class ITransportExtensions
     {
         var request = @this.Send(peer, message, replyTo: null);
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _ = CancellationTask(@this, cancellationTokenSource);
+        var cancelTask = CancellationTask(@this, cancellationTokenSource);
         var channel = Channel.CreateUnbounded<MessageEnvelope>();
         var handler = @this.MessageHandlers.Add<T>((m, e) =>
         {
@@ -68,13 +75,21 @@ public static class ITransportExtensions
         });
         using var _1 = new MessageHandlerScope(@this.MessageHandlers, handler);
 
-        await foreach (var item in channel.Reader.ReadAllAsync(cancellationTokenSource.Token))
+        try
         {
-            yield return (T)item.Message;
-            if (isLast((T)item.Message))
+            await foreach (var item in channel.Reader.ReadAllAsync(cancellationTokenSource.Token))
             {
-                yield break;
+                yield return (T)item.Message;
+                if (isLast((T)item.Message))
+                {
+                    yield break;
+                }
             }
+        }
+        finally
+        {
+            await cancellationTokenSource.CancelAsync();
+            await TaskUtility.TryWait(cancelTask);
         }
     }
 
@@ -139,10 +154,9 @@ public static class ITransportExtensions
     public static async Task<ImmutableArray<Peer>> GetNeighborsAsync(
         this ITransport @this, Peer peer, Address target, CancellationToken cancellationToken)
     {
-        var requestMessage = new GetPeerMessage { Target = target };
-        var responseMessage = await @this.SendAndWaitAsync<PeerMessage>(
-            peer, requestMessage, cancellationToken);
-        return responseMessage.Peers;
+        var request = new GetPeerMessage { Target = target };
+        var response = await @this.SendAndWaitAsync<PeerMessage>(peer, request, cancellationToken);
+        return response.Peers;
     }
 
     // internal static async ValueTask TransferAsync(this IReplyContext @this, Transaction[] transactions)
@@ -176,13 +190,14 @@ public static class ITransportExtensions
 
     private static async Task CancellationTask(ITransport transport, CancellationTokenSource cancellationTokenSource)
     {
-        while (!cancellationTokenSource.IsCancellationRequested)
+        var cancellationToken = cancellationTokenSource.Token;
+        while (!cancellationToken.IsCancellationRequested)
         {
             if (!@transport.IsRunning)
             {
                 await cancellationTokenSource.CancelAsync();
             }
-            else if (!await TaskUtility.TryDelay(100, cancellationTokenSource.Token))
+            else if (!await TaskUtility.TryDelay(100, cancellationToken))
             {
                 break;
             }

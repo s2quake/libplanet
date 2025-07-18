@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Diagnostics;
+using System.Threading;
 using Libplanet.Net.Messages;
+using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
@@ -9,18 +11,34 @@ public sealed class MessageHandlerCollection(IEnumerable<IMessageHandler> handle
 {
     private readonly Dictionary<Type, List<IMessageHandler>> _handlersByType = CreateHandlersByType(handlers);
     private readonly List<IMessageHandler> _handlerList = [.. handlers];
+    private readonly ReaderWriterLockSlim _lock = new();
 
     public MessageHandlerCollection()
         : this([])
     {
     }
 
-    public int Count => _handlersByType.Count;
+    public int Count
+    {
+        get
+        {
+            using var _ = new ReadScope(_lock);
+            return _handlerList.Count;
+        }
+    }
 
-    public IMessageHandler this[int index] => _handlerList[index];
+    public IMessageHandler this[int index]
+    {
+        get
+        {
+            using var _ = new ReadScope(_lock);
+            return _handlerList[index];
+        }
+    }
 
     public void Add(IMessageHandler handler)
     {
+        using var _ = new WriteScope(_lock);
         if (!_handlersByType.TryGetValue(handler.MessageType, out var handlers1))
         {
             handlers1 = [];
@@ -57,6 +75,7 @@ public sealed class MessageHandlerCollection(IEnumerable<IMessageHandler> handle
 
     public bool Remove(IMessageHandler handler)
     {
+        using var _ = new WriteScope(_lock);
         if (!_handlersByType.TryGetValue(handler.MessageType, out var value))
         {
             return false;
@@ -84,10 +103,15 @@ public sealed class MessageHandlerCollection(IEnumerable<IMessageHandler> handle
         }
     }
 
-    public bool Contains(Type messageType) => _handlersByType.ContainsKey(messageType);
+    public bool Contains(Type messageType)
+    {
+        using var _ = new ReadScope(_lock);
+        return _handlersByType.ContainsKey(messageType);
+    }
 
     public void Handle(MessageEnvelope messageEnvelope)
     {
+        using var _ = new ReadScope(_lock);
         var message = messageEnvelope.Message;
         var messageType = message.GetType();
         while (messageType is not null && typeof(IMessage).IsAssignableFrom(messageType))
@@ -112,7 +136,13 @@ public sealed class MessageHandlerCollection(IEnumerable<IMessageHandler> handle
         }
     }
 
-    public IEnumerator<IMessageHandler> GetEnumerator() => _handlerList.GetEnumerator();
+    public IEnumerator<IMessageHandler> GetEnumerator()
+    {
+        foreach (var item in _handlerList.ToArray())
+        {
+            yield return item;
+        }
+    }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
