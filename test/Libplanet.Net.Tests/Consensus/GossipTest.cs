@@ -77,13 +77,12 @@ public sealed class GossipTest
 
         await gossip1.StartAsync(default);
         await gossip2.StartAsync(default);
-        var privateKey = new PrivateKey();
         IMessage[] message =
         [
-            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 0),
             TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1),
-            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 2),
-            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 3),
+            TestUtils.CreateConsensusPropose(fx.Block2, fx.Proposer, 2),
+            TestUtils.CreateConsensusPropose(fx.Block3, fx.Proposer, 3),
+            TestUtils.CreateConsensusPropose(fx.Block4, fx.Proposer, 4),
         ];
 
         Parallel.ForEach(message, gossip1.PublishMessage);
