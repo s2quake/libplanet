@@ -30,83 +30,18 @@ public sealed class GossipTest
         var transport2 = CreateTransport(key2, 6002);
         await using var gossip1 = CreateGossip(transport1, [peer2]);
         await using var gossip2 = CreateGossip(transport2, [peer1]);
-        transport1.MessageHandlers.Add(new RelayMessageHandler<ConsensusProposalMessage>(message =>
+        transport1.MessageHandlers.Add<ConsensusProposalMessage>(message =>
         {
             received1 = true;
-        }));
-        transport2.MessageHandlers.Add(new RelayMessageHandler<ConsensusProposalMessage>(message =>
+        });
+        transport2.MessageHandlers.Add<ConsensusProposalMessage>(message =>
         {
             received2 = true;
             receivedEvent.Set();
-        }));
-        // gossip1.ProcessMessage.Subscribe(message =>
-        // {
-        //     if (message is ConsensusProposalMessage)
-        //     {
-        //         received1 = true;
-        //     }
-        // });
-        // using var s2 = gossip2.ProcessMessage.Subscribe(message =>
-        // {
-        //     if (message is ConsensusProposalMessage)
-        //     {
-        //         received2 = true;
-        //         receivedEvent.Set();
-        //     }
-        // });
+        });
         await gossip1.StartAsync(default);
         await gossip2.StartAsync(default);
-        gossip1.PublishMessage(TestUtils.CreateConsensusPropose(fx.Block1, new PrivateKey(), 0));
-        receivedEvent.WaitOne();
-        Assert.True(received1);
-        Assert.True(received2);
-    }
-
-    [Fact(Timeout = Timeout)]
-    public async Task AddMessage()
-    {
-        // It has no difference with PublishMessage() test,
-        // since two methods only has timing difference.
-        using var fx = new MemoryRepositoryFixture();
-        var received1 = false;
-        var received2 = false;
-        var key1 = new PrivateKey();
-        var key2 = new PrivateKey();
-        var receivedEvent = new ManualResetEvent(false);
-        var peer1 = CreatePeer(key1, 6001);
-        var peer2 = CreatePeer(key2, 6002);
-        var transport1 = CreateTransport(key1, 6001);
-        var transport2 = CreateTransport(key2, 6002);
-        await using var gossip1 = CreateGossip(transport1, [peer2]);
-        await using var gossip2 = CreateGossip(transport2, [peer1]);
-        transport1.MessageHandlers.Add(new RelayMessageHandler<ConsensusProposalMessage>(message =>
-        {
-            received1 = true;
-        }));
-        transport2.MessageHandlers.Add(new RelayMessageHandler<ConsensusProposalMessage>(message =>
-        {
-            received2 = true;
-            receivedEvent.Set();
-        }));
-        // using var s1 = gossip1.ProcessMessage.Subscribe(message =>
-        // {
-        //     if (message is ConsensusProposalMessage)
-        //     {
-        //         received1 = true;
-        //     }
-        // });
-        // using var s2 = gossip2.ProcessMessage.Subscribe(message =>
-        // {
-        //     if (message is ConsensusProposalMessage)
-        //     {
-        //         received2 = true;
-        //         receivedEvent.Set();
-        //     }
-        // });
-
-        await gossip1.StartAsync(default);
-        await gossip2.StartAsync(default);
-        gossip1.PublishMessage(TestUtils.CreateConsensusPropose(fx.Block1, new PrivateKey(), 0));
+        gossip1.PublishMessage(TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1));
         receivedEvent.WaitOne();
         Assert.True(received1);
         Assert.True(received2);
@@ -139,35 +74,16 @@ public sealed class GossipTest
                 receivedEvent.Set();
             }
         });
-        // using var g1 = gossip1.ProcessMessage.Subscribe(message =>
-        //     {
-        //         if (message is ConsensusProposalMessage)
-        //         {
-        //             received1++;
-        //         }
-        //     });
-        // using var g2 = gossip2.ProcessMessage.Subscribe(message =>
-        // {
-        //     if (message is ConsensusProposalMessage)
-        //     {
-        //         received2++;
-        //     }
-
-        //     if (received2 == 4)
-        //     {
-        //         receivedEvent.Set();
-        //     }
-        // });
 
         await gossip1.StartAsync(default);
         await gossip2.StartAsync(default);
         var privateKey = new PrivateKey();
         IMessage[] message =
         [
-            TestUtils.CreateConsensusPropose(fx.Block1, privateKey, 0),
-            TestUtils.CreateConsensusPropose(fx.Block1, privateKey, 1),
-            TestUtils.CreateConsensusPropose(fx.Block1, privateKey, 2),
-            TestUtils.CreateConsensusPropose(fx.Block1, privateKey, 3),
+            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 0),
+            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1),
+            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 2),
+            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 3),
         ];
 
         Parallel.ForEach(message, gossip1.PublishMessage);

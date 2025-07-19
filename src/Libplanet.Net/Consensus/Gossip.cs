@@ -1,9 +1,7 @@
 using System.Collections.Concurrent;
-using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Consensus.GossipMessageHandlers;
-using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Tasks;
@@ -13,21 +11,17 @@ namespace Libplanet.Net.Consensus;
 public sealed class Gossip : ServiceBase
 {
     private const int DLazy = 6;
-    // private readonly Subject<(Peer, IMessage)> _validateReceivedMessageSubject = new();
-    // private readonly Subject<IMessage> _validateSendingMessageSubject = new();
-    // private readonly Subject<IMessage> _processMessageSubject = new();
     private readonly ITransport _transport;
     private readonly GossipOptions _options;
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
     private readonly HashSet<Peer> _deniedPeers = [];
     private readonly ImmutableHashSet<Peer> _seeds;
     private readonly ImmutableHashSet<Peer> _validators;
+    private readonly IMessageHandler[] _handlers = [];
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
     private RoutingTable? _table;
     private PeerDiscovery? _peerDiscovery;
     private ServicesCollection? _services;
-    // private IDisposable? _transportSubscription;
-    private IMessageHandler[] _handlers = [];
 
     public Gossip(
         ITransport transport, ImmutableHashSet<Peer> seeds, ImmutableHashSet<Peer> validators, GossipOptions options)
@@ -38,11 +32,8 @@ public sealed class Gossip : ServiceBase
         _validators = validators;
         _handlers =
         [
-            new EmptyHandler<PingMessage>(),
-            new EmptyHandler<GetPeerMessage>(),
             new HaveMessageHandler(_messageById, _haveDict),
             new WantMessageHandler(_messageById, _haveDict),
-            new MessageHandler(this),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
     }
@@ -51,14 +42,6 @@ public sealed class Gossip : ServiceBase
         : this(transport, [], [], new GossipOptions())
     {
     }
-
-    // public IObservable<(Peer, IMessage)> ValidateReceivedMessage => _validateReceivedMessageSubject;
-
-    // public IObservable<IMessage> ValidateSendingMessage => _validateSendingMessageSubject;
-
-    // public IObservable<IMessage> ProcessMessage => _processMessageSubject;
-
-    // public MessageHandlerCollection MessageHandlers { get; }
 
     public MessageValidatorCollection MessageValidators { get; } = [];
 
@@ -91,7 +74,13 @@ public sealed class Gossip : ServiceBase
             throw new InvalidOperationException("Gossip is not running.");
         }
 
-        PublishMessage(GetPeersToBroadcast(_table.Select(item => item.Peer), DLazy), message);
+        ImmutableArray<Peer> peers =
+        [
+            _transport.Peer,
+            .. GetPeersToBroadcast(_table.Select(item => item.Peer), DLazy)
+        ];
+
+        PublishMessage(peers, message);
     }
 
     public void PublishMessage(ImmutableArray<Peer> targetPeers, params IMessage[] messages)
@@ -104,7 +93,6 @@ public sealed class Gossip : ServiceBase
 
         foreach (var message in messages)
         {
-            AddMessage(message);
             _transport.Post(targetPeers, message);
         }
     }
@@ -143,7 +131,6 @@ public sealed class Gossip : ServiceBase
         await _transport.StartAsync(cancellationToken);
         _table = new RoutingTable(_transport.Peer.Address);
         _table.AddRange(_validators);
-        // _transportSubscription = _transport.Process.Subscribe(HandleMessage);
         _peerDiscovery = new PeerDiscovery(_table, _transport);
         _services =
         [
@@ -151,7 +138,11 @@ public sealed class Gossip : ServiceBase
             new RebuildTableTask(_peerDiscovery, _seeds, _options.RebuildTableInterval),
             new HeartbeatTask(this, _options.HeartbeatInterval)
         ];
-        await _peerDiscovery.BootstrapAsync(_seeds, 3, cancellationToken);
+        if (_seeds.Count > 0)
+        {
+            await _peerDiscovery.BootstrapAsync(_seeds, 3, cancellationToken);
+        }
+
         await _services.StartAsync(cancellationToken);
     }
 
@@ -166,13 +157,12 @@ public sealed class Gossip : ServiceBase
 
         _peerDiscovery?.Dispose();
         _peerDiscovery = null;
-        // _transportSubscription?.Dispose();
-        // _transportSubscription = null;
         await _transport.StopAsync(cancellationToken);
     }
 
     protected override async ValueTask DisposeAsyncCore()
     {
+        _transport.MessageHandlers.RemoveRange(_handlers);
         if (_services is not null)
         {
             await _services.DisposeAsync();
@@ -181,26 +171,9 @@ public sealed class Gossip : ServiceBase
 
         _peerDiscovery?.Dispose();
         _peerDiscovery = null;
-        // _transportSubscription?.Dispose();
-        // _transportSubscription = null;
-
-        // Subject들을 정리
-        // _validateReceivedMessageSubject.Dispose();
-        // _validateSendingMessageSubject.Dispose();
-        // _processMessageSubject.Dispose();
-
         _messageById.Clear();
         await _transport.DisposeAsync();
         await base.DisposeAsyncCore();
-    }
-
-    internal void AddMessage(IMessage message)
-    {
-        if (_messageById.TryAdd(message.Id, message))
-        {
-            // MessageHandlers.HandleAsync(message);
-            // _processMessageSubject.OnNext(message);
-        }
     }
 
     private ImmutableArray<Peer> GetPeersToBroadcast(IEnumerable<Peer> peers, int count)
@@ -213,33 +186,6 @@ public sealed class Gossip : ServiceBase
 
         return [.. query.Take(count)];
     }
-
-    // private async void HandleMessage(IReplyContext replyContext)
-    // {
-    //     // if (_deniedPeers.Contains(replyContext.Sender))
-    //     // {
-    //     //     await replyContext.PongAsync();
-    //     //     return;
-    //     // }
-
-    //     // try
-    //     // {
-    //     //     // _validateReceivedMessageSubject.OnNext((replyContext.Sender, replyContext.Message));
-    //     //     if (MessageHandlers!.TryGetHandler(replyContext.Message.GetType(), out var handler))
-    //     //     {
-    //     //         await handler.HandleAsync(replyContext, default);
-    //     //     }
-    //     //     else
-    //     //     {
-    //     //         await replyContext.PongAsync();
-    //     //         AddMessage(replyContext.Message);
-    //     //     }
-    //     // }
-    //     // catch
-    //     // {
-    //     //     // do nothing
-    //     // }
-    // }
 
     private async Task SendWantMessageAsync(CancellationToken cancellationToken)
     {
