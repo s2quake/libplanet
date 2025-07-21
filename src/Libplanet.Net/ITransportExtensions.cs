@@ -126,8 +126,8 @@ public static class ITransportExtensions
     internal static async Task<BlockHash[]> GetBlockHashesAsync(
         this ITransport @this, Peer peer, BlockHash blockHash, CancellationToken cancellationToken)
     {
-        var request = new GetBlockHashesMessage { BlockHash = blockHash };
-        var replyMessage = await SendAsync<BlockHashMessage>(@this, peer, request, cancellationToken);
+        var request = new BlockHashRequestMessage { BlockHash = blockHash };
+        var replyMessage = await SendAsync<BlockHashResponseMessage>(@this, peer, request, cancellationToken);
         var blockHashes = replyMessage.BlockHashes;
         if (blockHashes.Length > 0 && blockHash != blockHashes[0])
         {
@@ -151,8 +151,8 @@ public static class ITransportExtensions
         BlockHash[] blockHashes,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var request = new GetBlockMessage { BlockHashes = [.. blockHashes] };
-        var response = await @this.SendAsync<BlockMessage>(peer, request, cancellationToken);
+        var request = new BlockRequestMessage { BlockHashes = [.. blockHashes] };
+        var response = await @this.SendAsync<BlockResponseMessage>(peer, request, cancellationToken);
         for (var i = 0; i < response.Blocks.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();

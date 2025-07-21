@@ -3,9 +3,9 @@ using Libplanet.Net.Messages;
 namespace Libplanet.Net.MessageHandlers;
 
 internal sealed class BlockHashMessageHandler
-    : MessageHandlerBase<BlockHashMessage>
+    : MessageHandlerBase<BlockHashResponseMessage>
 {
-    protected override void OnHandle(BlockHashMessage message, MessageEnvelope messageEnvelope)
+    protected override void OnHandle(BlockHashResponseMessage message, MessageEnvelope messageEnvelope)
     {
     }
 }

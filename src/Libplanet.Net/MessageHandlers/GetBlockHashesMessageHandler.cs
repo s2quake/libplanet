@@ -5,9 +5,9 @@ using Libplanet.Net.Messages;
 namespace Libplanet.Net.MessageHandlers;
 
 internal sealed class GetBlockHashesMessageHandler(Blockchain blockchain)
-    : MessageHandlerBase<GetBlockHashesMessage>
+    : MessageHandlerBase<BlockHashRequestMessage>
 {
-    protected override void OnHandle(GetBlockHashesMessage message, MessageEnvelope messageEnvelope)
+    protected override void OnHandle(BlockHashRequestMessage message, MessageEnvelope messageEnvelope)
     {
         var height = blockchain.Blocks[message.BlockHash].Height;
         var hashes = blockchain.Blocks[height..].Select(item => item.BlockHash).ToArray();
@@ -15,7 +15,7 @@ internal sealed class GetBlockHashesMessageHandler(Blockchain blockchain)
         // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
         //     getBlockHashes.Locator,
         //     FindNextHashesChunkSize);
-        var replyMessage = new BlockHashMessage { BlockHashes = [.. hashes] };
+        var replyMessage = new BlockHashResponseMessage { BlockHashes = [.. hashes] };
 
         // await replyContext.NextAsync(replyMessage);
     }

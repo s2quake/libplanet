@@ -948,7 +948,7 @@ public partial class SwarmTest
                     mockTransport.Post(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
                     break;
 
-                case GetBlockHashesMessage gbhm:
+                case BlockHashRequestMessage gbhm:
                     requestCount++;
                     break;
             }

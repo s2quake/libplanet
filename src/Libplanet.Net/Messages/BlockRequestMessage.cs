@@ -3,8 +3,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "GetBlockMessage")]
-internal sealed partial record class GetBlockMessage : MessageBase
+[Model(Version = 1, TypeName = "BlockRequestMessage")]
+internal sealed partial record class BlockRequestMessage : MessageBase
 {
     [Property(0)]
     public ImmutableArray<BlockHash> BlockHashes { get; init; }

@@ -407,7 +407,7 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         ITransport transport = swarmB.Transport;
 
-        var request = new GetBlockMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
+        var request = new BlockRequestMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
         transport.Post(
             swarmA.Peer, request);
         // var aggregateMessage = (AggregateMessage)reply;
@@ -1243,7 +1243,7 @@ public partial class SwarmTest(ITestOutputHelper output)
             await swarm.StartAsync(default);
             await transport.StartAsync(default);
             var tasks = new List<Task>();
-            var content = new GetBlockMessage { BlockHashes = [swarm.Blockchain.Genesis.BlockHash] };
+            var content = new BlockRequestMessage { BlockHashes = [swarm.Blockchain.Genesis.BlockHash] };
             for (int i = 0; i < 5; i++)
             {
                 tasks.Add(

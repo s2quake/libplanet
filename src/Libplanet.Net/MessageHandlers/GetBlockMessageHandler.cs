@@ -4,10 +4,10 @@ using Libplanet.Types;
 namespace Libplanet.Net.MessageHandlers;
 
 internal sealed class GetBlockMessageHandler(Blockchain blockchain, AccessLimiter accessLimiter)
-    : MessageHandlerBase<GetBlockMessage>
+    : MessageHandlerBase<BlockRequestMessage>
 {
     protected override void OnHandle(
-        GetBlockMessage message, MessageEnvelope messageEnvelope)
+        BlockRequestMessage message, MessageEnvelope messageEnvelope)
     {
         // using var scope = await accessLimiter.CanAccessAsync(cancellationToken);
         // if (scope is null)
