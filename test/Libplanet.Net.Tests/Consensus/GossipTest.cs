@@ -110,22 +110,13 @@ public sealed class GossipTest
     [Fact(Timeout = Timeout)]
     public async Task DoNotBroadcastToSeedPeers()
     {
-        var received = false;
+        var handled = false;
         await using var transport = CreateTransport();
         await using var gossip = CreateGossip(seeds: [transport.Peer]);
-
-        transport.MessageHandlers.Add(new RelayMessageHandler<HaveMessage>(message =>
+        transport.MessageHandlers.Add<HaveMessage>(_ =>
         {
-            received = true;
-        }));
-
-        // transport.Process.Subscribe(messageEnvelope =>
-        // {
-        //     if (messageEnvelope.Message is HaveMessage)
-        //     {
-        //         received = true;
-        //     }
-        // });
+            handled = true;
+        });
 
         await transport.StartAsync(default);
         await gossip.StartAsync(default);
@@ -133,7 +124,7 @@ public sealed class GossipTest
 
         // Wait heartbeat interval * 2.
         await Task.Delay(2 * 1000);
-        Assert.False(received);
+        Assert.False(handled);
     }
 
     [Fact(Timeout = Timeout)]
@@ -144,7 +135,7 @@ public sealed class GossipTest
         {
             if (message is WantMessage)
             {
-                handled++;
+                Interlocked.Increment(ref handled);
             }
         }
 
@@ -163,7 +154,7 @@ public sealed class GossipTest
         sender2.Post(receiver.Peer, new HaveMessage { Ids = [message1.Id, message2.Id] });
 
         // Wait heartbeat interval * 2.
-        await Task.Delay(100000);
+        await Task.Delay(2 * 1000);
         Assert.Equal(1, handled);
     }
 

@@ -232,26 +232,21 @@ public sealed class Gossip : ServiceBase
             {
                 MessageId[] idsToGet = pair.Value;
                 var wantMessage = new WantMessage { Ids = [.. idsToGet] };
-                IMessage[] replies = await _transport.SendAsync<IMessage>(pair.Key, wantMessage, m => true, cancellationToken).ToArrayAsync();
-                foreach (var reply in replies)
+                try
                 {
-                    _messageById[reply.Id] = reply;
+                    var query = _transport.SendAsync<IMessage>(pair.Key, wantMessage, m => true, cancellationToken);
+                    await foreach (var item in query)
+                    {
+                        _messageById.TryAdd(item.Id, item);
+                        // Messagehandlers.HandleAsync(item)
+                        // _validateReceivedMessageSubject.OnNext((pair.Key, item));
+                        MessageValidators.Validate(item);
+                    }
                 }
-                // await foreach (var item in _transport.SendAsync(pair.Key, want, cancellationToken))
-                // {
-                //     try
-                //     {
-                //         AddMessage(item);
-                //     }
-                //     catch
-                //     {
-                //         // do nogthing
-                //     }
+                catch (Exception e)
+                {
 
-                    //     // Messagehandlers.HandleAsync(item)
-                    //     // _validateReceivedMessageSubject.OnNext((pair.Key, item));
-                    //     MessageValidators.Validate(item);
-                    // }
+                }
             });
     }
 }

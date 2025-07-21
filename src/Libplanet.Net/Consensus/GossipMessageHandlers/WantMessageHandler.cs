@@ -13,6 +13,7 @@ internal sealed class WantMessageHandler(
 {
     protected override void OnHandle(HaveMessage message, MessageEnvelope messageEnvelope)
     {
+        // var peer = transport.Peer;
         // var messages = message.Ids.Select(id => messageById[id]).ToArray();
 
         // Parallel.ForEach(messages, Invoke);
