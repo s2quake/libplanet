@@ -527,7 +527,7 @@ public abstract class RepositoryTest
             BlockHash = hash,
             Votes = votes,
         };
-        store.BlockCommits.Add(hash, expectedCommit);
+        store.BlockCommits.Add(expectedCommit);
 
         var actualCommit = store.BlockCommits[expectedCommit.BlockHash];
 
@@ -561,26 +561,22 @@ public abstract class RepositoryTest
                 Type = VoteType.PreCommit,
             }.Sign(fx.Proposer));
 
-        KeyValuePair<BlockHash, BlockCommit>[] blockCommits =
+        BlockCommit[] blockCommits =
         [
-            new(
-                fx.Block1.BlockHash,
                 new BlockCommit
                 {
                     Height = 1,
                     Round = 0,
                     BlockHash = fx.Block1.BlockHash,
                     Votes = votesOne,
-                }),
-            new(
-                fx.Block2.BlockHash,
+            },
                 new BlockCommit
                 {
                     Height = 2,
                     Round = 0,
                     BlockHash = fx.Block2.BlockHash,
                     Votes = votesTwo,
-            }),
+            },
         ];
 
         fx.Repository.BlockCommits.AddRange(blockCommits);
@@ -612,7 +608,7 @@ public abstract class RepositoryTest
             ],
         };
 
-        store.BlockCommits.Add(Fx.GenesisBlock.BlockHash, blockCommit);
+        store.BlockCommits.Add(blockCommit);
         Assert.Equal(blockCommit, store.BlockCommits[blockCommit.BlockHash]);
 
         store.BlockCommits.Remove(blockCommit.BlockHash);

@@ -7,11 +7,13 @@ namespace Libplanet;
 
 public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, BlockCommit>
 {
+    private readonly BlockDigestIndex _blockDigests;
     private readonly BlockCommitIndex _blockCommits;
     private readonly BlockHashIndex _blockHashes;
 
     internal BlockCommitCollection(Repository repository)
     {
+        _blockDigests = repository.BlockDigests;
         _blockCommits = repository.BlockCommits;
         _blockHashes = repository.BlockHashes;
     }
@@ -43,7 +45,25 @@ public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, Block
 
     public BlockCommit this[Index index] => this[_blockHashes[index]];
 
-    public BlockCommit this[BlockHash blockHash] => _blockCommits[blockHash];
+    public BlockCommit this[BlockHash blockHash]
+    {
+        get
+        {
+            if (_blockDigests.ContainsKey(blockHash))
+            {
+                if (_blockCommits.TryGetValue(blockHash, out var commit))
+                {
+                    return commit;
+                }
+
+                return BlockCommit.Empty;
+            }
+
+            throw new KeyNotFoundException(
+                $"Block commit for {blockHash} not found. " +
+                "Use `TryGetValue` to check existence without throwing an exception.");
+        }
+    }
 
     public IEnumerable<BlockCommit> this[Range range]
     {
@@ -56,13 +76,27 @@ public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, Block
         }
     }
 
-    public bool ContainsKey(BlockHash blockHash) => _blockCommits.ContainsKey(blockHash);
+    public bool ContainsKey(BlockHash blockHash) => _blockDigests.ContainsKey(blockHash);
 
     public bool TryGetValue(int height, [MaybeNullWhen(false)] out BlockCommit value)
         => TryGetValue(_blockHashes[height], out value);
 
     public bool TryGetValue(BlockHash blockHash, [MaybeNullWhen(false)] out BlockCommit value)
-        => _blockCommits.TryGetValue(blockHash, out value);
+    {
+        if (_blockDigests.ContainsKey(blockHash))
+        {
+            if (_blockCommits.TryGetValue(blockHash, out value))
+            {
+                return true;
+            }
+
+            value = BlockCommit.Empty;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
 
     public IEnumerator<KeyValuePair<BlockHash, BlockCommit>> GetEnumerator()
     {

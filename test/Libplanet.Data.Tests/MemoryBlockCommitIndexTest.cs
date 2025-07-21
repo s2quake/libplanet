@@ -6,7 +6,7 @@ using Xunit.Abstractions;
 namespace Libplanet.Data.Tests;
 
 public sealed class MemoryBlockCommitIndexTest(ITestOutputHelper output)
-    : MemoryIndexTestBase<BlockHash, BlockCommit, BlockCommitIndex>(output)
+    : MemoryKeyedIndexTestBase<BlockHash, BlockCommit, BlockCommitIndex>(output)
 {
     protected override BlockCommitIndex CreateIndex(MemoryDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);

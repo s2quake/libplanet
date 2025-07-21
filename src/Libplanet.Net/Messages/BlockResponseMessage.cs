@@ -27,14 +27,21 @@ internal sealed partial record class BlockResponseMessage : MessageBase, IValida
 
         for (var i = 0; i < Blocks.Length; i++)
         {
-            if (Blocks[i].BlockHash != BlockCommits[i].BlockHash)
+            var block = Blocks[i];
+            var blockCommit = BlockCommits[i];
+            if (blockCommit == BlockCommit.Empty)
+            {
+                continue;
+            }
+
+            if (block.BlockHash != blockCommit.BlockHash)
             {
                 yield return new ValidationResult(
                     $"Block at index {i} does not match its commit.",
                     [nameof(Blocks), nameof(BlockCommits)]);
             }
 
-            if (Blocks[i].Height != BlockCommits[i].Height)
+            if (block.Height != blockCommit.Height)
             {
                 yield return new ValidationResult(
                     $"Block at index {i} height does not match its commit.",
