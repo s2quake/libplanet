@@ -218,7 +218,7 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task Cancel()
     {
         await using var swarm = await CreateSwarm();
-        using var cancellationTokenSource = new CancellationTokenSource(100);
+        using var cancellationTokenSource = new CancellationTokenSource(1);
 
         await Assert.ThrowsAsync<OperationCanceledException>(
             () => swarm.StartAsync(cancellationTokenSource.Token));
@@ -342,17 +342,15 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task GetBlocks()
     {
         var keyA = new PrivateKey();
-
         await using var swarmA = await CreateSwarm(keyA);
-        Block genesis = swarmA.Blockchain.Genesis;
+        var genesis = swarmA.Blockchain.Genesis;
         await using var swarmB = await CreateSwarm(genesis: genesis);
 
-        Blockchain chainA = swarmA.Blockchain;
-
-        Block block1 = chainA.ProposeBlock(keyA);
-        chainA.Append(block1, TestUtils.CreateBlockCommit(block1));
-        Block block2 = chainA.ProposeBlock(keyA);
-        chainA.Append(block2, TestUtils.CreateBlockCommit(block2));
+        var blockchainA = swarmA.Blockchain;
+        var block1 = blockchainA.ProposeBlock(keyA);
+        blockchainA.Append(block1, TestUtils.CreateBlockCommit(block1));
+        var block2 = blockchainA.ProposeBlock(keyA);
+        blockchainA.Append(block2, TestUtils.CreateBlockCommit(block2));
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
