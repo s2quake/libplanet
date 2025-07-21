@@ -53,7 +53,7 @@ public partial class BlockChainTest : IDisposable
         {
             Header = new BlockHeader
             {
-                Version = BlockHeader.CurrentProtocolVersion,
+                BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
                 Proposer = _fx.Proposer.Address,

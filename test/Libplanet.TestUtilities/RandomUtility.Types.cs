@@ -37,7 +37,7 @@ public static partial class RandomUtility
 
     public static BlockHeader BlockHeader(Random random) => new()
     {
-        Version = NonNegative(random),
+        BlockVersion = NonNegative(random),
         Height = NonNegative(random),
         Timestamp = DateTimeOffset(random),
         Proposer = Address(random),

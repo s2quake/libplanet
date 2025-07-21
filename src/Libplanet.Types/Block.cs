@@ -19,7 +19,7 @@ public sealed partial record class Block : IComparable<Block>, IComparable
 
     public int Height => Header.Height;
 
-    public int Version => Header.Version;
+    public int Version => Header.BlockVersion;
 
     public DateTimeOffset Timestamp => Header.Timestamp;
 

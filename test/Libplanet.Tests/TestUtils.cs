@@ -179,7 +179,7 @@ public static class TestUtils
 
         var metadata = new BlockHeader
         {
-            Version = protocolVersion,
+            BlockVersion = protocolVersion,
             Timestamp = timestamp ??
                     new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
             Proposer = proposer.Address,
@@ -224,7 +224,7 @@ public static class TestUtils
         var evs = evidence ?? [];
         var metadata = new BlockHeader
         {
-            Version = protocolVersion,
+            BlockVersion = protocolVersion,
             Height = previousBlock.Height + 1,
             Timestamp = previousBlock.Timestamp.Add(
                     blockInterval ?? TimeSpan.FromSeconds(15)),

@@ -274,7 +274,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         {
             Header = new BlockHeader
             {
-                Version = BlockHeader.CurrentProtocolVersion,
+                BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = blockchain.Tip.Height + 2,
                 Timestamp = blockchain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
                 Proposer = TestUtils.PrivateKeys[1].Address,

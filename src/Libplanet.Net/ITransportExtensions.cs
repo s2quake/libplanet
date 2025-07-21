@@ -138,11 +138,11 @@ public static class ITransportExtensions
         return [.. blockHashes];
     }
 
-    internal static async Task<ChainStatusResponseMessage> GetChainStatusAsync(
+    internal static async Task<BlockchainStateResponseMessage> GetBlockchainStateAsync(
         this ITransport @this, Peer peer, CancellationToken cancellationToken)
     {
-        var request = new ChainStatusRequestMessage();
-        return await SendAsync<ChainStatusResponseMessage>(@this, peer, request, cancellationToken);
+        var request = new BlockchainStateRequestMessage();
+        return await SendAsync<BlockchainStateResponseMessage>(@this, peer, request, cancellationToken);
     }
 
     internal static async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(

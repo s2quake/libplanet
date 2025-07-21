@@ -79,7 +79,7 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
                 TxId = tx?.Id ?? default,
                 Proposer = rawBlock.Header.Proposer,
                 BlockHeight = rawBlock.Header.Height,
-                BlockProtocolVersion = rawBlock.Header.Version,
+                BlockProtocolVersion = rawBlock.Header.BlockVersion,
                 LastCommit = rawBlock.Header.PreviousCommit,
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice ?? default,

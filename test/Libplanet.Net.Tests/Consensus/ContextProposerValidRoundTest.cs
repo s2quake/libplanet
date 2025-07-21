@@ -187,7 +187,7 @@ namespace Libplanet.Net.Tests.Consensus
             {
                 Header = new BlockHeader
                 {
-                    Version = BlockHeader.CurrentProtocolVersion,
+                    BlockVersion = BlockHeader.CurrentProtocolVersion,
                     Height = blockchain.Tip.Height + 1,
                     Timestamp = blockchain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
                     Proposer = key.Address,

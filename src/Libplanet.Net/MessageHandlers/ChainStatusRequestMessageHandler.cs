@@ -1,24 +1,42 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class ChainStatusRequestMessageHandler(Blockchain blockchain)
-    : MessageHandlerBase<ChainStatusRequestMessage>
+internal sealed class ChainStatusRequestMessageHandler : MessageHandlerBase<BlockchainStateRequestMessage>, IDisposable
 {
-    protected override void OnHandle(ChainStatusRequestMessage message, MessageEnvelope messageEnvelope)
-    {
-        // This is based on the assumption that genesis block always exists.
-        var tip = blockchain.Tip;
-        var replyMessage = new ChainStatusResponseMessage
-        {
-            ProtocolVersion = tip.Version,
-            GenesisHash = blockchain.Genesis.BlockHash,
-            TipHeight = tip.Height,
-            TipHash = tip.BlockHash,
-        };
+    private readonly Blockchain _blockchain;
+    private readonly ITransport _transport;
+    private readonly IDisposable _subscription;
+    private BlockchainStateResponseMessage _response;
 
-        // await replyContext.NextAsync(replyMessage);
+    public ChainStatusRequestMessageHandler(Blockchain blockchain, ITransport transport)
+    {
+        _blockchain = blockchain;
+        _transport = transport;
+        _response = CreateResponse(_blockchain);
+        _subscription = _blockchain.TipChanged.Subscribe(e =>
+        {
+            _response = CreateResponse(_blockchain);
+        });
+    }
+
+    public ChainStatusRequestMessageHandler(Swarm swarm)
+        : this(swarm.Blockchain, swarm.Transport)
+    {
+    }
+
+    public void Dispose() => _subscription.Dispose();
+
+    protected override void OnHandle(BlockchainStateRequestMessage message, MessageEnvelope messageEnvelope)
+        => _transport.Post(messageEnvelope.Sender, _response, messageEnvelope.Identity);
+
+    private static BlockchainStateResponseMessage CreateResponse(Blockchain blockchain)
+    {
+        var tip = blockchain.Tip;
+        return new BlockchainStateResponseMessage
+        {
+            Genesis = blockchain.Genesis,
+            Tip = tip,
+        };
     }
 }

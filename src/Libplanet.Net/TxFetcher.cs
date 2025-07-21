@@ -10,25 +10,22 @@ public sealed class TxFetcher(
     Blockchain blockchain, ITransport transport, TimeoutOptions timeoutOptions)
     : FetcherBase<TxId, Transaction>
 {
+    public TxFetcher(Swarm swarm, SwarmOptions options)
+        : this(swarm.Blockchain, swarm.Transport, options.TimeoutOptions)
+    {
+    }
+
     public override async IAsyncEnumerable<Transaction> FetchAsync(
         Peer peer, TxId[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var request = new GetTransactionMessage { TxIds = [.. ids] };
         using var cancellationTokenSource = CreateCancellationTokenSource();
-        var response = await transport.SendAsync<TransactionMessage>(peer, request, cancellationTokenSource.Token);
+        var request = new TransactionRequestMessage { TxIds = [.. ids] };
+        var response = await transport.SendAsync<TransactionResponseMessage>(peer, request, cancellationTokenSource.Token);
         foreach (var item in response.Transactions)
         {
             cancellationToken.ThrowIfCancellationRequested();
             yield return item;
         }
-        // await foreach (var item in transport.SendAsync<TransactionMessage>(peer, request, cancellationToken))
-        // {
-        //     for (var i = 0; i < item.Transactions.Length; i++)
-        //     {
-        //         cancellationToken.ThrowIfCancellationRequested();
-        //         yield return item.Transactions[i];
-        //     }
-        // }
 
         CancellationTokenSource CreateCancellationTokenSource()
         {

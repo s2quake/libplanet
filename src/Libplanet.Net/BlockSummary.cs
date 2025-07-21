@@ -7,7 +7,7 @@ namespace Libplanet.Net;
 public sealed partial record class BlockSummary
 {
     [Property(0)]
-    public int Version { get; init; }
+    public int BlockVersion { get; init; }
 
     [Property(1)]
     public int Height { get; init; }
@@ -20,7 +20,7 @@ public sealed partial record class BlockSummary
 
     public static implicit operator BlockSummary(Block block) => new()
     {
-        Version = block.Header.Version,
+        BlockVersion = block.Header.BlockVersion,
         Height = block.Header.Height,
         BlockHash = block.BlockHash,
         Timestamp = block.Header.Timestamp,

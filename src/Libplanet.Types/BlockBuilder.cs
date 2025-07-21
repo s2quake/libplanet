@@ -22,7 +22,7 @@ public sealed record class BlockBuilder
     {
         var blockHeader = new BlockHeader
         {
-            Version = BlockHeader.CurrentProtocolVersion,
+            BlockVersion = BlockHeader.CurrentProtocolVersion,
             Height = Height,
             Timestamp = Timestamp == default ? DateTimeOffset.UtcNow : Timestamp,
             Proposer = proposer.Address,

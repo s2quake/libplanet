@@ -20,7 +20,7 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void PropertyAttributes()
     {
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Version), 0);
+        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.BlockVersion), 0);
         ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Height), 1);
         ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Timestamp), 2);
         ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Proposer), 3);
@@ -43,7 +43,7 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     public void Ctor()
     {
         var blockHeader = new BlockHeader();
-        Assert.Equal(BlockHeader.CurrentProtocolVersion, blockHeader.Version);
+        Assert.Equal(BlockHeader.CurrentProtocolVersion, blockHeader.BlockVersion);
         Assert.Equal(0L, blockHeader.Height);
         Assert.Equal(default, blockHeader.Timestamp);
         Assert.Equal(default, blockHeader.Proposer);
@@ -58,19 +58,19 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var blockHeader = RandomUtility.BlockHeader(random) with
         {
-            Version = 0,
+            BlockVersion = 0,
         };
-        Assert.Equal(0, blockHeader.Version);
+        Assert.Equal(0, blockHeader.BlockVersion);
 
         ValidationTest.Throws(blockHeader with
         {
-            Version = BlockHeader.CurrentProtocolVersion + 1,
-        }, nameof(BlockHeader.Version));
+            BlockVersion = BlockHeader.CurrentProtocolVersion + 1,
+        }, nameof(BlockHeader.BlockVersion));
 
         ValidationTest.Throws(blockHeader with
         {
-            Version = -1,
-        }, nameof(BlockHeader.Version));
+            BlockVersion = -1,
+        }, nameof(BlockHeader.BlockVersion));
     }
 
     [Fact]

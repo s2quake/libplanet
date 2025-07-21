@@ -39,7 +39,7 @@ public partial class BlockChainTest
         {
             Header = new BlockHeader
             {
-                Version = protocolVersion,
+                BlockVersion = protocolVersion,
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                 Proposer = _fx.Proposer.Address,
@@ -68,7 +68,7 @@ public partial class BlockChainTest
             {
                 Header = new BlockHeader
                 {
-                    Version = BlockHeader.CurrentProtocolVersion + 1,
+                    BlockVersion = BlockHeader.CurrentProtocolVersion + 1,
                     Height = 2,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
                     Proposer = _fx.Proposer.Address,
@@ -194,7 +194,7 @@ public partial class BlockChainTest
         {
             Header = new BlockHeader
             {
-                Version = BlockHeader.CurrentProtocolVersion,
+                BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = 1,
                 Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                 Proposer = TestUtils.GenesisProposer.Address,
@@ -231,7 +231,7 @@ public partial class BlockChainTest
         {
             Header = new BlockHeader
             {
-                Version = beforePostponeBPV,
+                BlockVersion = beforePostponeBPV,
                 Height = 1,
                 Timestamp = genesisBlock.Timestamp.AddSeconds(1),
                 Proposer = TestUtils.GenesisProposer.Address,
@@ -708,7 +708,7 @@ public partial class BlockChainTest
         {
             Header = new BlockHeader
             {
-                Version = BlockHeader.CurrentProtocolVersion,
+                BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = newChain.Tip.Height + 1,
                 Timestamp = newChain.Tip.Timestamp.AddSeconds(1),
                 Proposer = TestUtils.GenesisProposer.Address,

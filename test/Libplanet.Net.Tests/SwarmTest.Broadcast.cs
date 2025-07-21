@@ -827,51 +827,44 @@ public partial class SwarmTest
         var keyB = new PrivateKey();
         var keyC = new PrivateKey();
 
-        var swarmA = await CreateSwarm(keyA);
-        var swarmB = await CreateSwarm(keyB);
-        var swarmC = await CreateSwarm(keyC);
+        await using var swarmA = await CreateSwarm(keyA);
+        await using var swarmB = await CreateSwarm(keyB);
+        await using var swarmC = await CreateSwarm(keyC);
 
-        Blockchain chainA = swarmA.Blockchain;
-        Blockchain chainB = swarmB.Blockchain;
-        Blockchain chainC = swarmC.Blockchain;
+        var blockchainA = swarmA.Blockchain;
+        var blockchainB = swarmB.Blockchain;
+        var blockchainC = swarmC.Blockchain;
 
-        foreach (int i in Enumerable.Range(0, 5))
+        for (var i = 0; i < 5; i++)
         {
-            Block block = chainA.ProposeBlock(keyA);
-            chainA.Append(block, TestUtils.CreateBlockCommit(block));
+            var block = blockchainA.ProposeBlock(keyA);
+            blockchainA.Append(block, TestUtils.CreateBlockCommit(block));
             if (i < 3)
             {
-                chainC.Append(block, TestUtils.CreateBlockCommit(block));
+                blockchainC.Append(block, TestUtils.CreateBlockCommit(block));
             }
         }
 
-        Block chainATip = chainA.Tip;
+        var tipA = blockchainA.Tip;
 
-        foreach (int i in Enumerable.Range(0, 10))
+        for (var i = 0; i < 10; i++)
         {
-            Block block = chainB.ProposeBlock(keyB);
-            chainB.Append(block, TestUtils.CreateBlockCommit(block));
+            var block = blockchainB.ProposeBlock(keyB);
+            blockchainB.Append(block, TestUtils.CreateBlockCommit(block));
         }
 
-        try
-        {
-            await swarmA.StartAsync(default);
-            await swarmB.StartAsync(default);
-            await swarmC.StartAsync(default);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
+        await swarmC.StartAsync(default);
 
-            await BootstrapAsync(swarmB, swarmA.Peer);
-            await BootstrapAsync(swarmC, swarmA.Peer);
+        await swarmB.AddPeersAsync([swarmA.Peer], default);
+        await swarmC.AddPeersAsync([swarmA.Peer], default);
+        // await BootstrapAsync(swarmB, swarmA.Peer);
+        // await BootstrapAsync(swarmC, swarmA.Peer);
 
-            await swarmC.PullBlocksAsync(TimeSpan.FromSeconds(5), int.MaxValue, default);
-            await swarmC.BlockAppended.WaitAsync(default);
-            Assert.Equal(chainC.Tip, chainATip);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-            CleaningSwarm(swarmC);
-        }
+        await swarmC.PullBlocksAsync(TimeSpan.FromSeconds(5), int.MaxValue, default);
+        await swarmC.BlockAppended.WaitAsync(default);
+        Assert.Equal(blockchainC.Tip, tipA);
     }
 
     [Fact(Timeout = Timeout)]
@@ -912,7 +905,7 @@ public partial class SwarmTest
             await swarm1.AddPeersAsync([swarm2.Peer], default);
 
             var transport = swarm1.Transport;
-            var msg = new GetTransactionMessage { TxIds = [tx1.Id, tx2.Id, tx3.Id, tx4.Id] };
+            var msg = new TransactionRequestMessage { TxIds = [tx1.Id, tx2.Id, tx3.Id, tx4.Id] };
             // var reply = await transport.SendAsync(swarm2.Peer, msg, default);
             // var replayMessage = (AggregateMessage)reply.Message;
 

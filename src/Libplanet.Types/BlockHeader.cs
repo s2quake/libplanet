@@ -12,7 +12,7 @@ public sealed partial record class BlockHeader : IValidatableObject
 
     [Property(0)]
     [NonNegative]
-    public int Version { get; init; } = CurrentProtocolVersion;
+    public int BlockVersion { get; init; } = CurrentProtocolVersion;
 
     [Property(1)]
     [NonNegative]
@@ -37,12 +37,12 @@ public sealed partial record class BlockHeader : IValidatableObject
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (Version > CurrentProtocolVersion)
+        if (BlockVersion > CurrentProtocolVersion)
         {
             yield return new ValidationResult(
-                $"The version {Version} is not supported. " +
+                $"The version {BlockVersion} is not supported. " +
                 $"The current protocol version is {CurrentProtocolVersion}.",
-                [nameof(Version)]);
+                [nameof(BlockVersion)]);
         }
     }
 }

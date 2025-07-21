@@ -48,7 +48,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : BackgroundServiceBase
         }
 
         var peersWithBlockExcerpt =
-            await swarm.GetPeersWithExcerpts(
+            await swarm.GetPeersWithBlockSummary(
                 timeout, maximumPollPeers, cancellationToken);
         await PullBlocksAsync(peersWithBlockExcerpt, cancellationToken);
     }
