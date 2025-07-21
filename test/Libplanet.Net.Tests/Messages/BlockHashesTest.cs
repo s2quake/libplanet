@@ -11,8 +11,12 @@ public sealed class BlockHashesTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var privateKey = RandomUtility.PrivateKey(random);
-        var blockHashes = RandomUtility.Array(random, RandomUtility.BlockHash, 100);
-        var peer = RandomUtility.Peer(random);
+        var blockHashes = RandomUtility.Array(random, RandomUtility.BlockHash, 10);
+        var peer = new Peer
+        {
+            Address = privateKey.Address,
+            EndPoint = RandomUtility.DnsEndPoint(random),
+        };
         var expected = new BlockHashMessage { BlockHashes = [.. blockHashes] };
         Assert.Equal(blockHashes, expected.BlockHashes);
         var protocol = Protocol.Create(privateKey.AsSigner(), 3);
@@ -27,6 +31,6 @@ public sealed class BlockHashesTest(ITestOutputHelper output)
             },
             privateKey.AsSigner());
         var actual = (BlockHashMessage)NetMQMessageCodec.Decode(rawMessage).Message;
-        Assert.Equal(expected.BlockHashes, actual.BlockHashes);
+        Assert.Equal(expected.BlockHashes, actual.BlockHashes.ToArray());
     }
 }

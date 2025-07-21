@@ -1,10 +1,8 @@
 using System.Diagnostics;
-using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.TestUtilities;

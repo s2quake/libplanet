@@ -15,7 +15,6 @@ public sealed partial record class ProtocolMetadata
     public Address Signer { get; init; }
 
     [Property(2)]
-    [NotDefault]
     public ImmutableSortedDictionary<string, object> Properties { get; init; }
         = ImmutableSortedDictionary<string, object>.Empty;
 

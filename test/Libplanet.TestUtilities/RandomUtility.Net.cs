@@ -18,7 +18,7 @@ public static partial class RandomUtility
     public static DnsEndPoint DnsEndPoint(Random random) => new(IPAddress(random).ToString(), Port(random));
 
     public static Protocol Protocol() => Protocol(System.Random.Shared);
-    
+
     public static Protocol Protocol(Random random)
     {
         var signer = PrivateKey(random);
@@ -28,4 +28,8 @@ public static partial class RandomUtility
             valueGenerator: () => String(random));
         return Net.Protocol.Create(signer.AsSigner(), version, properties);
     }
+    
+    public static MessageId MessageId() => MessageId(System.Random.Shared);
+
+    public static MessageId MessageId(Random random) => new(Array(random, Byte, Net.MessageId.Size));
 }
