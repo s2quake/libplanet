@@ -13,6 +13,9 @@ internal sealed partial record class BlockResponseMessage : MessageBase, IValida
     [Property(1)]
     public ImmutableArray<BlockCommit> BlockCommits { get; init; } = [];
 
+    [Property(2)]
+    public bool IsLast { get; init; }
+
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
         if (Blocks.Length != BlockCommits.Length)

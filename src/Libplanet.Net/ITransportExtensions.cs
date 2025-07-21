@@ -127,8 +127,8 @@ public static class ITransportExtensions
         this ITransport @this, Peer peer, BlockHash blockHash, CancellationToken cancellationToken)
     {
         var request = new BlockHashRequestMessage { BlockHash = blockHash };
-        var replyMessage = await SendAsync<BlockHashResponseMessage>(@this, peer, request, cancellationToken);
-        var blockHashes = replyMessage.BlockHashes;
+        var response = await SendAsync<BlockHashResponseMessage>(@this, peer, request, cancellationToken);
+        var blockHashes = response.BlockHashes;
         if (blockHashes.Length > 0 && blockHash != blockHashes[0])
         {
             throw new InvalidMessageContractException(
@@ -138,11 +138,11 @@ public static class ITransportExtensions
         return [.. blockHashes];
     }
 
-    internal static async Task<ChainStatusMessage> GetChainStatusAsync(
+    internal static async Task<ChainStatusResponseMessage> GetChainStatusAsync(
         this ITransport @this, Peer peer, CancellationToken cancellationToken)
     {
-        var requestMessage = new GetChainStatusMessage();
-        return await SendAsync<ChainStatusMessage>(@this, peer, requestMessage, cancellationToken);
+        var request = new ChainStatusRequestMessage();
+        return await SendAsync<ChainStatusResponseMessage>(@this, peer, request, cancellationToken);
     }
 
     internal static async IAsyncEnumerable<(Block, BlockCommit)> GetBlocksAsync(
@@ -152,21 +152,15 @@ public static class ITransportExtensions
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var request = new BlockRequestMessage { BlockHashes = [.. blockHashes] };
-        var response = await @this.SendAsync<BlockResponseMessage>(peer, request, cancellationToken);
-        for (var i = 0; i < response.Blocks.Length; i++)
+        var isLast = new Func<BlockResponseMessage, bool>(response => response.IsLast);
+        await foreach (var response in @this.SendAsync(peer, request, isLast, cancellationToken))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            yield return (response.Blocks[i], response.BlockCommits[i]);
+            for (var i = 0; i < response.Blocks.Length; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return (response.Blocks[i], response.BlockCommits[i]);
+            }
         }
-
-        // await foreach (var item in @this.SendAsync<BlockMessage>(peer, requestMessage, cancellationToken))
-        // {
-        //     for (var i = 0; i < item.Blocks.Length; i++)
-        //     {
-        //         cancellationToken.ThrowIfCancellationRequested();
-        //         yield return (item.Blocks[i], item.BlockCommits[i]);
-        //     }
-        // }
     }
 
     public static async Task<ImmutableArray<Peer>> GetNeighborsAsync(

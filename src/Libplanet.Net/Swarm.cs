@@ -11,6 +11,7 @@ using System.Reactive;
 using System.Reactive.Subjects;
 using Libplanet.Types.Threading;
 using Libplanet.Net.Tasks;
+using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net;
 
@@ -30,10 +31,11 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     private readonly IDisposable _txFetcherSubscription;
     private readonly EvidenceFetcher _evidenceFetcher;
     private readonly IDisposable _evidenceFetcherSubscription;
-    private readonly AccessLimiter _transferBlockLimiter;
+    // private readonly AccessLimiter _transferBlockLimiter;
     private readonly AccessLimiter _transferTxLimiter;
     private readonly AccessLimiter _transferEvidenceLimiter;
     private readonly ServicesCollection _services;
+    private readonly IMessageHandler[] _messageHandlers;
 
     public Swarm(
         ISigner signer,
@@ -53,10 +55,11 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
         _txFetcherSubscription = _txFetcher.Received.Subscribe(e => BroadcastTxs(e.Peer, e.Items));
         _evidenceFetcherSubscription = _evidenceFetcher.Received.Subscribe(e => BroadcastEvidence(e.Peer.Address, e.Items));
-        _transferBlockLimiter = new(options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
+        // _transferBlockLimiter = new(options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
         _transferTxLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _consensusReactor = consensusOption is not null ? new ConsensusReactor(signer, Blockchain, consensusOption) : null;
+
         _services =
         [
             new BlockBroadcastTask(this),
@@ -69,6 +72,12 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new RebuildConnectionTask(this),
             new MaintainStaticPeerTask(this),
         ];
+        _messageHandlers =
+        [
+            new BlockRequestMessageHandler(this, options),
+            new BlockHashRequestMessageHandler(this),
+        ];
+        Transport.MessageHandlers.AddRange(_messageHandlers);
     }
 
     public bool ConsensusRunning => _consensusReactor?.IsRunning ?? false;
@@ -264,9 +273,10 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     protected override async ValueTask DisposeAsyncCore()
     {
+        Transport.MessageHandlers.RemoveRange(_messageHandlers);
         _transferEvidenceLimiter.Dispose();
         _transferTxLimiter.Dispose();
-        _transferBlockLimiter.Dispose();
+        // _transferBlockLimiter.Dispose();
 
         _txFetcher.Dispose();
         _evidenceFetcher.Dispose();
@@ -321,7 +331,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             .ToArray();
     }
 
-    private async Task<(Peer, ChainStatusMessage)[]> DialExistingPeers(
+    private async Task<(Peer, ChainStatusResponseMessage)[]> DialExistingPeers(
         TimeSpan dialTimeout, int maxPeersToDial, CancellationToken cancellationToken)
     {
         var peers = Peers.ToArray();
@@ -670,6 +680,11 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         if (serviceType == typeof(PeerDiscovery))
         {
             return PeerDiscovery;
+        }
+
+        if (serviceType == typeof(Blockchain))
+        {
+            return Blockchain;
         }
 
         foreach (var service in _services)

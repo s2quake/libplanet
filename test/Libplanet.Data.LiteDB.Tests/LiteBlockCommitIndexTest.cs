@@ -6,7 +6,7 @@ using Xunit.Abstractions;
 namespace Libplanet.Data.LiteDB.Tests;
 
 public sealed class LiteBlockCommitIndexTest(ITestOutputHelper output)
-    : LiteKeyedIndexTestBase<BlockHash, BlockCommit, BlockCommitIndex>(output)
+    : LiteIndexTestBase<BlockHash, BlockCommit, BlockCommitIndex>(output)
 {
     protected override BlockCommitIndex CreateIndex(LiteDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);

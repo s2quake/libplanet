@@ -5,7 +5,7 @@ namespace Libplanet.TestUtilities;
 public sealed class DisposerCollection(IEnumerable<IDisposable> disposables)
     : IEnumerable<IDisposable>, IDisposable
 {
-    private readonly List<IDisposable> _itemList = disposables.ToList();
+    private readonly List<IDisposable> _itemList = [.. disposables];
 
     public void Dispose()
     {

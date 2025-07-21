@@ -3,8 +3,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "ChainStatusMessage")]
-internal sealed record class ChainStatusMessage : MessageBase
+[Model(Version = 1, TypeName = "ChainStatusResponseMessage")]
+internal sealed record class ChainStatusResponseMessage : MessageBase
 {
     [Property(0)]
     public required int ProtocolVersion { get; init; }
@@ -18,7 +18,7 @@ internal sealed record class ChainStatusMessage : MessageBase
     [Property(3)]
     public required BlockHash TipHash { get; init; }
 
-    public static implicit operator BlockSummary(ChainStatusMessage msg) => new()
+    public static implicit operator BlockSummary(ChainStatusResponseMessage msg) => new()
     {
         Height = msg.TipHeight,
         Version = msg.ProtocolVersion,

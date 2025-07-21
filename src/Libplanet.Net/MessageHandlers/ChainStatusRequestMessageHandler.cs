@@ -4,14 +4,14 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class GetChainStatusMessageHandler(Blockchain blockchain)
-    : MessageHandlerBase<GetChainStatusMessage>
+internal sealed class ChainStatusRequestMessageHandler(Blockchain blockchain)
+    : MessageHandlerBase<ChainStatusRequestMessage>
 {
-    protected override void OnHandle(GetChainStatusMessage message, MessageEnvelope messageEnvelope)
+    protected override void OnHandle(ChainStatusRequestMessage message, MessageEnvelope messageEnvelope)
     {
         // This is based on the assumption that genesis block always exists.
         var tip = blockchain.Tip;
-        var replyMessage = new ChainStatusMessage
+        var replyMessage = new ChainStatusResponseMessage
         {
             ProtocolVersion = tip.Version,
             GenesisHash = blockchain.Genesis.BlockHash,

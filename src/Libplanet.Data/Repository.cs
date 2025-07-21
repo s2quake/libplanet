@@ -175,10 +175,7 @@ public class Repository
         }
 
         BlockDigests.Add(block);
-        if (blockCommit != BlockCommit.Empty)
-        {
-            BlockCommits.Add(blockCommit);
-        }
+        BlockCommits.Add(block.BlockHash, blockCommit);
 
         BlockHashes.Add(block);
         Nonces.Increase(block);
