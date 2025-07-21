@@ -4,6 +4,8 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Transports;
 using Libplanet.Node.Options;
 using Libplanet.Node.Services;
+using Libplanet.Types;
+using Namotion.Reflection;
 
 namespace Libplanet.Node.Tests.Services;
 
@@ -20,7 +22,7 @@ public class SeedTest
         {
             PrivateKey = privateKey.ToString(),
             EndPoint = endPoint.ToString(),
-            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Token,
+            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Hash.ToString(),
         };
         var seed = new Seed(options);
         Assert.Equal(endPoint.Host, seed.BoundPeer.EndPoint.Host);
@@ -39,7 +41,7 @@ public class SeedTest
         {
             PrivateKey = privateKey.ToString(),
             EndPoint = endPoint.ToString(),
-            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Token,
+            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Hash.ToString(),
         };
         await using var seed = new Seed(options);
         await seed.StartAsync(cancellationToken: default);
@@ -55,7 +57,7 @@ public class SeedTest
         {
             PrivateKey = privateKey.ToString(),
             EndPoint = endPoint.ToString(),
-            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Token,
+            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Hash.ToString(),
         };
         await using var seed = new Seed(options);
         await seed.StartAsync(cancellationToken: default);
@@ -74,7 +76,7 @@ public class SeedTest
         {
             PrivateKey = privateKey.ToString(),
             EndPoint = endPoint.ToString(),
-            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Token,
+            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Hash.ToString(),
         };
         await using var seed = new Seed(options);
         await seed.StartAsync(cancellationToken: default);
@@ -91,7 +93,7 @@ public class SeedTest
         {
             PrivateKey = privateKey.ToString(),
             EndPoint = endPoint.ToString(),
-            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Token,
+            AppProtocolVersion = privateKey.ToAppProtocolVersion(0).Hash.ToString(),
         };
         await using var seed = new Seed(options);
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -104,7 +106,7 @@ public class SeedTest
     public async Task MessageReceived_TestAsync()
     {
         // Given
-        var protocol = Protocol.Create(new(), 0);
+        var protocol = Protocol.Create(new PrivateKey().AsSigner(), 0);
         var remotePrivateKey = new RandomPrivateKey();
         using var remoteEndPoint = new RandomEndPoint();
         var remoteBoundPeer = new Net.Peer { Address = remotePrivateKey.Address, EndPoint = remoteEndPoint };
@@ -123,7 +125,7 @@ public class SeedTest
         {
             PrivateKey = seedPrivateKey.ToString(),
             EndPoint = seedEndPoint.ToString(),
-            AppProtocolVersion = protocol.Token,
+            AppProtocolVersion = protocol.Hash.ToString(),
         };
         await using var seed = new Seed(options);
         await seed.StartAsync(cancellationToken: default);
@@ -152,7 +154,7 @@ public class SeedTest
     public async Task GetNeighborsMsg_TestAsync()
     {
         // Given
-        var protocol = Protocol.Create(new(), 0);
+        var protocol = Protocol.Create(new PrivateKey().AsSigner(), 0);
         var length = Random.Shared.Next(3, 10);
         var remotePrivateKeys = new RandomPrivateKey[length];
         var remoteEndPoints = new RandomEndPoint[length];
@@ -183,7 +185,7 @@ public class SeedTest
         {
             PrivateKey = seedPrivateKey.ToString(),
             EndPoint = seedEndPoint.ToString(),
-            AppProtocolVersion = protocol.Token,
+            AppProtocolVersion = protocol.Hash.ToString(),
         };
         await using var seed = new Seed(options);
         await seed.StartAsync(cancellationToken: default);

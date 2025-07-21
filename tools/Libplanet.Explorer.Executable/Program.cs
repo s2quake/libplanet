@@ -218,9 +218,9 @@ If omitted (default) explorer only the local blockchain store.")]
 
                     var transportOptions = new TransportOptions()
                     {
-                        Protocol = options.AppProtocolVersionToken is string t
-                            ? Protocol.FromToken(t)
-                            : default,
+                        // Protocol = options.AppProtocolVersionToken is string t
+                        //     ? Protocol.FromToken(t)
+                        //     : default,
                     };
 
 

@@ -16,9 +16,10 @@ public sealed partial record class ProtocolMetadata
 
     [Property(2)]
     [NotDefault]
-    public ImmutableArray<byte> Extra { get; init; } = [];
+    public ImmutableSortedDictionary<string, object> Properties { get; init; }
+        = ImmutableSortedDictionary<string, object>.Empty;
 
-    public Protocol Sign(PrivateKey signer)
+    public Protocol Sign(ISigner signer)
     {
         var options = new ModelOptions
         {

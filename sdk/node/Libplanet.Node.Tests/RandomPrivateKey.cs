@@ -20,6 +20,6 @@ internal sealed class RandomPrivateKey
 
     public Protocol ToAppProtocolVersion(int version)
     {
-        return Protocol.Create(_privateKey, version);
+        return Protocol.Create(_privateKey.AsSigner(), version);
     }
 }

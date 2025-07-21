@@ -12,7 +12,7 @@ public sealed record class MessageEnvelope
     public required IMessage Message { get; init; }
 
     [Property(2)]
-    public required Protocol Protocol { get; init; }
+    public required ProtocolHash ProtocolHash { get; init; }
 
     [Property(3)]
     public required Peer Sender { get; init; }
@@ -36,7 +36,7 @@ public sealed record class MessageEnvelope
             throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, "Lifetime must be non-negative.");
         }
 
-        if (!Protocol.Equals(protocol))
+        if (!ProtocolHash.Equals(protocol))
         {
             throw new InvalidOperationException("The protocol of the message does not match the expected one.");
         }

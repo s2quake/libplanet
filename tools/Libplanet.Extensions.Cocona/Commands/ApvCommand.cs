@@ -93,13 +93,13 @@ public class ApvCommand
             // extraValue = dict;
         }
 
-        Protocol v = new ProtocolMetadata
-        {
-            Version = version,
-            Signer = key.Address,
-            Extra = [.. extraValue ?? []],
-        }.Sign(key);
-        Console.WriteLine(v.Token);
+        // Protocol v = new ProtocolMetadata
+        // {
+        //     Version = version,
+        //     Signer = key.Address,
+        //     Properties = [.. extraValue ?? []],
+        // }.Sign(key);
+        // Console.WriteLine(v.Token);
     }
 
     [Command(Description = "Verify a given app protocol version token's signature.")]
@@ -286,34 +286,36 @@ public class ApvCommand
             throw Utils.Error($"Failed to parse peer. Please check the input. [{peerInfo}]");
         }
 
-        try
-        {
-            // FIXME: Must provide --transport option.
-            // https://github.com/planetarium/libplanet/issues/1623
-            apv = peer.QueryAppProtocolVersionNetMQ();
-        }
-        catch
-        {
-            throw Utils.Error($"Failed to query app protocol version.");
-        }
+        // try
+        // {
+        //     // FIXME: Must provide --transport option.
+        //     // https://github.com/planetarium/libplanet/issues/1623
+        //     apv = peer.QueryAppProtocolVersionNetMQ();
+        // }
+        // catch
+        // {
+        //     throw Utils.Error($"Failed to query app protocol version.");
+        // }
 
-        Console.WriteLine(apv.Token);
+        // Console.WriteLine(apv.Token);
     }
 
     private Protocol ParseAppProtocolVersionToken(string? token)
     {
-        if (token is null)
-        {
-            token = Console.ReadLine() ?? string.Empty;
-        }
+        // if (token is null)
+        // {
+        //     token = Console.ReadLine() ?? string.Empty;
+        // }
 
-        try
-        {
-            return Protocol.FromToken(token.Trim());
-        }
-        catch (FormatException e)
-        {
-            throw Utils.Error($"Not a valid app protocol version token.  {e.Message}");
-        }
+        // try
+        // {
+        //     return Protocol.FromToken(token.Trim());
+        // }
+        // catch (FormatException e)
+        // {
+        //     throw Utils.Error($"Not a valid app protocol version token.  {e.Message}");
+        // }
+
+        throw new NotImplementedException();
     }
 }

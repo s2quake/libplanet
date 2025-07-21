@@ -14,6 +14,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     private readonly NetMQRouterSocket _router = new(signer.Address, options.Host, options.Port);
     private readonly NetMQQueue<MessageResponse> _responseQueue = new();
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
+    private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
     private NetMQRequestWorker? _requestWorker;
     private NetMQPoller? _poller;
 
@@ -25,6 +26,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     public MessageHandlerCollection MessageHandlers { get; } = [];
 
     public Peer Peer => _router.Peer;
+
+    public Protocol Protocol => _options.Protocol;
 
     CancellationToken ITransport.StoppingToken => StoppingToken;
 
@@ -41,7 +44,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         {
             Identity = Guid.NewGuid(),
             Message = message,
-            Protocol = _options.Protocol,
+            ProtocolHash = _protocolHash,
             Sender = Peer,
             Timestamp = DateTimeOffset.UtcNow,
             ReplyTo = replyTo,

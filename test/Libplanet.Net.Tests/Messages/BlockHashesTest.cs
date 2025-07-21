@@ -1,51 +1,32 @@
-using System.Net;
 using Libplanet.Net.Messages;
-using Libplanet.TestUtilities.Extensions;
-using Libplanet.Types;
-using NetMQ;
+using Libplanet.TestUtilities;
+using Xunit.Abstractions;
 
-namespace Libplanet.Net.Tests.Messages
+namespace Libplanet.Net.Tests.Messages;
+
+public sealed class BlockHashesTest(ITestOutputHelper output)
 {
-    [Collection("NetMQConfiguration")]
-    public class BlockHashesTest : IDisposable
+    [Fact]
+    public void Decode()
     {
-        public void Dispose()
-        {
-            NetMQConfig.Cleanup(false);
-        }
-
-        [Fact]
-        public void Decode()
-        {
-            BlockHash[] blockHashes = GenerateRandomBlockHashes(100L).ToArray();
-            var messageContent = new BlockHashMessage { BlockHashes = [.. blockHashes] };
-            Assert.Equal(blockHashes, messageContent.BlockHashes);
-            var privateKey = new PrivateKey();
-            Protocol apv = Protocol.Create(privateKey, 3);
-            var peer = new Peer { Address = privateKey.Address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
-            NetMQMessage encoded = NetMQMessageCodec.Encode(
-                new MessageEnvelope
-                {
-                    Identity = Guid.NewGuid(),
-                    Message = messageContent,
-                    Protocol = apv,
-                    Sender = peer,
-                    Timestamp = DateTimeOffset.UtcNow,
-                },
-                privateKey.AsSigner());
-            BlockHashMessage restored = (BlockHashMessage)NetMQMessageCodec.Decode(encoded).Message;
-            Assert.Equal(messageContent.BlockHashes, restored.BlockHashes);
-        }
-
-        private static IEnumerable<BlockHash> GenerateRandomBlockHashes(long count)
-        {
-            var random = new Random();
-            var buffer = new byte[32];
-            for (long i = 0; i < count; i++)
+        var random = RandomUtility.GetRandom(output);
+        var privateKey = RandomUtility.PrivateKey(random);
+        var blockHashes = RandomUtility.Array(random, RandomUtility.BlockHash, 100);
+        var peer = RandomUtility.Peer(random);
+        var expected = new BlockHashMessage { BlockHashes = [.. blockHashes] };
+        Assert.Equal(blockHashes, expected.BlockHashes);
+        var protocol = Protocol.Create(privateKey.AsSigner(), 3);
+        var rawMessage = NetMQMessageCodec.Encode(
+            new MessageEnvelope
             {
-                random.NextBytes(buffer);
-                yield return new BlockHash(buffer);
-            }
-        }
+                Identity = Guid.NewGuid(),
+                Message = expected,
+                ProtocolHash = protocol.Hash,
+                Sender = peer,
+                Timestamp = DateTimeOffset.UtcNow,
+            },
+            privateKey.AsSigner());
+        var actual = (BlockHashMessage)NetMQMessageCodec.Decode(rawMessage).Message;
+        Assert.Equal(expected.BlockHashes, actual.BlockHashes);
     }
 }

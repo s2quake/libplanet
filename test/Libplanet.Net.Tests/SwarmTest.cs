@@ -7,43 +7,23 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using NetMQ;
 using Nito.AsyncEx;
-using Nito.AsyncEx.Synchronous;
 using Serilog;
 using xRetry;
 using Xunit.Abstractions;
-using Libplanet.TestUtilities;
 using Libplanet.Extensions;
 using static Libplanet.Tests.TestUtils;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests;
 
-[Collection("NetMQConfiguration")]
-public partial class SwarmTest : IDisposable
+public partial class SwarmTest(ITestOutputHelper output)
 {
     private const int Timeout = 60 * 1000;
-
-    private readonly ITestOutputHelper _output;
-
-    private bool _disposed = false;
-
-    public SwarmTest(ITestOutputHelper output)
-    {
-        _output = output;
-        // _finalizers = new List<Func<Task>>();
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
 
     [Fact(Timeout = Timeout)]
     public async Task CanNotStartTwice()
@@ -146,47 +126,38 @@ public partial class SwarmTest : IDisposable
     [Fact(Timeout = Timeout)]
     public async Task BootstrapAsyncWithoutStart()
     {
-        Swarm swarmA = await CreateSwarm();
-        Swarm swarmB = await CreateSwarm();
-        Swarm swarmC = await CreateSwarm();
-        Swarm swarmD = await CreateSwarm();
+        await using var swarmA = await CreateSwarm();
+        await using var swarmB = await CreateSwarm();
+        await using var swarmC = await CreateSwarm();
+        await using var swarmD = await CreateSwarm();
 
-        try
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
+        await swarmD.StartAsync(default);
+
+        var bootstrappedAt = DateTimeOffset.UtcNow;
+        swarmC.RoutingTable.AddOrUpdate(swarmD.Peer);
+        await BootstrapAsync(swarmB, swarmA.Peer);
+        await BootstrapAsync(swarmC, swarmA.Peer);
+
+        Assert.Contains(swarmB.Peer, swarmC.Peers);
+        Assert.Contains(swarmC.Peer, swarmB.Peers);
+        foreach (PeerState state in swarmB.RoutingTable)
         {
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
-            await StartAsync(swarmD);
+            Assert.InRange(state.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
+        }
 
-            var bootstrappedAt = DateTimeOffset.UtcNow;
-            swarmC.RoutingTable.AddOrUpdate(swarmD.Peer);
-            await BootstrapAsync(swarmB, swarmA.Peer);
-            await BootstrapAsync(swarmC, swarmA.Peer);
-
-            Assert.Contains(swarmB.Peer, swarmC.Peers);
-            Assert.Contains(swarmC.Peer, swarmB.Peers);
-            foreach (PeerState state in swarmB.RoutingTable)
+        foreach (PeerState state in swarmC.RoutingTable)
+        {
+            if (state.Peer.Address == swarmD.Peer.Address)
             {
+                // Peers added before bootstrap should not be marked as stale.
                 Assert.InRange(state.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
             }
-
-            foreach (PeerState state in swarmC.RoutingTable)
+            else
             {
-                if (state.Peer.Address == swarmD.Peer.Address)
-                {
-                    // Peers added before bootstrap should not be marked as stale.
-                    Assert.InRange(state.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
-                }
-                else
-                {
-                    Assert.Equal(DateTimeOffset.MinValue, state.LastUpdated);
-                }
+                Assert.Equal(DateTimeOffset.MinValue, state.LastUpdated);
             }
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-            CleaningSwarm(swarmC);
         }
     }
 
@@ -197,12 +168,10 @@ public partial class SwarmTest : IDisposable
         var hostOptionsA = new TransportOptions { Host = IPAddress.Loopback.ToString(), Port = 20_000 };
         var hostOptionsB = new TransportOptions { Host = IPAddress.Loopback.ToString(), Port = 20_001 };
 
-        Swarm swarmA =
-            await CreateSwarm(keyA);
-        Swarm swarmB =
-            await CreateSwarm();
-        await StartAsync(swarmA);
-        await StartAsync(swarmB);
+        await using var swarmA = await CreateSwarm(keyA);
+        await using var swarmB = await CreateSwarm();
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
 
         Swarm swarm = await CreateSwarm(
             options: new SwarmOptions
@@ -221,11 +190,10 @@ public partial class SwarmTest : IDisposable
                 StaticPeersMaintainPeriod = TimeSpan.FromMilliseconds(100),
             });
 
-        await StartAsync(swarm);
+        await swarm.StartAsync(default);
         await AssertThatEventually(() => swarm.Peers.Contains(swarmA.Peer), 5_000);
         await AssertThatEventually(() => swarm.Peers.Contains(swarmB.Peer), 5_000);
 
-        await CleaningSwarm(swarmA);
         await swarmA.DisposeAsync();
         await Task.Delay(100);
         await swarm.PeerDiscovery.RefreshPeersAsync(
@@ -241,13 +209,9 @@ public partial class SwarmTest : IDisposable
 
         Swarm swarmC =
             await CreateSwarm(keyA, options: new SwarmOptions { TransportOptions = hostOptionsA });
-        await StartAsync(swarmC);
+        await swarmC.StartAsync(default);
         await AssertThatEventually(() => swarm.Peers.Contains(swarmB.Peer), 5_000);
         await AssertThatEventually(() => swarm.Peers.Contains(swarmC.Peer), 5_000);
-
-        CleaningSwarm(swarm);
-        CleaningSwarm(swarmB);
-        CleaningSwarm(swarmC);
     }
 
     [Fact(Timeout = Timeout)]
@@ -308,78 +272,70 @@ public partial class SwarmTest : IDisposable
                 genesis: genesis,
                 consensusReactorOption: reactorOpts[i]));
         }
+        await using var _1 = new AsyncDisposerCollection(swarms);
 
-        try
-        {
-            // swarms[1] is the round 0 proposer for height 1.
-            // swarms[2] is the round 1 proposer for height 2.
-            _ = swarms[0].StartAsync(default);
-            _ = swarms[3].StartAsync(default);
+        // swarms[1] is the round 0 proposer for height 1.
+        // swarms[2] is the round 1 proposer for height 2.
+        _ = swarms[0].StartAsync(default);
+        _ = swarms[3].StartAsync(default);
 
-            // swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
-            // {
-            //     if (eventArgs.VoteCount == 2)
-            //     {
-            //         collectedTwoMessages[0].Set();
-            //     }
-            // };
+        // swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.VoteCount == 2)
+        //     {
+        //         collectedTwoMessages[0].Set();
+        //     }
+        // };
 
-            // Make sure both swarms time out and swarm[0] collects two PreVotes.
-            await collectedTwoMessages[0].WaitAsync();
+        // Make sure both swarms time out and swarm[0] collects two PreVotes.
+        await collectedTwoMessages[0].WaitAsync();
 
-            // Dispose swarm[3] to simulate shutdown during bootstrap.
-            await swarms[3].DisposeAsync();
+        // Dispose swarm[3] to simulate shutdown during bootstrap.
+        await swarms[3].DisposeAsync();
 
-            // Bring swarm[2] online.
-            _ = swarms[2].StartAsync(default);
-            // swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
-            // {
-            //     if (eventArgs.Step == ConsensusStep.PreCommit)
-            //     {
-            //         stepChangedToPreCommits[0].Set();
-            //     }
-            // };
-            // swarms[2].ConsensusReactor.StateChanged += (_, eventArgs) =>
-            // {
-            //     if (eventArgs.Step == ConsensusStep.PreCommit)
-            //     {
-            //         stepChangedToPreCommits[2].Set();
-            //     }
-            // };
+        // Bring swarm[2] online.
+        _ = swarms[2].StartAsync(default);
+        // swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.Step == ConsensusStep.PreCommit)
+        //     {
+        //         stepChangedToPreCommits[0].Set();
+        //     }
+        // };
+        // swarms[2].ConsensusReactor.StateChanged += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.Step == ConsensusStep.PreCommit)
+        //     {
+        //         stepChangedToPreCommits[2].Set();
+        //     }
+        // };
 
-            // Since we already have swarm[3]'s PreVote, when swarm[2] times out,
-            // swarm[2] adds additional PreVote, making it possible to reach PreCommit.
-            // Current network's context state should be:
-            // Proposal: null
-            // PreVote: swarm[0], swarm[2], swarm[3],
-            // PreCommit: swarm[0], swarm[2]
-            await Task.WhenAll(
-                stepChangedToPreCommits[0].WaitAsync(), stepChangedToPreCommits[2].WaitAsync());
+        // Since we already have swarm[3]'s PreVote, when swarm[2] times out,
+        // swarm[2] adds additional PreVote, making it possible to reach PreCommit.
+        // Current network's context state should be:
+        // Proposal: null
+        // PreVote: swarm[0], swarm[2], swarm[3],
+        // PreCommit: swarm[0], swarm[2]
+        await Task.WhenAll(
+            stepChangedToPreCommits[0].WaitAsync(), stepChangedToPreCommits[2].WaitAsync());
 
-            // After swarm[1] comes online, eventually it'll catch up to vote PreCommit,
-            // at which point the round will move to 1 where swarm[2] is the proposer.
-            _ = swarms[1].StartAsync(default);
-            // swarms[2].ConsensusReactor.MessagePublished += (_, eventArgs) =>
-            // {
-            //     if (eventArgs.Message is ConsensusProposalMessage proposalMsg &&
-            //         proposalMsg.Round == 1 &&
-            //         proposalMsg.Validator.Equals(TestUtils.PrivateKeys[2].PublicKey))
-            //     {
-            //         roundOneProposed.Set();
-            //     }
-            // };
+        // After swarm[1] comes online, eventually it'll catch up to vote PreCommit,
+        // at which point the round will move to 1 where swarm[2] is the proposer.
+        _ = swarms[1].StartAsync(default);
+        // swarms[2].ConsensusReactor.MessagePublished += (_, eventArgs) =>
+        // {
+        //     if (eventArgs.Message is ConsensusProposalMessage proposalMsg &&
+        //         proposalMsg.Round == 1 &&
+        //         proposalMsg.Validator.Equals(TestUtils.PrivateKeys[2].PublicKey))
+        //     {
+        //         roundOneProposed.Set();
+        //     }
+        // };
 
-            await roundOneProposed.WaitAsync();
+        await roundOneProposed.WaitAsync();
 
-            await AssertThatEventually(() => swarms[0].Blockchain.Tip.Height == 1, int.MaxValue);
-            Assert.Equal(1, swarms[0].Blockchain.BlockCommits[1].Round);
-        }
-        finally
-        {
-            CleaningSwarm(swarms[0]);
-            CleaningSwarm(swarms[1]);
-            CleaningSwarm(swarms[2]);
-        }
+        await AssertThatEventually(() => swarms[0].Blockchain.Tip.Height == 1, int.MaxValue);
+        Assert.Equal(1, swarms[0].Blockchain.BlockCommits[1].Round);
     }
 
     [Fact(Timeout = Timeout)]
@@ -387,11 +343,9 @@ public partial class SwarmTest : IDisposable
     {
         var keyA = new PrivateKey();
 
-        Swarm swarmA =
-            await CreateSwarm(keyA);
+        await using var swarmA = await CreateSwarm(keyA);
         Block genesis = swarmA.Blockchain.Genesis;
-        Swarm swarmB =
-            await CreateSwarm(genesis: genesis);
+        await using var swarmB = await CreateSwarm(genesis: genesis);
 
         Blockchain chainA = swarmA.Blockchain;
 
@@ -400,35 +354,27 @@ public partial class SwarmTest : IDisposable
         Block block2 = chainA.ProposeBlock(keyA);
         chainA.Append(block2, TestUtils.CreateBlockCommit(block2));
 
-        try
-        {
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
 
-            await swarmA.AddPeersAsync([swarmB.Peer], default);
+        await swarmA.AddPeersAsync([swarmB.Peer], default);
 
-            var inventories = await swarmB.Transport.GetBlockHashesAsync(
+        var inventories = await swarmB.Transport.GetBlockHashesAsync(
+            swarmA.Peer,
+            genesis.BlockHash,
+            default);
+        Assert.Equal(
+            new[] { genesis.BlockHash, block1.BlockHash, block2.BlockHash },
+            inventories);
+
+        (Block, BlockCommit)[] receivedBlocks =
+            await swarmB.Transport.GetBlocksAsync(
                 swarmA.Peer,
-                genesis.BlockHash,
-                default);
-            Assert.Equal(
-                new[] { genesis.BlockHash, block1.BlockHash, block2.BlockHash },
-                inventories);
-
-            (Block, BlockCommit)[] receivedBlocks =
-                await swarmB.Transport.GetBlocksAsync(
-                    swarmA.Peer,
-                    inventories,
-                    cancellationToken: default)
-                .ToArrayAsync();
-            Assert.Equal(
-                [genesis, block1, block2], receivedBlocks.Select(pair => pair.Item1));
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-        }
+                inventories,
+                cancellationToken: default)
+            .ToArrayAsync();
+        Assert.Equal(
+            [genesis, block1, block2], receivedBlocks.Select(pair => pair.Item1));
     }
 
     [Fact(Timeout = Timeout)]
@@ -437,10 +383,9 @@ public partial class SwarmTest : IDisposable
         var keyA = new PrivateKey();
         var keyB = new PrivateKey();
 
-        Swarm swarmA = await CreateSwarm(keyA);
+        await using var swarmA = await CreateSwarm(keyA);
         Block genesis = swarmA.Blockchain.Genesis;
-        Swarm swarmB =
-            await CreateSwarm(keyB, genesis: genesis);
+        await using var swarmB = await CreateSwarm(keyB, genesis: genesis);
 
         Blockchain chainA = swarmA.Blockchain;
         Blockchain chainB = swarmB.Blockchain;
@@ -450,43 +395,35 @@ public partial class SwarmTest : IDisposable
         Block block2 = chainA.ProposeBlock(keyA);
         chainA.Append(block2, TestUtils.CreateBlockCommit(block2));
 
-        try
-        {
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
 
-            var peer = swarmA.Peer;
+        var peer = swarmA.Peer;
 
-            await swarmB.AddPeersAsync([peer], default);
+        await swarmB.AddPeersAsync([peer], default);
 
-            var hashes = await swarmB.Transport.GetBlockHashesAsync(
-                peer,
-                genesis.BlockHash,
-                default);
+        var hashes = await swarmB.Transport.GetBlockHashesAsync(
+            peer,
+            genesis.BlockHash,
+            default);
 
-            ITransport transport = swarmB.Transport;
+        ITransport transport = swarmB.Transport;
 
-            var request = new GetBlockMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
-            transport.Post(
-                swarmA.Peer, request);
-            // var aggregateMessage = (AggregateMessage)reply;
-            // var responses = aggregateMessage.Messages;
+        var request = new GetBlockMessage { BlockHashes = [.. hashes], ChunkSize = 2 };
+        transport.Post(
+            swarmA.Peer, request);
+        // var aggregateMessage = (AggregateMessage)reply;
+        // var responses = aggregateMessage.Messages;
 
-            // var blockMessage = (BlockMessage)responses[0];
+        // var blockMessage = (BlockMessage)responses[0];
 
-            // Assert.Equal(2, responses.Length);
-            // Assert.Equal(2, blockMessage.Blocks.Length);
-            // Assert.Equal(2, blockMessage.BlockCommits.Length);
+        // Assert.Equal(2, responses.Length);
+        // Assert.Equal(2, blockMessage.Blocks.Length);
+        // Assert.Equal(2, blockMessage.BlockCommits.Length);
 
-            // blockMessage = (BlockMessage)responses[1];
+        // blockMessage = (BlockMessage)responses[1];
 
-            // Assert.Equal(1, blockMessage.Blocks.Length);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-        }
+        // Assert.Equal(1, blockMessage.Blocks.Length);
     }
 
     [Fact(Timeout = Timeout)]
@@ -494,10 +431,9 @@ public partial class SwarmTest : IDisposable
     {
         var keyB = new PrivateKey();
 
-        Swarm swarmA = await CreateSwarm();
+        await using var swarmA = await CreateSwarm();
         Block genesis = swarmA.Blockchain.Genesis;
-        Swarm swarmB =
-            await CreateSwarm(keyB, genesis: genesis);
+        await using var swarmB = await CreateSwarm(keyB, genesis: genesis);
         Blockchain chainB = swarmB.Blockchain;
 
         var txKey = new PrivateKey();
@@ -512,29 +448,21 @@ public partial class SwarmTest : IDisposable
         Block block = chainB.ProposeBlock(keyB);
         chainB.Append(block, TestUtils.CreateBlockCommit(block));
 
-        try
-        {
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
 
-            await swarmA.AddPeersAsync([swarmB.Peer], default);
+        await swarmA.AddPeersAsync([swarmB.Peer], default);
 
-            // List<Transaction> txs =
-            //     await swarmA.GetTxsAsync(
-            //         swarmB.AsPeer,
-            //         new[] { tx.Id },
-            //         cancellationToken: default)
-            //     .ToListAsync();
-            var fetcher = new TxFetcher(swarmA.Blockchain, swarmA.Transport, swarmA.Options.TimeoutOptions);
-            var txs = await fetcher.FetchAsync(swarmB.Peer, [tx.Id], default).ToArrayAsync(default);
+        // List<Transaction> txs =
+        //     await swarmA.GetTxsAsync(
+        //         swarmB.AsPeer,
+        //         new[] { tx.Id },
+        //         cancellationToken: default)
+        //     .ToListAsync();
+        var fetcher = new TxFetcher(swarmA.Blockchain, swarmA.Transport, swarmA.Options.TimeoutOptions);
+        var txs = await fetcher.FetchAsync(swarmB.Peer, [tx.Id], default).ToArrayAsync(default);
 
-            Assert.Equal(new[] { tx }, txs);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-        }
+        Assert.Equal(new[] { tx }, txs);
     }
 
     [Fact(Timeout = Timeout)]
@@ -543,14 +471,14 @@ public partial class SwarmTest : IDisposable
         var fx = new MemoryRepositoryFixture();
         var policy = new BlockchainOptions();
         var blockchain = MakeBlockChain(policy);
-        var key = new PrivateKey();
-        var protocol = Protocol.Create(key, 1);
+        var privateKey = new PrivateKey();
+        var protocol = new ProtocolBuilder { Version = 1 }.Create(privateKey);
         var transportOptions = new TransportOptions
         {
             Protocol = protocol,
             Host = IPAddress.Loopback.ToString(),
         };
-        var transport = new NetMQTransport(key.AsSigner(), transportOptions);
+        var transport = new NetMQTransport(privateKey.AsSigner(), transportOptions);
     }
 
     [Fact(Timeout = Timeout)]
@@ -562,18 +490,17 @@ public partial class SwarmTest : IDisposable
             Host = "1.2.3.4",
             Port = 5678,
         };
-        Swarm s = await CreateSwarm(options: new SwarmOptions { TransportOptions = hostOptions });
+        await using var s = await CreateSwarm(options: new SwarmOptions { TransportOptions = hostOptions });
         Assert.Equal(expected, s.Peer.EndPoint);
         Assert.Equal(expected, s.Peer.EndPoint);
-        CleaningSwarm(s);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task StopGracefullyWhileStarting()
     {
-        Swarm a = await CreateSwarm();
+        await using var a = await CreateSwarm();
 
-        Task t = await StartAsync(a);
+        Task t = a.StartAsync(default);
         bool canceled = false;
         try
         {
@@ -585,18 +512,16 @@ public partial class SwarmTest : IDisposable
         }
 
         Assert.True(canceled || t.IsCompleted);
-        CleaningSwarm(a);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task AsPeer()
     {
-        Swarm swarm = await CreateSwarm();
+        await using var swarm = await CreateSwarm();
         Assert.IsType<Peer>(swarm.Peer);
 
-        await StartAsync(swarm);
+        await swarm.StartAsync(default);
         Assert.IsType<Peer>(swarm.Peer);
-        CleaningSwarm(swarm);
     }
 
     // [FactOnlyTurnAvailable(Timeout = Timeout)]
@@ -618,8 +543,8 @@ public partial class SwarmTest : IDisposable
     //     try
     //     {
     //         await StartAsync(seed);
-    //         await StartAsync(swarmA);
-    //         await StartAsync(swarmB);
+    //         await swarmA.StartAsync(default);
+    //         await swarmB.StartAsync(default);
 
     //         await swarmA.AddPeersAsync(new[] { seed.AsPeer }, null);
     //         await swarmB.AddPeersAsync(new[] { seed.AsPeer }, null);
@@ -708,7 +633,7 @@ public partial class SwarmTest : IDisposable
     //     try
     //     {
     //         await StartAsync(seed);
-    //         await StartAsync(swarmA, cancellationToken: cts.Token);
+    //         await swarmA.StartAsync(default, cancellationToken: cts.Token);
 
     //         await swarmA.AddPeersAsync(new[] { seed.AsPeer }, null);
 
@@ -747,8 +672,8 @@ public partial class SwarmTest : IDisposable
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
 
-        var miner1 = await CreateSwarm(chain1, key1);
-        var miner2 = await CreateSwarm(chain2, key2);
+        await using var miner1 = await CreateSwarm(chain1, key1);
+        await using var miner2 = await CreateSwarm(chain2, key2);
 
         var privKey = new PrivateKey();
         var addr = miner1.Address;
@@ -776,8 +701,8 @@ public partial class SwarmTest : IDisposable
         var latest = miner2.Blockchain.ProposeBlock(key2);
         miner2.Blockchain.Append(latest, TestUtils.CreateBlockCommit(latest));
 
-        await StartAsync(miner1);
-        await StartAsync(miner2);
+        await miner1.StartAsync(default);
+        await miner2.StartAsync(default);
 
         await BootstrapAsync(miner2, miner1.Peer);
 
@@ -785,9 +710,6 @@ public partial class SwarmTest : IDisposable
 
         await Task.Delay(5_000);
         Assert.Equal(miner1TipHash, miner1.Blockchain.Tip.BlockHash);
-
-        CleaningSwarm(miner1);
-        CleaningSwarm(miner2);
     }
 
     [Fact(Timeout = Timeout)]
@@ -804,57 +726,40 @@ public partial class SwarmTest : IDisposable
             }
         }
 
-        var policy = new BlockchainOptions
+        var blockchainOptions = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
                 Validator = new RelayValidator<Transaction>(IsSignerValid),
             },
         };
-        var fx1 = new MemoryRepositoryFixture();
-        var fx2 = new MemoryRepositoryFixture();
+        using var fx1 = new MemoryRepositoryFixture();
+        using var fx2 = new MemoryRepositoryFixture();
 
-        var swarmA = await CreateSwarm(
-            MakeBlockChain(
-                policy,
-                privateKey: validKey))
-;
-        var swarmB = await CreateSwarm(
-            MakeBlockChain(
-                policy,
-                privateKey: validKey))
-;
+        await using var swarmA = await CreateSwarm(
+            MakeBlockChain(blockchainOptions, privateKey: validKey));
+        await using var swarmB = await CreateSwarm(
+            MakeBlockChain(blockchainOptions, privateKey: validKey));
 
         var invalidKey = new PrivateKey();
 
-        try
-        {
-            var validTx = swarmA.Blockchain.StagedTransactions.Add(validKey);
-            var invalidTx = swarmA.Blockchain.StagedTransactions.Add(invalidKey);
+        var validTx = swarmA.Blockchain.StagedTransactions.Add(validKey);
+        var invalidTx = swarmA.Blockchain.StagedTransactions.Add(invalidKey);
 
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
 
-            await BootstrapAsync(swarmA, swarmB.Peer);
+        await BootstrapAsync(swarmA, swarmB.Peer);
 
-            swarmA.BroadcastTxs([validTx, invalidTx]);
-            await swarmB.TxReceived.WaitAsync(default);
+        swarmA.BroadcastTxs([validTx, invalidTx]);
+        await swarmB.TxReceived.WaitAsync(default);
 
-            Assert.Equal(swarmB.Blockchain.Transactions[validTx.Id], validTx);
-            Assert.Throws<KeyNotFoundException>(
-                () => swarmB.Blockchain.Transactions[invalidTx.Id]);
+        Assert.Equal(swarmB.Blockchain.Transactions[validTx.Id], validTx);
+        Assert.Throws<KeyNotFoundException>(
+            () => swarmB.Blockchain.Transactions[invalidTx.Id]);
 
-            Assert.Contains(validTx.Id, swarmB.Blockchain.StagedTransactions.Keys);
-            Assert.DoesNotContain(invalidTx.Id, swarmB.Blockchain.StagedTransactions.Keys);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-
-            fx1.Dispose();
-            fx2.Dispose();
-        }
+        Assert.Contains(validTx.Id, swarmB.Blockchain.StagedTransactions.Keys);
+        Assert.DoesNotContain(invalidTx.Id, swarmB.Blockchain.StagedTransactions.Keys);
     }
 
     [RetryFact(Timeout = Timeout)]
@@ -896,8 +801,8 @@ public partial class SwarmTest : IDisposable
         {
             var tx = swarmA.Blockchain.StagedTransactions.Add(validKey);
 
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
+            await swarmA.StartAsync(default);
+            await swarmB.StartAsync(default);
 
             await BootstrapAsync(swarmA, swarmB.Peer);
 
@@ -959,9 +864,9 @@ public partial class SwarmTest : IDisposable
             await CreateSwarm(genesisChainC, privateKeyC);
         try
         {
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
-            await StartAsync(swarmC);
+            await swarmA.StartAsync(default);
+            await swarmB.StartAsync(default);
+            await swarmC.StartAsync(default);
 
             await swarmB.AddPeersAsync([swarmA.Peer], default);
             await swarmC.AddPeersAsync([swarmA.Peer], default);
@@ -1017,10 +922,10 @@ public partial class SwarmTest : IDisposable
         Swarm swarmD = await CreateSwarm();
         try
         {
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
-            await StartAsync(swarmC);
-            await StartAsync(swarmD);
+            await swarmA.StartAsync(default);
+            await swarmB.StartAsync(default);
+            await swarmC.StartAsync(default);
+            await swarmD.StartAsync(default);
 
             await swarmA.AddPeersAsync([swarmB.Peer], default);
             await swarmB.AddPeersAsync([swarmC.Peer], default);
@@ -1054,9 +959,9 @@ public partial class SwarmTest : IDisposable
         Swarm swarmC = await CreateSwarm();
         try
         {
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
-            await StartAsync(swarmC);
+            await swarmA.StartAsync(default);
+            await swarmB.StartAsync(default);
+            await swarmC.StartAsync(default);
 
             await swarmA.AddPeersAsync([swarmB.Peer], default);
             await swarmB.AddPeersAsync([swarmC.Peer], default);
@@ -1087,17 +992,17 @@ public partial class SwarmTest : IDisposable
         Swarm swarmC = await CreateSwarm();
         Swarm swarmD = await CreateSwarm();
 
-        _output.WriteLine("{0}: {1}", nameof(swarmA), swarmA.Peer);
-        _output.WriteLine("{0}: {1}", nameof(swarmB), swarmB.Peer);
-        _output.WriteLine("{0}: {1}", nameof(swarmC), swarmC.Peer);
-        _output.WriteLine("{0}: {1}", nameof(swarmD), swarmD.Peer);
+        // _output.WriteLine("{0}: {1}", nameof(swarmA), swarmA.Peer);
+        // _output.WriteLine("{0}: {1}", nameof(swarmB), swarmB.Peer);
+        // _output.WriteLine("{0}: {1}", nameof(swarmC), swarmC.Peer);
+        // _output.WriteLine("{0}: {1}", nameof(swarmD), swarmD.Peer);
 
         try
         {
-            await StartAsync(swarmA);
-            await StartAsync(swarmB);
-            await StartAsync(swarmC);
-            await StartAsync(swarmD);
+            await swarmA.StartAsync(default);
+            await swarmB.StartAsync(default);
+            await swarmC.StartAsync(default);
+            await swarmD.StartAsync(default);
 
             await swarmA.AddPeersAsync([swarmB.Peer], default);
             await swarmB.AddPeersAsync([swarmC.Peer], default);
@@ -1128,8 +1033,8 @@ public partial class SwarmTest : IDisposable
     {
         Swarm receiver = await CreateSwarm();
         Swarm sender = await CreateSwarm();
-        await StartAsync(receiver);
-        await StartAsync(sender);
+        await receiver.StartAsync(default);
+        await sender.StartAsync(default);
 
         receiver.FindNextHashesChunkSize = 8;
         sender.FindNextHashesChunkSize = 8;
@@ -1167,8 +1072,8 @@ public partial class SwarmTest : IDisposable
     {
         Swarm receiver = await CreateSwarm();
         Swarm sender = await CreateSwarm();
-        await StartAsync(receiver);
-        await StartAsync(sender);
+        await receiver.StartAsync(default);
+        await sender.StartAsync(default);
 
         receiver.FindNextHashesChunkSize = 2;
         sender.FindNextHashesChunkSize = 2;
@@ -1207,8 +1112,8 @@ public partial class SwarmTest : IDisposable
     {
         Swarm receiver = await CreateSwarm();
         Swarm sender = await CreateSwarm();
-        await StartAsync(receiver);
-        await StartAsync(sender);
+        await receiver.StartAsync(default);
+        await sender.StartAsync(default);
 
         receiver.FindNextHashesChunkSize = 3;
         sender.FindNextHashesChunkSize = 3;
@@ -1278,8 +1183,8 @@ public partial class SwarmTest : IDisposable
 
         try
         {
-            await StartAsync(swarm2);
-            await StartAsync(swarm3);
+            await swarm2.StartAsync(default);
+            await swarm3.StartAsync(default);
 
             await BootstrapAsync(swarm1, swarm2.Peer);
 
@@ -1337,7 +1242,7 @@ public partial class SwarmTest : IDisposable
 
         try
         {
-            await StartAsync(swarm);
+            await swarm.StartAsync(default);
             await transport.StartAsync(default);
             var tasks = new List<Task>();
             var content = new GetBlockMessage { BlockHashes = [swarm.Blockchain.Genesis.BlockHash] };
@@ -1390,7 +1295,7 @@ public partial class SwarmTest : IDisposable
 
         try
         {
-            await StartAsync(swarm);
+            await swarm.StartAsync(default);
             var fx = new MemoryRepositoryFixture();
             await transport.StartAsync(default);
             var tasks = new List<Task>();
@@ -1419,41 +1324,6 @@ public partial class SwarmTest : IDisposable
             CleaningSwarm(swarm);
             await transport.StopAsync(default);
         }
-    }
-
-    protected void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                // int i = 1;
-                // foreach (Func<Task> finalize in _finalizers)
-                // {
-                //     finalize().WaitAndUnwrapException();
-                // }
-
-                // NetMQConfig.Cleanup(false);
-            }
-
-            _disposed = true;
-        }
-    }
-
-    [Obsolete("unused")]
-    private async Task<Task> StartAsync(
-            Swarm swarm,
-            int millisecondsBroadcastBlockInterval = 15 * 1000,
-            CancellationToken cancellationToken = default)
-    {
-        // await swarm.StartAsync(
-        //     dialTimeout: TimeSpan.FromMilliseconds(200),
-        //     broadcastBlockInterval:
-        //         TimeSpan.FromMilliseconds(millisecondsBroadcastBlockInterval),
-        //     broadcastTxInterval: TimeSpan.FromMilliseconds(200),
-        //     cancellationToken: cancellationToken);
-        throw new NotImplementedException("");
-        return Task.CompletedTask;
     }
 
     [Obsolete("unused")]

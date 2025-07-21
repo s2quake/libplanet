@@ -12,6 +12,8 @@ public interface ITransport : IAsyncDisposable
 
     bool IsRunning { get; }
 
+    Protocol Protocol { get; }
+
     CancellationToken StoppingToken { get; }
 
     Task StartAsync(CancellationToken cancellationToken);

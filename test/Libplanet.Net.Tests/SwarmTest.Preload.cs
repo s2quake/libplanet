@@ -279,9 +279,9 @@
 
 //             try
 //             {
-//                 await StartAsync(swarmA, millisecondsBroadcastBlockInterval: int.MaxValue);
-//                 await StartAsync(swarmB, millisecondsBroadcastBlockInterval: int.MaxValue);
-//                 await StartAsync(swarmC, millisecondsBroadcastBlockInterval: int.MaxValue);
+//                 await swarmA.StartAsync(default, millisecondsBroadcastBlockInterval: int.MaxValue);
+//                 await swarmB.StartAsync(default, millisecondsBroadcastBlockInterval: int.MaxValue);
+//                 await swarmC.StartAsync(default, millisecondsBroadcastBlockInterval: int.MaxValue);
 
 //                 // Checks swarmB cannot make swarmA append a block with invalid block commit.
 //                 await swarmA.AddPeersAsync(new[] { swarmB.AsPeer }, null);
@@ -540,8 +540,8 @@
 //                 swarm1.BlockChain.Append(block, TestUtils.CreateBlockCommit(block));
 //             }
 
-//             await StartAsync(swarm0);
-//             await StartAsync(swarm1);
+//             await swarm0.StartAsync(default);
+//             await swarm1.StartAsync(default);
 
 //             Assert.Equal(swarm0.BlockChain.Blocks.Keys, swarm1.BlockChain.Blocks.Keys);
 

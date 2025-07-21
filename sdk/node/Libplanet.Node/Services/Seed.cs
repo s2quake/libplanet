@@ -100,7 +100,7 @@ internal class Seed(SeedOptions seedOptions) : IAsyncDisposable
     private NetMQTransport CreateTransport()
     {
         var privateKey = PrivateKey.Parse(seedOptions.PrivateKey);
-        var protocol = Protocol.FromToken(seedOptions.AppProtocolVersion);
+        var protocol = Protocol.Empty;
         var endPoint = (DnsEndPoint)EndPointUtility.Parse(seedOptions.EndPoint);
         var options = new TransportOptions
         {

@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Types;
 
@@ -18,40 +19,24 @@ public sealed partial record class Protocol
     [Property(1)]
     public required ImmutableArray<byte> Signature { get; init; }
 
+    public ProtocolHash Hash => new(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
+
     public Address Signer => Metadata.Signer;
 
     public int Version => Metadata.Version;
 
-    public string Token
-    {
-        get
-        {
-            return ByteUtility.Hex(ModelSerializer.SerializeToBytes(this));
-        }
-    }
+    public ImmutableSortedDictionary<string, object> Properties => Metadata.Properties;
 
-    public static Protocol FromToken(string token)
-    {
-        return ModelSerializer.DeserializeFromBytes<Protocol>(ByteUtility.ParseHex(token));
-    }
+    public static Protocol Create(ISigner signer, int version)
+        => Create(signer, version, ImmutableSortedDictionary<string, object>.Empty);
 
-    public static Protocol Create(PrivateKey signer, int version)
+    public static Protocol Create(ISigner signer, int version, ImmutableSortedDictionary<string, object> properties)
     {
         var metadata = new ProtocolMetadata
         {
             Version = version,
             Signer = signer.Address,
-        };
-        return metadata.Sign(signer);
-    }
-
-    public static Protocol Create(PrivateKey signer, int version, object extra)
-    {
-        var metadata = new ProtocolMetadata
-        {
-            Version = version,
-            Signer = signer.Address,
-            Extra = [.. ModelSerializer.SerializeToBytes(extra)],
+            Properties = properties,
         };
         return metadata.Sign(signer);
     }

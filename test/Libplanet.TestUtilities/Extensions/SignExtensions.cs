@@ -1,3 +1,4 @@
+using Libplanet.Net;
 using Libplanet.Net.Consensus;
 using Libplanet.Types;
 
@@ -47,4 +48,7 @@ public static class SignExtensions
     public static Transaction Add(
         this StagedTransactionCollection @this, PrivateKey privateKey, TransactionSubmission submission)
         => @this.Add(privateKey.AsSigner(), submission);
+
+    public static Protocol Create(this ProtocolBuilder @this, PrivateKey privateKey)
+        => @this.Create(privateKey.AsSigner());
 }

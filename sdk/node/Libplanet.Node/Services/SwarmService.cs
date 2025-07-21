@@ -78,7 +78,7 @@ internal sealed class SwarmService(
 
         var nodeOptions = _options;
         var privateKey = PrivateKey.Parse(nodeOptions.PrivateKey);
-        var protocol = Protocol.FromToken(nodeOptions.AppProtocolVersion);
+        var protocol = Protocol.Empty;
         var trustedAppProtocolVersionSigners = nodeOptions.TrustedAppProtocolVersionSigners
             .Select(Address.Parse).ToArray();
         var swarmEndPoint = (DnsEndPoint)EndPointUtility.Parse(nodeOptions.EndPoint);

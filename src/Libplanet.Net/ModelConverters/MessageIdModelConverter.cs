@@ -1,5 +1,4 @@
 using System.IO;
-using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 
 namespace Libplanet.Net.ModelConverters;

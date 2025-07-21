@@ -2,6 +2,7 @@ using Libplanet.Net;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Transports;
 using Libplanet.Node.Services;
+using Libplanet.Types;
 using Moq;
 
 namespace Libplanet.Node.Tests.Services;
@@ -41,14 +42,14 @@ public class PeerTest
     [Fact]
     public async Task PingAsync_TestAsync()
     {
-        var pongMsg = new PongMessage();
-        var protocol = Protocol.Create(new(), 0);
+        var pongMessae = new PongMessage();
+        var protocol = new ProtocolBuilder { Version = 0 }.Create(new PrivateKey().AsSigner());
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new MessageEnvelope
         {
             Identity = Guid.NewGuid(),
-            Message = pongMsg,
-            Protocol = protocol,
+            Message = pongMessae,
+            ProtocolHash = protocol.Hash,
             Sender = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
         };
@@ -74,13 +75,13 @@ public class PeerTest
     public async Task PingAsync_Cancel_TestAsync()
     {
         var pongMessage = new PongMessage();
-        var protocol = Protocol.Create(new(), 0);
+        var protocol = Protocol.Create(new PrivateKey().AsSigner(), 0);
         using var messageBoundPeer = new RandomBoundPeer();
         var message = new MessageEnvelope
         {
             Identity = Guid.NewGuid(),
             Message = pongMessage,
-            Protocol = protocol,
+            ProtocolHash = protocol.Hash,
             Sender = messageBoundPeer,
             Timestamp = DateTimeOffset.Now,
         };
