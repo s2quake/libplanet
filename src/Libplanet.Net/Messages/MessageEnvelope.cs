@@ -36,7 +36,7 @@ public sealed record class MessageEnvelope
             throw new ArgumentOutOfRangeException(nameof(lifetime), lifetime, "Lifetime must be non-negative.");
         }
 
-        if (!ProtocolHash.Equals(protocol))
+        if (!ProtocolHash.Equals(protocol.Hash))
         {
             throw new InvalidOperationException("The protocol of the message does not match the expected one.");
         }

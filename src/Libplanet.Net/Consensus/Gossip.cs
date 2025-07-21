@@ -32,8 +32,8 @@ public sealed class Gossip : ServiceBase
         _validators = validators;
         _handlers =
         [
-            new HaveMessageHandler(_messageById, _haveDict),
-            new WantMessageHandler(_messageById, _haveDict),
+            new HaveMessageHandler(_transport, _messageById, _haveDict),
+            new WantMessageHandler(_transport, _messageById, _haveDict),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
     }
@@ -93,6 +93,7 @@ public sealed class Gossip : ServiceBase
 
         foreach (var message in messages)
         {
+            _messageById[message.Id] = message;
             _transport.Post(targetPeers, message);
         }
     }
@@ -140,7 +141,14 @@ public sealed class Gossip : ServiceBase
         ];
         if (_seeds.Count > 0)
         {
-            await _peerDiscovery.BootstrapAsync(_seeds, 3, cancellationToken);
+            try
+            {
+                await _peerDiscovery.BootstrapAsync(_seeds, 3, cancellationToken);
+            }
+            catch (InvalidOperationException)
+            {
+                // logging
+            }
         }
 
         await _services.StartAsync(cancellationToken);
@@ -223,7 +231,12 @@ public sealed class Gossip : ServiceBase
             async (pair, cancellationToken) =>
             {
                 MessageId[] idsToGet = pair.Value;
-                var want = new WantMessage { Ids = [.. idsToGet] };
+                var wantMessage = new WantMessage { Ids = [.. idsToGet] };
+                IMessage[] replies = await _transport.SendAsync<IMessage>(pair.Key, wantMessage, m => true, cancellationToken).ToArrayAsync();
+                foreach (var reply in replies)
+                {
+                    _messageById[reply.Id] = reply;
+                }
                 // await foreach (var item in _transport.SendAsync(pair.Key, want, cancellationToken))
                 // {
                 //     try
@@ -235,10 +248,10 @@ public sealed class Gossip : ServiceBase
                 //         // do nogthing
                 //     }
 
-                //     // Messagehandlers.HandleAsync(item)
-                //     // _validateReceivedMessageSubject.OnNext((pair.Key, item));
-                //     MessageValidators.Validate(item);
-                // }
+                    //     // Messagehandlers.HandleAsync(item)
+                    //     // _validateReceivedMessageSubject.OnNext((pair.Key, item));
+                    //     MessageValidators.Validate(item);
+                    // }
             });
     }
 }

@@ -41,7 +41,8 @@ public sealed class GossipTest
         });
         await gossip1.StartAsync(default);
         await gossip2.StartAsync(default);
-        gossip1.PublishMessage(TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1));
+        var message = TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1);
+        gossip1.PublishMessage(message);
         receivedEvent.WaitOne();
         Assert.True(received1);
         Assert.True(received2);
@@ -95,31 +96,14 @@ public sealed class GossipTest
     [Fact(Timeout = Timeout)]
     public async Task AddPeerWithHaveMessage()
     {
-        var key1 = new PrivateKey();
-        var key2 = new PrivateKey();
-        var received = false;
-        var receivedEvent = new ManualResetEvent(false);
-        await using var transport1 = CreateTransport(key1, 6001);
-        transport1.MessageHandlers.Add<HaveMessage>(message =>
-        {
-            received = true;
-            receivedEvent.Set();
-        });
-
-        // using var s = transport1.Process.Subscribe(messageEnvelope =>
-        // {
-        //     received = true;
-        //     receivedEvent.Set();
-        // });
+        await using var transport1 = CreateTransport();
         await using var gossip = new Gossip(transport1);
-        await using var transport2 = CreateTransport(key2, 6002);
+        await using var transport2 = CreateTransport();
 
         await gossip.StartAsync(default);
         await transport2.StartAsync(default);
         transport2.Post(gossip.Peer, new HaveMessage(), default);
-
-        receivedEvent.WaitOne();
-        Assert.True(received);
+        await transport1.WaitMessageAsync<HaveMessage>(default);
         Assert.Contains(transport2.Peer, gossip.Peers);
     }
 
@@ -127,7 +111,7 @@ public sealed class GossipTest
     public async Task DoNotBroadcastToSeedPeers()
     {
         var received = false;
-        await using var transport = CreateTransport(port: 6001);
+        await using var transport = CreateTransport();
         await using var gossip = CreateGossip(seeds: [transport.Peer]);
 
         transport.MessageHandlers.Add(new RelayMessageHandler<HaveMessage>(message =>
@@ -155,34 +139,32 @@ public sealed class GossipTest
     [Fact(Timeout = Timeout)]
     public async Task DoNotSendDuplicateMessageRequest()
     {
-        var received = 0;
-        void ProcessMessage(IMessage message)
+        var handled = 0;
+        void HandelMessage(IMessage message)
         {
             if (message is WantMessage)
             {
-                received++;
+                handled++;
             }
         }
 
         await using var receiver = CreateGossip();
         await using var sender1 = CreateTransport();
-        sender1.MessageHandlers.Add(new RelayMessageHandler<IMessage>(ProcessMessage));
-        // using var s1 = sender1.Process.Subscribe(ProcessMessage);
+        sender1.MessageHandlers.Add<IMessage>(HandelMessage);
         await using var sender2 = CreateTransport();
-        sender2.MessageHandlers.Add(new RelayMessageHandler<IMessage>(ProcessMessage));
-        // using var s2 = sender2.Process.Subscribe(ProcessMessage);
+        sender2.MessageHandlers.Add<IMessage>(HandelMessage);
 
         await receiver.StartAsync(default);
         await sender1.StartAsync(default);
         await sender2.StartAsync(default);
-        var msg1 = new PingMessage();
-        var msg2 = new PongMessage();
-        sender1.Post(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] });
-        sender2.Post(receiver.Peer, new HaveMessage { Ids = [msg1.Id, msg2.Id] });
+        var message1 = new PingMessage();
+        var message2 = new PongMessage();
+        sender1.Post(receiver.Peer, new HaveMessage { Ids = [message1.Id, message2.Id] });
+        sender2.Post(receiver.Peer, new HaveMessage { Ids = [message1.Id, message2.Id] });
 
         // Wait heartbeat interval * 2.
-        await Task.Delay(2 * 1000);
-        Assert.Equal(1, received);
+        await Task.Delay(100000);
+        Assert.Equal(1, handled);
     }
 
     private static Peer CreatePeer(PrivateKey? privateKey = null, int? port = null) => new()

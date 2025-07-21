@@ -5,6 +5,7 @@ using Libplanet.Net.Messages;
 namespace Libplanet.Net.Consensus.GossipMessageHandlers;
 
 internal sealed class HaveMessageHandler(
+    ITransport transport,
     ConcurrentDictionary<MessageId, IMessage> messageById,
     ConcurrentDictionary<Peer, HashSet<MessageId>> haveDict)
     : MessageHandlerBase<HaveMessage>
@@ -12,12 +13,14 @@ internal sealed class HaveMessageHandler(
     protected override void OnHandle(HaveMessage message, MessageEnvelope messageEnvelope)
     {
         var ids = message.Ids.Where(id => !messageById.ContainsKey(id)).ToArray();
+        var peer = messageEnvelope.Sender;
+
+        transport.Post(peer, new PongMessage(), messageEnvelope.Identity);
         if (ids.Length is 0)
         {
             return;
         }
 
-        var peer = messageEnvelope.Sender;
         if (!haveDict.TryGetValue(peer, out HashSet<MessageId>? value))
         {
             value = [];

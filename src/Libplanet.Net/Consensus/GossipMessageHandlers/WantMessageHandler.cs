@@ -1,17 +1,19 @@
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.Consensus.GossipMessageHandlers;
 
 internal sealed class WantMessageHandler(
+    ITransport transport,
     ConcurrentDictionary<MessageId, IMessage> messageById,
     ConcurrentDictionary<Peer, HashSet<MessageId>> haveDict)
     : MessageHandlerBase<HaveMessage>
 {
     protected override void OnHandle(HaveMessage message, MessageEnvelope messageEnvelope)
     {
-        // var messages = wantMessage.Ids.Select(id => messageById[id]).ToArray();
+        // var messages = message.Ids.Select(id => messageById[id]).ToArray();
 
         // Parallel.ForEach(messages, Invoke);
 
@@ -20,7 +22,7 @@ internal sealed class WantMessageHandler(
         //     try
         //     {
         //         // _validateSendingMessageSubject.OnNext(message);
-        //         _ = replyContext.NextAsync(message);
+        //         transport.Post(messageEnvelope.Sender, message, messageEnvelope.Identity);
         //     }
         //     catch (Exception)
         //     {
