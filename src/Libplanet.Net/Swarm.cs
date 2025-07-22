@@ -6,8 +6,6 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Types;
 using Libplanet.Net.NetMQ;
-using System.Reactive;
-using System.Reactive.Subjects;
 using Libplanet.Net.Tasks;
 using Libplanet.Net.MessageHandlers;
 
@@ -15,16 +13,10 @@ namespace Libplanet.Net;
 
 public sealed class Swarm : ServiceBase, IServiceProvider
 {
-    private readonly Subject<Unit> _blockHeaderReceivedSubject = new();
-    private readonly Subject<Unit> _blockReceivedSubject = new();
-    private readonly Subject<Unit> _blockAppendedSubject = new();
-
     private readonly ISigner _signer;
     private readonly ConsensusReactor? _consensusReactor;
     private readonly TxFetcher _txFetcher;
-    private readonly IDisposable _txFetcherSubscription;
     private readonly EvidenceFetcher _evidenceFetcher;
-    private readonly IDisposable _evidenceFetcherSubscription;
     private readonly AccessLimiter _transferEvidenceLimiter;
     private readonly ServicesCollection _services;
     private readonly IMessageHandler[] _messageHandlers;
@@ -45,8 +37,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         // Transport.Process.Subscribe(ProcessMessageHandler);
         PeerDiscovery = new PeerDiscovery(RoutingTable, Transport);
         BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
-        _txFetcherSubscription = _txFetcher.Received.Subscribe(e => BroadcastTxs(e.Peer, e.Items));
-        _evidenceFetcherSubscription = _evidenceFetcher.Received.Subscribe(e => BroadcastEvidence(e.Peer.Address, e.Items));
         _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _consensusReactor = consensusOption is not null ? new ConsensusReactor(signer, Blockchain, consensusOption) : null;
 
@@ -90,17 +80,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     internal ITransport Transport { get; }
 
-    internal IObservable<ReceivedInfo<Transaction>> TxReceived => _txFetcher.Received;
-
-    internal IObservable<ReceivedInfo<EvidenceBase>> EvidenceReceived => _evidenceFetcher.Received;
-
-    internal IObservable<Unit> BlockHeaderReceived => _blockHeaderReceivedSubject;
-
-    internal IObservable<Unit> BlockReceived => _blockReceivedSubject;
-
-    internal IObservable<Unit> BlockAppended => _blockAppendedSubject;
-
-    // FIXME: We need some sort of configuration method for it.
     internal int FindNextHashesChunkSize { get; set; } = 500;
 
     internal SwarmOptions Options { get; }
@@ -146,16 +125,16 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         var i = 0;
         while (!cancellationToken.IsCancellationRequested)
         {
-            var peersWithExcerpts = await this.GetPeersWithBlockSummary(dialTimeout, cancellationToken)
+            var blockchainStates = await this.GetBlockchainStateAsync(dialTimeout, cancellationToken)
                 .ToArrayAsync(cancellationToken);
-            if (peersWithExcerpts.Length == 0)
+            if (blockchainStates.Length == 0)
             {
                 break;
             }
 
             var tip = Blockchain.Tip;
-            var topmostTip = peersWithExcerpts
-                .Select(pair => pair.Item2)
+            var topmostTip = blockchainStates
+                .Select(pair => pair.Tip)
                 .Aggregate((prev, next) => prev.Height > next.Height ? prev : next);
             if (topmostTip.Height - (i > 0 ? tipDeltaThreshold : 0L) <= tip.Height)
             {
@@ -163,7 +142,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             }
 
             BlockBranches.RemoveAll((_) => true);
-            await PullBlocksAsync(peersWithExcerpts, cancellationToken);
+            await PullBlocksAsync(blockchainStates, cancellationToken);
             // await ConsumeBlockCandidates(cancellationToken: cancellationToken);
             i++;
         }
@@ -172,21 +151,21 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     }
 
     internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
-        Block block,
-        (Peer, BlockSummary)[] peersWithSummaries,
-        CancellationToken cancellationToken = default)
+        Block block, BlockchainState[] blockchainStates, CancellationToken cancellationToken)
     {
+        var tranasport = Transport;
         var exceptionList = new List<Exception>();
-        foreach (var (peer, blockSummary) in peersWithSummaries)
+        foreach (var blockchainState in blockchainStates)
         {
-            if (!IsBlockNeeded(blockSummary))
+            if (!IsBlockNeeded(blockchainState.Tip))
             {
                 continue;
             }
 
             try
             {
-                var blockHashes = await Transport.GetBlockHashesAsync(peer, block.BlockHash, cancellationToken);
+                var peer = blockchainState.Peer;
+                var blockHashes = await tranasport.GetBlockHashesAsync(peer, block.BlockHash, cancellationToken);
                 if (blockHashes.Length != 0)
                 {
                     return (peer, blockHashes);
@@ -202,7 +181,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             }
         }
 
-        var peers = peersWithSummaries.Select(p => p.Item1).ToArray();
+        var peers = blockchainStates.Select(item => item.Peer).ToArray();
         throw new AggregateException(
             "Failed to fetch demand block hashes from peers: " +
             string.Join(", ", peers.Select(p => p.ToString())),
@@ -246,8 +225,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
         _txFetcher.Dispose();
         _evidenceFetcher.Dispose();
-        _txFetcherSubscription.Dispose();
-        _evidenceFetcherSubscription.Dispose();
         await _services.DisposeAsync();
         await Transport.DisposeAsync();
         if (_consensusReactor is not null)
@@ -281,44 +258,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             message);
     }
 
-    // internal async IAsyncEnumerable<(Peer, BlockSummary)> GetPeersWithBlockSummary(
-    //     TimeSpan dialTimeout,
-    //     [EnumeratorCancellation] CancellationToken cancellationToken)
-    // {
-    //     await foreach (var blockchainState in GetBlockchainStateAsync(dialTimeout, cancellationToken))
-    //     {
-    //         if (blockchainState.Genesis.BlockHash == Blockchain.Genesis.BlockHash &&
-    //             blockchainState.Tip.Height > Blockchain.Tip.Height)
-    //         {
-    //             yield return (blockchainState.Peer, blockchainState.Tip);
-    //         }
-    //     }
-    // }
-
-    // internal async IAsyncEnumerable<BlockchainState> GetBlockchainStateAsync(
-    //     TimeSpan dialTimeout,
-    //     [EnumeratorCancellation] CancellationToken cancellationToken)
-    // {
-    //     var peers = Peers.ToArray();
-    //     var random = new Random();
-    //     var transport = Transport;
-    //     random.Shuffle(peers);
-
-    //     foreach (var peer in peers)
-    //     {
-    //         cancellationToken.ThrowIfCancellationRequested();
-    //         var task = transport.GetBlockchainStateAsync(peer, cancellationToken);
-    //         var waitTask = task.WaitAsync(dialTimeout, cancellationToken);
-    //         if (await TaskUtility.TryWait(waitTask))
-    //         {
-    //             yield return Create(peer, waitTask.Result);
-    //         }
-    //     }
-
-    //     static BlockchainState Create(Peer peer, BlockchainStateResponseMessage message)
-    //         => new(peer, message.Genesis, message.Tip);
-    // }
-
     internal void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
     {
         var message = new TxIdMessage { Ids = [.. txIds] };
@@ -326,175 +265,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     }
 
     internal bool IsBlockNeeded(BlockSummary blockSummary) => blockSummary.Height > Blockchain.Tip.Height;
-
-    // private void ProcessMessageHandler(IReplyContext replyContext)
-    // {
-    //     switch (replyContext.Message)
-    //     {
-    //         case PingMessage _:
-    //         case GetPeerMessage _:
-    //             return;
-
-    //         case GetChainStatusMessage:
-    //             {
-    //                 // This is based on the assumption that genesis block always exists.
-    //                 var tip = Blockchain.Tip;
-    //                 var replyMessage = new ChainStatusMessage
-    //                 {
-    //                     ProtocolVersion = tip.Version,
-    //                     GenesisHash = Blockchain.Genesis.BlockHash,
-    //                     TipHeight = tip.Height,
-    //                     TipHash = tip.BlockHash,
-    //                 };
-
-    //                 replyContext.NextAsync(replyMessage);
-    //             }
-    //             break;
-
-    //         case GetBlockHashesMessage getBlockHashes:
-    //             {
-    //                 var height = Blockchain.Blocks[getBlockHashes.BlockHash].Height;
-    //                 var hashes = Blockchain.Blocks[height..].Select(item => item.BlockHash).ToArray();
-
-    //                 // IReadOnlyList<BlockHash> hashes = BlockChain.FindNextHashes(
-    //                 //     getBlockHashes.Locator,
-    //                 //     FindNextHashesChunkSize);
-    //                 var replyMessage = new BlockHashMessage { BlockHashes = [.. hashes] };
-
-    //                 replyContext.NextAsync(replyMessage);
-    //             }
-    //             break;
-
-    //         case GetBlockMessage getBlockMessage:
-    //             _ = TransferAsync(replyContext, getBlockMessage);
-    //             break;
-
-    //         case GetTransactionMessage getTransactionMessage:
-    //             _ = TransferAsync(replyContext, getTransactionMessage);
-    //             break;
-
-    //         case GetEvidenceMessage getEvidenceMessage:
-    //             _ = TransferAsync(replyContext, getEvidenceMessage);
-    //             break;
-
-    //         case TxIdMessage txIdMessage:
-    //             _txFetcher.DemandMany(replyContext.Sender, [.. txIdMessage.Ids]);
-    //             replyContext.PongAsync();
-    //             break;
-
-    //         case EvidenceIdMessage evidenceIdMessage:
-    //             _evidenceFetcher.DemandMany(replyContext.Sender, [.. evidenceIdMessage.Ids]);
-    //             replyContext.PongAsync();
-    //             break;
-
-    //         case BlockHashMessage _:
-    //             break;
-
-    //         case BlockHeaderMessage blockHeader:
-    //             ProcessBlockHeader(replyContext);
-    //             replyContext.PongAsync();
-    //             break;
-
-    //         default:
-    //             throw new InvalidOperationException($"Failed to handle message: {replyContext.Message}");
-    //     }
-    // }
-
-    // private void ProcessBlockHeader(IReplyContext messageEnvelope)
-    // {
-    //     var blockHeaderMsg = (BlockHeaderMessage)messageEnvelope.Message;
-    //     if (!blockHeaderMsg.GenesisHash.Equals(Blockchain.Genesis.BlockHash))
-    //     {
-    //         return;
-    //     }
-
-    //     _blockHeaderReceivedSubject.OnNext(Unit.Default);
-    //     var header = blockHeaderMsg.BlockSummary;
-
-    //     try
-    //     {
-    //         header.Timestamp.ValidateTimestamp();
-    //     }
-    //     catch (InvalidOperationException e)
-    //     {
-    //         return;
-    //     }
-
-    //     bool needed = IsBlockNeeded(header);
-    //     if (needed)
-    //     {
-    //         BlockDemandDictionary.Add(
-    //             IsBlockNeeded, new BlockDemand(header, messageEnvelope.Sender, DateTimeOffset.UtcNow));
-    //     }
-    // }
-
-    // private async Task TransferAsync(IReplyContext replyContext, GetBlockMessage requestMessage)
-    // {
-    //     using var cancellationTokenSource = CreateCancellationTokenSource();
-    //     using var scope = await _transferBlockLimiter.CanAccessAsync(cancellationTokenSource.Token);
-    //     if (scope is null)
-    //     {
-    //         return;
-    //     }
-
-    //     var blockHashes = requestMessage.BlockHashes;
-    //     var blockList = new List<Block>();
-    //     var blockCommitList = new List<BlockCommit>();
-    //     foreach (var blockHash in blockHashes)
-    //     {
-    //         if (Blockchain.Blocks.TryGetValue(blockHash, out var block)
-    //             && Blockchain.BlockCommits.TryGetValue(block.BlockHash, out var blockCommit))
-    //         {
-    //             blockList.Add(block);
-    //             blockCommitList.Add(blockCommit);
-    //         }
-
-    //         if (blockList.Count == requestMessage.ChunkSize)
-    //         {
-    //             replyContext.TransferAsync([.. blockList], [.. blockCommitList], hasNext: true);
-    //             blockList.Clear();
-    //             blockCommitList.Clear();
-    //         }
-    //     }
-
-    //     replyContext.TransferAsync([.. blockList], [.. blockCommitList]);
-    // }
-
-    // private async Task TransferAsync(
-    //     IReplyContext replyContext, GetTransactionMessage requestMessage)
-    // {
-    //     using var cancellationTokenSource = CreateCancellationTokenSource();
-    //     using var scope = await _transferTxLimiter.CanAccessAsync(cancellationTokenSource.Token);
-    //     if (scope is null)
-    //     {
-    //         return;
-    //     }
-
-    //     var txIds = requestMessage.TxIds;
-    //     var txs = txIds
-    //         .Select(txId => Blockchain.Transactions.TryGetValue(txId, out var tx) ? tx : null)
-    //         .OfType<Transaction>()
-    //         .ToArray();
-    //     replyContext.TransferAsync(txs);
-    // }
-
-    // private async Task TransferAsync(IReplyContext replyContext, GetEvidenceMessage requestMessage)
-    // {
-    //     using var cancellationTokenSource = CreateCancellationTokenSource();
-    //     using var scope = await _transferEvidenceLimiter.CanAccessAsync(cancellationTokenSource.Token);
-    //     if (scope is null)
-    //     {
-    //         return;
-    //     }
-
-    //     var evidenceIds = requestMessage.EvidenceIds;
-    //     var evidence = evidenceIds
-    //         .Select(evidenceId => Blockchain.PendingEvidences.TryGetValue(evidenceId, out var ev) ? ev : null)
-    //         .OfType<EvidenceBase>()
-    //         .ToArray();
-
-    //     replyContext.TransferAsync(evidence);
-    // }
 
     public void BroadcastEvidence(ImmutableArray<EvidenceBase> evidence) => BroadcastEvidence(default, evidence);
 
@@ -507,7 +277,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public BlockDemandDictionary BlockDemandDictionary { get; private set; }
 
-    public BlockBranchCollection BlockBranches { get; } = new BlockBranchCollection();
+    public BlockBranchCollection BlockBranches { get; } = [];
 
     internal async Task PullBlocksAsync(TimeSpan timeout, int maximumPollPeers, CancellationToken cancellationToken)
     {
@@ -516,67 +286,38 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             return;
         }
 
-        var peersWithBlockExcerpt = await this.GetPeersWithBlockSummary(timeout, cancellationToken)
+        var blockchainStates = await this.GetBlockchainStateAsync(timeout, cancellationToken)
             .Take(maximumPollPeers)
             .ToArrayAsync(cancellationToken);
-        await PullBlocksAsync(peersWithBlockExcerpt, cancellationToken);
+        await PullBlocksAsync(blockchainStates, cancellationToken);
     }
 
-    private async Task PullBlocksAsync(
-        (Peer, BlockSummary)[] peersWithBlockExcerpt, CancellationToken cancellationToken)
+    private async Task<bool> PullBlocksAsync(
+        BlockchainState[] blockchainStates, CancellationToken cancellationToken)
     {
-        if (!peersWithBlockExcerpt.Any())
-        {
-            return;
-        }
-
-        long totalBlocksToDownload = 0L;
-        Block tempTip = Blockchain.Tip;
-        var blockList = new List<Block>();
-        var blockCommitList = new List<BlockCommit>();
-
         try
         {
-            // NOTE: demandBlockHashes is always non-empty.
-            (var peer, var demandBlockHashes) = await GetDemandBlockHashes(
-                Blockchain.Tip, peersWithBlockExcerpt, cancellationToken);
-            totalBlocksToDownload = demandBlockHashes.Length;
+            (var peer, var blockHashes) = await GetDemandBlockHashes(Blockchain.Tip, blockchainStates, cancellationToken);
+            var blockPairs = await Transport.GetBlocksAsync(peer, blockHashes, cancellationToken).ToArrayAsync(cancellationToken);
 
-            var query = Transport.GetBlocksAsync(peer, demandBlockHashes, cancellationToken);
-
-            await foreach ((Block block, BlockCommit commit) in query.WithCancellation(cancellationToken))
+            if (blockPairs.Length > 0)
             {
-                blockList.Add(block);
-                blockCommitList.Add(commit);
-            }
-        }
-        catch (Exception e)
-        {
-            // _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
-        }
-        finally
-        {
-            if (totalBlocksToDownload > 0)
-            {
-                try
+                var blockBranch = new BlockBranch
                 {
-                    // var branch = blockList.ToImmutableSortedDictionary(item => item.Item1, item => item.Item2);
-                    var blockBranch = new BlockBranch
-                    {
-                        Blocks = [.. blockList],
-                        BlockCommits = [.. blockCommitList],
-                    };
-                    BlockBranches.Add(Blockchain.Tip.BlockHash, blockBranch);
-                    _blockReceivedSubject.OnNext(Unit.Default);
-                }
-                catch (ArgumentException ae)
-                {
-                    // logging
-                }
+                    Blocks = [.. blockPairs.Select(item => item.Item1)],
+                    BlockCommits = [.. blockPairs.Select(item => item.Item2)],
+                };
+                BlockBranches.Add(Blockchain.Tip.BlockHash, blockBranch);
+                return true;
             }
 
-            // _processFillBlocksFinishedSubject.OnNext(Unit.Default);
         }
+        catch (Exception)
+        {
+            // logging
+        }
+
+        return false;
     }
 
     internal async Task<bool> BlockCandidateProcessAsync(
@@ -584,10 +325,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     {
         try
         {
-            await AppendBranchAsync(
-                blockchain: Blockchain,
-                blockBranch: blockBranch,
-                cancellationToken: cancellationToken);
+            await AppendBranchAsync(blockBranch, cancellationToken);
             return true;
         }
         catch
@@ -596,9 +334,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         }
     }
 
-    private async ValueTask AppendBranchAsync(
-        Blockchain blockchain, BlockBranch blockBranch, CancellationToken cancellationToken)
+    private async ValueTask AppendBranchAsync(BlockBranch blockBranch, CancellationToken cancellationToken)
     {
+        var blockchain = Blockchain;
         var branchPoint = blockchain.Tip;
         var actualBranch = blockBranch.TakeAfter(branchPoint);
 

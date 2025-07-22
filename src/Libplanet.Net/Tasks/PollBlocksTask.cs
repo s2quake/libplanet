@@ -32,88 +32,8 @@ internal sealed class PollBlocksTask(Swarm swarm) : BackgroundServiceBase
         }
         else if (_lastUpdated + tipLifespan < DateTimeOffset.UtcNow)
         {
-            await PullBlocksAsync(
+            await swarm.PullBlocksAsync(
                 timeout, maximumPollPeers, cancellationToken);
-        }
-    }
-
-    internal async Task PullBlocksAsync(
-        TimeSpan timeout,
-        int maximumPollPeers,
-        CancellationToken cancellationToken)
-    {
-        if (maximumPollPeers <= 0)
-        {
-            return;
-        }
-
-        var peersWithBlockExcerpt =
-            await swarm.GetPeersWithBlockSummary(
-                timeout, cancellationToken).Take(maximumPollPeers).ToArrayAsync(cancellationToken);
-        await PullBlocksAsync(peersWithBlockExcerpt, cancellationToken);
-    }
-
-    private async Task PullBlocksAsync(
-        (Peer, BlockSummary)[] peersWithBlockExcerpt,
-        CancellationToken cancellationToken)
-    {
-        if (!peersWithBlockExcerpt.Any())
-        {
-            return;
-        }
-
-        long totalBlocksToDownload = 0L;
-        Block tempTip = _blockchain.Tip;
-        var blockPairList = new List<(Block, BlockCommit)>();
-
-        try
-        {
-            // NOTE: demandBlockHashes is always non-empty.
-            (var peer, var demandBlockHashes) = await GetDemandBlockHashes(
-                _blockchain,
-                peersWithBlockExcerpt,
-                cancellationToken);
-            totalBlocksToDownload = demandBlockHashes.Length;
-
-            var downloadedBlocks = swarm.Transport.GetBlocksAsync(
-                peer,
-                demandBlockHashes,
-                cancellationToken);
-
-            await foreach (
-                (Block block, BlockCommit commit) in
-                    downloadedBlocks.WithCancellation(cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                blockPairList.Add((block, commit));
-            }
-        }
-        catch (Exception e)
-        {
-            var msg =
-                $"Unexpected exception occurred during {nameof(PullBlocksAsync)}()";
-            // _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
-        }
-        finally
-        {
-            if (totalBlocksToDownload > 0)
-            {
-                try
-                {
-                    var blockBranch = new BlockBranch
-                    {
-                        Blocks = [.. blockPairList.Select(item => item.Item1)],
-                        BlockCommits = [.. blockPairList.Select(item => item.Item2)],
-                    };
-                    swarm.BlockBranches.Add(_blockchain.Tip.BlockHash, blockBranch);
-                    // _blockReceivedSubject.OnNext(Unit.Default);
-                }
-                catch (ArgumentException ae)
-                {
-                }
-            }
-
-            // _processFillBlocksFinishedSubject.OnNext(Unit.Default);
         }
     }
 

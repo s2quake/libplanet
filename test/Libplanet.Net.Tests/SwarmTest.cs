@@ -586,7 +586,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await swarmA.AddPeersAsync([swarmB.Peer], default);
 
         swarmA.BroadcastTxs([validTx, invalidTx]);
-        await swarmB.TxReceived.WaitAsync(default);
+        // await swarmB.TxReceived.WaitAsync(default);
 
         Assert.Equal(swarmB.Blockchain.Transactions[validTx.Id], validTx);
         Assert.Throws<KeyNotFoundException>(
@@ -633,7 +633,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await swarmA.AddPeersAsync([swarmB.Peer], default);
 
         swarmA.BroadcastTxs([tx]);
-        await swarmB.TxReceived.WaitAsync(default);
+        // await swarmB.TxReceived.WaitAsync(default);
 
         Assert.Throws<KeyNotFoundException>(() => swarmB.Blockchain.Transactions[tx.Id]);
         Assert.DoesNotContain(tx.Id, swarmB.Blockchain.StagedTransactions.Keys);
@@ -692,7 +692,7 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         Task.WaitAll(
         [
-            swarmC.BlockAppended.WaitAsync(default),
+            // swarmC.BlockAppended.WaitAsync(default),
                 Task.Run(() => swarmA.BroadcastBlock(block)),
             ]);
 
@@ -834,8 +834,8 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         sender.BroadcastBlock(sender.Blockchain.Tip);
 
-        await receiver.BlockReceived.WaitAsync(default);
-        await receiver.BlockAppended.WaitAsync(default);
+        // await receiver.BlockReceived.WaitAsync(default);
+        // await receiver.BlockAppended.WaitAsync(default);
         Assert.Equal(
             7,
             receiver.Blockchain.Blocks.Count);
@@ -865,8 +865,8 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         sender.BroadcastBlock(sender.Blockchain.Tip);
 
-        await receiver.BlockReceived.WaitAsync(default);
-        await receiver.BlockAppended.WaitAsync(default);
+        // await receiver.BlockReceived.WaitAsync(default);
+        // await receiver.BlockAppended.WaitAsync(default);
         Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
         Assert.Equal(
             2,
@@ -897,8 +897,8 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         sender.BroadcastBlock(sender.Blockchain.Tip);
 
-        await receiver.BlockReceived.WaitAsync(default);
-        await receiver.BlockAppended.WaitAsync(default);
+        // await receiver.BlockReceived.WaitAsync(default);
+        // await receiver.BlockAppended.WaitAsync(default);
         Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
         sender.BroadcastBlock(sender.Blockchain.Tip);
         Assert.Equal(
@@ -907,8 +907,8 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         sender.BroadcastBlock(sender.Blockchain.Tip);
 
-        await receiver.BlockReceived.WaitAsync(default);
-        await receiver.BlockAppended.WaitAsync(default);
+        // await receiver.BlockReceived.WaitAsync(default);
+        // await receiver.BlockAppended.WaitAsync(default);
         Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
         sender.BroadcastBlock(sender.Blockchain.Tip);
         Assert.Equal(
@@ -917,8 +917,8 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         sender.BroadcastBlock(sender.Blockchain.Tip);
 
-        await receiver.BlockReceived.WaitAsync(default);
-        await receiver.BlockAppended.WaitAsync(default);
+        // await receiver.BlockReceived.WaitAsync(default);
+        // await receiver.BlockAppended.WaitAsync(default);
         Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
         sender.BroadcastBlock(sender.Blockchain.Tip);
         Assert.Equal(
