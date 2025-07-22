@@ -183,20 +183,4 @@ public static partial class RandomUtility
         Content = BlockContent(random),
         Signature = ImmutableArray(random, Byte),
     };
-
-    public static Peer Peer() => Peer(System.Random.Shared);
-
-    public static Peer Peer(Random random) => new()
-    {
-        Address = Address(random),
-        EndPoint = DnsEndPoint(random),
-    };
-
-    public static Peer LocalPeer() => LocalPeer(System.Random.Shared);
-
-    public static Peer LocalPeer(Random random) => new()
-    {
-        Address = Address(random),
-        EndPoint = new System.Net.DnsEndPoint("127.0.0.1", Port(random)),
-    };
 }

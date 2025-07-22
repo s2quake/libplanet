@@ -13,7 +13,6 @@ using Libplanet.Types.Threading;
 using Libplanet.Net.Tasks;
 using Libplanet.Net.MessageHandlers;
 using System.Runtime.CompilerServices;
-using Nito.AsyncEx.Synchronous;
 
 namespace Libplanet.Net;
 
@@ -141,12 +140,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         BroadcastTxs(null, txs);
     }
 
-    // public async Task<BlockchainState[]> GetBlockchainStateAsync(
-    //     TimeSpan dialTimeout, CancellationToken cancellationToken)
-    // {
-    //     return await GetBlockchainStateAsync(dialTimeout, int.MaxValue, cancellationToken);
-    // }
-
     private async Task PreloadAsync(CancellationToken cancellationToken)
     {
         if (!Options.PreloadOptions.Enabled)
@@ -165,7 +158,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         var i = 0;
         while (!cancellationToken.IsCancellationRequested)
         {
-            var peersWithExcerpts = await GetPeersWithBlockSummary(dialTimeout, cancellationToken)
+            var peersWithExcerpts = await this.GetPeersWithBlockSummary(dialTimeout, cancellationToken)
                 .ToArrayAsync(cancellationToken);
             if (peersWithExcerpts.Length == 0)
             {
@@ -188,19 +181,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-    }
-
-    public Task<Peer> FindPeerAsync(Address address, CancellationToken cancellationToken)
-        => FindPeerAsync(address, depth: 3, cancellationToken);
-
-    public Task<Peer> FindPeerAsync(Address address, int depth, CancellationToken cancellationToken)
-        => PeerDiscovery.FindPeerAsync(address, depth, cancellationToken);
-
-    public async Task AddPeersAsync(ImmutableArray<Peer> peers, CancellationToken cancellationToken)
-    {
-        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
-
-        await PeerDiscovery.AddPeersAsync(peers, cancellationTokenSource.Token);
     }
 
     internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
@@ -309,78 +289,43 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             message);
     }
 
-    internal async IAsyncEnumerable<(Peer, BlockSummary)> GetPeersWithBlockSummary(
-        TimeSpan dialTimeout,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        await foreach (var blockchainState in GetBlockchainStateAsync(dialTimeout, cancellationToken))
-        {
-            if (blockchainState.Genesis.BlockHash == Blockchain.Genesis.BlockHash &&
-                blockchainState.Tip.Height > Blockchain.Tip.Height)
-            {
-                yield return (blockchainState.Peer, blockchainState.Tip);
-            }
-        }
-        // var random = new Random();
-        // var tip = Blockchain.Tip;
-        // var genesisHash = Blockchain.Genesis.BlockHash;
-        // return (await GetBlockchainStateAsync(dialTimeout, maxPeersToDial, cancellationToken))
-        //     .Where(item =>
-        //             genesisHash.Equals(item.Genesis.BlockHash) &&
-        //             item.Tip.Height > tip.Height)
-        //     .Select(item => (item.Peer, item.Tip))
-        //     .OrderBy(_ => random.Next())
-        //     .ToArray();
-    }
+    // internal async IAsyncEnumerable<(Peer, BlockSummary)> GetPeersWithBlockSummary(
+    //     TimeSpan dialTimeout,
+    //     [EnumeratorCancellation] CancellationToken cancellationToken)
+    // {
+    //     await foreach (var blockchainState in GetBlockchainStateAsync(dialTimeout, cancellationToken))
+    //     {
+    //         if (blockchainState.Genesis.BlockHash == Blockchain.Genesis.BlockHash &&
+    //             blockchainState.Tip.Height > Blockchain.Tip.Height)
+    //         {
+    //             yield return (blockchainState.Peer, blockchainState.Tip);
+    //         }
+    //     }
+    // }
 
-    // private async Task<BlockchainState[]> GetBlockchainStateAsync(
-    //     TimeSpan dialTimeout, int maxPeersToDial, CancellationToken cancellationToken)
+    // internal async IAsyncEnumerable<BlockchainState> GetBlockchainStateAsync(
+    //     TimeSpan dialTimeout,
+    //     [EnumeratorCancellation] CancellationToken cancellationToken)
     // {
     //     var peers = Peers.ToArray();
     //     var random = new Random();
     //     var transport = Transport;
     //     random.Shuffle(peers);
-    //     peers = [.. peers.Take(maxPeersToDial)];
 
-    //     var tasks = peers.Select(async item =>
+    //     foreach (var peer in peers)
     //     {
-    //         var task = transport.GetBlockchainStateAsync(item, cancellationToken);
-    //         return await task.WaitAsync(dialTimeout, cancellationToken);
-    //     }).ToArray();
-
-    //     await TaskUtility.TryWhenAll(tasks);
-    //     var query = peers.Zip(tasks).Where(item => item.Second.IsCompletedSuccessfully)
-    //         .Select(item => Create(item.First, item.Second.Result));
-
-    //     return [.. query];
+    //         cancellationToken.ThrowIfCancellationRequested();
+    //         var task = transport.GetBlockchainStateAsync(peer, cancellationToken);
+    //         var waitTask = task.WaitAsync(dialTimeout, cancellationToken);
+    //         if (await TaskUtility.TryWait(waitTask))
+    //         {
+    //             yield return Create(peer, waitTask.Result);
+    //         }
+    //     }
 
     //     static BlockchainState Create(Peer peer, BlockchainStateResponseMessage message)
     //         => new(peer, message.Genesis, message.Tip);
     // }
-
-    internal async IAsyncEnumerable<BlockchainState> GetBlockchainStateAsync(
-        TimeSpan dialTimeout,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        var peers = Peers.ToArray();
-        var random = new Random();
-        var transport = Transport;
-        random.Shuffle(peers);
-
-        foreach (var peer in peers)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var task = transport.GetBlockchainStateAsync(peer, cancellationToken);
-            var waitTask = task.WaitAsync(dialTimeout, cancellationToken);
-            if (await TaskUtility.TryWait(waitTask))
-            {
-                yield return Create(peer, waitTask.Result);
-            }
-        }
-
-        static BlockchainState Create(Peer peer, BlockchainStateResponseMessage message)
-            => new(peer, message.Genesis, message.Tip);
-    }
 
     internal void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
     {
@@ -579,7 +524,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             return;
         }
 
-        var peersWithBlockExcerpt = await GetPeersWithBlockSummary(timeout, cancellationToken)
+        var peersWithBlockExcerpt = await this.GetPeersWithBlockSummary(timeout, cancellationToken)
             .Take(maximumPollPeers)
             .ToArrayAsync(cancellationToken);
         await PullBlocksAsync(peersWithBlockExcerpt, cancellationToken);

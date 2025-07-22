@@ -17,6 +17,22 @@ public static partial class RandomUtility
 
     public static DnsEndPoint DnsEndPoint(Random random) => new(IPAddress(random).ToString(), Port(random));
 
+    public static Peer Peer() => Peer(System.Random.Shared);
+
+    public static Peer Peer(Random random) => new()
+    {
+        Address = Address(random),
+        EndPoint = DnsEndPoint(random),
+    };
+
+    public static Peer LocalPeer() => LocalPeer(System.Random.Shared);
+
+    public static Peer LocalPeer(Random random) => new()
+    {
+        Address = Address(random),
+        EndPoint = new System.Net.DnsEndPoint("127.0.0.1", Port(random)),
+    };
+
     public static Protocol Protocol() => Protocol(System.Random.Shared);
 
     public static Protocol Protocol(Random random)

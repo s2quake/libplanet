@@ -14,6 +14,8 @@ internal sealed class MaintainStaticPeerTask(Swarm swarm) : BackgroundServiceBas
             return;
         }
 
+        var peerDiscovery = swarm.PeerDiscovery;
+
         var tasks = swarm.Options.StaticPeers
             .Where(peer => !swarm.RoutingTable.Contains(peer))
             .Select(async peer =>
@@ -21,7 +23,7 @@ internal sealed class MaintainStaticPeerTask(Swarm swarm) : BackgroundServiceBas
                 try
                 {
                     var timeout = TimeSpan.FromSeconds(3);
-                    await swarm.AddPeersAsync([peer], cancellationToken).WaitAsync(timeout, cancellationToken);
+                    await peerDiscovery.AddPeersAsync([peer], cancellationToken).WaitAsync(timeout, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {

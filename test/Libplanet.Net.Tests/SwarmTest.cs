@@ -450,33 +450,21 @@ public partial class SwarmTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task ThrowArgumentExceptionInConstructor()
-    {
-        var fx = new MemoryRepositoryFixture();
-        var policy = new BlockchainOptions();
-        var blockchain = MakeBlockChain(policy);
-        var privateKey = new PrivateKey();
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(privateKey);
-        var transportOptions = new TransportOptions
-        {
-            Protocol = protocol,
-            Host = IPAddress.Loopback.ToString(),
-        };
-        var transport = new NetMQTransport(privateKey.AsSigner(), transportOptions);
-    }
-
-    [Fact(Timeout = Timeout)]
     public async Task CanResolveEndPoint()
     {
-        var expected = new DnsEndPoint("1.2.3.4", 5678);
-        var hostOptions = new TransportOptions
+        var random = RandomUtility.GetRandom(output);
+        var peer = RandomUtility.LocalPeer(random);
+        var transportOptions = new TransportOptions
         {
-            Host = "1.2.3.4",
-            Port = 5678,
+            Host = peer.EndPoint.Host,
+            Port = peer.EndPoint.Port,
         };
-        await using var s = await CreateSwarm(options: new SwarmOptions { TransportOptions = hostOptions });
-        Assert.Equal(expected, s.Peer.EndPoint);
-        Assert.Equal(expected, s.Peer.EndPoint);
+        var options = new SwarmOptions
+        {
+            TransportOptions = transportOptions,
+        };
+        await using var swarm = await CreateSwarm(options: options);
+        Assert.Equal(peer.EndPoint, swarm.Peer.EndPoint);
     }
 
     [Fact(Timeout = Timeout)]
@@ -508,192 +496,54 @@ public partial class SwarmTest(ITestOutputHelper output)
         Assert.IsType<Peer>(swarm.Peer);
     }
 
-    // [FactOnlyTurnAvailable(Timeout = Timeout)]
-    // public async Task ExchangeWithIceServer()
-    // {
-    //     var iceServers = FactOnlyTurnAvailableAttribute.GetIceServers();
-    //     var seedHostOptions = new TransportOptions
-    //     {
-    //         Host = "127.0.0.1",
-    //     };
-    //     var swarmHostOptions = new TransportOptions
-    //     {
-    //         Host = string.Empty,
-    //     };
-    //     var seed = await CreateSwarm(transportOptions: seedHostOptions).ConfigureAwait(false);
-    //     var swarmA = await CreateSwarm(transportOptions: swarmHostOptions).ConfigureAwait(false);
-    //     var swarmB = await CreateSwarm(transportOptions: swarmHostOptions).ConfigureAwait(false);
-
-    //     try
-    //     {
-    //         await StartAsync(seed);
-    //         await swarmA.StartAsync(default);
-    //         await swarmB.StartAsync(default);
-
-    //         await swarmA.AddPeersAsync(new[] { seed.AsPeer }, null);
-    //         await swarmB.AddPeersAsync(new[] { seed.AsPeer }, null);
-    //         await swarmA.AddPeersAsync(new[] { swarmB.AsPeer }, null);
-
-    //         Assert.Equal(
-    //             new HashSet<Peer>
-    //             {
-    //                 swarmA.AsPeer,
-    //                 swarmB.AsPeer,
-    //             },
-    //             seed.Peers.ToHashSet());
-    //         Assert.Equal(
-    //             new HashSet<Peer> { seed.AsPeer, swarmB.AsPeer },
-    //             swarmA.Peers.ToHashSet());
-    //         Assert.Equal(
-    //             new HashSet<Peer> { seed.AsPeer, swarmA.AsPeer },
-    //             swarmB.Peers.ToHashSet());
-    //     }
-    //     finally
-    //     {
-    //         CleaningSwarm(seed);
-    //         CleaningSwarm(swarmA);
-    //         CleaningSwarm(swarmB);
-    //     }
-    // }
-
-    // [FactOnlyTurnAvailable(10, 5000, Timeout = Timeout)]
-    // public async Task ReconnectToTurn()
-    // {
-    //     int port;
-    //     using (var socket = new Socket(SocketType.Stream, ProtocolType.Tcp))
-    //     {
-    //         socket.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-    //         port = ((IPEndPoint)socket.LocalEndPoint).Port;
-    //     }
-
-    //     Uri turnUrl = FactOnlyTurnAvailableAttribute.GetTurnUri();
-    //     string[] userInfo = turnUrl.UserInfo.Split(':');
-    //     string username = userInfo[0];
-    //     string password = userInfo[1];
-    //     var proxyUri = new Uri($"turn://{username}:{password}@127.0.0.1:{port}/");
-    //     IEnumerable<IceServer> iceServers = new[] { new IceServer(url: proxyUri) };
-
-    //     var cts = new CancellationTokenSource();
-    //     var proxyTask = TurnProxy(port, turnUrl, cts.Token);
-
-    //     var seedKey = new PrivateKey();
-    //     var seedHostOptions = new TransportOptions
-    //     {
-    //         Host = "127.0.0.1",
-    //     };
-    //     var swarmHostOptions = new TransportOptions { };
-    //     var seed =
-    //         await CreateSwarm(seedKey, transportOptions: seedHostOptions).ConfigureAwait(false);
-    //     var swarmA =
-    //         await CreateSwarm(transportOptions: swarmHostOptions).ConfigureAwait(false);
-
-    //     async Task RefreshTableAsync(CancellationToken cancellationToken)
-    //     {
-    //         while (!cancellationToken.IsCancellationRequested)
-    //         {
-    //             await Task.Delay(1000, cancellationToken);
-    //             try
-    //             {
-    //                 await swarmA.PeerDiscovery.RefreshTableAsync(
-    //                     TimeSpan.FromSeconds(1), cancellationToken);
-    //             }
-    //             catch (InvalidOperationException)
-    //             {
-    //             }
-    //         }
-    //     }
-
-    //     async Task MineAndBroadcast(CancellationToken cancellationToken)
-    //     {
-    //         while (!cancellationToken.IsCancellationRequested)
-    //         {
-    //             var block = seed.Blockchain.ProposeBlock(seedKey);
-    //             seed.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
-    //             seed.BroadcastBlock(block);
-    //             await Task.Delay(1000, cancellationToken);
-    //         }
-    //     }
-
-    //     try
-    //     {
-    //         await StartAsync(seed);
-    //         await swarmA.StartAsync(default, cancellationToken: cts.Token);
-
-    //         await swarmA.AddPeersAsync(new[] { seed.AsPeer }, null);
-
-    //         cts.Cancel();
-    //         await proxyTask;
-    //         cts = new CancellationTokenSource();
-
-    //         proxyTask = TurnProxy(port, turnUrl, cts.Token);
-    //         _ = RefreshTableAsync(cts.Token);
-    //         _ = MineAndBroadcast(cts.Token);
-
-    //         cts.CancelAfter(1500);
-    //         await swarmA.BlockReceived.WaitAsync(cts.Token);
-    //         cts.Cancel();
-    //         await Task.Delay(1000);
-
-    //         Assert.NotEqual(swarmA.Blockchain.Genesis, swarmA.Blockchain.Tip);
-    //         Assert.Contains(
-    //             swarmA.Blockchain.Tip.BlockHash,
-    //             seed.Blockchain.Blocks.Keys);
-    //     }
-    //     finally
-    //     {
-    //         CleaningSwarm(seed);
-    //         CleaningSwarm(swarmA);
-    //     }
-    // }
-
     [Fact(Timeout = Timeout)]
     public async Task CannotBlockSyncWithForkedChain()
     {
-        var policy = new BlockchainOptions();
-        var chain1 = MakeBlockChain(policy);
-        var chain2 = MakeBlockChain(policy);
+        var blockchainOptions = new BlockchainOptions();
+        var blockchain1 = MakeBlockChain(blockchainOptions);
+        var blockchain2 = MakeBlockChain(blockchainOptions);
 
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
 
-        await using var miner1 = await CreateSwarm(chain1, key1);
-        await using var miner2 = await CreateSwarm(chain2, key2);
+        await using var swarm1 = await CreateSwarm(blockchain1, key1);
+        await using var swarm2 = await CreateSwarm(blockchain2, key2);
 
-        var privKey = new PrivateKey();
-        var addr = miner1.Address;
+        var privateKey = new PrivateKey();
+        var addr = swarm1.Address;
         var item = "foo";
 
-        miner1.Blockchain.StagedTransactions.Add(privKey, submission: new()
+        blockchain1.StagedTransactions.Add(privateKey, submission: new()
         {
             Actions = [DumbAction.Create((addr, item))],
         });
-        Block block1 = miner1.Blockchain.ProposeBlock(key1);
-        miner1.Blockchain.Append(block1, TestUtils.CreateBlockCommit(block1));
-        var miner1TipHash = miner1.Blockchain.Tip.BlockHash;
+        var block1 = blockchain1.ProposeBlock(key1);
+        blockchain1.Append(block1, TestUtils.CreateBlockCommit(block1));
+        var tipHash1 = blockchain1.Tip.BlockHash;
 
-        miner2.Blockchain.StagedTransactions.Add(privKey, submission: new()
+        blockchain2.StagedTransactions.Add(privateKey, submission: new()
         {
             Actions = [DumbAction.Create((addr, item))],
         });
-        Block block2 = miner2.Blockchain.ProposeBlock(key2);
-        miner2.Blockchain.Append(block2, TestUtils.CreateBlockCommit(block2));
+        var block2 = blockchain2.ProposeBlock(key2);
+        blockchain2.Append(block2, TestUtils.CreateBlockCommit(block2));
 
-        miner2.Blockchain.StagedTransactions.Add(privKey, submission: new()
+        blockchain2.StagedTransactions.Add(privateKey, submission: new()
         {
             Actions = [DumbAction.Create((addr, item))],
         });
-        var latest = miner2.Blockchain.ProposeBlock(key2);
-        miner2.Blockchain.Append(latest, TestUtils.CreateBlockCommit(latest));
+        var latest = blockchain2.ProposeBlock(key2);
+        blockchain2.Append(latest, TestUtils.CreateBlockCommit(latest));
 
-        await miner1.StartAsync(default);
-        await miner2.StartAsync(default);
+        await swarm1.StartAsync(default);
+        await swarm2.StartAsync(default);
 
-        await miner2.AddPeersAsync([miner1.Peer], default);
+        await swarm2.AddPeersAsync([swarm1.Peer], default);
 
-        miner2.BroadcastBlock(latest);
+        swarm2.BroadcastBlock(latest);
 
         await Task.Delay(5_000);
-        Assert.Equal(miner1TipHash, miner1.Blockchain.Tip.BlockHash);
+        Assert.Equal(tipHash1, swarm1.Blockchain.Tip.BlockHash);
     }
 
     [Fact(Timeout = Timeout)]
@@ -875,10 +725,11 @@ public partial class SwarmTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task FindSpecificPeerAsync()
     {
-        Swarm swarmA = await CreateSwarm();
-        Swarm swarmB = await CreateSwarm();
-        Swarm swarmC = await CreateSwarm();
-        Swarm swarmD = await CreateSwarm();
+        await using var swarmA = await CreateSwarm();
+        await using var swarmB = await CreateSwarm();
+        await using var swarmC = await CreateSwarm();
+        await using var swarmD = await CreateSwarm();
+        var peerDiscoveryA = swarmA.PeerDiscovery;
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -888,15 +739,16 @@ public partial class SwarmTest(ITestOutputHelper output)
         await swarmA.AddPeersAsync([swarmB.Peer], default);
         await swarmB.AddPeersAsync([swarmC.Peer], default);
         await swarmC.AddPeersAsync([swarmD.Peer], default);
+        
 
-        Peer foundPeer = await swarmA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
+        var foundPeer1 = await peerDiscoveryA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
 
-        Assert.Equal(swarmB.Peer.Address, foundPeer.Address);
+        Assert.Equal(swarmB.Peer.Address, foundPeer1.Address);
         Assert.DoesNotContain(swarmC.Peer, swarmA.Peers);
 
-        foundPeer = await swarmA.FindPeerAsync(swarmD.Peer.Address, int.MaxValue, default);
+        var foundPeer2 = await peerDiscoveryA.FindPeerAsync(swarmD.Peer.Address, int.MaxValue, default);
 
-        Assert.Equal(swarmD.Peer.Address, foundPeer.Address);
+        Assert.Equal(swarmD.Peer.Address, foundPeer2.Address);
         Assert.Contains(swarmC.Peer, swarmA.Peers);
         Assert.Contains(swarmD.Peer, swarmA.Peers);
     }
@@ -904,9 +756,10 @@ public partial class SwarmTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task FindSpecificPeerAsyncFail()
     {
-        Swarm swarmA = await CreateSwarm();
-        Swarm swarmB = await CreateSwarm();
-        Swarm swarmC = await CreateSwarm();
+        await using var swarmA = await CreateSwarm();
+        await using var swarmB = await CreateSwarm();
+        await using var swarmC = await CreateSwarm();
+        var peerDiscoveryA = swarmA.PeerDiscovery;
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -917,11 +770,11 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await swarmB.DisposeAsync();
 
-        Peer foundPeer = await swarmA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
+        Peer foundPeer = await peerDiscoveryA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
 
         Assert.Null(foundPeer);
 
-        foundPeer = await swarmA.FindPeerAsync(swarmC.Peer.Address, int.MaxValue, default);
+        foundPeer = await peerDiscoveryA.FindPeerAsync(swarmC.Peer.Address, int.MaxValue, default);
 
         Assert.Null(foundPeer);
         Assert.DoesNotContain(swarmC.Peer, swarmA.Peers);
@@ -930,15 +783,11 @@ public partial class SwarmTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task FindSpecificPeerAsyncDepthFail()
     {
-        Swarm swarmA = await CreateSwarm();
-        Swarm swarmB = await CreateSwarm();
-        Swarm swarmC = await CreateSwarm();
-        Swarm swarmD = await CreateSwarm();
-
-        // _output.WriteLine("{0}: {1}", nameof(swarmA), swarmA.Peer);
-        // _output.WriteLine("{0}: {1}", nameof(swarmB), swarmB.Peer);
-        // _output.WriteLine("{0}: {1}", nameof(swarmC), swarmC.Peer);
-        // _output.WriteLine("{0}: {1}", nameof(swarmD), swarmD.Peer);
+        await using var swarmA = await CreateSwarm();
+        await using var swarmB = await CreateSwarm();
+        await using var swarmC = await CreateSwarm();
+        await using var swarmD = await CreateSwarm();
+        var peerDiscoveryA = swarmA.PeerDiscovery;
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -949,16 +798,16 @@ public partial class SwarmTest(ITestOutputHelper output)
         await swarmB.AddPeersAsync([swarmC.Peer], default);
         await swarmC.AddPeersAsync([swarmD.Peer], default);
 
-        Peer foundPeer = await swarmA.FindPeerAsync(swarmC.Peer.Address, 1, default);
+        var foundPeer1 = await peerDiscoveryA.FindPeerAsync(swarmC.Peer.Address, 1, default);
 
-        Assert.Equal(swarmC.Peer.Address, foundPeer.Address);
+        Assert.Equal(swarmC.Peer.Address, foundPeer1.Address);
         swarmA.RoutingTable.Clear();
         Assert.Empty(swarmA.Peers);
         await swarmA.AddPeersAsync([swarmB.Peer], default);
 
-        foundPeer = await swarmA.FindPeerAsync(swarmD.Peer.Address, 1, default);
+        var foundPeer2 = await peerDiscoveryA.FindPeerAsync(swarmD.Peer.Address, 1, default);
 
-        Assert.Null(foundPeer);
+        Assert.Null(foundPeer2);
     }
 
     [Fact(Timeout = Timeout)]
