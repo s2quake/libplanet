@@ -4,7 +4,7 @@ using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.Data;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;

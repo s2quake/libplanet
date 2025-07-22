@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Libplanet.Net;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.Types;
 
 namespace Libplanet.Node.Services;

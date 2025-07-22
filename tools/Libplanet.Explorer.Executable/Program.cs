@@ -12,7 +12,7 @@ using Libplanet.Explorer.Interfaces;
 using Libplanet.Explorer.Schemas;
 using Libplanet.Net;
 using Libplanet.Net.Options;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.Data.RocksDB;
 using Libplanet.Data;
 using Libplanet.Data.Structures;

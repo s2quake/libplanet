@@ -6,7 +6,7 @@ using Libplanet.Types;
 using Libplanet.Types.Threading;
 using NetMQ;
 
-namespace Libplanet.Net.Transports;
+namespace Libplanet.Net.NetMQ;
 
 internal sealed class NetMQRequestWorker : IAsyncDisposable
 {

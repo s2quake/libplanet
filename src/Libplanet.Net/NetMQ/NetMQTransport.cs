@@ -6,7 +6,7 @@ using Libplanet.Net.Options;
 using Libplanet.Types;
 using NetMQ;
 
-namespace Libplanet.Net.Transports;
+namespace Libplanet.Net.NetMQ;
 
 public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     : ServiceBase, ITransport

@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NetMQ;
 
-namespace Libplanet.Net.Transports;
+namespace Libplanet.Net.NetMQ;
 
 internal static class NetMQPollerExtensions
 {

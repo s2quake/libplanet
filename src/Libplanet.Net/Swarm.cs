@@ -6,7 +6,7 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Types;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using System.Reactive;
 using System.Reactive.Subjects;
 using Libplanet.Types.Threading;
@@ -139,7 +139,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         BroadcastTxs(null, txs);
     }
 
-    public async Task<PeerBlockchainState[]> GetPeerChainStateAsync(
+    public async Task<BlockchainState[]> GetPeerChainStateAsync(
         TimeSpan dialTimeout, CancellationToken cancellationToken)
     {
         return await GetPeerBlockchainStateAsync(dialTimeout, int.MaxValue, cancellationToken);
@@ -321,7 +321,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             .ToArray();
     }
 
-    private async Task<PeerBlockchainState[]> GetPeerBlockchainStateAsync(
+    private async Task<BlockchainState[]> GetPeerBlockchainStateAsync(
         TimeSpan dialTimeout, int maxPeersToDial, CancellationToken cancellationToken)
     {
         var peers = Peers.ToArray();
@@ -342,7 +342,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
         return [.. query];
 
-        static PeerBlockchainState Create(Peer peer, BlockchainStateResponseMessage message)
+        static BlockchainState Create(Peer peer, BlockchainStateResponseMessage message)
             => new(peer, message.Genesis, message.Tip);
     }
 

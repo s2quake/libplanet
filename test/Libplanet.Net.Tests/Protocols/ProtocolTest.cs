@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Protocols;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Xunit.Abstractions;

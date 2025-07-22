@@ -7,7 +7,7 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;

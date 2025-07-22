@@ -1,7 +1,7 @@
 using System.Net;
 using Libplanet.Net;
 using Libplanet.Net.Consensus;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.Node.Options;
 using Libplanet.Types;
 using Microsoft.Extensions.Hosting;

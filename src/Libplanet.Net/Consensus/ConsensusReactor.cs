@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Consensus.ConsensusMessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Threading;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.State;
 using Libplanet.Types;
 

@@ -1,6 +1,6 @@
 using Libplanet.Net.Messages;
 
-namespace Libplanet.Net.Transports;
+namespace Libplanet.Net.NetMQ;
 
 internal sealed record class MessageResponse
 {

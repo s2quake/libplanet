@@ -13,7 +13,7 @@ using Libplanet.Types.Threading;
 using NetMQ;
 using NetMQ.Sockets;
 
-namespace Libplanet.Net.Transports;
+namespace Libplanet.Net.NetMQ;
 
 internal sealed class NetMQDealerSocket(ISigner signer, SynchronizationContext synchronizationContext)
     : IAsyncDisposable

@@ -2,7 +2,7 @@ using System.Net;
 using Libplanet.Types;
 using NetMQ.Sockets;
 
-namespace Libplanet.Net.Transports;
+namespace Libplanet.Net.NetMQ;
 
 internal sealed class NetMQRouterSocket : RouterSocket
 {

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using Libplanet.Net;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.Node.Options;
 using Libplanet.Types;
 using Serilog;

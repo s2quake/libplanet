@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Xunit.Abstractions;

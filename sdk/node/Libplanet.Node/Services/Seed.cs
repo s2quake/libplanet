@@ -2,7 +2,7 @@ using System.Net;
 using Libplanet.Net;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net.Transports;
+using Libplanet.Net.NetMQ;
 using Libplanet.Node.Options;
 using Libplanet.Types;
 using Serilog;
