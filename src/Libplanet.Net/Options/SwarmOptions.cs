@@ -1,5 +1,3 @@
-using Libplanet.Net.Protocols;
-
 namespace Libplanet.Net.Options;
 
 public sealed record class SwarmOptions

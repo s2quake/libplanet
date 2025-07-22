@@ -18,7 +18,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     private readonly TxFetcher _txFetcher;
     private readonly EvidenceFetcher _evidenceFetcher;
     private readonly AccessLimiter _transferEvidenceLimiter;
-    private readonly ServicesCollection _services;
+    private readonly ServiceCollection _services;
     private readonly IMessageHandler[] _messageHandlers;
 
     public Swarm(
@@ -32,10 +32,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         Options = options;
         RoutingTable = new RoutingTable(signer.Address);
         Transport = new NetMQTransport(signer, options.TransportOptions);
+        PeerDiscovery = new PeerDiscovery(RoutingTable, Transport);
         _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
-        // Transport.Process.Subscribe(ProcessMessageHandler);
-        PeerDiscovery = new PeerDiscovery(RoutingTable, Transport);
         BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
         _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _consensusReactor = consensusOption is not null ? new ConsensusReactor(signer, Blockchain, consensusOption) : null;

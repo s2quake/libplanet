@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-internal sealed class ServicesCollection
+internal sealed class ServiceCollection
     : ServiceBase, IEnumerable<IService>
 {
     private readonly List<IService> serviceList = [];

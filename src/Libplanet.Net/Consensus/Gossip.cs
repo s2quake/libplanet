@@ -21,7 +21,7 @@ public sealed class Gossip : ServiceBase
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
     private RoutingTable? _table;
     private PeerDiscovery? _peerDiscovery;
-    private ServicesCollection? _services;
+    private ServiceCollection? _services;
 
     public Gossip(
         ITransport transport, ImmutableHashSet<Peer> seeds, ImmutableHashSet<Peer> validators, GossipOptions options)

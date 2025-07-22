@@ -212,50 +212,15 @@ internal sealed class PeerDiscovery : IDisposable
         await Task.WhenAll(taskList);
     }
 
-    // private void ProcessMessageHandler(IReplyContext messageEnvelope)
-    // {
-    //     switch (messageEnvelope.Message)
-    //     {
-    //         case PingMessage:
-    //             if (messageEnvelope.Sender.Address.Equals(_address))
-    //             {
-    //                 throw new InvalidOperationException("Cannot receive ping from self.");
-    //             }
-
-    //             messageEnvelope.PongAsync();
-    //             break;
-
-    //         case GetPeerMessage getPeerMessage:
-    //             if (messageEnvelope.Sender.Address.Equals(_address))
-    //             {
-    //                 throw new InvalidOperationException("Cannot receive ping from self.");
-    //             }
-
-    //             var target = getPeerMessage.Target;
-    //             var k = RoutingTable.BucketCount;
-    //             var peers = _table.GetNeighbors(target, k, includeTarget: true);
-    //             var peerMessage = new PeerMessage { Peers = [.. peers] };
-    //             messageEnvelope.NextAsync(peerMessage);
-    //             break;
-    //     }
-
-    //     if (messageEnvelope.Sender.Address != _address)
-    //     {
-    //         var peer = messageEnvelope.Sender;
-    //         var peerState = _table.TryGetValue(peer.Address, out var v)
-    //             ? v with { LastUpdated = DateTimeOffset.UtcNow }
-    //             : new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow };
-
-    //         if (!_table.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
-    //         {
-    //             var bucket = _replacementCache.Buckets[peer.Address];
-    //             var oldestPeerState = bucket.Oldest;
-    //             var oldestAddress = oldestPeerState.Address;
-    //             bucket.Remove(oldestAddress);
-    //             bucket.AddOrUpdate(peerState);
-    //         }
-    //     }
-    // }
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _transport.MessageHandlers.RemoveRange(_handlers);
+            _disposed = true;
+            GC.SuppressFinalize(this);
+        }
+    }
 
     private async Task ExplorePeersAsync(Peer viaPeer, Address address, int maxDepth, CancellationToken cancellationToken)
     {
@@ -290,16 +255,6 @@ internal sealed class PeerDiscovery : IDisposable
                 visited.Add(neighbor);
                 queue.Enqueue((neighbor, depth + 1));
             }
-        }
-    }
-
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _transport.MessageHandlers.RemoveRange(_handlers);
-            _disposed = true;
-            GC.SuppressFinalize(this);
         }
     }
 }
