@@ -19,7 +19,7 @@ public class TransactionQueryTest
 
     public TransactionQueryTest()
     {
-        Chain = Libplanet.Tests.TestUtils.MakeBlockChain(
+        Chain = Libplanet.Tests.TestUtils.MakeBlockchain(
             new BlockchainOptions(),
             privateKey: new PrivateKey(),
             timestamp: DateTimeOffset.UtcNow);

@@ -170,7 +170,7 @@ public class BlockPolicyTest : IDisposable
             },
         };
         var privateKey = new PrivateKey();
-        var chain = TestUtils.MakeBlockChain(options);
+        var chain = TestUtils.MakeBlockchain(options);
 
         var tx = new TransactionBuilder
         {
@@ -200,7 +200,7 @@ public class BlockPolicyTest : IDisposable
             },
         };
         var privateKey = new PrivateKey();
-        var chain = TestUtils.MakeBlockChain(policy);
+        var chain = TestUtils.MakeBlockchain(policy);
 
         _ = Enumerable
                 .Range(0, generatedTxCount)
@@ -235,7 +235,7 @@ public class BlockPolicyTest : IDisposable
         };
         var privateKeys = Enumerable.Range(0, keyCount).Select(_ => new PrivateKey()).ToList();
         var minerKey = privateKeys.First();
-        var chain = TestUtils.MakeBlockChain(options);
+        var chain = TestUtils.MakeBlockchain(options);
 
         privateKeys.ForEach(
             key => _ = Enumerable

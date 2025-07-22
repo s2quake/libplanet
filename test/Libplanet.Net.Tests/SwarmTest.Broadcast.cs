@@ -67,7 +67,7 @@ public partial class SwarmTest
     {
         var miner = new PrivateKey();
         var fx = new MemoryRepositoryFixture();
-        var minerChain = MakeBlockChain(fx.Options);
+        var minerChain = MakeBlockchain(fx.Options);
         var policy = fx.Options;
         foreach (int i in Enumerable.Range(0, 10))
         {
@@ -144,7 +144,7 @@ public partial class SwarmTest
         Blockchain receiverChain = receiverSwarm.Blockchain;
         var seedStateStore = new StateIndex();
         BlockchainOptions policy = receiverChain.Options;
-        Blockchain seedChain = MakeBlockChain(
+        Blockchain seedChain = MakeBlockchain(
             options: policy,
             privateKey: receiverKey);
         var seedMiner = new PrivateKey();
@@ -578,7 +578,7 @@ public partial class SwarmTest
             },
         };
         var fx1 = new MemoryRepositoryFixture(options);
-        var blockChain = MakeBlockChain(options);
+        var blockChain = MakeBlockchain(options);
         var privateKey = new PrivateKey();
         var minerSwarm = await CreateSwarm(blockChain, privateKey);
         var fx2 = new MemoryRepositoryFixture();
@@ -586,7 +586,7 @@ public partial class SwarmTest
         // var loggedRenderer = new LoggedActionRenderer(
         //     receiverRenderer,
         //     _logger);
-        var receiverChain = MakeBlockChain(options);
+        var receiverChain = MakeBlockchain(options);
         Swarm receiverSwarm = await CreateSwarm(receiverChain);
 
         int renderCount = 0;

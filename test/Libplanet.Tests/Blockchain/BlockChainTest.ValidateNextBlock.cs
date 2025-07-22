@@ -591,7 +591,7 @@ public partial class BlockChainTest
         var validator4 = new Validator { Address = privateKey4.Address, Power = 1 };
         var validatorSet = ImmutableSortedSet.Create(
             [validator1, validator2, validator3, validator4]);
-        Libplanet.Blockchain blockChain = TestUtils.MakeBlockChain(
+        Libplanet.Blockchain blockChain = TestUtils.MakeBlockchain(
             validatorSet: validatorSet);
         Block validNextBlock = new RawBlock
         {

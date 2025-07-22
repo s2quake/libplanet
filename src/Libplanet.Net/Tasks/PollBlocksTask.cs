@@ -9,7 +9,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : BackgroundServiceBase
 {
     private readonly ITransport _transport = swarm.Transport;
     private readonly Blockchain _blockchain = swarm.Blockchain;
-    private readonly BlockCandidateTable _blockCandidateTable = swarm.BlockCandidateTable;
+    private readonly BlockBranchCollection _blockCandidateTable = swarm.BlockBranches;
     private readonly ConcurrentDictionary<Peer, int> _processBlockDemandSessions = new();
 
     private Block _lastTip = swarm.Blockchain.Tip;
@@ -64,7 +64,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : BackgroundServiceBase
 
         long totalBlocksToDownload = 0L;
         Block tempTip = _blockchain.Tip;
-        var blocks = new List<(Block, BlockCommit)>();
+        var blockPairList = new List<(Block, BlockCommit)>();
 
         try
         {
@@ -85,7 +85,7 @@ internal sealed class PollBlocksTask(Swarm swarm) : BackgroundServiceBase
                     downloadedBlocks.WithCancellation(cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                blocks.Add((block, commit));
+                blockPairList.Add((block, commit));
             }
         }
         catch (Exception e)
@@ -100,8 +100,12 @@ internal sealed class PollBlocksTask(Swarm swarm) : BackgroundServiceBase
             {
                 try
                 {
-                    var branch = blocks.ToImmutableSortedDictionary(item => item.Item1, item => item.Item2);
-                    swarm.BlockCandidateTable.Add(_blockchain.Tip, branch);
+                    var blockBranch = new BlockBranch
+                    {
+                        Blocks = [.. blockPairList.Select(item => item.Item1)],
+                        BlockCommits = [.. blockPairList.Select(item => item.Item2)],
+                    };
+                    swarm.BlockBranches.Add(_blockchain.Tip.BlockHash, blockBranch);
                     // _blockReceivedSubject.OnNext(Unit.Default);
                 }
                 catch (ArgumentException ae)

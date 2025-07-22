@@ -22,7 +22,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     {
         using var blockProposeEvent = new ManualResetEvent(false);
         using var preVoteEvent = new ManualResetEvent(false);
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
         using var _1 = consensus.PreVote.Subscribe(_ =>
         {
@@ -294,7 +294,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
                 MaxTransactionsBytes = 50 * 1024,
             },
         };
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain(blockchainOptions);
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(blockchainOptions);
         await using var consensus = TestUtils.CreateConsensus(blockchain, 1, TestUtils.PrivateKeys[0]);
 
         using var _1 = consensus.StepChanged.Subscribe(step =>
@@ -551,7 +551,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
 
         using var fx = new MemoryRepositoryFixture();
         var privateKey0 = TestUtils.PrivateKeys[0];
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain(fx.Options);
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(fx.Options);
         await using var transport = TestUtils.CreateTransport(privateKey0);
         var options = new ConsensusReactorOptions
         {

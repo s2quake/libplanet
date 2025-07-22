@@ -35,7 +35,7 @@ public partial class SwarmTest
             };
             using (var storeFx = new MemoryRepositoryFixture())
             {
-                var chain = MakeBlockChain(policy);
+                var chain = MakeBlockchain(policy);
                 var miner = new PrivateKey();
                 var signer = new PrivateKey();
                 Address address = signer.Address;
@@ -108,7 +108,7 @@ public partial class SwarmTest
             },
         };
         var fx = new MemoryRepositoryFixture(policy);
-        var blockchain = MakeBlockChain(policy, genesisBlock: genesis);
+        var blockchain = MakeBlockchain(policy, genesisBlock: genesis);
 
         return await CreateSwarm(
             blockchain,

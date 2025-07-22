@@ -90,7 +90,7 @@ public static class TestUtils
 
     public static Blockchain CreateBlockchain(BlockchainOptions? options = null, Block? genesisBlock = null)
     {
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockChain(
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(
             options: options ?? BlockchainOptions,
             genesisBlock: genesisBlock);
         return blockchain;

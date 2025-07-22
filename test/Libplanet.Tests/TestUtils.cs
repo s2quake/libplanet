@@ -269,7 +269,7 @@ public static class TestUtils
         return preEval.Sign(proposer);
     }
 
-    public static Libplanet.Blockchain MakeBlockChain(
+    public static Libplanet.Blockchain MakeBlockchain(
         BlockchainOptions? options = null,
         IEnumerable<IAction>? actions = null,
         ImmutableSortedSet<Validator>? validatorSet = null,

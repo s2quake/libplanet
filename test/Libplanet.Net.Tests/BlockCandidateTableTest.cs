@@ -1,38 +1,29 @@
 using Libplanet.Tests.Store;
-using Libplanet.Types;
 
-namespace Libplanet.Net.Tests
+namespace Libplanet.Net.Tests;
+
+public class BlockCandidateTableTest
 {
-    public class BlockCandidateTableTest
+    [Fact]
+    public void Add()
     {
-        private readonly RepositoryFixture _fx;
+        using var fx = new MemoryRepositoryFixture();
+        var blockBranches = new BlockBranchCollection();
+        var genesis = fx.GenesisBlock;
 
-        public BlockCandidateTableTest()
-        {
-            _fx = new MemoryRepositoryFixture();
-        }
-
-        [Fact]
-        public void Add()
-        {
-            var table = new BlockCandidateTable();
-            var header = _fx.GenesisBlock;
-
-            // Ignore existing key
-            var firstBranch = ImmutableSortedDictionary<Block, BlockCommit>.Empty
-                    .Add(_fx.Block2, TestUtils.CreateBlockCommit(_fx.Block2))
-                    .Add(_fx.Block3, TestUtils.CreateBlockCommit(_fx.Block3))
-                    .Add(_fx.Block4, TestUtils.CreateBlockCommit(_fx.Block4));
-            var secondBranch = ImmutableSortedDictionary<Block, BlockCommit>.Empty
-                    .Add(_fx.Block3, TestUtils.CreateBlockCommit(_fx.Block3))
-                    .Add(_fx.Block4, TestUtils.CreateBlockCommit(_fx.Block4));
-            table.Add(header, firstBranch);
-            Assert.Equal(1, table.Count);
-            table.Add(header, secondBranch);
-            Assert.Equal(1, table.Count);
-            var branch = table.GetCurrentRoundCandidate(header)
-                ?? throw new NullReferenceException();
-            Assert.Equal(branch, firstBranch);
-        }
+        // Ignore existing key
+        var firstBranch = BlockBranch.Create(
+                (fx.Block2, TestUtils.CreateBlockCommit(fx.Block2)),
+                (fx.Block3, TestUtils.CreateBlockCommit(fx.Block3)),
+                (fx.Block4, TestUtils.CreateBlockCommit(fx.Block4)));
+        var secondBranch = BlockBranch.Create(
+                (fx.Block3, TestUtils.CreateBlockCommit(fx.Block3)),
+                (fx.Block4, TestUtils.CreateBlockCommit(fx.Block4)));
+        blockBranches.Add(genesis.BlockHash, firstBranch);
+        Assert.Equal(1, blockBranches.Count);
+        Assert.Throws<ArgumentException>(() => blockBranches.Add(genesis.BlockHash, secondBranch));
+        Assert.Equal(1, blockBranches.Count);
+        var actualBranch = blockBranches[genesis.BlockHash];
+        Assert.Equal(actualBranch, firstBranch);
     }
 }

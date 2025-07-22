@@ -336,7 +336,7 @@ public partial class BlockChainTest : IDisposable
     {
         var options = new BlockchainOptions();
         var generatedRandomValueLogs = new List<int>();
-        var blockChain = MakeBlockChain(options);
+        var blockChain = MakeBlockchain(options);
         var privateKey = new PrivateKey();
         blockChain.StagedTransactions.Add(privateKey, submission: new()
         {
@@ -361,7 +361,7 @@ public partial class BlockChainTest : IDisposable
     public void RenderActionsAfterBlockIsRendered()
     {
         var options = new BlockchainOptions();
-        var blockChain = MakeBlockChain(options);
+        var blockChain = MakeBlockchain(options);
         var privateKey = new PrivateKey();
 
         var action = DumbAction.Create((default, string.Empty));
@@ -409,7 +409,7 @@ public partial class BlockChainTest : IDisposable
         //     },
         // };
         // renderer = new LoggedActionRenderer(renderer, Log.Logger);
-        Libplanet.Blockchain blockChain = MakeBlockChain(policy);
+        Libplanet.Blockchain blockChain = MakeBlockchain(policy);
         var privateKey = new PrivateKey();
 
         var action = DumbAction.Create((default, string.Empty));

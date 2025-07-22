@@ -114,7 +114,7 @@ public sealed class WorldTest
     public void TransferAssetInBlock()
     {
         var proposer = new PrivateKey();
-        var blockChain = TestUtils.MakeBlockChain(
+        var blockChain = TestUtils.MakeBlockchain(
             protocolVersion: ProtocolVersion,
             privateKey: proposer);
 

@@ -11,27 +11,28 @@ internal sealed class ConsumeBlockCandidatesTask(Swarm swarm) : BackgroundServic
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-         if (swarm.BlockCandidateTable.Count > 0)
+        var blockBranches = swarm.BlockBranches;
+        if (blockBranches.Count > 0)
+        {
+            BlockHeader tipHeader = swarm.Blockchain.Tip.Header;
+            if (blockBranches.TryGetValue(swarm.Blockchain.Tip.BlockHash, out var blockBranch))
             {
-                BlockHeader tipHeader = swarm.Blockchain.Tip.Header;
-                if (swarm.BlockCandidateTable.GetCurrentRoundCandidate(swarm.Blockchain.Tip) is { } branch)
-                {
-                    var root = branch.Keys.First();
-                    var tip = branch.Keys.Last();
-                    _ = swarm.BlockCandidateProcess(
-                        branch,
-                        cancellationToken);
-                    // _blockAppendedSubject.OnNext(Unit.Default);
-                }
+                // var root = blockBranch.Keys.First();
+                // var tip = blockBranch.Keys.Last();
+                _ = swarm.BlockCandidateProcessAsync(
+                    blockBranch,
+                    cancellationToken);
+                // _blockAppendedSubject.OnNext(Unit.Default);
             }
-            // else if (checkInterval is { } interval)
-            // {
-            //     await Task.Delay(interval, cancellationToken);
-            //     continue;
-            // }
-            // else
-            // {
-            //     break;
-            // }
+        }
+        // else if (checkInterval is { } interval)
+        // {
+        //     await Task.Delay(interval, cancellationToken);
+        //     continue;
+        // }
+        // else
+        // {
+        //     break;
+        // }
     }
 }

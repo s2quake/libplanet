@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
@@ -9,10 +8,8 @@ using Libplanet.Types;
 using Libplanet.Net.NetMQ;
 using System.Reactive;
 using System.Reactive.Subjects;
-using Libplanet.Types.Threading;
 using Libplanet.Net.Tasks;
 using Libplanet.Net.MessageHandlers;
-using System.Runtime.CompilerServices;
 
 namespace Libplanet.Net;
 
@@ -21,10 +18,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     private readonly Subject<Unit> _blockHeaderReceivedSubject = new();
     private readonly Subject<Unit> _blockReceivedSubject = new();
     private readonly Subject<Unit> _blockAppendedSubject = new();
-
-    private readonly Subject<Unit> _fillBlocksAsyncStartedSubject = new();
-    private readonly Subject<Unit> _fillBlocksAsyncFailedSubject = new();
-    private readonly Subject<Unit> _processFillBlocksFinishedSubject = new();
 
     private readonly ISigner _signer;
     private readonly ConsensusReactor? _consensusReactor;
@@ -140,13 +133,8 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         BroadcastTxs(null, txs);
     }
 
-    private async Task PreloadAsync(CancellationToken cancellationToken)
+    public async Task SyncAsync(CancellationToken cancellationToken)
     {
-        if (!Options.PreloadOptions.Enabled)
-        {
-            return;
-        }
-
         using CancellationTokenRegistration ctr = cancellationToken.Register(() => { });
 
         var dialTimeout = Options.PreloadOptions.DialTimeout;
@@ -174,7 +162,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
                 break;
             }
 
-            BlockCandidateTable.Cleanup((_) => true);
+            BlockBranches.RemoveAll((_) => true);
             await PullBlocksAsync(peersWithExcerpts, cancellationToken);
             // await ConsumeBlockCandidates(cancellationToken: cancellationToken);
             i++;
@@ -223,7 +211,11 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        await PreloadAsync(cancellationToken);
+        if (Options.PreloadOptions.Enabled)
+        {
+            await SyncAsync(cancellationToken);
+        }
+
         await Transport.StartAsync(cancellationToken);
         await BootstrapAsync(cancellationToken);
         if (_consensusReactor is not null)
@@ -244,7 +236,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         }
 
         BlockDemandDictionary = new BlockDemandDictionary(Options.BlockDemandLifespan);
-        BlockCandidateTable.Cleanup(_ => true);
+        BlockBranches.RemoveAll(_ => true);
     }
 
     protected override async ValueTask DisposeAsyncCore()
@@ -515,7 +507,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public BlockDemandDictionary BlockDemandDictionary { get; private set; }
 
-    public BlockCandidateTable BlockCandidateTable { get; } = new BlockCandidateTable();
+    public BlockBranchCollection BlockBranches { get; } = new BlockBranchCollection();
 
     internal async Task PullBlocksAsync(TimeSpan timeout, int maximumPollPeers, CancellationToken cancellationToken)
     {
@@ -540,7 +532,8 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
         long totalBlocksToDownload = 0L;
         Block tempTip = Blockchain.Tip;
-        var blocks = new List<(Block, BlockCommit)>();
+        var blockList = new List<Block>();
+        var blockCommitList = new List<BlockCommit>();
 
         try
         {
@@ -553,12 +546,13 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
             await foreach ((Block block, BlockCommit commit) in query.WithCancellation(cancellationToken))
             {
-                blocks.Add((block, commit));
+                blockList.Add(block);
+                blockCommitList.Add(commit);
             }
         }
         catch (Exception e)
         {
-            _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
+            // _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
         }
         finally
         {
@@ -566,8 +560,13 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             {
                 try
                 {
-                    var branch = blocks.ToImmutableSortedDictionary(item => item.Item1, item => item.Item2);
-                    BlockCandidateTable.Add(Blockchain.Tip, branch);
+                    // var branch = blockList.ToImmutableSortedDictionary(item => item.Item1, item => item.Item2);
+                    var blockBranch = new BlockBranch
+                    {
+                        Blocks = [.. blockList],
+                        BlockCommits = [.. blockCommitList],
+                    };
+                    BlockBranches.Add(Blockchain.Tip.BlockHash, blockBranch);
                     _blockReceivedSubject.OnNext(Unit.Default);
                 }
                 catch (ArgumentException ae)
@@ -576,66 +575,39 @@ public sealed class Swarm : ServiceBase, IServiceProvider
                 }
             }
 
-            _processFillBlocksFinishedSubject.OnNext(Unit.Default);
+            // _processFillBlocksFinishedSubject.OnNext(Unit.Default);
         }
     }
 
-    internal bool BlockCandidateProcess(
-        ImmutableSortedDictionary<Block, BlockCommit> candidate,
-        CancellationToken cancellationToken)
+    internal async Task<bool> BlockCandidateProcessAsync(
+        BlockBranch blockBranch, CancellationToken cancellationToken)
     {
         try
         {
-            _fillBlocksAsyncStartedSubject.OnNext(Unit.Default);
-            AppendBranch(
+            await AppendBranchAsync(
                 blockchain: Blockchain,
-                candidate: candidate,
+                blockBranch: blockBranch,
                 cancellationToken: cancellationToken);
-            _processFillBlocksFinishedSubject.OnNext(Unit.Default);
             return true;
         }
-        catch (Exception e)
+        catch
         {
-            _fillBlocksAsyncFailedSubject.OnNext(Unit.Default);
             return false;
         }
     }
 
-    private void AppendBranch(
-        Blockchain blockchain,
-        ImmutableSortedDictionary<Block, BlockCommit> candidate,
-        CancellationToken cancellationToken = default)
+    private async ValueTask AppendBranchAsync(
+        Blockchain blockchain, BlockBranch blockBranch, CancellationToken cancellationToken)
     {
-        var oldTip = blockchain.Tip;
-        var branchpoint = oldTip;
-        var blocks = ExtractBlocksToAppend(branchpoint, candidate);
-        var verifiedBlockCount = 0;
+        var branchPoint = blockchain.Tip;
+        var actualBranch = blockBranch.TakeAfter(branchPoint);
 
-        foreach (var (block, commit) in blocks)
+        for (var i = 0; i < actualBranch.Blocks.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            blockchain.Append(block, commit);
-            verifiedBlockCount++;
+            blockchain.Append(actualBranch.Blocks[i], actualBranch.BlockCommits[i]);
+            await Task.Yield();
         }
-    }
-
-    private List<(Block, BlockCommit)> ExtractBlocksToAppend(Block branchpoint, ImmutableSortedDictionary<Block, BlockCommit> branch)
-    {
-        var trimmed = new List<(Block, BlockCommit)>();
-        bool matchFound = false;
-        foreach (var (key, value) in branch)
-        {
-            if (matchFound)
-            {
-                trimmed.Add((key, value));
-            }
-            else
-            {
-                matchFound = branchpoint.BlockHash.Equals(key.BlockHash);
-            }
-        }
-
-        return trimmed;
     }
 
     public object? GetService(Type serviceType)

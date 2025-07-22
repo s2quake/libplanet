@@ -13,7 +13,7 @@ internal sealed class FillBlocksTask(Swarm swarm) : BackgroundServiceBase
 {
     private readonly ITransport _transport = swarm.Transport;
     private readonly Blockchain _blockchain = swarm.Blockchain;
-    private readonly BlockCandidateTable _blockCandidateTable = swarm.BlockCandidateTable;
+    private readonly BlockBranchCollection _blockCandidateTable = swarm.BlockBranches;
     private readonly ConcurrentDictionary<Peer, int> _processBlockDemandSessions = new();
 
     protected override TimeSpan Interval => TimeSpan.FromMilliseconds(100);
@@ -104,17 +104,16 @@ internal sealed class FillBlocksTask(Swarm swarm) : BackgroundServiceBase
             return false;
         }
 
-        IAsyncEnumerable<(Block, BlockCommit)> blocksAsync = GetBlocksAsync(
-            peer,
-            hashes,
-            cancellationToken);
+        var query = GetBlocksAsync(peer, hashes, cancellationToken);
         try
         {
-            var items = await blocksAsync.ToArrayAsync(cancellationToken);
-            var branch = items.ToImmutableSortedDictionary(
-                item => item.Item1,
-                item => item.Item2);
-            _blockCandidateTable.Add(tip, branch);
+            var blockPairs = await query.ToArrayAsync(cancellationToken);
+            var blockBranch = new BlockBranch
+            {
+                Blocks = [.. blockPairs.Select(item => item.Item1)],
+                BlockCommits = [.. blockPairs.Select(item => item.Item2)],
+            };
+            _blockCandidateTable.Add(tip.BlockHash, blockBranch);
             return true;
         }
         catch (ArgumentException ae)

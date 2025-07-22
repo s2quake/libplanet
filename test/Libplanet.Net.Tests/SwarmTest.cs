@@ -500,8 +500,8 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task CannotBlockSyncWithForkedChain()
     {
         var blockchainOptions = new BlockchainOptions();
-        var blockchain1 = MakeBlockChain(blockchainOptions);
-        var blockchain2 = MakeBlockChain(blockchainOptions);
+        var blockchain1 = MakeBlockchain(blockchainOptions);
+        var blockchain2 = MakeBlockchain(blockchainOptions);
 
         var key1 = new PrivateKey();
         var key2 = new PrivateKey();
@@ -571,9 +571,9 @@ public partial class SwarmTest(ITestOutputHelper output)
         using var fx2 = new MemoryRepositoryFixture();
 
         await using var swarmA = await CreateSwarm(
-            MakeBlockChain(blockchainOptions, privateKey: validKey));
+            MakeBlockchain(blockchainOptions, privateKey: validKey));
         await using var swarmB = await CreateSwarm(
-            MakeBlockChain(blockchainOptions, privateKey: validKey));
+            MakeBlockchain(blockchainOptions, privateKey: validKey));
 
         var invalidKey = new PrivateKey();
 
@@ -621,9 +621,9 @@ public partial class SwarmTest(ITestOutputHelper output)
         using var fx2 = new MemoryRepositoryFixture();
 
         var swarmA = await CreateSwarm(
-            MakeBlockChain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue));
+            MakeBlockchain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue));
         var swarmB = await CreateSwarm(
-            MakeBlockChain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue.AddSeconds(1)));
+            MakeBlockchain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue.AddSeconds(1)));
 
         var tx = swarmA.Blockchain.StagedTransactions.Add(validKey);
 
@@ -658,18 +658,18 @@ public partial class SwarmTest(ITestOutputHelper output)
         var actionsA = new[] { DumbAction.Create((signerAddress, "1")) };
         var actionsB = new[] { DumbAction.Create((signerAddress, "2")) };
 
-        var genesisChainA = MakeBlockChain(
+        var genesisChainA = MakeBlockchain(
             new BlockchainOptions(),
             actionsA,
             null,
             privateKeyA);
         var genesisBlockA = genesisChainA.Genesis;
-        var genesisChainB = MakeBlockChain(
+        var genesisChainB = MakeBlockchain(
             new BlockchainOptions(),
             actionsB,
             null,
             privateKeyB);
-        var genesisChainC = MakeBlockChain(
+        var genesisChainC = MakeBlockchain(
             new BlockchainOptions(),
             genesisBlock: genesisBlockA);
 
