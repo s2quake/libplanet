@@ -47,7 +47,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new EvidenceBroadcastTask(this),
             new FillBlocksTask(this),
             new PollBlocksTask(this),
-            new ConsumeBlockCandidatesTask(this),
+            // new ConsumeBlockCandidatesTask(this),
             new RefreshTableTask(PeerDiscovery, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
             new MaintainStaticPeerTask(this),
@@ -114,14 +114,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public async Task SyncAsync(CancellationToken cancellationToken)
     {
-        using CancellationTokenRegistration ctr = cancellationToken.Register(() => { });
-
         var dialTimeout = Options.PreloadOptions.DialTimeout;
         var tipDeltaThreshold = Options.PreloadOptions.TipDeltaThreshold;
 
-        // FIXME: Currently `IProgress<PreloadState>` can be rewinded to the previous stage
-        // as it starts from the first stage when it's still not close enough to the topmost
-        // tip in the network.
         var i = 0;
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -134,15 +129,19 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
             var tip = Blockchain.Tip;
             var topmostTip = blockchainStates
-                .Select(pair => pair.Tip)
-                .Aggregate((prev, next) => prev.Height > next.Height ? prev : next);
-            if (topmostTip.Height - (i > 0 ? tipDeltaThreshold : 0L) <= tip.Height)
+                .Select(item => item.Tip)
+                .Aggregate((s, n) => s.Height > n.Height ? s : n);
+            if (topmostTip.Height - (i > 0 ? tipDeltaThreshold : 0) <= tip.Height)
             {
                 break;
             }
 
-            BlockBranches.RemoveAll((_) => true);
+            BlockBranches.Clear();
             await PullBlocksAsync(blockchainStates, cancellationToken);
+            if (BlockBranches.TryGetValue(Blockchain.Tip.BlockHash, out var blockBranch))
+            {
+                await BlockCandidateProcessAsync(blockBranch, cancellationToken);
+            }
             // await ConsumeBlockCandidates(cancellationToken: cancellationToken);
             i++;
         }
@@ -310,7 +309,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
                 BlockBranches.Add(Blockchain.Tip.BlockHash, blockBranch);
                 return true;
             }
-
         }
         catch (Exception)
         {

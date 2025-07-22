@@ -6,5 +6,5 @@ public sealed record class PreloadOptions
 
     public TimeSpan DialTimeout { get; init; } = TimeSpan.FromSeconds(5);
 
-    public long TipDeltaThreshold { get; init; } = 25L;
+    public int TipDeltaThreshold { get; init; } = 25;
 }

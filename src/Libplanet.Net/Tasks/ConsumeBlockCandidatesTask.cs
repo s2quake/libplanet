@@ -19,9 +19,9 @@ internal sealed class ConsumeBlockCandidatesTask(Swarm swarm) : BackgroundServic
             {
                 // var root = blockBranch.Keys.First();
                 // var tip = blockBranch.Keys.Last();
-                _ = swarm.BlockCandidateProcessAsync(
-                    blockBranch,
-                    cancellationToken);
+                // _ = swarm.BlockCandidateProcessAsync(
+                //     blockBranch,
+                //     cancellationToken);
                 // _blockAppendedSubject.OnNext(Unit.Default);
             }
         }

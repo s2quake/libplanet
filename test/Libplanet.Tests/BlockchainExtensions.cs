@@ -1,5 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Types;
+using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Tests;
 
@@ -20,5 +22,24 @@ public static class BlockchainExtensions
         {
             await Task.Delay(100, cancellationToken);
         }
+    }
+
+    public static (Block, BlockCommit) ProposeAndAppend(this Libplanet.Blockchain @this, PrivateKey signer)
+    {
+        var block = @this.ProposeBlock(signer);
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        @this.Append(block, blockCommit);
+        return (block, blockCommit);
+    }
+
+    public static (Block, BlockCommit)[] ProposeAndAppendMany(this Libplanet.Blockchain @this, PrivateKey signer, int count)
+    {
+        var blocks = new (Block, BlockCommit)[count];
+        for (var i = 0; i < count; i++)
+        {
+            blocks[i] = @this.ProposeAndAppend(signer);
+        }
+
+        return blocks;
     }
 }

@@ -7,28 +7,28 @@ namespace Libplanet.Net;
 
 public sealed class BlockBranchCollection : IEnumerable<BlockBranch>
 {
-    private readonly ConcurrentDictionary<BlockHash, BlockBranch> _table = new();
+    private readonly ConcurrentDictionary<BlockHash, BlockBranch> _branchByHash = new();
 
-    public int Count => _table.Count;
+    public int Count => _branchByHash.Count;
 
-    public BlockBranch this[BlockHash blockHash] => _table[blockHash];
+    public BlockBranch this[BlockHash blockHash] => _branchByHash[blockHash];
 
     public void Add(BlockHash blockHash, BlockBranch branch)
     {
-        if (!_table.TryAdd(blockHash, branch))
+        if (!_branchByHash.TryAdd(blockHash, branch))
         {
             throw new ArgumentException("A block branch with the same hash already exists.", nameof(blockHash));
         }
     }
 
     public bool TryGetValue(BlockHash blockHash, [MaybeNullWhen(false)] out BlockBranch value)
-        => _table.TryGetValue(blockHash, out value);
+        => _branchByHash.TryGetValue(blockHash, out value);
 
-    public bool Remove(BlockHash blockHash) => _table.TryRemove(blockHash, out _);
+    public bool Remove(BlockHash blockHash) => _branchByHash.TryRemove(blockHash, out _);
 
     public void RemoveAll(Func<BlockHash, bool> predicate)
     {
-        foreach (var blockHash in _table.Keys.ToArray())
+        foreach (var blockHash in _branchByHash.Keys.ToArray())
         {
             if (!predicate(blockHash))
             {
@@ -37,7 +37,9 @@ public sealed class BlockBranchCollection : IEnumerable<BlockBranch>
         }
     }
 
-    public IEnumerator<BlockBranch> GetEnumerator() => _table.Values.GetEnumerator();
+    public void Clear() => _branchByHash.Clear();
+
+    public IEnumerator<BlockBranch> GetEnumerator() => _branchByHash.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

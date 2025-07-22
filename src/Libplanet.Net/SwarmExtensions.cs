@@ -31,20 +31,4 @@ public static class SwarmExtensions
         static BlockchainState Create(Peer peer, BlockchainStateResponseMessage message)
             => new(peer, message.Genesis, message.Tip);
     }
-
-    // public static async IAsyncEnumerable<(Peer, BlockSummary)> GetPeersWithBlockSummary(
-    //     this Swarm @this,
-    //     TimeSpan dialTimeout,
-    //     [EnumeratorCancellation] CancellationToken cancellationToken)
-    // {
-    //     var blockchain = @this.Blockchain;
-    //     await foreach (var blockchainState in GetBlockchainStateAsync(@this, dialTimeout, cancellationToken))
-    //     {
-    //         if (blockchainState.Genesis.BlockHash == blockchain.Genesis.BlockHash &&
-    //             blockchainState.Tip.Height > blockchain.Tip.Height)
-    //         {
-    //             yield return (blockchainState.Peer, blockchainState.Tip);
-    //         }
-    //     }
-    // }
 }

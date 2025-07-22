@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using Libplanet.Types;
-using Libplanet.TestUtilities.Extensions;
+using Libplanet.Tests;
 
 namespace Libplanet.Net.Tests;
 
@@ -10,20 +10,16 @@ public partial class SwarmTest
     public async Task InitialBlockDownload()
     {
         var keyA = new PrivateKey();
-
         await using var swarmA = await CreateSwarm(keyA);
         await using var swarmB = await CreateSwarm();
 
         var blockchainA = swarmA.Blockchain;
         var blockchainB = swarmB.Blockchain;
 
-        for (var i = 0; i < 10; i++)
-        {
-            var block = blockchainA.ProposeBlock(keyA);
-            blockchainA.Append(block, TestUtils.CreateBlockCommit(block));
-        }
+        blockchainA.ProposeAndAppendMany(keyA, count: 10);
 
         await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
         await swarmB.AddPeersAsync([swarmA.Peer], default);
 
         await swarmB.SyncAsync(default);

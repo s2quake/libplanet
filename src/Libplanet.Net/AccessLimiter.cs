@@ -11,12 +11,17 @@ internal sealed class AccessLimiter(int maximum) : IDisposable
 
     public async Task<IDisposable?> CanAccessAsync(CancellationToken cancellationToken)
     {
-        if (_semaphore is { } semaphore && await semaphore.WaitAsync(TimeSpan.Zero, cancellationToken))
+        if (_semaphore is { } semaphore)
         {
-            return new Releaser(semaphore);
+            if (await semaphore.WaitAsync(TimeSpan.Zero, cancellationToken))
+            {
+                return new Releaser(semaphore);
+            }
+
+            return null;
         }
 
-        return null;
+        return new Releaser(null);
     }
 
     private sealed class Releaser(SemaphoreSlim? semaphore) : IDisposable
