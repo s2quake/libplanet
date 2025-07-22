@@ -13,15 +13,11 @@ internal sealed class BlockRequestMessageHandler(Swarm swarm, SwarmOptions optio
     private readonly ITransport _transport = swarm.Transport;
     private readonly AccessLimiter _accessLimiter = new(options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
 
-    public void Dispose()
-    {
-        _accessLimiter.Dispose();
-    }
+    public void Dispose() => _accessLimiter.Dispose();
 
-    protected override void OnHandle(
-        BlockRequestMessage message, MessageEnvelope messageEnvelope)
+    protected override void OnHandle(BlockRequestMessage message, MessageEnvelope messageEnvelope)
     {
-        _ = OnHandleAsync(message, messageEnvelope, default).AsTask();
+        _ = Task.Run(async () => await OnHandleAsync(message, messageEnvelope, default));
     }
 
     private async ValueTask OnHandleAsync(
@@ -44,10 +40,6 @@ internal sealed class BlockRequestMessageHandler(Swarm swarm, SwarmOptions optio
                 blockList.Add(block);
                 blockCommitList.Add(blockCommit);
             }
-            else
-            {
-                int qewr = 0;
-            }
 
             if (blockList.Count == message.ChunkSize)
             {
@@ -59,6 +51,7 @@ internal sealed class BlockRequestMessageHandler(Swarm swarm, SwarmOptions optio
                 _transport.Post(messageEnvelope.Sender, response, messageEnvelope.Identity);
                 blockList.Clear();
                 blockCommitList.Clear();
+                await Task.Yield();
             }
         }
 
@@ -69,5 +62,6 @@ internal sealed class BlockRequestMessageHandler(Swarm swarm, SwarmOptions optio
             IsLast = true,
         };
         _transport.Post(messageEnvelope.Sender, lastResponse, messageEnvelope.Identity);
+        await Task.Yield();
     }
 }

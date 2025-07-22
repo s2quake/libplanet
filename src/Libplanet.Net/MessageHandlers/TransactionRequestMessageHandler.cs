@@ -34,15 +34,32 @@ internal sealed class TransactionRequestMessageHandler(Swarm swarm, SwarmOptions
         }
 
         var txIds = message.TxIds;
-        var txs = txIds
-            .Select(txId => _blockchain.Transactions.TryGetValue(txId, out var tx) ? tx : null)
-            .OfType<Transaction>()
-            .ToImmutableArray();
-
-        var response = new TransactionResponseMessage
+        var txList = new List<Transaction>();
+        foreach (var txId in txIds)
         {
-            Transactions = txs,
+            if (_blockchain.Transactions.TryGetValue(txId, out var transaction))
+            {
+                txList.Add(transaction);
+            }
+
+            if (txList.Count == message.ChunkSize)
+            {
+                var response = new TransactionResponseMessage
+                {
+                    Transactions = [.. txList]
+                };
+                _transport.Post(messageEnvelope.Sender, response, messageEnvelope.Identity);
+                txList.Clear();
+                await Task.Yield();
+            }
+        }
+
+        var lastResponse = new TransactionResponseMessage
+        {
+            Transactions = [.. txList],
+            IsLast = true,
         };
-        _transport.Post(messageEnvelope.Sender, response, messageEnvelope.Identity);
+        _transport.Post(messageEnvelope.Sender, lastResponse, messageEnvelope.Identity);
+        await Task.Yield();
     }
 }

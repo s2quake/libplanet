@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 using Libplanet.Extensions;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
+using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Tests;
 
@@ -1084,40 +1085,43 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var swarm1 = await CreateSwarm();
         await using var swarm2 = await CreateSwarm(key2);
         await using var swarm3 = await CreateSwarm();
+        var blockchain2 = swarm2.Blockchain;
+        var blockchain3 = swarm3.Blockchain;
 
-        var peerChainState = await swarm1.GetPeerChainStateAsync(
-            TimeSpan.FromSeconds(1), default);
-        Assert.Empty(peerChainState);
+        var blockchainStates1 = await swarm1.GetBlockchainStateAsync(TimeSpan.FromSeconds(1), default)
+            .ToArrayAsync(default);
+        Assert.Empty(blockchainStates1);
 
+        await swarm1.StartAsync(default);
         await swarm2.StartAsync(default);
         await swarm3.StartAsync(default);
 
         await swarm1.AddPeersAsync([swarm2.Peer], default);
 
-        peerChainState = await swarm1.GetPeerChainStateAsync(
-            TimeSpan.FromSeconds(1), default);
-        // Assert.Equal(
-        //     new PeerBlockchainState(swarm2.Peer, 0),
-        //     peerChainState.First());
+        var blockchainStates2 = await swarm1.GetBlockchainStateAsync(TimeSpan.FromSeconds(1), default)
+            .ToArrayAsync(default);
+        Assert.Equal(
+            new BlockchainState(swarm2.Peer, blockchain2.Genesis, blockchain2.Genesis),
+            blockchainStates2[0]);
 
-        Block block = swarm2.Blockchain.ProposeBlock(key2);
-        swarm2.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
-        peerChainState = await swarm1.GetPeerChainStateAsync(
-            TimeSpan.FromSeconds(1), default);
-        // Assert.Equal(
-        //     new PeerBlockchainState(swarm2.Peer, 1),
-        //     peerChainState.First());
+        var block = blockchain2.ProposeBlock(key2);
+        blockchain2.Append(block, TestUtils.CreateBlockCommit(block));
+
+        var blockchainStates3 = await swarm1.GetBlockchainStateAsync(TimeSpan.FromSeconds(1), default)
+            .ToArrayAsync(default);
+        Assert.Equal(
+            new BlockchainState(swarm2.Peer, blockchain2.Genesis, blockchain2.Tip),
+            blockchainStates3[0]);
 
         await swarm1.AddPeersAsync([swarm3.Peer], default);
-        peerChainState = await swarm1.GetPeerChainStateAsync(
-            TimeSpan.FromSeconds(1), default);
-        // Assert.Equal(
-        //     new[]
-        //     {
-        //         new PeerBlockchainState(swarm2.Peer, 1),
-        //         new PeerBlockchainState(swarm3.Peer, 0),
-        //     }.ToHashSet(),
-        //     peerChainState.ToHashSet());
+        var blockchainStates4 = await swarm1.GetBlockchainStateAsync(TimeSpan.FromSeconds(1), default)
+            .ToArrayAsync(default);
+        Assert.Equal(
+            [
+                new BlockchainState(swarm2.Peer, blockchain2.Genesis, blockchain2.Tip),
+                new BlockchainState(swarm3.Peer, blockchain3.Genesis, blockchain3.Tip),
+            ],
+            blockchainStates4.ToHashSet());
     }
 
     [RetryFact(10, Timeout = Timeout)]
@@ -1135,33 +1139,31 @@ public partial class SwarmTest(ITestOutputHelper output)
             },
         };
 
-        var key = new PrivateKey();
-        Swarm swarm = await CreateSwarm(options: options)
-            .ConfigureAwait(false);
+        await using var swarm = await CreateSwarm(options: options);
         var transport = swarm.Transport;
 
         await swarm.StartAsync(default);
-        await transport.StartAsync(default);
         var tasks = new List<Task>();
-        var content = new BlockRequestMessage { BlockHashes = [swarm.Blockchain.Genesis.BlockHash] };
-        for (int i = 0; i < 5; i++)
+        BlockHash[] blockHashes = [swarm.Blockchain.Genesis.BlockHash];
+        for (var i = 0; i < 5; i++)
         {
-            tasks.Add(
-                Task.Run(async () => transport.Post(swarm.Peer, content)));
+            tasks.Add(transport.GetBlocksAsync(swarm.Peer, blockHashes, default).ToArrayAsync(default).AsTask());
         }
 
-        try
-        {
-            await Task.WhenAll(tasks);
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
+        await TaskUtility.TryWhenAll(tasks);
+
+        var failedTasks = tasks.Where(item => item.IsFaulted);
+        var succeededTasks = tasks.Where(item => item.IsCompletedSuccessfully);
 
         Assert.Equal(
             options.TaskRegulationOptions.MaxTransferBlocksTaskCount,
-            tasks.Count(t => t.IsCompletedSuccessfully));
+            succeededTasks.Count());
+        Assert.All(failedTasks, task =>
+        {
+            var e = Assert.IsType<AggregateException>(task.Exception);
+            var ie = Assert.Single(e.InnerExceptions);
+            Assert.IsType<TimeoutException>(ie);
+        });
     }
 
     [RetryFact(10, Timeout = Timeout)]
@@ -1179,34 +1181,32 @@ public partial class SwarmTest(ITestOutputHelper output)
             },
         };
 
-        var key = new PrivateKey();
-        Swarm swarm = await CreateSwarm(
-                options: options)
-            .ConfigureAwait(false);
+        await using var swarm = await CreateSwarm(options: options);
         var transport = swarm.Transport;
+        var blockchain = swarm.Blockchain;
+        var txIds = blockchain.Transactions.Keys.ToArray();
 
         await swarm.StartAsync(default);
-        var fx = new MemoryRepositoryFixture();
-        await transport.StartAsync(default);
+
         var tasks = new List<Task>();
-        var content = new TransactionRequestMessage { TxIds = [fx.TxId1] };
-        for (int i = 0; i < 5; i++)
+        for (var i = 0; i < 5; i++)
         {
-            tasks.Add(
-                Task.Run(async () => transport.Post(swarm.Peer, content)));
+            tasks.Add(transport.GetTransactionsAsync(swarm.Peer, txIds, default).ToArrayAsync(default).AsTask());
         }
 
-        try
-        {
-            await Task.WhenAll(tasks);
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
+        await TaskUtility.TryWhenAll(tasks);
+
+        var failedTasks = tasks.Where(item => item.IsFaulted);
+        var succeededTasks = tasks.Where(item => item.IsCompletedSuccessfully);
 
         Assert.Equal(
             options.TaskRegulationOptions.MaxTransferBlocksTaskCount,
-            tasks.Count(t => t.IsCompletedSuccessfully));
+            succeededTasks.Count());
+        Assert.All(failedTasks, task =>
+        {
+            var e = Assert.IsType<AggregateException>(task.Exception);
+            var ie = Assert.Single(e.InnerExceptions);
+            Assert.IsType<TimeoutException>(ie);
+        });
     }
 }

@@ -163,6 +163,24 @@ public static class ITransportExtensions
         }
     }
 
+    internal static async IAsyncEnumerable<Transaction> GetTransactionsAsync(
+        this ITransport @this,
+        Peer peer,
+        TxId[] txIds,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var request = new TransactionRequestMessage { TxIds = [.. txIds] };
+        var isLast = new Func<TransactionResponseMessage, bool>(response => response.IsLast);
+        await foreach (var response in @this.SendAsync(peer, request, isLast, cancellationToken))
+        {
+            for (var i = 0; i < response.Transactions.Length; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                yield return response.Transactions[i];
+            }
+        }
+    }
+
     public static async Task<ImmutableArray<Peer>> GetNeighborsAsync(
         this ITransport @this, Peer peer, Address target, CancellationToken cancellationToken)
     {
@@ -170,33 +188,4 @@ public static class ITransportExtensions
         var response = await @this.SendAsync<PeerMessage>(peer, request, cancellationToken);
         return response.Peers;
     }
-
-    // internal static async ValueTask TransferAsync(this IReplyContext @this, Transaction[] transactions)
-    // {
-    //     var replyMessage = new TransactionMessage
-    //     {
-    //         Transactions = [.. transactions],
-    //     };
-    //     await @this.NextAsync(replyMessage);
-    // }
-
-    // internal static async ValueTask TransferAsync(this IReplyContext @this, EvidenceBase[] evidence)
-    // {
-    //     var replyMessage = new EvidenceMessage
-    //     {
-    //         Evidence = [.. evidence],
-    //     };
-    //     await @this.NextAsync(replyMessage);
-    // }
-
-    // internal static async ValueTask TransferAsync(
-    //     this IReplyContext @this, Block[] blocks, BlockCommit[] blockCommits, bool hasNext = false)
-    // {
-    //     var replyMessage = new BlockMessage
-    //     {
-    //         Blocks = [.. blocks],
-    //         BlockCommits = [.. blockCommits],
-    //     };
-    //     await @this.NextAsync(replyMessage);
-    // }
 }

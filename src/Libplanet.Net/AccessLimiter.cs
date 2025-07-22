@@ -16,7 +16,7 @@ internal sealed class AccessLimiter(int maximum) : IDisposable
             return new Releaser(semaphore);
         }
 
-        return new Releaser(null);
+        return null;
     }
 
     private sealed class Releaser(SemaphoreSlim? semaphore) : IDisposable

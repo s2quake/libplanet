@@ -1,4 +1,5 @@
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
@@ -7,8 +8,9 @@ namespace Libplanet.Net.Messages;
 internal sealed partial record class BlockRequestMessage : MessageBase
 {
     [Property(0)]
-    public ImmutableArray<BlockHash> BlockHashes { get; init; }
+    public ImmutableArray<BlockHash> BlockHashes { get; init; } = [];
 
     [Property(1)]
-    public int ChunkSize { get; init; }
+    [NonNegative]
+    public int ChunkSize { get; init; } = 100;
 }
