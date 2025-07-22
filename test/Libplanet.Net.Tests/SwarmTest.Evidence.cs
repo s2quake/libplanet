@@ -9,6 +9,7 @@ using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Nito.AsyncEx;
 using Libplanet.Net.Options;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests;
 
@@ -49,57 +50,50 @@ public partial class SwarmTest
                 consensusReactorOption: reactorOptions[index]));
         var swarms = await Task.WhenAll(swarmTasks);
         var blockChains = swarms.Select(item => item.Blockchain).ToArray();
+        await using var _ = new AsyncDisposerCollection(swarms);
 
-        try
+        var startTasks = swarms.Select(item => item.StartAsync(default));
+        await Task.WhenAll(startTasks);
+        var addPeerTasks = swarms.Select(
+            (swarm, index) => swarm.AddPeersAsync(
+                swarms.Where((_, i) => i != index).Select(item => item.Peer).ToImmutableArray(), default));
+        await Task.WhenAll(addPeerTasks);
+
+        var consensusContext = swarms[0].ConsensusReactor;
+        var round = 0;
+        var height = 1;
+        var context = consensusContext.Consensus;
+        var bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
+        var methodName = "PublishMessage";
+        var methodInfo = context.GetType().GetMethod(methodName, bindingFlags);
+
+        Assert.NotNull(methodInfo);
+
+        var vote = MakeRandomVote(privateKeys[0], height, round, VoteType.PreVote);
+        var args = new object[] { new ConsensusPreVoteMessage { PreVote = vote } };
+
+        await WaitUntilStepAsync(consensusContext, ConsensusStep.PreVote, default);
+        methodInfo.Invoke(context, args);
+
+        var i = 2;
+        for (; i < 10; i++)
         {
-            var startTasks = swarms.Select(item => item.StartAsync(default));
-            await Task.WhenAll(startTasks);
-            var addPeerTasks = swarms.Select(
-                (swarm, index) => swarm.AddPeersAsync(
-                    swarms.Where((_, i) => i != index).Select(item => item.Peer).ToImmutableArray(), default));
-            await Task.WhenAll(addPeerTasks);
-
-            var consensusContext = swarms[0].ConsensusReactor;
-            var round = 0;
-            var height = 1;
-            var context = consensusContext.Consensus;
-            var bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
-            var methodName = "PublishMessage";
-            var methodInfo = context.GetType().GetMethod(methodName, bindingFlags);
-
-            Assert.NotNull(methodInfo);
-
-            var vote = MakeRandomVote(privateKeys[0], height, round, VoteType.PreVote);
-            var args = new object[] { new ConsensusPreVoteMessage { PreVote = vote } };
-
-            await WaitUntilStepAsync(consensusContext, ConsensusStep.PreVote, default);
-            methodInfo.Invoke(context, args);
-
-            var i = 2;
-            for (; i < 10; i++)
+            var waitTasks1 = blockChains.Select(item => WaitUntilBlockIndexAsync(item, i));
+            await Task.WhenAll(waitTasks1);
+            Array.ForEach(blockChains, item => Assert.Equal(i + 1, item.Blocks.Count));
+            if (blockChains.Any(item => item.Blocks[i].Evidences.Count > 0))
             {
-                var waitTasks1 = blockChains.Select(item => WaitUntilBlockIndexAsync(item, i));
-                await Task.WhenAll(waitTasks1);
-                Array.ForEach(blockChains, item => Assert.Equal(i + 1, item.Blocks.Count));
-                if (blockChains.Any(item => item.Blocks[i].Evidences.Count > 0))
-                {
-                    break;
-                }
-            }
-
-            Assert.NotEqual(10, i);
-
-            var waitTasks2 = blockChains.Select(item => WaitUntilBlockIndexAsync(item, i));
-            await Task.WhenAll(waitTasks2);
-            foreach (Blockchain blockChain in blockChains)
-            {
-                Assert.Equal(i + 1, blockChain.Blocks.Count);
+                break;
             }
         }
-        finally
+
+        Assert.NotEqual(10, i);
+
+        var waitTasks2 = blockChains.Select(item => WaitUntilBlockIndexAsync(item, i));
+        await Task.WhenAll(waitTasks2);
+        foreach (Blockchain blockChain in blockChains)
         {
-            var cleanTasks = swarms.Select(StopAsync);
-            await Task.WhenAll(cleanTasks);
+            Assert.Equal(i + 1, blockChain.Blocks.Count);
         }
     }
 

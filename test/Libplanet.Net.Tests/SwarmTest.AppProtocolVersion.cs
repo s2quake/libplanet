@@ -71,7 +71,7 @@ public partial class SwarmTest
 
         await b.StartAsync(default);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => BootstrapAsync(a, b.Peer));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => a.AddPeersAsync([b.Peer], default));
 
         Assert.True(isCalled);
     }

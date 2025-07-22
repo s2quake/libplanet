@@ -47,27 +47,19 @@ public partial class SwarmTest
         Assert.NotEqual(chainA.Tip, chainB.Tip);
         Assert.NotNull(chainA.BlockCommits[chainA.Tip.BlockHash]);
 
-        try
-        {
-            await swarmA.StartAsync(default);
-            await swarmB.StartAsync(default);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
 
-            await swarmA.AddPeersAsync([swarmB.Peer], default);
-            await swarmB.AddPeersAsync([swarmA.Peer], default);
+        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        await swarmB.AddPeersAsync([swarmA.Peer], default);
 
-            swarmA.BroadcastBlock(chainA.Tip);
-            await swarmB.BlockAppended.WaitAsync(default);
+        swarmA.BroadcastBlock(chainA.Tip);
+        await swarmB.BlockAppended.WaitAsync(default);
 
-            Assert.Equal(chainA.Tip, chainB.Tip);
-            Assert.Equal(
-                chainA.BlockCommits[chainA.Tip.BlockHash],
-                chainB.BlockCommits[chainB.Tip.BlockHash]);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-        }
+        Assert.Equal(chainA.Tip, chainB.Tip);
+        Assert.Equal(
+            chainA.BlockCommits[chainA.Tip.BlockHash],
+            chainB.BlockCommits[chainB.Tip.BlockHash]);
     }
 
     [Fact(Timeout = Timeout)]
@@ -106,51 +98,42 @@ public partial class SwarmTest
                 TestUtils.CreateBlockCommit(minerChain.Blocks[blockHash]));
         }
 
-        try
+        await seed.StartAsync(default);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
+
+        Assert.Equal(swarmA.Peer.Address, swarmB.Peer.Address);
+        // Assert.Equal(swarmA.AsPeer.PublicIPAddress, swarmB.AsPeer.PublicIPAddress);
+
+        await swarmA.AddPeersAsync([seed.Peer], default);
+        await swarmA.StopAsync(default);
+        await seed.PeerDiscovery.RefreshPeersAsync(
+            TimeSpan.Zero,
+            default);
+
+        Assert.DoesNotContain(swarmA.Peer, seed.Peers);
+
+        foreach (BlockHash blockHash in minerChain.Blocks.Keys.Skip(5))
         {
-            await seed.StartAsync(default);
-            await swarmA.StartAsync(default);
-            await swarmB.StartAsync(default);
-
-            Assert.Equal(swarmA.Peer.Address, swarmB.Peer.Address);
-            // Assert.Equal(swarmA.AsPeer.PublicIPAddress, swarmB.AsPeer.PublicIPAddress);
-
-            await swarmA.AddPeersAsync([seed.Peer], default);
-            await StopAsync(swarmA);
-            await seed.PeerDiscovery.RefreshPeersAsync(
-                TimeSpan.Zero,
-                default);
-
-            Assert.DoesNotContain(swarmA.Peer, seed.Peers);
-
-            foreach (BlockHash blockHash in minerChain.Blocks.Keys.Skip(5))
-            {
-                seedChain.Append(
-                    minerChain.Blocks[blockHash],
-                    TestUtils.CreateBlockCommit(minerChain.Blocks[blockHash]));
-            }
-
-            await swarmB.AddPeersAsync([seed.Peer], default);
-
-            // This is added for context switching.
-            await Task.Delay(100);
-
-            Assert.Contains(swarmB.Peer, seed.Peers);
-            Assert.Contains(seed.Peer, swarmB.Peers);
-
-            seed.BroadcastBlock(seedChain.Tip);
-
-            await swarmB.BlockAppended.WaitAsync(default);
-
-            Assert.NotEqual(seedChain.Blocks.Keys, swarmA.Blockchain.Blocks.Keys);
-            Assert.Equal(seedChain.Blocks.Keys, swarmB.Blockchain.Blocks.Keys);
+            seedChain.Append(
+                minerChain.Blocks[blockHash],
+                TestUtils.CreateBlockCommit(minerChain.Blocks[blockHash]));
         }
-        finally
-        {
-            CleaningSwarm(seed);
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-        }
+
+        await swarmB.AddPeersAsync([seed.Peer], default);
+
+        // This is added for context switching.
+        await Task.Delay(100);
+
+        Assert.Contains(swarmB.Peer, seed.Peers);
+        Assert.Contains(seed.Peer, swarmB.Peers);
+
+        seed.BroadcastBlock(seedChain.Tip);
+
+        await swarmB.BlockAppended.WaitAsync(default);
+
+        Assert.NotEqual(seedChain.Blocks.Keys, swarmA.Blockchain.Blocks.Keys);
+        Assert.Equal(seedChain.Blocks.Keys, swarmB.Blockchain.Blocks.Keys);
     }
 
     [Fact(Timeout = Timeout)]
@@ -167,22 +150,15 @@ public partial class SwarmTest
         var seedMiner = new PrivateKey();
         Swarm seedSwarm =
             await CreateSwarm(seedChain, seedMiner);
-        try
-        {
-            await receiverSwarm.StartAsync(default);
-            await seedSwarm.StartAsync(default);
 
-            await receiverSwarm.AddPeersAsync([seedSwarm.Peer], default);
-            Block block = seedChain.ProposeBlock(seedMiner);
-            seedChain.Append(block, TestUtils.CreateBlockCommit(block));
-            seedSwarm.BroadcastBlock(block);
-            Assert.NotEqual(seedChain.Tip, receiverChain.Tip);
-        }
-        finally
-        {
-            CleaningSwarm(seedSwarm);
-            CleaningSwarm(receiverSwarm);
-        }
+        await receiverSwarm.StartAsync(default);
+        await seedSwarm.StartAsync(default);
+
+        await receiverSwarm.AddPeersAsync([seedSwarm.Peer], default);
+        Block block = seedChain.ProposeBlock(seedMiner);
+        seedChain.Append(block, TestUtils.CreateBlockCommit(block));
+        seedSwarm.BroadcastBlock(block);
+        Assert.NotEqual(seedChain.Tip, receiverChain.Tip);
     }
 
     [RetryFact(10, Timeout = Timeout)]
@@ -233,27 +209,19 @@ public partial class SwarmTest
             });
         }
 
-        try
-        {
-            await a.StartAsync(default);
-            await b.StartAsync(default);
+        await a.StartAsync(default);
+        await b.StartAsync(default);
 
-            await a.AddPeersAsync([b.Peer], default);
+        await a.AddPeersAsync([b.Peer], default);
 
-            var minerCanceller = new CancellationTokenSource();
-            Task miningA = CreateMiner(minerA, a, chainA, 4000, minerCanceller.Token);
+        var minerCanceller = new CancellationTokenSource();
+        Task miningA = CreateMiner(minerA, a, chainA, 4000, minerCanceller.Token);
 
-            await Task.Delay(10000);
-            minerCanceller.Cancel();
+        await Task.Delay(10000);
+        minerCanceller.Cancel();
 
-            await miningA;
-            await Task.Delay(5000);
-        }
-        finally
-        {
-            CleaningSwarm(a);
-            CleaningSwarm(b);
-        }
+        await miningA;
+        await Task.Delay(5000);
 
         Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
     }
@@ -283,30 +251,21 @@ public partial class SwarmTest
         Block block = chainA.ProposeBlock(minerA);
         chainA.Append(block, TestUtils.CreateBlockCommit(block));
 
-        try
-        {
-            await swarmA.StartAsync(default);
-            await swarmB.StartAsync(default);
-            await swarmC.StartAsync(default);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
+        await swarmC.StartAsync(default);
 
-            await swarmA.AddPeersAsync([swarmB.Peer], default);
-            await swarmB.AddPeersAsync([swarmC.Peer], default);
-            await swarmC.AddPeersAsync([swarmA.Peer], default);
+        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        await swarmB.AddPeersAsync([swarmC.Peer], default);
+        await swarmC.AddPeersAsync([swarmA.Peer], default);
 
-            swarmA.BroadcastTxs([tx]);
+        swarmA.BroadcastTxs([tx]);
 
-            await swarmC.TxReceived.WaitAsync(default);
-            await swarmB.TxReceived.WaitAsync(default);
+        await swarmC.TxReceived.WaitAsync(default);
+        await swarmB.TxReceived.WaitAsync(default);
 
-            Assert.Equal(tx, chainB.Transactions[tx.Id]);
-            Assert.Equal(tx, chainC.Transactions[tx.Id]);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-            CleaningSwarm(swarmC);
-        }
+        Assert.Equal(tx, chainB.Transactions[tx.Id]);
+        Assert.Equal(tx, chainC.Transactions[tx.Id]);
     }
 
     [Fact(Timeout = Timeout)]
@@ -330,43 +289,35 @@ public partial class SwarmTest
                 }))
             .ToArray();
 
-        try
+        await swarmA.StartAsync(default);
+        await swarmC.StartAsync(default);
+
+        await swarmC.AddPeersAsync([swarmA.Peer], default);
+        Assert.Contains(swarmC.Peer, swarmA.Peers);
+        Assert.Contains(swarmA.Peer, swarmC.Peers);
+
+        Task miningTask = Task.Run(() =>
         {
-            await swarmA.StartAsync(default);
-            await swarmC.StartAsync(default);
-
-            await swarmC.AddPeersAsync([swarmA.Peer], default);
-            Assert.Contains(swarmC.Peer, swarmA.Peers);
-            Assert.Contains(swarmA.Peer, swarmC.Peers);
-
-            Task miningTask = Task.Run(() =>
+            for (var i = 0; i < 10; i++)
             {
-                for (var i = 0; i < 10; i++)
-                {
-                    Block block = chainC.ProposeBlock(minerC);
-                    chainC.Append(block, TestUtils.CreateBlockCommit(block));
-                }
-            });
-
-            Task txReceivedTask = swarmC.TxReceived.WaitAsync(default);
-
-            for (var i = 0; i < 100; i++)
-            {
-                swarmA.BroadcastTxs(txs);
+                Block block = chainC.ProposeBlock(minerC);
+                chainC.Append(block, TestUtils.CreateBlockCommit(block));
             }
+        });
 
-            await txReceivedTask;
-            await miningTask;
+        Task txReceivedTask = swarmC.TxReceived.WaitAsync(default);
 
-            for (var i = 0; i < txCount; i++)
-            {
-                Assert.NotNull(chainC.Transactions[txs[i].Id]);
-            }
+        for (var i = 0; i < 100; i++)
+        {
+            swarmA.BroadcastTxs(txs);
         }
-        finally
+
+        await txReceivedTask;
+        await miningTask;
+
+        for (var i = 0; i < txCount; i++)
         {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmC);
+            Assert.NotNull(chainC.Transactions[txs[i].Id]);
         }
     }
 
@@ -392,31 +343,23 @@ public partial class SwarmTest
 
         chainA.StagedTransactions.Add(tx);
 
-        try
-        {
-            await swarmA.StartAsync(default);
-            await swarmB.StartAsync(default);
-            await swarmC.StartAsync(default);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
+        await swarmC.StartAsync(default);
 
-            // Broadcast tx swarmA to swarmB
-            await swarmA.AddPeersAsync([swarmB.Peer], default);
+        // Broadcast tx swarmA to swarmB
+        await swarmA.AddPeersAsync([swarmB.Peer], default);
 
-            await swarmB.TxReceived.WaitAsync(default);
-            Assert.Equal(tx, chainB.Transactions[tx.Id]);
+        await swarmB.TxReceived.WaitAsync(default);
+        Assert.Equal(tx, chainB.Transactions[tx.Id]);
 
-            CleaningSwarm(swarmA);
+        await swarmA.DisposeAsync();
 
-            // Re-Broadcast received tx swarmB to swarmC
-            await swarmB.AddPeersAsync([swarmC.Peer], default);
+        // Re-Broadcast received tx swarmB to swarmC
+        await swarmB.AddPeersAsync([swarmC.Peer], default);
 
-            await swarmC.TxReceived.WaitAsync(default);
-            Assert.Equal(tx, chainC.Transactions[tx.Id]);
-        }
-        finally
-        {
-            CleaningSwarm(swarmB);
-            CleaningSwarm(swarmC);
-        }
+        await swarmC.TxReceived.WaitAsync(default);
+        Assert.Equal(tx, chainC.Transactions[tx.Id]);
     }
 
     [RetryFact(Timeout = Timeout)]
@@ -436,6 +379,8 @@ public partial class SwarmTest
             swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
         }
 
+        await using var _ = new AsyncDisposerCollection(swarms);
+
         var txKey = new PrivateKey();
         Transaction tx = new TransactionMetadata
         {
@@ -447,38 +392,27 @@ public partial class SwarmTest
 
         blockChains[size - 1].StagedTransactions.Add(tx);
 
-        try
+        for (int i = 0; i < size; i++)
         {
-            for (int i = 0; i < size; i++)
-            {
-                await swarms[i].StartAsync(default);
-            }
-
-            List<Task> tasks = new List<Task>();
-            for (int i = 1; i < size; i++)
-            {
-                await BootstrapAsync(swarms[i], swarms[0].Peer);
-            }
-
-            for (int i = 0; i < size - 1; i++)
-            {
-                tasks.Add(swarms[i].TxReceived.WaitAsync(default));
-            }
-
-            await Task.WhenAll(tasks);
-
-            for (int i = 0; i < size; i++)
-            {
-                Assert.Equal(tx, blockChains[i].Transactions[tx.Id]);
-            }
+            await swarms[i].StartAsync(default);
         }
-        finally
+
+        List<Task> tasks = new List<Task>();
+        for (int i = 1; i < size; i++)
         {
-            for (int i = 0; i < size; i++)
-            {
-                CleaningSwarm(swarms[i]);
-                fxs[i].Dispose();
-            }
+            await swarms[i].AddPeersAsync([swarms[0].Peer], default);
+        }
+
+        for (int i = 0; i < size - 1; i++)
+        {
+            tasks.Add(swarms[i].TxReceived.WaitAsync(default));
+        }
+
+        await Task.WhenAll(tasks);
+
+        for (int i = 0; i < size; i++)
+        {
+            Assert.Equal(tx, blockChains[i].Transactions[tx.Id]);
         }
     }
 
@@ -513,74 +447,65 @@ public partial class SwarmTest
 
         var privateKey = new PrivateKey();
 
-        try
-        {
-            var tx1 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
-            var tx2 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
-            Assert.Equal(0, tx1.Nonce);
-            Assert.Equal(1, tx2.Nonce);
+        var tx1 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
+        var tx2 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
+        Assert.Equal(0, tx1.Nonce);
+        Assert.Equal(1, tx2.Nonce);
 
-            await swarmA.StartAsync(default);
-            await swarmB.StartAsync(default);
-            await swarmA.AddPeersAsync([swarmB.Peer], default);
-            swarmA.BroadcastTxs([tx1, tx2]);
-            await swarmB.TxReceived.WaitAsync(default);
-            Assert.Equal(
-                new HashSet<TxId> { tx1.Id, tx2.Id },
-                chainB.StagedTransactions.Keys.ToHashSet());
-            swarmA.RoutingTable.Remove(swarmB.Peer);
-            swarmB.RoutingTable.Remove(swarmA.Peer);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
+        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        swarmA.BroadcastTxs([tx1, tx2]);
+        await swarmB.TxReceived.WaitAsync(default);
+        Assert.Equal(
+            new HashSet<TxId> { tx1.Id, tx2.Id },
+            chainB.StagedTransactions.Keys.ToHashSet());
+        swarmA.RoutingTable.Remove(swarmB.Peer);
+        swarmB.RoutingTable.Remove(swarmA.Peer);
 
-            chainA.StagedTransactions.Remove(tx2.Id);
-            Assert.Equal(1, chainA.GetNextTxNonce(privateKey.Address));
+        chainA.StagedTransactions.Remove(tx2.Id);
+        Assert.Equal(1, chainA.GetNextTxNonce(privateKey.Address));
 
-            await StopAsync(swarmA);
-            await StopAsync(swarmB);
+        await swarmA.StopAsync(default);
+        await swarmB.StopAsync(default);
 
-            swarmA.RoutingTable.Remove(swarmB.Peer);
-            swarmB.RoutingTable.Remove(swarmA.Peer);
-            Assert.Empty(swarmA.Peers);
-            Assert.Empty(swarmB.Peers);
+        swarmA.RoutingTable.Remove(swarmB.Peer);
+        swarmB.RoutingTable.Remove(swarmA.Peer);
+        Assert.Empty(swarmA.Peers);
+        Assert.Empty(swarmB.Peers);
 
-            await swarmA.StartAsync(default);
-            await swarmB.StartAsync(default);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
 
-            Block block = chainB.ProposeBlock(keyB);
-            chainB.Append(block, TestUtils.CreateBlockCommit(block));
+        Block block = chainB.ProposeBlock(keyB);
+        chainB.Append(block, TestUtils.CreateBlockCommit(block));
 
-            var tx3 = chainA.StagedTransactions.Add(privateKey);
-            var tx4 = chainA.StagedTransactions.Add(privateKey);
-            Assert.Equal(1, tx3.Nonce);
-            Assert.Equal(2, tx4.Nonce);
+        var tx3 = chainA.StagedTransactions.Add(privateKey);
+        var tx4 = chainA.StagedTransactions.Add(privateKey);
+        Assert.Equal(1, tx3.Nonce);
+        Assert.Equal(2, tx4.Nonce);
 
-            await swarmC.StartAsync(default);
-            await swarmA.AddPeersAsync([swarmB.Peer], default);
-            await swarmB.AddPeersAsync([swarmC.Peer], default);
+        await swarmC.StartAsync(default);
+        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        await swarmB.AddPeersAsync([swarmC.Peer], default);
 
-            swarmA.BroadcastTxs([tx3, tx4]);
-            await swarmB.TxReceived.WaitAsync(default);
+        swarmA.BroadcastTxs([tx3, tx4]);
+        await swarmB.TxReceived.WaitAsync(default);
 
-            // SwarmB receives tx3 and is staged, but policy filters it.
-            Assert.DoesNotContain(tx3.Id, chainB.StagedTransactions.Keys);
-            Assert.Contains(
-                tx3.Id,
-                chainB.StagedTransactions.Keys);
-            Assert.Contains(tx4.Id, chainB.StagedTransactions.Keys);
+        // SwarmB receives tx3 and is staged, but policy filters it.
+        Assert.DoesNotContain(tx3.Id, chainB.StagedTransactions.Keys);
+        Assert.Contains(
+            tx3.Id,
+            chainB.StagedTransactions.Keys);
+        Assert.Contains(tx4.Id, chainB.StagedTransactions.Keys);
 
-            await swarmC.TxReceived.WaitAsync(default);
-            // SwarmC can not receive tx3 because SwarmB does not rebroadcast it.
-            Assert.DoesNotContain(tx3.Id, chainC.StagedTransactions.Keys);
-            Assert.DoesNotContain(
-                tx3.Id,
-                chainC.StagedTransactions.Keys);
-            Assert.Contains(tx4.Id, chainC.StagedTransactions.Keys);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-            CleaningSwarm(swarmC);
-        }
+        await swarmC.TxReceived.WaitAsync(default);
+        // SwarmC can not receive tx3 because SwarmB does not rebroadcast it.
+        Assert.DoesNotContain(tx3.Id, chainC.StagedTransactions.Keys);
+        Assert.DoesNotContain(
+            tx3.Id,
+            chainC.StagedTransactions.Keys);
+        Assert.Contains(tx4.Id, chainC.StagedTransactions.Keys);
     }
 
     [Fact(Timeout = Timeout)]
@@ -613,42 +538,33 @@ public partial class SwarmTest
             }
         }
 
-        try
-        {
-            await swarmA.StartAsync(default);
-            await swarmB.StartAsync(default);
-            await swarmC.StartAsync(default);
+        await swarmA.StartAsync(default);
+        await swarmB.StartAsync(default);
+        await swarmC.StartAsync(default);
 
-            await BootstrapAsync(swarmB, swarmA.Peer);
-            await BootstrapAsync(swarmC, swarmA.Peer);
+        await swarmB.AddPeersAsync([swarmA.Peer], default);
+        await swarmC.AddPeersAsync([swarmA.Peer], default);
 
-            swarmB.BroadcastBlock(chainB.Tip);
+        swarmB.BroadcastBlock(chainB.Tip);
 
-            // chainA ignores block header received because its index is shorter.
-            await swarmA.BlockHeaderReceived.WaitAsync(default);
-            await swarmC.BlockAppended.WaitAsync(default);
-            // Assert.False(swarmA.BlockAppended.IsSet);
+        // chainA ignores block header received because its index is shorter.
+        await swarmA.BlockHeaderReceived.WaitAsync(default);
+        await swarmC.BlockAppended.WaitAsync(default);
+        // Assert.False(swarmA.BlockAppended.IsSet);
 
-            // chainB doesn't applied to chainA since chainB is shorter
-            // than chainA
-            Assert.NotEqual(chainB, chainA);
+        // chainB doesn't applied to chainA since chainB is shorter
+        // than chainA
+        Assert.NotEqual(chainB, chainA);
 
-            swarmA.BroadcastBlock(chainA.Tip);
+        swarmA.BroadcastBlock(chainA.Tip);
 
-            await swarmB.BlockAppended.WaitAsync(default);
-            await swarmC.BlockAppended.WaitAsync(default);
+        await swarmB.BlockAppended.WaitAsync(default);
+        await swarmC.BlockAppended.WaitAsync(default);
 
-            Log.Debug("Compare chainA and chainB");
-            Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
-            Log.Debug("Compare chainA and chainC");
-            Assert.Equal(chainA.Blocks.Keys, chainC.Blocks.Keys);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-            CleaningSwarm(swarmC);
-        }
+        Log.Debug("Compare chainA and chainB");
+        Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
+        Log.Debug("Compare chainA and chainC");
+        Assert.Equal(chainA.Blocks.Keys, chainC.Blocks.Keys);
     }
 
     [Fact(Timeout = Timeout)]
@@ -702,12 +618,10 @@ public partial class SwarmTest
         Block block2 = blockChain.ProposeBlock(GenesisProposer);
         blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
 
-        try
-        {
             await minerSwarm.StartAsync(default);
             await receiverSwarm.StartAsync(default);
 
-            await BootstrapAsync(receiverSwarm, minerSwarm.Peer);
+            await receiverSwarm.AddPeersAsync( [minerSwarm.Peer], default);
 
             minerSwarm.BroadcastBlock(block2);
 
@@ -717,13 +631,6 @@ public partial class SwarmTest
                 1_000);
             Assert.Equal(3, receiverChain.Blocks.Count);
             Assert.Equal(4, renderCount);
-        }
-        finally
-        {
-            CleaningSwarm(minerSwarm);
-            CleaningSwarm(receiverSwarm);
-            fx1.Dispose();
-        }
     }
 
     [Fact(Timeout = Timeout)]
@@ -738,12 +645,10 @@ public partial class SwarmTest
         Blockchain chainA = swarmA.Blockchain;
         Blockchain chainB = swarmB.Blockchain;
 
-        try
-        {
             await swarmA.StartAsync(default);
             await swarmB.StartAsync(default);
 
-            await BootstrapAsync(swarmB, swarmA.Peer);
+            await swarmB.AddPeersAsync([swarmA.Peer], default);
             var block = chainA.ProposeBlock(keyA);
             chainA.Append(block, TestUtils.CreateBlockCommit(block));
             swarmA.BroadcastBlock(chainA.Blocks[-1]);
@@ -759,12 +664,6 @@ public partial class SwarmTest
             await swarmB.BlockAppended.WaitAsync(default);
 
             Assert.Equal(chainB.Blocks.Keys, chainA.Blocks.Keys);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-        }
     }
 
     [Fact(Timeout = Timeout)]
@@ -791,12 +690,10 @@ public partial class SwarmTest
             chainA.Append(block, TestUtils.CreateBlockCommit(block));
         }
 
-        try
-        {
             await swarmA.StartAsync(default);
             await swarmB.StartAsync(default);
 
-            await BootstrapAsync(swarmB, swarmA.Peer);
+            await swarmB.AddPeersAsync([swarmA.Peer], default);
             swarmA.BroadcastBlock(chainA.Blocks[-1]);
             await swarmB.BlockAppended.WaitAsync(default);
 
@@ -812,12 +709,6 @@ public partial class SwarmTest
             Assert.False(t.IsCompleted);
 
             cts.Cancel();
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-        }
     }
 
     [Fact(Timeout = Timeout)]
@@ -898,8 +789,6 @@ public partial class SwarmTest
             Actions = new[] { DumbAction.Create((address, "qux")) }.ToBytecodes(),
         }.Sign(privateKey);
 
-        try
-        {
             await swarm1.StartAsync(default);
             await swarm2.StartAsync(default);
             await swarm1.AddPeersAsync([swarm2.Peer], default);
@@ -915,12 +804,6 @@ public partial class SwarmTest
             //     replayMessage.Messages.Select(
             //         m => ModelSerializer.DeserializeFromBytes<Transaction>(
             //             ((TransactionMessage)m).Payload.AsSpan())).ToHashSet());
-        }
-        finally
-        {
-            CleaningSwarm(swarm1);
-            CleaningSwarm(swarm2);
-        }
     }
 
     [Fact(Timeout = Timeout)]
@@ -958,8 +841,6 @@ public partial class SwarmTest
             key,
             []);
 
-        try
-        {
             await receiver.StartAsync(default);
             await mockTransport.StartAsync(default);
 
@@ -993,13 +874,6 @@ public partial class SwarmTest
             await Task.Delay(1000);
 
             Assert.Equal(1, requestCount);
-        }
-        finally
-        {
-            await CleaningSwarm(receiver);
-            await mockTransport.StopAsync(default);
-            await mockTransport.DisposeAsync();
-        }
     }
 
     [Fact(Timeout = Timeout)]
@@ -1019,8 +893,6 @@ public partial class SwarmTest
         var evidence = TestEvidence.Create(0, validatorAddress, DateTimeOffset.UtcNow);
         chainA.PendingEvidences.Add(evidence);
 
-        try
-        {
             await swarmA.StartAsync(default);
             await swarmB.StartAsync(default);
             await swarmC.StartAsync(default);
@@ -1036,12 +908,5 @@ public partial class SwarmTest
 
             Assert.Equal(evidence, chainB.PendingEvidences[evidence.Id]);
             Assert.Equal(evidence, chainC.PendingEvidences[evidence.Id]);
-        }
-        finally
-        {
-            CleaningSwarm(swarmA);
-            CleaningSwarm(swarmB);
-            CleaningSwarm(swarmC);
-        }
     }
 }
