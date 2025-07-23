@@ -1,6 +1,6 @@
 using Libplanet.Types;
 
-namespace Libplanet.Net.Protocols;
+namespace Libplanet.Net;
 
 internal interface IPeerCollection : IEnumerable<Peer>
 {

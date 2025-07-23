@@ -1,4 +1,4 @@
-namespace Libplanet.Net.Protocols;
+namespace Libplanet.Net;
 
 public sealed class PeerNotFoundException : SystemException
 {

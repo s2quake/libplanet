@@ -4,7 +4,7 @@ using System.Threading;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 
-namespace Libplanet.Net.Protocols;
+namespace Libplanet.Net;
 
 internal sealed class PeerCollection(
     Address owner,

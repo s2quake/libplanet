@@ -1,8 +1,8 @@
 using System.Collections;
 using Libplanet.Types;
-using static Libplanet.Net.Protocols.AddressUtility;
+using static Libplanet.Net.AddressUtility;
 
-namespace Libplanet.Net.Protocols;
+namespace Libplanet.Net;
 
 internal sealed class BucketCollection(Address owner, int bucketCount, int capacityPerBucket)
     : IEnumerable<Bucket>

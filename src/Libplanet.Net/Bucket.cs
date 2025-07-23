@@ -2,7 +2,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types;
 
-namespace Libplanet.Net.Protocols;
+namespace Libplanet.Net;
 
 internal sealed class Bucket(int capacity) : IBucket
 {

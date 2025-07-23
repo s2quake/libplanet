@@ -1,5 +1,5 @@
 using System.Net;
-using Libplanet.Net.Protocols;
+using Libplanet.Net;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Xunit.Abstractions;

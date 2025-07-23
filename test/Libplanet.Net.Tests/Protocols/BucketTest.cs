@@ -1,6 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
-using Libplanet.Net.Protocols;
+using Libplanet.Net;
 using Libplanet.TestUtilities;
 using Xunit.Abstractions;
 

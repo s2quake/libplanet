@@ -2,7 +2,7 @@ using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 
-namespace Libplanet.Net.Protocols.PeerDiscoveryMessageHandlers;
+namespace Libplanet.Net.PeerServiceMessageHandlers;
 
 internal sealed class DefaultMessageHandler(Address owner, PeerService peerService)
     : MessageHandlerBase<IMessage>

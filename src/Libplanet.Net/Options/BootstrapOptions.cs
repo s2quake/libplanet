@@ -1,4 +1,4 @@
-using Libplanet.Net.Protocols;
+using Libplanet.Net;
 
 namespace Libplanet.Net.Options;
 

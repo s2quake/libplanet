@@ -1,11 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
-using Libplanet.Net.Protocols.PeerDiscoveryMessageHandlers;
+using Libplanet.Net.PeerServiceMessageHandlers;
 using Libplanet.Types;
-using static Libplanet.Net.Protocols.AddressUtility;
+using static Libplanet.Net.AddressUtility;
 
-namespace Libplanet.Net.Protocols;
+namespace Libplanet.Net;
 
 internal sealed class PeerService : ServiceBase
 {

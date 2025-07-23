@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Consensus.GossipMessageHandlers;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Protocols;
+using Libplanet.Net;
 using Libplanet.Net.Tasks;
 
 namespace Libplanet.Net.Consensus;
