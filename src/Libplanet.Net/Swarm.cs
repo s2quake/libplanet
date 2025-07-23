@@ -14,7 +14,7 @@ namespace Libplanet.Net;
 public sealed class Swarm : ServiceBase, IServiceProvider
 {
     private readonly ISigner _signer;
-    private readonly ConsensusReactor? _consensusReactor;
+    private readonly ConsensusService? _consensusSerevice;
     private readonly TxFetcher _txFetcher;
     private readonly EvidenceFetcher _evidenceFetcher;
     private readonly AccessLimiter _transferEvidenceLimiter;
@@ -25,7 +25,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         ISigner signer,
         Blockchain blockchain,
         SwarmOptions options,
-        ConsensusReactorOptions? consensusOption = null)
+        ConsensusServiceOptions? consensusOption = null)
     {
         _signer = signer;
         Blockchain = blockchain;
@@ -37,7 +37,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
         BlockDemandDictionary = new BlockDemandCollection(options.BlockDemandLifespan);
         _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
-        _consensusReactor = consensusOption is not null ? new ConsensusReactor(signer, Blockchain, consensusOption) : null;
+        _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
 
         _services =
         [
@@ -61,7 +61,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         Transport.MessageHandlers.AddRange(_messageHandlers);
     }
 
-    public bool ConsensusRunning => _consensusReactor?.IsRunning ?? false;
+    public bool ConsensusRunning => _consensusSerevice?.IsRunning ?? false;
 
     public Address Address => _signer.Address;
 
@@ -69,7 +69,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public IEnumerable<Peer> Peers => PeerService.Peers;
 
-    public ImmutableArray<Peer> Validators => _consensusReactor?.Validators ?? [];
+    public ImmutableArray<Peer> Validators => _consensusSerevice?.Validators ?? [];
 
     public Blockchain Blockchain { get; private set; }
 
@@ -83,8 +83,8 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     internal SwarmOptions Options { get; }
 
-    internal ConsensusReactor ConsensusReactor
-        => _consensusReactor ?? throw new InvalidOperationException("ConsensusReactor is not initialized.");
+    internal ConsensusService ConsensusService
+        => _consensusSerevice ?? throw new InvalidOperationException("ConsensusService is not initialized.");
 
     public void BroadcastBlock(Block block)
     {
@@ -180,9 +180,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
         await Transport.StartAsync(cancellationToken);
         await PeerService.StartAsync(cancellationToken);
-        if (_consensusReactor is not null)
+        if (_consensusSerevice is not null)
         {
-            await _consensusReactor.StartAsync(cancellationToken);
+            await _consensusSerevice.StartAsync(cancellationToken);
         }
 
         await _services.StartAsync(cancellationToken);
@@ -192,9 +192,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     {
         await _services.StopAsync(cancellationToken);
         await Transport.StopAsync(cancellationToken);
-        if (_consensusReactor is not null)
+        if (_consensusSerevice is not null)
         {
-            await _consensusReactor.StopAsync(cancellationToken);
+            await _consensusSerevice.StopAsync(cancellationToken);
         }
 
         BlockDemandDictionary = new BlockDemandCollection(Options.BlockDemandLifespan);
@@ -210,9 +210,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         _evidenceFetcher.Dispose();
         await _services.DisposeAsync();
         await Transport.DisposeAsync();
-        if (_consensusReactor is not null)
+        if (_consensusSerevice is not null)
         {
-            await _consensusReactor.DisposeAsync();
+            await _consensusSerevice.DisposeAsync();
         }
 
         await base.DisposeAsyncCore();
@@ -332,9 +332,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             return Transport;
         }
 
-        if (serviceType == typeof(ConsensusReactor))
+        if (serviceType == typeof(ConsensusService))
         {
-            return _consensusReactor;
+            return _consensusSerevice;
         }
 
         if (serviceType == typeof(PeerService))

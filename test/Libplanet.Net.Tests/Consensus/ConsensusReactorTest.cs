@@ -17,7 +17,7 @@ public class ConsensusReactorTest
     public async Task StartAsync()
     {
         var count = TestUtils.PrivateKeys.Count;
-        var consensusReactors = new ConsensusReactor[count];
+        var consensusServices = new ConsensusService[count];
         var blockchains = new Blockchain[count];
         using var fx = new MemoryRepositoryFixture();
         var validatorPeers = new List<Peer>();
@@ -45,7 +45,7 @@ public class ConsensusReactorTest
 
         for (var i = 0; i < count; i++)
         {
-            consensusReactors[i] = TestUtils.CreateConsensusReactor(
+            consensusServices[i] = TestUtils.CreateConsensusService(
                 blockchain: blockchains[i],
                 key: TestUtils.PrivateKeys[i],
                 port: 6000 + i,
@@ -55,20 +55,20 @@ public class ConsensusReactorTest
 
         try
         {
-            consensusReactors.AsParallel().ForAll(
+            consensusServices.AsParallel().ForAll(
                 reactor => _ = reactor.StartAsync(cancellationToken));
 
             await Task.Delay(PropagationDelay, cancellationToken);
             await Parallel.ForEachAsync(
-                consensusReactors,
+                consensusServices,
                 cancellationToken,
-                async (consensusReactor, cancellationToken) => await consensusReactor.StopAsync(cancellationToken));
+                async (consensusService, cancellationToken) => await consensusService.StopAsync(cancellationToken));
 
             var isPolka = new bool[4];
             for (var i = 0; i < 4; ++i)
             {
                 // Genesis block exists, add 1 to the height.
-                if (consensusReactors[i].Step == ConsensusStep.EndCommit)
+                if (consensusServices[i].Step == ConsensusStep.EndCommit)
                 {
                     isPolka[i] = true;
                 }
@@ -82,12 +82,12 @@ public class ConsensusReactorTest
 
             for (var i = 0; i < 4; ++i)
             {
-                var consensusReactor = consensusReactors[i];
-                Assert.Equal(validatorPeers[i].Address, consensusReactor.Address);
-                Assert.Equal(1, consensusReactor.Height);
+                var consensusService = consensusServices[i];
+                Assert.Equal(validatorPeers[i].Address, consensusService.Address);
+                Assert.Equal(1, consensusService.Height);
                 Assert.Equal(2, blockchains[i].Blocks.Count);
-                Assert.Equal(0, consensusReactor.Round);
-                Assert.Equal(ConsensusStep.EndCommit, consensusReactor.Step);
+                Assert.Equal(0, consensusService.Round);
+                Assert.Equal(ConsensusStep.EndCommit, consensusService.Step);
             }
         }
         finally
@@ -95,7 +95,7 @@ public class ConsensusReactorTest
             await cancellationTokenSource.CancelAsync();
             for (var i = 0; i < 4; ++i)
             {
-                await consensusReactors[i].DisposeAsync();
+                await consensusServices[i].DisposeAsync();
             }
         }
     }

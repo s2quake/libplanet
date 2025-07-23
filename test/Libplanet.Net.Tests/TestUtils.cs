@@ -119,7 +119,7 @@ public static class TestUtils
         Libplanet.Tests.TestUtils.CreateBlockCommit(blockHash, height, round);
 
     public static async Task HandleFourPeersPreCommitMessages(
-        ConsensusReactor consensusContext,
+        ConsensusService consensusContext,
         PrivateKey nodePrivateKey,
         BlockHash roundBlockHash)
     {
@@ -216,7 +216,7 @@ public static class TestUtils
     }
 
     public static async Task HandleFourPeersPreVoteMessages(
-        ConsensusReactor consensusContext,
+        ConsensusService consensusContext,
         PrivateKey nodePrivateKey,
         BlockHash roundBlockHash)
     {
@@ -291,7 +291,7 @@ public static class TestUtils
         return consensus;
     }
 
-    public static ConsensusReactor CreateConsensusReactor(
+    public static ConsensusService CreateConsensusService(
         Blockchain? blockchain = null,
         PrivateKey? key = null,
         string host = "127.0.0.1",
@@ -304,7 +304,7 @@ public static class TestUtils
         key ??= PrivateKeys[1];
 
         var signer = key.AsSigner();
-        var consensusReactorOptions = new ConsensusReactorOptions
+        var consensusServiceOptions = new ConsensusServiceOptions
         {
             Validators = validatorPeers ?? Peers,
             TargetBlockInterval = newHeightDelay ?? TimeSpan.FromMilliseconds(10_000),
@@ -316,7 +316,7 @@ public static class TestUtils
             }
         };
 
-        return new ConsensusReactor(signer, blockchain, consensusReactorOptions);
+        return new ConsensusService(signer, blockchain, consensusServiceOptions);
     }
 
     public static byte[] GetRandomBytes(int size)

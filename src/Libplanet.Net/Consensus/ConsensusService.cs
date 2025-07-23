@@ -11,7 +11,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class ConsensusReactor : IAsyncDisposable
+public sealed class ConsensusService : ServiceBase
 {
     private readonly Subject<int> _heightChangedSubject = new();
     private readonly Subject<int> _roundChangedSubject = new();
@@ -34,14 +34,12 @@ public sealed class ConsensusReactor : IAsyncDisposable
     private Dispatcher? _dispatcher;
     private Consensus _consensus;
     private ConsensusCommunicator _communicator;
-    // private IDisposable[] _gossipSubscriptions = [];
     private IDisposable[] _consensusSubscriptions;
     private CancellationTokenSource? _cancellationTokenSource;
     private DateTimeOffset _tipChangedTime;
-    private bool _disposed;
 
-    public ConsensusReactor(
-        ISigner signer, Blockchain blockchain, ConsensusReactorOptions options)
+    public ConsensusService(
+        ISigner signer, Blockchain blockchain, ConsensusServiceOptions options)
     {
         _signer = signer;
         _transport = new NetMQTransport(signer, options.TransportOptions);
@@ -191,8 +189,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
         });
     }
 
-    public bool IsRunning { get; private set; }
-
     public int Height { get; private set; }
 
     public int Round { get; private set; }
@@ -202,67 +198,6 @@ public sealed class ConsensusReactor : IAsyncDisposable
     public Consensus Consensus => _consensus;
 
     public ImmutableArray<Peer> Validators => _gossip.Peers;
-
-    public async ValueTask DisposeAsync()
-    {
-        if (!_disposed)
-        {
-            // _gossip.MessageHandlers.RemoveRange(_messageHandlers);
-            // _messageHandlers.Dispose();
-            // Array.ForEach(_gossipSubscriptions, subscription => subscription.Dispose());
-            await _gossip.DisposeAsync();
-            if (_cancellationTokenSource is not null)
-            {
-                await _cancellationTokenSource.CancelAsync();
-            }
-
-            Array.ForEach(_blockchainSubscriptions, subscription => subscription.Dispose());
-            Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
-            _consensusSubscriptions = [];
-            await _consensus.DisposeAsync();
-            await _transport.DisposeAsync();
-
-            _cancellationTokenSource?.Dispose();
-            _cancellationTokenSource = null;
-            _disposed = true;
-        }
-    }
-
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        if (IsRunning)
-        {
-            throw new InvalidOperationException("Consensus reactor is already running.");
-        }
-
-        _dispatcher = new Dispatcher();
-        // _gossipSubscriptions =
-        // [
-        //     // _gossip.ValidateReceivedMessage.Subscribe(ValidateMessageToReceive),
-        //     // _gossip.ValidateSendingMessage.Subscribe(ValidateMessageToSend),
-        //     // _gossip.ProcessMessage.Subscribe(ProcessMessage),
-        // ];
-
-        await _gossip.StartAsync(cancellationToken);
-        await _consensus.StartAsync(default);
-        IsRunning = true;
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        if (!IsRunning || _dispatcher is null)
-        {
-            throw new InvalidOperationException("Consensus reactor is not running.");
-        }
-
-        await _gossip.StopAsync(cancellationToken);
-        // Array.ForEach(_gossipSubscriptions, subscription => subscription.Dispose());
-        await _dispatcher.DisposeAsync();
-        _dispatcher = null;
-        IsRunning = false;
-    }
 
     public async Task NewHeightAsync(int height, CancellationToken cancellationToken)
     {
@@ -438,13 +373,14 @@ public sealed class ConsensusReactor : IAsyncDisposable
 
     private async void OnBlockExecuted(BlockExecutionInfo e)
     {
+        using var cancellationTokenSource = CreateCancellationTokenSource();
         var height = e.Block.Header.Height;
         var dateTime = DateTimeOffset.UtcNow;
         var delay = EnsureNonNegative(_newHeightDelay - (dateTime - _tipChangedTime));
-        _cancellationTokenSource = new CancellationTokenSource();
-        await Task.Delay(delay, _cancellationTokenSource.Token);
+        _cancellationTokenSource = CreateCancellationTokenSource();
+        await Task.Delay(delay, cancellationTokenSource.Token);
         AddEvidenceToBlockChain(height);
-        await NewHeightAsync(height + 1, _cancellationTokenSource.Token);
+        await NewHeightAsync(height + 1, cancellationTokenSource.Token);
 
         static TimeSpan EnsureNonNegative(TimeSpan timeSpan) => timeSpan < TimeSpan.Zero ? TimeSpan.Zero : timeSpan;
     }
@@ -466,6 +402,40 @@ public sealed class ConsensusReactor : IAsyncDisposable
                 // logging
             }
         }
+    }
+
+    protected override async Task OnStartAsync(CancellationToken cancellationToken)
+    {
+        _dispatcher = new Dispatcher();
+        await _gossip.StartAsync(cancellationToken);
+        await _consensus.StartAsync(default);
+    }
+
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        await _gossip.StopAsync(cancellationToken);
+        if (_dispatcher is not null)
+        {
+            await _dispatcher.DisposeAsync();
+            _dispatcher = null;
+        }
+
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
+    }
+
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        _transport.MessageHandlers.RemoveRange(_messageHandlers);
+        await _gossip.DisposeAsync();
+        Array.ForEach(_blockchainSubscriptions, subscription => subscription.Dispose());
+        Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
+        _consensusSubscriptions = [];
+        await _consensus.DisposeAsync();
+        await _transport.DisposeAsync();
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
+        await base.DisposeAsyncCore();
     }
 
     // private void ProcessMessage(IMessage message)

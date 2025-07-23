@@ -36,20 +36,20 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
 
-        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+        var consensusProposalMsgAt3Task = consensusService.WaitUntilPublishedAsync<ConsensusProposalMessage>(
             height: 3,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
-        var consensusProposalMsgAt7Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+        var consensusProposalMsgAt7Task = consensusService.WaitUntilPublishedAsync<ConsensusProposalMessage>(
             height: 7,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
         var block = blockchain.ProposeBlock(privateKeys[1]);
         var blockCommit = TestUtils.CreateBlockCommit(block);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         blockchain.Append(block, blockCommit);
         block = blockchain.ProposeBlock(privateKeys[2]);
         blockchain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -58,7 +58,7 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -69,7 +69,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -80,7 +80,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[1],
@@ -90,7 +90,7 @@ public class DuplicateVoteEvidenceTest
                 hash: blockHash,
                 flag: VoteType.PreCommit)
         }, default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[2],
@@ -101,13 +101,13 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         }, default);
 
-        await consensusReactor.WaitUntilAsync(
+        await consensusService.WaitUntilAsync(
             height: 4,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
 
         Assert.Single(blockchain.PendingEvidences);
-        Assert.Equal(4, consensusReactor.Height);
-        Assert.Equal(0, consensusReactor.Round);
+        Assert.Equal(4, consensusService.Height);
+        Assert.Equal(0, consensusService.Round);
 
         blockCommit = blockchain.BlockCommits[blockchain.Tip.BlockHash];
         block = blockchain.ProposeBlock(privateKeys[0]);
@@ -134,17 +134,17 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
 
-        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+        var consensusProposalMsgAt3Task = consensusService.WaitUntilPublishedAsync<ConsensusProposalMessage>(
             height: 3,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
         var block = blockchain.ProposeBlock(privateKeys[1]);
         var blockCommit = TestUtils.CreateBlockCommit(block);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         blockchain.Append(block, blockCommit);
         block = blockchain.ProposeBlock(privateKeys[2]);
         blockchain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -153,7 +153,7 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -164,7 +164,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -175,7 +175,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[1],
@@ -186,7 +186,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[2],
@@ -198,7 +198,7 @@ public class DuplicateVoteEvidenceTest
         },
         default);
 
-        await consensusReactor.WaitUntilAsync(
+        await consensusService.WaitUntilAsync(
             height: 4,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
 
@@ -210,17 +210,17 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[3]);
 
-        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+        var consensusProposalMsgAt3Task = consensusService.WaitUntilPublishedAsync<ConsensusProposalMessage>(
             height: 3,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
         var block = blockchain.ProposeBlock(privateKeys[1]);
         var blockCommit = TestUtils.CreateBlockCommit(block);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         blockchain.Append(block, blockCommit);
         block = blockchain.ProposeBlock(privateKeys[2]);
         blockchain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -229,7 +229,7 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -240,7 +240,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -251,7 +251,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[1],
@@ -262,7 +262,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[2],
@@ -274,7 +274,7 @@ public class DuplicateVoteEvidenceTest
         },
         default);
 
-        await consensusReactor.WaitUntilAsync(
+        await consensusService.WaitUntilAsync(
             height: 4,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
 
@@ -286,17 +286,17 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
 
-        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+        var consensusProposalMsgAt3Task = consensusService.WaitUntilPublishedAsync<ConsensusProposalMessage>(
             height: 3,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
         var block = blockchain.ProposeBlock(privateKeys[1]);
         var blockCommit = TestUtils.CreateBlockCommit(block);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         blockchain.Append(block, blockCommit);
         block = blockchain.ProposeBlock(privateKeys[2]);
         blockchain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -305,7 +305,7 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -316,7 +316,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreVoteMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreVoteMessage
         {
             PreVote = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -327,7 +327,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreVote)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[1],
@@ -338,7 +338,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[2],
@@ -350,7 +350,7 @@ public class DuplicateVoteEvidenceTest
         },
         default);
 
-        await consensusReactor.WaitUntilAsync(
+        await consensusService.WaitUntilAsync(
             height: 4,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
 
@@ -362,17 +362,17 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[3]);
 
-        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+        var consensusProposalMsgAt3Task = consensusService.WaitUntilPublishedAsync<ConsensusProposalMessage>(
             height: 3,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
         var block = blockchain.ProposeBlock(privateKeys[1]);
         var blockCommit = TestUtils.CreateBlockCommit(block);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         blockchain.Append(block, blockCommit);
         block = blockchain.ProposeBlock(privateKeys[2]);
         blockchain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -381,7 +381,7 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -392,7 +392,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -403,7 +403,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[1],
@@ -414,7 +414,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[2],
@@ -426,7 +426,7 @@ public class DuplicateVoteEvidenceTest
         },
         default);
 
-        await consensusReactor.WaitUntilAsync(
+        await consensusService.WaitUntilAsync(
             height: 4,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
 
@@ -438,17 +438,17 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
 
-        var consensusProposalMsgAt3Task = consensusReactor.WaitUntilPublishedAsync<ConsensusProposalMessage>(
+        var consensusProposalMsgAt3Task = consensusService.WaitUntilPublishedAsync<ConsensusProposalMessage>(
             height: 3,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
         var block = blockchain.ProposeBlock(privateKeys[1]);
         var blockCommit = TestUtils.CreateBlockCommit(block);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         blockchain.Append(block, blockCommit);
         block = blockchain.ProposeBlock(privateKeys[2]);
         blockchain.Append(block, TestUtils.CreateBlockCommit(block));
@@ -457,7 +457,7 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -468,7 +468,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[0],
@@ -479,7 +479,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[1],
@@ -490,7 +490,7 @@ public class DuplicateVoteEvidenceTest
                 flag: VoteType.PreCommit)
         },
         default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage
+        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
         {
             PreCommit = TestUtils.CreateVote(
                 privateKey: privateKeys[2],
@@ -502,7 +502,7 @@ public class DuplicateVoteEvidenceTest
         },
         default);
 
-        await consensusReactor.WaitUntilAsync(
+        await consensusService.WaitUntilAsync(
             height: 4,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
 

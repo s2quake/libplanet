@@ -99,15 +99,15 @@ internal sealed class SwarmService(
         var consensusTransport = _validatorOptions.IsEnabled
             ? CreateConsensusTransport(privateKey, protocol, _validatorOptions)
             : null;
-        var consensusReactorOption = _validatorOptions.IsEnabled
-            ? CreateConsensusReactorOption(privateKey, _validatorOptions)
-            : (ConsensusReactorOptions?)null;
+        var consensusServiceOption = _validatorOptions.IsEnabled
+            ? CreateConsensusServiceOption(privateKey, _validatorOptions)
+            : (ConsensusServiceOptions?)null;
 
         _swarm = new Swarm(
             signer: privateKey.AsSigner(),
             blockchain: blockChain,
             options: swarmOptions,
-            consensusOption: consensusReactorOption);
+            consensusOption: consensusServiceOption);
         _startTask = _swarm.StartAsync(cancellationToken: default);
         _logger.LogDebug("Node.Swarm is starting: {Address}", _swarm.Address);
         // await _swarm.BootstrapAsync(cancellationToken: default);
@@ -181,12 +181,12 @@ internal sealed class SwarmService(
         return new(signer, transportOptions);
     }
 
-    private static ConsensusReactorOptions CreateConsensusReactorOption(
+    private static ConsensusServiceOptions CreateConsensusServiceOption(
         PrivateKey privateKey, ValidatorOptions options)
     {
         var consensusSeedPeer = Net.Peer.Parse(options.ConsensusSeedPeer);
         var consensusEndPoint = (DnsEndPoint)EndPointUtility.Parse(options.EndPoint);
-        return new ConsensusReactorOptions
+        return new ConsensusServiceOptions
         {
             Seeds = [consensusSeedPeer],
             TransportOptions = new Net.Options.TransportOptions

@@ -30,7 +30,7 @@ public partial class SwarmTest
                 EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i)
             }).ToImmutableHashSet();
         var reactorOptions = Enumerable.Range(0, count).Select(i =>
-            new ConsensusReactorOptions
+            new ConsensusServiceOptions
             {
                 Validators = consensusPeers,
                 TransportOptions = new TransportOptions
@@ -47,7 +47,7 @@ public partial class SwarmTest
                 privateKey: item,
                 policy: policy,
                 genesis: genesisBlock,
-                consensusReactorOption: reactorOptions[index]));
+                consensusServiceOption: reactorOptions[index]));
         var swarms = await Task.WhenAll(swarmTasks);
         var blockChains = swarms.Select(item => item.Blockchain).ToArray();
         await using var _ = new AsyncDisposerCollection(swarms);
@@ -59,7 +59,7 @@ public partial class SwarmTest
                 swarms.Where((_, i) => i != index).Select(item => item.Peer).ToImmutableArray(), default));
         await Task.WhenAll(addPeerTasks);
 
-        var consensusContext = swarms[0].ConsensusReactor;
+        var consensusContext = swarms[0].ConsensusService;
         var round = 0;
         var height = 1;
         var context = consensusContext.Consensus;
@@ -165,7 +165,7 @@ public partial class SwarmTest
     }
 
     private static async Task WaitUntilStepAsync(
-        ConsensusReactor consensusContext,
+        ConsensusService consensusContext,
         ConsensusStep consensusStep,
         CancellationToken cancellationToken)
     {

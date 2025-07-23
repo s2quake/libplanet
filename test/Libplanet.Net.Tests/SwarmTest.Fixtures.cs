@@ -77,14 +77,14 @@ public partial class SwarmTest
         SwarmOptions? options = null,
         BlockchainOptions? policy = null,
         Block? genesis = null,
-        ConsensusReactorOptions? consensusReactorOption = null)
+        ConsensusServiceOptions? consensusServiceOption = null)
     {
         return CreateSwarm(
             privateKey,
             options,
             policy,
             genesis,
-            consensusReactorOption ?? new ConsensusReactorOptions
+            consensusServiceOption ?? new ConsensusServiceOptions
             {
                 Seeds = [],
                 Validators = [],
@@ -98,7 +98,7 @@ public partial class SwarmTest
         SwarmOptions? options = null,
         BlockchainOptions? policy = null,
         Block? genesis = null,
-        ConsensusReactorOptions? consensusReactorOption = null)
+        ConsensusServiceOptions? consensusServiceOption = null)
     {
         policy ??= new BlockchainOptions
         {
@@ -114,7 +114,7 @@ public partial class SwarmTest
             blockchain,
             privateKey,
             options,
-            consensusReactorOption: consensusReactorOption);
+            consensusServiceOption: consensusServiceOption);
     }
 
     private async Task<Swarm> CreateSwarm(
@@ -122,14 +122,14 @@ public partial class SwarmTest
         PrivateKey? privateKey = null,
         // TransportOptions? transportOptions = null,
         SwarmOptions? options = null,
-        ConsensusReactorOptions? consensusReactorOption = null)
+        ConsensusServiceOptions? consensusServiceOption = null)
     {
         options ??= new SwarmOptions();
         privateKey ??= new PrivateKey();
         // transportOptions ??= new TransportOptions();
         // var transport = new NetMQTransport(privateKey.AsSigner(), transportOptions ?? new TransportOptions());
         ITransport consensusTransport = null;
-        if (consensusReactorOption is { } option)
+        if (consensusServiceOption is { } option)
         {
             // var consensusHostOptions = transportOptions with { Port = option.Port };
             // consensusTransport = new NetMQTransport(privateKey.AsSigner(), consensusHostOptions);
@@ -139,7 +139,7 @@ public partial class SwarmTest
             privateKey.AsSigner(),
             blockchain,
             options,
-            consensusOption: consensusReactorOption);
+            consensusOption: consensusServiceOption);
         // _finalizers.Add(async () =>
         // {
         //     try

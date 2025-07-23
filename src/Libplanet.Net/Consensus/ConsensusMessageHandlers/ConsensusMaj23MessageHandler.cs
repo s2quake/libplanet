@@ -3,13 +3,12 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.Consensus.ConsensusMessageHandlers;
 
-internal sealed class ConsensusMaj23MessageHandler(ConsensusReactor consensusReactor, Gossip gossip)
+internal sealed class ConsensusMaj23MessageHandler(ConsensusService consensusService, Gossip gossip)
     : MessageHandlerBase<ConsensusMaj23Message>
 {
-    protected override void OnHandle(
-        ConsensusMaj23Message message, MessageEnvelope messageEnvelope)
+    protected override void OnHandle(ConsensusMaj23Message message, MessageEnvelope messageEnvelope)
     {
-        VoteSetBits? voteSetBits = consensusReactor.HandleMaj23(message.Maj23);
+        VoteSetBits? voteSetBits = consensusService.HandleMaj23(message.Maj23);
         if (voteSetBits is null)
         {
             return;

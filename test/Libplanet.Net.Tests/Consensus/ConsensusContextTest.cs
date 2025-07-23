@@ -36,17 +36,17 @@ public class ConsensusContextTest
         ConsensusProposalMessage? proposal = null;
         var proposalMessageSent = new AsyncAutoResetEvent();
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[3]);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
 
         AsyncAutoResetEvent heightThreeStepChangedToPropose = new AsyncAutoResetEvent();
         AsyncAutoResetEvent heightThreeStepChangedToEndCommit = new AsyncAutoResetEvent();
         AsyncAutoResetEvent heightFourStepChangedToPropose = new AsyncAutoResetEvent();
         AsyncAutoResetEvent onTipChangedToThree = new AsyncAutoResetEvent();
-        // consensusReactor.StateChanged += (_, eventArgs) =>
+        // consensusService.StateChanged += (_, eventArgs) =>
         // {
         //     if (eventArgs.Height == 3 && eventArgs.Step == ConsensusStep.Propose)
         //     {
@@ -61,7 +61,7 @@ public class ConsensusContextTest
         //         heightFourStepChangedToPropose.Set();
         //     }
         // };
-        // consensusReactor.MessagePublished += (_, eventArgs) =>
+        // consensusService.MessagePublished += (_, eventArgs) =>
         // {
         //     if (eventArgs.Message is ConsensusProposalMessage proposalMsg)
         //     {
@@ -86,18 +86,18 @@ public class ConsensusContextTest
 
         // Wait for context of height 3 to start.
         await heightThreeStepChangedToPropose.WaitAsync();
-        Assert.Equal(3, consensusReactor.Height);
+        Assert.Equal(3, consensusService.Height);
 
         // Cannot call NewHeight() with invalid heights.
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            async () => await consensusReactor.NewHeightAsync(2, default));
+            async () => await consensusService.NewHeightAsync(2, default));
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            async () => await consensusReactor.NewHeightAsync(3, default));
+            async () => await consensusService.NewHeightAsync(3, default));
 
         await proposalMessageSent.WaitAsync();
         BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
-        await consensusReactor.HandleMessageAsync(
+        await consensusService.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
                 PreCommit = TestUtils.CreateVote(
@@ -109,7 +109,7 @@ public class ConsensusContextTest
                     flag: VoteType.PreCommit)
             },
             default);
-        await consensusReactor.HandleMessageAsync(
+        await consensusService.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
                 PreCommit = TestUtils.CreateVote(
@@ -121,7 +121,7 @@ public class ConsensusContextTest
                     flag: VoteType.PreCommit)
             },
             default);
-        await consensusReactor.HandleMessageAsync(
+        await consensusService.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
                 PreCommit = TestUtils.CreateVote(
@@ -141,31 +141,31 @@ public class ConsensusContextTest
 
         // Next height starts normally.
         await heightFourStepChangedToPropose.WaitAsync();
-        Assert.Equal(4, consensusReactor.Height);
-        Assert.Equal(0, consensusReactor.Round);
+        Assert.Equal(4, consensusService.Height);
+        Assert.Equal(0, consensusService.Round);
     }
 
     [Fact(Timeout = Timeout)]
     public void Ctor()
     {
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[1]);
 
-        Assert.Equal(ConsensusStep.Default, consensusReactor.Step);
-        Assert.Equal(1, consensusReactor.Height);
-        Assert.Equal(-1, consensusReactor.Round);
+        Assert.Equal(ConsensusStep.Default, consensusService.Step);
+        Assert.Equal(1, consensusService.Height);
+        Assert.Equal(-1, consensusService.Round);
     }
 
     [Fact]
     public async Task CannotStartTwice()
     {
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[1]);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await consensusReactor.StartAsync(default));
+            async () => await consensusService.StartAsync(default));
     }
 
     [Fact(Timeout = Timeout)]
@@ -173,31 +173,31 @@ public class ConsensusContextTest
     {
         var newHeightDelay = TimeSpan.FromSeconds(1);
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: newHeightDelay,
             key: TestUtils.PrivateKeys[1]);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
 
-        Assert.Equal(1, consensusReactor.Height);
+        Assert.Equal(1, consensusService.Height);
         Block block = blockchain.ProposeBlock(new PrivateKey());
         blockchain.Append(block, TestUtils.CreateBlockCommit(block));
-        Assert.Equal(1, consensusReactor.Height);
+        Assert.Equal(1, consensusService.Height);
         await Task.Delay(newHeightDelay + TimeSpan.FromSeconds(1));
-        Assert.Equal(2, consensusReactor.Height);
+        Assert.Equal(2, consensusService.Height);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task IgnoreMessagesFromLowerHeight()
     {
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[1]);
-        await consensusReactor.StartAsync(default);
-        Assert.True(consensusReactor.Height == 1);
-        Assert.False(await consensusReactor.HandleMessageAsync(
+        await consensusService.StartAsync(default);
+        Assert.True(consensusService.Height == 1);
+        Assert.False(await consensusService.HandleMessageAsync(
             TestUtils.CreateConsensusPropose(blockchain.ProposeBlock(TestUtils.PrivateKeys[0]), TestUtils.PrivateKeys[0], 0),
             default));
     }
@@ -211,18 +211,18 @@ public class ConsensusContextTest
         var votes = new List<Vote>();
 
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[1]);
-        // consensusReactor.StateChanged += (sender, tuple) =>
+        // consensusService.StateChanged += (sender, tuple) =>
         // {
         //     if (tuple.Height == 1 && tuple.Step == ConsensusStep.EndCommit)
         //     {
         //         heightOneEndCommit.Set();
         //     }
         // };
-        // consensusReactor.MessagePublished += (_, eventArgs) =>
+        // consensusService.MessagePublished += (_, eventArgs) =>
         // {
         //     if (eventArgs.Height == 1 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
         //     {
@@ -231,7 +231,7 @@ public class ConsensusContextTest
         //     }
         // };
 
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         await heightOneProposalSent.WaitAsync();
         BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
@@ -252,12 +252,12 @@ public class ConsensusContextTest
 
         foreach (var vote in votes)
         {
-            await consensusReactor.HandleMessageAsync(new ConsensusPreCommitMessage { PreCommit = vote }, default);
+            await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage { PreCommit = vote }, default);
         }
 
         await heightOneEndCommit.WaitAsync();
 
-        var blockCommit = consensusReactor.Consensus.GetBlockCommit();
+        var blockCommit = consensusService.Consensus.GetBlockCommit();
         Assert.NotNull(blockCommit);
         Assert.NotEqual(votes[0], blockCommit!.Votes.First(x =>
             x.Validator.Equals(TestUtils.PrivateKeys[0].PublicKey)));
@@ -279,11 +279,11 @@ public class ConsensusContextTest
         AsyncAutoResetEvent stepChanged = new AsyncAutoResetEvent();
         AsyncAutoResetEvent committed = new AsyncAutoResetEvent();
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[0]);
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         var block = blockchain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata
         {
@@ -324,14 +324,14 @@ public class ConsensusContextTest
             ValidatorPower = TestUtils.Validators[3].Power,
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[3]);
-        // consensusReactor.StateChanged += (_, eventArgs) =>
+        // consensusService.StateChanged += (_, eventArgs) =>
         // {
         //     if (eventArgs is { Height: 1, Step: ConsensusStep.PreCommit })
         //     {
         //         stepChanged.Set();
         //     }
         // };
-        // consensusReactor.CurrentContext.VoteSetModified += (_, eventArgs) =>
+        // consensusService.CurrentContext.VoteSetModified += (_, eventArgs) =>
         // {
         //     if (eventArgs.Flag == VoteType.PreCommit)
         //     {
@@ -339,18 +339,18 @@ public class ConsensusContextTest
         //     }
         // };
 
-        await consensusReactor.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote1 }, default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote3 }, default);
+        await consensusService.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
+        await consensusService.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote1 }, default);
+        await consensusService.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote3 }, default);
         await stepChanged.WaitAsync();
         await committed.WaitAsync();
 
         // VoteSetBits expects missing votes
-        VoteSetBits voteSetBits = consensusReactor.Consensus
+        VoteSetBits voteSetBits = consensusService.Consensus
         .GetVoteSetBits(0, block.BlockHash, VoteType.PreVote);
         Assert.True(
         voteSetBits.VoteBits.SequenceEqual(new[] { true, true, false, true }));
-        voteSetBits = consensusReactor.Consensus
+        voteSetBits = consensusService.Consensus
         .GetVoteSetBits(0, block.BlockHash, VoteType.PreCommit);
         Assert.True(
         voteSetBits.VoteBits.SequenceEqual(new[] { true, false, false, false }));
@@ -364,11 +364,11 @@ public class ConsensusContextTest
         ConsensusStep step = ConsensusStep.Default;
         var stepChanged = new AsyncAutoResetEvent();
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[0]);
-        // consensusReactor.StateChanged += (_, eventArgs) =>
+        // consensusService.StateChanged += (_, eventArgs) =>
         // {
         //     if (eventArgs.Step != step)
         //     {
@@ -377,7 +377,7 @@ public class ConsensusContextTest
         //     }
         // };
 
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         var block = blockchain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata
         {
@@ -408,9 +408,9 @@ public class ConsensusContextTest
             ValidatorPower = TestUtils.Validators[2].Power,
             Type = VoteType.PreVote,
         }.Sign(TestUtils.PrivateKeys[2]);
-        await consensusReactor.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote1 }, default);
-        await consensusReactor.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote2 }, default);
+        await consensusService.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
+        await consensusService.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote1 }, default);
+        await consensusService.HandleMessageAsync(new ConsensusPreVoteMessage { PreVote = preVote2 }, default);
         do
         {
             await stepChanged.WaitAsync();
@@ -430,7 +430,7 @@ public class ConsensusContextTest
                 VoteBits = [false, false, true, false],
             }.Sign(TestUtils.PrivateKeys[1]);
         ConsensusMessage[] votes =
-    consensusReactor.HandleVoteSetBits(voteSetBits).ToArray();
+    consensusService.HandleVoteSetBits(voteSetBits).ToArray();
         Assert.True(votes.All(vote => vote is ConsensusPreVoteMessage));
         Assert.Equal(2, votes.Length);
         Assert.Equal(TestUtils.PrivateKeys[0].Address, votes[0].Validator);
@@ -444,11 +444,11 @@ public class ConsensusContextTest
         ConsensusStep step = ConsensusStep.Default;
         var stepChanged = new AsyncAutoResetEvent();
         var blockchain = TestUtils.CreateBlockchain();
-        var consensusReactor = TestUtils.CreateConsensusReactor(
+        var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[0]);
-        // consensusReactor.StateChanged += (_, eventArgs) =>
+        // consensusService.StateChanged += (_, eventArgs) =>
         // {
         //     if (eventArgs.Step != step)
         //     {
@@ -456,7 +456,7 @@ public class ConsensusContextTest
         //         stepChanged.Set();
         //     }
         // };
-        await consensusReactor.StartAsync(default);
+        await consensusService.StartAsync(default);
         var block = blockchain.ProposeBlock(proposer);
         var proposal = new ProposalMetadata
         {
@@ -467,7 +467,7 @@ public class ConsensusContextTest
             Proposer = proposer.Address,
             ValidRound = -1,
         }.Sign(proposer, block);
-        await consensusReactor.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
+        await consensusService.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
         await stepChanged.WaitAsync();
 
         // ProposalClaim expects corresponding proposal if exists
@@ -481,7 +481,7 @@ public class ConsensusContextTest
             Validator = TestUtils.PrivateKeys[1].Address,
         }.Sign(TestUtils.PrivateKeys[1]);
         Proposal? reply =
-consensusReactor.HandleProposalClaim(proposalClaim);
+consensusService.HandleProposalClaim(proposalClaim);
         Assert.NotNull(reply);
         Assert.Equal(proposal, reply);
     }

@@ -553,15 +553,15 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var privateKey0 = TestUtils.PrivateKeys[0];
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(fx.Options);
         await using var transport = TestUtils.CreateTransport(privateKey0);
-        var options = new ConsensusReactorOptions
+        var options = new ConsensusServiceOptions
         {
             TargetBlockInterval = newHeightDelay,
         };
-        var consensusReactor = new ConsensusReactor(
+        var consensusService = new ConsensusService(
             privateKey0.AsSigner(),
             blockchain,
             options);
-        // var consensus = consensusReactor.Consensus;
+        // var consensus = consensusService.Consensus;
 
         using var _2 = blockchain.TipChanged.Subscribe(e =>
         {
@@ -571,7 +571,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             }
         });
 
-        using var _3 = consensusReactor.HeightChanged.Subscribe(height =>
+        using var _3 = consensusService.HeightChanged.Subscribe(height =>
         {
             if (height == 2)
             {
@@ -592,8 +592,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             Round = 0,
         }.Create(TestUtils.PrivateKeys[1]);
 
-        await consensusReactor.StartAsync(default);
-        consensusReactor.Post(proposal);
+        await consensusService.StartAsync(default);
+        consensusService.Post(proposal);
 
         foreach (var i in new int[] { 1, 2, 3 })
         {
@@ -607,7 +607,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensusReactor.Post(preVote);
+            consensusService.Post(preVote);
         }
 
         foreach (var i in new int[] { 1, 2, 3 })
@@ -622,10 +622,10 @@ public sealed class ConsensusTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensusReactor.Post(preCommit);
+            consensusService.Post(preCommit);
         }
 
-        Assert.Equal(1, consensusReactor.Height);
+        Assert.Equal(1, consensusService.Height);
         var watch = Stopwatch.StartNew();
         Assert.True(onTipChanged.WaitOne(5000), "Tip was not changed in time.");
         Assert.True(watch.ElapsedMilliseconds < (actionDelay * 0.5));
@@ -637,7 +637,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         //     consensus.GetBlockCommit()!.Votes.Count(
         //         vote => vote.Type.Equals(VoteType.PreCommit)));
         Assert.True(watch.ElapsedMilliseconds > (actionDelay * 0.5));
-        Assert.Equal(2, consensusReactor.Height);
+        Assert.Equal(2, consensusService.Height);
     }
 
     [Theory(Timeout = Timeout)]

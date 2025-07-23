@@ -3,11 +3,11 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.Consensus.ConsensusMessageHandlers;
 
-internal sealed class ConsensusMessageHandler(ConsensusReactor consensusReactor)
+internal sealed class ConsensusMessageHandler(ConsensusService consensusService)
     : MessageHandlerBase<ConsensusMessage>
 {
     protected override void OnHandle(ConsensusMessage message, MessageEnvelope messageEnvelope)
     {
-        consensusReactor.HandleMessage(message);
+        consensusService.HandleMessage(message);
     }
 }

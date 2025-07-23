@@ -247,7 +247,7 @@ public partial class SwarmTest(ITestOutputHelper output)
                 EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i),
             }).ToImmutableHashSet();
         var reactorOpts = Enumerable.Range(0, 4).Select(i =>
-            new ConsensusReactorOptions
+            new ConsensusServiceOptions
             {
                 Validators = consensusPeers,
                 TransportOptions = new TransportOptions
@@ -273,7 +273,7 @@ public partial class SwarmTest(ITestOutputHelper output)
                 },
                 policy: policy,
                 genesis: genesis,
-                consensusReactorOption: reactorOpts[i]));
+                consensusServiceOption: reactorOpts[i]));
         }
         await using var _1 = new AsyncDisposerCollection(swarms);
 

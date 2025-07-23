@@ -2,7 +2,7 @@ using Libplanet.Net.Options;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed record class ConsensusReactorOptions
+public sealed record class ConsensusServiceOptions
 {
     public TransportOptions TransportOptions { get; init; } = new();
 
