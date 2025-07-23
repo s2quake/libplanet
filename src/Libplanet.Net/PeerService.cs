@@ -70,39 +70,10 @@ public sealed class PeerService : ServiceBase
         _transport.Post(peers, message);
     }
 
-    public Task ExploreAsync(CancellationToken cancellationToken)
-        => ExploreAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
-
-    public async Task ExploreAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
+    public async Task ExploreAsync(CancellationToken cancellationToken)
     {
         using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
-        if (seedPeers.Any(item => item.Address == _address))
-        {
-            throw new ArgumentException("Peer list cannot contain self address.", nameof(seedPeers));
-        }
-
-        if (seedPeers.Count is 0)
-        {
-            throw new ArgumentException("Peer list cannot be empty.", nameof(seedPeers));
-        }
-
-        ArgumentOutOfRangeException.ThrowIfNegative(maxDepth);
-
-        var taskList = new List<Task>(seedPeers.Count);
-        foreach (var peer in seedPeers)
-        {
-            try
-            {
-                await AddOrUpdateAsync(peer, cancellationToken);
-                taskList.Add(ExplorePeersAsync(peer, _address, maxDepth, cancellationTokenSource.Token));
-            }
-            catch (Exception)
-            {
-                // do nothing
-            }
-        }
-
-        await Task.WhenAll(taskList);
+        await ExploreAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
     }
 
     public Task RefreshAsync(CancellationToken cancellationToken)
@@ -306,6 +277,39 @@ public sealed class PeerService : ServiceBase
         }
 
         return options;
+    }
+
+    private async Task ExploreAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
+    {
+        if (seedPeers.Any(item => item.Address == _address))
+        {
+            throw new ArgumentException("Peer list cannot contain self address.", nameof(seedPeers));
+        }
+
+        if (seedPeers.Count is 0)
+        {
+            throw new ArgumentException("Peer list cannot be empty.", nameof(seedPeers));
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegative(maxDepth);
+
+        var taskList = new List<Task>(seedPeers.Count);
+        foreach (var peer in seedPeers)
+        {
+            try
+            {
+                if (await AddOrUpdateAsync(peer, cancellationToken))
+                {
+                    taskList.Add(ExplorePeersAsync(peer, _address, maxDepth, cancellationToken));
+                }
+            }
+            catch (Exception)
+            {
+                // do nothing
+            }
+        }
+
+        await Task.WhenAll(taskList);
     }
 
     private async Task ExplorePeersAsync(Peer viaPeer, Address address, int maxDepth, CancellationToken cancellationToken)

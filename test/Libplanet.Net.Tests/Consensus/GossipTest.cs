@@ -7,29 +7,29 @@ using Libplanet.Net.Options;
 using Libplanet.Net.NetMQ;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
+using Xunit.Abstractions;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-[Collection("NetMQConfiguration")]
-public sealed class GossipTest
+public sealed class GossipTest(ITestOutputHelper output)
 {
     private const int Timeout = 60 * 1000;
 
     [Fact(Timeout = Timeout)]
     public async Task PublishMessage()
     {
+        var random = RandomUtility.GetRandom(output);
         using var fx = new MemoryRepositoryFixture();
         var received1 = false;
         var received2 = false;
-        var key1 = new PrivateKey();
-        var key2 = new PrivateKey();
+        var key1 = RandomUtility.PrivateKey(random);
+        var key2 = RandomUtility.PrivateKey(random);
         var receivedEvent = new ManualResetEvent(false);
-        var peer1 = CreatePeer(key1, 6001);
-        var peer2 = CreatePeer(key2, 6002);
-        var transport1 = CreateTransport(key1, 6001);
-        var transport2 = CreateTransport(key2, 6002);
-        await using var gossip1 = CreateGossip(transport1, [peer2]);
-        await using var gossip2 = CreateGossip(transport2, [peer1]);
+        await using var transport1 = CreateTransport(key1);
+        await using var transport2 = CreateTransport(key2);
+        await using var gossip1 = CreateGossip(transport1, [transport2.Peer]);
+        await using var gossip2 = CreateGossip(transport2, [transport1.Peer]);
         transport1.MessageHandlers.Add<ConsensusProposalMessage>(message =>
         {
             received1 = true;
@@ -51,18 +51,17 @@ public sealed class GossipTest
     [Fact(Timeout = Timeout)]
     public async Task AddMessages()
     {
+        var random = RandomUtility.GetRandom(output);
         using var fx = new MemoryRepositoryFixture();
         var received1 = 0;
         var received2 = 0;
-        var key1 = new PrivateKey();
-        var key2 = new PrivateKey();
+        var key1 = RandomUtility.PrivateKey(random);
+        var key2 = RandomUtility.PrivateKey(random);
         var receivedEvent = new ManualResetEvent(false);
-        var peer1 = CreatePeer(key1, 6001);
-        var peer2 = CreatePeer(key2, 6002);
-        var transport1 = CreateTransport(key1, 6001);
-        var transport2 = CreateTransport(key2, 6002);
-        await using var gossip1 = CreateGossip(transport1, [peer2]);
-        await using var gossip2 = CreateGossip(transport2, [peer1]);
+        await using var transport1 = CreateTransport(key1);
+        await using var transport2 = CreateTransport(key2);
+        await using var gossip1 = CreateGossip(transport1, [transport2.Peer]);
+        await using var gossip2 = CreateGossip(transport2, [transport1.Peer]);
         transport1.MessageHandlers.Add<ConsensusProposalMessage>(message =>
         {
             received1++;
@@ -88,7 +87,7 @@ public sealed class GossipTest
 
         Parallel.ForEach(message, gossip1.PublishMessage);
 
-        receivedEvent.WaitOne();
+        Assert.True(receivedEvent.WaitOne());
         Assert.Equal(4, received1);
         Assert.Equal(4, received2);
     }
