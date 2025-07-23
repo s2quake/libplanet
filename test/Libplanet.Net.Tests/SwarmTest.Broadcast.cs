@@ -107,7 +107,7 @@ public partial class SwarmTest
 
         await swarmA.AddPeersAsync([seed.Peer], default);
         await swarmA.StopAsync(default);
-        await seed.PeerService.RefreshPeersAsync(
+        await seed.PeerService.RefreshAsync(
             TimeSpan.Zero,
             default);
 

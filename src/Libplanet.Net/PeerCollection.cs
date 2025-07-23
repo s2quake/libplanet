@@ -123,53 +123,6 @@ public sealed class PeerCollection(
         }
     }
 
-    public PeerState GetState(Address address) => _buckets[address][address];
-
-    public ImmutableArray<Peer> GetNeighbors(Address target, int k, bool includeTarget = false)
-    {
-        // Select maximum k * 2 peers excluding the target itself.
-        var query = from bucket in _buckets
-                    where !bucket.IsEmpty
-                    from peerState in bucket
-                    where includeTarget || peerState.Address != target
-                    orderby AddressUtility.GetDistance(target, peerState.Address)
-                    select peerState.Peer;
-        var peers = query.ToImmutableArray();
-        var containsTarget = peers.Any(peer => peer.Address == target);
-        var count = (includeTarget && containsTarget) ? (k * 2) + 1 : k * 2;
-
-        return [.. peers.Take(count)];
-    }
-
-    internal ImmutableArray<Peer> PeersToBroadcast(ImmutableArray<Address> except, int minimum = 10)
-    {
-        var query = from bucket in _buckets
-                    where !bucket.IsEmpty
-                    let peer = bucket.TryGetRandomPeer(except, out var v) ? v : null
-                    where peer is not null
-                    select peer;
-        var peerList = query.ToList();
-        var count = peerList.Count;
-        if (count < minimum)
-        {
-            var rest = this.Except(peerList)
-                .Where(peer => !except.Contains(peer.Address))
-                .Take(minimum - count);
-            peerList.AddRange(rest);
-        }
-
-        return [.. peerList.Select(item => item)];
-    }
-
-    internal ImmutableArray<Peer> GetStalePeers(TimeSpan staleThreshold)
-    {
-        var query = from bucket in _buckets
-                    where !bucket.IsEmpty && bucket.Oldest.IsStale(staleThreshold)
-                    select bucket.Oldest.Peer;
-
-        return [.. query];
-    }
-
     public IEnumerator<Peer> GetEnumerator()
     {
         foreach (var bucket in _buckets)

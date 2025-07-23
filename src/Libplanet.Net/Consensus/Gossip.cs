@@ -19,8 +19,8 @@ public sealed class Gossip : ServiceBase
     private readonly ImmutableHashSet<Peer> _validators;
     private readonly IMessageHandler[] _handlers = [];
     private readonly PeerService _peerService;
+    private readonly ServiceCollection _services;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
-    private ServiceCollection? _services;
 
     public Gossip(
         ITransport transport, ImmutableHashSet<Peer> seeds, ImmutableHashSet<Peer> validators, GossipOptions options)
@@ -35,7 +35,16 @@ public sealed class Gossip : ServiceBase
             new WantMessageHandler(_transport, _messageById, _haveDict),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
-        _peerService = new PeerService(_transport);
+        _peerService = new PeerService(_transport, new PeerServiceOptions
+        {
+            SeedPeers = seeds,
+        });
+        _services =
+        [
+            new RefreshTableTask(_peerService, _options.RefreshTableInterval, _options.RefreshLifespan),
+            new RebuildTableTask(_peerService, _seeds, _options.RebuildTableInterval),
+            new HeartbeatTask(this, _options.HeartbeatInterval)
+        ];
     }
 
     public Gossip(ITransport transport)
@@ -134,36 +143,25 @@ public sealed class Gossip : ServiceBase
         // _peerDiscovery = new PeerService(_transport);
         _peerService.AddRange(_validators);
         await _peerService.StartAsync(cancellationToken);
-        _services =
-        [
-            new RefreshTableTask(_peerService, _options.RefreshTableInterval, _options.RefreshLifespan),
-            new RebuildTableTask(_peerService, _seeds, _options.RebuildTableInterval),
-            new HeartbeatTask(this, _options.HeartbeatInterval)
-        ];
-        if (_seeds.Count > 0)
-        {
-            try
-            {
-                await _peerService.BootstrapAsync(_seeds, 3, cancellationToken);
-            }
-            catch (InvalidOperationException)
-            {
-                // logging
-            }
-        }
+
+        // if (_seeds.Count > 0)
+        // {
+        //     try
+        //     {
+        //         await _peerService.BootstrapAsync(_seeds, 3, cancellationToken);
+        //     }
+        //     catch (InvalidOperationException)
+        //     {
+        //         // logging
+        //     }
+        // }
 
         await _services.StartAsync(cancellationToken);
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        if (_services is not null)
-        {
-            await _services.StopAsync(cancellationToken);
-            await _services.DisposeAsync();
-            _services = null;
-        }
-
+        await _services.StopAsync(cancellationToken);
         await _peerService.StopAsync(cancellationToken);
         await _transport.StopAsync(cancellationToken);
     }
@@ -171,12 +169,7 @@ public sealed class Gossip : ServiceBase
     protected override async ValueTask DisposeAsyncCore()
     {
         _transport.MessageHandlers.RemoveRange(_handlers);
-        if (_services is not null)
-        {
-            await _services.DisposeAsync();
-            _services = null;
-        }
-
+        await _services.DisposeAsync();
         await _peerService.DisposeAsync();
         _messageById.Clear();
         await _transport.DisposeAsync();

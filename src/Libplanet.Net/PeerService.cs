@@ -12,9 +12,10 @@ public sealed class PeerService : ServiceBase
     public const int FindConcurrency = 3;
     public const int MaxDepth = 3;
 
+    private readonly ITransport _transport;
+    private readonly PeerServiceOptions _options;
     private readonly PeerCollection _peers;
     private readonly Address _address;
-    private readonly ITransport _transport;
     private readonly PeerCollection _replacementCache;
     private readonly IMessageHandler[] _handlers;
 
@@ -27,6 +28,7 @@ public sealed class PeerService : ServiceBase
     {
         _address = transport.Peer.Address;
         _transport = transport;
+        _options = options;
         _peers = new(_address, options.BucketCount, options.CapacityPerBucket);
         _replacementCache = new PeerCollection(_address, options.BucketCount, options.CapacityPerBucket);
         _handlers =
@@ -40,6 +42,31 @@ public sealed class PeerService : ServiceBase
     public Peer Peer => _transport.Peer;
 
     public IPeerCollection Peers => _peers;
+
+    public void AddRange(ImmutableHashSet<Peer> peers)
+    {
+        if (peers.Any(item => item.Address == _address))
+        {
+            throw new ArgumentException("Peer list cannot contain self address.", nameof(peers));
+        }
+
+        foreach (var peer in peers)
+        {
+            _peers.AddOrUpdate(peer);
+        }
+    }
+
+    public void Broadcast(IMessage message)
+    {
+        var peers = _peers.PeersToBroadcast(default);
+        _transport.Post(peers, message);
+    }
+
+    public void Broadcast(IMessage message, ImmutableArray<Address> except)
+    {
+        var peers = _peers.PeersToBroadcast(except, _options.MinimumBroadcastTarget);
+        _transport.Post(peers, message);
+    }
 
     internal bool AddOrUpdate(Peer peer) => AddOrUpdate(peer, DateTimeOffset.UtcNow, TimeSpan.Zero);
 
@@ -61,23 +88,6 @@ public sealed class PeerService : ServiceBase
         return true;
     }
 
-    public PeerState GetPeerState(Address address) => _peers.GetState(address);
-
-    public void AddRange(ImmutableHashSet<Peer> peers)
-    {
-        if (peers.Any(item => item.Address == _address))
-        {
-            throw new ArgumentException("Peer list cannot contain self address.", nameof(peers));
-        }
-
-        foreach (var peer in peers)
-        {
-            _peers.AddOrUpdate(peer);
-        }
-    }
-
-    public bool Contains(Peer peer) => _peers.Contains(peer);
-
     internal bool Remove(Peer peer)
     {
         if (peer.Address == _address)
@@ -88,69 +98,22 @@ public sealed class PeerService : ServiceBase
         return _peers.Remove(peer) || _replacementCache.Remove(peer);
     }
 
-    // public void Clear()
-    // {
-    //     _peers.Clear();
-    //     _replacementCache.Clear();
-    // }
-
-    internal ImmutableArray<Peer> PeersToBroadcast(Address except, int minimum = 10)
+    private async Task BootstrapAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
     {
-        var query = from bucket in _peers.Buckets
-                    where bucket.Count > 0
-                    let peer = bucket.TryGetRandomPeer(except, out var v) ? v : null
-                    where peer is not null
-                    select peer;
-        var peerList = query.ToList();
-        var count = peerList.Count;
-        if (count < minimum)
+        if (seedPeers.Any(item => item.Address == _address))
         {
-            var rest = _peers.Except(peerList)
-                .Where(peer => peer.Address != except)
-                .Take(minimum - count);
-            peerList.AddRange(rest);
+            throw new ArgumentException("Peer list cannot contain self address.", nameof(seedPeers));
         }
 
-        return [.. peerList.Select(item => item)];
-    }
-
-    internal ImmutableArray<Peer> GetStalePeers(TimeSpan staleThreshold)
-    {
-        var query = from bucket in _peers.Buckets
-                    where bucket.Count is not 0 && bucket.Oldest.IsStale(staleThreshold)
-                    select bucket.Oldest.Peer;
-
-        return [.. query];
-    }
-
-    public void Broadcast(IMessage message)
-    {
-        var peers = _peers.PeersToBroadcast(default);
-        _transport.Post(peers, message);
-    }
-
-    public void Broadcast(IMessage message, ImmutableArray<Address> except)
-    {
-        var peers = _peers.PeersToBroadcast(default);
-        _transport.Post(peers, message);
-    }
-
-    public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int maxDepth, CancellationToken cancellationToken)
-    {
-        if (peers.Any(item => item.Address == _address))
+        if (seedPeers.Count is 0)
         {
-            throw new ArgumentException("Peer list cannot contain self address.", nameof(peers));
-        }
-
-        if (peers.Count is 0)
-        {
-            throw new ArgumentException("Peer list cannot be empty.", nameof(peers));
+            throw new ArgumentException("Peer list cannot be empty.", nameof(seedPeers));
         }
 
         ArgumentOutOfRangeException.ThrowIfNegative(maxDepth);
 
-        var taskList = new List<Task>(peers.Count);
-        foreach (var peer in peers)
+        var taskList = new List<Task>(seedPeers.Count);
+        foreach (var peer in seedPeers)
         {
             try
             {
@@ -163,15 +126,15 @@ public sealed class PeerService : ServiceBase
             }
         }
 
-        if (_peers.Count == 0)
-        {
-            throw new InvalidOperationException("There is no peer in the routing table after bootstrapping.");
-        }
+        // if (_peers.Count == 0)
+        // {
+        //     throw new InvalidOperationException("There is no peer in the routing table after bootstrapping.");
+        // }
 
         await Task.WhenAll(taskList);
     }
 
-    public async Task RefreshPeersAsync(TimeSpan staleThreshold, CancellationToken cancellationToken)
+    public async Task RefreshAsync(TimeSpan staleThreshold, CancellationToken cancellationToken)
     {
         using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         var peers = _peers.GetStalePeers(staleThreshold);
@@ -296,16 +259,6 @@ public sealed class PeerService : ServiceBase
         await Task.WhenAll(taskList);
     }
 
-    // public void Dispose()
-    // {
-    //     if (!_disposed)
-    //     {
-    //         _transport.MessageHandlers.RemoveRange(_handlers);
-    //         _disposed = true;
-    //         GC.SuppressFinalize(this);
-    //     }
-    // }
-
     private async Task ExplorePeersAsync(Peer viaPeer, Address address, int maxDepth, CancellationToken cancellationToken)
     {
         var visited = new HashSet<Peer>();
@@ -345,7 +298,10 @@ public sealed class PeerService : ServiceBase
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         _transport.MessageHandlers.AddRange(_handlers);
-        await Task.CompletedTask;
+        if (_options.SeedPeers.Count > 0)
+        {
+            await BootstrapAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
+        }
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)

@@ -145,13 +145,13 @@ public partial class SwarmTest(ITestOutputHelper output)
         Assert.Contains(swarmC.Peer, swarmB.Peers);
         foreach (var peer in swarmB.PeerService.Peers)
         {
-            var peerState = swarmB.PeerService.GetPeerState(peer.Address);
+            var peerState = swarmB.PeerService.Peers.GetState(peer.Address);
             Assert.InRange(peerState.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
         }
 
         foreach (var peer in swarmC.PeerService.Peers)
         {
-            var peerState = swarmC.PeerService.GetPeerState(peer.Address);
+            var peerState = swarmC.PeerService.Peers.GetState(peer.Address);
             if (peer.Address == swarmD.Peer.Address)
             {
                 // Peers added before bootstrap should not be marked as stale.
@@ -199,12 +199,12 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await swarmA.DisposeAsync();
         await Task.Delay(100);
-        await swarm.PeerService.RefreshPeersAsync(
+        await swarm.PeerService.RefreshAsync(
             TimeSpan.Zero,
             default);
         // Invoke once more in case of swarmA and swarmB is in the same bucket,
         // and swarmA is last updated.
-        await swarm.PeerService.RefreshPeersAsync(
+        await swarm.PeerService.RefreshAsync(
             TimeSpan.Zero,
             default);
         Assert.DoesNotContain(swarmA.Peer, swarm.Peers);

@@ -115,10 +115,14 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
 
-        await using var peerServiceB = new PeerService(transportB);
+        var peerServiceOptionsB = new PeerServiceOptions
+        {
+            SeedPeers = [transportA.Peer],
+        };
+        await using var peerServiceB = new PeerService(transportB, peerServiceOptionsB);
+        await peerServiceB.StartAsync(default);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await peerServiceB.BootstrapAsync([transportA.Peer], 3, default));
+        Assert.Empty(peerServiceB.Peers);
     }
 
     [Fact(Timeout = Timeout)]
@@ -128,8 +132,14 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportB = TestUtils.CreateTransport();
         await using var transportC = TestUtils.CreateTransport();
         var peerServiceA = new PeerService(transportA);
-        var peerServiceB = new PeerService(transportB);
-        var peerServiceC = new PeerService(transportC);
+        var peerServiceB = new PeerService(transportB, new PeerServiceOptions
+        {
+            SeedPeers = [transportA.Peer],
+        });
+        var peerServiceC = new PeerService(transportC, new PeerServiceOptions
+        {
+            SeedPeers = [transportA.Peer],
+        });
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
@@ -138,11 +148,9 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await peerServiceB.StartAsync(default);
         await peerServiceC.StartAsync(default);
 
-        await peerServiceB.BootstrapAsync([transportA.Peer], 3, default);
-        await peerServiceC.BootstrapAsync([transportA.Peer], 3, default);
+        Assert.Contains(transportC.Peer, peerServiceB.Peers);
+        Assert.Contains(transportB.Peer, peerServiceC.Peers);
 
-        Assert.True(peerServiceB.Contains(transportC.Peer));
-        Assert.True(peerServiceC.Contains(transportB.Peer));
 
         await peerServiceA.RestartAsync(default);
         await peerServiceB.RestartAsync(default);
@@ -150,10 +158,11 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         await transportB.PingAsync(transportC.Peer, default);
         await transportC.StopAsync(default);
-        await peerServiceA.BootstrapAsync([transportB.Peer], 3, default);
 
-        Assert.True(peerServiceB.Contains(transportA.Peer));
-        Assert.False(peerServiceC.Contains(transportA.Peer));
+        await peerServiceA.RefreshAsync(TimeSpan.Zero, default);
+
+        Assert.Contains(transportA.Peer, peerServiceB.Peers);
+        Assert.DoesNotContain(transportA.Peer, peerServiceC.Peers);
     }
 
     [Fact(Timeout = Timeout)]
@@ -175,7 +184,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         await transportB.StopAsync(default);
         await Task.Delay(100);
-        await peerServiceA.RefreshPeersAsync(TimeSpan.Zero, default);
+        await peerServiceA.RefreshAsync(TimeSpan.Zero, default);
         Assert.Empty(peerServiceA.Peers);
     }
 
@@ -248,7 +257,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         Assert.DoesNotContain(transportC.Peer, peerService.Peers);
 
         await transportA.StopAsync(default);
-        await peerService.RefreshPeersAsync(TimeSpan.Zero, default);
+        await peerService.RefreshAsync(TimeSpan.Zero, default);
         await peerService.CheckReplacementCacheAsync(default);
 
         Assert.Single(peerService.Peers);
@@ -293,7 +302,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await transportB.StopAsync(default);
 
         await transportC.PingAsync(transport.Peer, default);
-        await peerService.RefreshPeersAsync(TimeSpan.Zero, default);
+        await peerService.RefreshAsync(TimeSpan.Zero, default);
         await peerService.CheckReplacementCacheAsync(default);
 
         Assert.Single(peerService.Peers);
@@ -317,7 +326,10 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         for (var i = 0; i < count; i++)
         {
             transports[i] = TestUtils.CreateTransport();
-            peerServices[i] = new PeerService(transports[i]);
+            peerServices[i] = new PeerService(transports[i], new PeerServiceOptions
+            {
+                SeedPeers = [seed.Peer],
+            });
             await transports[i].StartAsync(default);
         }
         await using var _1 = new AsyncDisposerCollection(transports);
@@ -325,7 +337,6 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         for (var i = 0; i < count; i++)
         {
             await peerServices[i].StartAsync(default);
-            await peerServices[i].BootstrapAsync([seed.Peer], 3, default);
         }
 
         var taskList = new List<Task>();
@@ -449,8 +460,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         var taskA = transportA.WaitMessageAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
         var taskB = transportB.WaitMessageAsync<TestMessage>(m => m.Data == "foo", default);
         var taskC = transportC.WaitMessageAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
-        var peers = peerServiceA.PeersToBroadcast(default);
-        transportA.Post(peers, new TestMessage { Data = "foo" });
+        peerServiceA.Broadcast(new TestMessage { Data = "foo" });
 
         await Assert.ThrowsAsync<OperationCanceledException>(async () => await taskA);
         await taskB;
@@ -493,21 +503,21 @@ public sealed class ProtocolTest(ITestOutputHelper output)
             Assert.True(peerService.AddOrUpdate(peer, lastUpdated, latency));
         }
 
-        var stalePeers = peerService.GetStalePeers(TimeSpan.FromMinutes(1));
+        var stalePeers = peerService.Peers.GetStalePeers(TimeSpan.FromMinutes(1));
         Assert.Equal(peersCount, peerService.Peers.Count);
         Assert.Equal(peersCount / 2, stalePeers.Length);
         Assert.Equal(peersCount / 2, peerService.Peers.Buckets.Count(item => !item.IsEmpty));
 
-        await peerService.RefreshPeersAsync(TimeSpan.FromMinutes(1), default);
+        await peerService.RefreshAsync(TimeSpan.FromMinutes(1), default);
         Assert.NotEqual(
             stalePeers,
-            peerService.GetStalePeers(TimeSpan.FromMinutes(1)));
+            peerService.Peers.GetStalePeers(TimeSpan.FromMinutes(1)));
         Assert.Equal(
             peersCount / 2,
-            peerService.GetStalePeers(TimeSpan.FromMinutes(1)).Length);
+            peerService.Peers.GetStalePeers(TimeSpan.FromMinutes(1)).Length);
         Assert.Equal(peersCount / 2, peerService.Peers.Buckets.Count(item => !item.IsEmpty));
 
-        await peerService.RefreshPeersAsync(TimeSpan.FromMinutes(1), default);
-        Assert.Empty(peerService.GetStalePeers(TimeSpan.FromMinutes(1)));
+        await peerService.RefreshAsync(TimeSpan.FromMinutes(1), default);
+        Assert.Empty(peerService.Peers.GetStalePeers(TimeSpan.FromMinutes(1)));
     }
 }

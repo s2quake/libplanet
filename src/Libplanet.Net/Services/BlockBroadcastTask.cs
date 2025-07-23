@@ -11,7 +11,7 @@ internal sealed class RefreshTableService(PeerService peerService, TimeSpan inte
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        await peerService.RefreshPeersAsync(refreshLifespan, cancellationToken);
+        await peerService.RefreshAsync(refreshLifespan, cancellationToken);
         await peerService.CheckReplacementCacheAsync(cancellationToken);
     }
 }

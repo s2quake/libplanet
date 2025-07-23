@@ -13,6 +13,8 @@ public partial interface IBucket : IEnumerable<PeerState>
 
     PeerState Oldest { get; }
 
+    PeerState this[int index] { get; }
+
     PeerState this[Address address] { get; }
 
     bool Contains(Address address);

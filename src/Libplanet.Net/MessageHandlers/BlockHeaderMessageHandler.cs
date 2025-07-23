@@ -5,7 +5,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class BlockHeaderMessageHandler(Blockchain blockchain, BlockDemandDictionary blockDemandDictionary)
+internal sealed class BlockHeaderMessageHandler(Blockchain blockchain, BlockDemandCollection blockDemandDictionary)
     : MessageHandlerBase<BlockHeaderMessage>
 {
     private readonly Subject<Unit> _blockHeaderReceivedSubject = new();

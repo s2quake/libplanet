@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Libplanet.Net;
 
-public sealed class BlockDemandDictionary(TimeSpan blockDemandLifetime)
+public sealed class BlockDemandCollection(TimeSpan blockDemandLifetime)
     : IReadOnlyDictionary<Peer, BlockDemand>
 {
     private readonly ConcurrentDictionary<Peer, BlockDemand> _demandByPeer = new();

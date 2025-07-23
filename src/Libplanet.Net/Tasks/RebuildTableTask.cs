@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Net;
 
 namespace Libplanet.Net.Tasks;
 
@@ -12,6 +11,6 @@ internal sealed class RebuildTableTask(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        await peerService.BootstrapAsync(seeds, PeerService.MaxDepth, cancellationToken);
+        // await peerService.BootstrapAsync(seeds, PeerService.MaxDepth, cancellationToken);
     }
 }

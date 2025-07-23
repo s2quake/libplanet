@@ -13,7 +13,7 @@ internal sealed class RefreshTableTask(PeerService peerService, TimeSpan refresh
     {
         // var maxAge = swarm.Options.RefreshLifespan;
         // var PeerDiscovery = swarm.PeerDiscovery;
-        await peerService.RefreshPeersAsync(staleThreshold, cancellationToken);
+        await peerService.RefreshAsync(staleThreshold, cancellationToken);
         await peerService.CheckReplacementCacheAsync(cancellationToken);
     }
 }

@@ -35,7 +35,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         PeerService = new PeerService(Transport);
         _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
-        BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
+        BlockDemandDictionary = new BlockDemandCollection(options.BlockDemandLifespan);
         _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _consensusReactor = consensusOption is not null ? new ConsensusReactor(signer, Blockchain, consensusOption) : null;
 
@@ -86,20 +86,20 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     internal ConsensusReactor ConsensusReactor
         => _consensusReactor ?? throw new InvalidOperationException("ConsensusReactor is not initialized.");
 
-    private async Task BootstrapAsync(CancellationToken cancellationToken)
-    {
-        if (!Options.BootstrapOptions.Enabled)
-        {
-            return;
-        }
+    // private async Task BootstrapAsync(CancellationToken cancellationToken)
+    // {
+    //     if (!Options.BootstrapOptions.Enabled)
+    //     {
+    //         return;
+    //     }
 
-        var seedPeers = Options.BootstrapOptions.SeedPeers;
-        var searchDepth = Options.BootstrapOptions.SearchDepth;
-        if (seedPeers.Count > 0)
-        {
-            await PeerService.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
-        }
-    }
+    //     var seedPeers = Options.BootstrapOptions.SeedPeers;
+    //     var searchDepth = Options.BootstrapOptions.SearchDepth;
+    //     if (seedPeers.Count > 0)
+    //     {
+    //         await PeerService.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
+    //     }
+    // }
 
     public void BroadcastBlock(Block block)
     {
@@ -194,7 +194,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         }
 
         await Transport.StartAsync(cancellationToken);
-        await BootstrapAsync(cancellationToken);
+        await PeerService.StartAsync(cancellationToken);
         if (_consensusReactor is not null)
         {
             await _consensusReactor.StartAsync(cancellationToken);
@@ -212,7 +212,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             await _consensusReactor.StopAsync(cancellationToken);
         }
 
-        BlockDemandDictionary = new BlockDemandDictionary(Options.BlockDemandLifespan);
+        BlockDemandDictionary = new BlockDemandCollection(Options.BlockDemandLifespan);
         BlockBranches.RemoveAll(_ => true);
     }
 
@@ -249,12 +249,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         BroadcastTxIds(except.Address, txIds);
     }
 
-    internal void BroadcastMessage(Address except, MessageBase message)
-    {
-        Transport.Post(
-            PeerService.PeersToBroadcast(except, Options.MinimumBroadcastTarget),
-            message);
-    }
+    internal void BroadcastMessage(Address except, MessageBase message) => PeerService.Broadcast(message, [except]);
 
     internal void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
     {
@@ -273,7 +268,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         BroadcastMessage(except, replyMessage);
     }
 
-    public BlockDemandDictionary BlockDemandDictionary { get; private set; }
+    public BlockDemandCollection BlockDemandDictionary { get; private set; }
 
     public BlockBranchCollection BlockBranches { get; } = [];
 
