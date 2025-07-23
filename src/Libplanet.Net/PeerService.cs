@@ -33,27 +33,30 @@ public sealed class PeerService : ServiceBase
         [
             new PingMessageHandler(_transport),
             new GetPeerMessageHandler(_transport, _peers),
-            new DefaultMessageHandler(_address, this),
+            new DefaultMessageHandler(this),
         ];
     }
 
+    public Peer Peer => _transport.Peer;
+
     public IPeerCollection Peers => _peers;
 
-    public bool AddOrUpdate(Peer peer)
-    {
-        // if (!table.AddOrUpdate(peerState) && !replacementCache.AddOrUpdate(peerState))
-        //     {
-        //         var bucket = replacementCache.Buckets[peer.Address];
-        //         var oldestPeerState = bucket.Oldest;
-        //         var oldestAddress = oldestPeerState.Address;
-        //         bucket.Remove(oldestAddress);
-        //         bucket.AddOrUpdate(peerState);
-        //     }
-        return true;
-    }
+    internal bool AddOrUpdate(Peer peer) => AddOrUpdate(peer, DateTimeOffset.UtcNow);
 
-    public bool AddOrUpdate(Peer peer, DateTimeOffset lastUpdated)
+    internal bool AddOrUpdate(Peer peer, DateTimeOffset lastUpdated)
     {
+        var peerState = _peers.TryGetPeerState(peer, out var v)
+                    ? v with { LastUpdated = lastUpdated }
+                    : new PeerState { Peer = peer, LastUpdated = lastUpdated };
+
+        if (!_peers.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
+        {
+            var bucket = _replacementCache.Buckets[peer.Address];
+            var oldestPeerState = bucket.Oldest;
+            var oldestAddress = oldestPeerState.Address;
+            bucket.Remove(oldestAddress);
+            return bucket.AddOrUpdate(peerState);
+        }
 
         return true;
     }

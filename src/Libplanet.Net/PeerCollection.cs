@@ -66,11 +66,16 @@ public sealed class PeerCollection(
         return false;
     }
 
-    public bool Contains(Address address) => _buckets[address].Contains(address);
+    public bool Contains(Address address) => address != owner && _buckets[address].Contains(address);
 
     public bool Contains(Peer peer)
     {
         var address = peer.Address;
+         if (address == owner)
+        {
+            return false;
+        }
+
         var bucket = _buckets[address];
         if (bucket.TryGetValue(address, out var peerState) && peerState.Peer == peer)
         {
@@ -81,7 +86,34 @@ public sealed class PeerCollection(
     }
 
     public bool TryGetValue(Address address, [MaybeNullWhen(false)] out Peer peer)
-        => _buckets[address].TryGetPeer(address, out peer);
+    {
+        if (address == owner)
+        {
+            peer = default;
+            return false;
+        }
+
+        return _buckets[address].TryGetPeer(address, out peer);
+    }
+
+    public bool TryGetPeerState(Peer peer, [MaybeNullWhen(false)] out PeerState peerState)
+    {
+        var address = peer.Address;
+        if (address == owner)
+        {
+            peerState = default;
+            return false;
+        }
+
+        var bucket = _buckets[address];
+        if (bucket.TryGetValue(address, out peerState) && peerState.Peer == peer)
+        {
+            return true;
+        }
+
+        peerState = default;
+        return false;
+    }
 
     public void Clear()
     {

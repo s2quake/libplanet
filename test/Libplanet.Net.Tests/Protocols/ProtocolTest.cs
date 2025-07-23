@@ -198,6 +198,8 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await transportB.StartAsync(default);
         await transportC.StartAsync(default);
 
+        await peerService.StartAsync(default);
+
         await transportA.PingAsync(transport.Peer, default);
         await transportB.PingAsync(transport.Peer, default);
         await transportC.PingAsync(transport.Peer, default);
@@ -221,7 +223,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
             BucketCount = 1,
             CapacityPerBucket = 1,
         };
-        var peerService = new PeerService(transport, peerServiceOptions);
+        await using var peerService = new PeerService(transport, peerServiceOptions);
         transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
         transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
         transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
@@ -230,6 +232,8 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
         await transportC.StartAsync(default);
+
+        await peerService.StartAsync(default);
 
         await transportA.PingAsync(transport.Peer, default);
         await transportB.PingAsync(transport.Peer, default);
