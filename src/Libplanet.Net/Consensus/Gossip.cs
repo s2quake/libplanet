@@ -18,9 +18,8 @@ public sealed class Gossip : ServiceBase
     private readonly ImmutableHashSet<Peer> _seeds;
     private readonly ImmutableHashSet<Peer> _validators;
     private readonly IMessageHandler[] _handlers = [];
-    private readonly PeerService _peerDiscovery;
+    private readonly PeerService _peerService;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
-    // private PeerCollection? _peers;
     private ServiceCollection? _services;
 
     public Gossip(
@@ -36,7 +35,7 @@ public sealed class Gossip : ServiceBase
             new WantMessageHandler(_transport, _messageById, _haveDict),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
-        _peerDiscovery = new PeerService(_transport);
+        _peerService = new PeerService(_transport);
     }
 
     public Gossip(ITransport transport)
@@ -57,7 +56,7 @@ public sealed class Gossip : ServiceBase
             //     throw new InvalidOperationException("Gossip is not running.");
             // }
 
-            return [.. _peerDiscovery.Peers];
+            return [.. _peerService.Peers];
         }
     }
 
@@ -70,7 +69,7 @@ public sealed class Gossip : ServiceBase
 
     public void PublishMessage(IMessage message)
     {
-        if (_peerDiscovery is null)
+        if (_peerService is null)
         {
             throw new InvalidOperationException("Gossip is not running.");
         }
@@ -78,7 +77,7 @@ public sealed class Gossip : ServiceBase
         ImmutableArray<Peer> peers =
         [
             _transport.Peer,
-            .. GetPeersToBroadcast(_peerDiscovery.Peers, DLazy)
+            .. GetPeersToBroadcast(_peerService.Peers, DLazy)
         ];
 
         PublishMessage(peers, message);
@@ -116,7 +115,7 @@ public sealed class Gossip : ServiceBase
 
     public async Task HeartbeatAsync(CancellationToken cancellationToken)
     {
-        var peers = _peerDiscovery?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
+        var peers = _peerService?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
         var ids = _messageById.Keys.ToArray();
         if (ids.Length > 0)
         {
@@ -133,19 +132,19 @@ public sealed class Gossip : ServiceBase
         await _transport.StartAsync(cancellationToken);
         // _peers = new PeerCollection(_transport.Peer.Address);
         // _peerDiscovery = new PeerService(_transport);
-        _peerDiscovery.AddRange(_validators);
-        await _peerDiscovery.StartAsync(cancellationToken);
+        _peerService.AddRange(_validators);
+        await _peerService.StartAsync(cancellationToken);
         _services =
         [
-            new RefreshTableTask(_peerDiscovery, _options.RefreshTableInterval, _options.RefreshLifespan),
-            new RebuildTableTask(_peerDiscovery, _seeds, _options.RebuildTableInterval),
+            new RefreshTableTask(_peerService, _options.RefreshTableInterval, _options.RefreshLifespan),
+            new RebuildTableTask(_peerService, _seeds, _options.RebuildTableInterval),
             new HeartbeatTask(this, _options.HeartbeatInterval)
         ];
         if (_seeds.Count > 0)
         {
             try
             {
-                await _peerDiscovery.BootstrapAsync(_seeds, 3, cancellationToken);
+                await _peerService.BootstrapAsync(_seeds, 3, cancellationToken);
             }
             catch (InvalidOperationException)
             {
@@ -165,7 +164,7 @@ public sealed class Gossip : ServiceBase
             _services = null;
         }
 
-        await _peerDiscovery.StopAsync(cancellationToken);
+        await _peerService.StopAsync(cancellationToken);
         await _transport.StopAsync(cancellationToken);
     }
 
@@ -178,7 +177,7 @@ public sealed class Gossip : ServiceBase
             _services = null;
         }
 
-        await _peerDiscovery.DisposeAsync();
+        await _peerService.DisposeAsync();
         _messageById.Clear();
         await _transport.DisposeAsync();
         await base.DisposeAsyncCore();

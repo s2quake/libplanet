@@ -6,7 +6,7 @@ public sealed record class PeerServiceOptions
 {
     public static PeerServiceOptions Default { get; } = new();
 
-    public int BucketCount { get; init; } = Address.Size * 8;
+    public int BucketCount { get; init; } = PeerCollection.BucketCount;
 
-    public int CapacityPerBucket { get; init; } = 16;
+    public int CapacityPerBucket { get; init; } = PeerCollection.CapacityPerBucket;
 }

@@ -19,13 +19,14 @@ public sealed class BucketCollection(Address owner, int bucketCount, int capacit
 
     public int IndexOf(Address address)
     {
-        if (_buckets.Length == PeerCollection.BucketCount)
+        if (address == owner)
         {
-            return CommonPrefixLength(address, owner);
+            throw new ArgumentException("Address cannot be the owner.", nameof(address));
         }
 
+        var length = CommonPrefixLength(address, owner);
         var factor = (double)_buckets.Length / PeerCollection.BucketCount;
-        return (int)(CommonPrefixLength(address, owner) * factor);
+        return (int)(length * factor);
     }
 
     public IEnumerator<Bucket> GetEnumerator()

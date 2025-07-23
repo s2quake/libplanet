@@ -17,7 +17,6 @@ public sealed class PeerCollection(
     private readonly BucketCollection _buckets = new(owner, bucketCount, capacityPerBucket);
     private ImmutableArray<IBucket>? _bucketArray;
 
-
     public Address Owner => owner;
 
     public BucketCollection Buckets => _buckets;
@@ -33,12 +32,10 @@ public sealed class PeerCollection(
 
     ImmutableArray<IBucket> IPeerCollection.Buckets => _bucketArray ??= [.. _buckets.Cast<IBucket>()];
 
-    public PeerState this[Peer peer] => _buckets[peer.Address][peer.Address];
+    public Peer this[Address address] => _buckets[address][address].Peer;
 
     public bool AddOrUpdate(Peer peer)
-    {
-        return AddOrUpdate(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
-    }
+        => AddOrUpdate(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
 
     public bool AddOrUpdate(PeerState peerState)
     {
@@ -50,11 +47,20 @@ public sealed class PeerCollection(
         return _buckets[peerState.Address].AddOrUpdate(peerState);
     }
 
+    public bool Remove(Address address) => address != owner && _buckets[address].Remove(address);
+
     public bool Remove(Peer peer)
     {
-        if (peer.Address != owner)
+        var address = peer.Address;
+        if (address == owner)
         {
-            return _buckets[peer.Address].Remove(peer);
+            return false;
+        }
+
+        var bucket = _buckets[address];
+        if (bucket.TryGetValue(address, out var peerState) && peerState.Peer == peer)
+        {
+            return bucket.Remove(address);
         }
 
         return false;
@@ -62,11 +68,20 @@ public sealed class PeerCollection(
 
     public bool Contains(Address address) => _buckets[address].Contains(address);
 
-    public bool TryGetPeer(Address address, [MaybeNullWhen(false)] out Peer peer)
-        => _buckets[address].TryGetPeer(address, out peer);
+    public bool Contains(Peer peer)
+    {
+        var address = peer.Address;
+        var bucket = _buckets[address];
+        if (bucket.TryGetValue(address, out var peerState) && peerState.Peer == peer)
+        {
+            return true;
+        }
 
-    public bool TryGetValue(Address address, [MaybeNullWhen(false)] out PeerState value)
-        => _buckets[address].TryGetValue(address, out value);
+        return false;
+    }
+
+    public bool TryGetValue(Address address, [MaybeNullWhen(false)] out Peer peer)
+        => _buckets[address].TryGetPeer(address, out peer);
 
     public void Clear()
     {
@@ -93,14 +108,6 @@ public sealed class PeerCollection(
 
         return [.. peers.Take(count)];
     }
-
-    // internal void AddRange(IEnumerable<Peer> peers)
-    // {
-    //     foreach (var peer in peers)
-    //     {
-    //         AddOrUpdate(peer);
-    //     }
-    // }
 
     internal ImmutableArray<Peer> PeersToBroadcast(Address except, int minimum = 10)
     {

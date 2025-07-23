@@ -4,7 +4,7 @@ using Libplanet.Net;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class RefreshTableTask(PeerService peerDiscovery, TimeSpan refreshInterval, TimeSpan staleThreshold)
+internal sealed class RefreshTableTask(PeerService peerService, TimeSpan refreshInterval, TimeSpan staleThreshold)
     : BackgroundServiceBase
 {
     protected override TimeSpan Interval => refreshInterval;
@@ -13,7 +13,7 @@ internal sealed class RefreshTableTask(PeerService peerDiscovery, TimeSpan refre
     {
         // var maxAge = swarm.Options.RefreshLifespan;
         // var PeerDiscovery = swarm.PeerDiscovery;
-        await peerDiscovery.RefreshPeersAsync(staleThreshold, cancellationToken);
-        await peerDiscovery.CheckReplacementCacheAsync(cancellationToken);
+        await peerService.RefreshPeersAsync(staleThreshold, cancellationToken);
+        await peerService.CheckReplacementCacheAsync(cancellationToken);
     }
 }

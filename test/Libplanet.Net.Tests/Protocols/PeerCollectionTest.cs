@@ -1,12 +1,11 @@
 using System.Net;
-using Libplanet.Net;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Protocols;
 
-public sealed class RoutingTableTest(ITestOutputHelper output)
+public sealed class PeerCollectionTest(ITestOutputHelper output)
 {
     [Fact]
     public void AddSelf()
@@ -33,7 +32,7 @@ public sealed class RoutingTableTest(ITestOutputHelper output)
         Assert.False(peers.AddOrUpdate(peer3));
         Assert.True(peers.AddOrUpdate(peer1));
         Assert.False(peers.AddOrUpdate(peer3));
-        Assert.Equal(new Peer[] { peer2, peer1 }, peers);
+        Assert.Equal([peer2, peer1], peers.ToArray());
     }
 
     [Fact]
@@ -42,12 +41,12 @@ public sealed class RoutingTableTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var peer1 = RandomUtility.LocalPeer(random);
         var peer2 = RandomUtility.LocalPeer(random);
-        var table = new PeerCollection(peer1.Address, 1, 2);
+        var peers = new PeerCollection(peer1.Address, 1, 2);
 
-        Assert.False(table.Remove(peer1));
-        Assert.False(table.Remove(peer2));
-        table.AddOrUpdate(peer2);
-        Assert.True(table.Remove(peer2));
+        Assert.False(peers.Remove(peer1));
+        Assert.False(peers.Remove(peer2));
+        peers.AddOrUpdate(peer2);
+        Assert.True(peers.Remove(peer2));
     }
 
     [Fact]

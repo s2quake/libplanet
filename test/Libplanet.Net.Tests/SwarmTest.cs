@@ -731,7 +731,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var swarmB = await CreateSwarm();
         await using var swarmC = await CreateSwarm();
         await using var swarmD = await CreateSwarm();
-        var peerDiscoveryA = swarmA.PeerService;
+        var peerServiceA = swarmA.PeerService;
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -743,12 +743,12 @@ public partial class SwarmTest(ITestOutputHelper output)
         await swarmC.AddPeersAsync([swarmD.Peer], default);
         
 
-        var foundPeer1 = await peerDiscoveryA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
+        var foundPeer1 = await peerServiceA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
 
         Assert.Equal(swarmB.Peer.Address, foundPeer1.Address);
         Assert.DoesNotContain(swarmC.Peer, swarmA.Peers);
 
-        var foundPeer2 = await peerDiscoveryA.FindPeerAsync(swarmD.Peer.Address, int.MaxValue, default);
+        var foundPeer2 = await peerServiceA.FindPeerAsync(swarmD.Peer.Address, int.MaxValue, default);
 
         Assert.Equal(swarmD.Peer.Address, foundPeer2.Address);
         Assert.Contains(swarmC.Peer, swarmA.Peers);
@@ -761,7 +761,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var swarmA = await CreateSwarm();
         await using var swarmB = await CreateSwarm();
         await using var swarmC = await CreateSwarm();
-        var peerDiscoveryA = swarmA.PeerService;
+        var peerServiceA = swarmA.PeerService;
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -772,11 +772,11 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await swarmB.DisposeAsync();
 
-        Peer foundPeer = await peerDiscoveryA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
+        Peer foundPeer = await peerServiceA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
 
         Assert.Null(foundPeer);
 
-        foundPeer = await peerDiscoveryA.FindPeerAsync(swarmC.Peer.Address, int.MaxValue, default);
+        foundPeer = await peerServiceA.FindPeerAsync(swarmC.Peer.Address, int.MaxValue, default);
 
         Assert.Null(foundPeer);
         Assert.DoesNotContain(swarmC.Peer, swarmA.Peers);
@@ -789,7 +789,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var swarmB = await CreateSwarm();
         await using var swarmC = await CreateSwarm();
         await using var swarmD = await CreateSwarm();
-        var peerDiscoveryA = swarmA.PeerService;
+        var peerServiceA = swarmA.PeerService;
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -800,14 +800,14 @@ public partial class SwarmTest(ITestOutputHelper output)
         await swarmB.AddPeersAsync([swarmC.Peer], default);
         await swarmC.AddPeersAsync([swarmD.Peer], default);
 
-        var foundPeer1 = await peerDiscoveryA.FindPeerAsync(swarmC.Peer.Address, 1, default);
+        var foundPeer1 = await peerServiceA.FindPeerAsync(swarmC.Peer.Address, 1, default);
 
         Assert.Equal(swarmC.Peer.Address, foundPeer1.Address);
-        swarmA.PeerService.Clear();
+        await peerServiceA.RestartAsync(default);
         Assert.Empty(swarmA.Peers);
         await swarmA.AddPeersAsync([swarmB.Peer], default);
 
-        var foundPeer2 = await peerDiscoveryA.FindPeerAsync(swarmD.Peer.Address, 1, default);
+        var foundPeer2 = await peerServiceA.FindPeerAsync(swarmD.Peer.Address, 1, default);
 
         Assert.Null(foundPeer2);
     }

@@ -17,8 +17,7 @@ public sealed class PeerService : ServiceBase
     private readonly ITransport _transport;
     private readonly PeerCollection _replacementCache;
     private readonly IMessageHandler[] _handlers;
-    // private bool _disposed;
-    
+
     public PeerService(ITransport transport)
         : this(transport, PeerServiceOptions.Default)
     {
@@ -26,27 +25,17 @@ public sealed class PeerService : ServiceBase
 
     public PeerService(ITransport transport, PeerServiceOptions options)
     {
-        // if (peers.Owner != transport.Peer.Address)
-        // {
-        //     throw new ArgumentException(
-        //         "The routing table owner must match the transport peer address.",
-        //         nameof(peers));
-        // }
-
         _address = transport.Peer.Address;
-        _peers = new(_address);
         _transport = transport;
-        _replacementCache = new PeerCollection(_address);
+        _peers = new(_address, options.BucketCount, options.CapacityPerBucket);
+        _replacementCache = new PeerCollection(_address, options.BucketCount, options.CapacityPerBucket);
         _handlers =
         [
             new PingMessageHandler(_transport),
             new GetPeerMessageHandler(_transport, _peers),
             new DefaultMessageHandler(_address, this),
         ];
-        _transport.MessageHandlers.AddRange(_handlers);
     }
-
-
 
     public IPeerCollection Peers => _peers;
 
@@ -96,11 +85,11 @@ public sealed class PeerService : ServiceBase
         return _peers.Remove(peer);
     }
 
-    public void Clear()
-    {
-        _peers.Clear();
-        _replacementCache.Clear();
-    }
+    // public void Clear()
+    // {
+    //     _peers.Clear();
+    //     _replacementCache.Clear();
+    // }
 
     internal ImmutableArray<Peer> PeersToBroadcast(Address except, int minimum = 10)
     {
@@ -348,14 +337,18 @@ public sealed class PeerService : ServiceBase
         }
     }
 
-    protected override Task OnStartAsync(CancellationToken cancellationToken)
+    protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        _transport.MessageHandlers.AddRange(_handlers);
+        await Task.CompletedTask;
     }
 
-    protected override Task OnStopAsync(CancellationToken cancellationToken)
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        _transport.MessageHandlers.RemoveRange(_handlers);
+        _peers.Clear();
+        _replacementCache.Clear();
+        await Task.CompletedTask;
     }
 
     protected override ValueTask DisposeAsyncCore()
