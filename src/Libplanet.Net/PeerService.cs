@@ -7,7 +7,7 @@ using static Libplanet.Net.AddressUtility;
 
 namespace Libplanet.Net;
 
-internal sealed class PeerService : ServiceBase
+public sealed class PeerService : ServiceBase
 {
     public const int FindConcurrency = 3;
     public const int MaxDepth = 3;

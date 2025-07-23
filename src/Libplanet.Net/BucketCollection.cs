@@ -4,7 +4,7 @@ using static Libplanet.Net.AddressUtility;
 
 namespace Libplanet.Net;
 
-internal sealed class BucketCollection(Address owner, int bucketCount, int capacityPerBucket)
+public sealed class BucketCollection(Address owner, int bucketCount, int capacityPerBucket)
     : IEnumerable<Bucket>
 {
     private readonly ImmutableArray<Bucket> _buckets = Create(bucketCount, capacityPerBucket);

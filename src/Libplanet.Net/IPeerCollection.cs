@@ -2,7 +2,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-internal interface IPeerCollection : IEnumerable<Peer>
+public interface IPeerCollection : IEnumerable<Peer>
 {
     Address Owner { get; }
 

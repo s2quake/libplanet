@@ -6,7 +6,7 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
-internal sealed class PeerCollection(
+public sealed class PeerCollection(
     Address owner,
     int bucketCount = PeerCollection.BucketCount,
     int capacityPerBucket = PeerCollection.CapacityPerBucket) : IPeerCollection

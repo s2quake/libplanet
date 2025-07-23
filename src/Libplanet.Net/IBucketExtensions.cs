@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-internal static class IBucketExtensions
+public static class IBucketExtensions
 {
     private static readonly Random _random = new();
 

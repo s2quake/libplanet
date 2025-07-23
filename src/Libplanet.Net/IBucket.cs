@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-internal partial interface IBucket : IEnumerable<PeerState>
+public partial interface IBucket : IEnumerable<PeerState>
 {
     int Count { get; }
 

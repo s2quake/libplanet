@@ -1,6 +1,6 @@
 namespace Libplanet.Net;
 
-internal partial interface IBucket
+public partial interface IBucket
 {
     bool IsEmpty => Count == 0;
 

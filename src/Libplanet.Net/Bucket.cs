@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-internal sealed class Bucket(int capacity) : IBucket
+public sealed class Bucket(int capacity) : IBucket
 {
     private readonly int _capacity = ValidateCapacity(capacity);
     private readonly Random _random = new();
