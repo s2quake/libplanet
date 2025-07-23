@@ -137,27 +137,29 @@ public partial class SwarmTest(ITestOutputHelper output)
         await swarmD.StartAsync(default);
 
         var bootstrappedAt = DateTimeOffset.UtcNow;
-        swarmC.RoutingTable.AddOrUpdate(swarmD.Peer);
+        swarmC.PeerService.AddOrUpdate(swarmD.Peer);
         await swarmB.AddPeersAsync([swarmA.Peer], default);
         await swarmC.AddPeersAsync([swarmA.Peer], default);
 
         Assert.Contains(swarmB.Peer, swarmC.Peers);
         Assert.Contains(swarmC.Peer, swarmB.Peers);
-        foreach (PeerState state in swarmB.RoutingTable)
+        foreach (var peer in swarmB.PeerService.Peers)
         {
-            Assert.InRange(state.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
+            var peerState = swarmB.PeerService.GetPeerState(peer.Address);
+            Assert.InRange(peerState.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
         }
 
-        foreach (PeerState state in swarmC.RoutingTable)
+        foreach (var peer in swarmC.PeerService.Peers)
         {
-            if (state.Peer.Address == swarmD.Peer.Address)
+            var peerState = swarmC.PeerService.GetPeerState(peer.Address);
+            if (peer.Address == swarmD.Peer.Address)
             {
                 // Peers added before bootstrap should not be marked as stale.
-                Assert.InRange(state.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
+                Assert.InRange(peerState.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
             }
             else
             {
-                Assert.Equal(DateTimeOffset.MinValue, state.LastUpdated);
+                Assert.Equal(DateTimeOffset.MinValue, peerState.LastUpdated);
             }
         }
     }
@@ -197,12 +199,12 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await swarmA.DisposeAsync();
         await Task.Delay(100);
-        await swarm.PeerDiscovery.RefreshPeersAsync(
+        await swarm.PeerService.RefreshPeersAsync(
             TimeSpan.Zero,
             default);
         // Invoke once more in case of swarmA and swarmB is in the same bucket,
         // and swarmA is last updated.
-        await swarm.PeerDiscovery.RefreshPeersAsync(
+        await swarm.PeerService.RefreshPeersAsync(
             TimeSpan.Zero,
             default);
         Assert.DoesNotContain(swarmA.Peer, swarm.Peers);
@@ -729,7 +731,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var swarmB = await CreateSwarm();
         await using var swarmC = await CreateSwarm();
         await using var swarmD = await CreateSwarm();
-        var peerDiscoveryA = swarmA.PeerDiscovery;
+        var peerDiscoveryA = swarmA.PeerService;
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -759,7 +761,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var swarmA = await CreateSwarm();
         await using var swarmB = await CreateSwarm();
         await using var swarmC = await CreateSwarm();
-        var peerDiscoveryA = swarmA.PeerDiscovery;
+        var peerDiscoveryA = swarmA.PeerService;
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -787,7 +789,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var swarmB = await CreateSwarm();
         await using var swarmC = await CreateSwarm();
         await using var swarmD = await CreateSwarm();
-        var peerDiscoveryA = swarmA.PeerDiscovery;
+        var peerDiscoveryA = swarmA.PeerService;
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -801,7 +803,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var foundPeer1 = await peerDiscoveryA.FindPeerAsync(swarmC.Peer.Address, 1, default);
 
         Assert.Equal(swarmC.Peer.Address, foundPeer1.Address);
-        swarmA.RoutingTable.Clear();
+        swarmA.PeerService.Clear();
         Assert.Empty(swarmA.Peers);
         await swarmA.AddPeersAsync([swarmB.Peer], default);
 

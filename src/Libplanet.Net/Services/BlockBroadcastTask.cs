@@ -4,7 +4,7 @@ using Libplanet.Net.Protocols;
 
 namespace Libplanet.Net.Services;
 
-internal sealed class RefreshTableService(PeerDiscovery peerDiscovery, TimeSpan interval, TimeSpan refreshLifespan)
+internal sealed class RefreshTableService(PeerService peerDiscovery, TimeSpan interval, TimeSpan refreshLifespan)
     : BackgroundServiceBase
 {
     protected override TimeSpan Interval { get; } = interval;

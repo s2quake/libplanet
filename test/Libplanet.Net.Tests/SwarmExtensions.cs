@@ -25,5 +25,5 @@ namespace Libplanet.Net.Tests;
 public static class SwarmExtensions
 {
     public static Task AddPeersAsync(this Swarm @this, ImmutableArray<Peer> peers, CancellationToken cancellationToken)
-        => @this.PeerDiscovery.AddPeersAsync(peers, cancellationToken);
+        => @this.PeerService.AddPeersAsync(peers, cancellationToken);
 }

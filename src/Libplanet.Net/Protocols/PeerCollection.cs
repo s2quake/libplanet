@@ -6,38 +6,34 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class RoutingTable(
+internal sealed class PeerCollection(
     Address owner,
-    int bucketCount = RoutingTable.BucketCount,
-    int capacityPerBucket = RoutingTable.CapacityPerBucket) : IEnumerable<PeerState>
+    int bucketCount = PeerCollection.BucketCount,
+    int capacityPerBucket = PeerCollection.CapacityPerBucket) : IPeerCollection
 {
     public const int BucketCount = Address.Size * 8;
     public const int CapacityPerBucket = 16;
     private readonly ReaderWriterLockSlim _lock = new();
+    private readonly BucketCollection _buckets = new(owner, bucketCount, capacityPerBucket);
+    private ImmutableArray<IBucket>? _bucketArray;
 
-    public BucketCollection Buckets { get; } = new(owner, bucketCount, capacityPerBucket);
 
     public Address Owner => owner;
+
+    public BucketCollection Buckets => _buckets;
 
     public int Count
     {
         get
         {
             using var scope = new ReadScope(_lock);
-            return Buckets.Sum(item => item.Count);
+            return _buckets.Sum(item => item.Count);
         }
     }
 
-    public IEnumerable<Peer> Peers
-    {
-        get
-        {
-            using var scope = new ReadScope(_lock);
-            return Buckets.SelectMany(bucket => bucket.Select(item => item.Peer));
-        }
-    }
+    ImmutableArray<IBucket> IPeerCollection.Buckets => _bucketArray ??= [.. _buckets.Cast<IBucket>()];
 
-    public PeerState this[Peer peer] => Buckets[peer.Address][peer.Address];
+    public PeerState this[Peer peer] => _buckets[peer.Address][peer.Address];
 
     public bool AddOrUpdate(Peer peer)
     {
@@ -51,39 +47,41 @@ internal sealed class RoutingTable(
             throw new ArgumentException("Cannot add self address to the routing table.", nameof(peerState));
         }
 
-        return Buckets[peerState.Address].AddOrUpdate(peerState);
+        return _buckets[peerState.Address].AddOrUpdate(peerState);
     }
 
     public bool Remove(Peer peer)
     {
         if (peer.Address != owner)
         {
-            return Buckets[peer].Remove(peer);
+            return _buckets[peer.Address].Remove(peer);
         }
 
         return false;
     }
 
-    public bool Contains(Peer peer) => Buckets[peer].Contains(peer);
+    public bool Contains(Address address) => _buckets[address].Contains(address);
 
     public bool TryGetPeer(Address address, [MaybeNullWhen(false)] out Peer peer)
-        => Buckets[address].TryGetPeer(address, out peer);
+        => _buckets[address].TryGetPeer(address, out peer);
 
     public bool TryGetValue(Address address, [MaybeNullWhen(false)] out PeerState value)
-        => Buckets[address].TryGetValue(address, out value);
+        => _buckets[address].TryGetValue(address, out value);
 
     public void Clear()
     {
-        foreach (var bucket in Buckets)
+        foreach (var bucket in _buckets)
         {
             bucket.Clear();
         }
     }
 
+    public PeerState GetState(Address address) => _buckets[address][address];
+
     public ImmutableArray<Peer> GetNeighbors(Address target, int k, bool includeTarget = false)
     {
         // Select maximum k * 2 peers excluding the target itself.
-        var query = from bucket in Buckets
+        var query = from bucket in _buckets
                     where !bucket.IsEmpty
                     from peerState in bucket
                     where includeTarget || peerState.Address != target
@@ -96,17 +94,17 @@ internal sealed class RoutingTable(
         return [.. peers.Take(count)];
     }
 
-    internal void AddRange(IEnumerable<Peer> peers)
-    {
-        foreach (var peer in peers)
-        {
-            AddOrUpdate(peer);
-        }
-    }
+    // internal void AddRange(IEnumerable<Peer> peers)
+    // {
+    //     foreach (var peer in peers)
+    //     {
+    //         AddOrUpdate(peer);
+    //     }
+    // }
 
     internal ImmutableArray<Peer> PeersToBroadcast(Address except, int minimum = 10)
     {
-        var query = from bucket in Buckets
+        var query = from bucket in _buckets
                     where !bucket.IsEmpty
                     let peer = bucket.TryGetRandomPeer(except, out var v) ? v : null
                     where peer is not null
@@ -115,7 +113,7 @@ internal sealed class RoutingTable(
         var count = peerList.Count;
         if (count < minimum)
         {
-            var rest = Peers.Except(peerList)
+            var rest = this.Except(peerList)
                 .Where(peer => peer.Address != except)
                 .Take(minimum - count);
             peerList.AddRange(rest);
@@ -126,23 +124,28 @@ internal sealed class RoutingTable(
 
     internal ImmutableArray<Peer> GetStalePeers(TimeSpan staleThreshold)
     {
-        var query = from bucket in Buckets
+        var query = from bucket in _buckets
                     where !bucket.IsEmpty && bucket.Oldest.IsStale(staleThreshold)
                     select bucket.Oldest.Peer;
 
         return [.. query];
     }
 
-    public IEnumerator<PeerState> GetEnumerator()
+    public IEnumerator<Peer> GetEnumerator()
     {
-        foreach (var bucket in Buckets)
+        foreach (var bucket in _buckets)
         {
-            foreach (var pair in bucket)
+            foreach (var peerState in bucket)
             {
-                yield return pair;
+                yield return peerState.Peer;
             }
         }
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public int GetBucketIndex(Address address)
+    {
+        return _buckets.IndexOf(address);
+    }
 }

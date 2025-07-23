@@ -4,7 +4,7 @@ using Libplanet.Net.Protocols;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class RefreshTableTask(PeerDiscovery peerDiscovery, TimeSpan refreshInterval, TimeSpan staleThreshold)
+internal sealed class RefreshTableTask(PeerService peerDiscovery, TimeSpan refreshInterval, TimeSpan staleThreshold)
     : BackgroundServiceBase
 {
     protected override TimeSpan Interval => refreshInterval;

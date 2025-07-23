@@ -18,9 +18,9 @@ public sealed class Gossip : ServiceBase
     private readonly ImmutableHashSet<Peer> _seeds;
     private readonly ImmutableHashSet<Peer> _validators;
     private readonly IMessageHandler[] _handlers = [];
+    private readonly PeerService _peerDiscovery;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
-    private RoutingTable? _table;
-    private PeerDiscovery? _peerDiscovery;
+    // private PeerCollection? _peers;
     private ServiceCollection? _services;
 
     public Gossip(
@@ -36,6 +36,7 @@ public sealed class Gossip : ServiceBase
             new WantMessageHandler(_transport, _messageById, _haveDict),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
+        _peerDiscovery = new PeerService(_transport);
     }
 
     public Gossip(ITransport transport)
@@ -51,12 +52,12 @@ public sealed class Gossip : ServiceBase
     {
         get
         {
-            if (_table is null)
-            {
-                throw new InvalidOperationException("Gossip is not running.");
-            }
+            // if (_peers is null)
+            // {
+            //     throw new InvalidOperationException("Gossip is not running.");
+            // }
 
-            return [.. _table.Select(item => item.Peer)];
+            return [.. _peerDiscovery.Peers];
         }
     }
 
@@ -69,7 +70,7 @@ public sealed class Gossip : ServiceBase
 
     public void PublishMessage(IMessage message)
     {
-        if (_table is null)
+        if (_peerDiscovery is null)
         {
             throw new InvalidOperationException("Gossip is not running.");
         }
@@ -77,7 +78,7 @@ public sealed class Gossip : ServiceBase
         ImmutableArray<Peer> peers =
         [
             _transport.Peer,
-            .. GetPeersToBroadcast(_table.Select(item => item.Peer), DLazy)
+            .. GetPeersToBroadcast(_peerDiscovery.Peers, DLazy)
         ];
 
         PublishMessage(peers, message);
@@ -115,13 +116,13 @@ public sealed class Gossip : ServiceBase
 
     public async Task HeartbeatAsync(CancellationToken cancellationToken)
     {
-        var table = _table ?? throw new InvalidOperationException("Gossip is not running.");
+        var peers = _peerDiscovery?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
         var ids = _messageById.Keys.ToArray();
         if (ids.Length > 0)
         {
-            var peers = GetPeersToBroadcast(table.Select(item => item.Peer), DLazy);
+            var peersToBroadcast = GetPeersToBroadcast(peers, DLazy);
             var message = new HaveMessage { Ids = [.. ids] };
-            _transport.Post(peers, message);
+            _transport.Post(peersToBroadcast, message);
         }
 
         await SendWantMessageAsync(cancellationToken);
@@ -130,9 +131,10 @@ public sealed class Gossip : ServiceBase
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         await _transport.StartAsync(cancellationToken);
-        _table = new RoutingTable(_transport.Peer.Address);
-        _table.AddRange(_validators);
-        _peerDiscovery = new PeerDiscovery(_table, _transport);
+        // _peers = new PeerCollection(_transport.Peer.Address);
+        // _peerDiscovery = new PeerService(_transport);
+        _peerDiscovery.AddRange(_validators);
+        await _peerDiscovery.StartAsync(cancellationToken);
         _services =
         [
             new RefreshTableTask(_peerDiscovery, _options.RefreshTableInterval, _options.RefreshLifespan),
@@ -163,8 +165,7 @@ public sealed class Gossip : ServiceBase
             _services = null;
         }
 
-        _peerDiscovery?.Dispose();
-        _peerDiscovery = null;
+        await _peerDiscovery.StopAsync(cancellationToken);
         await _transport.StopAsync(cancellationToken);
     }
 
@@ -177,8 +178,7 @@ public sealed class Gossip : ServiceBase
             _services = null;
         }
 
-        _peerDiscovery?.Dispose();
-        _peerDiscovery = null;
+        await _peerDiscovery.DisposeAsync();
         _messageById.Clear();
         await _transport.DisposeAsync();
         await base.DisposeAsyncCore();

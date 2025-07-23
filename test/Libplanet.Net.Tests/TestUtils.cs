@@ -76,7 +76,7 @@ public static class TestUtils
 
     public static PrivateKey GeneratePrivateKeyOfBucketIndex(Address tableAddress, int target)
     {
-        var table = new RoutingTable(tableAddress);
+        var table = new PeerCollection(tableAddress);
         var targetBucket = table.Buckets[target];
         PrivateKey privateKey;
         do

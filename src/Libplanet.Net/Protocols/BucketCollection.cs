@@ -11,8 +11,6 @@ internal sealed class BucketCollection(Address owner, int bucketCount, int capac
 
     public Bucket this[int index] => _buckets[index];
 
-    public Bucket this[Peer peer] => this[peer.Address];
-
     public Bucket this[Address address] => _buckets[IndexOf(address)];
 
     public int Count => _buckets.Length;
@@ -21,12 +19,12 @@ internal sealed class BucketCollection(Address owner, int bucketCount, int capac
 
     public int IndexOf(Address address)
     {
-        if (_buckets.Length == RoutingTable.BucketCount)
+        if (_buckets.Length == PeerCollection.BucketCount)
         {
             return CommonPrefixLength(address, owner);
         }
 
-        var factor = (double)_buckets.Length / RoutingTable.BucketCount;
+        var factor = (double)_buckets.Length / PeerCollection.BucketCount;
         return (int)(CommonPrefixLength(address, owner) * factor);
     }
 

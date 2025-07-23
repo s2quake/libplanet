@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
+internal sealed class Bucket(int capacity) : IBucket
 {
     private readonly int _capacity = ValidateCapacity(capacity);
     private readonly Random _random = new();
@@ -12,6 +12,8 @@ internal sealed class Bucket(int capacity) : IEnumerable<PeerState>
     private ImmutableSortedSet<PeerState> _items = [];
 
     public int Count => _items.Count;
+
+    public int Capacity => _capacity;
 
     public bool IsEmpty => _items.IsEmpty;
 

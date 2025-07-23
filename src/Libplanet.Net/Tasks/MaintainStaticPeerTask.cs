@@ -14,10 +14,10 @@ internal sealed class MaintainStaticPeerTask(Swarm swarm) : BackgroundServiceBas
             return;
         }
 
-        var peerDiscovery = swarm.PeerDiscovery;
+        var peerDiscovery = swarm.PeerService;
 
         var tasks = swarm.Options.StaticPeers
-            .Where(peer => !swarm.RoutingTable.Contains(peer))
+            .Where(peer => !swarm.PeerService.Contains(peer))
             .Select(async peer =>
             {
                 try

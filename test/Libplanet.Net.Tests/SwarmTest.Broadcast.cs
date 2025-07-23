@@ -107,7 +107,7 @@ public partial class SwarmTest
 
         await swarmA.AddPeersAsync([seed.Peer], default);
         await swarmA.StopAsync(default);
-        await seed.PeerDiscovery.RefreshPeersAsync(
+        await seed.PeerService.RefreshPeersAsync(
             TimeSpan.Zero,
             default);
 
@@ -460,8 +460,8 @@ public partial class SwarmTest
         Assert.Equal(
             new HashSet<TxId> { tx1.Id, tx2.Id },
             chainB.StagedTransactions.Keys.ToHashSet());
-        swarmA.RoutingTable.Remove(swarmB.Peer);
-        swarmB.RoutingTable.Remove(swarmA.Peer);
+        swarmA.PeerService.Remove(swarmB.Peer);
+        swarmB.PeerService.Remove(swarmA.Peer);
 
         chainA.StagedTransactions.Remove(tx2.Id);
         Assert.Equal(1, chainA.GetNextTxNonce(privateKey.Address));
@@ -469,8 +469,8 @@ public partial class SwarmTest
         await swarmA.StopAsync(default);
         await swarmB.StopAsync(default);
 
-        swarmA.RoutingTable.Remove(swarmB.Peer);
-        swarmB.RoutingTable.Remove(swarmA.Peer);
+        swarmA.PeerService.Remove(swarmB.Peer);
+        swarmB.PeerService.Remove(swarmA.Peer);
         Assert.Empty(swarmA.Peers);
         Assert.Empty(swarmB.Peers);
 

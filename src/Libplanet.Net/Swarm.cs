@@ -30,9 +30,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         _signer = signer;
         Blockchain = blockchain;
         Options = options;
-        RoutingTable = new RoutingTable(signer.Address);
+        // RoutingTable = new PeerCollection(signer.Address);
         Transport = new NetMQTransport(signer, options.TransportOptions);
-        PeerDiscovery = new PeerDiscovery(RoutingTable, Transport);
+        PeerService = new PeerService(Transport);
         _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
         _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
         BlockDemandDictionary = new BlockDemandDictionary(options.BlockDemandLifespan);
@@ -47,7 +47,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new FillBlocksTask(this),
             new PollBlocksTask(this),
             // new ConsumeBlockCandidatesTask(this),
-            new RefreshTableTask(PeerDiscovery, options.RefreshPeriod, options.RefreshLifespan),
+            new RefreshTableTask(PeerService, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
             new MaintainStaticPeerTask(this),
         ];
@@ -67,15 +67,15 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public Peer Peer => Transport.Peer;
 
-    public IEnumerable<Peer> Peers => RoutingTable.Select(item => item.Peer);
+    public IEnumerable<Peer> Peers => PeerService.Peers;
 
     public ImmutableArray<Peer> Validators => _consensusReactor?.Validators ?? [];
 
     public Blockchain Blockchain { get; private set; }
 
-    internal RoutingTable RoutingTable { get; }
+    // internal PeerCollection RoutingTable { get; }
 
-    internal PeerDiscovery PeerDiscovery { get; }
+    internal PeerService PeerService { get; }
 
     internal ITransport Transport { get; }
 
@@ -97,7 +97,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         var searchDepth = Options.BootstrapOptions.SearchDepth;
         if (seedPeers.Count > 0)
         {
-            await PeerDiscovery.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
+            await PeerService.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
         }
     }
 
@@ -252,7 +252,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     internal void BroadcastMessage(Address except, MessageBase message)
     {
         Transport.Post(
-            RoutingTable.PeersToBroadcast(except, Options.MinimumBroadcastTarget),
+            PeerService.PeersToBroadcast(except, Options.MinimumBroadcastTarget),
             message);
     }
 
@@ -357,9 +357,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             return _consensusReactor;
         }
 
-        if (serviceType == typeof(PeerDiscovery))
+        if (serviceType == typeof(PeerService))
         {
-            return PeerDiscovery;
+            return PeerService;
         }
 
         if (serviceType == typeof(Blockchain))

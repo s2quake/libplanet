@@ -3,7 +3,7 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.Protocols.PeerDiscoveryMessageHandlers;
 
-internal sealed class GetPeerMessageHandler(ITransport transport, RoutingTable table)
+internal sealed class GetPeerMessageHandler(ITransport transport, PeerCollection table)
     : MessageHandlerBase<GetPeerMessage>
 {
     protected override void OnHandle(GetPeerMessage message, MessageEnvelope messageEnvelope)
@@ -14,7 +14,7 @@ internal sealed class GetPeerMessageHandler(ITransport transport, RoutingTable t
         }
 
         var target = message.Target;
-        var k = RoutingTable.BucketCount;
+        var k = PeerCollection.BucketCount;
         var peers = table.GetNeighbors(target, k, includeTarget: true);
         var peerMessage = new PeerMessage { Peers = [.. peers] };
         transport.Post(messageEnvelope.Sender, peerMessage, messageEnvelope.Identity);

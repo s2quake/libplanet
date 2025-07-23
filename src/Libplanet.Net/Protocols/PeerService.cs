@@ -7,38 +7,128 @@ using static Libplanet.Net.Protocols.AddressUtility;
 
 namespace Libplanet.Net.Protocols;
 
-internal sealed class PeerDiscovery : IDisposable
+internal sealed class PeerService : ServiceBase
 {
     public const int FindConcurrency = 3;
     public const int MaxDepth = 3;
 
-    private readonly RoutingTable _table;
+    private readonly PeerCollection _peers;
     private readonly Address _address;
     private readonly ITransport _transport;
-    private readonly RoutingTable _replacementCache;
+    private readonly PeerCollection _replacementCache;
     private readonly IMessageHandler[] _handlers;
-    private bool _disposed;
-
-    public PeerDiscovery(RoutingTable table, ITransport transport)
+    // private bool _disposed;
+    
+    public PeerService(ITransport transport)
+        : this(transport, PeerServiceOptions.Default)
     {
-        if (table.Owner != transport.Peer.Address)
-        {
-            throw new ArgumentException(
-                "The routing table owner must match the transport peer address.",
-                nameof(table));
-        }
+    }
 
-        _table = table;
-        _address = table.Owner;
+    public PeerService(ITransport transport, PeerServiceOptions options)
+    {
+        // if (peers.Owner != transport.Peer.Address)
+        // {
+        //     throw new ArgumentException(
+        //         "The routing table owner must match the transport peer address.",
+        //         nameof(peers));
+        // }
+
+        _address = transport.Peer.Address;
+        _peers = new(_address);
         _transport = transport;
-        _replacementCache = new RoutingTable(_address, table.Buckets.Count, table.Buckets.CapacityPerBucket);
+        _replacementCache = new PeerCollection(_address);
         _handlers =
         [
             new PingMessageHandler(_transport),
-            new GetPeerMessageHandler(_transport, _table),
-            new DefaultMessageHandler(_address, _table, _replacementCache),
+            new GetPeerMessageHandler(_transport, _peers),
+            new DefaultMessageHandler(_address, this),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
+    }
+
+
+
+    public IPeerCollection Peers => _peers;
+
+    public bool AddOrUpdate(Peer peer)
+    {
+        // if (!table.AddOrUpdate(peerState) && !replacementCache.AddOrUpdate(peerState))
+        //     {
+        //         var bucket = replacementCache.Buckets[peer.Address];
+        //         var oldestPeerState = bucket.Oldest;
+        //         var oldestAddress = oldestPeerState.Address;
+        //         bucket.Remove(oldestAddress);
+        //         bucket.AddOrUpdate(peerState);
+        //     }
+        return true;
+    }
+
+    public bool AddOrUpdate(Peer peer, DateTimeOffset lastUpdated)
+    {
+
+        return true;
+    }
+
+    public PeerState GetPeerState(Address address) => _peers.GetState(address);
+
+    public void AddRange(ImmutableHashSet<Peer> peers)
+    {
+        if (peers.Any(item => item.Address == _address))
+        {
+            throw new ArgumentException("Peer list cannot contain self address.", nameof(peers));
+        }
+
+        foreach (var peer in peers)
+        {
+            _peers.AddOrUpdate(peer);
+        }
+    }
+
+    public bool Contains(Peer peer) => _peers.Contains(peer);
+
+    public bool Remove(Peer peer)
+    {
+        if (peer.Address == _address)
+        {
+            return false;
+        }
+
+        return _peers.Remove(peer);
+    }
+
+    public void Clear()
+    {
+        _peers.Clear();
+        _replacementCache.Clear();
+    }
+
+    internal ImmutableArray<Peer> PeersToBroadcast(Address except, int minimum = 10)
+    {
+        var query = from bucket in _peers.Buckets
+                    where bucket.Count > 0
+                    let peer = bucket.TryGetRandomPeer(except, out var v) ? v : null
+                    where peer is not null
+                    select peer;
+        var peerList = query.ToList();
+        var count = peerList.Count;
+        if (count < minimum)
+        {
+            var rest = _peers.Except(peerList)
+                .Where(peer => peer.Address != except)
+                .Take(minimum - count);
+            peerList.AddRange(rest);
+        }
+
+        return [.. peerList.Select(item => item)];
+    }
+
+    internal ImmutableArray<Peer> GetStalePeers(TimeSpan staleThreshold)
+    {
+        var query = from bucket in _peers.Buckets
+                    where bucket.Count is not 0 && bucket.Oldest.IsStale(staleThreshold)
+                    select bucket.Oldest.Peer;
+
+        return [.. query];
     }
 
     public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int maxDepth, CancellationToken cancellationToken)
@@ -69,7 +159,7 @@ internal sealed class PeerDiscovery : IDisposable
             }
         }
 
-        if (!_table.Peers.Any())
+        if (_peers.Count == 0)
         {
             throw new InvalidOperationException("There is no peer in the routing table after bootstrapping.");
         }
@@ -79,7 +169,7 @@ internal sealed class PeerDiscovery : IDisposable
 
     public async Task RefreshPeersAsync(TimeSpan staleThreshold, CancellationToken cancellationToken)
     {
-        var peers = _table.GetStalePeers(staleThreshold);
+        var peers = _peers.GetStalePeers(staleThreshold);
         var taskList = new List<Task>(peers.Length);
         foreach (var peer in peers)
         {
@@ -176,18 +266,18 @@ internal sealed class PeerDiscovery : IDisposable
                 Latency = latency,
             };
 
-            if (!_table.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
-            {
-                var bucket = _replacementCache.Buckets[peer.Address];
-                var oldestPeerState = bucket.Oldest;
-                var oldestAddress = oldestPeerState.Address;
-                bucket.Remove(oldestAddress);
-                bucket.AddOrUpdate(peerState);
-            }
+            // if (!_peers.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
+            // {
+            //     var bucket = _replacementCache.Buckets[peer.Address];
+            //     var oldestPeerState = bucket.Oldest;
+            //     var oldestAddress = oldestPeerState.Address;
+            //     bucket.Remove(oldestAddress);
+            //     bucket.AddOrUpdate(peerState);
+            // }
         }
         catch (TimeoutException)
         {
-            _table.Remove(peer);
+            _peers.Remove(peer);
         }
     }
 
@@ -212,15 +302,15 @@ internal sealed class PeerDiscovery : IDisposable
         await Task.WhenAll(taskList);
     }
 
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            _transport.MessageHandlers.RemoveRange(_handlers);
-            _disposed = true;
-            GC.SuppressFinalize(this);
-        }
-    }
+    // public void Dispose()
+    // {
+    //     if (!_disposed)
+    //     {
+    //         _transport.MessageHandlers.RemoveRange(_handlers);
+    //         _disposed = true;
+    //         GC.SuppressFinalize(this);
+    //     }
+    // }
 
     private async Task ExplorePeersAsync(Peer viaPeer, Address address, int maxDepth, CancellationToken cancellationToken)
     {
@@ -235,7 +325,7 @@ internal sealed class PeerDiscovery : IDisposable
             }
 
             var neighbors = peer.Address == _address
-                ? _table.GetNeighbors(address, FindConcurrency, includeTarget: true)
+                ? _peers.GetNeighbors(address, FindConcurrency, includeTarget: true)
                 : await _transport.GetNeighborsAsync(peer, address, cancellationToken);
             var count = 0;
             foreach (var neighbor in neighbors)
@@ -256,5 +346,21 @@ internal sealed class PeerDiscovery : IDisposable
                 queue.Enqueue((neighbor, depth + 1));
             }
         }
+    }
+
+    protected override Task OnStartAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected override ValueTask DisposeAsyncCore()
+    {
+        _transport.MessageHandlers.RemoveRange(_handlers);
+        return base.DisposeAsyncCore();
     }
 }

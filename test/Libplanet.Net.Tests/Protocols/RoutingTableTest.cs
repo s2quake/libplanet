@@ -13,7 +13,7 @@ public sealed class RoutingTableTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var owner = RandomUtility.Address(random);
-        var table = new RoutingTable(owner);
+        var table = new PeerCollection(owner);
         var peer = new Peer { Address = owner, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         Assert.Throws<ArgumentException>(() => table.AddOrUpdate(peer));
     }
@@ -26,14 +26,14 @@ public sealed class RoutingTableTest(ITestOutputHelper output)
         var peer1 = RandomUtility.LocalPeer(random);
         var peer2 = RandomUtility.LocalPeer(random);
         var peer3 = RandomUtility.LocalPeer(random);
-        var table = new RoutingTable(owner, 1, 2);
+        var peers = new PeerCollection(owner, 1, 2);
 
-        Assert.True(table.AddOrUpdate(peer1));
-        Assert.True(table.AddOrUpdate(peer2));
-        Assert.False(table.AddOrUpdate(peer3));
-        Assert.True(table.AddOrUpdate(peer1));
-        Assert.False(table.AddOrUpdate(peer3));
-        Assert.Equal([peer2, peer1], table.Peers);
+        Assert.True(peers.AddOrUpdate(peer1));
+        Assert.True(peers.AddOrUpdate(peer2));
+        Assert.False(peers.AddOrUpdate(peer3));
+        Assert.True(peers.AddOrUpdate(peer1));
+        Assert.False(peers.AddOrUpdate(peer3));
+        Assert.Equal(new Peer[] { peer2, peer1 }, peers);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public sealed class RoutingTableTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var peer1 = RandomUtility.LocalPeer(random);
         var peer2 = RandomUtility.LocalPeer(random);
-        var table = new RoutingTable(peer1.Address, 1, 2);
+        var table = new PeerCollection(peer1.Address, 1, 2);
 
         Assert.False(table.Remove(peer1));
         Assert.False(table.Remove(peer2));
@@ -54,7 +54,7 @@ public sealed class RoutingTableTest(ITestOutputHelper output)
     public void PeersToBroadcast()
     {
         var (address, addresses) = GeneratePeersDifferentBuckets();
-        var table = new RoutingTable(address);
+        var table = new PeerCollection(address);
         var peers = addresses
             .Select(address => new Peer { Address = address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) })
             .ToArray();
@@ -82,7 +82,7 @@ public sealed class RoutingTableTest(ITestOutputHelper output)
     public void GetStalePeers()
     {
         var (address, addresses) = GeneratePeersDifferentBuckets();
-        var table = new RoutingTable(address);
+        var table = new PeerCollection(address);
         int peerCount = addresses.Length;
         var peers = addresses
             .Select(address => new Peer { Address = address, EndPoint = new DnsEndPoint("0.0.0.0", 1234) })
@@ -108,7 +108,7 @@ public sealed class RoutingTableTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var owner = RandomUtility.Address(random);
-        var table = new RoutingTable(owner, 1);
+        var table = new PeerCollection(owner, 1);
         var peers = RandomUtility.Array(random, RandomUtility.LocalPeer, 10);
         for (var i = 0; i < peers.Length; i++)
         {
