@@ -47,6 +47,14 @@ public sealed class PeerCollection(
         return _buckets[peerState.Address].AddOrUpdate(peerState);
     }
 
+    public void AddOrUpdateMany(ImmutableArray<Peer> peers)
+    {
+        foreach (var peer in peers)
+        {
+            AddOrUpdate(peer);
+        }
+    }
+
     public bool Remove(Address address) => address != owner && _buckets[address].Remove(address);
 
     public bool Remove(Peer peer)
@@ -71,7 +79,7 @@ public sealed class PeerCollection(
     public bool Contains(Peer peer)
     {
         var address = peer.Address;
-         if (address == owner)
+        if (address == owner)
         {
             return false;
         }

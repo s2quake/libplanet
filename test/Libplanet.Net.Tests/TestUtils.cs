@@ -2,16 +2,11 @@ using System.Net;
 using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
-using Libplanet.Net;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net;
-using Libplanet.Net.NetMQ;
 using Libplanet.TestUtilities.Extensions;
-using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Libplanet.Data;
 using Random = System.Random;
 using Libplanet.Net.Tests.Consensus;
 
@@ -253,7 +248,7 @@ public static class TestUtils
         }
     }
 
-    public static NetMQTransport CreateTransport(
+    public static ITransport CreateTransport(
         PrivateKey? privateKey = null,
         int? port = null,
         TransportOptions? options = null)
@@ -266,7 +261,7 @@ public static class TestUtils
 
         privateKey ??= new PrivateKey();
 
-        return new NetMQTransport(privateKey.AsSigner(), options);
+        return new Libplanet.Net.NetMQ.NetMQTransport(privateKey.AsSigner(), options);
     }
 
 

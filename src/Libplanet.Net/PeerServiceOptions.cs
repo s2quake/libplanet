@@ -10,6 +10,8 @@ public sealed record class PeerServiceOptions
 
     public ImmutableHashSet<Peer> SeedPeers { get; init; } = [];
 
+    public ImmutableHashSet<Peer> KnownPeers { get; init; } = [];
+
     public int SearchDepth { get; init; } = 3;
 
     public int MinimumBroadcastTarget { get; init; } = 10;

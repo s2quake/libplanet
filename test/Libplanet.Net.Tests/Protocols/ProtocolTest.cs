@@ -3,8 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
-using Libplanet.Net;
-using Libplanet.Net.NetMQ;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Xunit.Abstractions;
@@ -16,11 +14,11 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     private const int Timeout = 60 * 1000;
 
     [Fact(Timeout = Timeout)]
-    public async Task Start()
+    public async Task StartAsync()
     {
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
-        var task = transportB.WaitMessageAsync<PingMessage>(default);
+        var task = transportB.WaitAsync<PingMessage>(default);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await transportA.PingAsync(transportB.Peer, default));
@@ -35,11 +33,11 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task Ping()
+    public async Task PingAsync()
     {
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
-        var task = transportB.WaitMessageAsync<PingMessage>((m, e) =>
+        var task = transportB.WaitAsync<PingMessage>((m, e) =>
         {
             if (e.Sender == transportA.Peer)
             {
@@ -60,7 +58,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task PingTwice()
+    public async Task PingAsync_Twice()
     {
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
@@ -80,7 +78,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task PingToClosedPeer()
+    public async Task PingAsync_ToClosedPeer()
     {
         var transportA = TestUtils.CreateTransport();
         var transportB = TestUtils.CreateTransport();
@@ -179,12 +177,12 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         await peerServiceA.StartAsync(default);
 
-        await peerServiceA.RefreshPeerAsync(transportB.Peer, default);
+        await peerServiceA.AddOrUpdateAsync(transportB.Peer, default);
         Assert.Single(peerServiceA.Peers);
 
         await transportB.StopAsync(default);
         await Task.Delay(100);
-        await peerServiceA.RefreshAsync(TimeSpan.Zero, default);
+        await peerServiceA.RefreshAsync(default);
         Assert.Empty(peerServiceA.Peers);
     }
 
@@ -321,7 +319,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var seed = TestUtils.CreateTransport();
         _ = new PeerService(seed);
         await seed.StartAsync(default);
-        var transports = new NetMQTransport[count];
+        var transports = new ITransport[count];
         var peerServices = new PeerService[count];
         for (var i = 0; i < count; i++)
         {
@@ -342,7 +340,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         var taskList = new List<Task>();
         for (var i = 0; i < count; i++)
         {
-            var task = transports[i].WaitMessageAsync<TestMessage>(m => m.Data == "foo", default);
+            var task = transports[i].WaitAsync<TestMessage>(m => m.Data == "foo", default);
             taskList.Add(task);
         }
 
@@ -457,9 +455,9 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await transportC.PingAsync(transportB.Peer, default);
 
         using var cancellationTokenSource = new CancellationTokenSource(10000);
-        var taskA = transportA.WaitMessageAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
-        var taskB = transportB.WaitMessageAsync<TestMessage>(m => m.Data == "foo", default);
-        var taskC = transportC.WaitMessageAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
+        var taskA = transportA.WaitAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
+        var taskB = transportB.WaitAsync<TestMessage>(m => m.Data == "foo", default);
+        var taskC = transportC.WaitAsync<TestMessage>(m => m.Data == "foo", cancellationTokenSource.Token);
         peerServiceA.Broadcast(new TestMessage { Data = "foo" });
 
         await Assert.ThrowsAsync<OperationCanceledException>(async () => await taskA);
@@ -468,7 +466,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
-    public async Task RefreshTable()
+    public async Task RefreshPeers()
     {
         const int peersCount = 10;
         var privateKey = new PrivateKey();

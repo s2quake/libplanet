@@ -86,21 +86,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     internal ConsensusReactor ConsensusReactor
         => _consensusReactor ?? throw new InvalidOperationException("ConsensusReactor is not initialized.");
 
-    // private async Task BootstrapAsync(CancellationToken cancellationToken)
-    // {
-    //     if (!Options.BootstrapOptions.Enabled)
-    //     {
-    //         return;
-    //     }
-
-    //     var seedPeers = Options.BootstrapOptions.SeedPeers;
-    //     var searchDepth = Options.BootstrapOptions.SearchDepth;
-    //     if (seedPeers.Count > 0)
-    //     {
-    //         await PeerService.BootstrapAsync(seedPeers, searchDepth, cancellationToken);
-    //     }
-    // }
-
     public void BroadcastBlock(Block block)
     {
         BroadcastBlock(default, block);

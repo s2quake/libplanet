@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Extensions;
 using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.Tests;
@@ -30,16 +29,16 @@ public static class ITransportExtensions
         }
     }
 
-    public static Task<MessageEnvelope> WaitMessageAsync<T>(this ITransport @this, CancellationToken cancellationToken)
+    public static Task<MessageEnvelope> WaitAsync<T>(this ITransport @this, CancellationToken cancellationToken)
         where T : IMessage
-        => WaitMessageAsync<T>(@this, (_, _) => true, cancellationToken);
+        => WaitAsync<T>(@this, (_, _) => true, cancellationToken);
 
-    public static async Task<MessageEnvelope> WaitMessageAsync<T>(
+    public static async Task<MessageEnvelope> WaitAsync<T>(
         this ITransport @this, Func<T, bool> predicate, CancellationToken cancellationToken)
         where T : IMessage
-        => await WaitMessageAsync<T>(@this, (m, _) => predicate(m), cancellationToken);
+        => await WaitAsync<T>(@this, (m, _) => predicate(m), cancellationToken);
 
-    public static async Task<MessageEnvelope> WaitMessageAsync<T>(
+    public static async Task<MessageEnvelope> WaitAsync<T>(
         this ITransport @this, Func<T, MessageEnvelope, bool> predicate, CancellationToken cancellationToken)
         where T : IMessage
     {

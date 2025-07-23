@@ -111,7 +111,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await transportB.StartAsync(default);
 
         var request = transportA.Post(transportB.Peer, new PingMessage());
-        var response = await transportB.WaitMessageAsync<PingMessage>(default);
+        var response = await transportB.WaitAsync<PingMessage>(default);
 
         Assert.IsType<PingMessage>(response.Message);
         Assert.Equal(request.Identity, response.Identity);
@@ -316,7 +316,7 @@ public abstract class TransportTest(ITestOutputHelper output)
 
         var peers = receivers.Select(t => t.Peer).ToImmutableArray();
 
-        var waitTasks = receivers.Select(item => item.WaitMessageAsync<TestMessage>(default)).ToArray();
+        var waitTasks = receivers.Select(item => item.WaitAsync<TestMessage>(default)).ToArray();
         sender.Post(peers, new TestMessage { Data = "Hello, World!" });
         await Task.WhenAll(waitTasks);
 

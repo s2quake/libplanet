@@ -16,8 +16,7 @@ public sealed class Gossip : ServiceBase
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
     private readonly HashSet<Peer> _deniedPeers = [];
     private readonly ImmutableHashSet<Peer> _seeds;
-    private readonly ImmutableHashSet<Peer> _validators;
-    private readonly IMessageHandler[] _handlers = [];
+    private readonly IMessageHandler[] _handlers;
     private readonly PeerService _peerService;
     private readonly ServiceCollection _services;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
@@ -28,7 +27,6 @@ public sealed class Gossip : ServiceBase
         _transport = transport;
         _options = options;
         _seeds = seeds;
-        _validators = validators;
         _handlers =
         [
             new HaveMessageHandler(_transport, _messageById, _haveDict),
@@ -38,6 +36,7 @@ public sealed class Gossip : ServiceBase
         _peerService = new PeerService(_transport, new PeerServiceOptions
         {
             SeedPeers = seeds,
+            KnownPeers = validators,
         });
         _services =
         [
@@ -56,18 +55,7 @@ public sealed class Gossip : ServiceBase
 
     public Peer Peer => _transport.Peer;
 
-    public ImmutableArray<Peer> Peers
-    {
-        get
-        {
-            // if (_peers is null)
-            // {
-            //     throw new InvalidOperationException("Gossip is not running.");
-            // }
-
-            return [.. _peerService.Peers];
-        }
-    }
+    public ImmutableArray<Peer> Peers => [.. _peerService.Peers];
 
     public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
@@ -139,23 +127,7 @@ public sealed class Gossip : ServiceBase
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         await _transport.StartAsync(cancellationToken);
-        // _peers = new PeerCollection(_transport.Peer.Address);
-        // _peerDiscovery = new PeerService(_transport);
-        _peerService.AddRange(_validators);
         await _peerService.StartAsync(cancellationToken);
-
-        // if (_seeds.Count > 0)
-        // {
-        //     try
-        //     {
-        //         await _peerService.BootstrapAsync(_seeds, 3, cancellationToken);
-        //     }
-        //     catch (InvalidOperationException)
-        //     {
-        //         // logging
-        //     }
-        // }
-
         await _services.StartAsync(cancellationToken);
     }
 

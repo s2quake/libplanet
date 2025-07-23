@@ -103,7 +103,7 @@ public sealed class GossipTest
         await gossip.StartAsync(default);
         await transport2.StartAsync(default);
         transport2.Post(gossip.Peer, new HaveMessage(), default);
-        await transport1.WaitMessageAsync<HaveMessage>(default);
+        await transport1.WaitAsync<HaveMessage>(default);
         Assert.Contains(transport2.Peer, gossip.Peers);
     }
 

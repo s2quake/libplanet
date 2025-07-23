@@ -23,7 +23,7 @@ internal sealed class MaintainStaticPeerTask(Swarm swarm) : BackgroundServiceBas
                 try
                 {
                     var timeout = TimeSpan.FromSeconds(3);
-                    await peerService.AddPeersAsync([peer], cancellationToken).WaitAsync(timeout, cancellationToken);
+                    await peerService.AddOrUpdateManyAsync([peer], cancellationToken).WaitAsync(timeout, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
