@@ -115,7 +115,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
 
-        var peerServiceB = new PeerService(transportB);
+        await using var peerServiceB = new PeerService(transportB);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await peerServiceB.BootstrapAsync([transportA.Peer], 3, default));
@@ -162,11 +162,13 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
 
-        var peerServiceA = new PeerService(transportA);
+        await using var peerServiceA = new PeerService(transportA);
         transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
+
+        await peerServiceA.StartAsync(default);
 
         await peerServiceA.RefreshPeerAsync(transportB.Peer, default);
         Assert.Single(peerServiceA.Peers);
@@ -278,6 +280,8 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await transportB.StartAsync(default);
         await transportC.StartAsync(default);
 
+        await peerService.StartAsync(default);
+
         await transportA.PingAsync(transport.Peer, default);
         await transportB.PingAsync(transport.Peer, default);
 
@@ -320,6 +324,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         for (var i = 0; i < count; i++)
         {
+            await peerServices[i].StartAsync(default);
             await peerServices[i].BootstrapAsync([seed.Peer], 3, default);
         }
 
@@ -433,6 +438,10 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await transportB.StartAsync(default);
         await transportC.StartAsync(default);
 
+        await peerServiceA.StartAsync(default);
+        await peerServiceB.StartAsync(default);
+        await peerServiceC.StartAsync(default);
+
         await transportB.PingAsync(transportA.Peer, default);
         await transportC.PingAsync(transportB.Peer, default);
 
@@ -480,7 +489,8 @@ public sealed class ProtocolTest(ITestOutputHelper output)
             };
             var peer = transports[i].Peer;
             var lastUpdated = peerState.LastUpdated;
-            Assert.True(peerService.AddOrUpdate(peer, lastUpdated));
+            var latency = TimeSpan.Zero;
+            Assert.True(peerService.AddOrUpdate(peer, lastUpdated, latency));
         }
 
         var stalePeers = peerService.GetStalePeers(TimeSpan.FromMinutes(1));

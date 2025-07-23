@@ -141,7 +141,7 @@ public sealed class PeerCollection(
         return [.. peers.Take(count)];
     }
 
-    internal ImmutableArray<Peer> PeersToBroadcast(Address except, int minimum = 10)
+    internal ImmutableArray<Peer> PeersToBroadcast(ImmutableArray<Address> except, int minimum = 10)
     {
         var query = from bucket in _buckets
                     where !bucket.IsEmpty
@@ -153,7 +153,7 @@ public sealed class PeerCollection(
         if (count < minimum)
         {
             var rest = this.Except(peerList)
-                .Where(peer => peer.Address != except)
+                .Where(peer => !except.Contains(peer.Address))
                 .Take(minimum - count);
             peerList.AddRange(rest);
         }

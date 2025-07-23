@@ -148,7 +148,7 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
         ObjectDisposedException.ThrowIf(_state == ServiceState.Disposed, this);
         if (_state != ServiceState.Started)
         {
-            throw new InvalidOperationException($"Cannot create a cancellation token source in the state of {_state}.");
+            throw new InvalidOperationException($"{this} is not running.");
         }
 
         return CancellationTokenSource.CreateLinkedTokenSource([_cancellationToken, .. cancellationTokens]);

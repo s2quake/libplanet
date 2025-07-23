@@ -41,13 +41,13 @@ public sealed class PeerService : ServiceBase
 
     public IPeerCollection Peers => _peers;
 
-    internal bool AddOrUpdate(Peer peer) => AddOrUpdate(peer, DateTimeOffset.UtcNow);
+    internal bool AddOrUpdate(Peer peer) => AddOrUpdate(peer, DateTimeOffset.UtcNow, TimeSpan.Zero);
 
-    internal bool AddOrUpdate(Peer peer, DateTimeOffset lastUpdated)
+    internal bool AddOrUpdate(Peer peer, DateTimeOffset lastUpdated, TimeSpan latency)
     {
         var peerState = _peers.TryGetPeerState(peer, out var v)
-                    ? v with { LastUpdated = lastUpdated }
-                    : new PeerState { Peer = peer, LastUpdated = lastUpdated };
+                    ? v with { LastUpdated = lastUpdated, Latency = latency }
+                    : new PeerState { Peer = peer, LastUpdated = lastUpdated, Latency = latency };
 
         if (!_peers.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
         {
@@ -78,14 +78,14 @@ public sealed class PeerService : ServiceBase
 
     public bool Contains(Peer peer) => _peers.Contains(peer);
 
-    public bool Remove(Peer peer)
+    internal bool Remove(Peer peer)
     {
         if (peer.Address == _address)
         {
             return false;
         }
 
-        return _peers.Remove(peer);
+        return _peers.Remove(peer) || _replacementCache.Remove(peer);
     }
 
     // public void Clear()
@@ -121,6 +121,18 @@ public sealed class PeerService : ServiceBase
                     select bucket.Oldest.Peer;
 
         return [.. query];
+    }
+
+    public void Broadcast(IMessage message)
+    {
+        var peers = _peers.PeersToBroadcast(default);
+        _transport.Post(peers, message);
+    }
+
+    public void Broadcast(IMessage message, ImmutableArray<Address> except)
+    {
+        var peers = _peers.PeersToBroadcast(default);
+        _transport.Post(peers, message);
     }
 
     public async Task BootstrapAsync(ImmutableHashSet<Peer> peers, int maxDepth, CancellationToken cancellationToken)
@@ -161,11 +173,12 @@ public sealed class PeerService : ServiceBase
 
     public async Task RefreshPeersAsync(TimeSpan staleThreshold, CancellationToken cancellationToken)
     {
+        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         var peers = _peers.GetStalePeers(staleThreshold);
         var taskList = new List<Task>(peers.Length);
         foreach (var peer in peers)
         {
-            var task = RefreshPeerAsync(peer, cancellationToken);
+            var task = RefreshPeerAsync(peer, cancellationTokenSource.Token);
             taskList.Add(task);
         }
 
@@ -174,6 +187,7 @@ public sealed class PeerService : ServiceBase
 
     public async Task RebuildConnectionAsync(int depth, CancellationToken cancellationToken)
     {
+        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         Address[] addresses =
         [
             _address,
@@ -182,12 +196,13 @@ public sealed class PeerService : ServiceBase
 
         foreach (var address in addresses)
         {
-            await ExplorePeersAsync(_transport.Peer, address, depth, cancellationToken);
+            await ExplorePeersAsync(_transport.Peer, address, depth, cancellationTokenSource.Token);
         }
     }
 
     public async Task CheckReplacementCacheAsync(CancellationToken cancellationToken)
     {
+        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         var query = from bucket in _replacementCache.Buckets
                     from peerState in bucket
                     orderby peerState.LastUpdated
@@ -196,7 +211,7 @@ public sealed class PeerService : ServiceBase
         foreach (var peer in peers)
         {
             _replacementCache.Remove(peer);
-            await RefreshPeerAsync(peer, cancellationToken);
+            await RefreshPeerAsync(peer, cancellationTokenSource.Token);
         }
     }
 
@@ -251,21 +266,7 @@ public sealed class PeerService : ServiceBase
         try
         {
             var latency = await _transport.PingAsync(peer, cancellationToken);
-            var peerState = new PeerState
-            {
-                Peer = peer,
-                LastUpdated = DateTimeOffset.UtcNow,
-                Latency = latency,
-            };
-
-            // if (!_peers.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
-            // {
-            //     var bucket = _replacementCache.Buckets[peer.Address];
-            //     var oldestPeerState = bucket.Oldest;
-            //     var oldestAddress = oldestPeerState.Address;
-            //     bucket.Remove(oldestAddress);
-            //     bucket.AddOrUpdate(peerState);
-            // }
+            AddOrUpdate(peer, DateTimeOffset.UtcNow, latency);
         }
         catch (TimeoutException)
         {
@@ -285,10 +286,11 @@ public sealed class PeerService : ServiceBase
             throw new ArgumentException("Peer list cannot be empty.", nameof(peers));
         }
 
+        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         var taskList = new List<Task>(peers.Length);
         foreach (var peer in peers)
         {
-            taskList.Add(RefreshPeerAsync(peer, cancellationToken));
+            taskList.Add(RefreshPeerAsync(peer, cancellationTokenSource.Token));
         }
 
         await Task.WhenAll(taskList);

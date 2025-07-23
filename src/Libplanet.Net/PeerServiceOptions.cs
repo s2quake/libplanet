@@ -1,5 +1,3 @@
-using Libplanet.Types;
-
 namespace Libplanet.Net;
 
 public sealed record class PeerServiceOptions
@@ -9,4 +7,6 @@ public sealed record class PeerServiceOptions
     public int BucketCount { get; init; } = PeerCollection.BucketCount;
 
     public int CapacityPerBucket { get; init; } = PeerCollection.CapacityPerBucket;
+
+    public ImmutableHashSet<Peer> SeedPeers { get; init; } = [];
 }
