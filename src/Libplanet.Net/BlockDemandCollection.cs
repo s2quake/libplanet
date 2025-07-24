@@ -5,17 +5,15 @@ using System.Diagnostics.CodeAnalysis;
 namespace Libplanet.Net;
 
 public sealed class BlockDemandCollection(TimeSpan blockDemandLifetime)
-    : IReadOnlyDictionary<Peer, BlockDemand>
+    : IEnumerable<BlockDemand>
 {
     private readonly ConcurrentDictionary<Peer, BlockDemand> _demandByPeer = new();
 
-    public IEnumerable<Peer> Keys => _demandByPeer.Keys;
-
-    public IEnumerable<BlockDemand> Values => _demandByPeer.Values;
+    public IEnumerable<Peer> Peers => _demandByPeer.Keys;
 
     public int Count => _demandByPeer.Count;
 
-    public BlockDemand this[Peer key] => _demandByPeer[key];
+    public BlockDemand this[Peer peer] => _demandByPeer[peer];
 
     public void Add(Func<BlockSummary, bool> predicate, BlockDemand demand)
     {
@@ -37,6 +35,17 @@ public sealed class BlockDemandCollection(TimeSpan blockDemandLifetime)
             }
         }
     }
+
+    public void Clear() => _demandByPeer.Clear();
+
+    public bool Contains(Peer peer) => _demandByPeer.ContainsKey(peer);
+
+    public bool TryGetValue(Peer peer, [MaybeNullWhen(false)] out BlockDemand value)
+        => _demandByPeer.TryGetValue(peer, out value);
+
+    public IEnumerator<BlockDemand> GetEnumerator() => _demandByPeer.Values.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     private bool IsDemandNeeded(Func<BlockSummary, bool> predicate, BlockDemand demand)
     {
@@ -70,14 +79,6 @@ public sealed class BlockDemandCollection(TimeSpan blockDemandLifetime)
 
     private bool IsDemandStale(BlockDemand demand)
     {
-        return demand.Timestamp + blockDemandLifetime < DateTimeOffset.UtcNow;
+        return demand.IsStale(blockDemandLifetime);
     }
-
-    public bool ContainsKey(Peer key) => _demandByPeer.ContainsKey(key);
-
-    public bool TryGetValue(Peer key, [MaybeNullWhen(false)] out BlockDemand value) => _demandByPeer.TryGetValue(key, out value);
-
-    public IEnumerator<KeyValuePair<Peer, BlockDemand>> GetEnumerator() => _demandByPeer.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => _demandByPeer.GetEnumerator();
 }

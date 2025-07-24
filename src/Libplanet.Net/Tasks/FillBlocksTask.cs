@@ -18,16 +18,16 @@ internal sealed class FillBlocksTask(Swarm swarm) : BackgroundServiceBase
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var blockDemans = swarm.BlockDemandDictionary;
-        if (blockDemans.Count > 0)
+        var blockDemands = swarm.BlockDemands;
+        if (blockDemands.Count > 0)
         {
-            foreach (var blockDemand in blockDemans.Values)
+            foreach (var blockDemand in blockDemands)
             {
-                blockDemans.Remove(blockDemand.Peer);
+                blockDemands.Remove(blockDemand.Peer);
                 _ = ProcessBlockDemandAsync(blockDemand, cancellationToken);
             }
 
-            blockDemans.Cleanup(IsBlockNeeded);
+            blockDemands.Cleanup(IsBlockNeeded);
         }
 
     }

@@ -29,7 +29,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         Options = options;
         Transport = new NetMQTransport(signer, options.TransportOptions);
         PeerService = new PeerService(Transport);
-        BlockDemandDictionary = new BlockDemandCollection(options.BlockDemandLifespan);
+        BlockDemands = new BlockDemandCollection(options.BlockDemandLifespan);
         _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
 
         _services =
@@ -52,7 +52,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new BlockHashRequestMessageHandler(this),
             new TransactionRequestMessageHandler(this, options),
             new BlockchainStateRequestMessageHandler(this),
-            new BlockHeaderMessageHandler(this),
+            new BlockSummaryMessageHandler(this),
         ];
         Transport.MessageHandlers.AddRange(_messageHandlers);
     }
@@ -191,7 +191,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             await _consensusSerevice.StopAsync(cancellationToken);
         }
 
-        BlockDemandDictionary = new BlockDemandCollection(Options.BlockDemandLifespan);
+        BlockDemands.Clear();
         BlockBranches.RemoveAll(_ => true);
     }
 
@@ -243,7 +243,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         BroadcastMessage(except, message);
     }
 
-    public BlockDemandCollection BlockDemandDictionary { get; private set; }
+    public BlockDemandCollection BlockDemands { get; }
 
     public BlockBranchCollection BlockBranches { get; } = [];
 
