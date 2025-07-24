@@ -8,6 +8,6 @@ internal sealed class EvidenceIdMessageHandler(EvidenceFetcher fetcher)
 {
     protected override void OnHandle(EvidenceIdMessage message, MessageEnvelope messageEnvelope)
     {
-        fetcher.DemandMany(messageEnvelope.Sender, [.. message.Ids]);
+        fetcher.Request(messageEnvelope.Sender, [.. message.Ids]);
     }
 }

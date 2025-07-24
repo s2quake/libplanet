@@ -1,9 +1,8 @@
-#pragma warning disable S2743 // Static fields should not be used in generic types
 using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
-using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
@@ -13,33 +12,80 @@ public abstract class FetcherBase<TId, TItem> : ServiceBase
 {
     private readonly ConcurrentDictionary<Peer, Job> _jobs = new();
     private readonly List<IDisposable> _subscriptionList = [];
-    private readonly Subject<ReceivedInfo<TItem>> _receivedSubject = new();
+    private readonly Subject<(Guid, ImmutableArray<TItem>)> _fetchedSubject = new();
 
-    public IObservable<ReceivedInfo<TItem>> Received => _receivedSubject;
+    public IObservable<(Guid, ImmutableArray<TItem>)> Fetched => _fetchedSubject;
 
-    public void DemandMany(Peer peer, TId[] ids)
+    public Guid Request(Peer peer, ImmutableArray<TId> ids)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
-
-        var requiredIds = GetRequiredIds(ids);
-        var cancellationToken = StoppingToken;
-
-        if (_jobs.TryAdd(peer, new Job(this, peer)))
+        if (!IsRunning)
         {
-            var job = _jobs[peer];
-            var subscription = job.Fetched.Subscribe(e => ProcessFetchedTIds(e, peer));
-            _ = job.RunAsync(cancellationToken);
-            _subscriptionList.Add(subscription);
+            throw new InvalidOperationException($"{this} is not running.");
         }
 
-        _jobs[peer].Add(requiredIds);
+        if (ids.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException("IDs cannot be empty.", nameof(ids));
+        }
+
+        var request = new JobRequest
+        {
+            RequestId = Guid.NewGuid(),
+            Ids = ids,
+            CancellationToken = default,
+        };
+        RequestJob(peer, request);
+        return request.RequestId;
     }
 
-    public abstract IAsyncEnumerable<TItem> FetchAsync(Peer peer, TId[] ids, CancellationToken cancellationToken);
+    public async Task<ImmutableArray<TItem>> FetchAsync(
+        Peer peer, ImmutableArray<TId> ids, CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        if (!IsRunning)
+        {
+            throw new InvalidOperationException($"{this} is not running.");
+        }
+
+        if (ids.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException("IDs cannot be empty.", nameof(ids));
+        }
+
+        var tcs = new TaskCompletionSource<ImmutableArray<TItem>>();
+        var request = new JobRequest
+        {
+            RequestId = Guid.NewGuid(),
+            Ids = ids,
+            CancellationToken = cancellationToken,
+        };
+        using var _ = Fetched.Subscribe(
+            onNext: e =>
+            {
+                if (e.Item1 == request.RequestId)
+                {
+                    tcs.SetResult(e.Item2);
+                }
+            },
+            onError: e =>
+            {
+                if (e is FetchException fetchException && fetchException.RequestId == request.RequestId)
+                {
+                    tcs.SetException(fetchException);
+                }
+            });
+
+        RequestJob(peer, request);
+        return await tcs.Task;
+    }
+
+    protected abstract IAsyncEnumerable<TItem> FetchOverrideAsync(
+        Peer peer, ImmutableArray<TId> ids, CancellationToken cancellationToken);
 
     protected abstract bool Verify(TItem item);
 
-    protected abstract HashSet<TId> GetRequiredIds(IEnumerable<TId> ids);
+    protected abstract bool Predicate(TId ids);
 
     protected override Task OnStartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -56,65 +102,96 @@ public abstract class FetcherBase<TId, TItem> : ServiceBase
         await base.DisposeAsyncCore();
     }
 
-    private void ProcessFetchedTIds(HashSet<TItem> items, Peer peer)
+    private void ProcessJobResponse(JobResponse response)
     {
-        var itemList = new List<TItem>(items.Count);
-        foreach (var tx in items)
+        var itemList = new List<TItem>(response.Items.Length);
+        foreach (var item in response.Items)
         {
-            if (Verify(tx))
+            if (Verify(item))
             {
-                itemList.Add(tx);
+                itemList.Add(item);
             }
         }
 
-        if (itemList.Count > 0)
-        {
-            _receivedSubject.OnNext(new(peer, [.. itemList]));
-        }
+        _fetchedSubject.OnNext((response.RequestId, itemList.ToImmutableArray()));
     }
 
-    private sealed class Job(FetcherBase<TId, TItem> fetcher, Peer peer)
+    private void RequestJob(Peer peer, JobRequest request)
     {
-        private static readonly object _lock = new();
-        private readonly List<TId> _idList = [];
-        private readonly Subject<HashSet<TItem>> _fetchedSubject = new();
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-        public IObservable<HashSet<TItem>> Fetched => _fetchedSubject;
+        if (_jobs.TryAdd(peer, new Job(this, peer)))
+        {
+            var job = _jobs[peer];
+            var subscription = job.Completed.Subscribe(
+                onNext: ProcessJobResponse,
+                onError: _fetchedSubject.OnError);
+            _ = job.RunAsync(StoppingToken);
+            _subscriptionList.Add(subscription);
+        }
+
+        _jobs[peer].Request(request with
+        {
+            Ids = [.. request.Ids.Where(Predicate)]
+        });
+    }
+
+    private sealed class Job(FetcherBase<TId, TItem> fetcher, Peer peer) : IDisposable
+    {
+        private readonly Subject<JobResponse> _fetchedSubject = new();
+        private readonly Channel<JobRequest> _channel = Channel.CreateUnbounded<JobRequest>();
+
+        public IObservable<JobResponse> Completed => _fetchedSubject;
 
         public async Task RunAsync(CancellationToken cancellationToken)
         {
-            do
+            await foreach (var request in _channel.Reader.ReadAllAsync(cancellationToken))
             {
-                var txs = new HashSet<TItem>();
-                var txIds = Flush();
-                await foreach (var item in fetcher.FetchAsync(peer, txIds, cancellationToken))
+                try
                 {
-                    txs.Add(item);
+                    using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                        cancellationToken, request.CancellationToken);
+                    var fetchCancellationToken = cancellationTokenSource.Token;
+                    var query = fetcher.FetchOverrideAsync(peer, request.Ids, fetchCancellationToken);
+                    var items = await query.ToArrayAsync(fetchCancellationToken);
+                    _fetchedSubject.OnNext(new JobResponse
+                    {
+                        RequestId = request.RequestId,
+                        Items = [.. items],
+                    });
                 }
-
-                if (txs.Count > 0)
+                catch (Exception e) when (!cancellationToken.IsCancellationRequested)
                 {
-                    _fetchedSubject.OnNext(txs);
+                    _fetchedSubject.OnError(new FetchException(request.RequestId, "Failed to fetch items.", e));
                 }
-            } while (await TaskUtility.TryDelay(1000, cancellationToken));
-        }
-
-        private TId[] Flush()
-        {
-            lock (_lock)
-            {
-                var ids = _idList.ToArray();
-                _idList.Clear();
-                return ids;
             }
         }
 
-        public void Add(IEnumerable<TId> ids)
+        public void Request(JobRequest request)
         {
-            lock (_lock)
-            {
-                _idList.AddRange(ids);
-            }
+            _channel.Writer.TryWrite(request);
         }
+
+        public void Dispose()
+        {
+            _channel.Writer.Complete();
+            _fetchedSubject.Dispose();
+        }
+    }
+
+    private sealed record class JobRequest
+    {
+        public required Guid RequestId { get; init; }
+
+        public required ImmutableArray<TId> Ids { get; init; }
+
+        public required CancellationToken CancellationToken { get; init; }
+    }
+
+    private sealed record class JobResponse
+    {
+        public required Guid RequestId { get; init; }
+
+        public required ImmutableArray<TItem> Items { get; init; } = [];
     }
 }

@@ -448,7 +448,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await transportB.StartAsync(default);
         await fetcherA.StartAsync(default);
 
-        var txs = await fetcherA.FetchAsync(transportB.Peer, [tx.Id], default).ToArrayAsync(default);
+        var txs = await fetcherA.FetchAsync(transportB.Peer, [tx.Id], default);
         Assert.Equal(new[] { tx }, txs);
     }
 

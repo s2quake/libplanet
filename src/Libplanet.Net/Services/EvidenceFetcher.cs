@@ -10,10 +10,10 @@ public sealed class EvidenceFetcher(
     Blockchain blockchain, ITransport transport, TimeoutOptions timeoutOptions)
     : FetcherBase<EvidenceId, EvidenceBase>
 {
-    public override async IAsyncEnumerable<EvidenceBase> FetchAsync(
-        Peer peer, EvidenceId[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
+    protected override async IAsyncEnumerable<EvidenceBase> FetchOverrideAsync(
+        Peer peer, ImmutableArray<EvidenceId> ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var request = new EvidenceRequestMessage { EvidenceIds = [.. ids] };
+        var request = new EvidenceRequestMessage { EvidenceIds = ids };
         using var cancellationTokenSource = CreateCancellationTokenSource();
         var response = await transport.SendAsync<EvidenceResponseMessage>(peer, request, cancellationTokenSource.Token);
         // await foreach (var item in transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
@@ -35,15 +35,11 @@ public sealed class EvidenceFetcher(
         }
     }
 
-    protected override HashSet<EvidenceId> GetRequiredIds(IEnumerable<EvidenceId> ids)
+    protected override bool Predicate(EvidenceId id)
     {
         var pendingEvidences = blockchain.PendingEvidences;
         var evidences = blockchain.Evidences;
-        var query = from id in ids
-                    where pendingEvidences.ContainsKey(id) && !evidences.ContainsKey(id)
-                    select id;
-
-        return [.. query];
+        return pendingEvidences.ContainsKey(id) && !evidences.ContainsKey(id);
     }
 
     protected override bool Verify(EvidenceBase item)

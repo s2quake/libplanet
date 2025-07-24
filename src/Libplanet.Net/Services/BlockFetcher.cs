@@ -14,11 +14,11 @@ public sealed class BlockFetcher(
     {
     }
 
-    public override async IAsyncEnumerable<Block> FetchAsync(
-        Peer peer, BlockHash[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
+    protected override async IAsyncEnumerable<Block> FetchOverrideAsync(
+        Peer peer, ImmutableArray<BlockHash> ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
-        var request = new BlockRequestMessage { BlockHashes = [.. ids] };
+        var request = new BlockRequestMessage { BlockHashes = ids };
         var predicate = new Func<BlockResponseMessage, bool>(m => m.IsLast);
         var query = transport.SendAsync<BlockResponseMessage>(
             peer, request, predicate, cancellationTokenSource.Token);
@@ -31,15 +31,7 @@ public sealed class BlockFetcher(
         }
     }
 
-    protected override HashSet<BlockHash> GetRequiredIds(IEnumerable<BlockHash> ids)
-    {
-        var blocks = blockchain.Blocks;
-        var query = from id in ids
-                    where !blocks.ContainsKey(id)
-                    select id;
-
-        return [.. query];
-    }
+    protected override bool Predicate(BlockHash id) => !blockchain.Blocks.ContainsKey(id);
 
     protected override bool Verify(Block item)
     {

@@ -8,7 +8,7 @@ internal sealed class TxIdMessageHandler(TransactionFetcher txFetcher)
 {
     protected override void OnHandle(TxIdMessage message, MessageEnvelope messageEnvelope)
     {
-        txFetcher.DemandMany(messageEnvelope.Sender, [.. message.Ids]);
+        txFetcher.Request(messageEnvelope.Sender, [.. message.Ids]);
         // await replyContext.PongAsync();
     }
 }

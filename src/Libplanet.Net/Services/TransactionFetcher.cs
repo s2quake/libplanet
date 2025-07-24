@@ -15,11 +15,11 @@ public sealed class TransactionFetcher(
     {
     }
 
-    public override async IAsyncEnumerable<Transaction> FetchAsync(
-        Peer peer, TxId[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
+    protected override async IAsyncEnumerable<Transaction> FetchOverrideAsync(
+        Peer peer, ImmutableArray<TxId> ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
-        var request = new TransactionRequestMessage { TxIds = [.. ids] };
+        var request = new TransactionRequestMessage { TxIds = ids };
         var isLast = new Func<TransactionResponseMessage, bool>(m => m.IsLast);
         var query = transport.SendAsync(peer, request, isLast, cancellationTokenSource.Token);
         await foreach (var item in query)
@@ -32,15 +32,11 @@ public sealed class TransactionFetcher(
         }
     }
 
-    protected override HashSet<TxId> GetRequiredIds(IEnumerable<TxId> ids)
+    protected override bool Predicate(TxId id)
     {
         var stageTransactions = blockchain.StagedTransactions;
         var transactions = blockchain.Transactions;
-        var query = from id in ids
-                    where stageTransactions.ContainsKey(id) && !transactions.ContainsKey(id)
-                    select id;
-
-        return [.. query];
+        return !stageTransactions.ContainsKey(id) && !transactions.ContainsKey(id);
     }
 
     protected override bool Verify(Transaction item)
