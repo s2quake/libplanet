@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Libplanet.Net.Messages;
 using Libplanet.Net.Threading;
 using Libplanet.Types;
 using Libplanet.Types.Threading;

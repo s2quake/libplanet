@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
-using Libplanet.Net;
 using Libplanet.Types;
 using Libplanet.Net.NetMQ;
 using Libplanet.Net.Tasks;
@@ -56,7 +55,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new BlockRequestMessageHandler(this, options),
             new BlockHashRequestMessageHandler(this),
             new TransactionRequestMessageHandler(this, options),
-            new ChainStatusRequestMessageHandler(this),
+            new BlockchainStateRequestMessageHandler(this),
         ];
         Transport.MessageHandlers.AddRange(_messageHandlers);
     }

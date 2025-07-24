@@ -1,15 +1,11 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Types;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class GetEvidenceMessageHandler(Blockchain blockchain, AccessLimiter accessLimiter)
+internal sealed class EvidenceRequestMessageHandler(Blockchain blockchain, AccessLimiter accessLimiter)
     : MessageHandlerBase<EvidenceRequestMessage>
 {
-    protected override void OnHandle(
-        EvidenceRequestMessage message, MessageEnvelope messageEnvelope)
+    protected override void OnHandle(EvidenceRequestMessage message, MessageEnvelope messageEnvelope)
     {
         // using var scope = await accessLimiter.CanAccessAsync(cancellationToken);
         // if (scope is null)

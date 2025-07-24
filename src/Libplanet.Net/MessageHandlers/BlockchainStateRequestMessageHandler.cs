@@ -2,14 +2,14 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class ChainStatusRequestMessageHandler : MessageHandlerBase<BlockchainStateRequestMessage>, IDisposable
+internal sealed class BlockchainStateRequestMessageHandler : MessageHandlerBase<BlockchainStateRequestMessage>, IDisposable
 {
     private readonly Blockchain _blockchain;
     private readonly ITransport _transport;
     private readonly IDisposable _subscription;
     private BlockchainStateResponseMessage _response;
 
-    public ChainStatusRequestMessageHandler(Blockchain blockchain, ITransport transport)
+    public BlockchainStateRequestMessageHandler(Blockchain blockchain, ITransport transport)
     {
         _blockchain = blockchain;
         _transport = transport;
@@ -20,7 +20,7 @@ internal sealed class ChainStatusRequestMessageHandler : MessageHandlerBase<Bloc
         });
     }
 
-    public ChainStatusRequestMessageHandler(Swarm swarm)
+    public BlockchainStateRequestMessageHandler(Swarm swarm)
         : this(swarm.Blockchain, swarm.Transport)
     {
     }

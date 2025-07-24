@@ -1,10 +1,8 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Tasks;

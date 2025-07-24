@@ -1,5 +1,3 @@
-using Libplanet.Net;
-
 namespace Libplanet.Net.Options;
 
 public sealed record class BootstrapOptions

@@ -1,15 +1,11 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Types;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class GetProtocolMessageHandler(ITransport transport)
+internal sealed class ProtocolRequestMessageHandler(ITransport transport)
     : MessageHandlerBase<ProtocolRequestMessage>
 {
-    protected override void OnHandle(
-        ProtocolRequestMessage message, MessageEnvelope messageEnvelope)
+    protected override void OnHandle(ProtocolRequestMessage message, MessageEnvelope messageEnvelope)
     {
         var replyMessage = new ProtocolResponseMessage
         {
