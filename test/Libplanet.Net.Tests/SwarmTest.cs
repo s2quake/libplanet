@@ -271,7 +271,7 @@ public partial class SwarmTest(ITestOutputHelper output)
                         Port = 9000 + i,
                     },
                 },
-                policy: policy,
+                blockchainOptions: policy,
                 genesis: genesis,
                 consensusServiceOption: reactorOpts[i]));
         }

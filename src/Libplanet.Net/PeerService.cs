@@ -50,7 +50,7 @@ public sealed class PeerService : ServiceBase
         _transport.Post(peers, message);
     }
 
-    public void Broadcast(IMessage message, ImmutableArray<Address> except)
+    public void Broadcast(IMessage message, ImmutableArray<Peer> except)
     {
         var peers = _peers.PeersToBroadcast(except, _options.MinimumBroadcastTarget);
         _transport.Post(peers, message);

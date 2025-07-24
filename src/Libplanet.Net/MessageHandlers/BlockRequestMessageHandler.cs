@@ -6,12 +6,17 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class BlockRequestMessageHandler(Swarm swarm, SwarmOptions options)
+internal sealed class BlockRequestMessageHandler(Blockchain blockchain, ITransport transport, int maxAccessCount)
     : MessageHandlerBase<BlockRequestMessage>, IDisposable
 {
-    private readonly Blockchain _blockchain = swarm.Blockchain;
-    private readonly ITransport _transport = swarm.Transport;
-    private readonly AccessLimiter _accessLimiter = new(options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
+    private readonly Blockchain _blockchain = blockchain;
+    private readonly ITransport _transport = transport;
+    private readonly AccessLimiter _accessLimiter = new(maxAccessCount);
+
+    internal BlockRequestMessageHandler(Swarm swarm, SwarmOptions options)
+        : this(swarm.Blockchain, swarm.Transport, options.TaskRegulationOptions.MaxTransferBlocksTaskCount)
+    {
+    }
 
     public void Dispose() => _accessLimiter.Dispose();
 

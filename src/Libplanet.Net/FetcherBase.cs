@@ -7,36 +7,28 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
-public abstract class FetcherBase<TId, TItem> : IDisposable
+public abstract class FetcherBase<TId, TItem> : ServiceBase
     where TId : notnull
     where TItem : notnull
 {
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly ConcurrentDictionary<Peer, Job> _jobs = new();
     private readonly List<IDisposable> _subscriptionList = [];
     private readonly Subject<ReceivedInfo<TItem>> _receivedSubject = new();
 
-    private bool _disposed;
-
     public IObservable<ReceivedInfo<TItem>> Received => _receivedSubject;
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
 
     public void DemandMany(Peer peer, TId[] ids)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
 
         var requiredIds = GetRequiredIds(ids);
+        var cancellationToken = StoppingToken;
 
         if (_jobs.TryAdd(peer, new Job(this, peer)))
         {
             var job = _jobs[peer];
             var subscription = job.Fetched.Subscribe(e => ProcessFetchedTIds(e, peer));
-            _ = job.RunAsync(_cancellationTokenSource.Token);
+            _ = job.RunAsync(cancellationToken);
             _subscriptionList.Add(subscription);
         }
 
@@ -49,24 +41,19 @@ public abstract class FetcherBase<TId, TItem> : IDisposable
 
     protected abstract HashSet<TId> GetRequiredIds(IEnumerable<TId> ids);
 
-    protected virtual void Dispose(bool disposing)
+    protected override Task OnStartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    protected override Task OnStopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    protected override async ValueTask DisposeAsyncCore()
     {
-        if (!_disposed)
+        foreach (var subscription in _subscriptionList)
         {
-            if (disposing)
-            {
-                foreach (var subscription in _subscriptionList)
-                {
-                    subscription.Dispose();
-                }
-
-                _cancellationTokenSource.Cancel();
-                _cancellationTokenSource.Dispose();
-                _jobs.Clear();
-            }
-
-            _disposed = true;
+            subscription.Dispose();
         }
+
+        _jobs.Clear();
+        await base.DisposeAsyncCore();
     }
 
     private void ProcessFetchedTIds(HashSet<TItem> items, Peer peer)

@@ -17,7 +17,7 @@ public static class IPeerCollectionExtensions
     }
 
     internal static ImmutableArray<Peer> PeersToBroadcast(
-        this IPeerCollection @this, ImmutableArray<Address> except, int minimum = 10)
+        this IPeerCollection @this, ImmutableArray<Peer> except, int minimum = 10)
     {
         var query = from bucket in @this.Buckets
                     where !bucket.IsEmpty
@@ -29,7 +29,7 @@ public static class IPeerCollectionExtensions
         if (count < minimum)
         {
             var rest = @this.Except(peerList)
-                .Where(peer => !except.Contains(peer.Address))
+                .Where(peer => !except.Contains(peer))
                 .Take(minimum - count);
             peerList.AddRange(rest);
         }

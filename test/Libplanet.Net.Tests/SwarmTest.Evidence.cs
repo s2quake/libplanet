@@ -45,7 +45,7 @@ public partial class SwarmTest
         var swarmTasks = privateKeys.Select(
             (item, index) => CreateSwarm(
                 privateKey: item,
-                policy: policy,
+                blockchainOptions: policy,
                 genesis: genesisBlock,
                 consensusServiceOption: reactorOptions[index]));
         var swarms = await Task.WhenAll(swarmTasks);

@@ -25,10 +25,10 @@ public static class IBucketExtensions
     }
 
     public static bool TryGetRandomPeer(
-        this IBucket @this, ImmutableArray<Address> except, [MaybeNullWhen(false)] out Peer value)
+        this IBucket @this, ImmutableArray<Peer> except, [MaybeNullWhen(false)] out Peer value)
     {
         var query = from item in @this
-                    where except == default || !except.Contains(item.Address)
+                    where except == default || !except.Contains(item.Peer)
                     orderby _random.Next()
                     select item;
 

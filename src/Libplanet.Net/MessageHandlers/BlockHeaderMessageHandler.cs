@@ -1,39 +1,35 @@
-using System.Reactive;
-using System.Reactive.Subjects;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class BlockHeaderMessageHandler(Blockchain blockchain, BlockDemandCollection blockDemandDictionary)
-    : MessageHandlerBase<BlockHeaderMessage>
+internal sealed class BlockHeaderMessageHandler(
+    Blockchain blockchain, ITransport transport, BlockDemandCollection blockDemands)
+    : MessageHandlerBase<BlockSummaryMessage>
 {
-    private readonly Subject<Unit> _blockHeaderReceivedSubject = new();
+    private readonly BlockHash _genesisHash = blockchain.Genesis.BlockHash;
 
-    protected override void OnHandle(BlockHeaderMessage message, MessageEnvelope messageEnvelope)
+    internal BlockHeaderMessageHandler(Swarm swarm)
+        : this(swarm.Blockchain, swarm.Transport, swarm.BlockDemandDictionary)
     {
-        if (!message.GenesisHash.Equals(blockchain.Genesis.BlockHash))
+    }
+
+    protected override void OnHandle(BlockSummaryMessage message, MessageEnvelope messageEnvelope)
+    {
+        using var pongScope = new PongScope(transport, messageEnvelope);
+        if (message.GenesisHash != _genesisHash)
         {
-            return;
+            throw new InvalidMessageException("Invalid block header message.");
         }
 
-        _blockHeaderReceivedSubject.OnNext(Unit.Default);
-        var header = message.BlockSummary;
+        var blockSummary = message.BlockSummary;
+        var needed = IsBlockNeeded(blockSummary);
 
-        try
-        {
-            header.Timestamp.ValidateTimestamp();
-        }
-        catch (InvalidOperationException e)
-        {
-            return;
-        }
-
-        bool needed = IsBlockNeeded(header);
+        blockSummary.Timestamp.ValidateTimestamp();
         if (needed)
         {
-            blockDemandDictionary.Add(
-                IsBlockNeeded, new BlockDemand(header, messageEnvelope.Sender, DateTimeOffset.UtcNow));
+            var blockDemand = new BlockDemand(blockSummary, messageEnvelope.Sender, DateTimeOffset.UtcNow);
+            blockDemands.Add(IsBlockNeeded, blockDemand);
         }
     }
 

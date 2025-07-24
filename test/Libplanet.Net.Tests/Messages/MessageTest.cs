@@ -24,7 +24,7 @@ public sealed class MessageTest(ITestOutputHelper output)
         var protocol = new ProtocolBuilder { Version = 1 }.Create(new PrivateKey());
         var dateTimeOffset = DateTimeOffset.UtcNow;
         var genesis = ProposeGenesisBlock(GenesisProposer);
-        var expected = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, BlockSummary = genesis };
+        var expected = new BlockSummaryMessage { GenesisHash = genesis.BlockHash, BlockSummary = genesis };
         var rawMessage = NetMQMessageCodec.Encode(
             new MessageEnvelope
             {
@@ -124,7 +124,7 @@ public sealed class MessageTest(ITestOutputHelper output)
     public void GetId()
     {
         var genesis = ProposeGenesisBlock(GenesisProposer);
-        var message = new BlockHeaderMessage { GenesisHash = genesis.BlockHash, BlockSummary = genesis };
+        var message = new BlockSummaryMessage { GenesisHash = genesis.BlockHash, BlockSummary = genesis };
         Assert.Equal(
             new MessageId(ByteUtility.ParseHex(
                 "e1acbdc4d0cc1eb156cec60d0bf6d40fae3a90192e95719b12e6ee944c71b742")),

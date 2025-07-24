@@ -96,19 +96,19 @@ public partial class SwarmTest
     private async Task<Swarm> CreateSwarm(
         PrivateKey? privateKey = null,
         SwarmOptions? options = null,
-        BlockchainOptions? policy = null,
+        BlockchainOptions? blockchainOptions = null,
         Block? genesis = null,
         ConsensusServiceOptions? consensusServiceOption = null)
     {
-        policy ??= new BlockchainOptions
+        blockchainOptions ??= new BlockchainOptions
         {
             SystemActions = new SystemActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
         };
-        var fx = new MemoryRepositoryFixture(policy);
-        var blockchain = MakeBlockchain(policy, genesisBlock: genesis);
+        var fx = new MemoryRepositoryFixture(blockchainOptions);
+        var blockchain = MakeBlockchain(blockchainOptions, genesisBlock: genesis);
 
         return await CreateSwarm(
             blockchain,

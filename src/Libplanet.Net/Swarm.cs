@@ -14,9 +14,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 {
     private readonly ISigner _signer;
     private readonly ConsensusService? _consensusSerevice;
-    private readonly TxFetcher _txFetcher;
-    private readonly EvidenceFetcher _evidenceFetcher;
-    private readonly AccessLimiter _transferEvidenceLimiter;
     private readonly ServiceCollection _services;
     private readonly IMessageHandler[] _messageHandlers;
 
@@ -29,13 +26,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         _signer = signer;
         Blockchain = blockchain;
         Options = options;
-        // RoutingTable = new PeerCollection(signer.Address);
         Transport = new NetMQTransport(signer, options.TransportOptions);
         PeerService = new PeerService(Transport);
-        _txFetcher = new TxFetcher(Blockchain, Transport, options.TimeoutOptions);
-        _evidenceFetcher = new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions);
         BlockDemandDictionary = new BlockDemandCollection(options.BlockDemandLifespan);
-        _transferEvidenceLimiter = new(options.TaskRegulationOptions.MaxTransferTxsTaskCount);
         _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
 
         _services =
@@ -49,6 +42,8 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new RefreshTableTask(PeerService, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
             new MaintainStaticPeerTask(this),
+            new TxFetcher(Blockchain, Transport, options.TimeoutOptions),
+            new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions),
         ];
         _messageHandlers =
         [
@@ -56,6 +51,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new BlockHashRequestMessageHandler(this),
             new TransactionRequestMessageHandler(this, options),
             new BlockchainStateRequestMessageHandler(this),
+            new BlockHeaderMessageHandler(this),
         ];
         Transport.MessageHandlers.AddRange(_messageHandlers);
     }
@@ -71,8 +67,6 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     public ImmutableArray<Peer> Validators => _consensusSerevice?.Validators ?? [];
 
     public Blockchain Blockchain { get; private set; }
-
-    // internal PeerCollection RoutingTable { get; }
 
     internal PeerService PeerService { get; }
 
@@ -90,9 +84,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         BroadcastBlock(default, block);
     }
 
-    public void BroadcastTxs(IEnumerable<Transaction> txs)
+    public void BroadcastTxs(ImmutableArray<Transaction> txs)
     {
-        BroadcastTxs(null, txs);
+        BroadcastTxs(default, txs);
     }
 
     public async Task SyncAsync(CancellationToken cancellationToken)
@@ -203,10 +197,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     protected override async ValueTask DisposeAsyncCore()
     {
         Transport.MessageHandlers.RemoveRange(_messageHandlers);
-        _transferEvidenceLimiter.Dispose();
 
-        _txFetcher.Dispose();
-        _evidenceFetcher.Dispose();
         await _services.DisposeAsync();
         await Transport.DisposeAsync();
         if (_consensusSerevice is not null)
@@ -217,9 +208,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         await base.DisposeAsyncCore();
     }
 
-    private void BroadcastBlock(Address except, Block block)
+    private void BroadcastBlock(ImmutableArray<Peer> except, Block block)
     {
-        var message = new BlockHeaderMessage
+        var message = new BlockSummaryMessage
         {
             GenesisHash = Blockchain.Genesis.BlockHash,
             BlockSummary = block,
@@ -227,15 +218,16 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         BroadcastMessage(except, message);
     }
 
-    private void BroadcastTxs(Peer except, IEnumerable<Transaction> txs)
+    private void BroadcastTxs(ImmutableArray<Peer> except, ImmutableArray<Transaction> txs)
     {
-        List<TxId> txIds = txs.Select(tx => tx.Id).ToList();
-        BroadcastTxIds(except.Address, txIds);
+        var txIds = txs.Select(tx => tx.Id).ToImmutableArray();
+        BroadcastTxIds(except, txIds);
     }
 
-    internal void BroadcastMessage(Address except, MessageBase message) => PeerService.Broadcast(message, [except]);
+    internal void BroadcastMessage(ImmutableArray<Peer> except, MessageBase message)
+        => PeerService.Broadcast(message, except);
 
-    internal void BroadcastTxIds(Address except, IEnumerable<TxId> txIds)
+    internal void BroadcastTxIds(ImmutableArray<Peer> except, ImmutableArray<TxId> txIds)
     {
         var message = new TxIdMessage { Ids = [.. txIds] };
         BroadcastMessage(except, message);
@@ -243,13 +235,11 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     internal bool IsBlockNeeded(BlockSummary blockSummary) => blockSummary.Height > Blockchain.Tip.Height;
 
-    public void BroadcastEvidence(ImmutableArray<EvidenceBase> evidence) => BroadcastEvidence(default, evidence);
-
-    private void BroadcastEvidence(Address except, ImmutableArray<EvidenceBase> evidence)
+    internal void BroadcastEvidence(ImmutableArray<Peer> except, ImmutableArray<EvidenceBase> evidence)
     {
         var evidenceIds = evidence.Select(evidence => evidence.Id).ToArray();
-        var replyMessage = new EvidenceIdMessage { Ids = [.. evidenceIds] };
-        BroadcastMessage(except, replyMessage);
+        var message = new EvidenceIdMessage { Ids = [.. evidenceIds] };
+        BroadcastMessage(except, message);
     }
 
     public BlockDemandCollection BlockDemandDictionary { get; private set; }

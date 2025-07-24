@@ -15,7 +15,7 @@ internal sealed class TxBroadcastTask(Swarm swarm) : BackgroundServiceBase
         var txIds = stagedTransactions.Keys.ToArray();
         if (txIds.Length > 0)
         {
-            swarm.BroadcastTxIds(default, txIds);
+            swarm.BroadcastTxIds(default, [.. txIds]);
         }
 
         await Task.CompletedTask;

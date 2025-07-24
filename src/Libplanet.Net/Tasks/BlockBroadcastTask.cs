@@ -34,10 +34,10 @@ internal sealed class BlockBroadcastTask : BackgroundServiceBase
         return base.DisposeAsyncCore();
     }
 
-    private void BroadcastBlock(Address except, Block block)
+    private void BroadcastBlock(ImmutableArray<Peer> except, Block block)
     {
         var blockchain = _swarm.Blockchain;
-        var message = new BlockHeaderMessage
+        var message = new BlockSummaryMessage
         {
             GenesisHash = blockchain.Genesis.BlockHash,
             BlockSummary = block
