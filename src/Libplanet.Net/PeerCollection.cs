@@ -131,6 +131,8 @@ public sealed class PeerCollection(
         }
     }
 
+    public int GetBucketIndex(Address address) => _buckets.IndexOf(address);
+
     public IEnumerator<Peer> GetEnumerator()
     {
         foreach (var bucket in _buckets)
@@ -143,9 +145,4 @@ public sealed class PeerCollection(
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    public int GetBucketIndex(Address address)
-    {
-        return _buckets.IndexOf(address);
-    }
 }

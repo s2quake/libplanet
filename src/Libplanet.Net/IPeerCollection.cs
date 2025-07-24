@@ -12,5 +12,9 @@ public interface IPeerCollection : IEnumerable<Peer>
 
     bool Contains(Address address);
 
+    bool Contains(Peer peer);
+
+    void Clear();
+
     int GetBucketIndex(Address address);
 }

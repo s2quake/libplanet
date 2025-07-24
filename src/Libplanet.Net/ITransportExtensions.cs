@@ -184,8 +184,8 @@ public static class ITransportExtensions
     public static async Task<ImmutableArray<Peer>> GetNeighborsAsync(
         this ITransport @this, Peer peer, Address target, CancellationToken cancellationToken)
     {
-        var request = new GetPeerMessage { Target = target };
-        var response = await @this.SendAsync<PeerMessage>(peer, request, cancellationToken);
+        var request = new PeerRequestMessage { Target = target };
+        var response = await @this.SendAsync<PeerResponseMessage>(peer, request, cancellationToken);
         return response.Peers;
     }
 }

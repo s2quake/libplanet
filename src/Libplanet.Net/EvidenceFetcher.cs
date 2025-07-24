@@ -13,9 +13,9 @@ public sealed class EvidenceFetcher(
     public override async IAsyncEnumerable<EvidenceBase> FetchAsync(
         Peer peer, EvidenceId[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var request = new GetEvidenceMessage { EvidenceIds = [.. ids] };
+        var request = new EvidenceRequestMessage { EvidenceIds = [.. ids] };
         using var cancellationTokenSource = CreateCancellationTokenSource();
-        var response = await transport.SendAsync<EvidenceMessage>(peer, request, cancellationTokenSource.Token);
+        var response = await transport.SendAsync<EvidenceResponseMessage>(peer, request, cancellationTokenSource.Token);
         // await foreach (var item in transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
         {
             for (var i = 0; i < response.Evidence.Length; i++)

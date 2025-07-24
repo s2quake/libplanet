@@ -2,7 +2,6 @@
   "recommendations": [
     "editorconfig.editorconfig",
     "ms-dotnettools.csharp",
-    "formulahendry.dotnet-test-explorer",
     "ms-vscode.powershell",
     "streetsidesoftware.code-spell-checker",
     "GitHub.vscode-pull-request-github",

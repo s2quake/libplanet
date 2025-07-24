@@ -1,8 +1,9 @@
+using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Types;
 using NetMQ;
 
-namespace Libplanet.Net.Messages;
+namespace Libplanet.Net.NetMQ;
 
 internal static class NetMQMessageCodec
 {

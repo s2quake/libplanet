@@ -28,7 +28,7 @@ public static class IBucketExtensions
         this IBucket @this, ImmutableArray<Address> except, [MaybeNullWhen(false)] out Peer value)
     {
         var query = from item in @this
-                    where !except.Contains(item.Address)
+                    where except == default || !except.Contains(item.Address)
                     orderby _random.Next()
                     select item;
 

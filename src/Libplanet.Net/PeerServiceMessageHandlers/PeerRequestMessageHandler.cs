@@ -3,10 +3,10 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.PeerServiceMessageHandlers;
 
-internal sealed class GetPeerMessageHandler(ITransport transport, PeerCollection table)
-    : MessageHandlerBase<GetPeerMessage>
+internal sealed class PeerRequestMessageHandler(ITransport transport, PeerCollection peers)
+    : MessageHandlerBase<PeerRequestMessage>
 {
-    protected override void OnHandle(GetPeerMessage message, MessageEnvelope messageEnvelope)
+    protected override void OnHandle(PeerRequestMessage message, MessageEnvelope messageEnvelope)
     {
         if (messageEnvelope.Sender.Address == transport.Peer.Address)
         {
@@ -14,9 +14,9 @@ internal sealed class GetPeerMessageHandler(ITransport transport, PeerCollection
         }
 
         var target = message.Target;
-        var k = PeerCollection.BucketCount;
-        var peers = table.GetNeighbors(target, k, includeTarget: true);
-        var peerMessage = new PeerMessage { Peers = [.. peers] };
+        var k = message.K;
+        var neighbors = peers.GetNeighbors(target, k, includeTarget: true);
+        var peerMessage = new PeerResponseMessage { Peers = [.. neighbors] };
         transport.Post(messageEnvelope.Sender, peerMessage, messageEnvelope.Identity);
     }
 }

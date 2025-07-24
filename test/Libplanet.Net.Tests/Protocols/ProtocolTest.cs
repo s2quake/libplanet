@@ -113,12 +113,10 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
 
-        var peerServiceOptionsB = new PeerServiceOptions
-        {
-            SeedPeers = [transportA.Peer],
-        };
-        await using var peerServiceB = new PeerService(transportB, peerServiceOptionsB);
+        await using var peerServiceB = new PeerService(transportB);
+        await transportB.StartAsync(default);
         await peerServiceB.StartAsync(default);
+        await peerServiceB.ExploreAsync([transportA.Peer], 3, default);
 
         Assert.Empty(peerServiceB.Peers);
     }
@@ -148,16 +146,15 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         Assert.Contains(transportC.Peer, peerServiceB.Peers);
         Assert.Contains(transportB.Peer, peerServiceC.Peers);
+        
+        peerServiceA.Peers.Clear();
+        peerServiceB.Peers.Clear();
+        peerServiceC.Peers.Clear();
 
-
-        await peerServiceA.RestartAsync(default);
-        await peerServiceB.RestartAsync(default);
-        await peerServiceC.RestartAsync(default);
-
-        await transportB.PingAsync(transportC.Peer, default);
+        await transportC.PingAsync(transportB.Peer, default);
         await transportC.StopAsync(default);
 
-        await peerServiceA.RefreshAsync(TimeSpan.Zero, default);
+        await peerServiceA.ExploreAsync([transportB.Peer], 3, default);
 
         Assert.Contains(transportA.Peer, peerServiceB.Peers);
         Assert.DoesNotContain(transportA.Peer, peerServiceC.Peers);

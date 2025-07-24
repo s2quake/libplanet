@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.PeerServiceMessageHandlers;
 using Libplanet.Types;
-using Libplanet.Types.Threading;
 using static Libplanet.Net.AddressUtility;
 
 namespace Libplanet.Net;
@@ -16,7 +15,7 @@ public sealed class PeerService : ServiceBase
     private readonly ITransport _transport;
     private readonly PeerServiceOptions _options;
     private readonly PeerCollection _peers;
-    private readonly Address _address;
+    private readonly Address _owner;
     private readonly PeerCollection _replacementCache;
     private readonly IMessageHandler[] _handlers;
 
@@ -27,16 +26,16 @@ public sealed class PeerService : ServiceBase
 
     public PeerService(ITransport transport, PeerServiceOptions options)
     {
-        _address = transport.Peer.Address;
+        _owner = transport.Peer.Address;
         _transport = transport;
         _options = ValidateOptions(transport.Peer, options);
-        _peers = new(_address, options.BucketCount, options.CapacityPerBucket);
+        _peers = new(_owner, options.BucketCount, options.CapacityPerBucket);
         _peers.AddOrUpdateMany([.. options.KnownPeers]);
-        _replacementCache = new PeerCollection(_address, options.BucketCount, options.CapacityPerBucket);
+        _replacementCache = new PeerCollection(_owner, options.BucketCount, options.CapacityPerBucket);
         _handlers =
         [
             new PingMessageHandler(_transport),
-            new GetPeerMessageHandler(_transport, _peers),
+            new PeerRequestMessageHandler(_transport, _peers),
             new DefaultMessageHandler(this),
         ];
     }
@@ -44,19 +43,6 @@ public sealed class PeerService : ServiceBase
     public Peer Peer => _transport.Peer;
 
     public IPeerCollection Peers => _peers;
-
-    // public void AddRange(ImmutableHashSet<Peer> peers)
-    // {
-    //     if (peers.Any(item => item.Address == _address))
-    //     {
-    //         throw new ArgumentException("Peer list cannot contain self address.", nameof(peers));
-    //     }
-
-    //     foreach (var peer in peers)
-    //     {
-    //         _peers.AddOrUpdate(peer);
-    //     }
-    // }
 
     public void Broadcast(IMessage message)
     {
@@ -70,14 +56,16 @@ public sealed class PeerService : ServiceBase
         _transport.Post(peers, message);
     }
 
-    public async Task ExploreAsync(CancellationToken cancellationToken)
+    public Task ExploreAsync(CancellationToken cancellationToken)
+        => ExploreAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
+
+    public async Task ExploreAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
     {
         using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
-        await ExploreAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
+        await ExploreInternalAsync(seedPeers, maxDepth, cancellationTokenSource.Token);
     }
 
-    public Task RefreshAsync(CancellationToken cancellationToken)
-        => RefreshAsync(TimeSpan.Zero, cancellationToken);
+    public Task RefreshAsync(CancellationToken cancellationToken) => RefreshAsync(TimeSpan.Zero, cancellationToken);
 
     public async Task RefreshAsync(TimeSpan staleThreshold, CancellationToken cancellationToken)
     {
@@ -98,7 +86,7 @@ public sealed class PeerService : ServiceBase
         using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         Address[] addresses =
         [
-            _address,
+            _owner,
             .. Enumerable.Range(0, FindConcurrency).Select(_ => GetRandomAddress())
         ];
 
@@ -125,7 +113,7 @@ public sealed class PeerService : ServiceBase
 
     public async Task<Peer> FindPeerAsync(Address address, int maxDepth, CancellationToken cancellationToken)
     {
-        if (address == _address)
+        if (address == _owner)
         {
             throw new ArgumentException("Cannot find self address.", nameof(address));
         }
@@ -146,7 +134,7 @@ public sealed class PeerService : ServiceBase
             var count = 0;
             foreach (var neighbor in neighbors)
             {
-                if (neighbor.Address == _address || visited.Contains(neighbor))
+                if (neighbor.Address == _owner || visited.Contains(neighbor))
                 {
                     continue;
                 }
@@ -188,7 +176,7 @@ public sealed class PeerService : ServiceBase
     {
         using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
 
-        if (peers.Any(item => item.Address == _address))
+        if (peers.Any(item => item.Address == _owner))
         {
             throw new ArgumentException("Peer list cannot contain self address.", nameof(peers));
         }
@@ -230,7 +218,7 @@ public sealed class PeerService : ServiceBase
 
     internal bool Remove(Peer peer)
     {
-        if (peer.Address == _address)
+        if (peer.Address == _owner)
         {
             return false;
         }
@@ -243,7 +231,7 @@ public sealed class PeerService : ServiceBase
         _transport.MessageHandlers.AddRange(_handlers);
         if (_options.SeedPeers.Count > 0)
         {
-            await ExploreAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
+            await ExploreInternalAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
         }
     }
 
@@ -279,9 +267,9 @@ public sealed class PeerService : ServiceBase
         return options;
     }
 
-    private async Task ExploreAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
+    private async Task ExploreInternalAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
     {
-        if (seedPeers.Any(item => item.Address == _address))
+        if (seedPeers.Any(item => item.Address == _owner))
         {
             throw new ArgumentException("Peer list cannot contain self address.", nameof(seedPeers));
         }
@@ -298,10 +286,7 @@ public sealed class PeerService : ServiceBase
         {
             try
             {
-                if (await AddOrUpdateAsync(peer, cancellationToken))
-                {
-                    taskList.Add(ExplorePeersAsync(peer, _address, maxDepth, cancellationToken));
-                }
+                taskList.Add(ExplorePeersAsync(peer, _owner, maxDepth, cancellationToken));
             }
             catch (Exception)
             {
@@ -312,10 +297,10 @@ public sealed class PeerService : ServiceBase
         await Task.WhenAll(taskList);
     }
 
-    private async Task ExplorePeersAsync(Peer viaPeer, Address address, int maxDepth, CancellationToken cancellationToken)
+    private async Task ExplorePeersAsync(Peer startingPeer, Address target, int maxDepth, CancellationToken cancellationToken)
     {
         var visited = new HashSet<Peer>();
-        var queue = new Queue<(Peer Peer, int Depth)>([(viaPeer, 0)]);
+        var queue = new Queue<(Peer Peer, int Depth)>([(startingPeer, 0)]);
         while (queue.Count > 0)
         {
             var (peer, depth) = queue.Dequeue();
@@ -324,13 +309,16 @@ public sealed class PeerService : ServiceBase
                 continue;
             }
 
-            var neighbors = peer.Address == _address
-                ? _peers.GetNeighbors(address, FindConcurrency, includeTarget: true)
-                : await _transport.GetNeighborsAsync(peer, address, cancellationToken);
+            var neighbors = await GetNeighborsOrDefaultAsync(peer, target, cancellationToken);
+            if (neighbors == default)
+            {
+                continue;
+            }
+
             var count = 0;
             foreach (var neighbor in neighbors)
             {
-                if (neighbor.Address == _address || visited.Contains(neighbor))
+                if (neighbor.Address == _owner || visited.Contains(neighbor))
                 {
                     continue;
                 }
@@ -345,6 +333,24 @@ public sealed class PeerService : ServiceBase
                 visited.Add(neighbor);
                 queue.Enqueue((neighbor, depth + 1));
             }
+        }
+    }
+
+    private async Task<ImmutableArray<Peer>> GetNeighborsOrDefaultAsync(
+        Peer peer, Address target, CancellationToken cancellationToken)
+    {
+        if (peer.Address == _owner)
+        {
+            return _peers.GetNeighbors(target, FindConcurrency, includeTarget: true);
+        }
+
+        try
+        {
+            return await _transport.GetNeighborsAsync(peer, target, cancellationToken);
+        }
+        catch (TimeoutException)
+        {
+            return default;
         }
     }
 }

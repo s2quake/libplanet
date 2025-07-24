@@ -6,12 +6,12 @@ using Libplanet.Types;
 namespace Libplanet.Net.MessageHandlers;
 
 internal sealed class GetProtocolMessageHandler(ITransport transport)
-    : MessageHandlerBase<GetProtocolMessage>
+    : MessageHandlerBase<ProtocolRequestMessage>
 {
     protected override void OnHandle(
-        GetProtocolMessage message, MessageEnvelope messageEnvelope)
+        ProtocolRequestMessage message, MessageEnvelope messageEnvelope)
     {
-        var replyMessage = new ProtocolMessage
+        var replyMessage = new ProtocolResponseMessage
         {
             Protocol = transport.Protocol,
         };
