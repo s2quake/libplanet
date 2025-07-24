@@ -348,37 +348,28 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task GetBlocks()
     {
         var keyA = new PrivateKey();
-        await using var swarmA = await CreateSwarm(keyA);
-        var genesis = swarmA.Blockchain.Genesis;
-        await using var swarmB = await CreateSwarm(genesis: genesis);
+        using var fx = new MemoryRepositoryFixture();
+        var genesis = fx.GenesisBlock;
+        var blockchainA = MakeBlockchain(genesisBlock: genesis);
+        var blockchainB = MakeBlockchain(genesisBlock: genesis);
 
-        var blockchainA = swarmA.Blockchain;
-        var block1 = blockchainA.ProposeBlock(keyA);
-        blockchainA.Append(block1, TestUtils.CreateBlockCommit(block1));
-        var block2 = blockchainA.ProposeBlock(keyA);
-        blockchainA.Append(block2, TestUtils.CreateBlockCommit(block2));
+        await using var transportA = TestUtils.CreateTransport(keyA);
+        await using var transportB = TestUtils.CreateTransport();
+        await using var fetcherB = new BlockFetcher(blockchainB, transportB);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
+        var (block1, _) = blockchainA.ProposeAndAppend(keyA);
+        var (block2, _) = blockchainA.ProposeAndAppend(keyA);
 
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        transportA.MessageHandlers.Add(new BlockHashRequestMessageHandler(blockchainA, transportA));
+        transportA.MessageHandlers.Add(new BlockRequestMessageHandler(blockchainA, transportA, 1));
 
-        var inventories = await swarmB.Transport.GetBlockHashesAsync(
-            swarmA.Peer,
-            genesis.BlockHash,
-            default);
-        Assert.Equal(
-            new[] { genesis.BlockHash, block1.BlockHash, block2.BlockHash },
-            inventories);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await fetcherB.StartAsync(default);
+        var blockHashes = ImmutableArray.CreateRange([block1.BlockHash, block2.BlockHash]);
+        var blocks = await fetcherB.FetchAsync(transportA.Peer, blockHashes, default);
 
-        (Block, BlockCommit)[] receivedBlocks =
-            await swarmB.Transport.GetBlocksAsync(
-                swarmA.Peer,
-                inventories,
-                cancellationToken: default)
-            .ToArrayAsync();
-        Assert.Equal(
-            [genesis, block1, block2], receivedBlocks.Select(pair => pair.Item1));
+        Assert.Equal(new[] { block1, block2 }, blocks);
     }
 
     [Fact(Timeout = Timeout)]
@@ -742,7 +733,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await swarmA.AddPeersAsync([swarmB.Peer], default);
         await swarmB.AddPeersAsync([swarmC.Peer], default);
         await swarmC.AddPeersAsync([swarmD.Peer], default);
-        
+
 
         var foundPeer1 = await peerServiceA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
 
