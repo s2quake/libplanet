@@ -6,20 +6,19 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class TransactionRequestMessageHandler(Swarm swarm, SwarmOptions options)
+internal sealed class TransactionRequestMessageHandler(Blockchain blockchain, ITransport transport, int maxAccessCount)
     : MessageHandlerBase<TransactionRequestMessage>, IDisposable
 {
-    private readonly Blockchain _blockchain = swarm.Blockchain;
-    private readonly ITransport _transport = swarm.Transport;
-    private readonly AccessLimiter _accessLimiter = new(options.TaskRegulationOptions.MaxTransferBlocksTaskCount);
+    private readonly AccessLimiter _accessLimiter = new(maxAccessCount);
 
-    public void Dispose()
+    internal TransactionRequestMessageHandler(Swarm swarm, SwarmOptions options)
+        : this(swarm.Blockchain, swarm.Transport, options.TaskRegulationOptions.MaxTransferBlocksTaskCount)
     {
-        _accessLimiter.Dispose();
     }
 
-    protected override void OnHandle(
-        TransactionRequestMessage message, MessageEnvelope messageEnvelope)
+    public void Dispose() => _accessLimiter.Dispose();
+
+    protected override void OnHandle(TransactionRequestMessage message, MessageEnvelope messageEnvelope)
     {
         _ = OnHandleAsync(message, messageEnvelope, default).AsTask();
     }
@@ -37,7 +36,7 @@ internal sealed class TransactionRequestMessageHandler(Swarm swarm, SwarmOptions
         var txList = new List<Transaction>();
         foreach (var txId in txIds)
         {
-            if (_blockchain.Transactions.TryGetValue(txId, out var transaction))
+            if (blockchain.Transactions.TryGetValue(txId, out var transaction))
             {
                 txList.Add(transaction);
             }
@@ -48,7 +47,7 @@ internal sealed class TransactionRequestMessageHandler(Swarm swarm, SwarmOptions
                 {
                     Transactions = [.. txList]
                 };
-                _transport.Post(messageEnvelope.Sender, response, messageEnvelope.Identity);
+                transport.Post(messageEnvelope.Sender, response, messageEnvelope.Identity);
                 txList.Clear();
                 await Task.Yield();
             }
@@ -59,7 +58,7 @@ internal sealed class TransactionRequestMessageHandler(Swarm swarm, SwarmOptions
             Transactions = [.. txList],
             IsLast = true,
         };
-        _transport.Post(messageEnvelope.Sender, lastResponse, messageEnvelope.Identity);
+        transport.Post(messageEnvelope.Sender, lastResponse, messageEnvelope.Identity);
         await Task.Yield();
     }
 }

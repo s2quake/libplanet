@@ -19,6 +19,9 @@ using Libplanet.Extensions;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
 using Libplanet.Types.Threading;
+using Libplanet.Net.Services;
+using Libplanet.Tests;
+using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Tests;
 
@@ -425,29 +428,27 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task GetTx()
     {
         var keyB = new PrivateKey();
-        await using var swarmA = await CreateSwarm();
-        var genesis = swarmA.Blockchain.Genesis;
-        await using var swarmB = await CreateSwarm(keyB, genesis: genesis);
-        var blockchainB = swarmB.Blockchain;
-
+        using var fx = new MemoryRepositoryFixture();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport(keyB);
+        var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var fetcherA = new TransactionFetcher(blockchainA, transportA, new TimeoutOptions());
         var txKey = new PrivateKey();
         var tx = new TransactionBuilder
         {
-            Nonce = 0,
             GenesisHash = blockchainB.Genesis.BlockHash,
-            Actions = [],
         }.Create(txKey);
         blockchainB.StagedTransactions.Add(tx);
-        var block = blockchainB.ProposeBlock(keyB);
-        blockchainB.Append(block, TestUtils.CreateBlockCommit(block));
+        blockchainB.ProposeAndAppend(keyB);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        transportB.MessageHandlers.Add(new TransactionRequestMessageHandler(blockchainB, transportB, 1));
 
-        var fetcher = new TxFetcher(swarmA, swarmA.Options);
-        var txs = await fetcher.FetchAsync(swarmB.Peer, [tx.Id], default).ToArrayAsync(default);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await fetcherA.StartAsync(default);
 
+        var txs = await fetcherA.FetchAsync(transportB.Peer, [tx.Id], default).ToArrayAsync(default);
         Assert.Equal(new[] { tx }, txs);
     }
 

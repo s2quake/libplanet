@@ -4,13 +4,13 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Types;
 
-namespace Libplanet.Net;
+namespace Libplanet.Net.Services;
 
-public sealed class TxFetcher(
+public sealed class TransactionFetcher(
     Blockchain blockchain, ITransport transport, TimeoutOptions timeoutOptions)
     : FetcherBase<TxId, Transaction>
 {
-    public TxFetcher(Swarm swarm, SwarmOptions options)
+    public TransactionFetcher(Swarm swarm, SwarmOptions options)
         : this(swarm.Blockchain, swarm.Transport, options.TimeoutOptions)
     {
     }
@@ -18,22 +18,17 @@ public sealed class TxFetcher(
     public override async IAsyncEnumerable<Transaction> FetchAsync(
         Peer peer, TxId[] ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        using var cancellationTokenSource = CreateCancellationTokenSource();
+        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         var request = new TransactionRequestMessage { TxIds = [.. ids] };
-        var response = await transport.SendAsync<TransactionResponseMessage>(peer, request, cancellationTokenSource.Token);
-        foreach (var item in response.Transactions)
+        var isLast = new Func<TransactionResponseMessage, bool>(m => m.IsLast);
+        var query = transport.SendAsync(peer, request, isLast, cancellationTokenSource.Token);
+        await foreach (var item in query)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            yield return item;
-        }
-
-        CancellationTokenSource CreateCancellationTokenSource()
-        {
-            var count = ids.Length;
-            var fetchTimeout = timeoutOptions.GetTxFetchTimeout(count);
-            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cancellationTokenSource.CancelAfter(fetchTimeout);
-            return cancellationTokenSource;
+            foreach (var transaction in item.Transactions)
+            {
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                yield return transaction;
+            }
         }
     }
 

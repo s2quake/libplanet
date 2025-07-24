@@ -7,6 +7,7 @@ using Libplanet.Types;
 using Libplanet.Net.NetMQ;
 using Libplanet.Net.Tasks;
 using Libplanet.Net.MessageHandlers;
+using Libplanet.Net.Services;
 
 namespace Libplanet.Net;
 
@@ -42,7 +43,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new RefreshTableTask(PeerService, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
             new MaintainStaticPeerTask(this),
-            new TxFetcher(Blockchain, Transport, options.TimeoutOptions),
+            new TransactionFetcher(Blockchain, Transport, options.TimeoutOptions),
             new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions),
         ];
         _messageHandlers =
