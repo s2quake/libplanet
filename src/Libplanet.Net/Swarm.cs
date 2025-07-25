@@ -11,11 +11,11 @@ using Libplanet.Net.Services;
 
 namespace Libplanet.Net;
 
-public sealed class Swarm : ServiceBase, IServiceProvider
+public sealed class Swarm : LifecycleServiceBase, IServiceProvider
 {
     private readonly ISigner _signer;
     private readonly ConsensusService? _consensusSerevice;
-    private readonly ServiceCollection _services;
+    private readonly LifecycleServiceCollection _services;
     private readonly IMessageHandler[] _messageHandlers;
 
     public Swarm(

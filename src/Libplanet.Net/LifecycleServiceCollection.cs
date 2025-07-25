@@ -4,22 +4,22 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-public sealed class ServiceCollection
-    : ServiceBase, IEnumerable<IService>
+public sealed class LifecycleServiceCollection
+    : LifecycleServiceBase, IEnumerable<ILifecycleService>
 {
-    private readonly List<IService> serviceList = [];
+    private readonly List<ILifecycleService> serviceList = [];
 
     public int Count => serviceList.Count;
 
-    public bool ParallelExecution { get; init; }
+    public bool SequentialExecution { get; init; }
 
-    public IService this[int index] => serviceList[index];
+    public ILifecycleService this[int index] => serviceList[index];
 
-    public void Add(IService service)
+    public void Add(ILifecycleService service)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-        if (State != ServiceState.None)
+        if (State != LifecycleServiceState.None)
         {
             throw new InvalidOperationException(
                 "Cannot add services after the collection has started or stopped.");
@@ -28,7 +28,7 @@ public sealed class ServiceCollection
         serviceList.Add(service);
     }
 
-    public IEnumerator<IService> GetEnumerator()
+    public IEnumerator<ILifecycleService> GetEnumerator()
     {
         foreach (var service in serviceList)
         {
@@ -40,49 +40,39 @@ public sealed class ServiceCollection
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        if (ParallelExecution)
-        {
-            var tasks = serviceList.Select(service => service.StartAsync(cancellationToken)).ToArray();
-            await Task.WhenAll(tasks);
-        }
-        else
+        if (SequentialExecution)
         {
             for (var i = 0; i < serviceList.Count; i++)
             {
                 await serviceList[i].StartAsync(cancellationToken);
             }
         }
+        else
+        {
+            var tasks = serviceList.Select(service => service.StartAsync(cancellationToken)).ToArray();
+            await Task.WhenAll(tasks);
+        }
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        if (ParallelExecution)
-        {
-            var tasks = serviceList.Select(service => service.StopAsync(cancellationToken)).ToArray();
-            await Task.WhenAll(tasks);
-        }
-        else
+        if (SequentialExecution)
         {
             for (var i = 0; i < serviceList.Count; i++)
             {
                 await serviceList[i].StopAsync(cancellationToken);
             }
         }
+        else
+        {
+            var tasks = serviceList.Select(service => service.StopAsync(cancellationToken)).ToArray();
+            await Task.WhenAll(tasks);
+        }
     }
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        if (ParallelExecution)
-        {
-            await Parallel.ForEachAsync(serviceList, async (service, _) =>
-            {
-                if (service is IAsyncDisposable asyncDisposable)
-                {
-                    await asyncDisposable.DisposeAsync();
-                }
-            });
-        }
-        else
+        if (SequentialExecution)
         {
             for (var i = 0; i < serviceList.Count; i++)
             {
@@ -92,7 +82,16 @@ public sealed class ServiceCollection
                 }
             }
         }
-
+        else
+        {
+            await Parallel.ForEachAsync(serviceList, async (service, _) =>
+            {
+                if (service is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
+            });
+        }
 
         await base.DisposeAsyncCore();
     }

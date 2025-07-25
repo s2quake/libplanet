@@ -18,7 +18,7 @@ public sealed class Consensus(
     ISigner signer,
     ImmutableSortedSet<Validator> validators,
     ConsensusOptions options)
-    : ServiceBase
+    : LifecycleServiceBase
 {
     private readonly Subject<int> _roundChangedSubject = new();
     private readonly Subject<Exception> _exceptionOccurredSubject = new();

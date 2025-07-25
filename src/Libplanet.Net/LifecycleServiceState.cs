@@ -1,6 +1,6 @@
 namespace Libplanet.Net;
 
-public enum ServiceState
+public enum LifecycleServiceState
 {
     None,
 

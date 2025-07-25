@@ -7,7 +7,7 @@ using Libplanet.Net.Tasks;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Gossip : ServiceBase
+public sealed class Gossip : LifecycleServiceBase
 {
     private const int DLazy = 6;
     private readonly ITransport _transport;
@@ -17,7 +17,7 @@ public sealed class Gossip : ServiceBase
     private readonly ImmutableHashSet<Peer> _seeds;
     private readonly IMessageHandler[] _handlers;
     private readonly PeerDiscovery _peerDiscovery;
-    private readonly ServiceCollection _services;
+    private readonly LifecycleServiceCollection _services;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
 
     public Gossip(

@@ -4,7 +4,7 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net;
 
-public interface ITransport : IAsyncDisposable
+public interface ITransport : ILifecycleService, IAsyncDisposable
 {
     MessageHandlerCollection MessageHandlers { get; }
 
@@ -15,10 +15,6 @@ public interface ITransport : IAsyncDisposable
     Protocol Protocol { get; }
 
     CancellationToken StoppingToken { get; }
-
-    Task StartAsync(CancellationToken cancellationToken);
-
-    Task StopAsync(CancellationToken cancellationToken);
 
     MessageEnvelope Post(Peer receiver, IMessage message, Guid? replyTo);
 }

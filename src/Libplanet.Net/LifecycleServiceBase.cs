@@ -4,27 +4,27 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
+public abstract class LifecycleServiceBase : IAsyncDisposable, ILifecycleService, IRecoverable
 {
     private static readonly object _lock = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private ServiceState _state = ServiceState.None;
+    private LifecycleServiceState _state = LifecycleServiceState.None;
     private CancellationTokenSource? _cancellationTokenSource;
     private CancellationToken _cancellationToken;
 
-    public ServiceState State => _state;
+    public LifecycleServiceState State => _state;
 
-    public bool IsRunning => _state == ServiceState.Started;
+    public bool IsRunning => _state == LifecycleServiceState.Started;
 
-    public bool IsFaulted => _state == ServiceState.Faluted;
+    public bool IsFaulted => _state == LifecycleServiceState.Faluted;
 
-    public bool IsDisposed => _state == ServiceState.Disposed;
+    public bool IsDisposed => _state == LifecycleServiceState.Disposed;
 
     protected CancellationToken StoppingToken => _cancellationToken;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        SetState([ServiceState.None], ServiceState.Transitioning);
+        SetState([LifecycleServiceState.None], LifecycleServiceState.Transitioning);
 
         await _semaphore.WaitAsync(cancellationToken);
         try
@@ -35,11 +35,11 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
             _cancellationToken = _cancellationTokenSource.Token;
             await OnStartAsync(cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            SetState(ServiceState.Started);
+            SetState(LifecycleServiceState.Started);
         }
         catch
         {
-            SetState(ServiceState.Faluted);
+            SetState(LifecycleServiceState.Faluted);
             throw;
         }
         finally
@@ -50,7 +50,7 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        SetState([ServiceState.Started], ServiceState.Transitioning);
+        SetState([LifecycleServiceState.Started], LifecycleServiceState.Transitioning);
 
         await _semaphore.WaitAsync(cancellationToken);
         try
@@ -64,11 +64,11 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
             cancellationToken.ThrowIfCancellationRequested();
-            SetState(ServiceState.None);
+            SetState(LifecycleServiceState.None);
         }
         catch
         {
-            SetState(ServiceState.Faluted);
+            SetState(LifecycleServiceState.Faluted);
             throw;
         }
         finally
@@ -79,7 +79,7 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
 
     public async Task RecoverAsync()
     {
-        SetState([ServiceState.Faluted], ServiceState.Transitioning);
+        SetState([LifecycleServiceState.Faluted], LifecycleServiceState.Transitioning);
 
         await _semaphore.WaitAsync();
         try
@@ -92,11 +92,11 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
             await OnRecoverAsync().ConfigureAwait(false);
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
-            SetState(ServiceState.None);
+            SetState(LifecycleServiceState.None);
         }
         catch
         {
-            SetState(ServiceState.Faluted);
+            SetState(LifecycleServiceState.Faluted);
             throw;
         }
         finally
@@ -110,7 +110,7 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
         await _semaphore.WaitAsync();
         try
         {
-            if (_state != ServiceState.Disposed)
+            if (_state != LifecycleServiceState.Disposed)
             {
                 if (_cancellationTokenSource is not null)
                 {
@@ -120,7 +120,7 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
                 await DisposeAsyncCore().ConfigureAwait(false);
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
-                SetState(ServiceState.Disposed);
+                SetState(LifecycleServiceState.Disposed);
                 GC.SuppressFinalize(this);
             }
         }
@@ -145,8 +145,8 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
 
     protected CancellationTokenSource CreateCancellationTokenSource(params CancellationToken[] cancellationTokens)
     {
-        ObjectDisposedException.ThrowIf(_state == ServiceState.Disposed, this);
-        if (_state != ServiceState.Started)
+        ObjectDisposedException.ThrowIf(_state == LifecycleServiceState.Disposed, this);
+        if (_state != LifecycleServiceState.Started)
         {
             throw new InvalidOperationException($"{this} is not running.");
         }
@@ -154,11 +154,11 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
         return CancellationTokenSource.CreateLinkedTokenSource([_cancellationToken, .. cancellationTokens]);
     }
 
-    private void SetState(IEnumerable<ServiceState> oldStates, ServiceState newState)
+    private void SetState(IEnumerable<LifecycleServiceState> oldStates, LifecycleServiceState newState)
     {
         lock (_lock)
         {
-            ObjectDisposedException.ThrowIf(_state == ServiceState.Disposed, this);
+            ObjectDisposedException.ThrowIf(_state == LifecycleServiceState.Disposed, this);
 
             if (!oldStates.Contains(_state))
             {
@@ -169,7 +169,7 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
         }
     }
 
-    private void SetState(ServiceState state)
+    private void SetState(LifecycleServiceState state)
     {
         lock (_lock)
         {

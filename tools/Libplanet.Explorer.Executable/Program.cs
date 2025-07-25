@@ -23,6 +23,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NetMQ;
 using Serilog;
 using Serilog.Events;
+using Microsoft.Extensions.Hosting;
 
 namespace Libplanet.Explorer.Executable
 {

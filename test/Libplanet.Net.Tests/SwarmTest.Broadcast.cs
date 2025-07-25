@@ -712,6 +712,12 @@ public partial class SwarmTest
         await using var transportA = TestUtils.CreateTransport(keyA);
         await using var transportB = TestUtils.CreateTransport(keyB);
         await using var transportC = TestUtils.CreateTransport(keyC);
+        await using var transports = new LifecycleServiceCollection
+        {
+            transportA,
+            transportB,
+            transportC,
+        };
 
         using var peerDiscoveryA = new PeerDiscovery(transportA);
         using var peerDiscoveryB = new PeerDiscovery(transportB);
@@ -744,10 +750,7 @@ public partial class SwarmTest
             blockchainB.Append(block, TestUtils.CreateBlockCommit(block));
         }
 
-        await Task.WhenAll(
-            transportA.StartAsync(default),
-            transportB.StartAsync(default),
-            transportC.StartAsync(default));
+        await transports.StartAsync(default);
 
         await peerDiscoveryB.AddOrUpdateAsync(transportA.Peer, default);
         await peerDiscoveryC.AddOrUpdateAsync(transportA.Peer, default);

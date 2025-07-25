@@ -9,7 +9,7 @@ using NetMQ;
 namespace Libplanet.Net.NetMQ;
 
 public sealed class NetMQTransport(ISigner signer, TransportOptions options)
-    : ServiceBase, ITransport
+    : LifecycleServiceBase, ITransport
 {
     private readonly NetMQRouterSocket _router = new(signer.Address, options.Host, options.Port);
     private readonly NetMQQueue<MessageResponse> _responseQueue = new();
