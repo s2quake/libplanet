@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Types.Threading;
 
-namespace Libplanet.Net;
+namespace Libplanet.Net.Components;
 
 public sealed class BlockBranchAppender(Blockchain blockchain)
 {
@@ -19,31 +19,8 @@ public sealed class BlockBranchAppender(Blockchain blockchain)
         await TaskUtility.TryWhenAll(taskList);
     }
 
-    // protected override Task OnStartAsync(CancellationToken cancellationToken)
-    // {
-    //     return Task.CompletedTask;
-    // }
-
-    // protected override Task OnStopAsync(CancellationToken cancellationToken)
-    // {
-    //     return Task.CompletedTask;
-    // }
-
     private async Task AppendBranchAsync(BlockBranch blockBranch, CancellationToken cancellationToken)
     {
-        // var branchPoint = blockchain.Tip;
-        // var actualBranch = blockBranch.TakeAfter(branchPoint);
-
-        // var index = blockBranch.Blocks.IndexOf(branchPoint);
-        // var s = index >= 0 ? index + 1 : int.MaxValue;
-        // var blocks = blockBranch.Blocks[s..];
-        // var blockCommits = blockBranch.BlockCommits[s..];
-        // return new BlockBranch
-        // {
-        //     Blocks = ,
-        //     BlockCommits = BlockCommits[i..],
-        // };
-
         for (var i = 0; i < blockBranch.Blocks.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();

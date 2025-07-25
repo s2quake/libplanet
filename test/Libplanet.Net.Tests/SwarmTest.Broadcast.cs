@@ -15,6 +15,7 @@ using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
 using Libplanet.Tests;
 using Libplanet.Net.MessageHandlers;
+using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Tests;
 

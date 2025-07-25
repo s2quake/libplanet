@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Threading;
 
-namespace Libplanet.Net;
+namespace Libplanet.Net.Components;
 
 public sealed class BlockDemandCollector(Blockchain blockchain, ITransport transport)
 {

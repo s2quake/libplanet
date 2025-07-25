@@ -5,18 +5,30 @@ using System.Threading.Tasks;
 using Libplanet.Net.Services;
 using Libplanet.Types.Threading;
 
-namespace Libplanet.Net;
+namespace Libplanet.Net.Components;
 
 public sealed class BlockBranchResolver(Blockchain blockchain, ITransport transport)
-    : IAsyncDisposable
+    : IDisposable
 {
     private readonly Subject<BlockBranch> _blockBranchCreatedSubject = new();
     private readonly BlockFetcher _blockFetcher = new(blockchain, transport);
     private readonly ConcurrentDictionary<Peer, int> _processByPeer = new();
+    private bool _disposed;
 
     public IObservable<BlockBranch> BlockBranchCreated => _blockBranchCreatedSubject;
 
     public BlockBranchCollection BlockBranches { get; } = [];
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _blockBranchCreatedSubject.Dispose();
+            _blockFetcher.Dispose();
+            _disposed = true;
+            GC.SuppressFinalize(this);
+        }
+    }
 
     public async Task ExecuteAsync(BlockDemandCollection blockDemands, CancellationToken cancellationToken)
     {
@@ -29,23 +41,6 @@ public sealed class BlockBranchResolver(Blockchain blockchain, ITransport transp
 
         await TaskUtility.TryWhenAll(taskList);
     }
-
-    // protected override async Task OnStartAsync(CancellationToken cancellationToken)
-    // {
-    //     await _blockFetcher.StartAsync(cancellationToken);
-    // }
-
-    // protected override async Task OnStopAsync(CancellationToken cancellationToken)
-    // {
-    //     await _blockFetcher.StopAsync(cancellationToken);
-    // }
-
-    // protected override async ValueTask DisposeAsyncCore()
-    // {
-    //     await _blockFetcher.DisposeAsync();
-    //     _blockBranchCreatedSubject.Dispose();
-    //     await base.DisposeAsyncCore();
-    // }
 
     private async Task ProcessBlockDemandAsync(BlockDemand blockDemand, CancellationToken cancellationToken)
     {
@@ -81,10 +76,5 @@ public sealed class BlockBranchResolver(Blockchain blockchain, ITransport transp
         {
             _processByPeer.TryRemove(peer, out _);
         }
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        throw new NotImplementedException();
     }
 }
