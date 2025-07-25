@@ -4,31 +4,30 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
-public sealed class BlockBranchAppendService(Blockchain blockchain) : ServiceBase
+public sealed class BlockBranchAppender(Blockchain blockchain)
 {
     public async Task ExecuteAsync(BlockBranchCollection blockBranches, CancellationToken cancellationToken)
     {
-        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         var taskList = new List<Task>(blockBranches.Count);
         foreach (var blockBranch in blockBranches)
         {
             blockBranches.Remove(blockBranch.BlockHeader);
-            taskList.Add(AppendBranchAsync(blockBranch, cancellationTokenSource.Token));
+            taskList.Add(AppendBranchAsync(blockBranch, cancellationToken));
         }
 
-        blockBranches.Prune();
+        blockBranches.Prune(blockchain);
         await TaskUtility.TryWhenAll(taskList);
     }
 
-    protected override Task OnStartAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
+    // protected override Task OnStartAsync(CancellationToken cancellationToken)
+    // {
+    //     return Task.CompletedTask;
+    // }
 
-    protected override Task OnStopAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
+    // protected override Task OnStopAsync(CancellationToken cancellationToken)
+    // {
+    //     return Task.CompletedTask;
+    // }
 
     private async Task AppendBranchAsync(BlockBranch blockBranch, CancellationToken cancellationToken)
     {

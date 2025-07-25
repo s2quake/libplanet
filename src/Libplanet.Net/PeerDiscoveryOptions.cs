@@ -1,8 +1,8 @@
 namespace Libplanet.Net;
 
-public sealed record class PeerServiceOptions
+public sealed record class PeerDiscoveryOptions
 {
-    public static PeerServiceOptions Default { get; } = new();
+    public static PeerDiscoveryOptions Default { get; } = new();
 
     public int BucketCount { get; init; } = PeerCollection.BucketCount;
 

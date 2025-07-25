@@ -13,7 +13,6 @@ using Serilog;
 using xRetry;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
-using Libplanet.Extensions;
 using Libplanet.Tests;
 using Libplanet.Net.MessageHandlers;
 
@@ -102,7 +101,7 @@ public partial class SwarmTest
 
         await swarmA.AddPeersAsync([seed.Peer], default);
         await swarmA.StopAsync(default);
-        await seed.PeerService.RefreshAsync(
+        await seed.PeerDiscovery.RefreshAsync(
             TimeSpan.Zero,
             default);
 
@@ -451,8 +450,8 @@ public partial class SwarmTest
         Assert.Equal(
             new HashSet<TxId> { tx1.Id, tx2.Id },
             chainB.StagedTransactions.Keys.ToHashSet());
-        swarmA.PeerService.Remove(swarmB.Peer);
-        swarmB.PeerService.Remove(swarmA.Peer);
+        swarmA.PeerDiscovery.Remove(swarmB.Peer);
+        swarmB.PeerDiscovery.Remove(swarmA.Peer);
 
         chainA.StagedTransactions.Remove(tx2.Id);
         Assert.Equal(1, chainA.GetNextTxNonce(privateKey.Address));
@@ -460,8 +459,8 @@ public partial class SwarmTest
         await swarmA.StopAsync(default);
         await swarmB.StopAsync(default);
 
-        swarmA.PeerService.Remove(swarmB.Peer);
-        swarmB.PeerService.Remove(swarmA.Peer);
+        swarmA.PeerDiscovery.Remove(swarmB.Peer);
+        swarmB.PeerDiscovery.Remove(swarmA.Peer);
         Assert.Empty(swarmA.Peers);
         Assert.Empty(swarmB.Peers);
 
@@ -714,9 +713,9 @@ public partial class SwarmTest
         await using var transportB = TestUtils.CreateTransport(keyB);
         await using var transportC = TestUtils.CreateTransport(keyC);
 
-        await using var peerServiceA = new PeerService(transportA);
-        await using var peerServiceB = new PeerService(transportB);
-        await using var peerServiceC = new PeerService(transportC);
+        using var peerDiscoveryA = new PeerDiscovery(transportA);
+        using var peerDiscoveryB = new PeerDiscovery(transportB);
+        using var peerDiscoveryC = new PeerDiscovery(transportC);
 
         var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
@@ -748,27 +747,21 @@ public partial class SwarmTest
         await Task.WhenAll(
             transportA.StartAsync(default),
             transportB.StartAsync(default),
-            transportC.StartAsync(default),
-            peerServiceA.StartAsync(default),
-            peerServiceB.StartAsync(default),
-            peerServiceC.StartAsync(default));
+            transportC.StartAsync(default));
 
-        await peerServiceB.AddOrUpdateAsync(transportA.Peer, default);
-        await peerServiceC.AddOrUpdateAsync(transportA.Peer, default);
-        await peerServiceB.ExploreAsync([transportA.Peer], 3, default);
-        await peerServiceC.ExploreAsync([transportA.Peer], 3, default);
+        await peerDiscoveryB.AddOrUpdateAsync(transportA.Peer, default);
+        await peerDiscoveryC.AddOrUpdateAsync(transportA.Peer, default);
+        await peerDiscoveryB.ExploreAsync([transportA.Peer], 3, default);
+        await peerDiscoveryC.ExploreAsync([transportA.Peer], 3, default);
 
-        var blockDemandService = new BlockDemandService(blockchainC, transportC);
-        await blockDemandService.StartAsync(default);
-        await blockDemandService.ExecuteAsync([.. peerServiceC.Peers], default);
+        var blockDemandCollector = new BlockDemandCollector(blockchainC, transportC);
+        await blockDemandCollector.ExecuteAsync([.. peerDiscoveryC.Peers], default);
 
-        var blockBranchService = new BlockBranchService(blockchainC, transportC);
-        await blockBranchService.StartAsync(default);
-        await blockBranchService.ExecuteAsync(blockDemandService.BlockDemands, default);
+        var blockBranchResolver = new BlockBranchResolver(blockchainC, transportC);
+        await blockBranchResolver.ExecuteAsync(blockDemandCollector.BlockDemands, default);
 
-        var blockBranchAppendService = new BlockBranchAppendService(blockchainC);
-        await blockBranchAppendService.StartAsync(default);
-        await blockBranchAppendService.ExecuteAsync(blockBranchService.BlockBranches, default);
+        var blockBranchAppender = new BlockBranchAppender(blockchainC);
+        await blockBranchAppender.ExecuteAsync(blockBranchResolver.BlockBranches, default);
 
         Assert.Equal(blockchainC.Tip, tipA);
     }

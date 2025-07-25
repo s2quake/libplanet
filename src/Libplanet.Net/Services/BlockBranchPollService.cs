@@ -27,24 +27,24 @@ internal sealed class BlockBranchPollService(
 
     protected override TimeSpan Interval => TimeSpan.FromMilliseconds(100);
 
-    protected override async Task OnStartAsync(CancellationToken cancellationToken)
-    {
-        await base.OnStartAsync(cancellationToken);
-        await _blockFetcher.StartAsync(cancellationToken);
-    }
+    // protected override async Task OnStartAsync(CancellationToken cancellationToken)
+    // {
+    //     await base.OnStartAsync(cancellationToken);
+    //     await _blockFetcher.StartAsync(cancellationToken);
+    // }
 
-    protected override async Task OnStopAsync(CancellationToken cancellationToken)
-    {
-        await _blockFetcher.StopAsync(cancellationToken);
-        await base.OnStopAsync(cancellationToken);
-    }
+    // protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    // {
+    //     await _blockFetcher.StopAsync(cancellationToken);
+    //     await base.OnStopAsync(cancellationToken);
+    // }
 
-    protected override async ValueTask DisposeAsyncCore()
-    {
-        await _blockFetcher.DisposeAsync();
-        _blockBranchCreatedSubject.Dispose();
-        await base.DisposeAsyncCore();
-    }
+    // protected override async ValueTask DisposeAsyncCore()
+    // {
+    //     await _blockFetcher.DisposeAsync();
+    //     _blockBranchCreatedSubject.Dispose();
+    //     await base.DisposeAsyncCore();
+    // }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -55,7 +55,7 @@ internal sealed class BlockBranchPollService(
             taskList.Add(ProcessBlockDemandAsync(blockDemand, cancellationToken));
         }
 
-        blockDemands.Prune();
+        blockDemands.Prune(blockchain);
         await TaskUtility.TryWhenAll(taskList);
     }
 

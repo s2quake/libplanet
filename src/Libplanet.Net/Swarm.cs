@@ -28,9 +28,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         Blockchain = blockchain;
         Options = options;
         Transport = new NetMQTransport(signer, options.TransportOptions);
-        PeerService = new PeerService(Transport);
-        BlockDemands = new BlockDemandCollection(blockchain) { BlockDemandLifespan = options.BlockDemandLifespan };
-        BlockBranches = new BlockBranchCollection(blockchain);
+        PeerDiscovery = new PeerDiscovery(Transport);
+        BlockDemands = new BlockDemandCollection();
+        BlockBranches = new BlockBranchCollection();
         _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
 
         _services =
@@ -41,11 +41,11 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new BlockBranchPollService(this),
             // new BlockDemandPollTask(this),
             // new ConsumeBlockCandidatesTask(this),
-            new RefreshTableTask(PeerService, options.RefreshPeriod, options.RefreshLifespan),
+            new RefreshTableTask(PeerDiscovery, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
             new MaintainStaticPeerTask(this),
-            new TransactionFetcher(Blockchain, Transport, options.TimeoutOptions),
-            new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions),
+            // new TransactionFetcher(Blockchain, Transport, options.TimeoutOptions),
+            // new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions),
         ];
         _messageHandlers =
         [
@@ -64,13 +64,13 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public Peer Peer => Transport.Peer;
 
-    public IEnumerable<Peer> Peers => PeerService.Peers;
+    public IEnumerable<Peer> Peers => PeerDiscovery.Peers;
 
     public ImmutableArray<Peer> Validators => _consensusSerevice?.Validators ?? [];
 
     public Blockchain Blockchain { get; private set; }
 
-    internal PeerService PeerService { get; }
+    internal PeerDiscovery PeerDiscovery { get; }
 
     internal ITransport Transport { get; }
 
@@ -174,7 +174,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         }
 
         await Transport.StartAsync(cancellationToken);
-        await PeerService.StartAsync(cancellationToken);
+        // await PeerDiscovery.StartAsync(cancellationToken);
         if (_consensusSerevice is not null)
         {
             await _consensusSerevice.StartAsync(cancellationToken);
@@ -227,7 +227,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     }
 
     internal void BroadcastMessage(ImmutableArray<Peer> except, MessageBase message)
-        => PeerService.Broadcast(message, except);
+        => PeerDiscovery.Broadcast(message, except);
 
     internal void BroadcastTxIds(ImmutableArray<Peer> except, ImmutableArray<TxId> txIds)
     {
@@ -328,9 +328,9 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             return _consensusSerevice;
         }
 
-        if (serviceType == typeof(PeerService))
+        if (serviceType == typeof(PeerDiscovery))
         {
-            return PeerService;
+            return PeerDiscovery;
         }
 
         if (serviceType == typeof(Blockchain))

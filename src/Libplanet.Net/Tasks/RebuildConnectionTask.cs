@@ -9,7 +9,7 @@ internal sealed class RebuildConnectionTask(Swarm swarm) : BackgroundServiceBase
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var PeerDiscovery = swarm.PeerService;
-        await PeerDiscovery.RebuildConnectionAsync(PeerService.MaxDepth, cancellationToken);
+        var PeerDiscovery = swarm.PeerDiscovery;
+        await PeerDiscovery.RebuildConnectionAsync(PeerDiscovery.MaxDepth, cancellationToken);
     }
 }

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net.Services;
 
-internal sealed class RefreshTableService(PeerService peerService, TimeSpan interval, TimeSpan refreshLifespan)
+internal sealed class RefreshTableService(PeerDiscovery peerService, TimeSpan interval, TimeSpan refreshLifespan)
     : BackgroundServiceBase
 {
     protected override TimeSpan Interval { get; } = interval;

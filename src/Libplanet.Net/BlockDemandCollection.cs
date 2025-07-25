@@ -4,12 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Libplanet.Net;
 
-public sealed class BlockDemandCollection(Blockchain blockchain)
+public sealed class BlockDemandCollection
     : IEnumerable<BlockDemand>
 {
     private readonly ConcurrentDictionary<Peer, BlockDemand> _demandByPeer = new();
-
-    public TimeSpan BlockDemandLifespan { get; init; } = TimeSpan.FromMinutes(1);
 
     public IEnumerable<Peer> Peers => _demandByPeer.Keys;
 
@@ -19,18 +17,13 @@ public sealed class BlockDemandCollection(Blockchain blockchain)
 
     public bool AddOrUpdate(BlockDemand blockDemand)
     {
-        if (IsDemandNeeded(blockDemand))
-        {
-            _demandByPeer[blockDemand.Peer] = blockDemand;
-            return true;
-        }
-
-        return false;
+        var value = _demandByPeer.AddOrUpdate(blockDemand.Peer, blockDemand, (_, _) => blockDemand);
+        return value == blockDemand;
     }
 
     public bool Remove(Peer peer) => _demandByPeer.TryRemove(peer, out _);
 
-    public void Prune()
+    public void Prune(Blockchain blockchain)
     {
         var demands = _demandByPeer.Values.ToArray();
         foreach (var demand in demands)
@@ -52,24 +45,4 @@ public sealed class BlockDemandCollection(Blockchain blockchain)
     public IEnumerator<BlockDemand> GetEnumerator() => _demandByPeer.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    private bool IsDemandNeeded(BlockDemand blockDemand)
-    {
-        if (blockDemand.IsStale(BlockDemandLifespan))
-        {
-            return false;
-        }
-
-        if (blockDemand.Height <= blockchain.Tip.Height)
-        {
-            return false;
-        }
-
-        if (TryGetValue(blockDemand.Peer, out var oldBlockDemand))
-        {
-            return oldBlockDemand.IsStale(BlockDemandLifespan) || oldBlockDemand.Height < blockDemand.Height;
-        }
-
-        return true;
-    }
 }

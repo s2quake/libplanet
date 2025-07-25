@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Libplanet.Net.Tasks;
 
 internal sealed class RebuildTableTask(
-    PeerService peerService, ImmutableHashSet<Peer> seeds, TimeSpan rebuildTableInterval)
+    PeerDiscovery peerService, ImmutableHashSet<Peer> seeds, TimeSpan rebuildTableInterval)
     : BackgroundServiceBase
 {
     protected override TimeSpan Interval => rebuildTableInterval;

@@ -46,7 +46,7 @@ internal sealed class ConsumeBlockCandidatesTask(Blockchain blockchain, BlockBra
             }
         }
 
-        blockBranches.Prune();
+        // blockBranches.Prune();
     }
 
     private async ValueTask AppendBranchAsync(BlockBranch blockBranch, Block branchPoint, CancellationToken cancellationToken)

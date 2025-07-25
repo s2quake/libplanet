@@ -6,23 +6,30 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-public abstract class FetcherBase<TId, TItem> : ServiceBase
+public abstract class FetcherBase<TId, TItem> : IDisposable
     where TId : notnull
     where TItem : notnull
 {
     private readonly ConcurrentDictionary<Peer, Job> _jobs = new();
     private readonly List<IDisposable> _subscriptionList = [];
     private readonly Subject<(Guid, ImmutableArray<TItem>)> _fetchedSubject = new();
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     public IObservable<(Guid, ImmutableArray<TItem>)> Fetched => _fetchedSubject;
+
+    protected bool IsDisposed { get; private set; }
+
+    protected CancellationToken DisposalToken => _cancellationTokenSource.Token;
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
 
     public Guid Request(Peer peer, ImmutableArray<TId> ids)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException($"{this} is not running.");
-        }
 
         if (ids.IsDefaultOrEmpty)
         {
@@ -43,22 +50,21 @@ public abstract class FetcherBase<TId, TItem> : ServiceBase
         Peer peer, ImmutableArray<TId> ids, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
-        if (!IsRunning)
-        {
-            throw new InvalidOperationException($"{this} is not running.");
-        }
 
         if (ids.IsDefaultOrEmpty)
         {
             throw new ArgumentException("IDs cannot be empty.", nameof(ids));
         }
 
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            _cancellationTokenSource.Token, cancellationToken);
+
         var tcs = new TaskCompletionSource<ImmutableArray<TItem>>();
         var request = new JobRequest
         {
             RequestId = Guid.NewGuid(),
             Ids = ids,
-            CancellationToken = cancellationToken,
+            CancellationToken = cancellationTokenSource.Token,
         };
         using var _ = Fetched.Subscribe(
             onNext: e =>
@@ -87,19 +93,24 @@ public abstract class FetcherBase<TId, TItem> : ServiceBase
 
     protected abstract bool Predicate(TId ids);
 
-    protected override Task OnStartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    protected override Task OnStopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    protected override async ValueTask DisposeAsyncCore()
+    protected virtual void Dispose(bool disposing)
     {
-        foreach (var subscription in _subscriptionList)
+        if (!IsDisposed)
         {
-            subscription.Dispose();
-        }
+            if (disposing)
+            {
+                _cancellationTokenSource.Cancel();
+                foreach (var subscription in _subscriptionList)
+                {
+                    subscription.Dispose();
+                }
 
-        _jobs.Clear();
-        await base.DisposeAsyncCore();
+                _jobs.Clear();
+                _cancellationTokenSource.Dispose();
+            }
+
+            IsDisposed = true;
+        }
     }
 
     private void ProcessJobResponse(JobResponse response)
@@ -126,7 +137,7 @@ public abstract class FetcherBase<TId, TItem> : ServiceBase
             var subscription = job.Completed.Subscribe(
                 onNext: ProcessJobResponse,
                 onError: _fetchedSubject.OnError);
-            _ = job.RunAsync(StoppingToken);
+            _ = job.RunAsync(_cancellationTokenSource.Token);
             _subscriptionList.Add(subscription);
         }
 

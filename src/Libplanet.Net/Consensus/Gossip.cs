@@ -16,7 +16,7 @@ public sealed class Gossip : ServiceBase
     private readonly HashSet<Peer> _deniedPeers = [];
     private readonly ImmutableHashSet<Peer> _seeds;
     private readonly IMessageHandler[] _handlers;
-    private readonly PeerService _peerService;
+    private readonly PeerDiscovery _peerDiscovery;
     private readonly ServiceCollection _services;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
 
@@ -32,15 +32,15 @@ public sealed class Gossip : ServiceBase
             new WantMessageHandler(_transport, _messageById, _haveDict),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
-        _peerService = new PeerService(_transport, new PeerServiceOptions
+        _peerDiscovery = new PeerDiscovery(_transport, new PeerDiscoveryOptions
         {
             SeedPeers = seeds,
             KnownPeers = validators,
         });
         _services =
         [
-            new RefreshTableTask(_peerService, _options.RefreshTableInterval, _options.RefreshLifespan),
-            new RebuildTableTask(_peerService, _seeds, _options.RebuildTableInterval),
+            new RefreshTableTask(_peerDiscovery, _options.RefreshTableInterval, _options.RefreshLifespan),
+            new RebuildTableTask(_peerDiscovery, _seeds, _options.RebuildTableInterval),
             new HeartbeatTask(this, _options.HeartbeatInterval)
         ];
     }
@@ -54,7 +54,7 @@ public sealed class Gossip : ServiceBase
 
     public Peer Peer => _transport.Peer;
 
-    public ImmutableArray<Peer> Peers => [.. _peerService.Peers];
+    public ImmutableArray<Peer> Peers => [.. _peerDiscovery.Peers];
 
     public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
@@ -65,7 +65,7 @@ public sealed class Gossip : ServiceBase
 
     public void PublishMessage(IMessage message)
     {
-        if (_peerService is null)
+        if (_peerDiscovery is null)
         {
             throw new InvalidOperationException("Gossip is not running.");
         }
@@ -73,7 +73,7 @@ public sealed class Gossip : ServiceBase
         ImmutableArray<Peer> peers =
         [
             _transport.Peer,
-            .. GetPeersToBroadcast(_peerService.Peers, DLazy)
+            .. GetPeersToBroadcast(_peerDiscovery.Peers, DLazy)
         ];
 
         PublishMessage(peers, message);
@@ -111,7 +111,7 @@ public sealed class Gossip : ServiceBase
 
     public async Task HeartbeatAsync(CancellationToken cancellationToken)
     {
-        var peers = _peerService?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
+        var peers = _peerDiscovery?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
         var ids = _messageById.Keys.ToArray();
         if (ids.Length > 0)
         {
@@ -126,14 +126,14 @@ public sealed class Gossip : ServiceBase
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         await _transport.StartAsync(cancellationToken);
-        await _peerService.StartAsync(cancellationToken);
+        // await _peerService.StartAsync(cancellationToken);
         await _services.StartAsync(cancellationToken);
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
         await _services.StopAsync(cancellationToken);
-        await _peerService.StopAsync(cancellationToken);
+        // await _peerService.StopAsync(cancellationToken);
         await _transport.StopAsync(cancellationToken);
     }
 
@@ -141,7 +141,7 @@ public sealed class Gossip : ServiceBase
     {
         _transport.MessageHandlers.RemoveRange(_handlers);
         await _services.DisposeAsync();
-        await _peerService.DisposeAsync();
+        _peerDiscovery.Dispose();
         _messageById.Clear();
         await _transport.DisposeAsync();
         await base.DisposeAsyncCore();

@@ -4,12 +4,14 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-internal sealed class ServiceCollection
+public sealed class ServiceCollection
     : ServiceBase, IEnumerable<IService>
 {
     private readonly List<IService> serviceList = [];
 
     public int Count => serviceList.Count;
+
+    public bool ParallelExecution { get; init; }
 
     public IService this[int index] => serviceList[index];
 
@@ -38,29 +40,59 @@ internal sealed class ServiceCollection
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        for (var i = 0; i < serviceList.Count; i++)
+        if (ParallelExecution)
         {
-            await serviceList[i].StartAsync(cancellationToken);
+            var tasks = serviceList.Select(service => service.StartAsync(cancellationToken)).ToArray();
+            await Task.WhenAll(tasks);
+        }
+        else
+        {
+            for (var i = 0; i < serviceList.Count; i++)
+            {
+                await serviceList[i].StartAsync(cancellationToken);
+            }
         }
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        for (var i = 0; i < serviceList.Count; i++)
+        if (ParallelExecution)
         {
-            await serviceList[i].StopAsync(cancellationToken);
+            var tasks = serviceList.Select(service => service.StopAsync(cancellationToken)).ToArray();
+            await Task.WhenAll(tasks);
+        }
+        else
+        {
+            for (var i = 0; i < serviceList.Count; i++)
+            {
+                await serviceList[i].StopAsync(cancellationToken);
+            }
         }
     }
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        for (var i = 0; i < serviceList.Count; i++)
+        if (ParallelExecution)
         {
-            if (serviceList[i] is IAsyncDisposable asyncDisposable)
+            await Parallel.ForEachAsync(serviceList, async (service, _) =>
             {
-                await asyncDisposable.DisposeAsync();
+                if (service is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
+            });
+        }
+        else
+        {
+            for (var i = 0; i < serviceList.Count; i++)
+            {
+                if (serviceList[i] is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
             }
         }
+
 
         await base.DisposeAsyncCore();
     }

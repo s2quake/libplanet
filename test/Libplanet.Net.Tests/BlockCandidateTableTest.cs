@@ -9,7 +9,7 @@ public class BlockCandidateTableTest
     {
         using var fx = new MemoryRepositoryFixture();
         var blockchain = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
-        var blockBranches = new BlockBranchCollection(blockchain);
+        var blockBranches = new BlockBranchCollection();
         var genesis = fx.GenesisBlock;
 
         // Ignore existing key

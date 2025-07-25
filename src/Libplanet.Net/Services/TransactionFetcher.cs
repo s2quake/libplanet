@@ -18,15 +18,13 @@ public sealed class TransactionFetcher(
     protected override async IAsyncEnumerable<Transaction> FetchOverrideAsync(
         Peer peer, ImmutableArray<TxId> ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
         var request = new TransactionRequestMessage { TxIds = ids };
         var isLast = new Func<TransactionResponseMessage, bool>(m => m.IsLast);
-        var query = transport.SendAsync(peer, request, isLast, cancellationTokenSource.Token);
+        var query = transport.SendAsync(peer, request, isLast, cancellationToken);
         await foreach (var item in query)
         {
             foreach (var transaction in item.Transactions)
             {
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
                 yield return transaction;
             }
         }
