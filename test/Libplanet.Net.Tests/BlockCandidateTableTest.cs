@@ -19,11 +19,11 @@ public class BlockCandidateTableTest
         var secondBranch = BlockBranch.Create(
                 (fx.Block3, TestUtils.CreateBlockCommit(fx.Block3)),
                 (fx.Block4, TestUtils.CreateBlockCommit(fx.Block4)));
-        blockBranches.Add(genesis.BlockHash, firstBranch);
+        blockBranches.Add(genesis.Header, firstBranch);
         Assert.Equal(1, blockBranches.Count);
-        Assert.Throws<ArgumentException>(() => blockBranches.Add(genesis.BlockHash, secondBranch));
+        Assert.Throws<ArgumentException>(() => blockBranches.Add(genesis.Header, secondBranch));
         Assert.Equal(1, blockBranches.Count);
-        var actualBranch = blockBranches[genesis.BlockHash];
+        var actualBranch = blockBranches[genesis.Header];
         Assert.Equal(actualBranch, firstBranch);
     }
 }

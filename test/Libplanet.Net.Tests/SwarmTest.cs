@@ -357,8 +357,8 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var transportB = TestUtils.CreateTransport();
         await using var fetcherB = new BlockFetcher(blockchainB, transportB);
 
-        var (block1, _) = blockchainA.ProposeAndAppend(keyA);
-        var (block2, _) = blockchainA.ProposeAndAppend(keyA);
+        var (block1, blockCommit1) = blockchainA.ProposeAndAppend(keyA);
+        var (block2, blockCommit2) = blockchainA.ProposeAndAppend(keyA);
 
         transportA.MessageHandlers.Add(new BlockHashRequestMessageHandler(blockchainA, transportA));
         transportA.MessageHandlers.Add(new BlockRequestMessageHandler(blockchainA, transportA, 1));
@@ -367,9 +367,10 @@ public partial class SwarmTest(ITestOutputHelper output)
         await transportB.StartAsync(default);
         await fetcherB.StartAsync(default);
         var blockHashes = ImmutableArray.CreateRange([block1.BlockHash, block2.BlockHash]);
-        var blocks = await fetcherB.FetchAsync(transportA.Peer, blockHashes, default);
+        var blockPairs = await fetcherB.FetchAsync(transportA.Peer, blockHashes, default);
 
-        Assert.Equal(new[] { block1, block2 }, blocks);
+        Assert.Equal([block1, block2], [.. blockPairs.Select(item => item.Item1)]);
+        Assert.Equal([blockCommit1, blockCommit2], blockPairs.Select(item => item.Item2).ToArray());
     }
 
     [Fact(Timeout = Timeout)]

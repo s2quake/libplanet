@@ -125,7 +125,7 @@ public static class ITransportExtensions
     public static void Pong(this ITransport @this, MessageEnvelope replyTo)
         => @this.Post(replyTo.Sender, new PongMessage(), replyTo.Identity);
 
-    internal static async Task<BlockHash[]> GetBlockHashesAsync(
+    internal static async Task<ImmutableArray<BlockHash>> GetBlockHashesAsync(
         this ITransport @this, Peer peer, BlockHash blockHash, CancellationToken cancellationToken)
     {
         var request = new BlockHashRequestMessage { BlockHash = blockHash };

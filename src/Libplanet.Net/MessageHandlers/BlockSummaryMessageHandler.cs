@@ -9,7 +9,7 @@ internal sealed class BlockSummaryMessageHandler(
 {
     private readonly BlockHash _genesisHash = blockchain.Genesis.BlockHash;
 
-    public TimeSpan BlockDemandLifespan { get; set; } = TimeSpan.FromMinutes(1);
+    public TimeSpan BlockDemandLifespan { get; init; } = TimeSpan.FromMinutes(1);
 
     internal BlockSummaryMessageHandler(Swarm swarm)
         : this(swarm.Blockchain, swarm.Transport, swarm.BlockDemands)
@@ -24,46 +24,37 @@ internal sealed class BlockSummaryMessageHandler(
             throw new InvalidMessageException("Invalid block header message.");
         }
 
-        var blockSummary = message.BlockSummary;
-        var needed = IsBlockNeeded(blockSummary);
-
-        blockSummary.Timestamp.ValidateTimestamp();
-        if (needed)
-        {
-            var blockDemand = new BlockDemand(messageEnvelope.Sender, blockSummary, DateTimeOffset.UtcNow);
-            blockDemands.Add(IsBlockNeeded, blockDemand);
-        }
+        var blockSummary = ValidateAndReturn(message.BlockSummary);
+        var blockDemand = new BlockDemand(messageEnvelope.Sender, blockSummary, DateTimeOffset.UtcNow);
+        // if (IsDemandNeeded(blockDemand))
+        // {
+            blockDemands.AddOrUpdate(blockDemand);
+        // }
     }
 
-    private bool IsBlockNeeded(BlockSummary blockSummary) => blockSummary.Height > blockchain.Tip.Height;
+    // private bool IsDemandNeeded(BlockDemand blockDemand)
+    // {
+    //     if (blockDemand.IsStale(BlockDemandLifespan))
+    //     {
+    //         return false;
+    //     }
 
-    private bool IsDemandNeeded(BlockDemand demand)
+    //     if (blockDemand.Height <= blockchain.Tip.Height)
+    //     {
+    //         return false;
+    //     }
+
+    //     if (blockDemands.TryGetValue(blockDemand.Peer, out var oldBlockDemand))
+    //     {
+    //         return oldBlockDemand.IsStale(BlockDemandLifespan) || oldBlockDemand.Height < blockDemand.Height;
+    //     }
+
+    //     return true;
+    // }
+
+    private static BlockSummary ValidateAndReturn(BlockSummary blockSummary)
     {
-        BlockDemand? oldDemand = blockDemands.Contains(demand.Peer)
-            ? blockDemands[demand.Peer]
-            : (BlockDemand?)null;
-
-        bool needed;
-        if (demand.IsStale(BlockDemandLifespan))
-        {
-            needed = false;
-        }
-        else if (IsBlockNeeded(demand.BlockSummary))
-        {
-            if (oldDemand is { } old)
-            {
-                needed = old.IsStale(BlockDemandLifespan) || old.Height < demand.Height;
-            }
-            else
-            {
-                needed = true;
-            }
-        }
-        else
-        {
-            needed = false;
-        }
-
-        return needed;
+        blockSummary.Timestamp.ValidateTimestamp();
+        return blockSummary;
     }
 }

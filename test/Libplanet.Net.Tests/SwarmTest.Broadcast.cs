@@ -15,6 +15,7 @@ using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
 using Libplanet.Extensions;
 using Libplanet.Tests;
+using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Tests;
 
@@ -707,14 +708,30 @@ public partial class SwarmTest
         var keyA = new PrivateKey();
         var keyB = new PrivateKey();
         var keyC = new PrivateKey();
+        using var fx = new MemoryRepositoryFixture();
 
-        await using var swarmA = await CreateSwarm(keyA);
-        await using var swarmB = await CreateSwarm(keyB);
-        await using var swarmC = await CreateSwarm(keyC);
+        // await using var swarmA = await CreateSwarm(keyA);
+        // await using var swarmB = await CreateSwarm(keyB);
+        // await using var swarmC = await CreateSwarm(keyC);
 
-        var blockchainA = swarmA.Blockchain;
-        var blockchainB = swarmB.Blockchain;
-        var blockchainC = swarmC.Blockchain;
+        await using var transportA = TestUtils.CreateTransport(keyA);
+        await using var transportB = TestUtils.CreateTransport(keyB);
+        await using var transportC = TestUtils.CreateTransport(keyC);
+
+        await using var peerServiceA = new PeerService(transportA);
+        await using var peerServiceB = new PeerService(transportB);
+        await using var peerServiceC = new PeerService(transportC);
+
+        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
+        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
+        transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
+
+        // await peerServiceB.AddPeersAsync([swarmA.Peer], default);
+        // await peerServiceC.AddPeersAsync([swarmA.Peer], default);
+
+        var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainC = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
 
         for (var i = 0; i < 5; i++)
         {
@@ -734,16 +751,28 @@ public partial class SwarmTest
             blockchainB.Append(block, TestUtils.CreateBlockCommit(block));
         }
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmC.StartAsync(default);
+        await Task.WhenAll(
+            transportA.StartAsync(default),
+            transportB.StartAsync(default),
+            transportC.StartAsync(default),
+            peerServiceA.StartAsync(default),
+            peerServiceB.StartAsync(default),
+            peerServiceC.StartAsync(default));
 
-        await swarmB.AddPeersAsync([swarmA.Peer], default);
-        await swarmC.AddPeersAsync([swarmA.Peer], default);
+        // await swarmA.StartAsync(default);
+        // await swarmB.StartAsync(default);
+        // await swarmC.StartAsync(default);
+
+        // await swarmB.AddPeersAsync([swarmA.Peer], default);
+        // await swarmC.AddPeersAsync([swarmA.Peer], default);
         // await BootstrapAsync(swarmB, swarmA.Peer);
         // await BootstrapAsync(swarmC, swarmA.Peer);
+        await peerServiceB.AddOrUpdateAsync(transportA.Peer, default);
+        await peerServiceC.AddOrUpdateAsync(transportA.Peer, default);
+        await peerServiceB.ExploreAsync([transportA.Peer], 3, default);
+        await peerServiceC.ExploreAsync([transportA.Peer], 3, default);
 
-        await swarmC.PullBlocksAsync(TimeSpan.FromSeconds(5), int.MaxValue, default);
+        // await swarmC.PullBlocksAsync(TimeSpan.FromSeconds(5), int.MaxValue, default);
         // await swarmC.BlockAppended.WaitAsync(default);
         Assert.Equal(blockchainC.Tip, tipA);
     }

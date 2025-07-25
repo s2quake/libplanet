@@ -13,14 +13,14 @@ public abstract class BackgroundServiceBase : ServiceBase
 
     protected abstract Task ExecuteAsync(CancellationToken cancellationToken);
 
-    protected sealed override Task OnStartAsync(CancellationToken cancellationToken)
+    protected override Task OnStartAsync(CancellationToken cancellationToken)
     {
         _cancellationTokenSource = new CancellationTokenSource();
         _runTask = RunAsync(_cancellationTokenSource.Token);
         return Task.CompletedTask;
     }
 
-    protected sealed override async Task OnStopAsync(CancellationToken cancellationToken)
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
         if (_cancellationTokenSource is not null)
         {

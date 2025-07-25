@@ -4,10 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Libplanet.Net;
 
-public sealed class BlockDemandCollection(TimeSpan blockDemandLifetime)
+public sealed class BlockDemandCollection(Blockchain blockchain)
     : IEnumerable<BlockDemand>
 {
     private readonly ConcurrentDictionary<Peer, BlockDemand> _demandByPeer = new();
+
+    public TimeSpan BlockDemandLifespan { get; init; } = TimeSpan.FromMinutes(1);
 
     public IEnumerable<Peer> Peers => _demandByPeer.Keys;
 
@@ -15,21 +17,25 @@ public sealed class BlockDemandCollection(TimeSpan blockDemandLifetime)
 
     public BlockDemand this[Peer peer] => _demandByPeer[peer];
 
-    public void Add(Func<BlockSummary, bool> predicate, BlockDemand demand)
+    public bool AddOrUpdate(BlockDemand blockDemand)
     {
-        if (IsDemandNeeded(predicate, demand))
+        if (IsDemandNeeded(blockDemand))
         {
-            _demandByPeer[demand.Peer] = demand;
+            _demandByPeer[blockDemand.Peer] = blockDemand;
+            return true;
         }
+
+        return false;
     }
 
     public bool Remove(Peer peer) => _demandByPeer.TryRemove(peer, out _);
 
-    public void Cleanup(Func<BlockSummary, bool> predicate)
+    public void RemoveAll(Func<BlockSummary, bool> predicate)
     {
-        foreach (var demand in _demandByPeer.Values)
+        var demands = _demandByPeer.Values.ToArray();
+        foreach (var demand in demands)
         {
-            if (!predicate(demand.BlockSummary) || IsDemandStale(demand))
+            if (!predicate(demand.BlockSummary))
             {
                 _demandByPeer.TryRemove(demand.Peer, out _);
             }
@@ -47,38 +53,23 @@ public sealed class BlockDemandCollection(TimeSpan blockDemandLifetime)
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    private bool IsDemandNeeded(Func<BlockSummary, bool> predicate, BlockDemand demand)
+    private bool IsDemandNeeded(BlockDemand blockDemand)
     {
-        BlockDemand? oldDemand = _demandByPeer.ContainsKey(demand.Peer)
-            ? _demandByPeer[demand.Peer]
-            : (BlockDemand?)null;
-
-        bool needed;
-        if (IsDemandStale(demand))
+        if (blockDemand.IsStale(BlockDemandLifespan))
         {
-            needed = false;
-        }
-        else if (predicate(demand.BlockSummary))
-        {
-            if (oldDemand is { } old)
-            {
-                needed = IsDemandStale(old) || old.Height < demand.Height;
-            }
-            else
-            {
-                needed = true;
-            }
-        }
-        else
-        {
-            needed = false;
+            return false;
         }
 
-        return needed;
-    }
+        if (blockDemand.Height <= blockchain.Tip.Height)
+        {
+            return false;
+        }
 
-    private bool IsDemandStale(BlockDemand demand)
-    {
-        return demand.IsStale(blockDemandLifetime);
+        if (TryGetValue(blockDemand.Peer, out var oldBlockDemand))
+        {
+            return oldBlockDemand.IsStale(BlockDemandLifespan) || oldBlockDemand.Height < blockDemand.Height;
+        }
+
+        return true;
     }
 }

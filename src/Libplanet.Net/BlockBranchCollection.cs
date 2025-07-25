@@ -7,39 +7,39 @@ namespace Libplanet.Net;
 
 public sealed class BlockBranchCollection : IEnumerable<BlockBranch>
 {
-    private readonly ConcurrentDictionary<BlockHash, BlockBranch> _branchByHash = new();
+    private readonly ConcurrentDictionary<BlockHeader, BlockBranch> _branchByHeader = new();
 
-    public int Count => _branchByHash.Count;
+    public int Count => _branchByHeader.Count;
 
-    public BlockBranch this[BlockHash blockHash] => _branchByHash[blockHash];
+    public BlockBranch this[BlockHeader blockHeader] => _branchByHeader[blockHeader];
 
-    public void Add(BlockHash blockHash, BlockBranch branch)
+    public void Add(BlockHeader blockHeader, BlockBranch branch)
     {
-        if (!_branchByHash.TryAdd(blockHash, branch))
+        if (!_branchByHeader.TryAdd(blockHeader, branch))
         {
-            throw new ArgumentException("A block branch with the same hash already exists.", nameof(blockHash));
+            throw new ArgumentException("A block branch with the same header already exists.", nameof(blockHeader));
         }
     }
 
-    public bool TryGetValue(BlockHash blockHash, [MaybeNullWhen(false)] out BlockBranch value)
-        => _branchByHash.TryGetValue(blockHash, out value);
+    public bool TryGetValue(BlockHeader blockHeader, [MaybeNullWhen(false)] out BlockBranch value)
+        => _branchByHeader.TryGetValue(blockHeader, out value);
 
-    public bool Remove(BlockHash blockHash) => _branchByHash.TryRemove(blockHash, out _);
+    public bool Remove(BlockHeader blockHeader) => _branchByHeader.TryRemove(blockHeader, out _);
 
-    public void RemoveAll(Func<BlockHash, bool> predicate)
+    public void RemoveAll(Func<BlockHeader, bool> predicate)
     {
-        foreach (var blockHash in _branchByHash.Keys.ToArray())
+        foreach (var blockHeader in _branchByHeader.Keys.ToArray())
         {
-            if (!predicate(blockHash))
+            if (!predicate(blockHeader))
             {
-                Remove(blockHash);
+                Remove(blockHeader);
             }
         }
     }
 
-    public void Clear() => _branchByHash.Clear();
+    public void Clear() => _branchByHeader.Clear();
 
-    public IEnumerator<BlockBranch> GetEnumerator() => _branchByHash.Values.GetEnumerator();
+    public IEnumerator<BlockBranch> GetEnumerator() => _branchByHeader.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

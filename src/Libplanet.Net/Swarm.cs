@@ -29,7 +29,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         Options = options;
         Transport = new NetMQTransport(signer, options.TransportOptions);
         PeerService = new PeerService(Transport);
-        BlockDemands = new BlockDemandCollection(options.BlockDemandLifespan);
+        BlockDemands = new BlockDemandCollection(blockchain) { BlockDemandLifespan = options.BlockDemandLifespan };
         _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
 
         _services =
@@ -37,8 +37,8 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new BlockBroadcastTask(this),
             new TxBroadcastTask(this),
             new EvidenceBroadcastTask(this),
-            new FillBlocksTask(this),
-            new PollBlocksTask(this),
+            new BlockBranchService(this),
+            new BlockDemandPollService(this),
             // new ConsumeBlockCandidatesTask(this),
             new RefreshTableTask(PeerService, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
@@ -92,78 +92,78 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public async Task SyncAsync(CancellationToken cancellationToken)
     {
-        var dialTimeout = Options.PreloadOptions.DialTimeout;
-        var tipDeltaThreshold = Options.PreloadOptions.TipDeltaThreshold;
+        // var dialTimeout = Options.PreloadOptions.DialTimeout;
+        // var tipDeltaThreshold = Options.PreloadOptions.TipDeltaThreshold;
 
-        var i = 0;
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            var blockchainStates = await this.GetBlockchainStateAsync(dialTimeout, cancellationToken)
-                .ToArrayAsync(cancellationToken);
-            if (blockchainStates.Length == 0)
-            {
-                break;
-            }
+        // var i = 0;
+        // while (!cancellationToken.IsCancellationRequested)
+        // {
+        //     var blockchainStates = await this.GetBlockchainStateAsync(dialTimeout, cancellationToken)
+        //         .ToArrayAsync(cancellationToken);
+        //     if (blockchainStates.Length == 0)
+        //     {
+        //         break;
+        //     }
 
-            var tip = Blockchain.Tip;
-            var topmostTip = blockchainStates
-                .Select(item => item.Tip)
-                .Aggregate((s, n) => s.Height > n.Height ? s : n);
-            if (topmostTip.Height - (i > 0 ? tipDeltaThreshold : 0) <= tip.Height)
-            {
-                break;
-            }
+        //     var tip = Blockchain.Tip;
+        //     var topmostTip = blockchainStates
+        //         .Select(item => item.Tip)
+        //         .Aggregate((s, n) => s.Height > n.Height ? s : n);
+        //     if (topmostTip.Height - (i > 0 ? tipDeltaThreshold : 0) <= tip.Height)
+        //     {
+        //         break;
+        //     }
 
-            BlockBranches.Clear();
-            await PullBlocksAsync(blockchainStates, cancellationToken);
-            if (BlockBranches.TryGetValue(Blockchain.Tip.BlockHash, out var blockBranch))
-            {
-                await BlockCandidateProcessAsync(blockBranch, cancellationToken);
-            }
-            // await ConsumeBlockCandidates(cancellationToken: cancellationToken);
-            i++;
-        }
+        //     BlockBranches.Clear();
+        //     await PullBlocksAsync(blockchainStates, cancellationToken);
+        //     if (BlockBranches.TryGetValue(Blockchain.Tip.BlockHash, out var blockBranch))
+        //     {
+        //         await BlockCandidateProcessAsync(blockBranch, cancellationToken);
+        //     }
+        //     // await ConsumeBlockCandidates(cancellationToken: cancellationToken);
+        //     i++;
+        // }
 
-        cancellationToken.ThrowIfCancellationRequested();
+        // cancellationToken.ThrowIfCancellationRequested();
     }
 
-    internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
-        Block block, BlockchainState[] blockchainStates, CancellationToken cancellationToken)
-    {
-        var tranasport = Transport;
-        var exceptionList = new List<Exception>();
-        foreach (var blockchainState in blockchainStates)
-        {
-            if (!IsBlockNeeded(blockchainState.Tip))
-            {
-                continue;
-            }
+    // internal async Task<(Peer, BlockHash[])> GetDemandBlockHashes(
+    //     Block block, BlockchainState[] blockchainStates, CancellationToken cancellationToken)
+    // {
+    //     var tranasport = Transport;
+    //     var exceptionList = new List<Exception>();
+    //     foreach (var blockchainState in blockchainStates)
+    //     {
+    //         if (!IsBlockNeeded(blockchainState.Tip))
+    //         {
+    //             continue;
+    //         }
 
-            try
-            {
-                var peer = blockchainState.Peer;
-                var blockHashes = await tranasport.GetBlockHashesAsync(peer, block.BlockHash, cancellationToken);
-                if (blockHashes.Length != 0)
-                {
-                    return (peer, blockHashes);
-                }
-                else
-                {
-                    continue;
-                }
-            }
-            catch (Exception e)
-            {
-                exceptionList.Add(e);
-            }
-        }
+    //         try
+    //         {
+    //             var peer = blockchainState.Peer;
+    //             var blockHashes = await tranasport.GetBlockHashesAsync(peer, block.BlockHash, cancellationToken);
+    //             if (blockHashes.Length != 0)
+    //             {
+    //                 return (peer, blockHashes);
+    //             }
+    //             else
+    //             {
+    //                 continue;
+    //             }
+    //         }
+    //         catch (Exception e)
+    //         {
+    //             exceptionList.Add(e);
+    //         }
+    //     }
 
-        var peers = blockchainStates.Select(item => item.Peer).ToArray();
-        throw new AggregateException(
-            "Failed to fetch demand block hashes from peers: " +
-            string.Join(", ", peers.Select(p => p.ToString())),
-            exceptionList);
-    }
+    //     var peers = blockchainStates.Select(item => item.Peer).ToArray();
+    //     throw new AggregateException(
+    //         "Failed to fetch demand block hashes from peers: " +
+    //         string.Join(", ", peers.Select(p => p.ToString())),
+    //         exceptionList);
+    // }
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
@@ -247,45 +247,45 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public BlockBranchCollection BlockBranches { get; } = [];
 
-    internal async Task PullBlocksAsync(TimeSpan timeout, int maximumPollPeers, CancellationToken cancellationToken)
-    {
-        if (maximumPollPeers <= 0)
-        {
-            return;
-        }
+    // internal async Task PullBlocksAsync(TimeSpan timeout, int maximumPollPeers, CancellationToken cancellationToken)
+    // {
+    //     if (maximumPollPeers <= 0)
+    //     {
+    //         return;
+    //     }
 
-        var blockchainStates = await this.GetBlockchainStateAsync(timeout, cancellationToken)
-            .Take(maximumPollPeers)
-            .ToArrayAsync(cancellationToken);
-        await PullBlocksAsync(blockchainStates, cancellationToken);
-    }
+    //     var blockchainStates = await this.GetBlockchainStateAsync(timeout, cancellationToken)
+    //         .Take(maximumPollPeers)
+    //         .ToArrayAsync(cancellationToken);
+    //     await PullBlocksAsync(blockchainStates, cancellationToken);
+    // }
 
-    private async Task<bool> PullBlocksAsync(
-        BlockchainState[] blockchainStates, CancellationToken cancellationToken)
-    {
-        try
-        {
-            (var peer, var blockHashes) = await GetDemandBlockHashes(Blockchain.Tip, blockchainStates, cancellationToken);
-            var blockPairs = await Transport.GetBlocksAsync(peer, blockHashes, cancellationToken).ToArrayAsync(cancellationToken);
+    // private async Task<bool> PullBlocksAsync(
+    //     BlockchainState[] blockchainStates, CancellationToken cancellationToken)
+    // {
+    //     try
+    //     {
+    //         (var peer, var blockHashes) = await GetDemandBlockHashes(Blockchain.Tip, blockchainStates, cancellationToken);
+    //         var blockPairs = await Transport.GetBlocksAsync(peer, blockHashes, cancellationToken).ToArrayAsync(cancellationToken);
 
-            if (blockPairs.Length > 0)
-            {
-                var blockBranch = new BlockBranch
-                {
-                    Blocks = [.. blockPairs.Select(item => item.Item1)],
-                    BlockCommits = [.. blockPairs.Select(item => item.Item2)],
-                };
-                BlockBranches.Add(Blockchain.Tip.BlockHash, blockBranch);
-                return true;
-            }
-        }
-        catch (Exception)
-        {
-            // logging
-        }
+    //         if (blockPairs.Length > 0)
+    //         {
+    //             var blockBranch = new BlockBranch
+    //             {
+    //                 Blocks = [.. blockPairs.Select(item => item.Item1)],
+    //                 BlockCommits = [.. blockPairs.Select(item => item.Item2)],
+    //             };
+    //             BlockBranches.Add(Blockchain.Tip.BlockHash, blockBranch);
+    //             return true;
+    //         }
+    //     }
+    //     catch (Exception)
+    //     {
+    //         // logging
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     internal async Task<bool> BlockCandidateProcessAsync(
         BlockBranch blockBranch, CancellationToken cancellationToken)
