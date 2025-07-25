@@ -5,11 +5,13 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-public sealed class BlockBranchCollection : IEnumerable<BlockBranch>
+public sealed class BlockBranchCollection(Blockchain blockchain) : IEnumerable<BlockBranch>
 {
     private readonly ConcurrentDictionary<BlockHeader, BlockBranch> _branchByHeader = new();
 
     public int Count => _branchByHeader.Count;
+
+    internal Blockchain Blockchain => blockchain;
 
     public BlockBranch this[BlockHeader blockHeader] => _branchByHeader[blockHeader];
 
@@ -26,11 +28,12 @@ public sealed class BlockBranchCollection : IEnumerable<BlockBranch>
 
     public bool Remove(BlockHeader blockHeader) => _branchByHeader.TryRemove(blockHeader, out _);
 
-    public void RemoveAll(Func<BlockHeader, bool> predicate)
+    public void Prune()
     {
-        foreach (var blockHeader in _branchByHeader.Keys.ToArray())
+        var blockHeaders = _branchByHeader.Keys.ToArray();
+        foreach (var blockHeader in blockHeaders)
         {
-            if (!predicate(blockHeader))
+            if (blockHeader.Height <= blockchain.Tip.Height)
             {
                 Remove(blockHeader);
             }

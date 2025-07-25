@@ -710,10 +710,6 @@ public partial class SwarmTest
         var keyC = new PrivateKey();
         using var fx = new MemoryRepositoryFixture();
 
-        // await using var swarmA = await CreateSwarm(keyA);
-        // await using var swarmB = await CreateSwarm(keyB);
-        // await using var swarmC = await CreateSwarm(keyC);
-
         await using var transportA = TestUtils.CreateTransport(keyA);
         await using var transportB = TestUtils.CreateTransport(keyB);
         await using var transportC = TestUtils.CreateTransport(keyC);
@@ -722,26 +718,24 @@ public partial class SwarmTest
         await using var peerServiceB = new PeerService(transportB);
         await using var peerServiceC = new PeerService(transportC);
 
-        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
-        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
-        transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
-
-        // await peerServiceB.AddPeersAsync([swarmA.Peer], default);
-        // await peerServiceC.AddPeersAsync([swarmA.Peer], default);
-
         var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainC = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
 
-        for (var i = 0; i < 5; i++)
-        {
-            var block = blockchainA.ProposeBlock(keyA);
-            blockchainA.Append(block, TestUtils.CreateBlockCommit(block));
-            if (i < 3)
-            {
-                blockchainC.Append(block, TestUtils.CreateBlockCommit(block));
-            }
-        }
+        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
+        transportA.MessageHandlers.Add(new BlockchainStateRequestMessageHandler(blockchainA, transportA));
+        transportA.MessageHandlers.Add(new BlockHashRequestMessageHandler(blockchainA, transportA));
+        transportA.MessageHandlers.Add(new BlockRequestMessageHandler(blockchainA, transportA, 1));
+
+        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
+        transportB.MessageHandlers.Add(new BlockHashRequestMessageHandler(blockchainB, transportB));
+        transportB.MessageHandlers.Add(new BlockRequestMessageHandler(blockchainB, transportB, 1));
+        transportB.MessageHandlers.Add(new BlockchainStateRequestMessageHandler(blockchainB, transportB));
+
+        transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
+
+        blockchainA.ProposeAndAppendMany(keyA, 5);
+        blockchainA.AppendTo(blockchainB, new Range(1, 3));
 
         var tipA = blockchainA.Tip;
 
@@ -759,21 +753,23 @@ public partial class SwarmTest
             peerServiceB.StartAsync(default),
             peerServiceC.StartAsync(default));
 
-        // await swarmA.StartAsync(default);
-        // await swarmB.StartAsync(default);
-        // await swarmC.StartAsync(default);
-
-        // await swarmB.AddPeersAsync([swarmA.Peer], default);
-        // await swarmC.AddPeersAsync([swarmA.Peer], default);
-        // await BootstrapAsync(swarmB, swarmA.Peer);
-        // await BootstrapAsync(swarmC, swarmA.Peer);
         await peerServiceB.AddOrUpdateAsync(transportA.Peer, default);
         await peerServiceC.AddOrUpdateAsync(transportA.Peer, default);
         await peerServiceB.ExploreAsync([transportA.Peer], 3, default);
         await peerServiceC.ExploreAsync([transportA.Peer], 3, default);
 
-        // await swarmC.PullBlocksAsync(TimeSpan.FromSeconds(5), int.MaxValue, default);
-        // await swarmC.BlockAppended.WaitAsync(default);
+        var blockDemandService = new BlockDemandService(blockchainC, transportC);
+        await blockDemandService.StartAsync(default);
+        await blockDemandService.ExecuteAsync([.. peerServiceC.Peers], default);
+
+        var blockBranchService = new BlockBranchService(blockchainC, transportC);
+        await blockBranchService.StartAsync(default);
+        await blockBranchService.ExecuteAsync(blockDemandService.BlockDemands, default);
+
+        var blockBranchAppendService = new BlockBranchAppendService(blockchainC);
+        await blockBranchAppendService.StartAsync(default);
+        await blockBranchAppendService.ExecuteAsync(blockBranchService.BlockBranches, default);
+
         Assert.Equal(blockchainC.Tip, tipA);
     }
 

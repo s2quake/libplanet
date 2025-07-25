@@ -46,20 +46,18 @@ internal sealed class ConsumeBlockCandidatesTask(Blockchain blockchain, BlockBra
             }
         }
 
-        blockBranches.RemoveAll(IsBlockNeeded);
+        blockBranches.Prune();
     }
 
     private async ValueTask AppendBranchAsync(BlockBranch blockBranch, Block branchPoint, CancellationToken cancellationToken)
     {
-        var actualBranch = blockBranch.TakeAfter(branchPoint);
+        // var actualBranch = blockBranch.TakeAfter(branchPoint);
 
-        for (var i = 0; i < actualBranch.Blocks.Length; i++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            blockchain.Append(actualBranch.Blocks[i], actualBranch.BlockCommits[i]);
-            await Task.Yield();
-        }
+        // for (var i = 0; i < actualBranch.Blocks.Length; i++)
+        // {
+        //     cancellationToken.ThrowIfCancellationRequested();
+        //     blockchain.Append(actualBranch.Blocks[i], actualBranch.BlockCommits[i]);
+        //     await Task.Yield();
+        // }
     }
-
-    private bool IsBlockNeeded(BlockHeader target) => target.Height > blockchain.Tip.Height;
 }

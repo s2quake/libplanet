@@ -42,4 +42,15 @@ public static class BlockchainExtensions
 
         return blocks;
     }
+
+    public static void AppendTo(this Libplanet.Blockchain @this, Libplanet.Blockchain other, Range range)
+    {
+        var (start, end) = range.GetOffsetAndLength(@this.Blocks.Count);
+        for (var index = start; index < end; index++)
+        {
+            var block = @this.Blocks[index];
+            var blockCommit = @this.BlockCommits[index];
+            other.Append(block, blockCommit);
+        }
+    }
 }

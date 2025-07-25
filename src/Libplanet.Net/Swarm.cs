@@ -30,6 +30,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         Transport = new NetMQTransport(signer, options.TransportOptions);
         PeerService = new PeerService(Transport);
         BlockDemands = new BlockDemandCollection(blockchain) { BlockDemandLifespan = options.BlockDemandLifespan };
+        BlockBranches = new BlockBranchCollection(blockchain);
         _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
 
         _services =
@@ -37,8 +38,8 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             new BlockBroadcastTask(this),
             new TxBroadcastTask(this),
             new EvidenceBroadcastTask(this),
-            new BlockBranchService(this),
-            new BlockDemandPollService(this),
+            new BlockBranchPollService(this),
+            // new BlockDemandPollTask(this),
             // new ConsumeBlockCandidatesTask(this),
             new RefreshTableTask(PeerService, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
@@ -192,7 +193,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         }
 
         BlockDemands.Clear();
-        BlockBranches.RemoveAll(_ => true);
+        BlockBranches.Clear();
     }
 
     protected override async ValueTask DisposeAsyncCore()
@@ -245,7 +246,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     public BlockDemandCollection BlockDemands { get; }
 
-    public BlockBranchCollection BlockBranches { get; } = [];
+    public BlockBranchCollection BlockBranches { get; }
 
     // internal async Task PullBlocksAsync(TimeSpan timeout, int maximumPollPeers, CancellationToken cancellationToken)
     // {
@@ -303,16 +304,16 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     private async ValueTask AppendBranchAsync(BlockBranch blockBranch, CancellationToken cancellationToken)
     {
-        var blockchain = Blockchain;
-        var branchPoint = blockchain.Tip;
-        var actualBranch = blockBranch.TakeAfter(branchPoint);
+        // var blockchain = Blockchain;
+        // var branchPoint = blockchain.Tip;
+        // var actualBranch = blockBranch.TakeAfter(branchPoint);
 
-        for (var i = 0; i < actualBranch.Blocks.Length; i++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            blockchain.Append(actualBranch.Blocks[i], actualBranch.BlockCommits[i]);
-            await Task.Yield();
-        }
+        // for (var i = 0; i < actualBranch.Blocks.Length; i++)
+        // {
+        //     cancellationToken.ThrowIfCancellationRequested();
+        //     blockchain.Append(actualBranch.Blocks[i], actualBranch.BlockCommits[i]);
+        //     await Task.Yield();
+        // }
     }
 
     public object? GetService(Type serviceType)

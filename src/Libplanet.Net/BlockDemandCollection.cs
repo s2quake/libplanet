@@ -30,12 +30,12 @@ public sealed class BlockDemandCollection(Blockchain blockchain)
 
     public bool Remove(Peer peer) => _demandByPeer.TryRemove(peer, out _);
 
-    public void RemoveAll(Func<BlockSummary, bool> predicate)
+    public void Prune()
     {
         var demands = _demandByPeer.Values.ToArray();
         foreach (var demand in demands)
         {
-            if (!predicate(demand.BlockSummary))
+            if (demand.Height <= blockchain.Tip.Height)
             {
                 _demandByPeer.TryRemove(demand.Peer, out _);
             }

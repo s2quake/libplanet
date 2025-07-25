@@ -44,6 +44,8 @@ public sealed class PeerService : ServiceBase
 
     public IPeerCollection Peers => _peers;
 
+    internal ITransport Transport => _transport;
+
     public void Broadcast(IMessage message)
     {
         var peers = _peers.PeersToBroadcast(default);

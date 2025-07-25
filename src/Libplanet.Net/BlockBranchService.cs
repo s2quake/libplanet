@@ -1,41 +1,44 @@
 using System.Collections.Concurrent;
-using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.Services;
+using Libplanet.Types.Threading;
 
-namespace Libplanet.Net.Services;
+namespace Libplanet.Net;
 
-internal sealed class BlockBranchService(
-    Blockchain blockchain,
-    ITransport transport,
-    BlockBranchCollection blockBranches,
-    BlockDemandCollection blockDemands)
-    : BackgroundServiceBase
+public sealed class BlockBranchService(Blockchain blockchain, ITransport transport) : ServiceBase
 {
     private readonly Subject<BlockBranch> _blockBranchCreatedSubject = new();
     private readonly BlockFetcher _blockFetcher = new(blockchain, transport);
     private readonly ConcurrentDictionary<Peer, int> _processByPeer = new();
 
-    public BlockBranchService(Swarm swarm)
-        : this(swarm.Blockchain, swarm.Transport, swarm.BlockBranches, swarm.BlockDemands)
-    {
-    }
-
     public IObservable<BlockBranch> BlockBranchCreated => _blockBranchCreatedSubject;
 
-    protected override TimeSpan Interval => TimeSpan.FromMilliseconds(100);
+    public BlockBranchCollection BlockBranches { get; } = new(blockchain);
+
+    public async Task ExecuteAsync(BlockDemandCollection blockDemands, CancellationToken cancellationToken)
+    {
+        using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
+        var taskList = new List<Task>(blockDemands.Count);
+        foreach (var blockDemand in blockDemands)
+        {
+            blockDemands.Remove(blockDemand.Peer);
+            taskList.Add(ProcessBlockDemandAsync(blockDemand, cancellationTokenSource.Token));
+        }
+
+        blockDemands.Prune();
+        await TaskUtility.TryWhenAll(taskList);
+    }
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        await base.OnStartAsync(cancellationToken);
         await _blockFetcher.StartAsync(cancellationToken);
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
         await _blockFetcher.StopAsync(cancellationToken);
-        await base.OnStopAsync(cancellationToken);
     }
 
     protected override async ValueTask DisposeAsyncCore()
@@ -44,20 +47,6 @@ internal sealed class BlockBranchService(
         _blockBranchCreatedSubject.Dispose();
         await base.DisposeAsyncCore();
     }
-
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-    {
-        foreach (var blockDemand in blockDemands)
-        {
-            blockDemands.Remove(blockDemand.Peer);
-            _ = ProcessBlockDemandAsync(blockDemand, cancellationToken);
-        }
-
-        blockDemands.RemoveAll(IsBlockNeeded);
-        await Task.Yield();
-    }
-
-    private bool IsBlockNeeded(BlockSummary target) => target.Height > blockchain.Tip.Height;
 
     private async Task ProcessBlockDemandAsync(BlockDemand blockDemand, CancellationToken cancellationToken)
     {
@@ -78,10 +67,11 @@ internal sealed class BlockBranchService(
             var blockPairs = await _blockFetcher.FetchAsync(peer, tip.BlockHash, cancellationToken);
             var blockBranch = new BlockBranch
             {
+                BlockHeader = tip.Header,
                 Blocks = [.. blockPairs.Select(item => item.Item1)],
                 BlockCommits = [.. blockPairs.Select(item => item.Item2)],
             };
-            blockBranches.Add(tip.Header, blockBranch);
+            BlockBranches.Add(tip.Header, blockBranch);
             _blockBranchCreatedSubject.OnNext(blockBranch);
         }
         catch (Exception e)
