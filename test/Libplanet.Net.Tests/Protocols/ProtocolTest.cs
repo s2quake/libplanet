@@ -114,7 +114,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
 
-        using var peerDiscoveryB = new PeerDiscovery(transportB);
+        using var peerDiscoveryB = new PeerExplorer(transportB);
         await transportB.StartAsync(default);
         await peerDiscoveryB.ExploreAsync([transportA.Peer], 3, default);
 
@@ -127,12 +127,12 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
         await using var transportC = TestUtils.CreateTransport();
-        var peerDiscoveryA = new PeerDiscovery(transportA);
-        var peerDiscoveryB = new PeerDiscovery(transportB, new PeerDiscoveryOptions
+        var peerDiscoveryA = new PeerExplorer(transportA);
+        var peerDiscoveryB = new PeerExplorer(transportB, new PeerExplorerOptions
         {
             SeedPeers = [transportA.Peer],
         });
-        var peerDiscoveryC = new PeerDiscovery(transportC, new PeerDiscoveryOptions
+        var peerDiscoveryC = new PeerExplorer(transportC, new PeerExplorerOptions
         {
             SeedPeers = [transportA.Peer],
         });
@@ -163,7 +163,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
 
-        using var peerDiscoveryA = new PeerDiscovery(transportA);
+        using var peerDiscoveryA = new PeerExplorer(transportA);
         transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
 
         await transportA.StartAsync(default);
@@ -186,13 +186,13 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportB = TestUtils.CreateTransport();
         await using var transportC = TestUtils.CreateTransport();
 
-        var peerSerivceOptions = new PeerDiscoveryOptions
+        var peerSerivceOptions = new PeerExplorerOptions
         {
             BucketCount = 1,
             CapacityPerBucket = 1,
         };
 
-        using var peerDiscovery = new PeerDiscovery(transport, peerSerivceOptions);
+        using var peerDiscovery = new PeerExplorer(transport, peerSerivceOptions);
 
         await transport.StartAsync(default);
         await transportA.StartAsync(default);
@@ -217,12 +217,12 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportB = TestUtils.CreateTransport();
         await using var transportC = TestUtils.CreateTransport();
 
-        var peerDiscoveryOptions = new PeerDiscoveryOptions
+        var peerDiscoveryOptions = new PeerExplorerOptions
         {
             BucketCount = 1,
             CapacityPerBucket = 1,
         };
-        using var peerDiscovery = new PeerDiscovery(transport, peerDiscoveryOptions);
+        using var peerDiscovery = new PeerExplorer(transport, peerDiscoveryOptions);
         transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
         transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
         transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
@@ -260,12 +260,12 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportB = TestUtils.CreateTransport();
         await using var transportC = TestUtils.CreateTransport();
 
-        var peerDiscoveryOptions = new PeerDiscoveryOptions
+        var peerDiscoveryOptions = new PeerExplorerOptions
         {
             BucketCount = 1,
             CapacityPerBucket = 1,
         };
-        var peerDiscovery = new PeerDiscovery(transport, peerDiscoveryOptions);
+        var peerDiscovery = new PeerExplorer(transport, peerDiscoveryOptions);
         transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
         transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
         transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
@@ -303,14 +303,14 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     public async Task BroadcastMessage(int count)
     {
         await using var seed = TestUtils.CreateTransport();
-        _ = new PeerDiscovery(seed);
+        _ = new PeerExplorer(seed);
         await seed.StartAsync(default);
         var transports = new ITransport[count];
-        var peerDiscoveries = new PeerDiscovery[count];
+        var peerDiscoveries = new PeerExplorer[count];
         for (var i = 0; i < count; i++)
         {
             transports[i] = TestUtils.CreateTransport();
-            peerDiscoveries[i] = new PeerDiscovery(transports[i], new PeerDiscoveryOptions
+            peerDiscoveries[i] = new PeerExplorer(transports[i], new PeerExplorerOptions
             {
                 SeedPeers = [seed.Peer],
             });
@@ -420,9 +420,9 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
         await using var transportC = TestUtils.CreateTransport();
-        using var peerDiscoveryA = new PeerDiscovery(transportA);
-        using var peerDiscoveryB = new PeerDiscovery(transportB);
-        using var peerDiscoveryC = new PeerDiscovery(transportC);
+        using var peerDiscoveryA = new PeerExplorer(transportA);
+        using var peerDiscoveryB = new PeerExplorer(transportB);
+        using var peerDiscoveryC = new PeerExplorer(transportC);
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
@@ -451,8 +451,8 @@ public sealed class ProtocolTest(ITestOutputHelper output)
             i => TestUtils.GeneratePrivateKeyOfBucketIndex(privateKey.Address, i / 2));
         await using var transport = TestUtils.CreateTransport(privateKey);
         var transports = privateKeys.Select(key => TestUtils.CreateTransport(key)).ToArray();
-        var peerDiscoveries = transports.Select(t => new PeerDiscovery(t)).ToArray();
-        var peerDiscovery = new PeerDiscovery(transport);
+        var peerDiscoveries = transports.Select(t => new PeerExplorer(t)).ToArray();
+        var peerDiscovery = new PeerExplorer(transport);
         await using var _1 = new AsyncDisposerCollection(transports);
         using var _2 = new DisposerCollection(peerDiscoveries);
 

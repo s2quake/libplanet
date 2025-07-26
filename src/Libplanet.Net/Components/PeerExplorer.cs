@@ -1,29 +1,29 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
-using Libplanet.Net.Components.PeerDiscoveryMessageHandlers;
+using Libplanet.Net.Components.MessageHandlers;
 using Libplanet.Types;
 using static Libplanet.Net.AddressUtility;
 
 namespace Libplanet.Net.Components;
 
-public sealed class PeerDiscovery : IDisposable
+public sealed class PeerExplorer : IDisposable
 {
     public const int FindConcurrency = 3;
     public const int MaxDepth = 3;
 
     private readonly ITransport _transport;
-    private readonly PeerDiscoveryOptions _options;
+    private readonly PeerExplorerOptions _options;
     private readonly Address _owner;
     private readonly PeerCollection _replacementCache;
     private readonly IMessageHandler[] _handlers;
 
-    public PeerDiscovery(ITransport transport)
-        : this(transport, PeerDiscoveryOptions.Default)
+    public PeerExplorer(ITransport transport)
+        : this(transport, PeerExplorerOptions.Default)
     {
     }
 
-    public PeerDiscovery(ITransport transport, PeerDiscoveryOptions options)
+    public PeerExplorer(ITransport transport, PeerExplorerOptions options)
     {
         _owner = transport.Peer.Address;
         _transport = transport;
@@ -227,7 +227,7 @@ public sealed class PeerDiscovery : IDisposable
         return Peers.Remove(peer) || _replacementCache.Remove(peer);
     }
 
-    private static PeerDiscoveryOptions ValidateOptions(Peer peer, PeerDiscoveryOptions options)
+    private static PeerExplorerOptions ValidateOptions(Peer peer, PeerExplorerOptions options)
     {
         ValidationUtility.Validate(options);
         if (options.SeedPeers.Any(item => item.Address == peer.Address))

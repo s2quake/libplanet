@@ -17,7 +17,7 @@ public sealed class Gossip : LifecycleServiceBase
     private readonly HashSet<Peer> _deniedPeers = [];
     private readonly ImmutableHashSet<Peer> _seeds;
     private readonly IMessageHandler[] _handlers;
-    private readonly PeerDiscovery _peerDiscovery;
+    private readonly PeerExplorer _peerDiscovery;
     private readonly LifecycleServiceCollection _services;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
 
@@ -33,7 +33,7 @@ public sealed class Gossip : LifecycleServiceBase
             new WantMessageHandler(_transport, _messageById, _haveDict),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
-        _peerDiscovery = new PeerDiscovery(_transport, new PeerDiscoveryOptions
+        _peerDiscovery = new PeerExplorer(_transport, new PeerExplorerOptions
         {
             SeedPeers = seeds,
             KnownPeers = validators,

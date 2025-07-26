@@ -5,20 +5,32 @@ using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Services;
 
-public sealed class BlockBranchService(
-    Blockchain blockchain,
-    ITransport transport,
-    BlockBranchCollection blockBranches,
-    BlockDemandCollection blockDemands)
-    : BackgroundServiceBase
+public sealed class BlockBranchService : BackgroundServiceBase
 {
     private readonly Subject<BlockBranch> _blockBranchCreatedSubject = new();
-    private readonly BlockFetcher _blockFetcher = new(blockchain, transport);
-    private readonly BlockBranchResolver _blockBranchResolver = new(blockchain, transport)
+    private readonly Blockchain _blockchain;
+    private readonly BlockFetcher _blockFetcher;
+    private readonly BlockBranchResolver _blockBranchResolver;
+    private readonly BlockBranchAppender _blockBranchAppender;
+    private readonly BlockBranchCollection _blockBranches;
+    private readonly BlockDemandCollection _blockDemands;
+
+    public BlockBranchService(
+        Blockchain blockchain,
+        ITransport transport,
+        BlockBranchCollection blockBranches,
+        BlockDemandCollection blockDemands)
     {
-        BlockBranches = blockBranches,
-    };
-    private readonly BlockBranchAppender _blockBranchAppender = new(blockchain);
+        _blockchain = blockchain;
+        _blockBranches = blockBranches;
+        _blockDemands = blockDemands;
+        _blockFetcher = new(blockchain, transport);
+        _blockBranchResolver = new(_blockFetcher)
+        {
+            BlockBranches = blockBranches,
+        };
+        _blockBranchAppender = new(blockchain);
+    }
 
     internal BlockBranchService(Swarm swarm)
         : this(swarm.Blockchain, swarm.Transport, swarm.BlockBranches, swarm.BlockDemands)
@@ -39,7 +51,8 @@ public sealed class BlockBranchService(
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        await _blockBranchResolver.ExecuteAsync(blockDemands, cancellationToken);
-        await _blockBranchAppender.ExecuteAsync(blockBranches, cancellationToken);
+        var tip = _blockchain.Tip;
+        await _blockBranchResolver.ExecuteAsync(_blockDemands, tip, cancellationToken);
+        await _blockBranchAppender.ExecuteAsync(_blockBranches, cancellationToken);
     }
 }

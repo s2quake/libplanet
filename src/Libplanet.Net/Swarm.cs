@@ -29,7 +29,7 @@ public sealed class Swarm : LifecycleServiceBase, IServiceProvider
         Blockchain = blockchain;
         Options = options;
         Transport = new NetMQTransport(signer, options.TransportOptions);
-        PeerDiscovery = new PeerDiscovery(Transport);
+        PeerDiscovery = new PeerExplorer(Transport);
         BlockDemands = new BlockDemandCollection();
         BlockBranches = new BlockBranchCollection();
         _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
@@ -71,7 +71,7 @@ public sealed class Swarm : LifecycleServiceBase, IServiceProvider
 
     public Blockchain Blockchain { get; private set; }
 
-    internal PeerDiscovery PeerDiscovery { get; }
+    internal PeerExplorer PeerDiscovery { get; }
 
     internal ITransport Transport { get; }
 
@@ -329,7 +329,7 @@ public sealed class Swarm : LifecycleServiceBase, IServiceProvider
             return _consensusSerevice;
         }
 
-        if (serviceType == typeof(PeerDiscovery))
+        if (serviceType == typeof(PeerExplorer))
         {
             return PeerDiscovery;
         }

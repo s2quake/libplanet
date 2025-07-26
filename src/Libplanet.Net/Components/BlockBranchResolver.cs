@@ -2,15 +2,15 @@ using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Types;
 using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Components;
 
-public sealed class BlockBranchResolver(Blockchain blockchain, ITransport transport)
+public sealed class BlockBranchResolver(BlockFetcher blockFetcher)
     : IDisposable
 {
     private readonly Subject<BlockBranch> _blockBranchCreatedSubject = new();
-    private readonly BlockFetcher _blockFetcher = new(blockchain, transport);
     private readonly ConcurrentDictionary<Peer, int> _processByPeer = new();
     private bool _disposed;
 
@@ -23,28 +23,28 @@ public sealed class BlockBranchResolver(Blockchain blockchain, ITransport transp
         if (!_disposed)
         {
             _blockBranchCreatedSubject.Dispose();
-            _blockFetcher.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
     }
 
-    public async Task ExecuteAsync(BlockDemandCollection blockDemands, CancellationToken cancellationToken)
+    public async Task ExecuteAsync(BlockDemandCollection blockDemands, Block tip, CancellationToken cancellationToken)
     {
         var taskList = new List<Task>(blockDemands.Count);
         foreach (var blockDemand in blockDemands)
         {
             blockDemands.Remove(blockDemand.Peer);
-            taskList.Add(ProcessBlockDemandAsync(blockDemand, cancellationToken));
+            taskList.Add(ProcessBlockDemandAsync(blockDemand, tip, cancellationToken));
         }
 
         await TaskUtility.TryWhenAll(taskList);
     }
 
-    private async Task ProcessBlockDemandAsync(BlockDemand blockDemand, CancellationToken cancellationToken)
+    private async Task ProcessBlockDemandAsync(
+        BlockDemand blockDemand, Block tip, CancellationToken cancellationToken)
     {
         var peer = blockDemand.Peer;
-        if (blockDemand.Height <= blockchain.Tip.Height)
+        if (blockDemand.Height <= tip.Height)
         {
             return;
         }
@@ -56,8 +56,7 @@ public sealed class BlockBranchResolver(Blockchain blockchain, ITransport transp
 
         try
         {
-            var tip = blockchain.Tip;
-            var blockPairs = await _blockFetcher.FetchAsync(peer, tip.BlockHash, cancellationToken);
+            var blockPairs = await blockFetcher.FetchAsync(peer, tip.BlockHash, cancellationToken);
             var blockBranch = new BlockBranch
             {
                 BlockHeader = tip.Header,

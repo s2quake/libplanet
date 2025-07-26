@@ -11,6 +11,6 @@ internal sealed class RebuildConnectionTask(Swarm swarm) : BackgroundServiceBase
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var peerDiscovery = swarm.PeerDiscovery;
-        await peerDiscovery.RebuildConnectionAsync(PeerDiscovery.MaxDepth, cancellationToken);
+        await peerDiscovery.RebuildConnectionAsync(PeerExplorer.MaxDepth, cancellationToken);
     }
 }

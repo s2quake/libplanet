@@ -34,17 +34,13 @@ public partial class SwarmTest
             transportA,
             transportB,
         };
-        var peerDiscoveryA = new PeerDiscovery(transportA);
-        var peerDiscoveryB = new PeerDiscovery(transportB);
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
         var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
         var blockDemands = new BlockDemandCollection();
         var blockBranches = new BlockBranchCollection();
-        var blockBranchServiceB = new BlockBranchService(
-            blockchainB,
-            transportB,
-            blockBranches,
-            blockDemands);
+        var blockBranchServiceB = new BlockBranchService(blockchainB, transportB, blockBranches, blockDemands);
 
         blockchainA.ProposeAndAppendMany(blockCount);
 
@@ -60,10 +56,10 @@ public partial class SwarmTest
         await transports.StartAsync(default);
         await blockBranchServiceB.StartAsync(default);
 
-        await peerDiscoveryA.AddOrUpdateAsync(transportB.Peer, default);
-        await peerDiscoveryB.AddOrUpdateAsync(peerDiscoveryA.Peer, default);
+        await peerExplorerA.AddOrUpdateAsync(transportB.Peer, default);
+        await peerExplorerB.AddOrUpdateAsync(peerExplorerA.Peer, default);
 
-        peerDiscoveryA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
+        peerExplorerA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
 
         await Task.Delay(3000);
 
@@ -736,9 +732,9 @@ public partial class SwarmTest
             transportC,
         };
 
-        using var peerDiscoveryA = new PeerDiscovery(transportA);
-        using var peerDiscoveryB = new PeerDiscovery(transportB);
-        using var peerDiscoveryC = new PeerDiscovery(transportC);
+        using var peerExplorerA = new PeerExplorer(transportA);
+        using var peerExplorerB = new PeerExplorer(transportB);
+        using var peerExplorerC = new PeerExplorer(transportC);
 
         var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
@@ -769,18 +765,18 @@ public partial class SwarmTest
 
         await transports.StartAsync(default);
 
-        await peerDiscoveryB.AddOrUpdateAsync(transportA.Peer, default);
-        await peerDiscoveryC.AddOrUpdateAsync(transportA.Peer, default);
-        await peerDiscoveryB.ExploreAsync([transportA.Peer], 3, default);
-        await peerDiscoveryC.ExploreAsync([transportA.Peer], 3, default);
+        await peerExplorerB.AddOrUpdateAsync(transportA.Peer, default);
+        await peerExplorerC.AddOrUpdateAsync(transportA.Peer, default);
+        await peerExplorerB.ExploreAsync([transportA.Peer], 3, default);
+        await peerExplorerC.ExploreAsync([transportA.Peer], 3, default);
 
         var blockDemandCollector = new BlockDemandCollector(blockchainC, transportC);
-        await blockDemandCollector.ExecuteAsync([.. peerDiscoveryC.Peers], default);
-
-        var blockBranchResolver = new BlockBranchResolver(blockchainC, transportC);
-        await blockBranchResolver.ExecuteAsync(blockDemandCollector.BlockDemands, default);
-
+        using var blockFetcher = new BlockFetcher(blockchainC, transportC);
+        using var blockBranchResolver = new BlockBranchResolver(blockFetcher);
         var blockBranchAppender = new BlockBranchAppender(blockchainC);
+
+        await blockDemandCollector.ExecuteAsync([.. peerExplorerC.Peers], default);
+        await blockBranchResolver.ExecuteAsync(blockDemandCollector.BlockDemands, blockchainC.Tip, default);
         await blockBranchAppender.ExecuteAsync(blockBranchResolver.BlockBranches, default);
 
         Assert.Equal(blockchainC.Tip, tipA);
