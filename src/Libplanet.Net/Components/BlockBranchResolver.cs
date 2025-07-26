@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
-using Libplanet.Net.Services;
 using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Components;
@@ -17,7 +16,7 @@ public sealed class BlockBranchResolver(Blockchain blockchain, ITransport transp
 
     public IObservable<BlockBranch> BlockBranchCreated => _blockBranchCreatedSubject;
 
-    public BlockBranchCollection BlockBranches { get; } = [];
+    public BlockBranchCollection BlockBranches { get; init; } = [];
 
     public void Dispose()
     {

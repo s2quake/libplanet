@@ -1,11 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.MessageHandlers;
-using Libplanet.Net.PeerServiceMessageHandlers;
+using Libplanet.Net.Components.PeerDiscoveryMessageHandlers;
 using Libplanet.Types;
 using static Libplanet.Net.AddressUtility;
 
-namespace Libplanet.Net;
+namespace Libplanet.Net.Components;
 
 public sealed class PeerDiscovery : IDisposable
 {
@@ -37,6 +37,7 @@ public sealed class PeerDiscovery : IDisposable
             new PeerRequestMessageHandler(_transport, Peers),
             new DefaultMessageHandler(this),
         ];
+        _transport.MessageHandlers.AddRange(_handlers);
     }
 
     public Peer Peer => _transport.Peer;
@@ -225,29 +226,6 @@ public sealed class PeerDiscovery : IDisposable
 
         return Peers.Remove(peer) || _replacementCache.Remove(peer);
     }
-
-    // protected override async Task OnStartAsync(CancellationToken cancellationToken)
-    // {
-    //     _transport.MessageHandlers.AddRange(_handlers);
-    //     if (_options.SeedPeers.Count > 0)
-    //     {
-    //         await ExploreInternalAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
-    //     }
-    // }
-
-    // protected override async Task OnStopAsync(CancellationToken cancellationToken)
-    // {
-    //     _transport.MessageHandlers.RemoveRange(_handlers);
-    //     _peers.Clear();
-    //     _replacementCache.Clear();
-    //     await Task.CompletedTask;
-    // }
-
-    // protected override ValueTask DisposeAsyncCore()
-    // {
-    //     _transport.MessageHandlers.RemoveRange(_handlers);
-    //     return base.DisposeAsyncCore();
-    // }
 
     private static PeerDiscoveryOptions ValidateOptions(Peer peer, PeerDiscoveryOptions options)
     {

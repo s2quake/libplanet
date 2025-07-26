@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Tasks;
 
@@ -9,7 +10,7 @@ internal sealed class RebuildConnectionTask(Swarm swarm) : BackgroundServiceBase
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var PeerDiscovery = swarm.PeerDiscovery;
-        await PeerDiscovery.RebuildConnectionAsync(PeerDiscovery.MaxDepth, cancellationToken);
+        var peerDiscovery = swarm.PeerDiscovery;
+        await peerDiscovery.RebuildConnectionAsync(PeerDiscovery.MaxDepth, cancellationToken);
     }
 }

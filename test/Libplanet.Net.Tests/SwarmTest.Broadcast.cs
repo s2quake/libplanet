@@ -16,6 +16,7 @@ using Libplanet.TestUtilities;
 using Libplanet.Tests;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Components;
+using Libplanet.Net.Services;
 
 namespace Libplanet.Net.Tests;
 
@@ -26,30 +27,45 @@ public partial class SwarmTest
     {
         const int blockCount = 5;
         using var fx = new MemoryRepositoryFixture();
-        var genesis = fx.GenesisBlock;
-
-        await using var swarmA = await CreateSwarm(genesis: genesis);
-        await using var swarmB = await CreateSwarm(genesis: genesis);
-        var blockchainA = swarmA.Blockchain;
-        var blockchainB = swarmB.Blockchain;
-
-        foreach (var i in Enumerable.Range(0, blockCount))
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
+        await using var transports = new LifecycleServiceCollection
         {
-            blockchainA.ProposeAndAppend(new PrivateKey());
-        }
+            transportA,
+            transportB,
+        };
+        var peerDiscoveryA = new PeerDiscovery(transportA);
+        var peerDiscoveryB = new PeerDiscovery(transportB);
+        var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockDemands = new BlockDemandCollection();
+        var blockBranches = new BlockBranchCollection();
+        var blockBranchServiceB = new BlockBranchService(
+            blockchainB,
+            transportB,
+            blockBranches,
+            blockDemands);
+
+        blockchainA.ProposeAndAppendMany(blockCount);
 
         Assert.Equal(blockCount, blockchainA.Tip.Height);
         Assert.NotEqual(blockchainA.Tip, blockchainB.Tip);
         Assert.NotNull(blockchainA.BlockCommits[blockchainA.Tip.BlockHash]);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
+        transportA.MessageHandlers.Add(new BlockHashRequestMessageHandler(blockchainA, transportA));
+        transportA.MessageHandlers.Add(new BlockRequestMessageHandler(blockchainA, transportA, 1));
 
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
-        await swarmB.AddPeersAsync([swarmA.Peer], default);
+        transportB.MessageHandlers.Add(new BlockSummaryMessageHandler(blockchainB, blockDemands));
 
-        swarmA.BroadcastBlock(blockchainA.Tip);
-        // await swarmB.BlockAppended.WaitAsync(default);
+        await transports.StartAsync(default);
+        await blockBranchServiceB.StartAsync(default);
+
+        await peerDiscoveryA.AddOrUpdateAsync(transportB.Peer, default);
+        await peerDiscoveryB.AddOrUpdateAsync(peerDiscoveryA.Peer, default);
+
+        peerDiscoveryA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
+
+        await Task.Delay(3000);
 
         Assert.Equal(blockchainA.Tip, blockchainB.Tip);
         Assert.Equal(

@@ -1,47 +1,47 @@
-using System.Threading;
-using System.Threading.Tasks;
-using Libplanet.Net.Messages;
-using Libplanet.Types;
+// using System.Threading;
+// using System.Threading.Tasks;
+// using Libplanet.Net.Messages;
+// using Libplanet.Types;
 
-namespace Libplanet.Net.Tasks;
+// namespace Libplanet.Net.Tasks;
 
-internal sealed class BlockBroadcastTask : BackgroundServiceBase
-{
-    private readonly Swarm _swarm;
-    private readonly IDisposable _tipChangedSubscription;
+// internal sealed class BlockBroadcastTask : BackgroundServiceBase
+// {
+//     private readonly Swarm _swarm;
+//     private readonly IDisposable _tipChangedSubscription;
 
-    public BlockBroadcastTask(Swarm swarm)
-    {
-        _swarm = swarm;
-        _tipChangedSubscription = swarm.Blockchain.TipChanged.Subscribe(e =>
-        {
-            BroadcastBlock(default, e.Tip);
-        });
-    }
+//     public BlockBroadcastTask(Swarm swarm)
+//     {
+//         _swarm = swarm;
+//         _tipChangedSubscription = swarm.Blockchain.TipChanged.Subscribe(e =>
+//         {
+//             BroadcastBlock(default, e.Tip);
+//         });
+//     }
 
-    protected override TimeSpan Interval => _swarm.Options.BlockBroadcastInterval;
+//     protected override TimeSpan Interval => _swarm.Options.BlockBroadcastInterval;
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-    {
-        var blockchain = _swarm.Blockchain;
-        BroadcastBlock(default, blockchain.Tip);
-        await Task.CompletedTask;
-    }
+//     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+//     {
+//         var blockchain = _swarm.Blockchain;
+//         BroadcastBlock(default, blockchain.Tip);
+//         await Task.CompletedTask;
+//     }
 
-    protected override ValueTask DisposeAsyncCore()
-    {
-        _tipChangedSubscription.Dispose();
-        return base.DisposeAsyncCore();
-    }
+//     protected override ValueTask DisposeAsyncCore()
+//     {
+//         _tipChangedSubscription.Dispose();
+//         return base.DisposeAsyncCore();
+//     }
 
-    private void BroadcastBlock(ImmutableArray<Peer> except, Block block)
-    {
-        var blockchain = _swarm.Blockchain;
-        var message = new BlockSummaryMessage
-        {
-            GenesisHash = blockchain.Genesis.BlockHash,
-            BlockSummary = block
-        };
-        _swarm.BroadcastMessage(except, message);
-    }
-}
+//     private void BroadcastBlock(ImmutableArray<Peer> except, Block block)
+//     {
+//         var blockchain = _swarm.Blockchain;
+//         var message = new BlockSummaryMessage
+//         {
+//             GenesisHash = blockchain.Genesis.BlockHash,
+//             BlockSummary = block
+//         };
+//         _swarm.BroadcastMessage(except, message);
+//     }
+// }

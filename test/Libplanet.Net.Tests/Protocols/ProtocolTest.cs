@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.Components;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.TestUtilities;

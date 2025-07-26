@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Types;
 using Libplanet.TestUtilities.Extensions;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Tests;
 
@@ -32,11 +33,28 @@ public static class BlockchainExtensions
         return (block, blockCommit);
     }
 
-    public static (Block, BlockCommit)[] ProposeAndAppendMany(this Libplanet.Blockchain @this, PrivateKey signer, int count)
+    public static (Block, BlockCommit)[] ProposeAndAppendMany(
+        this Libplanet.Blockchain @this, PrivateKey signer, int count)
     {
         var blocks = new (Block, BlockCommit)[count];
         for (var i = 0; i < count; i++)
         {
+            blocks[i] = @this.ProposeAndAppend(signer);
+        }
+
+        return blocks;
+    }
+
+    public static (Block, BlockCommit)[] ProposeAndAppendMany(this Libplanet.Blockchain @this, int count)
+        => ProposeAndAppendMany(@this, Random.Shared, count);
+
+    public static (Block, BlockCommit)[] ProposeAndAppendMany(
+        this Libplanet.Blockchain @this, Random random, int count)
+    {
+        var blocks = new (Block, BlockCommit)[count];
+        for (var i = 0; i < count; i++)
+        {
+            var signer = RandomUtility.PrivateKey(random);
             blocks[i] = @this.ProposeAndAppend(signer);
         }
 

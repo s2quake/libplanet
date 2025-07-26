@@ -8,6 +8,7 @@ using Libplanet.Net.NetMQ;
 using Libplanet.Net.Tasks;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Services;
+using Libplanet.Net.Components;
 
 namespace Libplanet.Net;
 
@@ -35,10 +36,10 @@ public sealed class Swarm : LifecycleServiceBase, IServiceProvider
 
         _services =
         [
-            new BlockBroadcastTask(this),
+            // new BlockBroadcastTask(this),
             new TxBroadcastTask(this),
             new EvidenceBroadcastTask(this),
-            new BlockBranchPollService(this),
+            // new BlockBranchPollService(this),
             // new BlockDemandPollTask(this),
             // new ConsumeBlockCandidatesTask(this),
             new RefreshTableTask(PeerDiscovery, options.RefreshPeriod, options.RefreshLifespan),

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 
-namespace Libplanet.Net.Services;
+namespace Libplanet.Net.Components;
 
 public sealed class BlockFetcher(Blockchain blockchain, ITransport transport)
     : FetcherBase<BlockHash, (Block, BlockCommit)>

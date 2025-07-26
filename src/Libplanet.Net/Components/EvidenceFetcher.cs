@@ -4,7 +4,7 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Types;
 
-namespace Libplanet.Net.Services;
+namespace Libplanet.Net.Components;
 
 public sealed class EvidenceFetcher(
     Blockchain blockchain, ITransport transport, TimeoutOptions timeoutOptions)

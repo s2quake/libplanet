@@ -1,4 +1,4 @@
-namespace Libplanet.Net;
+namespace Libplanet.Net.Components;
 
 public sealed class PeerNotFoundException : SystemException
 {

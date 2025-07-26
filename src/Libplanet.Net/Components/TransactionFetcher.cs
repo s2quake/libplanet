@@ -4,14 +4,14 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Types;
 
-namespace Libplanet.Net.Services;
+namespace Libplanet.Net.Components;
 
 public sealed class TransactionFetcher(
-    Blockchain blockchain, ITransport transport, TimeoutOptions timeoutOptions)
+    Blockchain blockchain, ITransport transport)
     : FetcherBase<TxId, Transaction>
 {
     public TransactionFetcher(Swarm swarm, SwarmOptions options)
-        : this(swarm.Blockchain, swarm.Transport, options.TimeoutOptions)
+        : this(swarm.Blockchain, swarm.Transport)
     {
     }
 

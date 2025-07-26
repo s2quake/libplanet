@@ -22,6 +22,7 @@ using Libplanet.Types.Threading;
 using Libplanet.Net.Services;
 using Libplanet.Tests;
 using Libplanet.Net.MessageHandlers;
+using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Tests;
 
@@ -424,7 +425,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var transportB = TestUtils.CreateTransport(keyB);
         var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
-        var fetcherA = new TransactionFetcher(blockchainA, transportA, new TimeoutOptions());
+        var fetcherA = new TransactionFetcher(blockchainA, transportA);
         var txKey = new PrivateKey();
         var tx = new TransactionBuilder
         {

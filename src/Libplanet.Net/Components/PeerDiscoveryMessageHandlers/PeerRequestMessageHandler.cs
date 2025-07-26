@@ -1,7 +1,7 @@
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 
-namespace Libplanet.Net.PeerServiceMessageHandlers;
+namespace Libplanet.Net.Components.PeerDiscoveryMessageHandlers;
 
 internal sealed class PeerRequestMessageHandler(ITransport transport, PeerCollection peers)
     : MessageHandlerBase<PeerRequestMessage>

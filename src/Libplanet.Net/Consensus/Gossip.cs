@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.Components;
 using Libplanet.Net.Consensus.GossipMessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Tasks;

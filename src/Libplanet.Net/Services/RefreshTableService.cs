@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Services;
 
