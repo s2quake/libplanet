@@ -2,18 +2,24 @@ using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Components;
 
-public sealed class BlockBroadcastingResponder : IDisposable
+public sealed class BlockFetchingHandler : IDisposable
 {
     private readonly ITransport _transport;
     private readonly IMessageHandler[] _handlers;
     private bool _disposed;
 
-    public BlockBroadcastingResponder(ITransport transport, Blockchain blockchain, BlockDemandCollection blockDemands)
+    public BlockFetchingHandler(Blockchain blockchain, ITransport transport)
+        : this(blockchain, transport, 3)
+    {
+    }
+
+    public BlockFetchingHandler(Blockchain blockchain, ITransport transport, int maxAccessCount)
     {
         _transport = transport;
         _handlers =
         [
-            new BlockSummaryMessageHandler(blockchain, blockDemands),
+            new BlockHashRequestMessageHandler(blockchain, transport),
+            new BlockRequestMessageHandler(blockchain, transport, maxAccessCount),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
     }

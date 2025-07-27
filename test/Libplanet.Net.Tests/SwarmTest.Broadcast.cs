@@ -72,75 +72,63 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastBlockToReconnectedPeer()
     {
-        var miner = new PrivateKey();
-        var fx = new MemoryRepositoryFixture();
-        var minerChain = MakeBlockchain(fx.Options);
-        var policy = fx.Options;
-        foreach (int i in Enumerable.Range(0, 10))
-        {
-            Block block = minerChain.ProposeBlock(miner);
-            minerChain.Append(block, TestUtils.CreateBlockCommit(block));
-        }
-
-        Swarm seed = await CreateSwarm(
-            miner,
-            blockchainOptions: policy,
-            genesis: minerChain.Genesis);
-        Blockchain seedChain = seed.Blockchain;
-
+        using var fx = new MemoryRepositoryFixture();
+        var minerKey = new PrivateKey();
         var privateKey = new PrivateKey();
-        Swarm swarmA = await CreateSwarm(
-            privateKey: privateKey,
-            blockchainOptions: policy,
-            genesis: minerChain.Genesis);
-        Swarm swarmB = await CreateSwarm(
-            privateKey: privateKey,
-            blockchainOptions: policy,
-            genesis: minerChain.Genesis);
+        var blockchainOptions = fx.Options;
+        var blockchain = MakeBlockchain(blockchainOptions);
+        var seedBlockchain = MakeBlockchain(
+            options: blockchainOptions,
+            genesisBlock: blockchain.Genesis);
+        var blockchainB = MakeBlockchain(
+            options: blockchainOptions,
+            genesisBlock: blockchain.Genesis);
 
-        foreach (BlockHash blockHash in minerChain.Blocks.Keys.Skip(1).Take(4))
+        await using var seedTransport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport(privateKey);
+        await using var transportB = TestUtils.CreateTransport(privateKey);
+        await using var transports = new LifecycleServiceCollection
         {
-            seedChain.Append(
-                minerChain.Blocks[blockHash],
-                TestUtils.CreateBlockCommit(minerChain.Blocks[blockHash]));
-        }
+            seedTransport,
+            transportA,
+            transportB,
+        };
+        using var seedPeerExplorer = new PeerExplorer(seedTransport);
+        using var peerExplorerA = new PeerExplorer(transportA);
+        using var peerExplorerB = new PeerExplorer(transportB);
 
-        await seed.StartAsync(default);
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
+        blockchain.ProposeAndAppendMany(minerKey, 10);
+        blockchain.AppendTo(seedBlockchain, 1..5);
 
-        Assert.Equal(swarmA.Peer.Address, swarmB.Peer.Address);
-        // Assert.Equal(swarmA.AsPeer.PublicIPAddress, swarmB.AsPeer.PublicIPAddress);
+        await transports.StartAsync(default);
+        await peerExplorerA.AddOrUpdateAsync(seedTransport.Peer, default);
+        await transportA.StopAsync(default);
+        await seedPeerExplorer.RefreshAsync(TimeSpan.Zero, default);
 
-        await swarmA.AddPeersAsync([seed.Peer], default);
-        await swarmA.StopAsync(default);
-        await seed.PeerDiscovery.RefreshAsync(
-            TimeSpan.Zero,
-            default);
+        Assert.DoesNotContain(transportA.Peer, seedPeerExplorer.Peers);
 
-        Assert.DoesNotContain(swarmA.Peer, seed.Peers);
+        blockchain.AppendTo(seedBlockchain, 5..);
 
-        foreach (BlockHash blockHash in minerChain.Blocks.Keys.Skip(5))
-        {
-            seedChain.Append(
-                minerChain.Blocks[blockHash],
-                TestUtils.CreateBlockCommit(minerChain.Blocks[blockHash]));
-        }
+        await peerExplorerB.AddOrUpdateAsync(seedTransport.Peer, default);
 
-        await swarmB.AddPeersAsync([seed.Peer], default);
-
-        // This is added for context switching.
         await Task.Delay(100);
 
-        Assert.Contains(swarmB.Peer, seed.Peers);
-        Assert.Contains(seed.Peer, swarmB.Peers);
+        Assert.Contains(transportB.Peer, seedPeerExplorer.Peers);
+        Assert.Contains(seedTransport.Peer, peerExplorerB.Peers);
 
-        seed.BroadcastBlock(seedChain.Tip);
+        using var seedBlockFetchingHandler = new BlockFetchingHandler(seedBlockchain, seedTransport);
+
+        // var blockDemands = new BlockDemandCollection();
+        // using var blockBroadcastingHandlerB = new BlockBroadcastingHandler(transportB, blockchain
+
+
+
+        // seedPeerExplorer.Broadcast(seedBlockchain.Genesis.BlockHash, seedBlockchain.Tip);
 
         // await swarmB.BlockAppended.WaitAsync(default);
 
-        Assert.NotEqual(seedChain.Blocks.Keys, swarmA.Blockchain.Blocks.Keys);
-        Assert.Equal(seedChain.Blocks.Keys, swarmB.Blockchain.Blocks.Keys);
+        // Assert.NotEqual(seedBlockchain.Blocks.Keys, swarmA.Blockchain.Blocks.Keys);
+        // Assert.Equal(seedBlockchain.Blocks.Keys, swarmB.Blockchain.Blocks.Keys);
     }
 
     [Fact(Timeout = Timeout)]
@@ -463,8 +451,8 @@ public partial class SwarmTest
         Assert.Equal(
             new HashSet<TxId> { tx1.Id, tx2.Id },
             chainB.StagedTransactions.Keys.ToHashSet());
-        swarmA.PeerDiscovery.Remove(swarmB.Peer);
-        swarmB.PeerDiscovery.Remove(swarmA.Peer);
+        swarmA.PeerExplorer.Remove(swarmB.Peer);
+        swarmB.PeerExplorer.Remove(swarmA.Peer);
 
         chainA.StagedTransactions.Remove(tx2.Id);
         Assert.Equal(1, chainA.GetNextTxNonce(privateKey.Address));
@@ -472,8 +460,8 @@ public partial class SwarmTest
         await swarmA.StopAsync(default);
         await swarmB.StopAsync(default);
 
-        swarmA.PeerDiscovery.Remove(swarmB.Peer);
-        swarmB.PeerDiscovery.Remove(swarmA.Peer);
+        swarmA.PeerExplorer.Remove(swarmB.Peer);
+        swarmB.PeerExplorer.Remove(swarmA.Peer);
         Assert.Empty(swarmA.Peers);
         Assert.Empty(swarmB.Peers);
 

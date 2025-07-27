@@ -63,9 +63,10 @@ public static class BlockchainExtensions
 
     public static void AppendTo(this Libplanet.Blockchain @this, Libplanet.Blockchain other, Range range)
     {
-        var (start, end) = range.GetOffsetAndLength(@this.Blocks.Count);
-        for (var index = start; index < end; index++)
+        var (start, length) = range.GetOffsetAndLength(@this.Blocks.Count);
+        for (var i = 0; i < length; i++)
         {
+            var index = start + i;
             var block = @this.Blocks[index];
             var blockCommit = @this.BlockCommits[index];
             other.Append(block, blockCommit);

@@ -29,7 +29,7 @@ public sealed class Swarm : LifecycleServiceBase, IServiceProvider
         Blockchain = blockchain;
         Options = options;
         Transport = new NetMQTransport(signer, options.TransportOptions);
-        PeerDiscovery = new PeerExplorer(Transport);
+        PeerExplorer = new PeerExplorer(Transport);
         BlockDemands = new BlockDemandCollection();
         BlockBranches = new BlockBranchCollection();
         _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
@@ -42,7 +42,7 @@ public sealed class Swarm : LifecycleServiceBase, IServiceProvider
             // new BlockBranchPollService(this),
             // new BlockDemandPollTask(this),
             // new ConsumeBlockCandidatesTask(this),
-            new RefreshTableTask(PeerDiscovery, options.RefreshPeriod, options.RefreshLifespan),
+            new RefreshTableTask(PeerExplorer, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
             new MaintainStaticPeerTask(this),
             // new TransactionFetcher(Blockchain, Transport, options.TimeoutOptions),
@@ -65,13 +65,13 @@ public sealed class Swarm : LifecycleServiceBase, IServiceProvider
 
     public Peer Peer => Transport.Peer;
 
-    public IEnumerable<Peer> Peers => PeerDiscovery.Peers;
+    public IEnumerable<Peer> Peers => PeerExplorer.Peers;
 
     public ImmutableArray<Peer> Validators => _consensusSerevice?.Validators ?? [];
 
     public Blockchain Blockchain { get; private set; }
 
-    internal PeerExplorer PeerDiscovery { get; }
+    internal PeerExplorer PeerExplorer { get; }
 
     internal ITransport Transport { get; }
 
@@ -228,7 +228,7 @@ public sealed class Swarm : LifecycleServiceBase, IServiceProvider
     }
 
     internal void BroadcastMessage(ImmutableArray<Peer> except, MessageBase message)
-        => PeerDiscovery.Broadcast(message, except);
+        => PeerExplorer.Broadcast(message, except);
 
     internal void BroadcastTxIds(ImmutableArray<Peer> except, ImmutableArray<TxId> txIds)
     {
@@ -331,7 +331,7 @@ public sealed class Swarm : LifecycleServiceBase, IServiceProvider
 
         if (serviceType == typeof(PeerExplorer))
         {
-            return PeerDiscovery;
+            return PeerExplorer;
         }
 
         if (serviceType == typeof(Blockchain))
