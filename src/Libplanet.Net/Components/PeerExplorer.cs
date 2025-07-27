@@ -74,7 +74,7 @@ public sealed class PeerExplorer : IDisposable
         var taskList = new List<Task>(peers.Length);
         foreach (var peer in peers)
         {
-            var task = AddOrUpdateAsync(peer, cancellationToken);
+            var task = PingAsync(peer, cancellationToken);
             taskList.Add(task);
         }
 
@@ -105,7 +105,7 @@ public sealed class PeerExplorer : IDisposable
         foreach (var peer in peers)
         {
             _replacementCache.Remove(peer);
-            await AddOrUpdateAsync(peer, cancellationToken);
+            await PingAsync(peer, cancellationToken);
         }
     }
 
@@ -155,7 +155,7 @@ public sealed class PeerExplorer : IDisposable
         throw new PeerNotFoundException("Failed to find peer.");
     }
 
-    public async Task<bool> AddOrUpdateAsync(Peer peer, CancellationToken cancellationToken)
+    public async Task<bool> PingAsync(Peer peer, CancellationToken cancellationToken)
     {
         try
         {
@@ -169,7 +169,7 @@ public sealed class PeerExplorer : IDisposable
         }
     }
 
-    public async Task<ImmutableArray<Peer>> AddOrUpdateManyAsync(
+    public async Task<ImmutableArray<Peer>> PingManyAsync(
         ImmutableArray<Peer> peers, CancellationToken cancellationToken)
     {
         if (peers.Any(item => item.Address == _owner))
@@ -185,7 +185,7 @@ public sealed class PeerExplorer : IDisposable
         var taskList = new List<Task<bool>>(peers.Length);
         foreach (var peer in peers)
         {
-            taskList.Add(AddOrUpdateAsync(peer, cancellationToken));
+            taskList.Add(PingAsync(peer, cancellationToken));
         }
 
         await Task.WhenAll(taskList);
@@ -301,7 +301,7 @@ public sealed class PeerExplorer : IDisposable
                     continue;
                 }
 
-                await AddOrUpdateAsync(neighbor, cancellationToken);
+                await PingAsync(neighbor, cancellationToken);
 
                 if (count++ >= FindConcurrency)
                 {

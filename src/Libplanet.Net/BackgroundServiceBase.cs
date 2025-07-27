@@ -4,7 +4,7 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
-public abstract class BackgroundServiceBase : LifecycleServiceBase
+public abstract class BackgroundServiceBase : ServiceBase
 {
     private CancellationTokenSource? _cancellationTokenSource;
     private Task _runTask = Task.CompletedTask;

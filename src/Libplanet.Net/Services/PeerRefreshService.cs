@@ -4,14 +4,14 @@ using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Services;
 
-internal sealed class RefreshTableService(PeerExplorer peerService, TimeSpan interval, TimeSpan refreshLifespan)
+internal sealed class PeerRefreshService(PeerExplorer peerExplorer, TimeSpan interval, TimeSpan refreshLifespan)
     : BackgroundServiceBase
 {
     protected override TimeSpan Interval { get; } = interval;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        await peerService.RefreshAsync(refreshLifespan, cancellationToken);
-        await peerService.CheckReplacementCacheAsync(cancellationToken);
+        await peerExplorer.RefreshAsync(refreshLifespan, cancellationToken);
+        await peerExplorer.CheckReplacementCacheAsync(cancellationToken);
     }
 }

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-public interface ILifecycleService
+public interface IService
 {
     Task StartAsync(CancellationToken cancellationToken);
 

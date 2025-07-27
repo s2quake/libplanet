@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-public static class ILifecycleServiceExtensions
+public static class IServiceExtensions
 {
-    public static async Task RestartAsync(this ILifecycleService @this, CancellationToken cancellationToken)
+    public static async Task RestartAsync(this IService @this, CancellationToken cancellationToken)
     {
         await @this.StopAsync(cancellationToken);
         await @this.StartAsync(cancellationToken);

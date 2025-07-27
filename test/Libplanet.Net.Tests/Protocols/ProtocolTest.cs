@@ -169,7 +169,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        await peerDiscoveryA.AddOrUpdateAsync(transportB.Peer, default);
+        await peerDiscoveryA.PingAsync(transportB.Peer, default);
         Assert.Single(peerDiscoveryA.Peers);
 
         await transportB.StopAsync(default);

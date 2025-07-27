@@ -8,7 +8,7 @@ using Libplanet.Net.Tasks;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Gossip : LifecycleServiceBase
+public sealed class Gossip : ServiceBase
 {
     private const int DLazy = 6;
     private readonly ITransport _transport;
@@ -17,8 +17,8 @@ public sealed class Gossip : LifecycleServiceBase
     private readonly HashSet<Peer> _deniedPeers = [];
     private readonly ImmutableHashSet<Peer> _seeds;
     private readonly IMessageHandler[] _handlers;
-    private readonly PeerExplorer _peerDiscovery;
-    private readonly LifecycleServiceCollection _services;
+    private readonly PeerExplorer _peerExplorer;
+    private readonly ServiceCollection _services;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
 
     public Gossip(
@@ -33,15 +33,15 @@ public sealed class Gossip : LifecycleServiceBase
             new WantMessageHandler(_transport, _messageById, _haveDict),
         ];
         _transport.MessageHandlers.AddRange(_handlers);
-        _peerDiscovery = new PeerExplorer(_transport, new PeerExplorerOptions
+        _peerExplorer = new PeerExplorer(_transport, new PeerExplorerOptions
         {
             SeedPeers = seeds,
             KnownPeers = validators,
         });
         _services =
         [
-            new RefreshTableTask(_peerDiscovery, _options.RefreshTableInterval, _options.RefreshLifespan),
-            new RebuildTableTask(_peerDiscovery, _seeds, _options.RebuildTableInterval),
+            new RefreshTableTask(_peerExplorer, _options.RefreshTableInterval, _options.RefreshLifespan),
+            new RebuildTableTask(_peerExplorer, _seeds, _options.RebuildTableInterval),
             new HeartbeatTask(this, _options.HeartbeatInterval)
         ];
     }
@@ -55,7 +55,7 @@ public sealed class Gossip : LifecycleServiceBase
 
     public Peer Peer => _transport.Peer;
 
-    public ImmutableArray<Peer> Peers => [.. _peerDiscovery.Peers];
+    public ImmutableArray<Peer> Peers => [.. _peerExplorer.Peers];
 
     public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
@@ -66,7 +66,7 @@ public sealed class Gossip : LifecycleServiceBase
 
     public void PublishMessage(IMessage message)
     {
-        if (_peerDiscovery is null)
+        if (_peerExplorer is null)
         {
             throw new InvalidOperationException("Gossip is not running.");
         }
@@ -74,7 +74,7 @@ public sealed class Gossip : LifecycleServiceBase
         ImmutableArray<Peer> peers =
         [
             _transport.Peer,
-            .. GetPeersToBroadcast(_peerDiscovery.Peers, DLazy)
+            .. GetPeersToBroadcast(_peerExplorer.Peers, DLazy)
         ];
 
         PublishMessage(peers, message);
@@ -112,7 +112,7 @@ public sealed class Gossip : LifecycleServiceBase
 
     public async Task HeartbeatAsync(CancellationToken cancellationToken)
     {
-        var peers = _peerDiscovery?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
+        var peers = _peerExplorer?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
         var ids = _messageById.Keys.ToArray();
         if (ids.Length > 0)
         {
@@ -127,14 +127,12 @@ public sealed class Gossip : LifecycleServiceBase
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         await _transport.StartAsync(cancellationToken);
-        // await _peerService.StartAsync(cancellationToken);
         await _services.StartAsync(cancellationToken);
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
         await _services.StopAsync(cancellationToken);
-        // await _peerService.StopAsync(cancellationToken);
         await _transport.StopAsync(cancellationToken);
     }
 
@@ -142,7 +140,7 @@ public sealed class Gossip : LifecycleServiceBase
     {
         _transport.MessageHandlers.RemoveRange(_handlers);
         await _services.DisposeAsync();
-        _peerDiscovery.Dispose();
+        _peerExplorer.Dispose();
         _messageById.Clear();
         await _transport.DisposeAsync();
         await base.DisposeAsyncCore();

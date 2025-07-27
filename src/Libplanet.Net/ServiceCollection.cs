@@ -4,22 +4,22 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-public sealed class LifecycleServiceCollection
-    : LifecycleServiceBase, IEnumerable<ILifecycleService>
+public sealed class ServiceCollection
+    : ServiceBase, IEnumerable<IService>
 {
-    private readonly List<ILifecycleService> serviceList = [];
+    private readonly List<IService> serviceList = [];
 
     public int Count => serviceList.Count;
 
     public bool SequentialExecution { get; init; }
 
-    public ILifecycleService this[int index] => serviceList[index];
+    public IService this[int index] => serviceList[index];
 
-    public void Add(ILifecycleService service)
+    public void Add(IService service)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-        if (State != LifecycleServiceState.None)
+        if (State != ServiceState.None)
         {
             throw new InvalidOperationException(
                 "Cannot add services after the collection has started or stopped.");
@@ -28,7 +28,7 @@ public sealed class LifecycleServiceCollection
         serviceList.Add(service);
     }
 
-    public IEnumerator<ILifecycleService> GetEnumerator()
+    public IEnumerator<IService> GetEnumerator()
     {
         foreach (var service in serviceList)
         {

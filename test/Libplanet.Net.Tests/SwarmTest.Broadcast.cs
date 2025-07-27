@@ -29,7 +29,7 @@ public partial class SwarmTest
         using var fx = new MemoryRepositoryFixture();
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
-        await using var transports = new LifecycleServiceCollection
+        await using var transports = new ServiceCollection
         {
             transportA,
             transportB,
@@ -56,8 +56,8 @@ public partial class SwarmTest
         await transports.StartAsync(default);
         await blockBranchServiceB.StartAsync(default);
 
-        await peerExplorerA.AddOrUpdateAsync(transportB.Peer, default);
-        await peerExplorerB.AddOrUpdateAsync(peerExplorerA.Peer, default);
+        await peerExplorerA.PingAsync(transportB.Peer, default);
+        await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
 
         peerExplorerA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
 
@@ -87,7 +87,7 @@ public partial class SwarmTest
         await using var seedTransport = TestUtils.CreateTransport();
         await using var transportA = TestUtils.CreateTransport(privateKey);
         await using var transportB = TestUtils.CreateTransport(privateKey);
-        await using var transports = new LifecycleServiceCollection
+        await using var transports = new ServiceCollection
         {
             seedTransport,
             transportA,
@@ -101,7 +101,7 @@ public partial class SwarmTest
         blockchain.AppendTo(seedBlockchain, 1..5);
 
         await transports.StartAsync(default);
-        await peerExplorerA.AddOrUpdateAsync(seedTransport.Peer, default);
+        await peerExplorerA.PingAsync(seedTransport.Peer, default);
         await transportA.StopAsync(default);
         await seedPeerExplorer.RefreshAsync(TimeSpan.Zero, default);
 
@@ -109,7 +109,7 @@ public partial class SwarmTest
 
         blockchain.AppendTo(seedBlockchain, 5..);
 
-        await peerExplorerB.AddOrUpdateAsync(seedTransport.Peer, default);
+        await peerExplorerB.PingAsync(seedTransport.Peer, default);
 
         await Task.Delay(100);
 
@@ -713,7 +713,7 @@ public partial class SwarmTest
         await using var transportA = TestUtils.CreateTransport(keyA);
         await using var transportB = TestUtils.CreateTransport(keyB);
         await using var transportC = TestUtils.CreateTransport(keyC);
-        await using var transports = new LifecycleServiceCollection
+        await using var transports = new ServiceCollection
         {
             transportA,
             transportB,
@@ -753,8 +753,8 @@ public partial class SwarmTest
 
         await transports.StartAsync(default);
 
-        await peerExplorerB.AddOrUpdateAsync(transportA.Peer, default);
-        await peerExplorerC.AddOrUpdateAsync(transportA.Peer, default);
+        await peerExplorerB.PingAsync(transportA.Peer, default);
+        await peerExplorerC.PingAsync(transportA.Peer, default);
         await peerExplorerB.ExploreAsync([transportA.Peer], 3, default);
         await peerExplorerC.ExploreAsync([transportA.Peer], 3, default);
 

@@ -11,7 +11,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class ConsensusService : LifecycleServiceBase
+public sealed class ConsensusService : ServiceBase
 {
     private readonly Subject<int> _heightChangedSubject = new();
     private readonly Subject<int> _roundChangedSubject = new();

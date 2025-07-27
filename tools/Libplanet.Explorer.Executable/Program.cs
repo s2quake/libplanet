@@ -52,7 +52,7 @@ namespace Libplanet.Explorer.Executable
         [Command(Description = "Show GraphQL schema")]
         public void Schema()
         {
-            var serviceCollection = new ServiceCollection();
+            var serviceCollection = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
             serviceCollection.AddGraphQL()
                 .AddGraphTypes(typeof(LibplanetExplorerSchema));
 

@@ -7,16 +7,15 @@ using Libplanet.Types;
 using Libplanet.Net.NetMQ;
 using Libplanet.Net.Tasks;
 using Libplanet.Net.MessageHandlers;
-using Libplanet.Net.Services;
 using Libplanet.Net.Components;
 
 namespace Libplanet.Net;
 
-public sealed class Swarm : LifecycleServiceBase, IServiceProvider
+public sealed class Swarm : ServiceBase, IServiceProvider
 {
     private readonly ISigner _signer;
     private readonly ConsensusService? _consensusSerevice;
-    private readonly LifecycleServiceCollection _services;
+    private readonly ServiceCollection _services;
     private readonly IMessageHandler[] _messageHandlers;
 
     public Swarm(

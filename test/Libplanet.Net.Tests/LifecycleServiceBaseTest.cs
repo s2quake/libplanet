@@ -10,7 +10,7 @@ public sealed class LifecycleServiceBaseTest
     public async Task Base_Test()
     {
         await using var service = new Service();
-        Assert.Equal(LifecycleServiceState.None, service.State);
+        Assert.Equal(ServiceState.None, service.State);
     }
 
     [Fact]
@@ -18,7 +18,7 @@ public sealed class LifecycleServiceBaseTest
     {
         await using var service = new Service();
         await service.StartAsync(default);
-        Assert.Equal(LifecycleServiceState.Started, service.State);
+        Assert.Equal(ServiceState.Started, service.State);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public sealed class LifecycleServiceBaseTest
         using var cancellationTokenSource = new CancellationTokenSource(10);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => service.StartAsync(cancellationTokenSource.Token));
-        Assert.Equal(LifecycleServiceState.Faluted, service.State);
+        Assert.Equal(ServiceState.Faluted, service.State);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class LifecycleServiceBaseTest
         await using var service = new Service();
         await service.StartAsync(default);
         await service.StopAsync(default);
-        Assert.Equal(LifecycleServiceState.None, service.State);
+        Assert.Equal(ServiceState.None, service.State);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public sealed class LifecycleServiceBaseTest
         using var cancellationTokenSource = new CancellationTokenSource(10);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => service.StopAsync(cancellationTokenSource.Token));
-        Assert.Equal(LifecycleServiceState.Faluted, service.State);
+        Assert.Equal(ServiceState.Faluted, service.State);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class LifecycleServiceBaseTest
         };
         await TaskUtility.TryWait(service1.StartAsync(default));
         await Assert.ThrowsAsync<NotSupportedException>(service1.RecoverAsync);
-        Assert.Equal(LifecycleServiceState.Faluted, service1.State);
+        Assert.Equal(ServiceState.Faluted, service1.State);
 
         await using var service2 = new Service
         {
@@ -108,7 +108,7 @@ public sealed class LifecycleServiceBaseTest
         };
         await TaskUtility.TryWait(service2.StartAsync(default));
         await service2.RecoverAsync();
-        Assert.Equal(LifecycleServiceState.None, service2.State);
+        Assert.Equal(ServiceState.None, service2.State);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public sealed class LifecycleServiceBaseTest
         Assert.Equal("Cannot start.", e1.Message);
         var e2 = await Assert.ThrowsAsync<InvalidOperationException>(service.RecoverAsync);
         Assert.Equal("Cannot recover.", e2.Message);
-        Assert.Equal(LifecycleServiceState.Faluted, service.State);
+        Assert.Equal(ServiceState.Faluted, service.State);
     }
 
     [Fact]
@@ -152,18 +152,18 @@ public sealed class LifecycleServiceBaseTest
     {
         var service1 = new Service();
         await service1.DisposeAsync();
-        Assert.Equal(LifecycleServiceState.Disposed, service1.State);
+        Assert.Equal(ServiceState.Disposed, service1.State);
 
         var service2 = new Service();
         await service2.StartAsync(default);
         await service2.DisposeAsync();
-        Assert.Equal(LifecycleServiceState.Disposed, service2.State);
+        Assert.Equal(ServiceState.Disposed, service2.State);
 
         var service3 = new Service();
         await service3.StartAsync(default);
         await service3.StopAsync(default);
         await service3.DisposeAsync();
-        Assert.Equal(LifecycleServiceState.Disposed, service3.State);
+        Assert.Equal(ServiceState.Disposed, service3.State);
 
         var service4 = new Service()
         {
@@ -171,12 +171,12 @@ public sealed class LifecycleServiceBaseTest
         };
         await Assert.ThrowsAsync<InvalidOperationException>(() => service4.StartAsync(default));
         await service4.DisposeAsync();
-        Assert.Equal(LifecycleServiceState.Disposed, service2.State);
+        Assert.Equal(ServiceState.Disposed, service2.State);
 
         var service5 = new Service();
         await service5.DisposeAsync();
         await service5.DisposeAsync();
-        Assert.Equal(LifecycleServiceState.Disposed, service2.State);
+        Assert.Equal(ServiceState.Disposed, service2.State);
     }
 
     [Fact]
@@ -186,20 +186,20 @@ public sealed class LifecycleServiceBaseTest
         await Parallel.ForEachAsync(
             Enumerable.Range(0, 10),
             async (_, _) => await service1.DisposeAsync());
-        Assert.Equal(LifecycleServiceState.Disposed, service1.State);
+        Assert.Equal(ServiceState.Disposed, service1.State);
 
         var service2 = new Service();
         await Task.WhenAll(
             service2.StartAsync(default),
             service2.DisposeAsync().AsTask());
-        Assert.Equal(LifecycleServiceState.Disposed, service2.State);
+        Assert.Equal(ServiceState.Disposed, service2.State);
 
         var service3 = new Service();
         await service3.StartAsync(default);
         await Task.WhenAll(
             service3.StopAsync(default),
             service3.DisposeAsync().AsTask());
-        Assert.Equal(LifecycleServiceState.Disposed, service2.State);
+        Assert.Equal(ServiceState.Disposed, service2.State);
 
         var service4 = new Service
         {
@@ -210,7 +210,7 @@ public sealed class LifecycleServiceBaseTest
         await Task.WhenAll(
             service4.RecoverAsync(),
             service4.DisposeAsync().AsTask());
-        Assert.Equal(LifecycleServiceState.Disposed, service4.State);
+        Assert.Equal(ServiceState.Disposed, service4.State);
 
         var service5 = new Service();
 #pragma warning disable S5034 // "ValueTask" should be consumed correctly
@@ -219,7 +219,7 @@ public sealed class LifecycleServiceBaseTest
             service5.DisposeAsync().AsTask());
 #pragma warning restore S5034 // "ValueTask" should be consumed correctly
         await service5.DisposeAsync();
-        Assert.Equal(LifecycleServiceState.Disposed, service5.State);
+        Assert.Equal(ServiceState.Disposed, service5.State);
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public sealed class LifecycleServiceBaseTest
             async () => await service.DelayAsync(TimeSpan.FromSeconds(10), default));
     }
 
-    private sealed class Service : LifecycleServiceBase
+    private sealed class Service : ServiceBase
     {
         public Func<CancellationToken, Task> StartTask { get; init; } = _ => Task.Delay(100);
 

@@ -4,7 +4,7 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net;
 
-public interface ITransport : ILifecycleService, IAsyncDisposable
+public interface ITransport : IService, IAsyncDisposable
 {
     MessageHandlerCollection MessageHandlers { get; }
 
