@@ -82,7 +82,8 @@ public sealed class BlockDemandCollection
     public BlockDemand[] Flush(Blockchain blockchain)
     {
         using var _ = _lock.WriteScope();
-        var items = _demandByPeer.Values.Where(item => item.Height > blockchain.Tip.Height).ToArray();
+        var tipHeight = blockchain.Tip.Height;
+        var items = _demandByPeer.Values.Where(item => item.Height > tipHeight).ToArray();
         _demandByPeer.Clear();
         CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
         return items;

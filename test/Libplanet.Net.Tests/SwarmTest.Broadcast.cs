@@ -81,7 +81,6 @@ public partial class SwarmTest
         var blockchainA = MakeBlockchain(options: blockchainOptions, genesisBlock: blockchain.Genesis);
         var blockchainB = MakeBlockchain(options: blockchainOptions, genesisBlock: blockchain.Genesis);
 
-
         var seedTransport = TestUtils.CreateTransport();
         var transportA = TestUtils.CreateTransport(privateKey);
         var transportB = TestUtils.CreateTransport(privateKey);
@@ -125,25 +124,11 @@ public partial class SwarmTest
 
         await peerExplorerB.PingAsync(seedTransport.Peer, default);
 
-        await Task.Delay(100);
-
         Assert.Contains(transportB.Peer, seedPeerExplorer.Peers);
         Assert.Contains(seedTransport.Peer, peerExplorerB.Peers);
 
         seedPeerExplorer.Broadcast(seedBlockchain.Genesis.BlockHash, seedBlockchain.Tip);
-
         await serviceB.Synchronized.WaitAsync(default);
-
-        // using var seedBlockFetchingHandler = new BlockFetchingHandler(seedBlockchain, seedTransport);
-
-        // var blockDemands = new BlockDemandCollection();
-        // using var blockBroadcastingHandlerB = new BlockBroadcastingHandler(transportB, blockchain
-
-
-
-        // seedPeerExplorer.Broadcast(seedBlockchain.Genesis.BlockHash, seedBlockchain.Tip);
-
-        // await swarmB.BlockAppended.WaitAsync(default);
 
         Assert.NotEqual(seedBlockchain.Blocks.Keys, blockchainA.Blocks.Keys);
         Assert.Equal(seedBlockchain.Blocks.Keys, blockchainB.Blocks.Keys);

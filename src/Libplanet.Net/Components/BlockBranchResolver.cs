@@ -34,7 +34,6 @@ public sealed class BlockBranchResolver(Blockchain blockchain, BlockFetcher bloc
         var taskList = new List<Task>(blockDemands.Count);
         foreach (var blockDemand in blockDemands.Flush(blockchain))
         {
-            blockDemands.Remove(blockDemand.Peer);
             taskList.Add(ProcessBlockDemandAsync(blockDemand, tip, cancellationToken));
         }
 

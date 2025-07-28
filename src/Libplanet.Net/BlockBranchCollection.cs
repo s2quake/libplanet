@@ -85,10 +85,12 @@ public sealed class BlockBranchCollection : IEnumerable<BlockBranch>, INotifyCol
     {
         using var _ = _lock.WriteScope();
         var tipHeight = blockchain.Tip.Height;
-        var items = _branchByHeader.Values.Where(item => item.Height > tipHeight).ToArray();
+        var items = _branchByHeader.Values.Where(Predicate).ToArray();
         _branchByHeader.Clear();
         CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
         return items;
+
+        bool Predicate(BlockBranch item) => item.Height <= tipHeight;
     }
 
     public IEnumerator<BlockBranch> GetEnumerator()
