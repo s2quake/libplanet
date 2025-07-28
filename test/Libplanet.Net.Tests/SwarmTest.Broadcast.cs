@@ -27,8 +27,8 @@ public partial class SwarmTest
     {
         const int blockCount = 5;
         using var fx = new MemoryRepositoryFixture();
-        await using var transportA = TestUtils.CreateTransport();
-        await using var transportB = TestUtils.CreateTransport();
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
         await using var transports = new ServiceCollection
         {
             transportA,
@@ -38,9 +38,13 @@ public partial class SwarmTest
         var peerExplorerB = new PeerExplorer(transportB);
         var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
-        var blockDemands = new BlockDemandCollection();
-        var blockBranches = new BlockBranchCollection();
-        var blockBranchServiceB = new BlockBranchService(blockchainB, transportB, blockBranches, blockDemands);
+        var serviceA = new BlockchainSynchronizationResponderService(blockchainA, transportA);
+        var serviceB = new BlockchainSynchronizationService(blockchainB, transportB);
+        await using var services = new ServiceCollection
+        {
+            serviceA,
+            serviceB,
+        };
 
         blockchainA.ProposeAndAppendMany(blockCount);
 
@@ -48,13 +52,8 @@ public partial class SwarmTest
         Assert.NotEqual(blockchainA.Tip, blockchainB.Tip);
         Assert.NotNull(blockchainA.BlockCommits[blockchainA.Tip.BlockHash]);
 
-        transportA.MessageHandlers.Add(new BlockHashRequestMessageHandler(blockchainA, transportA));
-        transportA.MessageHandlers.Add(new BlockRequestMessageHandler(blockchainA, transportA, 1));
-
-        transportB.MessageHandlers.Add(new BlockSummaryMessageHandler(blockchainB, blockDemands));
-
         await transports.StartAsync(default);
-        await blockBranchServiceB.StartAsync(default);
+        await services.StartAsync(default);
 
         await peerExplorerA.PingAsync(transportB.Peer, default);
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);

@@ -46,10 +46,11 @@ public sealed class PeerExplorer : IDisposable
 
     internal ITransport Transport => _transport;
 
-    public void Broadcast(IMessage message)
+    public ImmutableArray<Peer> Broadcast(IMessage message)
     {
         var peers = Peers.PeersToBroadcast(default);
         _transport.Post(peers, message);
+        return peers;
     }
 
     public void Broadcast(IMessage message, ImmutableArray<Peer> except)

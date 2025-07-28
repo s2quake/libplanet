@@ -25,7 +25,7 @@ public sealed class PeerCollection(
     {
         get
         {
-            using var scope = new ReadScope(_lock);
+            using var _ = new ReadScope(_lock);
             return _buckets.Sum(item => item.Count);
         }
     }

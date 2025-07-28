@@ -2,12 +2,12 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-public static class IPeerCollectionExtensions
+public static class PeerCollectionExtensions
 {
-    public static PeerState GetState(this IPeerCollection @this, Address address)
+    public static PeerState GetState(this PeerCollection @this, Address address)
         => @this.Buckets[@this.GetBucketIndex(address)][address];
 
-    public static ImmutableArray<Peer> GetStalePeers(this IPeerCollection @this, TimeSpan staleThreshold)
+    public static ImmutableArray<Peer> GetStalePeers(this PeerCollection @this, TimeSpan staleThreshold)
     {
         var query = from bucket in @this.Buckets
                     where bucket.Count is not 0 && bucket.Oldest.IsStale(staleThreshold)
@@ -17,7 +17,7 @@ public static class IPeerCollectionExtensions
     }
 
     internal static ImmutableArray<Peer> PeersToBroadcast(
-        this IPeerCollection @this, ImmutableArray<Peer> except, int minimum = 10)
+        this PeerCollection @this, ImmutableArray<Peer> except, int minimum = 10)
     {
         var query = from bucket in @this.Buckets
                     where !bucket.IsEmpty
@@ -38,7 +38,7 @@ public static class IPeerCollectionExtensions
     }
 
     internal static ImmutableArray<Peer> GetNeighbors(
-        this IPeerCollection @this, Address target, int k, bool includeTarget = false)
+        this PeerCollection @this, Address target, int k, bool includeTarget = false)
     {
         // Select maximum k * 2 peers excluding the target itself.
         var query = from bucket in @this.Buckets
