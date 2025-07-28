@@ -6,6 +6,10 @@ namespace Libplanet.Extensions;
 
 public static class IObservableExtensions
 {
+    public static async Task<T> WaitAsync<T>(this IObservable<T> @this)
+        where T : notnull
+        => await WaitAsync(@this, cancellationToken: default);
+
     public static async Task<T> WaitAsync<T>(this IObservable<T> @this, CancellationToken cancellationToken)
         where T : notnull
     {
@@ -20,6 +24,11 @@ public static class IObservableExtensions
         await Task.Run(resetEvent.WaitOne, cancellationToken);
         return result ?? throw new UnreachableException("No matching item found in observable.");
     }
+
+    public static async Task<T> WaitAsync<T>(
+        this IObservable<T> @this, Func<T, bool> predicate)
+        where T : notnull
+        => await WaitAsync(@this, predicate, cancellationToken: default);
 
     public static async Task<T> WaitAsync<T>(
         this IObservable<T> @this, Func<T, bool> predicate, CancellationToken cancellationToken)

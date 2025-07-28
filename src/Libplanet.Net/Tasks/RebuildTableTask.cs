@@ -8,7 +8,10 @@ internal sealed class RebuildTableTask(
     PeerExplorer peerService, ImmutableHashSet<Peer> seeds, TimeSpan rebuildTableInterval)
     : BackgroundServiceBase
 {
-    protected override TimeSpan Interval => rebuildTableInterval;
+    protected override TimeSpan GetInterval()
+    {
+        return rebuildTableInterval;
+    }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {

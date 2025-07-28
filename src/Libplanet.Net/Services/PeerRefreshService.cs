@@ -7,7 +7,12 @@ namespace Libplanet.Net.Services;
 internal sealed class PeerRefreshService(PeerExplorer peerExplorer, TimeSpan interval, TimeSpan refreshLifespan)
     : BackgroundServiceBase
 {
-    protected override TimeSpan Interval { get; } = interval;
+    private readonly TimeSpan interval = interval;
+
+    protected override TimeSpan GetInterval()
+    {
+        return interval;
+    }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {

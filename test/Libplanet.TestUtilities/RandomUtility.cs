@@ -228,6 +228,15 @@ public static partial class RandomUtility
 
     public static TimeSpan TimeSpan(Random random) => new(random.NextInt64(new TimeSpan(365, 0, 0, 0).Ticks));
 
+    public static TimeSpan TimeSpan(int minMilliseconds, int maxMilliseconds)
+        => TimeSpan(System.Random.Shared, minMilliseconds, maxMilliseconds);
+
+    public static TimeSpan TimeSpan(Random random, int minMilliseconds, int maxMilliseconds)
+    {
+        var milliseconds = random.Next(minMilliseconds, maxMilliseconds);
+        return System.TimeSpan.FromMilliseconds(milliseconds);
+    }
+
     public static Guid Guid() => Guid(System.Random.Shared);
 
     public static Guid Guid(Random random) => new Guid(Array(random, Byte, 16));

@@ -18,6 +18,7 @@ using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Components;
 using Libplanet.Net.Services;
 using Libplanet.Extensions;
+using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Tests;
 
@@ -128,7 +129,7 @@ public partial class SwarmTest
         Assert.Contains(seedTransport.Peer, peerExplorerB.Peers);
 
         seedPeerExplorer.Broadcast(seedBlockchain.Genesis.BlockHash, seedBlockchain.Tip);
-        await serviceB.Synchronized.WaitAsync(default);
+        await serviceB.Synchronized.WaitAsync();
 
         Assert.NotEqual(seedBlockchain.Blocks.Keys, blockchainA.Blocks.Keys);
         Assert.Equal(seedBlockchain.Blocks.Keys, blockchainB.Blocks.Keys);
@@ -176,69 +177,127 @@ public partial class SwarmTest
         Assert.NotEqual(blockchainA.Tip, blockchainB.Tip);
     }
 
-    [RetryFact(10, Timeout = Timeout)]
+    [Fact(Timeout = Timeout)]
     public async Task BroadcastWhileMining()
     {
         var minerA = new PrivateKey();
         var minerB = new PrivateKey();
-        Swarm a = await CreateSwarm(minerA).ConfigureAwait(false);
-        Swarm b = await CreateSwarm(minerB).ConfigureAwait(false);
+        // Swarm a = await CreateSwarm(minerA).ConfigureAwait(false);
+        // Swarm b = await CreateSwarm(minerB).ConfigureAwait(false);
 
-        Blockchain chainA = a.Blockchain;
-        Blockchain chainB = b.Blockchain;
-
-        Task CreateMiner(
-            PrivateKey miner,
-            Swarm swarm,
-            Blockchain chain,
-            int delay,
-            CancellationToken cancellationToken)
+        var transportA = TestUtils.CreateTransport(minerA);
+        var transportB = TestUtils.CreateTransport(minerB);
+        using var peerExplorerA = new PeerExplorer(transportA);
+        using var peerExplorerB = new PeerExplorer(transportB);
+        await using var transports = new ServiceCollection
         {
-            return Task.Run(async () =>
+            transportA,
+            transportB,
+        };
+        var blockchainA = MakeBlockchain();
+        var blockchainB = MakeBlockchain();
+        var serviceA = new BlockchainSynchronizationResponderService(blockchainA, transportA);
+        var broadcastServiceA = new BlockchainBroadcastService(blockchainA, peerExplorerA);
+        var syncServiceB = new BlockchainSynchronizationService(blockchainB, transportB);
+        await using var services = new ServiceCollection
+        {
+            serviceA,
+            broadcastServiceA,
+            syncServiceB,
+        };
+
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
+
+        await peerExplorerA.PingAsync(transportB.Peer, default);
+
+        await Task.Run(async () =>
+        {
+            var minInterval = 100;
+            var maxInterval = 2000;
+            while (blockchainA.Tip.Height < 10)
             {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    try
-                    {
-                        var block = chain.ProposeBlock(miner);
-                        chain.Append(block, TestUtils.CreateBlockCommit(block));
+                var interval = RandomUtility.TimeSpan(minInterval, maxInterval);
+                await Task.Delay(interval);
+                blockchainA.ProposeAndAppend(minerA);
+            }
+        });
 
-                        Log.Debug(
-                            "Block mined. [Node: {0}, Block: {1}]",
-                            swarm.Address,
-                            block.BlockHash);
-                        swarm.BroadcastBlock(block);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        continue;
-                    }
-                    finally
-                    {
-                        await Task.Delay(delay);
-                    }
-                }
+        using var cancellationSource = new CancellationTokenSource(2000);
+        await syncServiceB.Synchronized.WaitAsync(e => e.End.Value == 10, cancellationSource.Token);
 
-                swarm.BroadcastBlock(chain.Blocks[-1]);
-                Log.Debug("Mining complete");
-            });
-        }
+        Assert.Equal(blockchainA.Blocks.Keys, blockchainB.Blocks.Keys);
 
-        await a.StartAsync(default);
-        await b.StartAsync(default);
+        // async Task MineAsync(CancellationToken cancellationToken)
+        // {
+        //     var minInterval = TimeSpan.FromMilliseconds(100);
+        //     var maxInterval = TimeSpan.FromSeconds(2);
+        //     while (blockchainA.Tip.Height < 10 && !cancellationToken.IsCancellationRequested)
+        //     {
+        //         var interval = RandomUtility.TimeSpan(minInterval.Milliseconds, maxInterval.Milliseconds);
+        //         await Task.Delay(interval, cancellationToken);
+        //         blockchainA.ProposeAndAppend(minerA);
+        //     }
+        //     cancellationToken.ThrowIfCancellationRequested();
+        // }
 
-        await a.AddPeersAsync([b.Peer], default);
 
-        var minerCanceller = new CancellationTokenSource();
-        Task miningA = CreateMiner(minerA, a, chainA, 4000, minerCanceller.Token);
 
-        await Task.Delay(10000);
-        minerCanceller.Cancel();
+        // Blockchain chainA = a.Blockchain;
+        // Blockchain chainB = b.Blockchain;
 
-        await miningA;
-        await Task.Delay(5000);
+        // Task CreateMiner(
+        //     PrivateKey miner,
+        //     Swarm swarm,
+        //     Blockchain chain,
+        //     int delay,
+        //     CancellationToken cancellationToken)
+        // {
+        //     return Task.Run(async () =>
+        //     {
+        //         while (!cancellationToken.IsCancellationRequested)
+        //         {
+        //             try
+        //             {
+        //                 var block = chain.ProposeBlock(miner);
+        //                 chain.Append(block, TestUtils.CreateBlockCommit(block));
 
-        Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
+        //                 Log.Debug(
+        //                     "Block mined. [Node: {0}, Block: {1}]",
+        //                     swarm.Address,
+        //                     block.BlockHash);
+        //                 swarm.BroadcastBlock(block);
+        //             }
+        //             catch (OperationCanceledException)
+        //             {
+        //                 continue;
+        //             }
+        //             finally
+        //             {
+        //                 await Task.Delay(delay);
+        //             }
+        //         }
+
+        //         swarm.BroadcastBlock(chain.Blocks[-1]);
+        //         Log.Debug("Mining complete");
+        //     });
+        // }
+
+        // await a.StartAsync(default);
+        // await b.StartAsync(default);
+
+        // await a.AddPeersAsync([b.Peer], default);
+
+        // var minerCanceller = new CancellationTokenSource();
+        // Task miningA = CreateMiner(minerA, a, chainA, 4000, minerCanceller.Token);
+
+        // await Task.Delay(10000);
+        // minerCanceller.Cancel();
+
+        // await miningA;
+        // await Task.Delay(5000);
+
+        // Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
     }
 
     [Fact(Timeout = Timeout)]

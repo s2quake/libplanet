@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -9,7 +10,7 @@ namespace Libplanet.Net.Services;
 
 internal sealed class BlockchainSynchronizationService : ServiceBase
 {
-    private readonly Subject<Unit> _synchronizedSubject = new();
+    private readonly Subject<Range> _synchronizedSubject = new();
     private readonly Blockchain _blockchain;
     private readonly ITransport _transport;
     private readonly BlockFetcher _blockFetcher;
@@ -27,12 +28,16 @@ internal sealed class BlockchainSynchronizationService : ServiceBase
         _blockBranchAppender = new(blockchain);
         _subscriptions =
         [
-            _blockBranchAppender.BlockBranchAppended.Subscribe(
-                branch => _synchronizedSubject.OnNext(Unit.Default))
+            _blockBranchAppender.BlockBranchAppended.Subscribe(branch =>
+            {
+                _synchronizedSubject.OnNext(
+                    new Range(branch.Blocks[0].Height, branch.Blocks[^1].Height + 1));
+                Trace.WriteLine($"{branch.Blocks[0].Height}, {branch.Blocks[^1].Height + 1}");
+            }),
         ];
     }
 
-    public IObservable<Unit> Synchronized => _synchronizedSubject;
+    public IObservable<Range> Synchronized => _synchronizedSubject;
 
     public BlockDemandCollection BlockDemands { get; } = new();
 

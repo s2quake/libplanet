@@ -6,7 +6,10 @@ namespace Libplanet.Net.Tasks;
 
 internal sealed class RebuildConnectionTask(Swarm swarm) : BackgroundServiceBase
 {
-    protected override TimeSpan Interval => TimeSpan.FromMinutes(30);
+    protected override TimeSpan GetInterval()
+    {
+        return TimeSpan.FromMinutes(30);
+    }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {

@@ -40,7 +40,7 @@ public partial class BlockchainSynchronizationServiceTest(ITestOutputHelper outp
         transportA.PostBlock(transportB.Peer, blockchainA, blockchainA.Tip);
 
         // Then
-        await serviceB.Synchronized.WaitAsync(default);
+        await serviceB.Synchronized.WaitAsync();
         Assert.Equal(blockchainA.Tip, blockchainB.Tip);
         Assert.Equal(0, serviceB.BlockBranches.Count);
         Assert.Equal(0, serviceB.BlockDemands.Count);

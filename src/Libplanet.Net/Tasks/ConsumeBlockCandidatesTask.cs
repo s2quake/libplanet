@@ -18,7 +18,10 @@ internal sealed class ConsumeBlockCandidatesTask(Blockchain blockchain, BlockBra
 
     public IObservable<Unit> BlockAppended => _blockAppendedSubject;
 
-    protected override TimeSpan Interval => TimeSpan.FromMilliseconds(10);
+    protected override TimeSpan GetInterval()
+    {
+        return TimeSpan.FromMilliseconds(10);
+    }
 
     protected override async ValueTask DisposeAsyncCore()
     {

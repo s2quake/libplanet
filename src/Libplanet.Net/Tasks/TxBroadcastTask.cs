@@ -7,7 +7,10 @@ internal sealed class TxBroadcastTask(Swarm swarm) : BackgroundServiceBase
 {
     private readonly Blockchain _blockchain = swarm.Blockchain;
 
-    protected override TimeSpan Interval => swarm.Options.TxBroadcastInterval;
+    protected override TimeSpan GetInterval()
+    {
+        return swarm.Options.TxBroadcastInterval;
+    }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {

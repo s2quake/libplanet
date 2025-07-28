@@ -9,7 +9,7 @@ public abstract class BackgroundServiceBase : ServiceBase
     private CancellationTokenSource? _cancellationTokenSource;
     private Task _runTask = Task.CompletedTask;
 
-    protected abstract TimeSpan Interval { get; }
+    protected abstract TimeSpan GetInterval();
 
     protected abstract Task ExecuteAsync(CancellationToken cancellationToken);
 
@@ -47,7 +47,7 @@ public abstract class BackgroundServiceBase : ServiceBase
 
     private async Task RunAsync(CancellationToken cancellationToken)
     {
-        while (await TaskUtility.TryDelay(Interval, cancellationToken))
+        while (await TaskUtility.TryDelay(GetInterval(), cancellationToken))
         {
             try
             {

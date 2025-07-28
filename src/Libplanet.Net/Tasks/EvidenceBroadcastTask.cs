@@ -6,7 +6,10 @@ namespace Libplanet.Net.Tasks;
 
 internal sealed class EvidenceBroadcastTask(Swarm swarm) : BackgroundServiceBase
 {
-    protected override TimeSpan Interval => swarm.Options.EvidenceBroadcastInterval;
+    protected override TimeSpan GetInterval()
+    {
+        return swarm.Options.EvidenceBroadcastInterval;
+    }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {

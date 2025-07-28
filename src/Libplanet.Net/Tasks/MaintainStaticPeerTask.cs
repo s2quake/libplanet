@@ -5,7 +5,10 @@ namespace Libplanet.Net.Tasks;
 
 internal sealed class MaintainStaticPeerTask(Swarm swarm) : BackgroundServiceBase
 {
-    protected override TimeSpan Interval => swarm.Options.StaticPeersMaintainPeriod;
+    protected override TimeSpan GetInterval()
+    {
+        return swarm.Options.StaticPeersMaintainPeriod;
+    }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {

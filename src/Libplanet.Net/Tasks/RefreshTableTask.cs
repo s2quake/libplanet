@@ -7,7 +7,10 @@ namespace Libplanet.Net.Tasks;
 internal sealed class RefreshTableTask(PeerExplorer peerService, TimeSpan refreshInterval, TimeSpan staleThreshold)
     : BackgroundServiceBase
 {
-    protected override TimeSpan Interval => refreshInterval;
+    protected override TimeSpan GetInterval()
+    {
+        return refreshInterval;
+    }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
