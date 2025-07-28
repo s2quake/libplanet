@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
+using Microsoft.CodeAnalysis;
 
 namespace Libplanet.Net;
 
@@ -14,22 +15,7 @@ public sealed record class BlockBranch : IValidatableObject
     [NotDefault]
     public ImmutableArray<BlockCommit> BlockCommits { get; init; } = [];
 
-    // public static BlockBranch Create(params (Block, BlockCommit)[] blockPairs) => new()
-    // {
-    //     Blocks = [.. blockPairs.Select(item => item.Item1)],
-    //     BlockCommits = [.. blockPairs.Select(item => item.Item2)],
-    // };
-
-    // public BlockBranch TakeAfter(Block branchPoint)
-    // {
-    //     var index = Blocks.IndexOf(branchPoint);
-    //     var i = index >= 0 ? index + 1 : int.MaxValue;
-    //     return new BlockBranch
-    //     {
-    //         Blocks = Blocks[i..],
-    //         BlockCommits = BlockCommits[i..],
-    //     };
-    // }
+    public int Height => BlockHeader.Height;
 
     public bool Equals(BlockBranch? other) => other switch
     {

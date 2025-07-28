@@ -1,11 +1,18 @@
 using System.Collections;
 
-namespace Libplanet.TestUtilities;
+namespace Libplanet.Net;
 
 public sealed class DisposerCollection(IEnumerable<IDisposable> disposables)
     : IEnumerable<IDisposable>, IDisposable
 {
     private readonly List<IDisposable> _itemList = [.. disposables];
+
+    public DisposerCollection()
+        : this([])
+    {
+    }
+
+    public void Add(IDisposable item) => _itemList.Add(item);
 
     public void Dispose()
     {

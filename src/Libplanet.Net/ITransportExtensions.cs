@@ -190,4 +190,14 @@ public static class ITransportExtensions
         var response = await @this.SendAsync<PeerResponseMessage>(peer, request, cancellationToken);
         return response.Peers;
     }
+
+    internal static void PostBlock(this ITransport @this, Peer peer, Blockchain blockchain, Block block)
+    {
+        var message = new BlockSummaryMessage
+        {
+            BlockSummary = block,
+            GenesisHash = blockchain.Genesis.BlockHash,
+        };
+        @this.Post(peer, message);
+    }
 }

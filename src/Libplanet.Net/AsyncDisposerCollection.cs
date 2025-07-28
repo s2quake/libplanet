@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Threading.Tasks;
 
-namespace Libplanet.TestUtilities;
+namespace Libplanet.Net;
 
 public sealed class AsyncDisposerCollection(IEnumerable<IAsyncDisposable> disposables)
     : IEnumerable<IAsyncDisposable>, IAsyncDisposable

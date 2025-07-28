@@ -8,7 +8,7 @@ public sealed class BlockBroadcastingHandler : IDisposable
     private readonly IMessageHandler[] _handlers;
     private bool _disposed;
 
-    public BlockBroadcastingHandler(ITransport transport, Blockchain blockchain, BlockDemandCollection blockDemands)
+    public BlockBroadcastingHandler(Blockchain blockchain, ITransport transport, BlockDemandCollection blockDemands)
     {
         _transport = transport;
         _handlers =

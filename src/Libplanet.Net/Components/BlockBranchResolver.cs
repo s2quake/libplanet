@@ -10,11 +10,12 @@ namespace Libplanet.Net.Components;
 public sealed class BlockBranchResolver(BlockFetcher blockFetcher)
     : IDisposable
 {
-    private readonly Subject<BlockBranch> _blockBranchCreatedSubject = new();
+    private readonly Subject<(BlockDemand, BlockBranch)> _blockBranchCreatedSubject = new();
+    private readonly Subject<(BlockDemand, Exception)> _blockBranchCreationFailedSubject = new();
     private readonly ConcurrentDictionary<Peer, int> _processByPeer = new();
     private bool _disposed;
 
-    public IObservable<BlockBranch> BlockBranchCreated => _blockBranchCreatedSubject;
+    public IObservable<(BlockDemand, BlockBranch)> BlockBranchCreated => _blockBranchCreatedSubject;
 
     public BlockBranchCollection BlockBranches { get; init; } = [];
 
@@ -28,7 +29,7 @@ public sealed class BlockBranchResolver(BlockFetcher blockFetcher)
         }
     }
 
-    public async Task ExecuteAsync(BlockDemandCollection blockDemands, Block tip, CancellationToken cancellationToken)
+    public async Task ResolveAsync(BlockDemandCollection blockDemands, Block tip, CancellationToken cancellationToken)
     {
         var taskList = new List<Task>(blockDemands.Count);
         foreach (var blockDemand in blockDemands)
@@ -64,11 +65,11 @@ public sealed class BlockBranchResolver(BlockFetcher blockFetcher)
                 BlockCommits = [.. blockPairs.Select(item => item.Item2)],
             };
             BlockBranches.Add(tip.Header, blockBranch);
-            _blockBranchCreatedSubject.OnNext(blockBranch);
+            _blockBranchCreatedSubject.OnNext((blockDemand, blockBranch));
         }
         catch (Exception e)
         {
-            _blockBranchCreatedSubject.OnError(e);
+            _blockBranchCreationFailedSubject.OnNext((blockDemand, e));
         }
         finally
         {

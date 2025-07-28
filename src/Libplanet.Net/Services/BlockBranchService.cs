@@ -52,7 +52,7 @@ public sealed class BlockBranchService : BackgroundServiceBase
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var tip = _blockchain.Tip;
-        await _blockBranchResolver.ExecuteAsync(_blockDemands, tip, cancellationToken);
-        await _blockBranchAppender.ExecuteAsync(_blockBranches, cancellationToken);
+        await _blockBranchResolver.ResolveAsync(_blockDemands, tip, cancellationToken);
+        await _blockBranchAppender.AppendAsync(_blockBranches, cancellationToken);
     }
 }

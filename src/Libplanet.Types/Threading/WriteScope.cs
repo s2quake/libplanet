@@ -6,9 +6,9 @@ public readonly struct WriteScope : IDisposable
 {
     private readonly ReaderWriterLockSlim _lock;
 
-    public WriteScope(ReaderWriterLockSlim rwLock)
+    public WriteScope(ReaderWriterLockSlim @lock)
     {
-        _lock = rwLock;
+        _lock = @lock;
         _lock.EnterWriteLock();
     }
 
