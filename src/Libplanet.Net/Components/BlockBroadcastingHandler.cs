@@ -2,27 +2,21 @@ using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Components;
 
-public sealed class BlockBroadcastingHandler : IDisposable
+public sealed class BlockBroadcastingHandler(
+    Blockchain blockchain, ITransport transport, BlockDemandCollection blockDemands)
+    : IDisposable
 {
-    private readonly ITransport _transport;
-    private readonly IMessageHandler[] _handlers;
+    private readonly IDisposable _handlerRegistration = transport.MessageRouter.RegisterMany(
+    [
+        new BlockSummaryMessageHandler(blockchain, blockDemands),
+    ]);
     private bool _disposed;
-
-    public BlockBroadcastingHandler(Blockchain blockchain, ITransport transport, BlockDemandCollection blockDemands)
-    {
-        _transport = transport;
-        _handlers =
-        [
-            new BlockSummaryMessageHandler(blockchain, blockDemands),
-        ];
-        _transport.MessageHandlers.AddRange(_handlers);
-    }
 
     public void Dispose()
     {
         if (!_disposed)
         {
-            _transport.MessageHandlers.RemoveRange(_handlers);
+            _handlerRegistration.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }

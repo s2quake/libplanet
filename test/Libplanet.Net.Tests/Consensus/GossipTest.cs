@@ -30,11 +30,11 @@ public sealed class GossipTest(ITestOutputHelper output)
         await using var transport2 = CreateTransport(key2);
         await using var gossip1 = CreateGossip(transport1, [transport2.Peer]);
         await using var gossip2 = CreateGossip(transport2, [transport1.Peer]);
-        transport1.MessageHandlers.Add<ConsensusProposalMessage>(message =>
+        transport1.MessageHandlers.Register<ConsensusProposalMessage>(message =>
         {
             received1 = true;
         });
-        transport2.MessageHandlers.Add<ConsensusProposalMessage>(message =>
+        transport2.MessageHandlers.Register<ConsensusProposalMessage>(message =>
         {
             received2 = true;
             receivedEvent.Set();
@@ -62,11 +62,11 @@ public sealed class GossipTest(ITestOutputHelper output)
         await using var transport2 = CreateTransport(key2);
         await using var gossip1 = CreateGossip(transport1, [transport2.Peer]);
         await using var gossip2 = CreateGossip(transport2, [transport1.Peer]);
-        transport1.MessageHandlers.Add<ConsensusProposalMessage>(message =>
+        transport1.MessageHandlers.Register<ConsensusProposalMessage>(message =>
         {
             received1++;
         });
-        transport2.MessageHandlers.Add<ConsensusProposalMessage>(message =>
+        transport2.MessageHandlers.Register<ConsensusProposalMessage>(message =>
         {
             received2++;
             if (received2 == 4)
@@ -112,7 +112,7 @@ public sealed class GossipTest(ITestOutputHelper output)
         var handled = false;
         await using var transport = CreateTransport();
         await using var gossip = CreateGossip(seeds: [transport.Peer]);
-        transport.MessageHandlers.Add<HaveMessage>(_ =>
+        transport.MessageHandlers.Register<HaveMessage>(_ =>
         {
             handled = true;
         });
@@ -140,9 +140,9 @@ public sealed class GossipTest(ITestOutputHelper output)
 
         await using var receiver = CreateGossip();
         await using var sender1 = CreateTransport();
-        sender1.MessageHandlers.Add<IMessage>(HandelMessage);
+        sender1.MessageHandlers.Register<IMessage>(HandelMessage);
         await using var sender2 = CreateTransport();
-        sender2.MessageHandlers.Add<IMessage>(HandelMessage);
+        sender2.MessageHandlers.Register<IMessage>(HandelMessage);
 
         await receiver.StartAsync(default);
         await sender1.StartAsync(default);

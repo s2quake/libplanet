@@ -147,7 +147,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        transportB.MessageHandlers.Add<PingMessage>((m, e) =>
+        transportB.MessageRouter.Register<PingMessage>((m, e) =>
         {
             transportB.Post(e.Sender, new PingMessage(), e.Identity);
             transportB.Post(e.Sender, new PongMessage(), e.Identity);
@@ -268,7 +268,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
-        transportB.MessageHandlers.Add<PingMessage>(async (m, e) =>
+        transportB.MessageRouter.Register<PingMessage>(async (m, e) =>
         {
             while (transportB.IsRunning)
             {

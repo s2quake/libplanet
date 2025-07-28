@@ -27,7 +27,7 @@ public static class ITransportExtensions
             @this.StoppingToken, cancellationToken, timeoutCancellationTokenSource.Token);
         var resetEvent = new ManualResetEventSlim(false);
         MessageEnvelope? response = null;
-        var handler = @this.MessageHandlers.Add<T>((m, e) =>
+        using var _1 = @this.MessageRouter.Register<T>((m, e) =>
         {
             if (e.ReplyTo == request.Identity)
             {
@@ -54,10 +54,6 @@ public static class ITransportExtensions
         {
             throw new OperationCanceledException($"{@this} has been stopped.", e, @this.StoppingToken);
         }
-        finally
-        {
-            @this.MessageHandlers.Remove(handler);
-        }
     }
 
     public static async IAsyncEnumerable<T> SendAsync<T>(
@@ -70,14 +66,13 @@ public static class ITransportExtensions
     {
         var request = @this.Post(peer, message, replyTo: null);
         var channel = Channel.CreateUnbounded<MessageEnvelope>();
-        var handler = @this.MessageHandlers.Add<T>((m, e) =>
+        using var _1 = @this.MessageRouter.Register<T>((m, e) =>
         {
             if (e.ReplyTo == request.Identity)
             {
                 channel.Writer.TryWrite(e);
             }
         });
-        using var _1 = new MessageHandlerScope(@this.MessageHandlers, handler);
 
         while (true)
         {

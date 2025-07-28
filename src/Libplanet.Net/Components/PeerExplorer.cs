@@ -16,7 +16,7 @@ public sealed class PeerExplorer : IDisposable
     private readonly PeerExplorerOptions _options;
     private readonly Address _owner;
     private readonly PeerCollection _replacementCache;
-    private readonly IMessageHandler[] _handlers;
+    private readonly IDisposable _handlerRegistration;
 
     public PeerExplorer(ITransport transport)
         : this(transport, PeerExplorerOptions.Default)
@@ -31,13 +31,12 @@ public sealed class PeerExplorer : IDisposable
         Peers = new(_owner, options.BucketCount, options.CapacityPerBucket);
         Peers.AddOrUpdateMany([.. options.KnownPeers]);
         _replacementCache = new PeerCollection(_owner, options.BucketCount, options.CapacityPerBucket);
-        _handlers =
+        _handlerRegistration = _transport.MessageRouter.RegisterMany(
         [
             new PingMessageHandler(_transport),
             new PeerRequestMessageHandler(_transport, Peers),
             new DefaultMessageHandler(this),
-        ];
-        _transport.MessageHandlers.AddRange(_handlers);
+        ]);
     }
 
     public Peer Peer => _transport.Peer;
@@ -195,7 +194,7 @@ public sealed class PeerExplorer : IDisposable
 
     public void Dispose()
     {
-        _transport.MessageHandlers.RemoveRange(_handlers);
+        _handlerRegistration.Dispose();
     }
 
     internal bool AddOrUpdate(Peer peer) => AddOrUpdate(peer, DateTimeOffset.UtcNow, TimeSpan.Zero);

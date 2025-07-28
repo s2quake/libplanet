@@ -63,8 +63,8 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     {
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
-        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
-        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
+        transportA.MessageRouter.Register(new PingMessageHandler(transportA));
+        transportB.MessageRouter.Register(new PingMessageHandler(transportB));
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
@@ -164,7 +164,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportB = TestUtils.CreateTransport();
 
         using var peerDiscoveryA = new PeerExplorer(transportA);
-        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
+        transportB.MessageRouter.Register(new PingMessageHandler(transportB));
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
@@ -223,9 +223,9 @@ public sealed class ProtocolTest(ITestOutputHelper output)
             CapacityPerBucket = 1,
         };
         using var peerDiscovery = new PeerExplorer(transport, peerDiscoveryOptions);
-        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
-        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
-        transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
+        transportA.MessageRouter.Register(new PingMessageHandler(transportA));
+        transportB.MessageRouter.Register(new PingMessageHandler(transportB));
+        transportC.MessageRouter.Register(new PingMessageHandler(transportC));
 
         await transport.StartAsync(default);
         await transportA.StartAsync(default);
@@ -266,9 +266,9 @@ public sealed class ProtocolTest(ITestOutputHelper output)
             CapacityPerBucket = 1,
         };
         var peerDiscovery = new PeerExplorer(transport, peerDiscoveryOptions);
-        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
-        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
-        transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
+        transportA.MessageRouter.Register(new PingMessageHandler(transportA));
+        transportB.MessageRouter.Register(new PingMessageHandler(transportB));
+        transportC.MessageRouter.Register(new PingMessageHandler(transportC));
 
         await transport.StartAsync(default);
         await transportA.StartAsync(default);

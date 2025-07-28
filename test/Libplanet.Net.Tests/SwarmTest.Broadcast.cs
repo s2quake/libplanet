@@ -138,6 +138,7 @@ public partial class SwarmTest
     public async Task BroadcastIgnoreFromDifferentGenesisHash()
     {
         var random = RandomUtility.GetRandom(output);
+        using var fx = new MemoryRepositoryFixture();
         var privateKeyA = RandomUtility.PrivateKey(random);
 
         var transportA = TestUtils.CreateTransport(privateKeyA);
@@ -147,20 +148,13 @@ public partial class SwarmTest
             transportA,
             transportB,
         };
-        var blockchainA = TestUtils.CreateBlockchain();
-        var blockchainB = TestUtils.CreateBlockchain();
-        var peerExplorerA = new PeerExplorer(transportA);
-        var peerExplorerB = new PeerExplorer(transportB);
+        var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = MakeBlockchain();
+        using var peerExplorerA = new PeerExplorer(transportA);
+        using var peerExplorerB = new PeerExplorer(transportB);
 
-        var servicesA = new ServiceCollection
-        {
-            // new BlockchainBroadcastService(blockchainA, peerExplorerA),
-            new BlockchainSynchronizationResponderService(blockchainA, transportA),
-        };
-        var servicesB = new ServiceCollection
-        {
-            new BlockchainSynchronizationService(blockchainB, transportB),
-        };
+        var servicesA = new BlockchainSynchronizationResponderService(blockchainA, transportA);
+        var servicesB = new BlockchainSynchronizationService(blockchainB, transportB);
         await using var services = new ServiceCollection
         {
             servicesA,
@@ -173,26 +167,13 @@ public partial class SwarmTest
         await peerExplorerB.PingAsync(transportA.Peer, default);
 
         blockchainA.ProposeAndAppend(privateKeyA);
-        transportA.PostBlock(transportB.Peer, blockchainA, blockchainA.Tip);
-
-        Swarm receiverSwarm = await CreateSwarm(privateKeyA);
-        Blockchain receiverChain = receiverSwarm.Blockchain;
-        BlockchainOptions policy = receiverChain.Options;
-        Blockchain seedChain = MakeBlockchain(
-            options: policy,
-            privateKey: privateKeyA);
-        var seedMiner = new PrivateKey();
-        Swarm seedSwarm =
-            await CreateSwarm(seedChain, seedMiner);
-
-        await receiverSwarm.StartAsync(default);
-        await seedSwarm.StartAsync(default);
-
-        await receiverSwarm.AddPeersAsync([seedSwarm.Peer], default);
-        Block block = seedChain.ProposeBlock(seedMiner);
-        seedChain.Append(block, TestUtils.CreateBlockCommit(block));
-        seedSwarm.BroadcastBlock(block);
-        Assert.NotEqual(seedChain.Tip, receiverChain.Tip);
+        var waitTask = transportB.MessageRouter.ErrorOccurred.WaitAsync(
+            e => e.MessageHandler is BlockSummaryMessageHandler,
+            default);
+        peerExplorerA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
+        var result = await waitTask;
+        Assert.IsType<InvalidMessageException>(result.Exception);
+        Assert.NotEqual(blockchainA.Tip, blockchainB.Tip);
     }
 
     [RetryFact(10, Timeout = Timeout)]
@@ -767,17 +748,17 @@ public partial class SwarmTest
         var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainC = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
 
-        transportA.MessageHandlers.Add(new PingMessageHandler(transportA));
-        transportA.MessageHandlers.Add(new BlockchainStateRequestMessageHandler(blockchainA, transportA));
-        transportA.MessageHandlers.Add(new BlockHashRequestMessageHandler(blockchainA, transportA));
-        transportA.MessageHandlers.Add(new BlockRequestMessageHandler(blockchainA, transportA, 1));
+        transportA.MessageRouter.Register(new PingMessageHandler(transportA));
+        transportA.MessageRouter.Register(new BlockchainStateRequestMessageHandler(blockchainA, transportA));
+        transportA.MessageRouter.Register(new BlockHashRequestMessageHandler(blockchainA, transportA));
+        transportA.MessageRouter.Register(new BlockRequestMessageHandler(blockchainA, transportA, 1));
 
-        transportB.MessageHandlers.Add(new PingMessageHandler(transportB));
-        transportB.MessageHandlers.Add(new BlockHashRequestMessageHandler(blockchainB, transportB));
-        transportB.MessageHandlers.Add(new BlockRequestMessageHandler(blockchainB, transportB, 1));
-        transportB.MessageHandlers.Add(new BlockchainStateRequestMessageHandler(blockchainB, transportB));
+        transportB.MessageRouter.Register(new PingMessageHandler(transportB));
+        transportB.MessageRouter.Register(new BlockHashRequestMessageHandler(blockchainB, transportB));
+        transportB.MessageRouter.Register(new BlockRequestMessageHandler(blockchainB, transportB, 1));
+        transportB.MessageRouter.Register(new BlockchainStateRequestMessageHandler(blockchainB, transportB));
 
-        transportC.MessageHandlers.Add(new PingMessageHandler(transportC));
+        transportC.MessageRouter.Register(new PingMessageHandler(transportC));
 
         blockchainA.ProposeAndAppendMany(keyA, 5);
         blockchainA.AppendTo(blockchainB, new Range(1, 3));
@@ -881,7 +862,7 @@ public partial class SwarmTest
             }
         }
 
-        mockTransport.MessageHandlers.Add<IMessage>(MessageHandler);
+        mockTransport.MessageHandlers.Register<IMessage>(MessageHandler);
 
         Block block1 = ProposeNextBlock(
             receiver.Blockchain.Genesis,

@@ -1,0 +1,204 @@
+using System.Collections;
+using System.Diagnostics;
+using System.Reactive.Subjects;
+using System.Threading;
+using System.Threading.Tasks;
+using Libplanet.Net.Messages;
+using Libplanet.Types.Threading;
+
+namespace Libplanet.Net;
+
+public sealed class MessageRouter(IEnumerable<IMessageHandler> handlers)
+    : IEnumerable<IMessageHandler>, IAsyncDisposable, IMessageRouter
+{
+    private readonly Subject<(IMessageHandler, Exception)> _errorOccurredSubject = new();
+    private readonly Dictionary<Type, List<IMessageHandler>> _handlersByType = CreateHandlersByType(handlers);
+    private readonly List<IMessageHandler> _handlerList = [.. handlers];
+    private readonly ReaderWriterLockSlim _lock = new();
+
+    public MessageRouter()
+        : this([])
+    {
+    }
+
+    public IObservable<(IMessageHandler, Exception)> ErrorOccurred => _errorOccurredSubject;
+
+    public int Count
+    {
+        get
+        {
+            using var _ = _lock.ReadScope();
+            return _handlerList.Count;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _errorOccurredSubject.Dispose();
+        foreach (var handler in _handlerList)
+        {
+            if (handler is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+
+            if (handler is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+    }
+
+    public IDisposable Register(IMessageHandler handler)
+    {
+        using var _ = _lock.WriteScope();
+        AddInternal(handler);
+        return new Unregister(this, [handler]);
+    }
+
+    public IDisposable Register<T>(Action<T, MessageEnvelope> action)
+        where T : IMessage
+    {
+        var handler = new RelayMessageHandler<T>(action);
+        AddInternal(handler);
+        return new Unregister(this, [handler]);
+    }
+
+    public IDisposable Register<T>(Action<T> action)
+        where T : IMessage
+    {
+        var handler = new RelayMessageHandler<T>(action);
+        AddInternal(handler);
+        return new Unregister(this, [handler]);
+    }
+
+    public IDisposable RegisterMany(ImmutableArray<IMessageHandler> handlers)
+    {
+        using var _ = _lock.WriteScope();
+        foreach (var handler in handlers)
+        {
+            AddInternal(handler);
+        }
+
+        return new Unregister(this, handlers);
+    }
+
+    public void UnregisterMany(IEnumerable<IMessageHandler> handlers)
+    {
+        using var _ = _lock.WriteScope();
+        foreach (var handler in handlers)
+        {
+            RemoveInternal(handler);
+        }
+    }
+
+    public bool Contains(Type messageType)
+    {
+        using var _ = new ReadScope(_lock);
+        return _handlersByType.ContainsKey(messageType);
+    }
+
+    public void Handle(MessageEnvelope messageEnvelope)
+    {
+        using var _ = new ReadScope(_lock);
+        var message = messageEnvelope.Message;
+        var messageType = message.GetType();
+        while (messageType is not null && typeof(IMessage).IsAssignableFrom(messageType))
+        {
+            if (_handlersByType.TryGetValue(messageType, out var handlers1))
+            {
+                foreach (var handler in handlers1)
+                {
+                    HandleInternal(handler, messageEnvelope);
+                }
+            }
+
+            messageType = messageType.BaseType;
+        }
+
+        if (_handlersByType.TryGetValue(typeof(IMessage), out var handlers2))
+        {
+            foreach (var handler in handlers2)
+            {
+                HandleInternal(handler, messageEnvelope);
+            }
+        }
+    }
+
+    public IEnumerator<IMessageHandler> GetEnumerator()
+    {
+        foreach (var item in _handlerList.ToArray())
+        {
+            yield return item;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private static Dictionary<Type, List<IMessageHandler>> CreateHandlersByType(IEnumerable<IMessageHandler> handlers)
+    {
+        var query = from handler in handlers
+                    group handler by handler.MessageType into @group
+                    select new { Type = @group.Key, Handlers = @group.ToList() };
+        return query.ToDictionary(item => item.Type, item => item.Handlers);
+    }
+
+    private void AddInternal(IMessageHandler handler)
+    {
+        if (!_handlersByType.TryGetValue(handler.MessageType, out var handlers1))
+        {
+            handlers1 = [];
+        }
+
+        handlers1.Add(handler);
+        _handlersByType[handler.MessageType] = handlers1;
+        _handlerList.Add(handler);
+    }
+
+    private void RemoveInternal(IMessageHandler handler)
+    {
+        if (!_handlersByType.TryGetValue(handler.MessageType, out var value))
+        {
+            return;
+        }
+
+        var removed = value.Remove(handler);
+        if (removed && !_handlerList.Remove(handler))
+        {
+            throw new UnreachableException("Failed to remove handler from the list.");
+        }
+
+        if (value.Count == 0)
+        {
+            _handlersByType.Remove(handler.MessageType);
+        }
+    }
+
+    private void HandleInternal(IMessageHandler handler, MessageEnvelope messageEnvelope)
+    {
+        try
+        {
+            handler.Handle(messageEnvelope);
+        }
+        catch (Exception e)
+        {
+            _errorOccurredSubject.OnNext((handler, e));
+        }
+    }
+
+    private sealed class Unregister(MessageRouter router, ImmutableArray<IMessageHandler> handlers)
+        : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                router.UnregisterMany(handlers);
+                _disposed = true;
+                GC.SuppressFinalize(this);
+            }
+        }
+    }
+}

@@ -2,10 +2,14 @@ using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Components;
 
-public sealed class BlockFetchingHandler : IDisposable
+public sealed class BlockFetchingHandler(Blockchain blockchain, ITransport transport, int maxAccessCount)
+    : IDisposable
 {
-    private readonly ITransport _transport;
-    private readonly IMessageHandler[] _handlers;
+    private readonly IDisposable _handlerRegistration = transport.MessageRouter.RegisterMany(
+    [
+        new BlockHashRequestMessageHandler(blockchain, transport),
+        new BlockRequestMessageHandler(blockchain, transport, maxAccessCount),
+    ]);
     private bool _disposed;
 
     public BlockFetchingHandler(Blockchain blockchain, ITransport transport)
@@ -13,22 +17,11 @@ public sealed class BlockFetchingHandler : IDisposable
     {
     }
 
-    public BlockFetchingHandler(Blockchain blockchain, ITransport transport, int maxAccessCount)
-    {
-        _transport = transport;
-        _handlers =
-        [
-            new BlockHashRequestMessageHandler(blockchain, transport),
-            new BlockRequestMessageHandler(blockchain, transport, maxAccessCount),
-        ];
-        _transport.MessageHandlers.AddRange(_handlers);
-    }
-
     public void Dispose()
     {
         if (!_disposed)
         {
-            _transport.MessageHandlers.RemoveRange(_handlers);
+            _handlerRegistration.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }

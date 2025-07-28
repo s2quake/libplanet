@@ -16,7 +16,7 @@ public sealed class Gossip : ServiceBase
     private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
     private readonly HashSet<Peer> _deniedPeers = [];
     private readonly ImmutableHashSet<Peer> _seeds;
-    private readonly IMessageHandler[] _handlers;
+    private readonly IDisposable _handlerRegistration;
     private readonly PeerExplorer _peerExplorer;
     private readonly ServiceCollection _services;
     private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
@@ -27,12 +27,11 @@ public sealed class Gossip : ServiceBase
         _transport = transport;
         _options = options;
         _seeds = seeds;
-        _handlers =
-        [
+        _handlerRegistration = _transport.MessageRouter.RegisterMany(
+            [
             new HaveMessageHandler(_transport, _messageById, _haveDict),
             new WantMessageHandler(_transport, _messageById, _haveDict),
-        ];
-        _transport.MessageHandlers.AddRange(_handlers);
+        ]);
         _peerExplorer = new PeerExplorer(_transport, new PeerExplorerOptions
         {
             SeedPeers = seeds,
@@ -138,7 +137,7 @@ public sealed class Gossip : ServiceBase
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        _transport.MessageHandlers.RemoveRange(_handlers);
+        _handlerRegistration.Dispose();
         await _services.DisposeAsync();
         _peerExplorer.Dispose();
         _messageById.Clear();

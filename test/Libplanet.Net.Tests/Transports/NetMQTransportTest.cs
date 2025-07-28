@@ -21,7 +21,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(_output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
-        transportB.MessageHandlers.Add<PingMessage>(async (m, e) =>
+        transportB.MessageRouter.Register<PingMessage>(async (m, e) =>
         {
             for (var i = 0; i < 10; i++)
             {

@@ -16,7 +16,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     private readonly ISigner _signer;
     private readonly ConsensusService? _consensusSerevice;
     private readonly ServiceCollection _services;
-    private readonly IMessageHandler[] _messageHandlers;
+    private readonly IDisposable _handlerRegistration;
 
     public Swarm(
         ISigner signer,
@@ -47,15 +47,14 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             // new TransactionFetcher(Blockchain, Transport, options.TimeoutOptions),
             // new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions),
         ];
-        _messageHandlers =
-        [
+        _handlerRegistration = Transport.MessageRouter.RegisterMany(
+            [
             new BlockRequestMessageHandler(this, options),
             new BlockHashRequestMessageHandler(this),
             new TransactionRequestMessageHandler(this, options),
             new BlockchainStateRequestMessageHandler(this),
             new BlockSummaryMessageHandler(this),
-        ];
-        Transport.MessageHandlers.AddRange(_messageHandlers);
+        ]);
     }
 
     public bool ConsensusRunning => _consensusSerevice?.IsRunning ?? false;
@@ -198,7 +197,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        Transport.MessageHandlers.RemoveRange(_messageHandlers);
+        _handlerRegistration.Dispose();
 
         await _services.DisposeAsync();
         await Transport.DisposeAsync();

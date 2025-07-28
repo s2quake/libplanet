@@ -23,13 +23,15 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
     }
 
-    public MessageHandlerCollection MessageHandlers { get; } = [];
+    public MessageRouter MessageHandlers { get; } = [];
 
     public Peer Peer => _router.Peer;
 
     public Protocol Protocol => _options.Protocol;
 
     CancellationToken ITransport.StoppingToken => StoppingToken;
+
+    IMessageRouter ITransport.MessageRouter => MessageHandlers;
 
     public MessageEnvelope Post(Peer receiver, IMessage message, Guid? replyTo)
     {

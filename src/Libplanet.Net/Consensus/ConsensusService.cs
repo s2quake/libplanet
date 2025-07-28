@@ -29,7 +29,7 @@ public sealed class ConsensusService : ServiceBase
     private readonly EvidenceCollector _evidenceCollector = new();
     private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
     private readonly IDisposable[] _blockchainSubscriptions;
-    private readonly IMessageHandler[] _messageHandlers;
+    private readonly IDisposable _handlerRegistration;
 
     private Dispatcher? _dispatcher;
     private Consensus _consensus;
@@ -61,14 +61,13 @@ public sealed class ConsensusService : ServiceBase
             _blockchain.TipChanged.Subscribe(OnTipChanged),
             _blockchain.BlockExecuted.Subscribe(OnBlockExecuted),
         ];
-        _messageHandlers =
+        _handlerRegistration = _transport.MessageRouter.RegisterMany(
         [
             new ConsensusVoteSetBitsMessageHandler(this, _gossip),
             new ConsensusMaj23MessageHandler(this, _gossip),
             new ConsensusProposalClaimMessageHandler(this, _gossip),
             new ConsensusMessageHandler(this),
-        ];
-        _transport.MessageHandlers.AddRange(_messageHandlers);
+        ]);
         // _gossip.MessageHandlers.AddRange(_messageHandlers);
     }
 
@@ -426,7 +425,7 @@ public sealed class ConsensusService : ServiceBase
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        _transport.MessageHandlers.RemoveRange(_messageHandlers);
+        _handlerRegistration.Dispose();
         await _gossip.DisposeAsync();
         Array.ForEach(_blockchainSubscriptions, subscription => subscription.Dispose());
         Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());

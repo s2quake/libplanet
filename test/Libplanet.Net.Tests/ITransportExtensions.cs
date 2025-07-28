@@ -10,7 +10,7 @@ public static class ITransportExtensions
     public static async Task WaitPingAsync(this ITransport @this, params Peer[] peers)
     {
         var manualResetEvent = new ManualResetEventSlim(false);
-        var messageHandler = @this.MessageHandlers.Add<PingMessage>((message, messageEnvelope) =>
+        using var _ = @this.MessageRouter.Register<PingMessage>((message, messageEnvelope) =>
         {
             if (peers.Length is 0 || peers.Contains(messageEnvelope.Sender))
             {
@@ -19,14 +19,7 @@ public static class ITransportExtensions
             }
         });
 
-        try
-        {
-            await Task.Run(manualResetEvent.Wait, default);
-        }
-        finally
-        {
-            @this.MessageHandlers.Remove(messageHandler);
-        }
+        await Task.Run(manualResetEvent.Wait, default);
     }
 
     public static Task<MessageEnvelope> WaitAsync<T>(this ITransport @this, CancellationToken cancellationToken)
@@ -44,7 +37,7 @@ public static class ITransportExtensions
     {
         MessageEnvelope? returnValue = null;
         var manualResetEvent = new ManualResetEventSlim(false);
-        var messageHandler = @this.MessageHandlers.Add<T>((message, messageEnvelope) =>
+        using var _ = @this.MessageRouter.Register<T>((message, messageEnvelope) =>
         {
             if (predicate(message, messageEnvelope))
             {
@@ -53,14 +46,7 @@ public static class ITransportExtensions
             }
         });
 
-        try
-        {
-            await Task.Run(manualResetEvent.Wait, cancellationToken);
-            return returnValue ?? throw new UnreachableException("No message received before cancellation.");
-        }
-        finally
-        {
-            @this.MessageHandlers.Remove(messageHandler);
-        }
+        await Task.Run(manualResetEvent.Wait, cancellationToken);
+        return returnValue ?? throw new UnreachableException("No message received before cancellation.");
     }
 }

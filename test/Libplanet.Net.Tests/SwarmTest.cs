@@ -361,8 +361,8 @@ public partial class SwarmTest(ITestOutputHelper output)
         var (block1, blockCommit1) = blockchainA.ProposeAndAppend(keyA);
         var (block2, blockCommit2) = blockchainA.ProposeAndAppend(keyA);
 
-        transportA.MessageHandlers.Add(new BlockHashRequestMessageHandler(blockchainA, transportA));
-        transportA.MessageHandlers.Add(new BlockRequestMessageHandler(blockchainA, transportA, 1));
+        transportA.MessageRouter.Register(new BlockHashRequestMessageHandler(blockchainA, transportA));
+        transportA.MessageRouter.Register(new BlockRequestMessageHandler(blockchainA, transportA, 1));
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
@@ -434,7 +434,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         blockchainB.StagedTransactions.Add(tx);
         blockchainB.ProposeAndAppend(keyB);
 
-        transportB.MessageHandlers.Add(new TransactionRequestMessageHandler(blockchainB, transportB, 1));
+        transportB.MessageRouter.Register(new TransactionRequestMessageHandler(blockchainB, transportB, 1));
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);

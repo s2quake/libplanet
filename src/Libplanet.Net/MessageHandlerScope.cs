@@ -1,7 +1,7 @@
-namespace Libplanet.Net;
+// namespace Libplanet.Net;
 
-public sealed class MessageHandlerScope(MessageHandlerCollection handlers, IMessageHandler handler)
-    : IDisposable
-{
-    void IDisposable.Dispose() => handlers.Remove(handler);
-}
+// public sealed class MessageHandlerScope(MessageRouter handlers, IMessageHandler handler)
+//     : IDisposable
+// {
+//     void IDisposable.Dispose() => handlers.Unregister(handler);
+// }

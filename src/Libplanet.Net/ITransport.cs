@@ -1,12 +1,11 @@
 using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 
 namespace Libplanet.Net;
 
 public interface ITransport : IService, IAsyncDisposable
 {
-    MessageHandlerCollection MessageHandlers { get; }
+    IMessageRouter MessageRouter { get; }
 
     Peer Peer { get; }
 
