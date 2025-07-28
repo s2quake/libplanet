@@ -5,13 +5,13 @@ namespace Libplanet.Net.Components;
 
 public static class PeerExplorerExtensions
 {
-    public static void Broadcast(this PeerExplorer @this, BlockHash genesisHash, Block block)
+    public static (ImmutableArray<Peer>, IMessage) Broadcast(this PeerExplorer @this, BlockHash genesisHash, Block block)
     {
         var message = new BlockSummaryMessage
         {
             GenesisHash = genesisHash,
             BlockSummary = block,
         };
-        @this.Broadcast(message);
+        return (@this.Broadcast(message), message);
     }
 }

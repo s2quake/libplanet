@@ -23,7 +23,7 @@ internal sealed class BlockchainSynchronizationService : ServiceBase
         _blockchain = blockchain;
         _transport = transport;
         _blockFetcher = new(blockchain, transport);
-        _blockBranchResolver = new(_blockFetcher) { BlockBranches = BlockBranches };
+        _blockBranchResolver = new(blockchain, _blockFetcher) { BlockBranches = BlockBranches };
         _blockBranchAppender = new(blockchain);
         _subscriptions =
         [

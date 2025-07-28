@@ -17,6 +17,7 @@ using Libplanet.Tests;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Components;
 using Libplanet.Net.Services;
+using Libplanet.Extensions;
 
 namespace Libplanet.Net.Tests;
 
@@ -76,16 +77,14 @@ public partial class SwarmTest
         var privateKey = new PrivateKey();
         var blockchainOptions = fx.Options;
         var blockchain = MakeBlockchain(blockchainOptions);
-        var seedBlockchain = MakeBlockchain(
-            options: blockchainOptions,
-            genesisBlock: blockchain.Genesis);
-        var blockchainB = MakeBlockchain(
-            options: blockchainOptions,
-            genesisBlock: blockchain.Genesis);
+        var seedBlockchain = MakeBlockchain(options: blockchainOptions, genesisBlock: blockchain.Genesis);
+        var blockchainA = MakeBlockchain(options: blockchainOptions, genesisBlock: blockchain.Genesis);
+        var blockchainB = MakeBlockchain(options: blockchainOptions, genesisBlock: blockchain.Genesis);
 
-        await using var seedTransport = TestUtils.CreateTransport();
-        await using var transportA = TestUtils.CreateTransport(privateKey);
-        await using var transportB = TestUtils.CreateTransport(privateKey);
+
+        var seedTransport = TestUtils.CreateTransport();
+        var transportA = TestUtils.CreateTransport(privateKey);
+        var transportB = TestUtils.CreateTransport(privateKey);
         await using var transports = new ServiceCollection
         {
             seedTransport,
@@ -95,11 +94,27 @@ public partial class SwarmTest
         using var seedPeerExplorer = new PeerExplorer(seedTransport);
         using var peerExplorerA = new PeerExplorer(transportA);
         using var peerExplorerB = new PeerExplorer(transportB);
+        var seedServices = new ServiceCollection
+        {
+            new BlockchainBroadcastService(seedBlockchain, seedPeerExplorer),
+            new BlockchainSynchronizationResponderService(seedBlockchain, seedTransport),
+        };
+        var serviceA = new BlockchainSynchronizationService(blockchainA, transportA);
+        var serviceB = new BlockchainSynchronizationService(blockchainB, transportB);
+
+        await using var services = new ServiceCollection
+        {
+            seedServices,
+            serviceA,
+            serviceB,
+        };
 
         blockchain.ProposeAndAppendMany(minerKey, 10);
         blockchain.AppendTo(seedBlockchain, 1..5);
 
         await transports.StartAsync(default);
+        await services.StartAsync(default);
+
         await peerExplorerA.PingAsync(seedTransport.Peer, default);
         await transportA.StopAsync(default);
         await seedPeerExplorer.RefreshAsync(TimeSpan.Zero, default);
@@ -115,7 +130,11 @@ public partial class SwarmTest
         Assert.Contains(transportB.Peer, seedPeerExplorer.Peers);
         Assert.Contains(seedTransport.Peer, peerExplorerB.Peers);
 
-        using var seedBlockFetchingHandler = new BlockFetchingHandler(seedBlockchain, seedTransport);
+        seedPeerExplorer.Broadcast(seedBlockchain.Genesis.BlockHash, seedBlockchain.Tip);
+
+        await serviceB.Synchronized.WaitAsync(default);
+
+        // using var seedBlockFetchingHandler = new BlockFetchingHandler(seedBlockchain, seedTransport);
 
         // var blockDemands = new BlockDemandCollection();
         // using var blockBroadcastingHandlerB = new BlockBroadcastingHandler(transportB, blockchain
@@ -126,8 +145,8 @@ public partial class SwarmTest
 
         // await swarmB.BlockAppended.WaitAsync(default);
 
-        // Assert.NotEqual(seedBlockchain.Blocks.Keys, swarmA.Blockchain.Blocks.Keys);
-        // Assert.Equal(seedBlockchain.Blocks.Keys, swarmB.Blockchain.Blocks.Keys);
+        Assert.NotEqual(seedBlockchain.Blocks.Keys, blockchainA.Blocks.Keys);
+        Assert.Equal(seedBlockchain.Blocks.Keys, blockchainB.Blocks.Keys);
     }
 
     [Fact(Timeout = Timeout)]
@@ -759,7 +778,7 @@ public partial class SwarmTest
 
         var blockDemandCollector = new BlockDemandCollector(blockchainC, transportC);
         using var blockFetcher = new BlockFetcher(blockchainC, transportC);
-        using var blockBranchResolver = new BlockBranchResolver(blockFetcher);
+        using var blockBranchResolver = new BlockBranchResolver(blockchainC, blockFetcher);
         var blockBranchAppender = new BlockBranchAppender(blockchainC);
 
         await blockDemandCollector.ExecuteAsync([.. peerExplorerC.Peers], default);

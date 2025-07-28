@@ -7,7 +7,7 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Components;
 
-public sealed class BlockBranchResolver(BlockFetcher blockFetcher)
+public sealed class BlockBranchResolver(Blockchain blockchain, BlockFetcher blockFetcher)
     : IDisposable
 {
     private readonly Subject<(BlockDemand, BlockBranch)> _blockBranchCreatedSubject = new();
@@ -32,7 +32,7 @@ public sealed class BlockBranchResolver(BlockFetcher blockFetcher)
     public async Task ResolveAsync(BlockDemandCollection blockDemands, Block tip, CancellationToken cancellationToken)
     {
         var taskList = new List<Task>(blockDemands.Count);
-        foreach (var blockDemand in blockDemands)
+        foreach (var blockDemand in blockDemands.Flush(blockchain))
         {
             blockDemands.Remove(blockDemand.Peer);
             taskList.Add(ProcessBlockDemandAsync(blockDemand, tip, cancellationToken));
