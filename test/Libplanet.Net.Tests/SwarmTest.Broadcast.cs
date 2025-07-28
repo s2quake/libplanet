@@ -137,14 +137,50 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastIgnoreFromDifferentGenesisHash()
     {
-        var receiverKey = new PrivateKey();
-        Swarm receiverSwarm = await CreateSwarm(receiverKey);
+        var random = RandomUtility.GetRandom(output);
+        var privateKeyA = RandomUtility.PrivateKey(random);
+
+        var transportA = TestUtils.CreateTransport(privateKeyA);
+        var transportB = TestUtils.CreateTransport();
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+        };
+        var blockchainA = TestUtils.CreateBlockchain();
+        var blockchainB = TestUtils.CreateBlockchain();
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+
+        var servicesA = new ServiceCollection
+        {
+            // new BlockchainBroadcastService(blockchainA, peerExplorerA),
+            new BlockchainSynchronizationResponderService(blockchainA, transportA),
+        };
+        var servicesB = new ServiceCollection
+        {
+            new BlockchainSynchronizationService(blockchainB, transportB),
+        };
+        await using var services = new ServiceCollection
+        {
+            servicesA,
+            servicesB,
+        };
+
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
+
+        await peerExplorerB.PingAsync(transportA.Peer, default);
+
+        blockchainA.ProposeAndAppend(privateKeyA);
+        transportA.PostBlock(transportB.Peer, blockchainA, blockchainA.Tip);
+
+        Swarm receiverSwarm = await CreateSwarm(privateKeyA);
         Blockchain receiverChain = receiverSwarm.Blockchain;
-        var seedStateStore = new StateIndex();
         BlockchainOptions policy = receiverChain.Options;
         Blockchain seedChain = MakeBlockchain(
             options: policy,
-            privateKey: receiverKey);
+            privateKey: privateKeyA);
         var seedMiner = new PrivateKey();
         Swarm seedSwarm =
             await CreateSwarm(seedChain, seedMiner);
