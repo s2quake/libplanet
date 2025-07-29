@@ -50,7 +50,7 @@ public sealed class EvidenceFetcher(
         {
             if (!pendingEvidence.ContainsKey(item.Id))
             {
-                pendingEvidence.Add(item);
+                // pendingEvidence.Add(item);
                 return true;
             }
         }

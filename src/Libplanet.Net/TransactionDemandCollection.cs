@@ -9,7 +9,7 @@ namespace Libplanet.Net;
 public sealed class TransactionDemandCollection
     : IEnumerable<TransactionDemand>, INotifyCollectionChanged
 {
-    private readonly ReaderWriterLockSlim _lock = new();
+    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
     private readonly Dictionary<Peer, TransactionDemand> _demandByPeer = [];
 
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
@@ -59,18 +59,6 @@ public sealed class TransactionDemandCollection
 
         return false;
     }
-
-    // public void Prune(Blockchain blockchain)
-    // {
-    //     using var _ = _lock.WriteScope();
-    //     var tipHeight = blockchain.Tip.Height;
-    //     var demands = _demandByPeer.Values.Where(demand => demand.Height <= tipHeight).ToArray();
-    //     foreach (var demand in demands)
-    //     {
-    //         _demandByPeer.Remove(demand.Peer);
-    //         CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, demand));
-    //     }
-    // }
 
     public void Clear()
     {

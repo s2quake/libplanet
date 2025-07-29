@@ -9,7 +9,7 @@ namespace Libplanet.Net;
 public sealed class BlockDemandCollection
     : IEnumerable<BlockDemand>, INotifyCollectionChanged
 {
-    private readonly ReaderWriterLockSlim _lock = new();
+    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
     private readonly Dictionary<Peer, BlockDemand> _demandByPeer = [];
 
     public event NotifyCollectionChangedEventHandler? CollectionChanged;

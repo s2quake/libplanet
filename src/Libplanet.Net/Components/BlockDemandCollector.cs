@@ -6,6 +6,7 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Components;
 
+[Obsolete("Use BlockDemandCollector from Libplanet.Net.Services instead.")]
 public sealed class BlockDemandCollector(Blockchain blockchain, ITransport transport)
 {
     public BlockDemandCollection BlockDemands { get; } = new();

@@ -6,11 +6,10 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Components;
 
-public sealed class TransactionFetcher(
-    Blockchain blockchain, ITransport transport)
+public sealed class TransactionFetcher(Blockchain blockchain, ITransport transport)
     : FetcherBase<TxId, Transaction>
 {
-    public TransactionFetcher(Swarm swarm, SwarmOptions options)
+    internal TransactionFetcher(Swarm swarm, SwarmOptions options)
         : this(swarm.Blockchain, swarm.Transport)
     {
     }
@@ -40,23 +39,17 @@ public sealed class TransactionFetcher(
     protected override bool Verify(Transaction item)
     {
         var transactionOptions = blockchain.Options.TransactionOptions;
-        // var stageTransactions = blockchain.StagedTransactions;
+        var transactions = blockchain.Transactions;
+        var stagedTransactions = blockchain.StagedTransactions;
 
         try
         {
             transactionOptions.Validate(item);
-            // if (!stageTransactions.ContainsKey(item.Id))
-            // {
-            //     stageTransactions.Add(item);
-            //     return true;
-            // }
-            return true;
+            return !transactions.ContainsKey(item.Id) && !stagedTransactions.ContainsKey(item.Id);
         }
         catch
         {
-            // stageTransactions.Remove(item.Id);
+            return false;
         }
-
-        return false;
     }
 }
