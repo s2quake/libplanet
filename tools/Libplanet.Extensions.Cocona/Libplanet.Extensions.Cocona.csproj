@@ -9,6 +9,8 @@
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Text.Json" Version="9.0.*" />
     <PackageReference Include="Zio" Version="0.7.4" />
+    <PackageReference Include="Norgerman.Cryptography.Scrypt" Version="2.0.1" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
   </ItemGroup>
 
   <ItemGroup>

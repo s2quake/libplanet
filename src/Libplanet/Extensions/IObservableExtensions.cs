@@ -14,14 +14,14 @@ public static class IObservableExtensions
         where T : notnull
     {
         T? result = default;
-        using var resetEvent = new ManualResetEvent(false);
+        using var semaphore = new SemaphoreSlim(0, 1);
         using var _ = @this.Subscribe(e =>
         {
-            resetEvent.Set();
+            semaphore.Release();
             result = e;
         });
 
-        await Task.Run(resetEvent.WaitOne, cancellationToken);
+        await semaphore.WaitAsync(cancellationToken);
         return result ?? throw new UnreachableException("No matching item found in observable.");
     }
 
@@ -35,17 +35,17 @@ public static class IObservableExtensions
         where T : notnull
     {
         T? result = default;
-        using var resetEvent = new ManualResetEvent(false);
+        using var semaphore = new SemaphoreSlim(0, 1);
         using var _ = @this.Subscribe(e =>
         {
             if (predicate(e))
             {
-                resetEvent.Set();
+                semaphore.Release();
                 result = e;
             }
         });
 
-        await Task.Run(resetEvent.WaitOne, cancellationToken);
+        await semaphore.WaitAsync(cancellationToken);
         return result ?? throw new UnreachableException("No matching item found in observable.");
     }
 }
