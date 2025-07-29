@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,12 +12,12 @@ namespace Libplanet.Net.NetMQ;
 public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     : ServiceBase, ITransport
 {
-    private readonly NetMQRouterSocket _router = new(signer.Address, options.Host, options.Port);
-    private readonly NetMQQueue<MessageResponse> _responseQueue = new();
+    private readonly NetMQReceiver _receiver = new(signer.Address, options.Host, options.Port);
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
     private NetMQRequestWorker? _requestWorker;
-    private NetMQPoller? _poller;
+    // private NetMQPoller? _poller;
+    private IDisposable? _subscription;
 
     public NetMQTransport(ISigner signer)
         : this(signer, new TransportOptions())
@@ -25,7 +26,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     public MessageRouter MessageHandlers { get; } = [];
 
-    public Peer Peer => _router.Peer;
+    public Peer Peer => _receiver.Peer;
 
     public Protocol Protocol => _options.Protocol;
 
@@ -63,65 +64,52 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         return messageEnvelope;
     }
 
-    private void Router_ReceiveReady(object? sender, NetMQSocketEventArgs e)
-    {
-        try
-        {
-            var receivedMessage = new NetMQMessage();
-            if (!e.Socket.TryReceiveMultipartMessage(TimeSpan.Zero, ref receivedMessage))
-            {
-                return;
-            }
+    // private void Router_ReceiveReady(object? sender, NetMQSocketEventArgs e)
+    // {
+    //     try
+    //     {
+    //         Trace.WriteLine("Router_ReceiveReady");
+    //         var receivedMessage = new NetMQMessage();
+    //         if (!e.Socket.TryReceiveMultipartMessage(TimeSpan.Zero, ref receivedMessage))
+    //         {
+    //             return;
+    //         }
 
-            var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
-            var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
-            messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
-            MessageHandlers.Handle(messageEnvelope);
-        }
-        catch
-        {
-            // log
-        }
-    }
-
-    private void ResponseQueue_ReceiveReady(object? sender, NetMQQueueEventArgs<MessageResponse> e)
-    {
-        if (e.Queue.TryDequeue(out var messageResponse, TimeSpan.Zero))
-        {
-            var messageEnvelope = messageResponse.MessageEnvelope;
-            var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
-            var identity = Encoding.UTF8.GetBytes(messageResponse.Receiver.ToString());
-            rawMessage.Push(identity);
-            if (_router.TrySendMultipartMessage(TimeSpan.FromSeconds(1), rawMessage))
-            {
-                // Successfully sent the message
-            }
-        }
-        else
-        {
-            // Handle the case where no message was dequeued
-        }
-    }
+    //         var rawMessage = new NetMQMessage(receivedMessage.Skip(1));
+    //         var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
+    //         messageEnvelope.Validate(_options.Protocol, _options.MessageLifetime);
+    //         MessageHandlers.Handle(messageEnvelope);
+    //         Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
+    //     }
+    //     catch
+    //     {
+    //         // log
+    //     }
+    // }
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         _requestWorker = new NetMQRequestWorker(signer);
-        _poller = [_router, _responseQueue];
-        _router.ReceiveReady += Router_ReceiveReady;
-        _responseQueue.ReceiveReady += ResponseQueue_ReceiveReady;
-        await _poller.StartAsync(cancellationToken);
+        _subscription = _receiver.Received.Subscribe(MessageHandlers.Handle);
+        await _receiver.StartAsync(default);
+        // _poller = [_receiver];
+        // _receiver.ReceiveReady += Router_ReceiveReady;
+        // await _poller.StartAsync(cancellationToken);
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        _responseQueue.ReceiveReady -= ResponseQueue_ReceiveReady;
-        _router.ReceiveReady -= Router_ReceiveReady;
-        if (_poller is not null)
-        {
-            await _poller.StopAsync(cancellationToken);
-            _poller.Dispose();
-            _poller = null;
-        }
+        _subscription?.Dispose();
+        _subscription = null;
+        await _receiver.StopAsync(cancellationToken);
+
+        // _receiver.ReceiveReady -= Router_ReceiveReady;
+        // if (_poller is not null)
+        // {
+        //     _poller.Remove(_receiver);
+        //     await _poller.StopAsync(cancellationToken);
+        //     _poller = null;
+        // }
 
         if (_requestWorker is not null)
         {
@@ -132,14 +120,14 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        _responseQueue.ReceiveReady -= ResponseQueue_ReceiveReady;
-        _router.ReceiveReady -= Router_ReceiveReady;
+        // _responseQueue.ReceiveReady -= ResponseQueue_ReceiveReady;
+        // _receiver.ReceiveReady -= Router_ReceiveReady;
 
-        if (_poller is not null)
-        {
-            await _poller.DisposeAsync();
-            _poller = null;
-        }
+        // if (_poller is not null)
+        // {
+        //     await _poller.DisposeAsync();
+        //     _poller = null;
+        // }
 
         if (_requestWorker is not null)
         {
@@ -147,8 +135,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             _requestWorker = null;
         }
 
-        _responseQueue.Dispose();
-        _router.Dispose();
+        // _responseQueue.Dispose();
+        await _receiver.DisposeAsync();
         await base.DisposeAsyncCore();
     }
 }

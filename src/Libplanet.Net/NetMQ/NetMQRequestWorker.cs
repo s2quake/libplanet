@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -12,37 +13,33 @@ internal sealed class NetMQRequestWorker : IAsyncDisposable
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly Channel<MessageRequest> _requestChannel = Channel.CreateUnbounded<MessageRequest>();
     private readonly Task _processTask;
-    private NetMQDealerSocket? _dealerSocket;
+    // private readonly NetMQSender _sender;
     private bool _disposed;
 
     public NetMQRequestWorker(ISigner signer)
     {
-        var resetEvent = new ManualResetEvent(false);
+        // var tcs = new TaskCompletionSource<NetMQSender>();
         _processTask = Task.Factory.StartNew(
             () =>
             {
                 using var runtime = new NetMQRuntime();
-                _dealerSocket = new NetMQDealerSocket(signer, SynchronizationContext.Current!);
-                var task = RunRequestChannelAsync(_requestChannel, _cancellationTokenSource.Token);
-                resetEvent.Set();
+                using var dealerSocket = new NetMQSender(signer, SynchronizationContext.Current!);
+                var task = RunRequestChannelAsync(dealerSocket, _requestChannel, _cancellationTokenSource.Token);
+                // tcs.SetResult(dealerSocket);
                 runtime.Run(task);
             },
             _cancellationTokenSource.Token,
             TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
-        resetEvent.WaitOne();
+        // tcs.Task.Wait();
+        // _sender = tcs.Task.Result;
     }
 
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
         {
-            if (_dealerSocket is not null)
-            {
-                await _dealerSocket.DisposeAsync();
-                _dealerSocket = null;
-            }
-
+            // await _sender.DisposeAsync();
             await _cancellationTokenSource.CancelAsync();
             await TaskUtility.TryWait(_processTask);
             _cancellationTokenSource.Dispose();
@@ -57,18 +54,19 @@ internal sealed class NetMQRequestWorker : IAsyncDisposable
         await _requestChannel.Writer.WriteAsync(request, cancellationToken);
     }
 
-    private async Task RunRequestChannelAsync(
-        Channel<MessageRequest> channel, CancellationToken cancellationToken)
+    private static async Task RunRequestChannelAsync(
+        NetMQSender sender, Channel<MessageRequest> channel, CancellationToken cancellationToken)
     {
-        if (_dealerSocket is not { } dealerSocket)
-        {
-            throw new InvalidOperationException("DealerSocketHost is not initialized.");
-        }
+        // if (_dealerSocket is not { } dealerSocket)
+        // {
+        //     throw new InvalidOperationException("DealerSocketHost is not initialized.");
+        // }
 
         var requestReader = channel.Reader;
         await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
         {
-            dealerSocket.Send(request);
+            Trace.WriteLine("Send request: " + request.Identity);
+            sender.Send(request);
         }
     }
 }

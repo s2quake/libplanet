@@ -127,7 +127,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
         var request1 = transportA.Post(transportB.Peer, new PingMessage());
-        var response1 = await transportB.WaitAsync<PingMessage>(default);
+        var response1 = await transportB.WaitAsync<PingMessage>(default).WaitAsync(TimeSpan.FromSeconds(2));
         Assert.IsType<PingMessage>(response1.Message);
         Assert.Equal(request1.Identity, response1.Identity);
 
@@ -137,7 +137,7 @@ public abstract class TransportTest(ITestOutputHelper output)
         await transportB.StartAsync(default);
 
         var request2 = transportA.Post(transportB.Peer, new PingMessage());
-        var response2 = await transportB.WaitAsync<PingMessage>(default);
+        var response2 = await transportB.WaitAsync<PingMessage>(default).WaitAsync(TimeSpan.FromSeconds(2));
 
         Assert.IsType<PingMessage>(response2.Message);
         Assert.Equal(request2.Identity, response2.Identity);
