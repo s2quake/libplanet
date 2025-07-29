@@ -118,6 +118,32 @@ public abstract class TransportTest(ITestOutputHelper output)
     }
 
     [Fact(Timeout = Timeout)]
+    public async Task Post_AfterRestart()
+    {
+        var random = RandomUtility.GetRandom(output);
+        await using var transportA = CreateTransport(random);
+        await using var transportB = CreateTransport(random);
+
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        var request1 = transportA.Post(transportB.Peer, new PingMessage());
+        var response1 = await transportB.WaitAsync<PingMessage>(default);
+        Assert.IsType<PingMessage>(response1.Message);
+        Assert.Equal(request1.Identity, response1.Identity);
+
+        await transportA.StopAsync(default);
+        await transportB.StopAsync(default);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+
+        var request2 = transportA.Post(transportB.Peer, new PingMessage());
+        var response2 = await transportB.WaitAsync<PingMessage>(default);
+
+        Assert.IsType<PingMessage>(response2.Message);
+        Assert.Equal(request2.Identity, response2.Identity);
+    }
+
+    [Fact(Timeout = Timeout)]
     public async Task Post_Throw_AfterDisposed()
     {
         var random = RandomUtility.GetRandom(output);

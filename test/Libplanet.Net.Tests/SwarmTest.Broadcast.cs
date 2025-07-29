@@ -461,91 +461,136 @@ public partial class SwarmTest
     {
         // If the bucket stored peers are the same, the block may not propagate,
         // so specify private keys to make the buckets different.
-        PrivateKey keyA = PrivateKey.Parse(
-            "8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
-        PrivateKey keyB = PrivateKey.Parse(
-            "c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
-        PrivateKey keyC = PrivateKey.Parse(
-            "941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
-
-        var autoBroadcastDisabled = new SwarmOptions
+        var keyA = PrivateKey.Parse("8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
+        var keyB = PrivateKey.Parse("c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
+        var keyC = PrivateKey.Parse("941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
+        using var fx = new MemoryRepositoryFixture();
+        await using var transportA = TestUtils.CreateTransport(keyA);
+        await using var transportB = TestUtils.CreateTransport(keyB);
+        await using var transportC = TestUtils.CreateTransport(keyC);
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+        var peerExplorerC = new PeerExplorer(transportC);
+        var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var syncServiceB = new TransactionSynchronizationService(blockchainB, transportB);
+        var syncServiceC = new TransactionSynchronizationService(blockchainC, transportC);
+        await using var services = new ServiceCollection
         {
-            BlockBroadcastInterval = TimeSpan.FromSeconds(Timeout),
-            TxBroadcastInterval = TimeSpan.FromSeconds(Timeout),
+            new TransactionSynchronizationResponderService(blockchainA, transportA),
+            syncServiceB,
+            syncServiceC,
+            // transportA,
+            // transportB,
+            // transportC,
+            // new TransactionSynchronizationResponderService(blockchainA, transportA),
+            // new TransactionBroadcastService(blockchainA, peerExplorerA),
+            // new TransactionSynchronizationResponderService(blockchainB, transportB),
+            // new TransactionBroadcastService(blockchainB, peerExplorerB),
+            // new TransactionSynchronizationResponderService(blockchainC, transportC),
+            // new TransactionBroadcastService(blockchainC, peerExplorerC),
         };
 
-        var swarmA =
-            await CreateSwarm(keyA, options: autoBroadcastDisabled);
-        var swarmB =
-            await CreateSwarm(keyB, options: autoBroadcastDisabled);
-        var swarmC =
-            await CreateSwarm(keyC, options: autoBroadcastDisabled);
+        // var autoBroadcastDisabled = new SwarmOptions
+        // {
+        //     BlockBroadcastInterval = TimeSpan.FromSeconds(Timeout),
+        //     TxBroadcastInterval = TimeSpan.FromSeconds(Timeout),
+        // };
 
-        Blockchain chainA = swarmA.Blockchain;
-        Blockchain chainB = swarmB.Blockchain;
-        Blockchain chainC = swarmC.Blockchain;
+        // var swarmA =
+        //     await CreateSwarm(keyA, options: autoBroadcastDisabled);
+        // var swarmB =
+        //     await CreateSwarm(keyB, options: autoBroadcastDisabled);
+        // var swarmC =
+        //     await CreateSwarm(keyC, options: autoBroadcastDisabled);
+
+        // Blockchain chainA = swarmA.Blockchain;
+        // Blockchain chainB = swarmB.Blockchain;
+        // Blockchain chainC = swarmC.Blockchain;
 
         var privateKey = new PrivateKey();
 
-        var tx1 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
-        var tx2 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
+        // var tx1 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
+        // var tx2 = swarmA.Blockchain.StagedTransactions.Add(privateKey);
+        var tx1 = blockchainA.StagedTransactions.Add(privateKey);
+        var tx2 = blockchainA.StagedTransactions.Add(privateKey);
         Assert.Equal(0, tx1.Nonce);
         Assert.Equal(1, tx2.Nonce);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
-        swarmA.BroadcastTxs([tx1, tx2]);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
+        await services.StartAsync(default);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
+        var waitTaskB = syncServiceB.Synchronized.WaitAsync();
+        peerExplorerA.Broadcast([tx1, tx2]);
+        await waitTaskB.WaitAsync(TimeSpan.FromSeconds(5));
+        // await swarmA.StartAsync(default);
+        // await swarmB.StartAsync(default);
+        // await swarmA.AddPeersAsync([swarmB.Peer], default);
+        // swarmA.BroadcastTxs([tx1, tx2]);
         // await swarmB.TxReceived.WaitAsync(default);
         Assert.Equal(
             new HashSet<TxId> { tx1.Id, tx2.Id },
-            chainB.StagedTransactions.Keys.ToHashSet());
-        swarmA.PeerExplorer.Remove(swarmB.Peer);
-        swarmB.PeerExplorer.Remove(swarmA.Peer);
+            [.. blockchainB.StagedTransactions.Keys]);
+        peerExplorerA.Peers.Remove(peerExplorerB.Peer);
+        peerExplorerB.Peers.Remove(peerExplorerA.Peer);
+        // swarmA.PeerExplorer.Remove(swarmB.Peer);
+        // swarmB.PeerExplorer.Remove(swarmA.Peer);
 
-        chainA.StagedTransactions.Remove(tx2.Id);
-        Assert.Equal(1, chainA.GetNextTxNonce(privateKey.Address));
+        blockchainA.StagedTransactions.Remove(tx2.Id);
+        Assert.Equal(1, blockchainA.GetNextTxNonce(privateKey.Address));
 
-        await swarmA.StopAsync(default);
-        await swarmB.StopAsync(default);
+        // await swarmA.StopAsync(default);
+        // await swarmB.StopAsync(default);
+        await transportA.StopAsync(default);
+        await transportB.StopAsync(default);
 
-        swarmA.PeerExplorer.Remove(swarmB.Peer);
-        swarmB.PeerExplorer.Remove(swarmA.Peer);
-        Assert.Empty(swarmA.Peers);
-        Assert.Empty(swarmB.Peers);
+        peerExplorerA.Peers.Remove(peerExplorerB.Peer);
+        peerExplorerB.Peers.Remove(peerExplorerA.Peer);
+        Assert.Empty(peerExplorerA.Peers);
+        Assert.Empty(peerExplorerB.Peers);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
+        // swarmA.PeerExplorer.Remove(swarmB.Peer);
+        // swarmB.PeerExplorer.Remove(swarmA.Peer);
+        // Assert.Empty(swarmA.Peers);
+        // Assert.Empty(swarmB.Peers);
 
-        Block block = chainB.ProposeBlock(keyB);
-        chainB.Append(block, TestUtils.CreateBlockCommit(block));
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
 
-        var tx3 = chainA.StagedTransactions.Add(privateKey);
-        var tx4 = chainA.StagedTransactions.Add(privateKey);
+        blockchainB.ProposeAndAppend(keyB);
+        // Block block = chainB.ProposeBlock(keyB);
+        // chainB.Append(block, TestUtils.CreateBlockCommit(block));
+
+        var tx3 = blockchainA.StagedTransactions.Add(privateKey);
+        var tx4 = blockchainA.StagedTransactions.Add(privateKey);
         Assert.Equal(1, tx3.Nonce);
         Assert.Equal(2, tx4.Nonce);
 
-        await swarmC.StartAsync(default);
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
-        await swarmB.AddPeersAsync([swarmC.Peer], default);
+        // await swarmC.StartAsync(default);
+        await transportC.StartAsync(default);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
+        await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
+        await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
+        // await swarmA.AddPeersAsync([swarmB.Peer], default);
+        // await swarmB.AddPeersAsync([swarmC.Peer], default);
 
-        swarmA.BroadcastTxs([tx3, tx4]);
+        var waitTaskC = syncServiceC.Synchronized.WaitAsync();
+        peerExplorerA.Broadcast([tx3, tx4]);
+        await waitTaskC.WaitAsync(TimeSpan.FromSeconds(5));
         // await swarmB.TxReceived.WaitAsync(default);
 
         // SwarmB receives tx3 and is staged, but policy filters it.
-        Assert.DoesNotContain(tx3.Id, chainB.StagedTransactions.Keys);
-        Assert.Contains(
-            tx3.Id,
-            chainB.StagedTransactions.Keys);
-        Assert.Contains(tx4.Id, chainB.StagedTransactions.Keys);
+        Assert.DoesNotContain(tx3.Id, blockchainB.StagedTransactions.Keys);
+        Assert.Contains(tx3.Id, blockchainB.StagedTransactions.Keys);
+        Assert.Contains(tx4.Id, blockchainB.StagedTransactions.Keys);
 
         // await swarmC.TxReceived.WaitAsync(default);
         // SwarmC can not receive tx3 because SwarmB does not rebroadcast it.
-        Assert.DoesNotContain(tx3.Id, chainC.StagedTransactions.Keys);
-        Assert.DoesNotContain(
-            tx3.Id,
-            chainC.StagedTransactions.Keys);
-        Assert.Contains(tx4.Id, chainC.StagedTransactions.Keys);
+        Assert.DoesNotContain(tx3.Id, blockchainC.StagedTransactions.Keys);
+        Assert.DoesNotContain(tx3.Id, blockchainC.StagedTransactions.Keys);
+        Assert.Contains(tx4.Id, blockchainC.StagedTransactions.Keys);
     }
 
     [Fact(Timeout = Timeout)]
