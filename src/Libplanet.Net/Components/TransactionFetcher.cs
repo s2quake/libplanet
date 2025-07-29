@@ -40,20 +40,21 @@ public sealed class TransactionFetcher(
     protected override bool Verify(Transaction item)
     {
         var transactionOptions = blockchain.Options.TransactionOptions;
-        var stageTransactions = blockchain.StagedTransactions;
+        // var stageTransactions = blockchain.StagedTransactions;
 
         try
         {
             transactionOptions.Validate(item);
-            if (!stageTransactions.ContainsKey(item.Id))
-            {
-                stageTransactions.Add(item);
-                return true;
-            }
+            // if (!stageTransactions.ContainsKey(item.Id))
+            // {
+            //     stageTransactions.Add(item);
+            //     return true;
+            // }
+            return true;
         }
         catch
         {
-            stageTransactions.Remove(item.Id);
+            // stageTransactions.Remove(item.Id);
         }
 
         return false;

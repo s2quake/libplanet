@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,16 +12,14 @@ public static class IObservableExtensions
     public static async Task<T> WaitAsync<T>(this IObservable<T> @this, CancellationToken cancellationToken)
         where T : notnull
     {
-        T? result = default;
-        using var semaphore = new SemaphoreSlim(0, 1);
-        using var _ = @this.Subscribe(e =>
+        var tcs = new TaskCompletionSource<T>();
+        using var _1 = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+        using var _2 = @this.Subscribe(e =>
         {
-            semaphore.Release();
-            result = e;
+            tcs.TrySetResult(e);
         });
 
-        await semaphore.WaitAsync(cancellationToken);
-        return result ?? throw new UnreachableException("No matching item found in observable.");
+        return await tcs.Task;
     }
 
     public static async Task<T> WaitAsync<T>(
@@ -34,18 +31,16 @@ public static class IObservableExtensions
         this IObservable<T> @this, Func<T, bool> predicate, CancellationToken cancellationToken)
         where T : notnull
     {
-        T? result = default;
-        using var semaphore = new SemaphoreSlim(0, 1);
-        using var _ = @this.Subscribe(e =>
+        var tcs = new TaskCompletionSource<T>();
+        using var _1 = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+        using var _2 = @this.Subscribe(e =>
         {
             if (predicate(e))
             {
-                semaphore.Release();
-                result = e;
+                tcs.TrySetResult(e);
             }
         });
 
-        await semaphore.WaitAsync(cancellationToken);
-        return result ?? throw new UnreachableException("No matching item found in observable.");
+        return await tcs.Task;
     }
 }

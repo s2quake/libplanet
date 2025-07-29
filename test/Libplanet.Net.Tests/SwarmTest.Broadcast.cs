@@ -251,7 +251,6 @@ public partial class SwarmTest
         var serviceC = new TransactionSynchronizationService(blockchainC, transportC);
         await using var services = new ServiceCollection
         {
-            new TransactionBroadcastService(blockchainA, peerExplorerA),
             serviceA,
             serviceB,
             serviceC
@@ -273,10 +272,12 @@ public partial class SwarmTest
         blockchainA.StagedTransactions.Add(tx);
         blockchainA.ProposeAndAppend(privateKeyA);
 
+        var waitTaskB = serviceB.Synchronized.WaitAsync();
+        var waitTaskC = serviceC.Synchronized.WaitAsync();
         peerExplorerA.Broadcast([tx.Id]);
 
-        await serviceB.Synchronized.WaitAsync();
-        await serviceC.Synchronized.WaitAsync();
+        await waitTaskB.WaitAsync(TimeSpan.FromSeconds(3));
+        await waitTaskC.WaitAsync(TimeSpan.FromSeconds(3));
 
         Assert.Equal(tx, blockchainB.StagedTransactions[tx.Id]);
         Assert.Equal(tx, blockchainC.StagedTransactions[tx.Id]);
