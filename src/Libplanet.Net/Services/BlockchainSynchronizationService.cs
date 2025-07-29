@@ -10,7 +10,7 @@ namespace Libplanet.Net.Services;
 
 internal sealed class BlockchainSynchronizationService : ServiceBase
 {
-    private readonly Subject<Range> _synchronizedSubject = new();
+    private readonly Subject<BlockBranch> _synchronizedSubject = new();
     private readonly Blockchain _blockchain;
     private readonly ITransport _transport;
     private readonly BlockFetcher _blockFetcher;
@@ -28,16 +28,11 @@ internal sealed class BlockchainSynchronizationService : ServiceBase
         _blockBranchAppender = new(blockchain);
         _subscriptions =
         [
-            _blockBranchAppender.BlockBranchAppended.Subscribe(branch =>
-            {
-                _synchronizedSubject.OnNext(
-                    new Range(branch.Blocks[0].Height, branch.Blocks[^1].Height + 1));
-                Trace.WriteLine($"{branch.Blocks[0].Height}, {branch.Blocks[^1].Height + 1}");
-            }),
+            _blockBranchAppender.BlockBranchAppended.Subscribe(_synchronizedSubject.OnNext),
         ];
     }
 
-    public IObservable<Range> Synchronized => _synchronizedSubject;
+    public IObservable<BlockBranch> Synchronized => _synchronizedSubject;
 
     public BlockDemandCollection BlockDemands { get; } = new();
 

@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
-using Microsoft.CodeAnalysis;
 
 namespace Libplanet.Net;
 
