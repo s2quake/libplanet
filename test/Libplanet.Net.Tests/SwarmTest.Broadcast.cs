@@ -19,6 +19,7 @@ using Libplanet.Net.Components;
 using Libplanet.Net.Services;
 using Libplanet.Extensions;
 using Libplanet.Types.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Libplanet.Net.Tests;
 
@@ -286,54 +287,60 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastTxWhileMining()
     {
-        Swarm swarmA = await CreateSwarm();
-        var minerC = new PrivateKey();
-        Swarm swarmC = await CreateSwarm(minerC);
-
-        Blockchain chainA = swarmA.Blockchain;
-        Blockchain chainC = swarmC.Blockchain;
+        using var fx = new MemoryRepositoryFixture();
+        var privateKeyC = new PrivateKey();
+        var transportA = TestUtils.CreateTransport();
+        var transportC = TestUtils.CreateTransport(privateKeyC);
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerC = new PeerExplorer(transportC);
+        var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var serviceA = new TransactionSynchronizationResponderService(blockchainA, transportA);
+        var serviceC = new TransactionSynchronizationService(blockchainC, transportC);
+        await using var services = new ServiceCollection
+        {
+            transportA,
+            transportC,
+            serviceA,
+            serviceC
+        };
 
         var privateKey = new PrivateKey();
         var address = privateKey.Address;
         var txCount = 10;
-
         var txs = Enumerable.Range(0, txCount).Select(_ =>
-                chainA.StagedTransactions.Add(new PrivateKey(), new TransactionSubmission
+                blockchainA.StagedTransactions.Add(new PrivateKey(), new TransactionSubmission
                 {
                     Actions = [DumbAction.Create((address, "foo"))],
                 }))
-            .ToArray();
+            .ToImmutableArray();
 
-        await swarmA.StartAsync(default);
-        await swarmC.StartAsync(default);
+        await services.StartAsync(default);
 
-        await swarmC.AddPeersAsync([swarmA.Peer], default);
-        Assert.Contains(swarmC.Peer, swarmA.Peers);
-        Assert.Contains(swarmA.Peer, swarmC.Peers);
+        await peerExplorerC.PingAsync(transportA.Peer, default);
+        Assert.Contains(transportC.Peer, peerExplorerA.Peers);
+        Assert.Contains(transportA.Peer, peerExplorerC.Peers);
 
-        Task miningTask = Task.Run(() =>
+        var miningTask = Task.Run(async () =>
         {
             for (var i = 0; i < 10; i++)
             {
-                Block block = chainC.ProposeBlock(minerC);
-                chainC.Append(block, TestUtils.CreateBlockCommit(block));
+                blockchainC.ProposeAndAppend(privateKeyC);
+                await Task.Delay(100);
             }
         });
 
-        // Task txReceivedTask = swarmC.TxReceived.WaitAsync(default);
-
         for (var i = 0; i < 100; i++)
         {
-            swarmA.BroadcastTxs([.. txs]);
+            peerExplorerA.Broadcast(txs);
         }
 
-        // await txReceivedTask;
+        var waitTaskC = serviceC.Synchronized.WaitAsync(
+            _ => blockchainC.StagedTransactions.Count == txCount);
         await miningTask;
+        await waitTaskC.WaitAsync(TimeSpan.FromSeconds(5));
 
-        for (var i = 0; i < txCount; i++)
-        {
-            Assert.NotNull(chainC.Transactions[txs[i].Id]);
-        }
+        Assert.All(txs, tx => Assert.Contains(tx.Id, blockchainC.Transactions.Keys));
     }
 
     [Fact(Timeout = Timeout)]

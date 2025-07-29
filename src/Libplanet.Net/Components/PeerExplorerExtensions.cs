@@ -15,6 +15,10 @@ public static class PeerExplorerExtensions
         return (@this.Broadcast(message), message);
     }
 
+    public static (ImmutableArray<Peer>, IMessage) Broadcast(
+        this PeerExplorer @this, ImmutableArray<Transaction> transactions)
+        => Broadcast(@this, [.. transactions.Select(tx => tx.Id)]);
+
     public static (ImmutableArray<Peer>, IMessage) Broadcast(this PeerExplorer @this, ImmutableArray<TxId> txIds)
     {
         var message = new TxIdMessage

@@ -7,25 +7,14 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Services;
 
-internal sealed class TransactionSynchronizationService : ServiceBase
+internal sealed class TransactionSynchronizationService(Blockchain blockchain, ITransport transport)
+    : ServiceBase
 {
     private readonly Subject<ImmutableArray<TxId>> _synchronizedSubject = new();
-    private readonly Blockchain _blockchain;
-    private readonly ITransport _transport;
-    private readonly TransactionFetcher _transactionFetcher;
-    private readonly DisposerCollection _subscriptions;
+    private readonly Blockchain _blockchain = blockchain;
+    private readonly ITransport _transport = transport;
+    private readonly TransactionFetcher _transactionFetcher = new(blockchain, transport);
     private TransactionBroadcastingHandler? _transactionBroadcastingHandler;
-
-    public TransactionSynchronizationService(Blockchain blockchain, ITransport transport)
-    {
-        _blockchain = blockchain;
-        _transport = transport;
-        _transactionFetcher = new(blockchain, transport);
-        _subscriptions =
-        [
-            // _blockBranchAppender.BlockBranchAppended.Subscribe(_synchronizedSubject.OnNext),
-        ];
-    }
 
     public IObservable<ImmutableArray<TxId>> Synchronized => _synchronizedSubject;
 
@@ -74,7 +63,6 @@ internal sealed class TransactionSynchronizationService : ServiceBase
         _transactionBroadcastingHandler?.Dispose();
         _transactionBroadcastingHandler = null;
 
-        _subscriptions.Dispose();
         _transactionFetcher.Dispose();
         TransactionDemands.Clear();
         await base.DisposeAsyncCore();
@@ -85,10 +73,15 @@ internal sealed class TransactionSynchronizationService : ServiceBase
         var peer = demand.Peer;
         var txIds = demand.TxIds;
         var txs = await _transactionFetcher.FetchAsync(peer, [.. txIds], cancellationToken);
+        if (txs.Length == 0)
+        {
+            return [];
+        }
+
         var stagedTxs = new List<Transaction>(txs.Length);
         foreach (var tx in txs)
         {
-            if (_blockchain.StagedTransactions.TryAdd(tx))
+            if (!_blockchain.Transactions.ContainsKey(tx.Id) && _blockchain.StagedTransactions.TryAdd(tx))
             {
                 stagedTxs.Add(tx);
             }

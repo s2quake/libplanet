@@ -40,12 +40,16 @@ internal sealed class TransactionRequestMessageHandler(Blockchain blockchain, IT
             {
                 txList.Add(transaction);
             }
+            else if (blockchain.StagedTransactions.TryGetValue(txId, out var stagedTransaction))
+            {
+                txList.Add(stagedTransaction);
+            }
 
             if (txList.Count == message.ChunkSize)
             {
                 var response = new TransactionResponseMessage
                 {
-                    Transactions = [.. txList]
+                    Transactions = [.. txList],
                 };
                 transport.Post(messageEnvelope.Sender, response, messageEnvelope.Identity);
                 txList.Clear();
