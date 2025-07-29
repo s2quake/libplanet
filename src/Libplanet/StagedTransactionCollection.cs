@@ -5,12 +5,15 @@ using System.Diagnostics.CodeAnalysis;
 using Libplanet.State;
 using Libplanet.Data;
 using Libplanet.Types;
+using System.Reactive.Subjects;
 
 namespace Libplanet;
 
 public sealed class StagedTransactionCollection(Repository repository, BlockchainOptions options)
     : IReadOnlyDictionary<TxId, Transaction>
 {
+    private readonly Subject<Transaction> _addedSubject = new();
+    private readonly Subject<Transaction> _removedSubject = new();
     private readonly PendingTransactionIndex _store = repository.PendingTransactions;
     private readonly ConcurrentDictionary<Address, ImmutableSortedSet<long>> _noncesByAddress = new();
 
@@ -28,6 +31,10 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
             );
         }
     }
+
+    public IObservable<Transaction> Added => _addedSubject;
+
+    public IObservable<Transaction> Removed => _removedSubject;
 
     public TimeSpan Lifetime { get; } = options.TransactionOptions.LifeTime;
 
@@ -51,6 +58,7 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
         if (_store.TryAdd(transaction))
         {
             AddNonce(transaction);
+            _addedSubject.OnNext(transaction);
             return true;
         }
 
@@ -73,6 +81,7 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
         }
 
         AddNonce(transaction);
+        _addedSubject.OnNext(transaction);
     }
 
     public Transaction Add(ISigner signer, TransactionSubmission submission)
@@ -106,6 +115,7 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
         {
             _store.Remove(txId);
             RemoveNonce(transaction);
+            _removedSubject.OnNext(transaction);
             return true;
         }
 
@@ -117,6 +127,7 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
         if (_store.Remove(transaction.Id))
         {
             RemoveNonce(transaction);
+            _removedSubject.OnNext(transaction);
             return true;
         }
 

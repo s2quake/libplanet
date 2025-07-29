@@ -6,7 +6,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Services;
 
-public sealed class BlockchainBroadcastService(Blockchain blockchain, PeerExplorer peerExplorer)
+public sealed class BlockBroadcastService(Blockchain blockchain, PeerExplorer peerExplorer)
     : ServiceBase
 {
     private readonly Subject<(ImmutableArray<Peer>, Block)> _broadcastedSubject = new();

@@ -1,15 +1,13 @@
-using Libplanet.Net.Components;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Services;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class TxIdMessageHandler(TransactionFetcher txFetcher)
+internal sealed class TxIdMessageHandler(TransactionDemandCollection transactionDemands)
     : MessageHandlerBase<TxIdMessage>
 {
     protected override void OnHandle(TxIdMessage message, MessageEnvelope messageEnvelope)
     {
-        txFetcher.Request(messageEnvelope.Sender, [.. message.Ids]);
-        // await replyContext.PongAsync();
+        var demand = new TransactionDemand(messageEnvelope.Sender, [.. message.Ids]);
+        transactionDemands.AddOrUpdate(demand);
     }
 }

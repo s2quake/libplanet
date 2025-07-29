@@ -14,4 +14,13 @@ public static class PeerExplorerExtensions
         };
         return (@this.Broadcast(message), message);
     }
+
+    public static (ImmutableArray<Peer>, IMessage) Broadcast(this PeerExplorer @this, ImmutableArray<TxId> txIds)
+    {
+        var message = new TxIdMessage
+        {
+            Ids = txIds,
+        };
+        return (@this.Broadcast(message), message);
+    }
 }

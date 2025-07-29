@@ -4,7 +4,7 @@ using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Services;
 
-public sealed class BlockchainSynchronizationResponderService(Blockchain blockchain, ITransport transport)
+public sealed class BlockSynchronizationResponderService(Blockchain blockchain, ITransport transport)
     : ServiceBase
 {
     private BlockFetchingHandler? _blockFetchingHandler;

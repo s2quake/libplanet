@@ -6,11 +6,11 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
-public sealed class BlockDemandCollection
-    : IEnumerable<BlockDemand>, INotifyCollectionChanged
+public sealed class TransactionDemandCollection
+    : IEnumerable<TransactionDemand>, INotifyCollectionChanged
 {
     private readonly ReaderWriterLockSlim _lock = new();
-    private readonly Dictionary<Peer, BlockDemand> _demandByPeer = [];
+    private readonly Dictionary<Peer, TransactionDemand> _demandByPeer = [];
 
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
@@ -23,7 +23,7 @@ public sealed class BlockDemandCollection
         }
     }
 
-    public BlockDemand this[Peer peer]
+    public TransactionDemand this[Peer peer]
     {
         get
         {
@@ -32,12 +32,12 @@ public sealed class BlockDemandCollection
         }
     }
 
-    public void AddOrUpdate(BlockDemand demand)
+    public void AddOrUpdate(TransactionDemand demand)
     {
         using var _ = _lock.WriteScope();
         if (_demandByPeer.TryGetValue(demand.Peer, out var value))
         {
-            _demandByPeer[demand.Peer] = demand;
+            _demandByPeer[demand.Peer] = value with { TxIds = value.TxIds.Union(demand.TxIds) };
             CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Replace, demand, value));
         }
         else
@@ -60,17 +60,17 @@ public sealed class BlockDemandCollection
         return false;
     }
 
-    public void Prune(Blockchain blockchain)
-    {
-        using var _ = _lock.WriteScope();
-        var tipHeight = blockchain.Tip.Height;
-        var demands = _demandByPeer.Values.Where(demand => demand.Height <= tipHeight).ToArray();
-        foreach (var demand in demands)
-        {
-            _demandByPeer.Remove(demand.Peer);
-            CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, demand));
-        }
-    }
+    // public void Prune(Blockchain blockchain)
+    // {
+    //     using var _ = _lock.WriteScope();
+    //     var tipHeight = blockchain.Tip.Height;
+    //     var demands = _demandByPeer.Values.Where(demand => demand.Height <= tipHeight).ToArray();
+    //     foreach (var demand in demands)
+    //     {
+    //         _demandByPeer.Remove(demand.Peer);
+    //         CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, demand));
+    //     }
+    // }
 
     public void Clear()
     {
@@ -79,11 +79,10 @@ public sealed class BlockDemandCollection
         CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
     }
 
-    public BlockDemand[] Flush(Blockchain blockchain)
+    public TransactionDemand[] Flush()
     {
         using var _ = _lock.WriteScope();
-        var tipHeight = blockchain.Tip.Height;
-        var items = _demandByPeer.Values.Where(item => item.Height > tipHeight).ToArray();
+        var items = _demandByPeer.Values.ToArray();
         _demandByPeer.Clear();
         CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
         return items;
@@ -95,17 +94,17 @@ public sealed class BlockDemandCollection
         return _demandByPeer.ContainsKey(peer);
     }
 
-    public bool TryGetValue(Peer peer, [MaybeNullWhen(false)] out BlockDemand value)
+    public bool TryGetValue(Peer peer, [MaybeNullWhen(false)] out TransactionDemand value)
     {
         using var _ = _lock.ReadScope();
         return _demandByPeer.TryGetValue(peer, out value);
     }
 
-    public IEnumerator<BlockDemand> GetEnumerator()
+    public IEnumerator<TransactionDemand> GetEnumerator()
     {
         using var _ = _lock.ReadScope();
         var items = _demandByPeer.Values.ToArray();
-        return ((IEnumerable<BlockDemand>)items).GetEnumerator();
+        return ((IEnumerable<TransactionDemand>)items).GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

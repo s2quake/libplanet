@@ -8,7 +8,7 @@ using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Services;
 
-internal sealed class BlockchainSynchronizationService : ServiceBase
+internal sealed class BlockSynchronizationService : ServiceBase
 {
     private readonly Subject<BlockBranch> _synchronizedSubject = new();
     private readonly Blockchain _blockchain;
@@ -19,7 +19,7 @@ internal sealed class BlockchainSynchronizationService : ServiceBase
     private readonly DisposerCollection _subscriptions;
     private BlockBroadcastingHandler? _blockBroadcastingHandler;
 
-    public BlockchainSynchronizationService(Blockchain blockchain, ITransport transport)
+    public BlockSynchronizationService(Blockchain blockchain, ITransport transport)
     {
         _blockchain = blockchain;
         _transport = transport;

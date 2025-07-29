@@ -29,7 +29,7 @@ public static class PeerCollectionExtensions
         if (count < minimum)
         {
             var rest = @this.Except(peerList)
-                .Where(peer => !except.Contains(peer))
+                .Where(peer => except == default || !except.Contains(peer))
                 .Take(minimum - count);
             peerList.AddRange(rest);
         }

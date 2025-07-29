@@ -140,7 +140,7 @@ public sealed class Bucket(int capacity) : IBucket
     public bool TryGetRandomPeer(ImmutableArray<Address> except, [MaybeNullWhen(false)] out Peer value)
     {
         var query = from item in _items
-                    where !except.Contains(item.Address)
+                    where except == default || !except.Contains(item.Address)
                     orderby _random.Next()
                     select item;
 

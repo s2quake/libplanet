@@ -40,8 +40,8 @@ public partial class SwarmTest
         var peerExplorerB = new PeerExplorer(transportB);
         var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
-        var serviceA = new BlockchainSynchronizationResponderService(blockchainA, transportA);
-        var serviceB = new BlockchainSynchronizationService(blockchainB, transportB);
+        var serviceA = new BlockSynchronizationResponderService(blockchainA, transportA);
+        var serviceB = new BlockSynchronizationService(blockchainB, transportB);
         await using var services = new ServiceCollection
         {
             serviceA,
@@ -96,11 +96,11 @@ public partial class SwarmTest
         using var peerExplorerB = new PeerExplorer(transportB);
         var seedServices = new ServiceCollection
         {
-            new BlockchainBroadcastService(seedBlockchain, seedPeerExplorer),
-            new BlockchainSynchronizationResponderService(seedBlockchain, seedTransport),
+            new BlockBroadcastService(seedBlockchain, seedPeerExplorer),
+            new BlockSynchronizationResponderService(seedBlockchain, seedTransport),
         };
-        var serviceA = new BlockchainSynchronizationService(blockchainA, transportA);
-        var serviceB = new BlockchainSynchronizationService(blockchainB, transportB);
+        var serviceA = new BlockSynchronizationService(blockchainA, transportA);
+        var serviceB = new BlockSynchronizationService(blockchainB, transportB);
 
         await using var services = new ServiceCollection
         {
@@ -154,8 +154,8 @@ public partial class SwarmTest
         using var peerExplorerA = new PeerExplorer(transportA);
         using var peerExplorerB = new PeerExplorer(transportB);
 
-        var servicesA = new BlockchainSynchronizationResponderService(blockchainA, transportA);
-        var servicesB = new BlockchainSynchronizationService(blockchainB, transportB);
+        var servicesA = new BlockSynchronizationResponderService(blockchainA, transportA);
+        var servicesB = new BlockSynchronizationService(blockchainB, transportB);
         await using var services = new ServiceCollection
         {
             servicesA,
@@ -193,9 +193,9 @@ public partial class SwarmTest
         };
         var blockchainA = MakeBlockchain();
         var blockchainB = MakeBlockchain();
-        var serviceA = new BlockchainSynchronizationResponderService(blockchainA, transportA);
-        var broadcastServiceA = new BlockchainBroadcastService(blockchainA, peerExplorerA);
-        var syncServiceB = new BlockchainSynchronizationService(blockchainB, transportB);
+        var serviceA = new BlockSynchronizationResponderService(blockchainA, transportA);
+        var broadcastServiceA = new BlockBroadcastService(blockchainA, peerExplorerA);
+        var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
         await using var services = new ServiceCollection
         {
             serviceA,
@@ -227,14 +227,42 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastTx()
     {
-        var keyA = new PrivateKey();
-        await using var swarmA = await CreateSwarm(keyA);
-        await using var swarmB = await CreateSwarm();
-        await using var swarmC = await CreateSwarm();
+        using var fx = new MemoryRepositoryFixture();
+        var privateKeyA = new PrivateKey();
+        var transportA = TestUtils.CreateTransport(privateKeyA);
+        var transportB = TestUtils.CreateTransport();
+        var transportC = TestUtils.CreateTransport();
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            transportC,
+        };
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+        var peerExplorerC = new PeerExplorer(transportC);
 
-        var blockchainA = swarmA.Blockchain;
-        var blockchainB = swarmB.Blockchain;
-        var blockchainC = swarmC.Blockchain;
+        var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+
+        var serviceA = new TransactionSynchronizationResponderService(blockchainA, transportA);
+        var serviceB = new TransactionSynchronizationService(blockchainB, transportB);
+        var serviceC = new TransactionSynchronizationService(blockchainC, transportC);
+        await using var services = new ServiceCollection
+        {
+            new TransactionBroadcastService(blockchainA, peerExplorerA),
+            serviceA,
+            serviceB,
+            serviceC
+        };
+
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
+
+        await peerExplorerA.PingAsync(transportB.Peer, default);
+        await peerExplorerB.PingAsync(transportC.Peer, default);
+        await peerExplorerC.PingAsync(transportA.Peer, default);
 
         var txKey = new PrivateKey();
         var tx = new TransactionBuilder
@@ -243,23 +271,15 @@ public partial class SwarmTest
         }.Create(txKey);
 
         blockchainA.StagedTransactions.Add(tx);
-        blockchainA.ProposeAndAppend(keyA);
+        blockchainA.ProposeAndAppend(privateKeyA);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmC.StartAsync(default);
+        peerExplorerA.Broadcast([tx.Id]);
 
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
-        await swarmB.AddPeersAsync([swarmC.Peer], default);
-        await swarmC.AddPeersAsync([swarmA.Peer], default);
+        await serviceB.Synchronized.WaitAsync();
+        await serviceC.Synchronized.WaitAsync();
 
-        swarmA.BroadcastTxs([tx]);
-
-        // await swarmC.TxReceived.WaitAsync(default);
-        // await swarmB.TxReceived.WaitAsync(default);
-
-        Assert.Equal(tx, blockchainB.Transactions[tx.Id]);
-        Assert.Equal(tx, blockchainC.Transactions[tx.Id]);
+        Assert.Equal(tx, blockchainB.StagedTransactions[tx.Id]);
+        Assert.Equal(tx, blockchainC.StagedTransactions[tx.Id]);
     }
 
     [Fact(Timeout = Timeout)]
