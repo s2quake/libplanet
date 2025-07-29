@@ -4,10 +4,15 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net;
 
-public sealed class ServiceCollection
+public sealed class ServiceCollection(IEnumerable<IService> services)
     : ServiceBase, IEnumerable<IService>
 {
-    private readonly List<IService> serviceList = [];
+    private readonly List<IService> serviceList = [.. services];
+
+    public ServiceCollection()
+        : this([])
+    {
+    }
 
     public int Count => serviceList.Count;
 

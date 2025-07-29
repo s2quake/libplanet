@@ -12,7 +12,7 @@ public sealed class TransactionBroadcaster : IAsyncDisposable
     private readonly Subject<(ImmutableArray<Peer>, ImmutableArray<TxId>)> _broadcastedSubject = new();
 
     private readonly PeerExplorer _peerDiscovery;
-    private readonly HashSet<TxId> _broadcastedTxIds = [];
+    private readonly HashSet<TxId> _broadcastedTxIds;
     private readonly DisposerCollection _subscriptions;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly Task _broadcastingTask;
@@ -31,6 +31,7 @@ public sealed class TransactionBroadcaster : IAsyncDisposable
         ];
         _peerDiscovery = peerDiscovery;
         _broadcastingTask = BroadcastAsync();
+        _broadcastedTxIds = [.. blockchain.StagedTransactions.Keys];
     }
 
     public async ValueTask DisposeAsync()

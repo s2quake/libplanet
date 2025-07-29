@@ -346,95 +346,113 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastTxAsync()
     {
-        Swarm swarmA = await CreateSwarm();
-        Swarm swarmB = await CreateSwarm();
-        Swarm swarmC = await CreateSwarm();
+        using var fx = new MemoryRepositoryFixture();
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var transportC = TestUtils.CreateTransport();
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+        var peerExplorerC = new PeerExplorer(transportC);
+        var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
 
-        Blockchain chainA = swarmA.Blockchain;
-        Blockchain chainB = swarmB.Blockchain;
-        Blockchain chainC = swarmC.Blockchain;
+        var syncServiceB = new TransactionSynchronizationService(blockchainB, transportB);
+        var syncServiceC = new TransactionSynchronizationService(blockchainC, transportC);
+        await using var services = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            transportC,
+            new TransactionSynchronizationResponderService(blockchainA, transportA),
+            new TransactionBroadcastService(blockchainA, peerExplorerA),
+            new TransactionSynchronizationResponderService(blockchainB, transportB),
+            new TransactionBroadcastService(blockchainB, peerExplorerB),
+            syncServiceB,
+            syncServiceC,
+        };
 
         var txKey = new PrivateKey();
-        Transaction tx = new TransactionMetadata
+        var tx = new TransactionBuilder
         {
-            Nonce = 0,
-            Signer = txKey.Address,
-            GenesisHash = chainA.Genesis.BlockHash,
-            Actions = Array.Empty<DumbAction>().ToBytecodes(),
-        }.Sign(txKey);
+            GenesisHash = blockchainA.Genesis.BlockHash,
+            Actions = [],
+        }.Create(txKey);
 
-        chainA.StagedTransactions.Add(tx);
+        blockchainA.StagedTransactions.Add(tx);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmC.StartAsync(default);
+        await services.StartAsync(default);
 
-        // Broadcast tx swarmA to swarmB
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        var waitTaskB = syncServiceB.Synchronized.WaitAsync();
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
 
-        // await swarmB.TxReceived.WaitAsync(default);
-        Assert.Equal(tx, chainB.Transactions[tx.Id]);
+        await waitTaskB.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(tx, blockchainB.StagedTransactions[tx.Id]);
 
-        await swarmA.DisposeAsync();
+        await transportA.DisposeAsync();
 
-        // Re-Broadcast received tx swarmB to swarmC
-        await swarmB.AddPeersAsync([swarmC.Peer], default);
+        var waitTaskC = syncServiceC.Synchronized.WaitAsync();
+        await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
 
-        // await swarmC.TxReceived.WaitAsync(default);
-        Assert.Equal(tx, chainC.Transactions[tx.Id]);
+        await waitTaskC.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(tx, blockchainC.StagedTransactions[tx.Id]);
     }
 
     [RetryFact(Timeout = Timeout)]
     public async Task BroadcastTxAsyncMany()
     {
-        int size = 5;
+        const int size = 5;
 
-        RepositoryFixture[] fxs = new RepositoryFixture[size];
-        Blockchain[] blockChains = new Blockchain[size];
-        Swarm[] swarms = new Swarm[size];
+        using var fx = new MemoryRepositoryFixture();
+        var transports = new ITransport[size];
+        var peerExplorers = new PeerExplorer[size];
+        var blockchains = new Blockchain[size];
+        var broadcastServices = new TransactionBroadcastService[size];
+        var syncResponseServices = new TransactionSynchronizationResponderService[size];
+        var syncServices = new TransactionSynchronizationService[size];
 
-        for (int i = 0; i < size; i++)
+        await using var services = new ServiceCollection();
+        for (var i = 0; i < size; i++)
         {
-            var options = new BlockchainOptions();
-            fxs[i] = new MemoryRepositoryFixture();
-            blockChains[i] = new Blockchain(fxs[i].Repository, options);
-            swarms[i] = await CreateSwarm(blockChains[i]).ConfigureAwait(false);
-        }
+            transports[i] = TestUtils.CreateTransport();
+            peerExplorers[i] = new PeerExplorer(transports[i]);
+            blockchains[i] = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+            broadcastServices[i] = new TransactionBroadcastService(blockchains[i], peerExplorers[i]);
+            syncResponseServices[i] = new TransactionSynchronizationResponderService(blockchains[i], transports[i]);
+            syncServices[i] = new TransactionSynchronizationService(blockchains[i], transports[i]);
 
-        await using var _ = new AsyncDisposerCollection(swarms);
+            services.Add(transports[i]);
+            services.Add(broadcastServices[i]);
+            services.Add(syncResponseServices[i]);
+            services.Add(syncServices[i]);
+        }
 
         var txKey = new PrivateKey();
-        Transaction tx = new TransactionMetadata
+        var tx = new TransactionBuilder
         {
-            Nonce = 0,
-            Signer = txKey.Address,
-            GenesisHash = blockChains[size - 1].Genesis.BlockHash,
-            Actions = Array.Empty<DumbAction>().ToBytecodes(),
-        }.Sign(txKey);
+            GenesisHash = blockchains[size - 1].Genesis.BlockHash,
+            Actions = [],
+        }.Create(txKey);
+        blockchains[size - 1].StagedTransactions.Add(tx);
 
-        blockChains[size - 1].StagedTransactions.Add(tx);
+        await services.StartAsync(default);
 
-        for (int i = 0; i < size; i++)
+        var waitTaskList = new List<Task>();
+        for (var i = 0; i < size - 1; i++)
         {
-            await swarms[i].StartAsync(default);
+            waitTaskList.Add(syncServices[i].Synchronized.WaitAsync());
         }
 
-        List<Task> tasks = new List<Task>();
-        for (int i = 1; i < size; i++)
+        for (var i = 1; i < size; i++)
         {
-            await swarms[i].AddPeersAsync([swarms[0].Peer], default);
+            await peerExplorers[i].PingAsync(peerExplorers[0].Peer, default);
         }
 
-        for (int i = 0; i < size - 1; i++)
-        {
-            // tasks.Add(swarms[i].TxReceived.WaitAsync(default));
-        }
+        await Task.WhenAll(waitTaskList);
 
-        await Task.WhenAll(tasks);
-
-        for (int i = 0; i < size; i++)
+        for (var i = 0; i < size; i++)
         {
-            Assert.Equal(tx, blockChains[i].Transactions[tx.Id]);
+            Assert.Equal(tx, blockchains[i].StagedTransactions[tx.Id]);
         }
     }
 
