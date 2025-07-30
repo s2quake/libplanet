@@ -112,6 +112,7 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
         {
             if (_state != ServiceState.Disposed)
             {
+                SetState(ServiceState.Transitioning);
                 if (_cancellationTokenSource is not null)
                 {
                     await _cancellationTokenSource.CancelAsync();

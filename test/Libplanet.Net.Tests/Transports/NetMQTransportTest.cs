@@ -11,7 +11,7 @@ namespace Libplanet.Net.Tests.Transports;
 
 [Collection("NetMQConfiguration")]
 public sealed class NetMQTransportTest(ITestOutputHelper output)
-    : TransportTest(output)
+    : TransportTestBase(output)
 {
     private readonly ITestOutputHelper _output = output;
 
