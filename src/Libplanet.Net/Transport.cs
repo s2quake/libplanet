@@ -12,9 +12,10 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
+[Obsolete("Incomplete")]
 public sealed class Transport(ISigner signer, TransportOptions options) : ServiceBase, ITransport
 {
-    private static readonly object _lock = new();
+    private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private readonly MessageRouter _messageRouter = new();
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
     private Channel<MessageRequest>? _sendChannel;
@@ -46,8 +47,8 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
             Sender = Peer,
             Timestamp = DateTimeOffset.UtcNow,
             ReplyTo = replyTo,
-            Lifespan = options.MessageLifetime,
-            ReplyTimeout = options.ReplyTimeout,
+            Lifespan = _options.MessageLifetime,
+            ReplyTimeout = _options.ReplyTimeout,
         };
         var messageRequest = new MessageRequest
         {
@@ -104,20 +105,8 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
         return new Peer
         {
             Address = address,
-            EndPoint = new DnsEndPoint(host, port is 0 ? GetRandomPort() : port),
+            EndPoint = new DnsEndPoint(host, port is 0 ? PortUtility.GetPort() : port),
         };
-    }
-
-    private static int GetRandomPort()
-    {
-        lock (_lock)
-        {
-            var listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
-            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-            listener.Stop();
-            return port;
-        }
     }
 
     private static async Task ProcessSendAsync(
