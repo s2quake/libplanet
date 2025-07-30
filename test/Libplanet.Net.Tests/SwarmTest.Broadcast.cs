@@ -937,7 +937,7 @@ public partial class SwarmTest
             }
         }
 
-        mockTransport.MessageHandlers.Register<IMessage>(MessageHandler);
+        mockTransport.MessageRouter.Register<IMessage>(MessageHandler);
 
         Block block1 = ProposeNextBlock(
             receiver.Blockchain.Genesis,

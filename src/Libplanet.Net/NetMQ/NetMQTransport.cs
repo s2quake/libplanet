@@ -20,14 +20,15 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
     private Task _processTask = Task.CompletedTask;
-    private Channel<MessageRequest>? _requestChannel;
+    private Channel<MessageRequest>? _sendChannel;
+    private Channel<MessageEnvelope>? _receiveChannel;
 
     public NetMQTransport(ISigner signer)
         : this(signer, new TransportOptions())
     {
     }
 
-    public MessageRouter MessageHandlers { get; } = [];
+    public MessageRouter MessageRouter { get; } = [];
 
     public Peer Peer { get; } = CreatePeer(signer.Address, options.Host, options.Port);
 
@@ -35,13 +36,13 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     CancellationToken ITransport.StoppingToken => StoppingToken;
 
-    IMessageRouter ITransport.MessageRouter => MessageHandlers;
+    IMessageRouter ITransport.MessageRouter => MessageRouter;
 
     public MessageEnvelope Post(Peer receiver, IMessage message, Guid? replyTo)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-        if (!IsRunning || _requestChannel is null)
+        if (!IsRunning || _sendChannel is null)
         {
             throw new InvalidOperationException("Transport is not running");
         }
@@ -63,7 +64,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             Receiver = receiver,
         };
 
-        if (!_requestChannel.Writer.TryWrite(messageRequest))
+        if (!_sendChannel.Writer.TryWrite(messageRequest))
         {
             throw new InvalidOperationException("Failed to write request to the channel.");
         }
@@ -73,69 +74,48 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        var tcs = new TaskCompletionSource<Channel<MessageRequest>>();
+        var tcs = new TaskCompletionSource<(Channel<MessageRequest>, Channel<MessageEnvelope>)>();
         _processTask = Task.Factory.StartNew(
-           () =>
+           async () =>
            {
                using var runtime = new NetMQRuntime();
                var requestChannel = Channel.CreateUnbounded<MessageRequest>();
+               var receiveChannel = Channel.CreateUnbounded<MessageEnvelope>();
                using var socket = new PullSocket();
-               var task1 = ReceiveAsync(socket, StoppingToken);
-               var task2 = RunRequestChannelAsync(requestChannel, StoppingToken);
-               tcs.SetResult(requestChannel);
-               runtime.Run(task1, task2);
-               int qwer = 0;
+               var task1 = ProcessReceiveAsync(socket, Peer, receiveChannel, StoppingToken);
+               var task2 = ProcessSendAsync(signer, requestChannel, StoppingToken);
+               var task3 = ProcessHandleAsync(receiveChannel, MessageRouter, StoppingToken);
+               tcs.SetResult((requestChannel, receiveChannel));
+               runtime.Run(task1);
+               await TaskUtility.TryWhenAll(task2, task3);
            },
            StoppingToken,
            TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
            TaskScheduler.Default);
 
         await Task.CompletedTask;
-        _requestChannel = await tcs.Task;
+        (_sendChannel, _receiveChannel) = await tcs.Task;
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        _requestChannel?.Writer.Complete();
-        _requestChannel = null;
+        _sendChannel?.Writer.Complete();
+        _sendChannel = null;
+        _receiveChannel?.Writer.Complete();
+        _receiveChannel = null;
         await TaskUtility.TryWait(_processTask);
         _processTask = Task.CompletedTask;
     }
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        _requestChannel?.Writer.Complete();
-        _requestChannel = null;
-        await base.DisposeAsyncCore();
+        _sendChannel?.Writer.Complete();
+        _sendChannel = null;
+        _receiveChannel?.Writer.Complete();
+        _receiveChannel = null;
         await TaskUtility.TryWait(_processTask);
         _processTask = Task.CompletedTask;
-    }
-
-    private async Task ReceiveAsync(PullSocket socket, CancellationToken cancellationToken)
-    {
-        
-        var address = $"tcp://{Peer.EndPoint.Host}:{Peer.EndPoint.Port}";
-        socket.Bind(address);
-
-        try
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                var rawMessage = await socket.ReceiveMultipartMessageAsync(cancellationToken: cancellationToken);
-                var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
-                Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
-                _ = Task.Run(() => MessageHandlers.Handle(messageEnvelope));
-                await Task.Yield();
-            }
-        }
-        catch
-        {
-            // do nothing
-        }
-        finally
-        {
-            socket.Unbind(address);
-        }
+        await base.DisposeAsyncCore();
     }
 
     private static string GetAddress(Peer peer)
@@ -149,7 +129,54 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         return $"tcp://{ipv4}:{port}";
     }
 
-    private async Task RunRequestChannelAsync(Channel<MessageRequest> channel, CancellationToken cancellationToken)
+    private static Peer CreatePeer(Address address, string host, int port)
+    {
+        return new Peer
+        {
+            Address = address,
+            EndPoint = new DnsEndPoint(host, port is 0 ? GetRandomPort() : port),
+        };
+    }
+
+    private static int GetRandomPort()
+    {
+        lock (_lock)
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            listener.Stop();
+            return port;
+        }
+    }
+
+    private static async Task ProcessReceiveAsync(
+        PullSocket socket, Peer peer, Channel<MessageEnvelope> receiveChannel, CancellationToken cancellationToken)
+    {
+        var address = $"tcp://{peer.EndPoint.Host}:{peer.EndPoint.Port}";
+        socket.Bind(address);
+
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                var rawMessage = await socket.ReceiveMultipartMessageAsync(cancellationToken: cancellationToken);
+                var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
+                receiveChannel.Writer.TryWrite(messageEnvelope);
+                Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
+            }
+        }
+        catch
+        {
+            // do nothing
+        }
+        finally
+        {
+            socket.Unbind(address);
+        }
+    }
+
+    private static async Task ProcessSendAsync(ISigner signer, Channel<MessageRequest> channel, CancellationToken cancellationToken)
     {
         var requestReader = channel.Reader;
         var _socketsByPeer = new Dictionary<Peer, PushSocket>();
@@ -199,24 +226,30 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         }
     }
 
-    private static Peer CreatePeer(Address address, string host, int port)
+    private static async Task ProcessHandleAsync(
+        Channel<MessageEnvelope> channel, MessageRouter messageRouter, CancellationToken cancellationToken)
     {
-        return new Peer
+        var reader = channel.Reader;
+        try
         {
-            Address = address,
-            EndPoint = new DnsEndPoint(host, port is 0 ? GetRandomPort() : port),
-        };
+            await foreach (var messageEnvelope in reader.ReadAllAsync(cancellationToken))
+            {
+                messageRouter.Handle(messageEnvelope);
+                Trace.WriteLine($"Handled <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
+            }
+        }
+        catch
+        {
+            // do nothing
+        }
     }
 
-    private static int GetRandomPort()
+    private sealed record class MessageRequest
     {
-        lock (_lock)
-        {
-            var listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
-            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-            listener.Stop();
-            return port;
-        }
+        public required MessageEnvelope MessageEnvelope { get; init; }
+
+        public required Peer Receiver { get; init; }
+
+        public Guid Identity => MessageEnvelope.Identity;
     }
 }
