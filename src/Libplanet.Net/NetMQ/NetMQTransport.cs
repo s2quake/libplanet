@@ -18,10 +18,10 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 {
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
+    private readonly TransportPeer _peer = new(signer.Address, options.Host, options.Port);
     private Task _processTask = Task.CompletedTask;
     private Channel<MessageRequest>? _sendChannel;
     private Channel<MessageEnvelope>? _receiveChannel;
-    private (IDisposable?, Peer) _peerInfo = CreatePeer(signer.Address, options.Host, options.Port);
 
     public NetMQTransport(ISigner signer)
         : this(signer, new TransportOptions())
@@ -30,7 +30,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     public MessageRouter MessageRouter { get; } = [];
 
-    public Peer Peer => _peerInfo.Item2;
+    public Peer Peer => _peer;
 
     public Protocol Protocol => _options.Protocol;
 
@@ -115,7 +115,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         _receiveChannel = null;
         await TaskUtility.TryWait(_processTask);
         _processTask = Task.CompletedTask;
-        _peerInfo.Item1?.Dispose();
+        _peer.Dispose();
         await base.DisposeAsyncCore();
     }
 
@@ -128,23 +128,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             ?? throw new InvalidOperationException($"Failed to resolve for {host}");
 
         return $"tcp://{ipv4}:{port}";
-    }
-
-    private static (IDisposable?, Peer) CreatePeer(Address address, string host, int port)
-    {
-        IDisposable? portReleaser = null;
-        if (port is 0)
-        {
-            port = PortUtility.GetPort();
-            portReleaser = new PortReleaser(port);
-        }
-
-        var peer = new Peer
-        {
-            Address = address,
-            EndPoint = new DnsEndPoint(host, port),
-        };
-        return (portReleaser, peer);
     }
 
     private static async Task ProcessReceiveAsync(
@@ -248,13 +231,5 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         public required Peer Receiver { get; init; }
 
         public Guid Identity => MessageEnvelope.Identity;
-    }
-
-    private sealed class PortReleaser(int port) : IDisposable
-    {
-        public void Dispose()
-        {
-            PortUtility.ReleasePort(port);
-        }
     }
 }

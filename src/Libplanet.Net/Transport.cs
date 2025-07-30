@@ -18,6 +18,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private readonly MessageRouter _messageRouter = new();
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
+    private readonly TransportPeer _peer = new(signer.Address, options.Host, options.Port);
     private Channel<MessageRequest>? _sendChannel;
     private Channel<MessageEnvelope>? _receiveChannel;
     private UdpClient? _client;
@@ -25,7 +26,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
 
     IMessageRouter ITransport.MessageRouter => _messageRouter;
 
-    public Peer Peer { get; } = CreatePeer(signer.Address, options.Host, options.Port);
+    public Peer Peer => _peer;
 
     public Protocol Protocol => options.Protocol;
 
@@ -97,16 +98,8 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
         _processTasks = [];
         _client?.Dispose();
         _client = null;
+        _peer.Dispose();
         await base.DisposeAsyncCore();
-    }
-
-    private static Peer CreatePeer(Address address, string host, int port)
-    {
-        return new Peer
-        {
-            Address = address,
-            EndPoint = new DnsEndPoint(host, port is 0 ? PortUtility.GetPort() : port),
-        };
     }
 
     private static async Task ProcessSendAsync(

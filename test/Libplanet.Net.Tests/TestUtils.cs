@@ -261,7 +261,7 @@ public static class TestUtils
 
         privateKey ??= new PrivateKey();
 
-        return new Transport(privateKey.AsSigner(), options);
+        return new Libplanet.Net.NetMQ.NetMQTransport(privateKey.AsSigner(), options);
     }
 
 
