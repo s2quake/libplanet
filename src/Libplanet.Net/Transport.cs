@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Net.NetMQ;
 using Libplanet.Net.Options;
 using Libplanet.Serialization;
 using Libplanet.Types;
@@ -18,7 +17,8 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     private static readonly object _lock = new();
     private readonly MessageRouter _messageRouter = new();
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
-    private Channel<MessageRequest>? _requestChannel;
+    private Channel<MessageRequest>? _sendChannel;
+    private Channel<MessageEnvelope>? _receiveChannel;
     private UdpClient? _client;
     private Task[] _processTasks = [];
 
@@ -33,7 +33,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     public MessageEnvelope Post(Peer receiver, IMessage message, Guid? replyTo)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
-        if (_requestChannel is null)
+        if (_sendChannel is null)
         {
             throw new InvalidOperationException("Transport is not initialized.");
         }
@@ -55,26 +55,30 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
             MessageEnvelope = messageEnvelope,
         };
 
-        _requestChannel.Writer.TryWrite(messageRequest);
+        _sendChannel.Writer.TryWrite(messageRequest);
         return messageEnvelope;
     }
 
     protected override Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _requestChannel = Channel.CreateUnbounded<MessageRequest>();
+        _sendChannel = Channel.CreateUnbounded<MessageRequest>();
+        _receiveChannel = Channel.CreateUnbounded<MessageEnvelope>();
         _client = new UdpClient(Peer.EndPoint.Port);
         _processTasks =
         [
-            ProcessReceiveAsync(_client, _messageRouter, StoppingToken),
-            ProcessSendAsync(_client, _requestChannel, StoppingToken),
+            ProcessReceiveAsync(_client, _receiveChannel, StoppingToken),
+            ProcessSendAsync(_client, _sendChannel, StoppingToken),
+            ProcessHandleAsync(_receiveChannel, _messageRouter, StoppingToken),
         ];
         return Task.CompletedTask;
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        _requestChannel?.Writer.Complete();
-        _requestChannel = null;
+        _sendChannel?.Writer.Complete();
+        _sendChannel = null;
+        _receiveChannel?.Writer.Complete();
+        _receiveChannel = null;
         await TaskUtility.TryWhenAll(_processTasks);
         _processTasks = [];
         _client?.Dispose();
@@ -84,8 +88,10 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        _requestChannel?.Writer.Complete();
-        _requestChannel = null;
+        _sendChannel?.Writer.Complete();
+        _sendChannel = null;
+        _receiveChannel?.Writer.Complete();
+        _receiveChannel = null;
         await TaskUtility.TryWhenAll(_processTasks);
         _processTasks = [];
         _client?.Dispose();
@@ -122,13 +128,13 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
         {
             await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
             {
-                Trace.WriteLine("Send request: " + request.Identity);
+                // Trace.WriteLine("Send request: " + request.Identity);
                 var messageEnvelope = request.MessageEnvelope;
                 var receiver = request.Receiver;
                 var bytes = ModelSerializer.SerializeToBytes(messageEnvelope);
                 _ = client.SendAsync(bytes, bytes.Length, receiver.EndPoint.Host, receiver.EndPoint.Port);
 
-                Trace.WriteLine($"Sent message: {messageEnvelope.Identity}");
+                Trace.WriteLine($"Sent <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
             }
         }
         catch
@@ -138,7 +144,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     }
 
     private static async Task ProcessReceiveAsync(
-        UdpClient client, MessageRouter messageRouter, CancellationToken cancellationToken)
+        UdpClient client, Channel<MessageEnvelope> receiveChannel, CancellationToken cancellationToken)
     {
         try
         {
@@ -146,8 +152,9 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
             {
                 var result = await client.ReceiveAsync(cancellationToken);
                 var messageEnvelope = ModelSerializer.DeserializeFromBytes<MessageEnvelope>(result.Buffer);
-                Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
-                messageRouter.Handle(messageEnvelope);
+                Trace.WriteLine($"Received <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
+                receiveChannel.Writer.TryWrite(messageEnvelope);
+                // messageRouter.Handle(messageEnvelope);
                 await Task.Yield();
             }
         }
@@ -155,5 +162,30 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
         {
             // do nothing
         }
+    }
+
+    private static async Task ProcessHandleAsync(
+        Channel<MessageEnvelope> channel, MessageRouter messageRouter, CancellationToken cancellationToken)
+    {
+        var reader = channel.Reader;
+        try
+        {
+            await foreach (var messageEnvelope in reader.ReadAllAsync(cancellationToken))
+            {
+                messageRouter.Handle(messageEnvelope);
+                Trace.WriteLine($"Handled <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
+            }
+        }
+        catch
+        {
+            // do nothing
+        }
+    }
+
+    private sealed record class MessageRequest
+    {
+        public required MessageEnvelope MessageEnvelope { get; init; }
+
+        public required Peer Receiver { get; init; }
     }
 }

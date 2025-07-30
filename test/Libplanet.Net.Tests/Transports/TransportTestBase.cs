@@ -178,9 +178,10 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         {
             transportB.Post(e.Sender, new PingMessage(), e.Identity);
             transportB.Post(e.Sender, new PongMessage(), e.Identity);
+            transportB.Post(e.Sender, new TestMessage { Data = "1" }, e.Identity);
         });
 
-        static bool Predicate(IMessage message) => message is PongMessage;
+        static bool Predicate(IMessage message) => message is TestMessage m && m.Data == "1";
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
@@ -190,6 +191,8 @@ public abstract class TransportTestBase(ITestOutputHelper output)
 
         Assert.IsType<PingMessage>(messages[0]);
         Assert.IsType<PongMessage>(messages[1]);
+        var m2 = Assert.IsType<TestMessage>(messages[2]);
+        Assert.Equal("1", m2.Data);
     }
 
     [Fact(Timeout = Timeout)]

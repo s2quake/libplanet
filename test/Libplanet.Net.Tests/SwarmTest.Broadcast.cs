@@ -61,9 +61,10 @@ public partial class SwarmTest
         await peerExplorerA.PingAsync(transportB.Peer, default);
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
 
+        var waitTaskB = serviceB.Synchronized.WaitAsync();
         peerExplorerA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
 
-        await Task.Delay(3000);
+        await waitTaskB;
 
         Assert.Equal(blockchainA.Tip, blockchainB.Tip);
         Assert.Equal(
