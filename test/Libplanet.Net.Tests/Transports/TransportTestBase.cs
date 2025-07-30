@@ -132,9 +132,9 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.IsType<PingMessage>(response1.Message);
         Assert.Equal(request1.Identity, response1.Identity);
 
-        // await transportA.StopAsync(default);
+        await transportA.StopAsync(default);
         await transportB.StopAsync(default);
-        // await transportA.StartAsync(default);
+        await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
         var request2 = transportA.Post(transportB.Peer, new PingMessage());

@@ -132,9 +132,8 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
                 var messageEnvelope = request.MessageEnvelope;
                 var receiver = request.Receiver;
                 var bytes = ModelSerializer.SerializeToBytes(messageEnvelope);
-                _ = client.SendAsync(bytes, bytes.Length, receiver.EndPoint.Host, receiver.EndPoint.Port);
-
-                Trace.WriteLine($"Sent <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
+                var r = await client.SendAsync(bytes, bytes.Length, receiver.EndPoint.Host, receiver.EndPoint.Port);
+                Trace.WriteLine($"Sent <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}, {receiver.EndPoint.Port}, {r}/{bytes.Length}");
             }
         }
         catch
