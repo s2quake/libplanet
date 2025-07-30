@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive.Subjects;
@@ -78,6 +79,7 @@ internal sealed class NetMQReceiver : ServiceBase
             {
                 var rawMessage = await socket.ReceiveMultipartMessageAsync(cancellationToken: cancellationToken);
                 var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
+                Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
                 _receivedSubject.OnNext(messageEnvelope);
                 await Task.Yield();
             }

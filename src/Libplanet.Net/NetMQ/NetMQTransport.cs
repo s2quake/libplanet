@@ -13,9 +13,10 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     : ServiceBase, ITransport
 {
     private readonly NetMQReceiver _receiver = new(signer.Address, options.Host, options.Port);
+    private readonly NetMQSender _sender = new(signer);
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
-    private NetMQRequestWorker? _requestWorker;
+    // private NetMQRequestWorker? _requestWorker;
     // private NetMQPoller? _poller;
     private IDisposable? _subscription;
 
@@ -38,7 +39,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
-        if (!IsRunning || _requestWorker is null)
+        if (!IsRunning)
         {
             throw new InvalidOperationException("Transport is not running");
         }
@@ -60,7 +61,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             Receiver = receiver,
         };
 
-        _ = _requestWorker.WriteAsync(messageRequest, default);
+_sender.Send(messageRequest);
+        // _ = _requestWorker.WriteAsync(messageRequest, default);
         return messageEnvelope;
     }
 
@@ -89,9 +91,10 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _requestWorker = new NetMQRequestWorker(signer);
+        // _requestWorker = new NetMQRequestWorker(signer);
         _subscription = _receiver.Received.Subscribe(MessageHandlers.Handle);
-        await _receiver.StartAsync(default);
+        await _receiver.StartAsync(cancellationToken);
+        await _sender.StartAsync(cancellationToken);
         // _poller = [_receiver];
         // _receiver.ReceiveReady += Router_ReceiveReady;
         // await _poller.StartAsync(cancellationToken);
@@ -99,9 +102,10 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
+        await _sender.StopAsync(cancellationToken);
+        await _receiver.StopAsync(cancellationToken);
         _subscription?.Dispose();
         _subscription = null;
-        await _receiver.StopAsync(cancellationToken);
 
         // _receiver.ReceiveReady -= Router_ReceiveReady;
         // if (_poller is not null)
@@ -111,11 +115,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         //     _poller = null;
         // }
 
-        if (_requestWorker is not null)
-        {
-            await _requestWorker.DisposeAsync();
-            _requestWorker = null;
-        }
+        // if (_requestWorker is not null)
+        // {
+        //     await _requestWorker.DisposeAsync();
+        //     _requestWorker = null;
+        // }
     }
 
     protected override async ValueTask DisposeAsyncCore()
@@ -129,13 +133,14 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         //     _poller = null;
         // }
 
-        if (_requestWorker is not null)
-        {
-            await _requestWorker.DisposeAsync();
-            _requestWorker = null;
-        }
+        // if (_requestWorker is not null)
+        // {
+        //     await _requestWorker.DisposeAsync();
+        //     _requestWorker = null;
+        // }
 
         // _responseQueue.Dispose();
+        await _sender.DisposeAsync();
         await _receiver.DisposeAsync();
         await base.DisposeAsyncCore();
     }

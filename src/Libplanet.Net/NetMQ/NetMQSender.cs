@@ -1,83 +1,61 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
-using Libplanet.Net.Threading;
 using Libplanet.Types;
+using Libplanet.Types.Threading;
 using NetMQ;
 using NetMQ.Sockets;
 
 namespace Libplanet.Net.NetMQ;
 
-internal sealed class NetMQSender(ISigner signer, SynchronizationContext synchronizationContext)
-    : IDisposable
+internal sealed class NetMQSender(ISigner signer) : ServiceBase
 {
     private static readonly object _lock = new();
     private readonly Dictionary<Peer, PushSocket> _socketsByPeer = [];
-    private bool _disposed;
+    private Task _processTask = Task.CompletedTask;
+    private Channel<MessageRequest>? _requestChannel;
 
     public void Send(MessageRequest request)
     {
-        if (synchronizationContext != SynchronizationContext.Current)
+        if (_requestChannel is null)
         {
-            throw new InvalidOperationException(
-                "Send method must be called from the same synchronization context as the one used to create this instance.");
+            throw new InvalidOperationException("Request channel is not initialized.");
         }
 
-        if (request.Sender.Address != signer.Address)
+        if (!_requestChannel.Writer.TryWrite(request))
         {
-            throw new ArgumentException(
-                $"The provided private key's address {signer.Address} does not match " +
-                $"the remote peer's address {request.Sender.Address}.",
-                nameof(request));
+            throw new InvalidOperationException("Failed to write request to the channel.");
         }
-
-        var messageEnvelope = request.MessageEnvelope;
-        var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
-        var socket = GetPushSocket(request.Sender, request.Receiver);
-        if (!socket.TrySendMultipartMessage(rawMessage))
-        {
-            throw new InvalidOperationException("Failed to send message to the dealer socket.");
-        }
-
-        Trace.WriteLine($"Sent message: {messageEnvelope.Identity}");
     }
 
-
-    // public async ValueTask DisposeAsync()
-    // {
-    //     if (!_disposed)
-    //     {
-    //         await synchronizationContext.PostAsync(() =>
-    //         {
-    //             foreach (var socket in _socketsByPeer.Values)
-    //             {
-    //                 socket.Dispose();
-    //             }
-    //         }, default);
-
-    //         _disposed = true;
-    //     }
-    // }
-
-    private PushSocket GetPushSocket(Peer sender, Peer receiver)
+    protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        lock (_lock)
-        {
-            if (!_socketsByPeer.TryGetValue(receiver, out var socket))
+        var tcs = new TaskCompletionSource<Channel<MessageRequest>>();
+        cancellationToken.Register(() => tcs.TrySetCanceled());
+        _processTask = Task.Factory.StartNew(
+            () =>
             {
-                var address = GetAddress(receiver);
-                socket = new PushSocket();
-                // socket.Options.DisableTimeWait = true;
-                // socket.Options.Identity = Encoding.UTF8.GetBytes(sender.ToString());
-                socket.Connect(address);
-                _socketsByPeer[receiver] = socket;
-            }
+                using var runtime = new NetMQRuntime();
+                var requestChannel = Channel.CreateUnbounded<MessageRequest>();
+                var task = RunRequestChannelAsync(requestChannel, StoppingToken);
+                tcs.SetResult(requestChannel);
+                runtime.Run(task);
+            },
+            StoppingToken,
+            TaskCreationOptions.DenyChildAttach | TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
+        _requestChannel = await tcs.Task;
+    }
 
-            return socket;
-        }
+    protected override async Task OnStopAsync(CancellationToken cancellationToken)
+    {
+        _requestChannel?.Writer.Complete();
+        _requestChannel = null;
+        await TaskUtility.TryWait(_processTask);
+        _processTask = Task.CompletedTask;
     }
 
     private static string GetAddress(Peer peer)
@@ -91,18 +69,55 @@ internal sealed class NetMQSender(ISigner signer, SynchronizationContext synchro
         return $"tcp://{ipv4}:{port}";
     }
 
-    public void Dispose()
+    private PushSocket GetPushSocket(Peer receiver)
     {
-        if (!_disposed)
+        lock (_lock)
         {
-            foreach (var socket in _socketsByPeer.Values)
+            if (!_socketsByPeer.TryGetValue(receiver, out var socket))
             {
+                var address = GetAddress(receiver);
+                socket = new PushSocket();
+                socket.Connect(address);
+                _socketsByPeer[receiver] = socket;
+            }
+
+            return socket;
+        }
+    }
+
+    private async Task RunRequestChannelAsync(Channel<MessageRequest> channel, CancellationToken cancellationToken)
+    {
+        var requestReader = channel.Reader;
+        try
+        {
+            await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
+            {
+                Trace.WriteLine("Send request: " + request.Identity);
+                var messageEnvelope = request.MessageEnvelope;
+                var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
+                var socket = GetPushSocket(request.Receiver);
+                if (!socket.TrySendMultipartMessage(rawMessage))
+                {
+                    throw new InvalidOperationException("Failed to send message to the dealer socket.");
+                }
+
+                Trace.WriteLine($"Sent message: {messageEnvelope.Identity}");
+            }
+        }
+        catch
+        {
+            // do nothing
+        }
+        finally
+        {
+            foreach (var (receiver, socket) in _socketsByPeer)
+            {
+                var address = GetAddress(receiver);
+                socket.Disconnect(address);
                 socket.Dispose();
             }
 
             _socketsByPeer.Clear();
-            _disposed = true;
-            GC.SuppressFinalize(this);
         }
     }
 }
