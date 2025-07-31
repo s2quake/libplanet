@@ -757,44 +757,51 @@ public partial class SwarmTest
     {
         var keyA = new PrivateKey();
         var keyB = new PrivateKey();
+        var transportA = TestUtils.CreateTransport(keyA);
+        var transportB = TestUtils.CreateTransport(keyB);
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+        var blockchainA = MakeBlockchain();
+        var blockchainB = MakeBlockchain();
+        var syncResponderServiceA = new BlockSynchronizationResponderService(blockchainA, transportA);
+        var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
 
-        Swarm swarmA = await CreateSwarm(keyA);
-        Swarm swarmB =
-            await CreateSwarm(keyB, genesis: swarmA.Blockchain.Genesis);
-
-        Blockchain chainA = swarmA.Blockchain;
-        Blockchain chainB = swarmB.Blockchain;
-
-        var block = chainA.ProposeBlock(keyA);
-        BlockCommit blockCommit = TestUtils.CreateBlockCommit(block);
-        chainA.Append(block, blockCommit);
-        chainB.Append(block, blockCommit);
-
-        foreach (int i in Enumerable.Range(0, 3))
+        await using var transports = new ServiceCollection
         {
-            block = chainA.ProposeBlock(keyA);
-            chainA.Append(block, TestUtils.CreateBlockCommit(block));
-        }
+            transportA,
+            transportB,
+        };
+        await using var services = new ServiceCollection
+        {
+            syncResponderServiceA,
+            syncServiceB,
+        };
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
+        blockchainA.ProposeAndAppend(keyA);
+        blockchainA.AppendTo(blockchainB, 1..);
 
-        await swarmB.AddPeersAsync([swarmA.Peer], default);
-        swarmA.BroadcastBlock(chainA.Blocks[-1]);
-        // await swarmB.BlockAppended.WaitAsync(default);
+        blockchainA.ProposeAndAppendMany(keyA, 3);
 
-        Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
 
-        CancellationTokenSource cts = new CancellationTokenSource();
-        swarmA.BroadcastBlock(chainA.Blocks[-1]);
-        // Task t = swarmB.BlockAppended.WaitAsync(cts.Token);
+        await peerExplorerB.PingAsync(transportA.Peer, default);
 
-        // Actually, previous code may pass this test if message is
-        // delayed over 5 seconds.
-        await Task.Delay(5000);
-        // Assert.False(t.IsCompleted);
+        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
-        cts.Cancel();
+        Assert.Equal(blockchainA.Blocks.Keys, blockchainB.Blocks.Keys);
+
+        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+
+        await Assert.ThrowsAsync<TimeoutException>(
+            async () => await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
     }
 
     [Fact(Timeout = Timeout)]
@@ -870,47 +877,58 @@ public partial class SwarmTest
     {
         var privateKey = new PrivateKey();
         var address = privateKey.Address;
-        var swarm1 = await CreateSwarm();
-        var swarm2 = await CreateSwarm();
 
-        var tx1 = swarm2.Blockchain.StagedTransactions.Add(privateKey, submission: new()
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+        var blockchainA = MakeBlockchain();
+        var blockchainB = MakeBlockchain();
+        var transactionResponderServiceB = new TransactionSynchronizationResponderService(blockchainB, transportB);
+
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+        };
+        await using var services = new ServiceCollection
+        {
+            transactionResponderServiceB,
+        };
+
+        var tx1 = blockchainB.StagedTransactions.Add(privateKey, submission: new()
         {
             Actions = [DumbAction.Create((address, "foo"))],
         });
 
-        var tx2 = swarm2.Blockchain.StagedTransactions.Add(privateKey, submission: new()
+        var tx2 = blockchainB.StagedTransactions.Add(privateKey, submission: new()
         {
             Actions = [DumbAction.Create((address, "bar"))],
         });
 
-        var tx3 = swarm2.Blockchain.StagedTransactions.Add(privateKey, submission: new()
+        var tx3 = blockchainB.StagedTransactions.Add(privateKey, submission: new()
         {
             Actions = [DumbAction.Create((address, "quz"))],
         });
 
-        var tx4 = new TransactionMetadata
+        var tx4 = new TransactionBuilder
         {
             Nonce = 4,
-            Signer = privateKey.Address,
-            GenesisHash = swarm1.Blockchain.Genesis.BlockHash,
-            Actions = new[] { DumbAction.Create((address, "qux")) }.ToBytecodes(),
-        }.Sign(privateKey);
+            GenesisHash = blockchainA.Genesis.BlockHash,
+            Actions = [DumbAction.Create((address, "qux"))],
+        }.Create(privateKey);
 
-        await swarm1.StartAsync(default);
-        await swarm2.StartAsync(default);
-        await swarm1.AddPeersAsync([swarm2.Peer], default);
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
 
-        var transport = swarm1.Transport;
-        var msg = new TransactionRequestMessage { TxIds = [tx1.Id, tx2.Id, tx3.Id, tx4.Id] };
-        // var reply = await transport.SendAsync(swarm2.Peer, msg, default);
-        // var replayMessage = (AggregateMessage)reply.Message;
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
 
-        // Assert.Equal(3, replayMessage.Messages.Length);
-        // Assert.Equal(
-        //     new[] { tx1, tx2, tx3 }.ToHashSet(),
-        //     replayMessage.Messages.Select(
-        //         m => ModelSerializer.DeserializeFromBytes<Transaction>(
-        //             ((TransactionMessage)m).Payload.AsSpan())).ToHashSet());
+        var request = new TransactionRequestMessage { TxIds = [tx1.Id, tx2.Id, tx3.Id, tx4.Id] };
+        var response = await transportA.SendAsync<TransactionResponseMessage>(transportB.Peer, request, default);
+
+        Assert.Equal(
+            new[] { tx1, tx2, tx3 }.ToHashSet(),
+            [.. response.Transactions]);
     }
 
     [Fact(Timeout = Timeout)]
