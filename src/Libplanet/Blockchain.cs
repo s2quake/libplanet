@@ -52,8 +52,8 @@ public partial class Blockchain
         BlockCommits = new BlockCommitCollection(repository);
         StagedTransactions = new StagedTransactionCollection(repository);
         Transactions = new TransactionCollection(repository);
-        PendingEvidences = new PendingEvidenceCollection(repository);
-        Evidences = new EvidenceCollection(repository);
+        PendingEvidence = new PendingEvidenceCollection(repository);
+        Evidence = new EvidenceCollection(repository);
         TxExecutions = new TxExecutionCollection(repository);
     }
 
@@ -77,9 +77,9 @@ public partial class Blockchain
 
     public TransactionCollection Transactions { get; }
 
-    public EvidenceCollection Evidences { get; }
+    public EvidenceCollection Evidence { get; }
 
-    public PendingEvidenceCollection PendingEvidences { get; }
+    public PendingEvidenceCollection PendingEvidence { get; }
 
     public TxExecutionCollection TxExecutions { get; }
 
@@ -170,7 +170,7 @@ public partial class Blockchain
         var blockContent = new BlockContent
         {
             Transactions = StagedTransactions.Collect(),
-            Evidences = PendingEvidences.Collect(),
+            Evidences = PendingEvidence.Collect(),
         };
         var rawBlock = new RawBlock
         {

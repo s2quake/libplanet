@@ -6,32 +6,32 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Components;
 
-public sealed class TransactionBroadcaster : IAsyncDisposable
+public sealed class EvidenceBroadcaster : IAsyncDisposable
 {
     private static readonly object _lock = new();
-    private readonly Subject<(ImmutableArray<Peer>, ImmutableArray<TxId>)> _broadcastedSubject = new();
+    private readonly Subject<(ImmutableArray<Peer>, ImmutableArray<EvidenceId>)> _broadcastedSubject = new();
 
     private readonly PeerExplorer _peerDiscovery;
-    private readonly HashSet<TxId> _broadcastedTxIds;
+    private readonly HashSet<EvidenceId> _broadcastedEvidenceIds;
     private readonly DisposerCollection _subscriptions;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly Task _broadcastingTask;
     private bool _disposed;
 
-    public IObservable<(ImmutableArray<Peer>, ImmutableArray<TxId>)> Broadcasted => _broadcastedSubject;
+    public IObservable<(ImmutableArray<Peer>, ImmutableArray<EvidenceId>)> Broadcasted => _broadcastedSubject;
 
     public TimeSpan BroadcastInterval { get; set; } = TimeSpan.FromSeconds(1);
 
-    public TransactionBroadcaster(Blockchain blockchain, PeerExplorer peerDiscovery)
+    public EvidenceBroadcaster(Blockchain blockchain, PeerExplorer peerDiscovery)
     {
         _subscriptions =
         [
-            blockchain.StagedTransactions.Added.Subscribe(AddInternal),
-            blockchain.StagedTransactions.Removed.Subscribe(RemoveInternal),
+            blockchain.PendingEvidence.Added.Subscribe(AddInternal),
+            blockchain.PendingEvidence.Removed.Subscribe(RemoveInternal),
         ];
         _peerDiscovery = peerDiscovery;
         _broadcastingTask = BroadcastAsync();
-        _broadcastedTxIds = [.. blockchain.StagedTransactions.Keys];
+        _broadcastedEvidenceIds = [.. blockchain.PendingEvidence.Keys];
     }
 
     public async ValueTask DisposeAsync()
@@ -48,29 +48,29 @@ public sealed class TransactionBroadcaster : IAsyncDisposable
         }
     }
 
-    private void AddInternal(Transaction transaction)
+    private void AddInternal(EvidenceBase evidence)
     {
         lock (_lock)
         {
-            _broadcastedTxIds.Add(transaction.Id);
+            _broadcastedEvidenceIds.Add(evidence.Id);
         }
     }
 
-    private void RemoveInternal(Transaction transaction)
+    private void RemoveInternal(EvidenceBase evidence)
     {
         lock (_lock)
         {
-            _broadcastedTxIds.Remove(transaction.Id);
+            _broadcastedEvidenceIds.Remove(evidence.Id);
         }
     }
 
-    private ImmutableArray<TxId> FlushInternal()
+    private ImmutableArray<EvidenceId> FlushInternal()
     {
         lock (_lock)
         {
-            var txIds = _broadcastedTxIds.ToImmutableArray();
-            _broadcastedTxIds.Clear();
-            return txIds;
+            var evidenceIds = _broadcastedEvidenceIds.ToImmutableArray();
+            _broadcastedEvidenceIds.Clear();
+            return evidenceIds;
         }
     }
 
@@ -78,11 +78,11 @@ public sealed class TransactionBroadcaster : IAsyncDisposable
     {
         while (await TaskUtility.TryDelay(BroadcastInterval, _cancellationTokenSource.Token))
         {
-            var txIds = FlushInternal();
-            if (txIds.Length > 0)
+            var evidenceIds = FlushInternal();
+            if (evidenceIds.Length > 0)
             {
-                var (peers, _) = _peerDiscovery.BroadcastTransaction(txIds);
-                _broadcastedSubject.OnNext((peers, txIds));
+                var (peers, _) = _peerDiscovery.BroadcastEvidence(evidenceIds);
+                _broadcastedSubject.OnNext((peers, evidenceIds));
             }
         }
     }

@@ -1,14 +1,10 @@
-using Libplanet.Net.Components;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Services;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class EvidenceIdMessageHandler(EvidenceFetcher fetcher)
+internal sealed class EvidenceIdMessageHandler(EvidenceDemandCollection evidenceDemands)
     : MessageHandlerBase<EvidenceIdMessage>
 {
     protected override void OnHandle(EvidenceIdMessage message, MessageEnvelope messageEnvelope)
-    {
-        fetcher.Request(messageEnvelope.Sender, [.. message.Ids]);
-    }
+        => evidenceDemands.AddOrUpdate(new EvidenceDemand(messageEnvelope.Sender, [.. message.Ids]));
 }

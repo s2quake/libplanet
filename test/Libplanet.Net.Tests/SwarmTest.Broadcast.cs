@@ -272,7 +272,7 @@ public partial class SwarmTest
 
         var waitTaskB = serviceB.Staged.WaitAsync();
         var waitTaskC = serviceC.Staged.WaitAsync();
-        peerExplorerA.Broadcast([tx.Id]);
+        peerExplorerA.BroadcastTransaction([tx.Id]);
 
         await waitTaskB.WaitAsync(TimeSpan.FromSeconds(3));
         await waitTaskC.WaitAsync(TimeSpan.FromSeconds(3));
@@ -329,7 +329,7 @@ public partial class SwarmTest
 
         for (var i = 0; i < 100; i++)
         {
-            peerExplorerA.Broadcast(txs);
+            peerExplorerA.BroadcastTransaction(txs);
         }
 
         var waitTaskC = serviceC.Staged.WaitAsync(
@@ -498,7 +498,7 @@ public partial class SwarmTest
         await transportB.StartAsync(default);
         await services.StartAsync(default);
         await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
-        peerExplorerA.Broadcast([tx1, tx2], new BroadcastOptions
+        peerExplorerA.BroadcastTransaction([tx1, tx2], new BroadcastOptions
         {
             Delay = TimeSpan.FromMilliseconds(100),
         });
@@ -536,7 +536,7 @@ public partial class SwarmTest
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
         await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
 
-        peerExplorerA.Broadcast([tx3, tx4], new BroadcastOptions
+        peerExplorerA.BroadcastTransaction([tx3, tx4], new BroadcastOptions
         {
             Delay = TimeSpan.FromMilliseconds(100),
         });
@@ -1014,7 +1014,7 @@ public partial class SwarmTest
         var chainC = swarmC.Blockchain;
 
         var evidence = TestEvidence.Create(0, validatorAddress, DateTimeOffset.UtcNow);
-        chainA.PendingEvidences.Add(evidence);
+        chainA.PendingEvidence.Add(evidence);
 
         await swarmA.StartAsync(default);
         await swarmB.StartAsync(default);
@@ -1029,7 +1029,7 @@ public partial class SwarmTest
         // await swarmC.EvidenceReceived.WaitAsync(cancellationTokenSource.Token);
         // await swarmB.EvidenceReceived.WaitAsync(cancellationTokenSource.Token);
 
-        Assert.Equal(evidence, chainB.PendingEvidences[evidence.Id]);
-        Assert.Equal(evidence, chainC.PendingEvidences[evidence.Id]);
+        Assert.Equal(evidence, chainB.PendingEvidence[evidence.Id]);
+        Assert.Equal(evidence, chainC.PendingEvidence[evidence.Id]);
     }
 }

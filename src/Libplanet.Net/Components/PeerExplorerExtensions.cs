@@ -37,24 +37,46 @@ public static class PeerExplorerExtensions
         return (@this.Broadcast(message), message);
     }
 
-    public static (ImmutableArray<Peer>, IMessage) Broadcast(
+    public static (ImmutableArray<Peer>, IMessage) BroadcastTransaction(
         this PeerExplorer @this, ImmutableArray<Transaction> transactions)
-        => Broadcast(@this, transactions, default);
+        => BroadcastTransaction(@this, transactions, default);
 
-    public static (ImmutableArray<Peer>, IMessage) Broadcast(
+    public static (ImmutableArray<Peer>, IMessage) BroadcastTransaction(
         this PeerExplorer @this, ImmutableArray<Transaction> transactions, BroadcastOptions options)
-        => Broadcast(@this, [.. transactions.Select(tx => tx.Id)], options);
+        => BroadcastTransaction(@this, [.. transactions.Select(tx => tx.Id)], options);
 
-    public static (ImmutableArray<Peer>, IMessage) Broadcast(
+    public static (ImmutableArray<Peer>, IMessage) BroadcastTransaction(
         this PeerExplorer @this, ImmutableArray<TxId> txIds)
-        => Broadcast(@this, txIds, default);
+        => BroadcastTransaction(@this, txIds, default);
 
-    public static (ImmutableArray<Peer>, IMessage) Broadcast(
+    public static (ImmutableArray<Peer>, IMessage) BroadcastTransaction(
         this PeerExplorer @this, ImmutableArray<TxId> txIds, BroadcastOptions options)
     {
         var message = new TxIdMessage
         {
             Ids = txIds,
+        };
+        return (@this.Broadcast(message, options), message);
+    }
+
+    public static (ImmutableArray<Peer>, IMessage) BroadcastEvidence(
+        this PeerExplorer @this, ImmutableArray<EvidenceBase> evidence)
+        => BroadcastEvidence(@this, evidence, default);
+
+    public static (ImmutableArray<Peer>, IMessage) BroadcastEvidence(
+        this PeerExplorer @this, ImmutableArray<EvidenceBase> evidence, BroadcastOptions options)
+        => BroadcastEvidence(@this, [.. evidence.Select(tx => tx.Id)], options);
+
+    public static (ImmutableArray<Peer>, IMessage) BroadcastEvidence(
+        this PeerExplorer @this, ImmutableArray<EvidenceId> evidenceIds)
+        => BroadcastEvidence(@this, evidenceIds, default);
+
+    public static (ImmutableArray<Peer>, IMessage) BroadcastEvidence(
+        this PeerExplorer @this, ImmutableArray<EvidenceId> evidenceIds, BroadcastOptions options)
+    {
+        var message = new EvidenceIdMessage
+        {
+            Ids = evidenceIds,
         };
         return (@this.Broadcast(message, options), message);
     }

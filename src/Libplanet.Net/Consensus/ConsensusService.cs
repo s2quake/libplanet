@@ -394,7 +394,7 @@ public sealed class ConsensusService : ServiceBase
                 var validators = _blockchain.GetWorld(evidenceException.Height).GetValidators();
                 var evidenceContext = new EvidenceContext(validators);
                 var evidence = evidenceException.Create(evidenceContext);
-                _blockchain.PendingEvidences.Add(evidence);
+                _blockchain.PendingEvidence.Add(evidence);
             }
             catch
             {

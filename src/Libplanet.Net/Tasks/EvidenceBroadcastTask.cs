@@ -14,7 +14,7 @@ internal sealed class EvidenceBroadcastTask(Swarm swarm) : PeriodicTaskService
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var blockchain = swarm.Blockchain;
-        var evidenceIds = blockchain.PendingEvidences.Keys.ToArray();
+        var evidenceIds = blockchain.PendingEvidence.Keys.ToArray();
         if (evidenceIds.Length > 0)
         {
             var message = new EvidenceIdMessage { Ids = [.. evidenceIds] };

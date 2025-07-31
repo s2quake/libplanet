@@ -14,51 +14,36 @@ public sealed class EvidenceFetcher(
         Peer peer, ImmutableArray<EvidenceId> ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var request = new EvidenceRequestMessage { EvidenceIds = ids };
-        using var cancellationTokenSource = CreateCancellationTokenSource();
-        var response = await transport.SendAsync<EvidenceResponseMessage>(peer, request, cancellationTokenSource.Token);
-        // await foreach (var item in transport.SendAsync<EvidenceMessage>(peer, request, cancellationToken))
+        var isLast = new Func<EvidenceResponseMessage, bool>(m => m.IsLast);
+        var query = transport.SendAsync(peer, request, isLast, cancellationToken);
+        await foreach (var item in query)
         {
-            for (var i = 0; i < response.Evidence.Length; i++)
+            foreach (var evidence in item.Evidence)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                yield return response.Evidence[i];
+                yield return evidence;
             }
-        }
-
-        CancellationTokenSource CreateCancellationTokenSource()
-        {
-            var count = ids.Length;
-            var fetchTimeout = timeoutOptions.GetEvidenceFetchTimeout(count);
-            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cancellationTokenSource.CancelAfter(fetchTimeout);
-            return cancellationTokenSource;
         }
     }
 
     protected override bool Predicate(EvidenceId id)
     {
-        var pendingEvidences = blockchain.PendingEvidences;
-        var evidences = blockchain.Evidences;
+        var pendingEvidences = blockchain.PendingEvidence;
+        var evidences = blockchain.Evidence;
         return pendingEvidences.ContainsKey(id) && !evidences.ContainsKey(id);
     }
 
     protected override bool Verify(EvidenceBase item)
     {
-        var pendingEvidence = blockchain.PendingEvidences;
+        var pendingEvidence = blockchain.PendingEvidence;
+        var evidence = blockchain.Evidence;
 
         try
         {
-            if (!pendingEvidence.ContainsKey(item.Id))
-            {
-                // pendingEvidence.Add(item);
-                return true;
-            }
+            return !evidence.ContainsKey(item.Id) && !pendingEvidence.ContainsKey(item.Id);
         }
         catch
         {
-            // do nothing
+            return false;
         }
-
-        return false;
     }
 }

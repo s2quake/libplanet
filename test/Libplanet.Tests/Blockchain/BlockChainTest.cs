@@ -76,8 +76,8 @@ public partial class BlockChainTest : IDisposable
         Assert.Empty(blockChain.BlockCommits);
         Assert.Empty(blockChain.StagedTransactions);
         Assert.Empty(blockChain.Transactions);
-        Assert.Empty(blockChain.PendingEvidences);
-        Assert.Empty(blockChain.Evidences);
+        Assert.Empty(blockChain.PendingEvidence);
+        Assert.Empty(blockChain.Evidence);
         Assert.Empty(blockChain.TxExecutions);
         Assert.Throws<InvalidOperationException>(() => blockChain.StateRootHash);
         Assert.Throws<InvalidOperationException>(() => blockChain.BlockCommit);
@@ -98,8 +98,8 @@ public partial class BlockChainTest : IDisposable
         Assert.Single(blockChain.BlockCommits);
         Assert.Empty(blockChain.StagedTransactions);
         Assert.Empty(blockChain.Transactions);
-        Assert.Empty(blockChain.PendingEvidences);
-        Assert.Empty(blockChain.Evidences);
+        Assert.Empty(blockChain.PendingEvidence);
+        Assert.Empty(blockChain.Evidence);
         Assert.Empty(blockChain.TxExecutions);
         Assert.Equal(default, blockChain.StateRootHash);
         Assert.Equal(BlockCommit.Empty, blockChain.BlockCommit);
@@ -131,8 +131,8 @@ public partial class BlockChainTest : IDisposable
         Assert.Single(blockChain.BlockCommits);
         Assert.Empty(blockChain.StagedTransactions);
         Assert.Single(blockChain.Transactions);
-        Assert.Empty(blockChain.PendingEvidences);
-        Assert.Empty(blockChain.Evidences);
+        Assert.Empty(blockChain.PendingEvidence);
+        Assert.Empty(blockChain.Evidence);
         Assert.Single(blockChain.TxExecutions);
         Assert.NotEqual(default, blockChain.StateRootHash);
         Assert.Equal(BlockCommit.Empty, blockChain.BlockCommit);

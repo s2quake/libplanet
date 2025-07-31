@@ -105,7 +105,7 @@ public class DuplicateVoteEvidenceTest
             height: 4,
             cancellationToken: new CancellationTokenSource(Timeout).Token);
 
-        Assert.Single(blockchain.PendingEvidences);
+        Assert.Single(blockchain.PendingEvidence);
         Assert.Equal(4, consensusService.Height);
         Assert.Equal(0, consensusService.Round);
 

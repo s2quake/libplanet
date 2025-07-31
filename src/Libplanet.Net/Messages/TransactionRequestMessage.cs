@@ -10,5 +10,5 @@ internal sealed partial record class TransactionRequestMessage : MessageBase
     public ImmutableArray<TxId> TxIds { get; init; } = [];
 
     [Property(1)]
-    public int ChunkSize { get; init; }
+    public int ChunkSize { get; init; } = 100;
 }

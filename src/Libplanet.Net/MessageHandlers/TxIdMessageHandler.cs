@@ -6,8 +6,5 @@ internal sealed class TxIdMessageHandler(TransactionDemandCollection transaction
     : MessageHandlerBase<TxIdMessage>
 {
     protected override void OnHandle(TxIdMessage message, MessageEnvelope messageEnvelope)
-    {
-        var demand = new TransactionDemand(messageEnvelope.Sender, [.. message.Ids]);
-        transactionDemands.AddOrUpdate(demand);
-    }
+        => transactionDemands.AddOrUpdate(new TransactionDemand(messageEnvelope.Sender, [.. message.Ids]));
 }
