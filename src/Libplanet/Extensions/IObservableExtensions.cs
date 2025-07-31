@@ -23,8 +23,7 @@ public static class IObservableExtensions
         return await tcs.Task;
     }
 
-    public static async Task<T> WaitAsync<T>(
-        this IObservable<T> @this, Func<T, bool> predicate)
+    public static async Task<T> WaitAsync<T>(this IObservable<T> @this, Func<T, bool> predicate)
         where T : notnull
         => await WaitAsync(@this, predicate, cancellationToken: default);
 

@@ -3,13 +3,9 @@ using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Options;
-using Libplanet.Net.NetMQ;
-using Libplanet.Data;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Serilog;
 using xRetry;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
@@ -18,8 +14,6 @@ using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Components;
 using Libplanet.Net.Services;
 using Libplanet.Extensions;
-using Libplanet.Types.Threading;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
 using System.Reactive.Linq;
 
@@ -935,15 +929,10 @@ public partial class SwarmTest
     public async Task DoNotSpawnMultipleTaskForSinglePeer()
     {
         var key = new PrivateKey();
-        var transportOptions = new TransportOptions();
 
         var transportB = TestUtils.CreateTransport();
-
-        // Swarm swarmB =
-        //     await CreateSwarm();
         var transportA = TestUtils.CreateTransport();
 
-        var blockchainA = MakeBlockchain();
         var blockchainB = MakeBlockchain();
         var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
         var requestCount = 0;
@@ -957,20 +946,6 @@ public partial class SwarmTest
         {
             syncServiceB,
         };
-
-        // void MessageHandler(IMessage message, MessageEnvelope messageEnvelope)
-        // {
-        //     switch (message)
-        //     {
-        //         // case PingMessage ping:
-        //         //     transportA.Post(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
-        //         //     break;
-
-        //         case BlockHashRequestMessage gbhm:
-        //             requestCount++;
-        //             break;
-        //     }
-        // }
 
         using var _1 = transportA.MessageRouter.Register(new PingMessageHandler(transportA));
         using var _2 = transportA.MessageRouter.Register<IMessage>(e =>
@@ -986,43 +961,42 @@ public partial class SwarmTest
         var block1 = ProposeNextBlock(blockchainB.Genesis, key);
         var block2 = ProposeNextBlock(block1, key);
 
-        // await swarmB.StartAsync(default);
-        // await transportA.StartAsync(default);
-
         await transports.StartAsync(default);
         await services.StartAsync(default);
 
-        // Send block header for block 1.
         var message1 = new BlockSummaryMessage
         {
             GenesisHash = blockchainB.Genesis.BlockHash,
             BlockSummary = block1
         };
 
-        transportA.Post(transportB.Peer, message1);
-        // await receiver.BlockHeaderReceived.WaitAsync(default);
+        InvokeAfter(() => transportA.Post(transportB.Peer, message1), TimeSpan.FromMilliseconds(100));
 
-        // Wait until FillBlockAsync task has spawned block demand task.
-        // await Task.Delay(1000);
-        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage);
+        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage).WaitAsync(TimeSpan.FromSeconds(5));
 
-        // Re-send block header for block 1, make sure it does not spawn new task.
-        transportA.Post(transportB.Peer, message1);
-        // await receiver.BlockHeaderReceived.WaitAsync(default);
-        await Task.Delay(1000);
+        InvokeAfter(() => transportA.Post(transportB.Peer, message1), TimeSpan.FromMilliseconds(100));
 
-        // Send block header for block 2, make sure it does not spawn new task.
+        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage).WaitAsync(TimeSpan.FromSeconds(5));
+
         var message2 = new BlockSummaryMessage
         {
             GenesisHash = blockchainB.Genesis.BlockHash,
             BlockSummary = block2
         };
 
-        transportA.Post(transportB.Peer, message2);
-        // await receiver.BlockHeaderReceived.WaitAsync(default);
-        await Task.Delay(1000);
+        InvokeAfter(() => transportA.Post(transportB.Peer, message2), TimeSpan.FromMilliseconds(100));
+        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage).WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(1, requestCount);
+
+        void InvokeAfter(Action action, TimeSpan delay)
+        {
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(delay);
+                action();
+            });
+        }
     }
 
     [Fact(Timeout = Timeout)]

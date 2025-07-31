@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
@@ -9,17 +8,17 @@ public static class ITransportExtensions
 {
     public static async Task WaitPingAsync(this ITransport @this, params Peer[] peers)
     {
-        var manualResetEvent = new ManualResetEventSlim(false);
+        var tcs = new TaskCompletionSource<MessageEnvelope>();
         using var _ = @this.MessageRouter.Register<PingMessage>((message, messageEnvelope) =>
         {
             if (peers.Length is 0 || peers.Contains(messageEnvelope.Sender))
             {
                 @this.Post(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
-                manualResetEvent.Set();
+                tcs.SetResult(messageEnvelope);
             }
         });
 
-        await Task.Run(manualResetEvent.Wait, default);
+        await tcs.Task;
     }
 
     public static Task<MessageEnvelope> WaitAsync<T>(this ITransport @this, CancellationToken cancellationToken)
@@ -35,18 +34,16 @@ public static class ITransportExtensions
         this ITransport @this, Func<T, MessageEnvelope, bool> predicate, CancellationToken cancellationToken)
         where T : IMessage
     {
-        MessageEnvelope? returnValue = null;
-        var manualResetEvent = new ManualResetEventSlim(false);
-        using var _ = @this.MessageRouter.Register<T>((message, messageEnvelope) =>
+        var tcs = new TaskCompletionSource<MessageEnvelope>();
+        using var _1 = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+        using var _2 = @this.MessageRouter.Register<T>((message, messageEnvelope) =>
         {
             if (predicate(message, messageEnvelope))
             {
-                returnValue = messageEnvelope;
-                manualResetEvent.Set();
+                tcs.SetResult(messageEnvelope);
             }
         });
 
-        await Task.Run(manualResetEvent.Wait, cancellationToken);
-        return returnValue ?? throw new UnreachableException("No message received before cancellation.");
+        return await tcs.Task;
     }
 }
