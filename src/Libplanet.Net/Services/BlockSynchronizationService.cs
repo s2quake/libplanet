@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +26,7 @@ internal sealed class BlockSynchronizationService : ServiceBase
         _subscriptions =
         [
             _blockBranchAppender.BlockBranchAppended.Subscribe(_appendedSubject.OnNext),
+            BlockDemands.Added.Subscribe(BlockDemandsAdded),
         ];
     }
 
@@ -45,22 +45,11 @@ internal sealed class BlockSynchronizationService : ServiceBase
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         _blockBroadcastingHandler = new BlockBroadcastingHandler(_blockchain, _transport, BlockDemands);
-        BlockDemands.CollectionChanged += BlockDemands_CollectionChanged;
         await Task.CompletedTask;
-    }
-
-    private void BlockDemands_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        if (e.Action == NotifyCollectionChangedAction.Add)
-        {
-            _ = Task.Run(async () => await SynchronizeAsync(default));
-        }
     }
 
     protected override Task OnStopAsync(CancellationToken cancellationToken)
     {
-        BlockDemands.CollectionChanged -= BlockDemands_CollectionChanged;
-        BlockDemands.Clear();
         _blockBroadcastingHandler?.Dispose();
         _blockBroadcastingHandler = null;
         return Task.CompletedTask;
@@ -68,7 +57,6 @@ internal sealed class BlockSynchronizationService : ServiceBase
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        BlockDemands.CollectionChanged -= BlockDemands_CollectionChanged;
         _blockBroadcastingHandler?.Dispose();
         _blockBroadcastingHandler = null;
 
@@ -77,5 +65,13 @@ internal sealed class BlockSynchronizationService : ServiceBase
         _blockFetcher.Dispose();
         BlockDemands.Clear();
         await base.DisposeAsyncCore();
+    }
+
+    private void BlockDemandsAdded(BlockDemand demand)
+    {
+        if (IsRunning)
+        {
+            _ = Task.Run(async () => await SynchronizeAsync(default));
+        }
     }
 }

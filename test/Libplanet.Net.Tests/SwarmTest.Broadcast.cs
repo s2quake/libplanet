@@ -560,8 +560,6 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task CanBroadcastBlock()
     {
-        // If the bucket stored peers are the same, the block may not propagate,
-        // so specify private keys to make the buckets different.
         var keyA = PrivateKey.Parse("8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
         var keyB = PrivateKey.Parse("c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
         var keyC = PrivateKey.Parse("941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
@@ -601,129 +599,124 @@ public partial class SwarmTest
         blockchainA.AppendTo(blockchainB, 1..5);
 
         await transports.StartAsync(default);
+        await services.StartAsync(default);
 
         await Task.WhenAll(
-            peerExplorerB.PingAsync(transportA.Peer, default),
-            peerExplorerC.PingAsync(transportA.Peer, default));
+            peerExplorerB.ExploreAsync([peerExplorerA.Peer], 3, default),
+            peerExplorerC.ExploreAsync([peerExplorerA.Peer], 3, default));
 
-        peerExplorerB.BroadcastTip(blockchainB, new BroadcastOptions
+        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
         {
             Delay = TimeSpan.FromMilliseconds(100),
         });
-        // await Task.WhenAll(
-        //     syncServiceA.Synchronized.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5))
+        await Task.WhenAll(
+            syncServiceA.BlockDemands.Added.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)),
+            syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
 
+        Assert.NotEqual(blockchainB.Tip, blockchainA.Tip);
 
-        // var swarmA = await CreateSwarm(keyA);
-        // var swarmB = await CreateSwarm(keyB);
-        // var swarmC = await CreateSwarm(keyC);
+        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
 
-        // Blockchain chainA = swarmA.Blockchain;
-        // Blockchain chainB = swarmB.Blockchain;
-        // Blockchain chainC = swarmC.Blockchain;
+        await Task.WhenAll(
+            syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)),
+            syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
 
-        // foreach (int i in Enumerable.Range(0, 10))
-        // {
-        //     Block block = chainA.ProposeBlock(keyA);
-        //     chainA.Append(block, TestUtils.CreateBlockCommit(block));
-        //     if (i < 5)
-        //     {
-        //         chainB.Append(block, TestUtils.CreateBlockCommit(block));
-        //     }
-        // }
-
-        // await swarmA.StartAsync(default);
-        // await swarmB.StartAsync(default);
-        // await swarmC.StartAsync(default);
-
-        // await swarmB.AddPeersAsync([swarmA.Peer], default);
-        // await swarmC.AddPeersAsync([swarmA.Peer], default);
-
-        // swarmB.BroadcastBlock(chainB.Tip);
-
-        // chainA ignores block header received because its index is shorter.
-        // await swarmA.BlockHeaderReceived.WaitAsync(default);
-        // await swarmC.BlockAppended.WaitAsync(default);
-        // Assert.False(swarmA.BlockAppended.IsSet);
-
-        // chainB doesn't applied to chainA since chainB is shorter
-        // than chainA
-        Assert.NotEqual(chainB, chainA);
-
-        swarmA.BroadcastBlock(chainA.Tip);
-
-        // await swarmB.BlockAppended.WaitAsync(default);
-        // await swarmC.BlockAppended.WaitAsync(default);
-
-        Log.Debug("Compare chainA and chainB");
-        Assert.Equal(chainA.Blocks.Keys, chainB.Blocks.Keys);
-        Log.Debug("Compare chainA and chainC");
-        Assert.Equal(chainA.Blocks.Keys, chainC.Blocks.Keys);
+        Assert.Equal(blockchainA.Blocks.Keys, blockchainB.Blocks.Keys);
+        Assert.Equal(blockchainA.Blocks.Keys, blockchainC.Blocks.Keys);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task BroadcastBlockWithSkip()
     {
-        var options = new BlockchainOptions
+        var blockchainOptions = new BlockchainOptions
         {
             SystemActions = new SystemActions
             {
                 EndBlockActions = [new MinerReward(1)],
             },
         };
-        var fx1 = new MemoryRepositoryFixture(options);
-        var blockChain = MakeBlockchain(options);
+        using var fx = new MemoryRepositoryFixture();
+        // using var fx2 = new MemoryRepositoryFixture(blockchainOptions);
+        var blockchainA = MakeBlockchain(blockchainOptions);
         var privateKey = new PrivateKey();
-        var minerSwarm = await CreateSwarm(blockChain, privateKey);
-        var fx2 = new MemoryRepositoryFixture();
+        var transportA = TestUtils.CreateTransport(privateKey);
+        var transportB = TestUtils.CreateTransport();
         // var receiverRenderer = new RecordingActionRenderer();
         // var loggedRenderer = new LoggedActionRenderer(
         //     receiverRenderer,
         //     _logger);
-        var receiverChain = MakeBlockchain(options);
-        Swarm receiverSwarm = await CreateSwarm(receiverChain);
+        var blockchainB = MakeBlockchain(blockchainOptions);
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+        // Swarm receiverSwarm = await CreateSwarm(blockchainB);
+
+        var syncResponderServiceA = new BlockSynchronizationResponderService(blockchainA, transportA);
+        var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+        };
+        await using var services = new ServiceCollection
+        {
+            syncResponderServiceA,
+            syncServiceB,
+        };
 
         int renderCount = 0;
 
         // receiverRenderer.RenderEventHandler += (_, a) => renderCount += IsDumbAction(a) ? 1 : 0;
+        using var _ = blockchainB.ActionExecuted.Subscribe(e =>
+        {
+            if (e.Action is DumbAction)
+            {
+                renderCount++;
+            }
+        });
 
-        Transaction[] transactions =
-        [
-            fx1.MakeTransaction(
-                [
-                    DumbAction.Create((fx1.Address2, "foo")),
-                    DumbAction.Create((fx1.Address2, "bar")),
-                ],
-                timestamp: DateTimeOffset.MinValue,
-                nonce: 0,
-                privateKey: privateKey),
-            fx1.MakeTransaction(
-                [
-                    DumbAction.Create((fx1.Address2, "baz")),
-                    DumbAction.Create((fx1.Address2, "qux")),
-                ],
-                timestamp: DateTimeOffset.MinValue.AddSeconds(5),
-                nonce: 1,
-                privateKey: privateKey),
-        ];
+        blockchainA.StagedTransactions.Add(privateKey, new TransactionSubmission
+        {
+            Actions =
+            [
+                DumbAction.Create((fx.Address2, "foo")),
+                DumbAction.Create((fx.Address2, "bar"))
+            ],
+        });
+        blockchainA.ProposeAndAppend(GenesisProposer);
+        blockchainA.StagedTransactions.Add(privateKey, new TransactionSubmission
+        {
+            Actions =
+            [
+                DumbAction.Create((fx.Address2, "baz")),
+                DumbAction.Create((fx.Address2, "qux"))
+            ],
+        });
+        blockchainA.ProposeAndAppend(GenesisProposer);
 
-        Block block1 = blockChain.ProposeBlock(GenesisProposer);
-        blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
-        Block block2 = blockChain.ProposeBlock(GenesisProposer);
-        blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
+        // await minerSwarm.StartAsync(default);
+        // await receiverSwarm.StartAsync(default);
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
 
-        await minerSwarm.StartAsync(default);
-        await receiverSwarm.StartAsync(default);
+        await peerExplorerB.PingAsync(transportA.Peer, default);
 
-        await receiverSwarm.AddPeersAsync([minerSwarm.Peer], default);
+        // await receiverSwarm.AddPeersAsync([minerSwarm.Peer], default);
+        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(50));
 
-        minerSwarm.BroadcastBlock(block2);
+        // minerSwarm.BroadcastBlock(block2);
 
-        await AssertThatEventually(
-            () => receiverChain.Tip.Equals(block2),
-            5_000,
-            1_000);
-        Assert.Equal(3, receiverChain.Blocks.Count);
+        // await AssertThatEventually(
+        //     () => blockchainB.Tip.Equals(block2),
+        //     5_000,
+        //     1_000);
+        Assert.Equal(3, blockchainB.Blocks.Count);
         Assert.Equal(4, renderCount);
     }
 

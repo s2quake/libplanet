@@ -1,18 +1,26 @@
 using System.Collections;
-using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive;
+using System.Reactive.Subjects;
 using System.Threading;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
-public sealed class BlockBranchCollection : IEnumerable<BlockBranch>, INotifyCollectionChanged
+public sealed class BlockBranchCollection : IEnumerable<BlockBranch>
 {
+    private readonly Subject<BlockBranch> _addedSubject = new();
+    private readonly Subject<BlockBranch> _removedSubject = new();
+    private readonly Subject<Unit> _clearedSubject = new();
     private readonly ReaderWriterLockSlim _lock = new();
     private readonly Dictionary<BlockHeader, BlockBranch> _branchByHeader = [];
 
-    public event NotifyCollectionChangedEventHandler? CollectionChanged;
+    public IObservable<BlockBranch> Added => _addedSubject;
+
+    public IObservable<BlockBranch> Removed => _removedSubject;
+
+    public IObservable<Unit> Cleared => _clearedSubject;
 
     public int Count
     {
@@ -40,7 +48,7 @@ public sealed class BlockBranchCollection : IEnumerable<BlockBranch>, INotifyCol
             throw new ArgumentException("A block branch with the same header already exists.", nameof(blockHeader));
         }
 
-        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Add, blockBranch));
+        _addedSubject.OnNext(blockBranch);
     }
 
     public bool TryGetValue(BlockHeader blockHeader, [MaybeNullWhen(false)] out BlockBranch value)
@@ -55,7 +63,7 @@ public sealed class BlockBranchCollection : IEnumerable<BlockBranch>, INotifyCol
         if (_branchByHeader.TryGetValue(blockHeader, out var blockBranch))
         {
             var removed = _branchByHeader.Remove(blockHeader);
-            CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, blockBranch));
+            _removedSubject.OnNext(blockBranch);
             return removed;
         }
 
@@ -69,7 +77,7 @@ public sealed class BlockBranchCollection : IEnumerable<BlockBranch>, INotifyCol
         var blockBranches = _branchByHeader.Values.Where(item => item.Height > tipHeight);
         foreach (var blockBranch in blockBranches)
         {
-            CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, blockBranch));
+            _removedSubject.OnNext(blockBranch);
             _branchByHeader.Remove(blockBranch.BlockHeader);
         }
     }
@@ -78,7 +86,7 @@ public sealed class BlockBranchCollection : IEnumerable<BlockBranch>, INotifyCol
     {
         using var _ = _lock.WriteScope();
         _branchByHeader.Clear();
-        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
+        _clearedSubject.OnNext(Unit.Default);
     }
 
     public BlockBranch[] Flush(Blockchain blockchain)
@@ -87,7 +95,7 @@ public sealed class BlockBranchCollection : IEnumerable<BlockBranch>, INotifyCol
         var tipHeight = blockchain.Tip.Height;
         var items = _branchByHeader.Values.Where(Predicate).ToArray();
         _branchByHeader.Clear();
-        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
+        _clearedSubject.OnNext(Unit.Default);
         return items;
 
         bool Predicate(BlockBranch item) => item.Height <= tipHeight;

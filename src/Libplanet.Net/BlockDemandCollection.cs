@@ -1,18 +1,30 @@
 using System.Collections;
-using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive;
+using System.Reactive.Subjects;
 using System.Threading;
 using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
 public sealed class BlockDemandCollection
-    : IEnumerable<BlockDemand>, INotifyCollectionChanged
+    : IEnumerable<BlockDemand>
 {
+    private readonly Subject<BlockDemand> _addedSubject = new();
+    private readonly Subject<(BlockDemand, BlockDemand)> _updatedSubject = new();
+    private readonly Subject<BlockDemand> _removedSubject = new();
+    private readonly Subject<Unit> _clearedSubject = new();
+
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
     private readonly Dictionary<Peer, BlockDemand> _demandByPeer = [];
 
-    public event NotifyCollectionChangedEventHandler? CollectionChanged;
+    public IObservable<BlockDemand> Added => _addedSubject;
+
+    public IObservable<(BlockDemand OldDemand, BlockDemand NewDemand)> Updated => _updatedSubject;
+
+    public IObservable<BlockDemand> Removed => _removedSubject;
+
+    public IObservable<Unit> Cleared => _clearedSubject;
 
     public int Count
     {
@@ -38,12 +50,12 @@ public sealed class BlockDemandCollection
         if (_demandByPeer.TryGetValue(demand.Peer, out var value))
         {
             _demandByPeer[demand.Peer] = demand;
-            CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Replace, demand, value));
+            _updatedSubject.OnNext((value, demand));
         }
         else
         {
             _demandByPeer.Add(demand.Peer, demand);
-            CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Add, demand));
+            _addedSubject.OnNext(demand);
         }
     }
 
@@ -53,7 +65,7 @@ public sealed class BlockDemandCollection
         if (_demandByPeer.TryGetValue(peer, out var demand))
         {
             var removed = _demandByPeer.Remove(peer);
-            CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, demand));
+            _removedSubject.OnNext(demand);
             return removed;
         }
 
@@ -68,7 +80,7 @@ public sealed class BlockDemandCollection
         foreach (var demand in demands)
         {
             _demandByPeer.Remove(demand.Peer);
-            CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Remove, demand));
+            _removedSubject.OnNext(demand);
         }
     }
 
@@ -76,7 +88,7 @@ public sealed class BlockDemandCollection
     {
         using var _ = _lock.WriteScope();
         _demandByPeer.Clear();
-        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
+        _clearedSubject.OnNext(Unit.Default);
     }
 
     public BlockDemand[] Flush(Blockchain blockchain)
@@ -85,7 +97,7 @@ public sealed class BlockDemandCollection
         var tipHeight = blockchain.Tip.Height;
         var items = _demandByPeer.Values.Where(item => item.Height > tipHeight).ToArray();
         _demandByPeer.Clear();
-        CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
+        _clearedSubject.OnNext(Unit.Default);
         return items;
     }
 
