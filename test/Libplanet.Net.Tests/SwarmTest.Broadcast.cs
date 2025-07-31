@@ -21,6 +21,7 @@ using Libplanet.Extensions;
 using Libplanet.Types.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
+using System.Reactive.Linq;
 
 namespace Libplanet.Net.Tests;
 
@@ -639,20 +640,13 @@ public partial class SwarmTest
             },
         };
         using var fx = new MemoryRepositoryFixture();
-        // using var fx2 = new MemoryRepositoryFixture(blockchainOptions);
-        var blockchainA = MakeBlockchain(blockchainOptions);
         var privateKey = new PrivateKey();
         var transportA = TestUtils.CreateTransport(privateKey);
         var transportB = TestUtils.CreateTransport();
-        // var receiverRenderer = new RecordingActionRenderer();
-        // var loggedRenderer = new LoggedActionRenderer(
-        //     receiverRenderer,
-        //     _logger);
+        var blockchainA = MakeBlockchain(blockchainOptions);
         var blockchainB = MakeBlockchain(blockchainOptions);
         var peerExplorerA = new PeerExplorer(transportA);
         var peerExplorerB = new PeerExplorer(transportB);
-        // Swarm receiverSwarm = await CreateSwarm(blockchainB);
-
         var syncResponderServiceA = new BlockSynchronizationResponderService(blockchainA, transportA);
         var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
         await using var transports = new ServiceCollection
@@ -666,9 +660,7 @@ public partial class SwarmTest
             syncServiceB,
         };
 
-        int renderCount = 0;
-
-        // receiverRenderer.RenderEventHandler += (_, a) => renderCount += IsDumbAction(a) ? 1 : 0;
+        var renderCount = 0;
         using var _ = blockchainB.ActionExecuted.Subscribe(e =>
         {
             if (e.Action is DumbAction)
@@ -696,26 +688,17 @@ public partial class SwarmTest
         });
         blockchainA.ProposeAndAppend(GenesisProposer);
 
-        // await minerSwarm.StartAsync(default);
-        // await receiverSwarm.StartAsync(default);
         await transports.StartAsync(default);
         await services.StartAsync(default);
 
         await peerExplorerB.PingAsync(transportA.Peer, default);
 
-        // await receiverSwarm.AddPeersAsync([minerSwarm.Peer], default);
         peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
         {
             Delay = TimeSpan.FromMilliseconds(100),
         });
         await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(50));
 
-        // minerSwarm.BroadcastBlock(block2);
-
-        // await AssertThatEventually(
-        //     () => blockchainB.Tip.Equals(block2),
-        //     5_000,
-        //     1_000);
         Assert.Equal(3, blockchainB.Blocks.Count);
         Assert.Equal(4, renderCount);
     }
