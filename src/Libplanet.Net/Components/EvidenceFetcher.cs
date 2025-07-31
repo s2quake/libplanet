@@ -1,13 +1,11 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Options;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Components;
 
-public sealed class EvidenceFetcher(
-    Blockchain blockchain, ITransport transport, TimeoutOptions timeoutOptions)
+public sealed class EvidenceFetcher(Blockchain blockchain, ITransport transport)
     : FetcherBase<EvidenceId, EvidenceBase>
 {
     protected override async IAsyncEnumerable<EvidenceBase> FetchOverrideAsync(
@@ -27,9 +25,9 @@ public sealed class EvidenceFetcher(
 
     protected override bool Predicate(EvidenceId id)
     {
-        var pendingEvidences = blockchain.PendingEvidence;
-        var evidences = blockchain.Evidence;
-        return pendingEvidences.ContainsKey(id) && !evidences.ContainsKey(id);
+        var pendingEvidence = blockchain.PendingEvidence;
+        var evidence = blockchain.Evidence;
+        return !pendingEvidence.ContainsKey(id) && !evidence.ContainsKey(id);
     }
 
     protected override bool Verify(EvidenceBase item)

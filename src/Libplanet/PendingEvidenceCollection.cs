@@ -25,6 +25,17 @@ public sealed class PendingEvidenceCollection(Repository repository)
 
     public EvidenceBase this[EvidenceId txId] => _store[txId];
 
+    public bool TryAdd(EvidenceBase evidence)
+    {
+        if (_store.TryAdd(evidence))
+        {
+            _addedSubject.OnNext(evidence);
+            return true;
+        }
+
+        return false;
+    }
+
     public void Add(EvidenceBase evidence)
     {
         if (!_store.TryAdd(evidence))

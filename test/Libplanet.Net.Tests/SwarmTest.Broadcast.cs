@@ -1002,34 +1002,54 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastEvidence()
     {
-        using var cancellationTokenSource = new CancellationTokenSource(Timeout);
         var minerA = new PrivateKey();
         var validatorAddress = new PrivateKey().Address;
-        var swarmA = await CreateSwarm(minerA);
-        var swarmB = await CreateSwarm();
-        var swarmC = await CreateSwarm();
+        var transportA = TestUtils.CreateTransport(minerA);
+        var transportB = TestUtils.CreateTransport();
+        var transportC = TestUtils.CreateTransport();
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+        var peerExplorerC = new PeerExplorer(transportC);
+        var blockchainA = MakeBlockchain();
+        var blockchainB = MakeBlockchain();
+        var blockchainC = MakeBlockchain();
 
-        var chainA = swarmA.Blockchain;
-        var chainB = swarmB.Blockchain;
-        var chainC = swarmC.Blockchain;
+        var syncResponderServiceA = new EvidenceSynchronizationResponderService(blockchainA, transportA);
+        var syncServiceB = new EvidenceSynchronizationService(blockchainB, transportB);
+        var syncServiceC = new EvidenceSynchronizationService(blockchainC, transportC);
+
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            transportC,
+        };
+        await using var services = new ServiceCollection
+        {
+            syncResponderServiceA,
+            syncServiceB,
+            syncServiceC,
+        };
 
         var evidence = TestEvidence.Create(0, validatorAddress, DateTimeOffset.UtcNow);
-        chainA.PendingEvidence.Add(evidence);
+        blockchainA.PendingEvidence.Add(evidence);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmC.StartAsync(default);
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
 
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
-        await swarmB.AddPeersAsync([swarmC.Peer], default);
-        await swarmC.AddPeersAsync([swarmA.Peer], default);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
+        await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
+        await peerExplorerC.PingAsync(peerExplorerA.Peer, default);
 
-        swarmA.BroadcastEvidence(default, [evidence]);
+        peerExplorerA.BroadcastEvidence([evidence], new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await Task.WhenAll(
+            syncServiceB.EvidenceAdded.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)),
+            syncServiceC.EvidenceAdded.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
 
-        // await swarmC.EvidenceReceived.WaitAsync(cancellationTokenSource.Token);
-        // await swarmB.EvidenceReceived.WaitAsync(cancellationTokenSource.Token);
-
-        Assert.Equal(evidence, chainB.PendingEvidence[evidence.Id]);
-        Assert.Equal(evidence, chainC.PendingEvidence[evidence.Id]);
+        Assert.Equal(evidence, blockchainB.PendingEvidence[evidence.Id]);
+        Assert.Equal(evidence, blockchainC.PendingEvidence[evidence.Id]);
     }
 }
