@@ -936,65 +936,89 @@ public partial class SwarmTest
     {
         var key = new PrivateKey();
         var transportOptions = new TransportOptions();
-        Swarm receiver =
-            await CreateSwarm();
-        var mockTransport = new NetMQTransport(new PrivateKey().AsSigner(), transportOptions);
-        int requestCount = 0;
 
-        void MessageHandler(IMessage message, MessageEnvelope messageEnvelope)
+        var transportB = TestUtils.CreateTransport();
+
+        // Swarm swarmB =
+        //     await CreateSwarm();
+        var transportA = TestUtils.CreateTransport();
+
+        var blockchainA = MakeBlockchain();
+        var blockchainB = MakeBlockchain();
+        var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
+        var requestCount = 0;
+
+        await using var transports = new ServiceCollection
         {
-            switch (message)
+            transportA,
+            transportB,
+        };
+        await using var services = new ServiceCollection
+        {
+            syncServiceB,
+        };
+
+        // void MessageHandler(IMessage message, MessageEnvelope messageEnvelope)
+        // {
+        //     switch (message)
+        //     {
+        //         // case PingMessage ping:
+        //         //     transportA.Post(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
+        //         //     break;
+
+        //         case BlockHashRequestMessage gbhm:
+        //             requestCount++;
+        //             break;
+        //     }
+        // }
+
+        using var _1 = transportA.MessageRouter.Register(new PingMessageHandler(transportA));
+        using var _2 = transportA.MessageRouter.Register<IMessage>(e =>
+        {
+            if (e is BlockHashRequestMessage)
             {
-                case PingMessage ping:
-                    mockTransport.Post(messageEnvelope.Sender, new PongMessage(), messageEnvelope.Identity);
-                    break;
-
-                case BlockHashRequestMessage gbhm:
-                    requestCount++;
-                    break;
+                requestCount++;
             }
-        }
+        });
+        using var messageWaiterB = new MessageWaiter();
+        using var _3 = transportB.MessageRouter.Register(messageWaiterB);
 
-        mockTransport.MessageRouter.Register<IMessage>(MessageHandler);
+        var block1 = ProposeNextBlock(blockchainB.Genesis, key);
+        var block2 = ProposeNextBlock(block1, key);
 
-        Block block1 = ProposeNextBlock(
-            receiver.Blockchain.Genesis,
-            key,
-            []);
-        Block block2 = ProposeNextBlock(
-            block1,
-            key,
-            []);
+        // await swarmB.StartAsync(default);
+        // await transportA.StartAsync(default);
 
-        await receiver.StartAsync(default);
-        await mockTransport.StartAsync(default);
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
 
         // Send block header for block 1.
-        var blockHeaderMsg1 = new BlockSummaryMessage
+        var message1 = new BlockSummaryMessage
         {
-            GenesisHash = receiver.Blockchain.Genesis.BlockHash,
+            GenesisHash = blockchainB.Genesis.BlockHash,
             BlockSummary = block1
         };
-        mockTransport.Post(receiver.Peer, blockHeaderMsg1);
+
+        transportA.Post(transportB.Peer, message1);
         // await receiver.BlockHeaderReceived.WaitAsync(default);
 
         // Wait until FillBlockAsync task has spawned block demand task.
-        await Task.Delay(1000);
+        // await Task.Delay(1000);
+        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage);
 
         // Re-send block header for block 1, make sure it does not spawn new task.
-        mockTransport.Post(
-            receiver.Peer,
-            blockHeaderMsg1);
+        transportA.Post(transportB.Peer, message1);
         // await receiver.BlockHeaderReceived.WaitAsync(default);
         await Task.Delay(1000);
 
         // Send block header for block 2, make sure it does not spawn new task.
-        var blockHeaderMsg2 = new BlockSummaryMessage
+        var message2 = new BlockSummaryMessage
         {
-            GenesisHash = receiver.Blockchain.Genesis.BlockHash,
+            GenesisHash = blockchainB.Genesis.BlockHash,
             BlockSummary = block2
         };
-        mockTransport.Post(receiver.Peer, blockHeaderMsg2);
+
+        transportA.Post(transportB.Peer, message2);
         // await receiver.BlockHeaderReceived.WaitAsync(default);
         await Task.Delay(1000);
 
