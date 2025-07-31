@@ -1,38 +1,35 @@
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class MaintainStaticPeerTask(Swarm swarm) : PeriodicTaskService
+internal sealed class MaintainStaticPeerTask(
+    PeerExplorer peerExplorer, ImmutableArray<Peer> staticPeers) : PeriodicTaskService
 {
-    protected override TimeSpan GetInterval()
+    private readonly Subject<Peer> _peerAddedSubject = new();
+
+    public IObservable<Peer> PeerAdded => _peerAddedSubject;
+
+    public TimeSpan StaticPeersMaintainPeriod { get; } = TimeSpan.FromSeconds(10);
+
+    internal MaintainStaticPeerTask(Swarm swarm)
+        : this(swarm.PeerExplorer, [.. swarm.Options.StaticPeers])
     {
-        return swarm.Options.StaticPeersMaintainPeriod;
     }
+
+    protected override bool CanExecute => staticPeers.Length > 0;
+
+    protected override TimeSpan GetInterval() => StaticPeersMaintainPeriod;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        if (swarm.Options.StaticPeers.IsEmpty)
+        var peers = staticPeers.Except(peerExplorer.Peers);
+        var addedPeers = await peerExplorer.PingManyAsync([.. peers], cancellationToken);
+        foreach (var peer in addedPeers)
         {
-            return;
+            _peerAddedSubject.OnNext(peer);
         }
-
-        var peerService = swarm.PeerExplorer;
-
-        var tasks = swarm.Options.StaticPeers
-            .Where(peer => !swarm.PeerExplorer.Peers.Contains(peer))
-            .Select(async peer =>
-            {
-                try
-                {
-                    var timeout = TimeSpan.FromSeconds(3);
-                    await peerService.PingManyAsync([peer], cancellationToken).WaitAsync(timeout, cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    // do nothing
-                }
-            });
-        await Task.WhenAll(tasks);
     }
 }

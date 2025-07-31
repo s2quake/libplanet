@@ -73,10 +73,8 @@ public sealed class PeerExplorer : IDisposable
     public Task ExploreAsync(CancellationToken cancellationToken)
         => ExploreAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
 
-    public async Task ExploreAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
-    {
-        await ExploreInternalAsync(seedPeers, maxDepth, cancellationToken);
-    }
+    public Task ExploreAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
+        => ExploreInternalAsync(seedPeers, maxDepth, cancellationToken);
 
     public Task RefreshAsync(CancellationToken cancellationToken) => RefreshAsync(TimeSpan.Zero, cancellationToken);
 
@@ -274,14 +272,7 @@ public sealed class PeerExplorer : IDisposable
         var taskList = new List<Task>(seedPeers.Count);
         foreach (var peer in seedPeers)
         {
-            try
-            {
-                taskList.Add(ExplorePeersAsync(peer, _owner, maxDepth, cancellationToken));
-            }
-            catch (Exception)
-            {
-                // do nothing
-            }
+            taskList.Add(ExplorePeersAsync(peer, _owner, maxDepth, cancellationToken));
         }
 
         await Task.WhenAll(taskList);

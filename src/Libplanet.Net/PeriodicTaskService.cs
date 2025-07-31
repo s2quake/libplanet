@@ -9,6 +9,8 @@ public abstract class PeriodicTaskService : ServiceBase
     private CancellationTokenSource? _cancellationTokenSource;
     private Task _runTask = Task.CompletedTask;
 
+    protected virtual bool CanExecute => true;
+
     protected abstract TimeSpan GetInterval();
 
     protected abstract Task ExecuteAsync(CancellationToken cancellationToken);
