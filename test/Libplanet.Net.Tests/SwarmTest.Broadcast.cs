@@ -709,31 +709,47 @@ public partial class SwarmTest
         var keyA = new PrivateKey();
         var keyB = new PrivateKey();
 
-        Swarm swarmA = await CreateSwarm(keyA);
-        Swarm swarmB = await CreateSwarm(keyB);
+        var transportA = TestUtils.CreateTransport(keyA);
+        var transportB = TestUtils.CreateTransport(keyB);
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+        var blockchainA = MakeBlockchain();
+        var blockchainB = MakeBlockchain();
+        var syncResponderServiceA = new BlockSynchronizationResponderService(blockchainA, transportA);
+        var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+        };
+        await using var services = new ServiceCollection
+        {
+            syncResponderServiceA,
+            syncServiceB,
+        };
 
-        Blockchain chainA = swarmA.Blockchain;
-        Blockchain chainB = swarmB.Blockchain;
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
+        await peerExplorerB.PingAsync(transportA.Peer, default);
 
-        await swarmB.AddPeersAsync([swarmA.Peer], default);
-        var block = chainA.ProposeBlock(keyA);
-        chainA.Append(block, TestUtils.CreateBlockCommit(block));
-        swarmA.BroadcastBlock(chainA.Blocks[-1]);
+        blockchainA.ProposeAndAppend(keyA);
+        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
-        // await swarmB.BlockAppended.WaitAsync(default);
+        Assert.Equal(blockchainB.Blocks.Keys, blockchainA.Blocks.Keys);
 
-        Assert.Equal(chainB.Blocks.Keys, chainA.Blocks.Keys);
+        blockchainA.ProposeAndAppend(keyB);
+        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
-        block = chainA.ProposeBlock(keyB);
-        chainA.Append(block, TestUtils.CreateBlockCommit(block));
-        swarmA.BroadcastBlock(chainA.Blocks[-1]);
-
-        // await swarmB.BlockAppended.WaitAsync(default);
-
-        Assert.Equal(chainB.Blocks.Keys, chainA.Blocks.Keys);
+        Assert.Equal(blockchainB.Blocks.Keys, blockchainA.Blocks.Keys);
     }
 
     [Fact(Timeout = Timeout)]
