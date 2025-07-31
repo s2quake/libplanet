@@ -5,7 +5,7 @@ using Libplanet.Net.Components;
 namespace Libplanet.Net.Services;
 
 internal sealed class PeerRefreshService(PeerExplorer peerExplorer, TimeSpan interval, TimeSpan refreshLifespan)
-    : BackgroundServiceBase
+    : PeriodicTaskService
 {
     private readonly TimeSpan interval = interval;
 

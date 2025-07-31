@@ -4,7 +4,7 @@ using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class RebuildConnectionTask(Swarm swarm) : BackgroundServiceBase
+internal sealed class RebuildConnectionTask(Swarm swarm) : PeriodicTaskService
 {
     protected override TimeSpan GetInterval()
     {

@@ -5,6 +5,20 @@ namespace Libplanet.Net.Components;
 
 public static class PeerExplorerExtensions
 {
+    public static (ImmutableArray<Peer>, IMessage) BroadcastTip(this PeerExplorer @this, Blockchain blockchain)
+        => BroadcastTip(@this, blockchain, default);
+
+    public static (ImmutableArray<Peer>, IMessage) BroadcastTip(
+        this PeerExplorer @this, Blockchain blockchain, BroadcastOptions options)
+    {
+        var message = new BlockSummaryMessage
+        {
+            GenesisHash = blockchain.Genesis.BlockHash,
+            BlockSummary = blockchain.Tip,
+        };
+        return (@this.Broadcast(message, options), message);
+    }
+
     public static (ImmutableArray<Peer>, IMessage) Broadcast(this PeerExplorer @this, BlockHash genesisHash, Block block)
     {
         var message = new BlockSummaryMessage

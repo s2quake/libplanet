@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class MaintainStaticPeerTask(Swarm swarm) : BackgroundServiceBase
+internal sealed class MaintainStaticPeerTask(Swarm swarm) : PeriodicTaskService
 {
     protected override TimeSpan GetInterval()
     {

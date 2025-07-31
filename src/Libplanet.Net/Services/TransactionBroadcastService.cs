@@ -10,10 +10,30 @@ public sealed class TransactionBroadcastService(Blockchain blockchain, PeerExplo
     : ServiceBase
 {
     private readonly Subject<(ImmutableArray<Peer>, ImmutableArray<TxId>)> _broadcastedSubject = new();
+    private TimeSpan _broadcastInterval = TimeSpan.FromSeconds(1);
     private TransactionBroadcaster? _transactionBroadcaster;
     private IDisposable? _subscription;
 
+
     public IObservable<(ImmutableArray<Peer>, ImmutableArray<TxId>)> Broadcasted => _broadcastedSubject;
+
+    public TimeSpan BroadcastInterval
+    {
+        get => _broadcastInterval;
+        set
+        {
+            if (_broadcastInterval < TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Broadcast interval must be non-negative.");
+            }
+
+            _broadcastInterval = value;
+            if (_transactionBroadcaster is not null)
+            {
+                _transactionBroadcaster.BroadcastInterval = value;
+            }
+        }
+    }
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {

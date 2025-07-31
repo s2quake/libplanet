@@ -5,7 +5,7 @@ using Libplanet.Net.Components;
 namespace Libplanet.Net.Tasks;
 
 internal sealed class RefreshTableTask(PeerExplorer peerService, TimeSpan refreshInterval, TimeSpan staleThreshold)
-    : BackgroundServiceBase
+    : PeriodicTaskService
 {
     protected override TimeSpan GetInterval()
     {

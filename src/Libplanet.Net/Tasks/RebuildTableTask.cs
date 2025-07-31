@@ -6,7 +6,7 @@ namespace Libplanet.Net.Tasks;
 
 internal sealed class RebuildTableTask(
     PeerExplorer peerService, ImmutableHashSet<Peer> seeds, TimeSpan rebuildTableInterval)
-    : BackgroundServiceBase
+    : PeriodicTaskService
 {
     protected override TimeSpan GetInterval()
     {

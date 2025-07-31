@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Libplanet.Net.Tasks;
 
-internal sealed class TxBroadcastTask(Swarm swarm) : BackgroundServiceBase
+internal sealed class TxBroadcastTask(Swarm swarm) : PeriodicTaskService
 {
     private readonly Blockchain _blockchain = swarm.Blockchain;
 

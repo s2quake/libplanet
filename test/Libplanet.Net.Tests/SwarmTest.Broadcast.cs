@@ -62,7 +62,7 @@ public partial class SwarmTest
         await peerExplorerA.PingAsync(transportB.Peer, default);
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
 
-        var waitTaskB = serviceB.Synchronized.WaitAsync();
+        var waitTaskB = serviceB.Appended.WaitAsync();
         peerExplorerA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
 
         await waitTaskB;
@@ -132,7 +132,7 @@ public partial class SwarmTest
         Assert.Contains(seedTransport.Peer, peerExplorerB.Peers);
 
         seedPeerExplorer.Broadcast(seedBlockchain.Genesis.BlockHash, seedBlockchain.Tip);
-        await serviceB.Synchronized.WaitAsync();
+        await serviceB.Appended.WaitAsync();
 
         Assert.NotEqual(seedBlockchain.Blocks.Keys, blockchainA.Blocks.Keys);
         Assert.Equal(seedBlockchain.Blocks.Keys, blockchainB.Blocks.Keys);
@@ -222,7 +222,7 @@ public partial class SwarmTest
         });
 
         using var cancellationSource = new CancellationTokenSource(2000);
-        await syncServiceB.Synchronized.WaitAsync(e => e.Blocks[^1].Height == 10, cancellationSource.Token);
+        await syncServiceB.Appended.WaitAsync(e => e.Blocks[^1].Height == 10, cancellationSource.Token);
 
         Assert.Equal(blockchainA.Blocks.Keys, blockchainB.Blocks.Keys);
     }
@@ -250,8 +250,8 @@ public partial class SwarmTest
         var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
 
         var serviceA = new TransactionSynchronizationResponderService(blockchainA, transportA);
-        var serviceB = new TransactionSynchronizationService(blockchainB, peerExplorerB);
-        var serviceC = new TransactionSynchronizationService(blockchainC, peerExplorerC);
+        var serviceB = new TransactionSynchronizationService(blockchainB, transportB);
+        var serviceC = new TransactionSynchronizationService(blockchainC, transportC);
         await using var services = new ServiceCollection
         {
             serviceA,
@@ -298,7 +298,7 @@ public partial class SwarmTest
         var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
         var serviceA = new TransactionSynchronizationResponderService(blockchainA, transportA);
-        var serviceC = new TransactionSynchronizationService(blockchainC, peerExplorerC);
+        var serviceC = new TransactionSynchronizationService(blockchainC, transportC);
         await using var services = new ServiceCollection
         {
             transportA,
@@ -359,8 +359,8 @@ public partial class SwarmTest
         var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
 
-        var syncServiceB = new TransactionSynchronizationService(blockchainB, peerExplorerB);
-        var syncServiceC = new TransactionSynchronizationService(blockchainC, peerExplorerC);
+        var syncServiceB = new TransactionSynchronizationService(blockchainB, transportB);
+        var syncServiceC = new TransactionSynchronizationService(blockchainC, transportC);
         await using var services = new ServiceCollection
         {
             transportA,
@@ -421,7 +421,7 @@ public partial class SwarmTest
             blockchains[i] = MakeBlockchain(genesisBlock: fx.GenesisBlock);
             broadcastServices[i] = new TransactionBroadcastService(blockchains[i], peerExplorers[i]);
             syncResponseServices[i] = new TransactionSynchronizationResponderService(blockchains[i], transports[i]);
-            syncServices[i] = new TransactionSynchronizationService(blockchains[i], peerExplorers[i]);
+            syncServices[i] = new TransactionSynchronizationService(blockchains[i], transports[i]);
 
             services.Add(transports[i]);
             services.Add(broadcastServices[i]);
@@ -479,14 +479,18 @@ public partial class SwarmTest
         var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
         var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
-        var syncServiceB = new TransactionSynchronizationService(blockchainB, peerExplorerB);
-        var syncServiceC = new TransactionSynchronizationService(blockchainC, peerExplorerC);
+        var syncServiceB = new TransactionSynchronizationService(blockchainB, transportB);
+        var syncServiceC = new TransactionSynchronizationService(blockchainC, transportC);
+        var broadcastServiceA = new TransactionBroadcastService(blockchainA, peerExplorerA);
+        var broadcastServiceB = new TransactionBroadcastService(blockchainB, peerExplorerB);
         await using var services = new ServiceCollection
         {
             new TransactionSynchronizationResponderService(blockchainA, transportA),
             new TransactionSynchronizationResponderService(blockchainB, transportB),
             syncServiceB,
             syncServiceC,
+            broadcastServiceA,
+            broadcastServiceB,
         };
 
         var privateKey = new PrivateKey();
@@ -499,7 +503,10 @@ public partial class SwarmTest
         await transportB.StartAsync(default);
         await services.StartAsync(default);
         await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
-        peerExplorerA.Broadcast([tx1, tx2], new BroadcastOptions { Delay = TimeSpan.FromMilliseconds(100) });
+        peerExplorerA.Broadcast([tx1, tx2], new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
         await syncServiceB.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(
             new HashSet<TxId> { tx1.Id, tx2.Id },
@@ -555,39 +562,84 @@ public partial class SwarmTest
     {
         // If the bucket stored peers are the same, the block may not propagate,
         // so specify private keys to make the buckets different.
-        PrivateKey keyA = PrivateKey.Parse(
-            "8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
-        PrivateKey keyB = PrivateKey.Parse(
-            "c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
-        PrivateKey keyC = PrivateKey.Parse(
-            "941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
+        var keyA = PrivateKey.Parse("8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
+        var keyB = PrivateKey.Parse("c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
+        var keyC = PrivateKey.Parse("941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
+        using var fx = new MemoryRepositoryFixture();
 
-        var swarmA = await CreateSwarm(keyA);
-        var swarmB = await CreateSwarm(keyB);
-        var swarmC = await CreateSwarm(keyC);
+        var transportA = TestUtils.CreateTransport(keyA);
+        var transportB = TestUtils.CreateTransport(keyB);
+        var transportC = TestUtils.CreateTransport(keyC);
+        var peerExplorerA = new PeerExplorer(transportA);
+        var peerExplorerB = new PeerExplorer(transportB);
+        var peerExplorerC = new PeerExplorer(transportC);
+        var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var syncResponderServiceA = new BlockSynchronizationResponderService(blockchainA, transportA);
+        var syncResponderServiceB = new BlockSynchronizationResponderService(blockchainB, transportB);
+        var syncServiceA = new BlockSynchronizationService(blockchainA, transportA);
+        var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
+        var syncServiceC = new BlockSynchronizationService(blockchainC, transportC);
 
-        Blockchain chainA = swarmA.Blockchain;
-        Blockchain chainB = swarmB.Blockchain;
-        Blockchain chainC = swarmC.Blockchain;
-
-        foreach (int i in Enumerable.Range(0, 10))
+        await using var transports = new ServiceCollection
         {
-            Block block = chainA.ProposeBlock(keyA);
-            chainA.Append(block, TestUtils.CreateBlockCommit(block));
-            if (i < 5)
-            {
-                chainB.Append(block, TestUtils.CreateBlockCommit(block));
-            }
-        }
+            transportA,
+            transportB,
+            transportC,
+        };
+        await using var services = new ServiceCollection
+        {
+            syncResponderServiceA,
+            syncResponderServiceB,
+            syncServiceA,
+            syncServiceB,
+            syncServiceC,
+        };
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmC.StartAsync(default);
+        blockchainA.ProposeAndAppendMany(keyA, 10);
+        blockchainA.AppendTo(blockchainB, 1..5);
 
-        await swarmB.AddPeersAsync([swarmA.Peer], default);
-        await swarmC.AddPeersAsync([swarmA.Peer], default);
+        await transports.StartAsync(default);
 
-        swarmB.BroadcastBlock(chainB.Tip);
+        await Task.WhenAll(
+            peerExplorerB.PingAsync(transportA.Peer, default),
+            peerExplorerC.PingAsync(transportA.Peer, default));
+
+        peerExplorerB.BroadcastTip(blockchainB, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        // await Task.WhenAll(
+        //     syncServiceA.Synchronized.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5))
+
+
+        // var swarmA = await CreateSwarm(keyA);
+        // var swarmB = await CreateSwarm(keyB);
+        // var swarmC = await CreateSwarm(keyC);
+
+        // Blockchain chainA = swarmA.Blockchain;
+        // Blockchain chainB = swarmB.Blockchain;
+        // Blockchain chainC = swarmC.Blockchain;
+
+        // foreach (int i in Enumerable.Range(0, 10))
+        // {
+        //     Block block = chainA.ProposeBlock(keyA);
+        //     chainA.Append(block, TestUtils.CreateBlockCommit(block));
+        //     if (i < 5)
+        //     {
+        //         chainB.Append(block, TestUtils.CreateBlockCommit(block));
+        //     }
+        // }
+
+        // await swarmA.StartAsync(default);
+        // await swarmB.StartAsync(default);
+        // await swarmC.StartAsync(default);
+
+        // await swarmB.AddPeersAsync([swarmA.Peer], default);
+        // await swarmC.AddPeersAsync([swarmA.Peer], default);
+
+        // swarmB.BroadcastBlock(chainB.Tip);
 
         // chainA ignores block header received because its index is shorter.
         // await swarmA.BlockHeaderReceived.WaitAsync(default);

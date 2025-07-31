@@ -8,13 +8,13 @@ using Libplanet.Types;
 namespace Libplanet.Net.Services;
 
 internal sealed class TransactionSynchronizationService(
-    Blockchain blockchain, PeerExplorer peerExplorer)
+    Blockchain blockchain, ITransport transport)
     : ServiceBase
 {
     private readonly Subject<ImmutableArray<Transaction>> _stagedSubject = new();
     private readonly Blockchain _blockchain = blockchain;
-    private readonly ITransport _transport = peerExplorer.Transport;
-    private readonly TransactionFetcher _transactionFetcher = new(blockchain, peerExplorer.Transport);
+    private readonly ITransport _transport = transport;
+    private readonly TransactionFetcher _transactionFetcher = new(blockchain, transport);
     private TransactionBroadcastingHandler? _transactionBroadcastingHandler;
 
     public IObservable<ImmutableArray<Transaction>> Staged => _stagedSubject;
@@ -89,7 +89,6 @@ internal sealed class TransactionSynchronizationService(
             }
         }
 
-        peerExplorer.Broadcast([.. stagedTxs], new BroadcastOptions { Except = [demand.Peer] });
         _stagedSubject.OnNext([.. stagedTxs]);
     }
 }

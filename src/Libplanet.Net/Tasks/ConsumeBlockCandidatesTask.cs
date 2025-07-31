@@ -7,7 +7,7 @@ using Libplanet.Types;
 namespace Libplanet.Net.Tasks;
 
 internal sealed class ConsumeBlockCandidatesTask(Blockchain blockchain, BlockBranchCollection blockBranches)
-    : BackgroundServiceBase
+    : PeriodicTaskService
 {
     private readonly Subject<Unit> _blockAppendedSubject = new();
 

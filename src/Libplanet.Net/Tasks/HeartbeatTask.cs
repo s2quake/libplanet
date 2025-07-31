@@ -5,7 +5,7 @@ using Libplanet.Net.Consensus;
 namespace Libplanet.Net.Tasks;
 
 internal sealed class HeartbeatTask(Gossip gossip, TimeSpan heartbeatInterval)
-    : BackgroundServiceBase
+    : PeriodicTaskService
 {
     protected override TimeSpan GetInterval()
     {
