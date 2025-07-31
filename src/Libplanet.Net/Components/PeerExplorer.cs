@@ -52,10 +52,22 @@ public sealed class PeerExplorer : IDisposable
         return peers;
     }
 
-    public void Broadcast(IMessage message, ImmutableArray<Peer> except)
+    public ImmutableArray<Peer> Broadcast(IMessage message, BroadcastOptions options)
     {
+        var except = options.Except;
         var peers = Peers.PeersToBroadcast(except, _options.MinimumBroadcastTarget);
-        _transport.Post(peers, message);
+        _ = PostAsync();
+        return peers;
+
+        async Task PostAsync()
+        {
+            if (options.Delay > TimeSpan.Zero)
+            {
+                await Task.Delay(options.Delay);
+            }
+
+            _transport.Post(peers, message);
+        }
     }
 
     public Task ExploreAsync(CancellationToken cancellationToken)

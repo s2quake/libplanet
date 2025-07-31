@@ -7,30 +7,32 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Services;
 
-internal sealed class TransactionSynchronizationService(Blockchain blockchain, ITransport transport)
+internal sealed class TransactionSynchronizationService(
+    Blockchain blockchain, PeerExplorer peerExplorer)
     : ServiceBase
 {
-    private readonly Subject<ImmutableArray<TxId>> _synchronizedSubject = new();
+    private readonly Subject<ImmutableArray<Transaction>> _stagedSubject = new();
     private readonly Blockchain _blockchain = blockchain;
-    private readonly ITransport _transport = transport;
-    private readonly TransactionFetcher _transactionFetcher = new(blockchain, transport);
+    private readonly ITransport _transport = peerExplorer.Transport;
+    private readonly TransactionFetcher _transactionFetcher = new(blockchain, peerExplorer.Transport);
     private TransactionBroadcastingHandler? _transactionBroadcastingHandler;
 
-    public IObservable<ImmutableArray<TxId>> Synchronized => _synchronizedSubject;
+    public IObservable<ImmutableArray<Transaction>> Staged => _stagedSubject;
 
     public TransactionDemandCollection TransactionDemands { get; } = new();
 
     public async Task SynchronizeAsync(CancellationToken cancellationToken)
     {
-        var taskList = new List<Task<ImmutableArray<Transaction>>>(TransactionDemands.Count);
+        var taskList = new List<Task>(TransactionDemands.Count);
         foreach (var demand in TransactionDemands.Flush())
         {
             taskList.Add(ProcessDemandAsync(demand, cancellationToken));
         }
 
-        var results = await Task.WhenAll(taskList);
-        var txIds = results.SelectMany(tx => tx).ToImmutableHashSet();
-        _synchronizedSubject.OnNext([.. txIds.Select(tx => tx.Id)]);
+        await Task.WhenAll(taskList);
+        // var results = await Task.WhenAll(taskList);
+        // var txIds = results.SelectMany(tx => tx).ToImmutableHashSet();
+        // _stagedSubject.OnNext([.. txIds.Select(tx => tx.Id)]);
     }
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
@@ -68,14 +70,14 @@ internal sealed class TransactionSynchronizationService(Blockchain blockchain, I
         await base.DisposeAsyncCore();
     }
 
-    private async Task<ImmutableArray<Transaction>> ProcessDemandAsync(TransactionDemand demand, CancellationToken cancellationToken)
+    private async Task ProcessDemandAsync(TransactionDemand demand, CancellationToken cancellationToken)
     {
         var peer = demand.Peer;
         var txIds = demand.TxIds;
         var txs = await _transactionFetcher.FetchAsync(peer, [.. txIds], cancellationToken);
         if (txs.Length == 0)
         {
-            return [];
+            return;
         }
 
         var stagedTxs = new List<Transaction>(txs.Length);
@@ -87,6 +89,7 @@ internal sealed class TransactionSynchronizationService(Blockchain blockchain, I
             }
         }
 
-        return [.. stagedTxs];
+        peerExplorer.Broadcast([.. stagedTxs], new BroadcastOptions { Except = [demand.Peer] });
+        _stagedSubject.OnNext([.. stagedTxs]);
     }
 }

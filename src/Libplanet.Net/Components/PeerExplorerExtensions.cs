@@ -17,14 +17,23 @@ public static class PeerExplorerExtensions
 
     public static (ImmutableArray<Peer>, IMessage) Broadcast(
         this PeerExplorer @this, ImmutableArray<Transaction> transactions)
-        => Broadcast(@this, [.. transactions.Select(tx => tx.Id)]);
+        => Broadcast(@this, transactions, default);
 
-    public static (ImmutableArray<Peer>, IMessage) Broadcast(this PeerExplorer @this, ImmutableArray<TxId> txIds)
+    public static (ImmutableArray<Peer>, IMessage) Broadcast(
+        this PeerExplorer @this, ImmutableArray<Transaction> transactions, BroadcastOptions options)
+        => Broadcast(@this, [.. transactions.Select(tx => tx.Id)], options);
+
+    public static (ImmutableArray<Peer>, IMessage) Broadcast(
+        this PeerExplorer @this, ImmutableArray<TxId> txIds)
+        => Broadcast(@this, txIds, default);
+
+    public static (ImmutableArray<Peer>, IMessage) Broadcast(
+        this PeerExplorer @this, ImmutableArray<TxId> txIds, BroadcastOptions options)
     {
         var message = new TxIdMessage
         {
             Ids = txIds,
         };
-        return (@this.Broadcast(message), message);
+        return (@this.Broadcast(message, options), message);
     }
 }

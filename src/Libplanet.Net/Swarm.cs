@@ -226,7 +226,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     }
 
     internal void BroadcastMessage(ImmutableArray<Peer> except, MessageBase message)
-        => PeerExplorer.Broadcast(message, except);
+        => PeerExplorer.Broadcast(message, new BroadcastOptions { Except = except });
 
     internal void BroadcastTxIds(ImmutableArray<Peer> except, ImmutableArray<TxId> txIds)
     {

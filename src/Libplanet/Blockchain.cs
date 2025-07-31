@@ -101,6 +101,8 @@ public partial class Blockchain
 
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
 
+    internal long GetTxNonce(Address address) => _repository.GetNonce(address);
+
     public BlockExecutionInfo Execute(Block block)
     {
         var execution = _blockExecutor.Execute((RawBlock)block);

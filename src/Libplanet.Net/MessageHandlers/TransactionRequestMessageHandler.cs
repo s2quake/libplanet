@@ -42,7 +42,10 @@ internal sealed class TransactionRequestMessageHandler(Blockchain blockchain, IT
             }
             else if (blockchain.StagedTransactions.TryGetValue(txId, out var stagedTransaction))
             {
-                txList.Add(stagedTransaction);
+                if (blockchain.GetTxNonce(stagedTransaction.Signer) <= stagedTransaction.Nonce)
+                {
+                    txList.Add(stagedTransaction);
+                }
             }
 
             if (txList.Count == message.ChunkSize)
