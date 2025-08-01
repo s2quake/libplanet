@@ -1,17 +1,17 @@
-using System.Threading;
-using System.Threading.Tasks;
-using Libplanet.Net.Consensus;
+// using System.Threading;
+// using System.Threading.Tasks;
+// using Libplanet.Net.Consensus;
 
-namespace Libplanet.Net.Tasks;
+// namespace Libplanet.Net.Tasks;
 
-internal sealed class HeartbeatTask(Gossip gossip, TimeSpan heartbeatInterval)
-    : PeriodicTaskService
-{
-    protected override TimeSpan GetInterval()
-    {
-        return heartbeatInterval;
-    }
+// internal sealed class HeartbeatTask(Gossip gossip, TimeSpan heartbeatInterval)
+//     : PeriodicTaskService
+// {
+//     protected override TimeSpan GetInterval()
+//     {
+//         return heartbeatInterval;
+//     }
 
-    protected override Task ExecuteAsync(CancellationToken cancellationToken)
-        => gossip.HeartbeatAsync(cancellationToken);
-}
+//     protected override Task ExecuteAsync(CancellationToken cancellationToken)
+//         => gossip.HeartbeatAsync(cancellationToken);
+// }

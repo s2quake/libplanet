@@ -92,4 +92,10 @@ public sealed class MessageCollection : IEnumerable<IMessage>
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    internal ImmutableArray<MessageId> Except(IEnumerable<MessageId> messageIds)
+    {
+        using var _ = _lock.ReadScope();
+        return [.. _messageById.Keys.Except(messageIds)];
+    }
 }

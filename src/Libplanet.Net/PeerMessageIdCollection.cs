@@ -97,6 +97,17 @@ public sealed class PeerMessageIdCollection
         return _itemsByPeer.TryGetValue(peer, out value);
     }
 
+    public ImmutableArray<(Peer, ImmutableArray<MessageId>)> Flush(MessageCollection messages)
+    {
+        using var _ = _lock.WriteScope();
+        var query = from kv in _itemsByPeer
+                    let ids = kv.Value.Flush(messages)
+                    where ids.Length > 0
+                    select (kv.Key, ids);
+
+        return [.. query];
+    }
+
     public IEnumerator<KeyValuePair<Peer, MessageIdCollection>> GetEnumerator()
     {
         using var _ = _lock.ReadScope();

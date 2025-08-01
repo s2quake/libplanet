@@ -16,5 +16,5 @@ public sealed record class ConsensusServiceOptions
 
     public ConsensusOptions ConsensusOptions { get; init; } = ConsensusOptions.Default;
 
-    public GossipOptions GossipOptions { get; init; } = new GossipOptions();
+    // public GossipOptions GossipOptions { get; init; } = new GossipOptions();
 }

@@ -8,6 +8,7 @@ using Libplanet.Net.Threading;
 using Libplanet.Net.NetMQ;
 using Libplanet.State;
 using Libplanet.Types;
+using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Consensus;
 
@@ -20,6 +21,7 @@ public sealed class ConsensusService : ServiceBase
 
     private readonly Subject<Proposal> _blockProposeSubject = new();
     private readonly ITransport _transport;
+    private readonly PeerExplorer _peerExplorer;
     private readonly Gossip _gossip;
     private readonly ConsensusOptions _consensusOption;
     private readonly Blockchain _blockchain;
@@ -43,11 +45,12 @@ public sealed class ConsensusService : ServiceBase
     {
         _signer = signer;
         _transport = new NetMQTransport(signer, options.TransportOptions);
-        _gossip = new Gossip(
-            _transport,
-            options.Seeds,
-            [.. options.Validators.Where(item => item.Address != signer.Address)],
-            options.GossipOptions);
+        _peerExplorer = new PeerExplorer(_transport, new PeerExplorerOptions
+        {
+            SeedPeers = options.Seeds,
+            KnownPeers = [.. options.Validators.Where(item => item.Address != signer.Address)],
+        });
+        _gossip = new Gossip(_transport, _peerExplorer);
 
         _blockchain = blockchain;
         _newHeightDelay = options.TargetBlockInterval;
@@ -406,13 +409,13 @@ public sealed class ConsensusService : ServiceBase
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         _dispatcher = new Dispatcher();
-        await _gossip.StartAsync(cancellationToken);
+        // await _gossip.StartAsync(cancellationToken);
         await _consensus.StartAsync(default);
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        await _gossip.StopAsync(cancellationToken);
+        // await _gossip.StopAsync(cancellationToken);
         if (_dispatcher is not null)
         {
             await _dispatcher.DisposeAsync();
@@ -426,7 +429,8 @@ public sealed class ConsensusService : ServiceBase
     protected override async ValueTask DisposeAsyncCore()
     {
         _handlerRegistration.Dispose();
-        await _gossip.DisposeAsync();
+        _gossip.Dispose();
+        _peerExplorer.Dispose();
         Array.ForEach(_blockchainSubscriptions, subscription => subscription.Dispose());
         Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
         _consensusSubscriptions = [];

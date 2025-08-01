@@ -9,6 +9,7 @@ using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Xunit.Abstractions;
 using Libplanet.TestUtilities;
+using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -28,8 +29,21 @@ public sealed class GossipTest(ITestOutputHelper output)
         var receivedEvent = new ManualResetEvent(false);
         await using var transport1 = CreateTransport(key1);
         await using var transport2 = CreateTransport(key2);
-        await using var gossip1 = CreateGossip(transport1, [transport2.Peer]);
-        await using var gossip2 = CreateGossip(transport2, [transport1.Peer]);
+        var peerExplorer1 = new PeerExplorer(transport1, new PeerExplorerOptions
+        {
+            SeedPeers = [transport2.Peer]
+        });
+        var peerExplorer2 = new PeerExplorer(transport2, new PeerExplorerOptions
+        {
+            SeedPeers = [transport1.Peer]
+        });
+        using var gossip1 = CreateGossip(transport1, peerExplorer1);
+        using var gossip2 = CreateGossip(transport2, peerExplorer2);
+        await using var transports = new ServiceCollection
+        {
+            transport1,
+            transport2,
+        };
         transport1.MessageRouter.Register<ConsensusProposalMessage>(message =>
         {
             received1 = true;
@@ -39,8 +53,7 @@ public sealed class GossipTest(ITestOutputHelper output)
             received2 = true;
             receivedEvent.Set();
         });
-        await gossip1.StartAsync(default);
-        await gossip2.StartAsync(default);
+        await transports.StartAsync(default);
         var message = TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1);
         gossip1.PublishMessage(message);
         receivedEvent.WaitOne();
@@ -60,8 +73,21 @@ public sealed class GossipTest(ITestOutputHelper output)
         var receivedEvent = new ManualResetEvent(false);
         await using var transport1 = CreateTransport(key1);
         await using var transport2 = CreateTransport(key2);
-        await using var gossip1 = CreateGossip(transport1, [transport2.Peer]);
-        await using var gossip2 = CreateGossip(transport2, [transport1.Peer]);
+        var peerExplorer1 = new PeerExplorer(transport1, new PeerExplorerOptions
+        {
+            SeedPeers = [transport2.Peer]
+        });
+        var peerExplorer2 = new PeerExplorer(transport2, new PeerExplorerOptions
+        {
+            SeedPeers = [transport1.Peer]
+        });
+        using var gossip1 = CreateGossip(transport1, peerExplorer1);
+        using var gossip2 = CreateGossip(transport2, peerExplorer2);
+        await using var transports = new ServiceCollection
+        {
+            transport1,
+            transport2,
+        };
         transport1.MessageRouter.Register<ConsensusProposalMessage>(message =>
         {
             received1++;
@@ -75,8 +101,7 @@ public sealed class GossipTest(ITestOutputHelper output)
             }
         });
 
-        await gossip1.StartAsync(default);
-        await gossip2.StartAsync(default);
+        await transports.StartAsync(default);
         IMessage[] message =
         [
             TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1),
@@ -95,30 +120,46 @@ public sealed class GossipTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task AddPeerWithHaveMessage()
     {
-        await using var transport1 = CreateTransport();
-        await using var gossip = new Gossip(transport1);
-        await using var transport2 = CreateTransport();
+        var transport1 = CreateTransport();
+        var transport2 = CreateTransport();
+        using var gossip1 = new Gossip(transport1);
+        await using var transports = new ServiceCollection
+        {
+            transport1,
+            transport2,
+        };
 
-        await gossip.StartAsync(default);
-        await transport2.StartAsync(default);
-        transport2.Post(gossip.Peer, new HaveMessage(), default);
+        await transports.StartAsync(default);
+
+        transport2.Post(gossip1.Peer, new HaveMessage(), default);
         await transport1.WaitAsync<HaveMessage>(default);
-        Assert.Contains(transport2.Peer, gossip.Peers);
+        Assert.Contains(transport2.Peer, gossip1.Peers);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task DoNotBroadcastToSeedPeers()
     {
         var handled = false;
-        await using var transport = CreateTransport();
-        await using var gossip = CreateGossip(seeds: [transport.Peer]);
-        transport.MessageRouter.Register<HaveMessage>(_ =>
+        var transport1 = CreateTransport();
+        var transport2 = CreateTransport();
+        var peerExplorer2 = new PeerExplorer(transport1, new PeerExplorerOptions
+        {
+            SeedPeers = [transport2.Peer]
+        });
+        using var gossip = CreateGossip(transport2, seeds: [transport1.Peer]);
+        await using var transports = new ServiceCollection
+        {
+            transport1,
+            transport2,
+        };
+
+        transport1.MessageRouter.Register<HaveMessage>(_ =>
         {
             handled = true;
         });
 
-        await transport.StartAsync(default);
-        await gossip.StartAsync(default);
+        await transports.StartAsync(default);
+
         gossip.PublishMessage(new PingMessage());
 
         // Wait heartbeat interval * 2.
@@ -166,25 +207,17 @@ public sealed class GossipTest(ITestOutputHelper output)
     private static Gossip CreateGossip(
         PrivateKey? privateKey = null,
         int? port = null,
-        ImmutableHashSet<Peer>? validators = null,
-        ImmutableHashSet<Peer>? seeds = null)
+        PeerExplorer? peerExplorer = null)
     {
         var transport = CreateTransport(privateKey, port);
-        var options = new GossipOptions
-        {
-        };
-        return new Gossip(transport, seeds ?? [], validators ?? [], options);
+        return new Gossip(transport, peerExplorer ?? new PeerExplorer(transport));
     }
 
     private static Gossip CreateGossip(
         ITransport transport,
-        ImmutableHashSet<Peer>? validators = null,
-        ImmutableHashSet<Peer>? seeds = null)
+        PeerExplorer peerExplorer)
     {
-        var options = new GossipOptions
-        {
-        };
-        return new Gossip(transport, seeds ?? [], validators ?? [], options);
+        return new Gossip(transport, peerExplorer);
     }
 
     private static NetMQTransport CreateTransport(

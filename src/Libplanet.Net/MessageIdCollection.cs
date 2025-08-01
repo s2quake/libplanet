@@ -35,7 +35,7 @@ public sealed class MessageIdCollection : IEnumerable<MessageId>
     {
         using var _ = _lock.WriteScope();
 
-        var addedIds = new List<MessageId>();
+        var addedIds = new List<MessageId>(messageIds.Length);
         foreach (var messageId in messageIds)
         {
             if (_messageIds.Add(messageId))
@@ -57,7 +57,7 @@ public sealed class MessageIdCollection : IEnumerable<MessageId>
     {
         using var _ = _lock.WriteScope();
 
-        var removedIds = new List<MessageId>();
+        var removedIds = new List<MessageId>(messageIds.Length);
         foreach (var messageId in messageIds)
         {
             if (_messageIds.Remove(messageId))
@@ -92,6 +92,16 @@ public sealed class MessageIdCollection : IEnumerable<MessageId>
     {
         using var _ = _lock.ReadScope();
         return _messageIds.TryGetValue(messageId, out value);
+    }
+
+    public ImmutableArray<MessageId> Flush(MessageCollection messages)
+    {
+        using var _ = _lock.WriteScope();
+        var items = messages.Except(_messageIds);
+        _messageIds.Clear();
+        _clearedSubject.OnNext(Unit.Default);
+
+        return items;
     }
 
     public IEnumerator<MessageId> GetEnumerator()

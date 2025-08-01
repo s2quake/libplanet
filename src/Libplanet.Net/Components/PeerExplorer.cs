@@ -41,6 +41,8 @@ public sealed class PeerExplorer : IDisposable
 
     public Peer Peer => _transport.Peer;
 
+    public ImmutableArray<Peer> SeedPeers => [.. _options.SeedPeers];
+
     public PeerCollection Peers { get; }
 
     internal ITransport Transport => _transport;

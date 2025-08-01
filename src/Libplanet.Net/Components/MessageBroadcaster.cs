@@ -17,16 +17,16 @@ public sealed class MessageBroadcaster : IAsyncDisposable
     private readonly Task _broadcastingTask;
     private bool _disposed;
 
-    public MessageBroadcaster(PeerExplorer peerExplorer, MessageCollection messageCollection)
+    public MessageBroadcaster(PeerExplorer peerExplorer, MessageCollection messages)
     {
         _subscriptions =
         [
-            messageCollection.Added.Subscribe(AddInternal),
-            messageCollection.Removed.Subscribe(RemoveInternal),
+            messages.Added.Subscribe(AddInternal),
+            messages.Removed.Subscribe(RemoveInternal),
         ];
         _peerExplorer = peerExplorer;
         _broadcastingTask = BroadcastAsync();
-        _broadcastedMessageIds = [.. messageCollection.Select(m => m.Id)];
+        _broadcastedMessageIds = [.. messages.Select(m => m.Id)];
     }
 
     public IObservable<(ImmutableArray<Peer>, ImmutableArray<MessageId>)> Broadcasted => _broadcastedSubject;
