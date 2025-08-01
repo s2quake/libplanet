@@ -4,7 +4,7 @@ using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Services;
 
-internal sealed class PeerRefreshService(PeerExplorer peerExplorer, TimeSpan interval, TimeSpan refreshLifespan)
+internal sealed class RefreshPeersService(PeerExplorer peerExplorer, TimeSpan interval, TimeSpan refreshLifespan)
     : PeriodicTaskService
 {
     private readonly TimeSpan interval = interval;

@@ -133,6 +133,41 @@ public sealed class PeerCollection(
 
     public int GetBucketIndex(Address address) => _buckets.IndexOf(address);
 
+    public bool Ban(Address address)
+    {
+        if (address == Owner)
+        {
+            return false;
+        }
+
+        using var _ = _lock.WriteScope();
+        if (_buckets[address].TryGetValue(address, out var peerState) && !peerState.IsBanned)
+        {
+            _buckets[address].AddOrUpdate(peerState with { IsBanned = true });
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool Unban(Address address)
+    {
+        using var _ = _lock.WriteScope();
+        if (_buckets[address].TryGetValue(address, out var peerState) && peerState.IsBanned)
+        {
+            _buckets[address].AddOrUpdate(peerState with { IsBanned = false });
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool IsBanned(Address address)
+    {
+        using var _ = _lock.ReadScope();
+        return _buckets[address].TryGetValue(address, out var peerState) && peerState.IsBanned;
+    }
+
     public IEnumerator<Peer> GetEnumerator()
     {
         foreach (var bucket in _buckets)

@@ -41,7 +41,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
             // new BlockBranchPollService(this),
             // new BlockDemandPollTask(this),
             // new ConsumeBlockCandidatesTask(this),
-            new RefreshTableTask(PeerExplorer, options.RefreshPeriod, options.RefreshLifespan),
+            // new RefreshTableTask(PeerExplorer, options.RefreshPeriod, options.RefreshLifespan),
             new RebuildConnectionTask(this),
             new MaintainStaticPeerTask(this),
             // new TransactionFetcher(Blockchain, Transport, options.TimeoutOptions),

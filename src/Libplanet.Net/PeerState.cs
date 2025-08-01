@@ -12,6 +12,8 @@ public sealed record class PeerState : IComparable<PeerState>
 
     public Address Address => Peer.Address;
 
+    public bool IsBanned { get; init; }
+
     public int CompareTo(PeerState? other)
     {
         if (other is null)

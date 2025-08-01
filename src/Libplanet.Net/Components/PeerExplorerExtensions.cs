@@ -80,4 +80,26 @@ public static class PeerExplorerExtensions
         };
         return (@this.Broadcast(message, options), message);
     }
+
+    public static (ImmutableArray<Peer>, IMessage) BroadcastMessages(
+        this PeerExplorer @this, ImmutableArray<IMessage> messages)
+        => BroadcastMessages(@this, messages, default);
+
+    public static (ImmutableArray<Peer>, IMessage) BroadcastMessages(
+        this PeerExplorer @this, ImmutableArray<IMessage> messages, BroadcastOptions options)
+        => BroadcastMessages(@this, [.. messages.Select(tx => tx.Id)], options);
+
+    public static (ImmutableArray<Peer>, IMessage) BroadcastMessages(
+        this PeerExplorer @this, ImmutableArray<MessageId> messagesIds)
+        => BroadcastMessages(@this, messagesIds, default);
+
+    public static (ImmutableArray<Peer>, IMessage) BroadcastMessages(
+        this PeerExplorer @this, ImmutableArray<MessageId> messagesIds, BroadcastOptions options)
+    {
+        var message = new HaveMessage
+        {
+            Ids = messagesIds,
+        };
+        return (@this.Broadcast(message, options), message);
+    }
 }

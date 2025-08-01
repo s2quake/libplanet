@@ -6,13 +6,13 @@ namespace Libplanet.Net.Consensus.GossipMessageHandlers;
 
 internal sealed class HaveMessageHandler(
     ITransport transport,
-    ConcurrentDictionary<MessageId, IMessage> messageById,
-    ConcurrentDictionary<Peer, HashSet<MessageId>> haveDict)
+    MessageCollection messages,
+    PeerMessageIdCollection haveDict)
     : MessageHandlerBase<HaveMessage>
 {
     protected override void OnHandle(HaveMessage message, MessageEnvelope messageEnvelope)
     {
-        var ids = message.Ids.Where(id => !messageById.ContainsKey(id)).ToArray();
+        var ids = message.Ids.Where(id => !messages.Contains(id)).ToArray();
         var peer = messageEnvelope.Sender;
 
         transport.Post(peer, new PongMessage(), messageEnvelope.Identity);
@@ -21,16 +21,6 @@ internal sealed class HaveMessageHandler(
             return;
         }
 
-        if (!haveDict.TryGetValue(peer, out HashSet<MessageId>? value))
-        {
-            value = [];
-        }
-
-        foreach (var id in ids)
-        {
-            value.Add(id);
-        }
-
-        haveDict[peer] = value;
+        haveDict.Add(peer, [..ids]);
     }
 }

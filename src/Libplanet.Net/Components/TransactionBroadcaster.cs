@@ -11,28 +11,28 @@ public sealed class TransactionBroadcaster : IAsyncDisposable
     private static readonly object _lock = new();
     private readonly Subject<(ImmutableArray<Peer>, ImmutableArray<TxId>)> _broadcastedSubject = new();
 
-    private readonly PeerExplorer _peerDiscovery;
+    private readonly PeerExplorer _peerExplorer;
     private readonly HashSet<TxId> _broadcastedTxIds;
     private readonly DisposerCollection _subscriptions;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly Task _broadcastingTask;
     private bool _disposed;
 
-    public IObservable<(ImmutableArray<Peer>, ImmutableArray<TxId>)> Broadcasted => _broadcastedSubject;
-
-    public TimeSpan BroadcastInterval { get; set; } = TimeSpan.FromSeconds(1);
-
-    public TransactionBroadcaster(Blockchain blockchain, PeerExplorer peerDiscovery)
+    public TransactionBroadcaster(Blockchain blockchain, PeerExplorer peerExplorer)
     {
         _subscriptions =
         [
             blockchain.StagedTransactions.Added.Subscribe(AddInternal),
             blockchain.StagedTransactions.Removed.Subscribe(RemoveInternal),
         ];
-        _peerDiscovery = peerDiscovery;
+        _peerExplorer = peerExplorer;
         _broadcastingTask = BroadcastAsync();
         _broadcastedTxIds = [.. blockchain.StagedTransactions.Keys];
     }
+
+    public IObservable<(ImmutableArray<Peer>, ImmutableArray<TxId>)> Broadcasted => _broadcastedSubject;
+
+    public TimeSpan BroadcastInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     public async ValueTask DisposeAsync()
     {
@@ -81,7 +81,7 @@ public sealed class TransactionBroadcaster : IAsyncDisposable
             var txIds = FlushInternal();
             if (txIds.Length > 0)
             {
-                var (peers, _) = _peerDiscovery.BroadcastTransaction(txIds);
+                var (peers, _) = _peerExplorer.BroadcastTransaction(txIds);
                 _broadcastedSubject.OnNext((peers, txIds));
             }
         }

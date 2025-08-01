@@ -6,8 +6,8 @@ namespace Libplanet.Net.Consensus.GossipMessageHandlers;
 
 internal sealed class WantMessageHandler(
     ITransport transport,
-    ConcurrentDictionary<MessageId, IMessage> messageById,
-    ConcurrentDictionary<Peer, HashSet<MessageId>> haveDict)
+    MessageCollection messages,
+    PeerMessageIdCollection haveDict)
     : MessageHandlerBase<HaveMessage>
 {
     protected override void OnHandle(HaveMessage message, MessageEnvelope messageEnvelope)

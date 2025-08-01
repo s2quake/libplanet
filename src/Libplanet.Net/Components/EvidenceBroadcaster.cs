@@ -11,28 +11,28 @@ public sealed class EvidenceBroadcaster : IAsyncDisposable
     private static readonly object _lock = new();
     private readonly Subject<(ImmutableArray<Peer>, ImmutableArray<EvidenceId>)> _broadcastedSubject = new();
 
-    private readonly PeerExplorer _peerDiscovery;
+    private readonly PeerExplorer _peerExplorer;
     private readonly HashSet<EvidenceId> _broadcastedEvidenceIds;
     private readonly DisposerCollection _subscriptions;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly Task _broadcastingTask;
     private bool _disposed;
 
-    public IObservable<(ImmutableArray<Peer>, ImmutableArray<EvidenceId>)> Broadcasted => _broadcastedSubject;
-
-    public TimeSpan BroadcastInterval { get; set; } = TimeSpan.FromSeconds(1);
-
-    public EvidenceBroadcaster(Blockchain blockchain, PeerExplorer peerDiscovery)
+    public EvidenceBroadcaster(Blockchain blockchain, PeerExplorer peerExplorer)
     {
         _subscriptions =
         [
             blockchain.PendingEvidence.Added.Subscribe(AddInternal),
             blockchain.PendingEvidence.Removed.Subscribe(RemoveInternal),
         ];
-        _peerDiscovery = peerDiscovery;
+        _peerExplorer = peerExplorer;
         _broadcastingTask = BroadcastAsync();
         _broadcastedEvidenceIds = [.. blockchain.PendingEvidence.Keys];
     }
+
+    public IObservable<(ImmutableArray<Peer>, ImmutableArray<EvidenceId>)> Broadcasted => _broadcastedSubject;
+
+    public TimeSpan BroadcastInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     public async ValueTask DisposeAsync()
     {
@@ -81,7 +81,7 @@ public sealed class EvidenceBroadcaster : IAsyncDisposable
             var evidenceIds = FlushInternal();
             if (evidenceIds.Length > 0)
             {
-                var (peers, _) = _peerDiscovery.BroadcastEvidence(evidenceIds);
+                var (peers, _) = _peerExplorer.BroadcastEvidence(evidenceIds);
                 _broadcastedSubject.OnNext((peers, evidenceIds));
             }
         }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Libplanet.Net.Components;
 using Libplanet.Net.Consensus.GossipMessageHandlers;
 using Libplanet.Net.Messages;
+using Libplanet.Net.Services;
 using Libplanet.Net.Tasks;
 
 namespace Libplanet.Net.Consensus;
@@ -13,13 +14,13 @@ public sealed class Gossip : ServiceBase
     private const int DLazy = 6;
     private readonly ITransport _transport;
     private readonly GossipOptions _options;
-    private readonly ConcurrentDictionary<MessageId, IMessage> _messageById = new();
+    private readonly MessageCollection _messages = new();
     private readonly HashSet<Peer> _deniedPeers = [];
     private readonly ImmutableHashSet<Peer> _seeds;
     private readonly IDisposable _handlerRegistration;
     private readonly PeerExplorer _peerExplorer;
     private readonly ServiceCollection _services;
-    private ConcurrentDictionary<Peer, HashSet<MessageId>> _haveDict = new();
+    private PeerMessageIdCollection _haveDict = [];
 
     public Gossip(
         ITransport transport, ImmutableHashSet<Peer> seeds, ImmutableHashSet<Peer> validators, GossipOptions options)
@@ -28,9 +29,9 @@ public sealed class Gossip : ServiceBase
         _options = options;
         _seeds = seeds;
         _handlerRegistration = _transport.MessageRouter.RegisterMany(
-            [
-            new HaveMessageHandler(_transport, _messageById, _haveDict),
-            new WantMessageHandler(_transport, _messageById, _haveDict),
+        [
+            new HaveMessageHandler(_transport, _messages, _haveDict),
+            new WantMessageHandler(_transport, _messages, _haveDict),
         ]);
         _peerExplorer = new PeerExplorer(_transport, new PeerExplorerOptions
         {
@@ -39,8 +40,6 @@ public sealed class Gossip : ServiceBase
         });
         _services =
         [
-            new RefreshTableTask(_peerExplorer, _options.RefreshTableInterval, _options.RefreshLifespan),
-            new RebuildTableTask(_peerExplorer, _seeds, _options.RebuildTableInterval),
             new HeartbeatTask(this, _options.HeartbeatInterval)
         ];
     }
@@ -60,7 +59,7 @@ public sealed class Gossip : ServiceBase
 
     public void ClearCache()
     {
-        _messageById.Clear();
+        _messages.Clear();
     }
 
     public void PublishMessage(IMessage message)
@@ -89,7 +88,7 @@ public sealed class Gossip : ServiceBase
 
         foreach (var message in messages)
         {
-            _messageById[message.Id] = message;
+            _messages.TryAdd(message);
             _transport.Post(targetPeers, message);
         }
     }
@@ -112,7 +111,7 @@ public sealed class Gossip : ServiceBase
     public async Task HeartbeatAsync(CancellationToken cancellationToken)
     {
         var peers = _peerExplorer?.Peers ?? throw new InvalidOperationException("Gossip is not running.");
-        var ids = _messageById.Keys.ToArray();
+        var ids = _messages.Select(item => item.Id).ToArray();
         if (ids.Length > 0)
         {
             var peersToBroadcast = GetPeersToBroadcast(peers, DLazy);
@@ -140,7 +139,7 @@ public sealed class Gossip : ServiceBase
         _handlerRegistration.Dispose();
         await _services.DisposeAsync();
         _peerExplorer.Dispose();
-        _messageById.Clear();
+        _messages.Clear();
         await _transport.DisposeAsync();
         await base.DisposeAsyncCore();
     }
@@ -159,7 +158,7 @@ public sealed class Gossip : ServiceBase
     private async Task SendWantMessageAsync(CancellationToken cancellationToken)
     {
         var copy = _haveDict.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray());
-        _haveDict = new ConcurrentDictionary<Peer, HashSet<MessageId>>();
+        _haveDict = [];
         var optimized = new Dictionary<Peer, MessageId[]>();
         while (copy.Count > 0)
         {
@@ -198,7 +197,7 @@ public sealed class Gossip : ServiceBase
                     var query = _transport.SendAsync<IMessage>(pair.Key, wantMessage, m => true, cancellationToken);
                     await foreach (var item in query)
                     {
-                        _messageById.TryAdd(item.Id, item);
+                        _messages.TryAdd(item);
                         // Messagehandlers.HandleAsync(item)
                         // _validateReceivedMessageSubject.OnNext((pair.Key, item));
                         MessageValidators.Validate(item);
