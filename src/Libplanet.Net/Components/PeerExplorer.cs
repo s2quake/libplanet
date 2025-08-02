@@ -41,11 +41,15 @@ public sealed class PeerExplorer : IDisposable
 
     public Peer Peer => _transport.Peer;
 
-    public ImmutableArray<Peer> SeedPeers => [.. _options.SeedPeers];
+    public ImmutableHashSet<Peer> SeedPeers { get; init; } = [];
+
+    public ImmutableHashSet<Peer> KnownPeers { get; init; } = [];
+
+    public int MinimumBroadcastTarget { get; set; } = 10;
+
+    public int SearchDepth { get; set; } = 3;
 
     public PeerCollection Peers { get; }
-
-    internal ITransport Transport => _transport;
 
     public ImmutableArray<Peer> Broadcast(IMessage message)
     {
