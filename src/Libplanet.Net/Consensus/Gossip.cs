@@ -9,17 +9,16 @@ public sealed class Gossip : IDisposable
     private readonly ITransport _transport;
     private readonly MessageCollection _messages = new();
     private readonly HashSet<Peer> _deniedPeers = [];
-    private readonly ImmutableArray<Peer> _seeds;
+    // private readonly ImmutableArray<Peer> _seeds;
     private readonly IDisposable _handlerRegistration;
-    private readonly PeerExplorer _peerExplorer;
+    // private readonly PeerCollection peers;
     private readonly PeerMessageIdCollection _peerMessageIds = [];
     private bool _disposed;
 
-    public Gossip(ITransport transport, PeerExplorer peerExplorer)
+    public Gossip(ITransport transport, PeerCollection peers)
     {
         _transport = transport;
-        _peerExplorer = peerExplorer;
-        _seeds = peerExplorer.SeedPeers;
+        Peers = peers;
         _handlerRegistration = _transport.MessageRouter.RegisterMany(
         [
             new HaveMessageHandler(_messages, _peerMessageIds),
@@ -28,15 +27,19 @@ public sealed class Gossip : IDisposable
     }
 
     public Gossip(ITransport transport)
-        : this(transport, new PeerExplorer(transport))
+        : this(transport, new PeerCollection(transport.Peer.Address))
     {
     }
 
     public MessageValidatorCollection MessageValidators { get; } = [];
 
+    public MessageCollection Messages => _messages;
+
+    public PeerMessageIdCollection PeerMessageIds => _peerMessageIds;
+
     public Peer Peer => _transport.Peer;
 
-    public ImmutableArray<Peer> Peers => [.. _peerExplorer.Peers];
+    public PeerCollection Peers { get; }
 
     public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
@@ -45,7 +48,6 @@ public sealed class Gossip : IDisposable
         if (!_disposed)
         {
             _handlerRegistration.Dispose();
-            _peerExplorer.Dispose();
             _messages.Clear();
             _disposed = true;
             GC.SuppressFinalize(this);
@@ -59,15 +61,15 @@ public sealed class Gossip : IDisposable
 
     public void PublishMessage(IMessage message)
     {
-        if (_peerExplorer is null)
-        {
-            throw new InvalidOperationException("Gossip is not running.");
-        }
+        // if (_peerExplorer is null)
+        // {
+        //     throw new InvalidOperationException("Gossip is not running.");
+        // }
 
         ImmutableArray<Peer> peers =
         [
             _transport.Peer,
-            .. GetPeersToBroadcast(_peerExplorer.Peers, DLazy)
+            .. GetPeersToBroadcast(Peers, DLazy)
         ];
 
         PublishMessage(peers, message);
@@ -137,7 +139,7 @@ public sealed class Gossip : IDisposable
     {
         var random = new Random();
         var query = from peer in peers
-                    where !_seeds.Contains(peer)
+                        // where !_seeds.Contains(peer)
                     orderby random.Next()
                     select peer;
 

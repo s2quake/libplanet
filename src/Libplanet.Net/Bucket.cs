@@ -43,6 +43,20 @@ public sealed class Bucket(int capacity) : IBucket
 
     public PeerState this[Address address] => _itemByAddress[address];
 
+    public void Add(PeerState peerState)
+    {
+        var address = peerState.Address;
+        if (_itemByAddress.ContainsKey(address) || _items.Count >= _capacity)
+        {
+            throw new ArgumentException(
+                $"Peer with address {address} already exists or the bucket is full.",
+                nameof(peerState));
+        }
+
+        _itemByAddress[address] = peerState;
+        _items = _items.Add(peerState);
+    }
+
     public bool AddOrUpdate(PeerState peerState)
     {
         var address = peerState.Address;

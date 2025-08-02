@@ -50,7 +50,7 @@ public sealed class ConsensusService : ServiceBase
             SeedPeers = options.Seeds,
             KnownPeers = [.. options.Validators.Where(item => item.Address != signer.Address)],
         });
-        _gossip = new Gossip(_transport, _peerExplorer);
+        _gossip = new Gossip(_transport, _peerExplorer.Peers);
 
         _blockchain = blockchain;
         _newHeightDelay = options.TargetBlockInterval;
@@ -199,7 +199,7 @@ public sealed class ConsensusService : ServiceBase
 
     public Consensus Consensus => _consensus;
 
-    public ImmutableArray<Peer> Validators => _gossip.Peers;
+    public ImmutableArray<Peer> Validators => [.. _gossip.Peers];
 
     public async Task NewHeightAsync(int height, CancellationToken cancellationToken)
     {

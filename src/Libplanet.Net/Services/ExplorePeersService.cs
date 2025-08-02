@@ -9,13 +9,8 @@ internal sealed class ExplorePeersService(PeerExplorer peerExplorer, TimeSpan in
 {
     private readonly TimeSpan interval = interval;
 
-    protected override TimeSpan GetInterval()
-    {
-        return interval;
-    }
+    protected override TimeSpan GetInterval() => interval;
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-    {
-        await peerExplorer.ExploreAsync(cancellationToken);
-    }
+    protected override Task ExecuteAsync(CancellationToken cancellationToken)
+        => peerExplorer.ExploreAsync(cancellationToken);
 }

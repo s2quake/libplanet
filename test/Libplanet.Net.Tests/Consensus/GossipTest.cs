@@ -20,25 +20,22 @@ public sealed class GossipTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task PublishMessage()
     {
-        var random = RandomUtility.GetRandom(output);
         using var fx = new MemoryRepositoryFixture();
         var received1 = false;
         var received2 = false;
-        var key1 = RandomUtility.PrivateKey(random);
-        var key2 = RandomUtility.PrivateKey(random);
         var receivedEvent = new ManualResetEvent(false);
-        await using var transport1 = CreateTransport(key1);
-        await using var transport2 = CreateTransport(key2);
-        var peerExplorer1 = new PeerExplorer(transport1, new PeerExplorerOptions
+        await using var transport1 = TestUtils.CreateTransport();
+        await using var transport2 = TestUtils.CreateTransport();
+        var peers1 = new PeerCollection(transport1.Peer.Address)
         {
-            SeedPeers = [transport2.Peer]
-        });
-        var peerExplorer2 = new PeerExplorer(transport2, new PeerExplorerOptions
+            transport2.Peer,
+        };
+        var peers2 = new PeerCollection(transport2.Peer.Address)
         {
-            SeedPeers = [transport1.Peer]
-        });
-        using var gossip1 = CreateGossip(transport1, peerExplorer1);
-        using var gossip2 = CreateGossip(transport2, peerExplorer2);
+            transport1.Peer,
+        };
+        using var gossip1 = new Gossip(transport1, peers1);
+        using var gossip2 = new Gossip(transport2, peers2);
         await using var transports = new ServiceCollection
         {
             transport1,
@@ -71,18 +68,18 @@ public sealed class GossipTest(ITestOutputHelper output)
         var key1 = RandomUtility.PrivateKey(random);
         var key2 = RandomUtility.PrivateKey(random);
         var receivedEvent = new ManualResetEvent(false);
-        await using var transport1 = CreateTransport(key1);
-        await using var transport2 = CreateTransport(key2);
-        var peerExplorer1 = new PeerExplorer(transport1, new PeerExplorerOptions
+        await using var transport1 = TestUtils.CreateTransport(key1);
+        await using var transport2 = TestUtils.CreateTransport(key2);
+        var peers1 = new PeerCollection(transport1.Peer.Address)
         {
-            SeedPeers = [transport2.Peer]
-        });
-        var peerExplorer2 = new PeerExplorer(transport2, new PeerExplorerOptions
+            transport2.Peer,
+        };
+        var peers2 = new PeerCollection(transport2.Peer.Address)
         {
-            SeedPeers = [transport1.Peer]
-        });
-        using var gossip1 = CreateGossip(transport1, peerExplorer1);
-        using var gossip2 = CreateGossip(transport2, peerExplorer2);
+            transport1.Peer,
+        };
+        using var gossip1 = new Gossip(transport1, peers1);
+        using var gossip2 = new Gossip(transport2, peers2);
         await using var transports = new ServiceCollection
         {
             transport1,
@@ -120,8 +117,8 @@ public sealed class GossipTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task AddPeerWithHaveMessage()
     {
-        var transport1 = CreateTransport();
-        var transport2 = CreateTransport();
+        var transport1 = TestUtils.CreateTransport();
+        var transport2 = TestUtils.CreateTransport();
         using var gossip1 = new Gossip(transport1);
         await using var transports = new ServiceCollection
         {
@@ -140,13 +137,14 @@ public sealed class GossipTest(ITestOutputHelper output)
     public async Task DoNotBroadcastToSeedPeers()
     {
         var handled = false;
-        var transport1 = CreateTransport();
-        var transport2 = CreateTransport();
-        var peerExplorer2 = new PeerExplorer(transport1, new PeerExplorerOptions
+        var transport1 = TestUtils.CreateTransport();
+        var transport2 = TestUtils.CreateTransport();
+        var peerExplorer2 = new PeerExplorer(transport2, new PeerExplorerOptions
         {
-            SeedPeers = [transport2.Peer]
+            SeedPeers = [transport1.Peer]
         });
-        using var gossip = CreateGossip(transport2, seeds: [transport1.Peer]);
+        using var gossip2 = new Gossip(transport2, peerExplorer2.Peers);
+
         await using var transports = new ServiceCollection
         {
             transport1,
@@ -160,7 +158,7 @@ public sealed class GossipTest(ITestOutputHelper output)
 
         await transports.StartAsync(default);
 
-        gossip.PublishMessage(new PingMessage());
+        gossip2.PublishMessage(new PingMessage());
 
         // Wait heartbeat interval * 2.
         await Task.Delay(2 * 1000);
@@ -179,13 +177,19 @@ public sealed class GossipTest(ITestOutputHelper output)
             }
         }
 
-        await using var receiver = CreateGossip();
-        await using var sender1 = CreateTransport();
+        var transport = TestUtils.CreateTransport();
+        var peers = new PeerCollection(transport.Peer)
+        {
+            transport.Peer,
+        };
+        using var receiver = new Gossip(transport, peers);
+        await using var sender1 = TestUtils.CreateTransport();
         sender1.MessageRouter.Register<IMessage>(HandelMessage);
-        await using var sender2 = CreateTransport();
+        await using var sender2 = TestUtils.CreateTransport();
         sender2.MessageRouter.Register<IMessage>(HandelMessage);
 
-        await receiver.StartAsync(default);
+        // await receiver.StartAsync(default);
+        await transport.StartAsync(default);
         await sender1.StartAsync(default);
         await sender2.StartAsync(default);
         var message1 = new PingMessage();
@@ -204,34 +208,19 @@ public sealed class GossipTest(ITestOutputHelper output)
         EndPoint = new DnsEndPoint("127.0.0.1", port ?? 0),
     };
 
-    private static Gossip CreateGossip(
-        PrivateKey? privateKey = null,
-        int? port = null,
-        PeerExplorer? peerExplorer = null)
-    {
-        var transport = CreateTransport(privateKey, port);
-        return new Gossip(transport, peerExplorer ?? new PeerExplorer(transport));
-    }
+    // private static Gossip CreateGossip(
+    //     PrivateKey? privateKey = null,
+    //     int? port = null,
+    //     PeerCollection? peerExplorer = null)
+    // {
+    //     var transport = TestUtils.CreateTransport(privateKey, port);
+    //     return new Gossip(transport, peerExplorer.Peers);
+    // }
 
-    private static Gossip CreateGossip(
-        ITransport transport,
-        PeerExplorer peerExplorer)
-    {
-        return new Gossip(transport, peerExplorer);
-    }
-
-    private static NetMQTransport CreateTransport(
-        PrivateKey? privateKey = null,
-        int? port = null)
-    {
-        var options = new TransportOptions
-        {
-            Host = "127.0.0.1",
-            Port = port ?? 0,
-        };
-
-        privateKey ??= new PrivateKey();
-
-        return new NetMQTransport(privateKey.AsSigner(), options);
-    }
+    // private static Gossip CreateGossip(
+    //     ITransport transport,
+    //     PeerExplorer peerExplorer)
+    // {
+    //     return new Gossip(transport, peerExplorer);
+    // }
 }

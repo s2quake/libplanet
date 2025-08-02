@@ -9,13 +9,22 @@ namespace Libplanet.Net;
 public sealed class PeerCollection(
     Address owner,
     int bucketCount = PeerCollection.BucketCount,
-    int capacityPerBucket = PeerCollection.CapacityPerBucket) : IPeerCollection
+    int capacityPerBucket = PeerCollection.CapacityPerBucket)
+    : IPeerCollection
 {
     public const int BucketCount = Address.Size * 8;
     public const int CapacityPerBucket = 16;
     private readonly ReaderWriterLockSlim _lock = new();
     private readonly BucketCollection _buckets = new(owner, bucketCount, capacityPerBucket);
     private ImmutableArray<IBucket>? _bucketArray;
+
+    public PeerCollection(
+        Peer owner,
+        int bucketCount = BucketCount,
+        int capacityPerBucket = CapacityPerBucket)
+        : this(owner.Address, bucketCount, capacityPerBucket)
+    {
+    }
 
     public Address Owner => owner;
 
@@ -33,6 +42,16 @@ public sealed class PeerCollection(
     ImmutableArray<IBucket> IPeerCollection.Buckets => _bucketArray ??= [.. _buckets.Cast<IBucket>()];
 
     public Peer this[Address address] => _buckets[address][address].Peer;
+
+    public void Add(Peer peer)
+    {
+        if (peer.Address == owner)
+        {
+            throw new ArgumentException("Cannot add self address to the routing table.", nameof(peer));
+        }
+
+        _buckets[peer.Address].Add(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
+    }
 
     public bool AddOrUpdate(Peer peer)
         => AddOrUpdate(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
