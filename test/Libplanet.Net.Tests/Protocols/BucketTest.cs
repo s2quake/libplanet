@@ -41,7 +41,7 @@ public class BucketTest(ITestOutputHelper output)
         // Checks for an empty bucket.
         Assert.True(bucket.IsEmpty);
         Assert.False(bucket.IsFull);
-        Assert.Empty(bucket.Peers);
+        Assert.Empty(bucket.Select(item => item.Peer));
         Assert.Empty(bucket);
         Assert.Throws<InvalidOperationException>(() => bucket.GetRandomPeer(default));
         Assert.Throws<InvalidOperationException>(() => bucket.Newest);
@@ -72,7 +72,7 @@ public class BucketTest(ITestOutputHelper output)
         bucket.AddOrUpdate(new() { Peer = peer4, LastUpdated = DateTimeOffset.UtcNow });
         Assert.True(bucket.IsFull);
         Assert.Equal(
-            [.. bucket.Peers],
+            [.. bucket.Select(item => item.Peer)],
             [peer1, peer2, peer3, peer4]);
         Assert.Contains(
             bucket.GetRandomPeer(default),
@@ -80,7 +80,7 @@ public class BucketTest(ITestOutputHelper output)
         await Task.Delay(100);
         bucket.AddOrUpdate(new() { Peer = peer5, LastUpdated = DateTimeOffset.UtcNow });
         Assert.Equal(
-            [.. bucket.Peers],
+            [.. bucket.Select(item => item.Peer)],
             [peer1, peer2, peer3, peer4]);
         Assert.False(bucket.Contains(peer5));
         Assert.Equal(peer4, bucket.Newest.Peer);
@@ -94,13 +94,13 @@ public class BucketTest(ITestOutputHelper output)
 
         Assert.False(bucket.Remove(peer5));
         Assert.True(bucket.Remove(peer1));
-        Assert.DoesNotContain(peer1, bucket.Peers);
-        Assert.Equal(3, bucket.Peers.Count());
+        Assert.DoesNotContain(peer1, bucket.Select(item => item.Peer));
+        Assert.Equal(3, bucket.Select(item => item.Peer).Count());
 
         // Clear the bucket.
         bucket.Clear();
         Assert.True(bucket.IsEmpty);
-        Assert.Empty(bucket.Peers);
+        Assert.Empty(bucket.Select(item => item.Peer));
         Assert.Throws<InvalidOperationException>(() => bucket.Newest);
         Assert.Throws<InvalidOperationException>(() => bucket.Oldest);
         Assert.Throws<InvalidOperationException>(() => bucket.GetRandomPeer(default));

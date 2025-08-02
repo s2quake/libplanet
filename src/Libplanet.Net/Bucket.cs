@@ -19,8 +19,6 @@ public sealed class Bucket(int capacity) : IBucket
 
     public bool IsFull => _items.Count == _capacity;
 
-    public IEnumerable<Peer> Peers => _items.Select(item => item.Peer);
-
     public PeerState Newest => _items.LastOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
 
     public PeerState Oldest => _items.FirstOrDefault() ?? throw new InvalidOperationException("The bucket is empty.");
@@ -43,39 +41,6 @@ public sealed class Bucket(int capacity) : IBucket
 
     public PeerState this[Address address] => _itemByAddress[address];
 
-    public void Add(PeerState peerState)
-    {
-        var address = peerState.Address;
-        if (_itemByAddress.ContainsKey(address) || _items.Count >= _capacity)
-        {
-            throw new ArgumentException(
-                $"Peer with address {address} already exists or the bucket is full.",
-                nameof(peerState));
-        }
-
-        _itemByAddress[address] = peerState;
-        _items = _items.Add(peerState);
-    }
-
-    public bool AddOrUpdate(PeerState peerState)
-    {
-        var address = peerState.Address;
-        if (_itemByAddress.TryGetValue(address, out var value))
-        {
-            _itemByAddress[address] = peerState;
-            _items = _items.Remove(value).Add(peerState);
-            return true;
-        }
-        else if (_items.Count < _capacity)
-        {
-            _itemByAddress[address] = peerState;
-            _items = _items.Add(peerState);
-            return true;
-        }
-
-        return false;
-    }
-
     public bool Contains(Peer peer)
     {
         if (_itemByAddress.TryGetValue(peer.Address, out var peerState))
@@ -87,37 +52,6 @@ public sealed class Bucket(int capacity) : IBucket
     }
 
     public bool Contains(Address address) => _itemByAddress.ContainsKey(address);
-
-    public void Clear()
-    {
-        _items = [];
-        _itemByAddress.Clear();
-    }
-
-    public bool Remove(Peer peer)
-    {
-        var address = peer.Address;
-        if (_itemByAddress.TryGetValue(address, out var peerState) && peerState.Peer.Address == address)
-        {
-            _itemByAddress.Remove(address);
-            _items = _items.Remove(peerState);
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool Remove(Address address)
-    {
-        if (_itemByAddress.TryGetValue(address, out var peerState))
-        {
-            _itemByAddress.Remove(address);
-            _items = _items.Remove(peerState);
-            return true;
-        }
-
-        return false;
-    }
 
     public bool TryGetValue(Address address, [MaybeNullWhen(false)] out PeerState value)
         => _itemByAddress.TryGetValue(address, out value);
@@ -177,6 +111,70 @@ public sealed class Bucket(int capacity) : IBucket
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    internal void Add(PeerState peerState)
+    {
+        var address = peerState.Address;
+        if (_itemByAddress.ContainsKey(address) || _items.Count >= _capacity)
+        {
+            throw new ArgumentException(
+                $"Peer with address {address} already exists or the bucket is full.",
+                nameof(peerState));
+        }
+
+        _itemByAddress[address] = peerState;
+        _items = _items.Add(peerState);
+    }
+
+    internal bool AddOrUpdate(PeerState peerState)
+    {
+        var address = peerState.Address;
+        if (_itemByAddress.TryGetValue(address, out var value))
+        {
+            _itemByAddress[address] = peerState;
+            _items = _items.Remove(value).Add(peerState);
+            return true;
+        }
+        else if (_items.Count < _capacity)
+        {
+            _itemByAddress[address] = peerState;
+            _items = _items.Add(peerState);
+            return true;
+        }
+
+        return false;
+    }
+
+    internal void Clear()
+    {
+        _items = [];
+        _itemByAddress.Clear();
+    }
+
+    internal bool Remove(Peer peer)
+    {
+        var address = peer.Address;
+        if (_itemByAddress.TryGetValue(address, out var peerState) && peerState.Peer.Address == address)
+        {
+            _itemByAddress.Remove(address);
+            _items = _items.Remove(peerState);
+            return true;
+        }
+
+        return false;
+    }
+
+    internal bool Remove(Address address)
+    {
+        if (_itemByAddress.TryGetValue(address, out var peerState))
+        {
+            _itemByAddress.Remove(address);
+            _items = _items.Remove(peerState);
+            return true;
+        }
+
+        return false;
+    }
 
     private static int ValidateCapacity(int capacity)
     {
