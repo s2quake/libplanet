@@ -17,6 +17,7 @@ public sealed class Swarm : ServiceBase, IServiceProvider
     private readonly ConsensusService? _consensusSerevice;
     private readonly ServiceCollection _services;
     private readonly IDisposable _handlerRegistration;
+    private readonly PeerCollection _peers;
 
     public Swarm(
         ISigner signer,
@@ -28,7 +29,8 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         Blockchain = blockchain;
         Options = options;
         Transport = new NetMQTransport(signer, options.TransportOptions);
-        PeerExplorer = new PeerExplorer(Transport);
+        _peers = new PeerCollection(Transport.Peer.Address);
+        PeerExplorer = new PeerExplorer(Transport, _peers);
         BlockDemands = new BlockDemandCollection();
         BlockBranches = new BlockBranchCollection();
         _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;

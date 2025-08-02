@@ -53,6 +53,14 @@ public sealed class PeerCollection(
         _buckets[peer.Address].Add(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
     }
 
+    public void AddMany(ImmutableArray<Peer> peers)
+    {
+        foreach (var peer in peers)
+        {
+            Add(peer);
+        }
+    }
+
     public bool AddOrUpdate(Peer peer)
         => AddOrUpdate(new PeerState { Peer = peer, LastUpdated = DateTimeOffset.UtcNow });
 
@@ -199,4 +207,6 @@ public sealed class PeerCollection(
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    internal PeerCollection CreateEmpty() => new(owner, _buckets.Count, _buckets.CapacityPerBucket);
 }

@@ -21,6 +21,7 @@ public sealed class ConsensusService : ServiceBase
 
     private readonly Subject<Proposal> _blockProposeSubject = new();
     private readonly ITransport _transport;
+    private readonly PeerCollection _peers;
     private readonly PeerExplorer _peerExplorer;
     private readonly Gossip _gossip;
     private readonly ConsensusOptions _consensusOption;
@@ -45,11 +46,12 @@ public sealed class ConsensusService : ServiceBase
     {
         _signer = signer;
         _transport = new NetMQTransport(signer, options.TransportOptions);
-        _peerExplorer = new PeerExplorer(_transport, new PeerExplorerOptions
+        _peers = new PeerCollection(_transport.Peer.Address);
+        _peers.AddMany([.. options.Validators]);
+        _peerExplorer = new PeerExplorer(_transport, _peers)
         {
             SeedPeers = options.Seeds,
-            KnownPeers = [.. options.Validators.Where(item => item.Address != signer.Address)],
-        });
+        };
         _gossip = new Gossip(_transport, _peerExplorer.Peers);
 
         _blockchain = blockchain;

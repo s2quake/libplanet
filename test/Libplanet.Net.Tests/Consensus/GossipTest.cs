@@ -139,10 +139,12 @@ public sealed class GossipTest(ITestOutputHelper output)
         var handled = false;
         var transport1 = TestUtils.CreateTransport();
         var transport2 = TestUtils.CreateTransport();
-        var peerExplorer2 = new PeerExplorer(transport2, new PeerExplorerOptions
+        var peers2 = new PeerCollection(transport2.Peer.Address);
+
+        var peerExplorer2 = new PeerExplorer(transport2, peers2)
         {
             SeedPeers = [transport1.Peer]
-        });
+        };
         using var gossip2 = new Gossip(transport2, peerExplorer2.Peers);
 
         await using var transports = new ServiceCollection

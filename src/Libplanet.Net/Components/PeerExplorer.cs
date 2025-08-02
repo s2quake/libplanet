@@ -13,24 +13,22 @@ public sealed class PeerExplorer : IDisposable
     public const int MaxDepth = 3;
 
     private readonly ITransport _transport;
-    private readonly PeerExplorerOptions _options;
     private readonly Address _owner;
     private readonly PeerCollection _replacementCache;
     private readonly IDisposable _handlerRegistration;
 
-    public PeerExplorer(ITransport transport)
-        : this(transport, PeerExplorerOptions.Default)
+    public PeerExplorer(ITransport transport, PeerCollection peers)
     {
-    }
+        if (transport.Peer.Address != peers.Owner)
+        {
+            throw new ArgumentException(
+                "Transport peer address must match the owner of the peer collection.", nameof(peers));
+        }
 
-    public PeerExplorer(ITransport transport, PeerExplorerOptions options)
-    {
         _owner = transport.Peer.Address;
         _transport = transport;
-        _options = ValidateOptions(transport.Peer, options);
-        Peers = new(_owner, options.BucketCount, options.CapacityPerBucket);
-        Peers.AddOrUpdateMany([.. options.KnownPeers]);
-        _replacementCache = new PeerCollection(_owner, options.BucketCount, options.CapacityPerBucket);
+        Peers = peers;
+        _replacementCache = peers.CreateEmpty();
         _handlerRegistration = _transport.MessageRouter.RegisterMany(
         [
             new PingMessageHandler(_transport),
@@ -42,8 +40,6 @@ public sealed class PeerExplorer : IDisposable
     public Peer Peer => _transport.Peer;
 
     public ImmutableHashSet<Peer> SeedPeers { get; init; } = [];
-
-    public ImmutableHashSet<Peer> KnownPeers { get; init; } = [];
 
     public int MinimumBroadcastTarget { get; set; } = 10;
 
@@ -61,7 +57,7 @@ public sealed class PeerExplorer : IDisposable
     public ImmutableArray<Peer> Broadcast(IMessage message, BroadcastOptions options)
     {
         var except = options.Except;
-        var peers = Peers.PeersToBroadcast(except, _options.MinimumBroadcastTarget);
+        var peers = Peers.PeersToBroadcast(except, MinimumBroadcastTarget);
         _ = PostAsync();
         return peers;
 
@@ -77,7 +73,7 @@ public sealed class PeerExplorer : IDisposable
     }
 
     public Task ExploreAsync(CancellationToken cancellationToken)
-        => ExploreAsync(_options.SeedPeers, _options.SearchDepth, cancellationToken);
+        => ExploreAsync(SeedPeers, SearchDepth, cancellationToken);
 
     public Task ExploreAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
         => ExploreInternalAsync(seedPeers, maxDepth, cancellationToken);
@@ -241,24 +237,6 @@ public sealed class PeerExplorer : IDisposable
         }
 
         return Peers.Remove(peer) || _replacementCache.Remove(peer);
-    }
-
-    private static PeerExplorerOptions ValidateOptions(Peer peer, PeerExplorerOptions options)
-    {
-        ValidationUtility.Validate(options);
-        if (options.SeedPeers.Any(item => item.Address == peer.Address))
-        {
-            throw new ArgumentException(
-                "Seed peers cannot contain self address.", nameof(options));
-        }
-
-        if (options.KnownPeers.Any(item => item.Address == peer.Address))
-        {
-            throw new ArgumentException(
-                "Known peers cannot contain self address.", nameof(options));
-        }
-
-        return options;
     }
 
     private async Task ExploreInternalAsync(ImmutableHashSet<Peer> seedPeers, int maxDepth, CancellationToken cancellationToken)
