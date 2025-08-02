@@ -36,22 +36,26 @@ public partial class SwarmTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task HandleReconnection()
     {
-        await using var seed = TestUtils.CreateTransport();
+        await using var transport = TestUtils.CreateTransport();
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
-        var seedExplorer = new PeerExplorer(seed);
-        var peerExplorerA = new PeerExplorer(transportA);
-        var peerExplorerB = new PeerExplorer(transportB);
+        var peers = new PeerCollection(transport.Peer.Address);
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
 
-        await seed.StartAsync(default);
+        var peerExplorer = new PeerExplorer(transport, peers);
+        var peerExplorerA = new PeerExplorer(transportA, peersA);
+        var peerExplorerB = new PeerExplorer(transportB, peersB);
+
+        await transport.StartAsync(default);
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
-        await peerExplorerA.PingAsync(seedExplorer.Peer, default);
+        await peerExplorerA.PingAsync(peerExplorer.Peer, default);
         await transportA.StopAsync(default);
-        await peerExplorerB.PingAsync(seedExplorer.Peer, default);
+        await peerExplorerB.PingAsync(peerExplorer.Peer, default);
 
-        Assert.Contains(transportB.Peer, seedExplorer.Peers);
-        Assert.Contains(seed.Peer, peerExplorerB.Peers);
+        Assert.Contains(transportB.Peer, peerExplorer.Peers);
+        Assert.Contains(transport.Peer, peerExplorerB.Peers);
     }
 
     // [Fact(Timeout = Timeout)]
@@ -88,8 +92,10 @@ public partial class SwarmTest(ITestOutputHelper output)
     {
         await using var a = TestUtils.CreateTransport();
         await using var b = TestUtils.CreateTransport();
-        var peerExplorerA = new PeerExplorer(a);
-        var peerExplorerB = new PeerExplorer(b);
+        var peersA = new PeerCollection(a.Peer.Address);
+        var peersB = new PeerCollection(b.Peer.Address);
+        var peerExplorerA = new PeerExplorer(a, peersA);
+        var peerExplorerB = new PeerExplorer(b, peersB);
 
         await b.StartAsync(default);
         await Assert.ThrowsAsync<InvalidOperationException>(() => peerExplorerA.PingAsync(peerExplorerB.Peer, default));
@@ -100,8 +106,10 @@ public partial class SwarmTest(ITestOutputHelper output)
     {
         await using var a = TestUtils.CreateTransport();
         await using var b = TestUtils.CreateTransport();
-        var peerExplorerA = new PeerExplorer(a);
-        var peerExplorerB = new PeerExplorer(b);
+        var peersA = new PeerCollection(a.Peer.Address);
+        var peersB = new PeerCollection(b.Peer.Address);
+        var peerExplorerA = new PeerExplorer(a, peersA);
+        var peerExplorerB = new PeerExplorer(b, peersB);
 
         await a.StartAsync(default);
         await b.StartAsync(default);
@@ -117,12 +125,13 @@ public partial class SwarmTest(ITestOutputHelper output)
     {
         await using var transportA = TestUtils.CreateTransport();
         await using var transportB = TestUtils.CreateTransport();
-        var peerExplorerOptionsB = new PeerExplorerOptions
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        var peerExplorerA = new PeerExplorer(transportA, peersA);
+        var peerExplorerB = new PeerExplorer(transportB, peersB)
         {
             SeedPeers = [transportA.Peer],
         };
-        var peerExplorerA = new PeerExplorer(transportA);
-        var peerExplorerB = new PeerExplorer(transportB, peerExplorerOptionsB);
 
 
         // await Assert.ThrowsAsync<InvalidOperationException>(() => transportB.StartAsync(default));
@@ -139,10 +148,14 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var transportB = TestUtils.CreateTransport();
         await using var transportC = TestUtils.CreateTransport();
         await using var transportD = TestUtils.CreateTransport();
-        var peerExplorerA = new PeerExplorer(transportA);
-        var peerExplorerB = new PeerExplorer(transportB);
-        var peerExplorerC = new PeerExplorer(transportC);
-        var peerExplorerD = new PeerExplorer(transportD);
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        var peersC = new PeerCollection(transportC.Peer.Address);
+        var peersD = new PeerCollection(transportD.Peer.Address);
+        var peerExplorerA = new PeerExplorer(transportA, peersA);
+        var peerExplorerB = new PeerExplorer(transportB, peersB);
+        var peerExplorerC = new PeerExplorer(transportC, peersC);
+        var peerExplorerD = new PeerExplorer(transportD, peersD);
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
@@ -207,11 +220,11 @@ public partial class SwarmTest(ITestOutputHelper output)
         //     StaticPeersMaintainPeriod = TimeSpan.FromMilliseconds(100),
         // });
 
-        var peerExplorerOptions = new PeerExplorerOptions
+        var peers = new PeerCollection(transport.Peer.Address);
+        var peerExplorer = new PeerExplorer(transport, peers)
         {
             SeedPeers = [transport.Peer],
         };
-        var peerExplorer = new PeerExplorer(transport, peerExplorerOptions);
         var maintainStaticPeersService = new MaintainStaticPeerTask(peerExplorer, [transportA.Peer, transportB.Peer]);
 
         await transport.StartAsync(default);
