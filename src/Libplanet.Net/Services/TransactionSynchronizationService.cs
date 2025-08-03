@@ -30,9 +30,6 @@ internal sealed class TransactionSynchronizationService(
         }
 
         await Task.WhenAll(taskList);
-        // var results = await Task.WhenAll(taskList);
-        // var txIds = results.SelectMany(tx => tx).ToImmutableHashSet();
-        // _stagedSubject.OnNext([.. txIds.Select(tx => tx.Id)]);
     }
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)

@@ -625,30 +625,59 @@ public partial class SwarmTest(ITestOutputHelper output)
         using var fx1 = new MemoryRepositoryFixture();
         using var fx2 = new MemoryRepositoryFixture();
 
-        await using var swarmA = await CreateSwarm(
-            MakeBlockchain(blockchainOptions, privateKey: validKey));
-        await using var swarmB = await CreateSwarm(
-            MakeBlockchain(blockchainOptions, privateKey: validKey));
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        var peerExplorerA = new PeerExplorer(transportA, peersA);
+        var blockchainA = MakeBlockchain(blockchainOptions, privateKey: validKey);
+        var blockchainB = MakeBlockchain(blockchainOptions, privateKey: validKey);
+
+        var syncResponderServiceA = new TransactionSynchronizationResponderService(
+            blockchainA, transportA);
+        var syncServiceB = new TransactionSynchronizationService(
+            blockchainB, transportB);
+
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+        };
+        await using var services = new ServiceCollection
+        {
+            syncResponderServiceA,
+            syncServiceB,
+        };
+
+        // await using var swarmA = await CreateSwarm(
+        //     MakeBlockchain(blockchainOptions, privateKey: validKey));
+        // await using var swarmB = await CreateSwarm(
+        //     MakeBlockchain(blockchainOptions, privateKey: validKey));
 
         var invalidKey = new PrivateKey();
 
-        var validTx = swarmA.Blockchain.StagedTransactions.Add(validKey);
-        var invalidTx = swarmA.Blockchain.StagedTransactions.Add(invalidKey);
+        var validTx = blockchainA.StagedTransactions.Add(validKey);
+        var invalidTx = blockchainA.StagedTransactions.Add(invalidKey);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
+        // await swarmA.StartAsync(default);
+        // await swarmB.StartAsync(default);
+        await transports.StartAsync(default);
+        await services.StartAsync(default);
 
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        // await swarmA.AddPeersAsync([swarmB.Peer], default);
+        peersA.Add(transportB.Peer);
 
-        swarmA.BroadcastTxs([validTx, invalidTx]);
+        // swarmA.BroadcastTxs([validTx, invalidTx]);
         // await swarmB.TxReceived.WaitAsync(default);
+        peerExplorerA.BroadcastTransaction([validTx, invalidTx]);
+        await syncServiceB.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
-        Assert.Equal(swarmB.Blockchain.Transactions[validTx.Id], validTx);
+        Assert.Equal(blockchainB.Transactions[validTx.Id], validTx);
         Assert.Throws<KeyNotFoundException>(
-            () => swarmB.Blockchain.Transactions[invalidTx.Id]);
+            () => blockchainB.Transactions[invalidTx.Id]);
 
-        Assert.Contains(validTx.Id, swarmB.Blockchain.StagedTransactions.Keys);
-        Assert.DoesNotContain(invalidTx.Id, swarmB.Blockchain.StagedTransactions.Keys);
+        Assert.Contains(validTx.Id, blockchainB.StagedTransactions.Keys);
+        Assert.DoesNotContain(invalidTx.Id, blockchainB.StagedTransactions.Keys);
     }
 
     [RetryFact(Timeout = Timeout)]
