@@ -48,7 +48,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         Block? proposedBlock = null;
         using var preVoteEnteredEvent = new ManualResetEvent(false);
         using var blockProposedEvent = new ManualResetEvent(false);
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         var previousCommit = TestUtils.CreateBlockCommit(block1);
         blockchain.Append(block1, previousCommit);
@@ -104,7 +104,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         using var blockProposedEvent = new ManualResetEvent(false);
 
         // Add block #1 so we can start with a last commit for height 2.
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         var previousCommit = TestUtils.CreateBlockCommit(block1);
         blockchain.Append(block1, previousCommit);
@@ -204,7 +204,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         Exception? exceptionThrown = null;
         using var exceptionOccurredEvent = new ManualResetEvent(false);
 
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(blockchain, privateKey: TestUtils.PrivateKeys[0]);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
@@ -233,7 +233,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         Exception? exceptionThrown = null;
         using var exceptionOccurredEvent = new ManualResetEvent(false);
 
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
@@ -423,7 +423,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             new Validator { Address = key2.Address }
         );
 
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(
             blockchain: blockchain,
             privateKey: privateKeys[0],
@@ -560,6 +560,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var consensusService = new ConsensusService(
             privateKey0.AsSigner(),
             blockchain,
+            transport,
             options);
         // var consensus = consensusService.Consensus;
 

@@ -21,8 +21,8 @@ public partial class BlockchainSynchronizationServiceTest(ITestOutputHelper outp
         var keyA = RandomUtility.PrivateKey(random);
         var transportA = TestUtils.CreateTransport();
         var transportB = TestUtils.CreateTransport();
-        var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
-        var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainA = Libplanet.Tests.TestUtils.MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = Libplanet.Tests.TestUtils.MakeBlockchain(genesisBlock: fx.GenesisBlock);
         var serviceA = new BlockSynchronizationResponderService(blockchainA, transportA);
         var serviceB = new BlockSynchronizationService(blockchainB, transportB);
         await using var services = new ServiceCollection

@@ -42,10 +42,10 @@ public sealed class ConsensusService : ServiceBase
     private DateTimeOffset _tipChangedTime;
 
     public ConsensusService(
-        ISigner signer, Blockchain blockchain, ConsensusServiceOptions options)
+        ISigner signer, Blockchain blockchain, ITransport transport, ConsensusServiceOptions options)
     {
         _signer = signer;
-        _transport = new NetMQTransport(signer, options.TransportOptions);
+        _transport = transport;
         _peers = new PeerCollection(_transport.Peer.Address);
         _peers.AddMany([.. options.Validators]);
         _peerExplorer = new PeerExplorer(_transport, _peers)

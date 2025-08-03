@@ -11,11 +11,6 @@ internal sealed class BlockSummaryMessageHandler(
 
     public TimeSpan BlockDemandLifespan { get; init; } = TimeSpan.FromMinutes(1);
 
-    internal BlockSummaryMessageHandler(Swarm swarm)
-        : this(swarm.Blockchain, swarm.BlockDemands)
-    {
-    }
-
     protected override void OnHandle(BlockSummaryMessage message, MessageEnvelope messageEnvelope)
     {
         if (message.GenesisHash != _genesisHash)

@@ -22,7 +22,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     {
         Proposal? proposal = null;
         var heightTwoProposalSent = new AsyncAutoResetEvent();
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         await using var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             key: TestUtils.PrivateKeys[2],
@@ -109,7 +109,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var proposalSent = new AsyncAutoResetEvent();
         var newHeightDelay = TimeSpan.FromSeconds(1);
 
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             key: TestUtils.PrivateKeys[2],
@@ -286,7 +286,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var heightTwoProposalSent = new AsyncAutoResetEvent();
         Block? proposedBlock = null;
 
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
@@ -331,7 +331,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var timeError = 500;
         var heightOneEndCommit = new ManualResetEvent(false);
         var heightTwoProposalSent = new ManualResetEvent(false);
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: newHeightDelay,

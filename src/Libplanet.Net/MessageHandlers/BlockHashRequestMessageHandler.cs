@@ -5,11 +5,6 @@ namespace Libplanet.Net.MessageHandlers;
 internal sealed class BlockHashRequestMessageHandler(Blockchain blockchain, ITransport transport)
     : MessageHandlerBase<BlockHashRequestMessage>
 {
-    internal BlockHashRequestMessageHandler(Swarm swarm)
-        : this(swarm.Blockchain, swarm.Transport)
-    {
-    }
-
     protected override void OnHandle(BlockHashRequestMessage message, MessageEnvelope messageEnvelope)
     {
         var height = blockchain.Blocks[message.BlockHash].Height;

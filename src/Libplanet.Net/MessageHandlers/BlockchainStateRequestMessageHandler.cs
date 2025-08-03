@@ -20,11 +20,6 @@ internal sealed class BlockchainStateRequestMessageHandler : MessageHandlerBase<
         });
     }
 
-    public BlockchainStateRequestMessageHandler(Swarm swarm)
-        : this(swarm.Blockchain, swarm.Transport)
-    {
-    }
-
     public void Dispose() => _subscription.Dispose();
 
     protected override void OnHandle(BlockchainStateRequestMessage message, MessageEnvelope messageEnvelope)

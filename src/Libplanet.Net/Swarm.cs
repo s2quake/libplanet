@@ -5,7 +5,6 @@ using Libplanet.Net.Messages;
 using Libplanet.Net.Options;
 using Libplanet.Types;
 using Libplanet.Net.NetMQ;
-using Libplanet.Net.Tasks;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Components;
 
@@ -33,29 +32,29 @@ public sealed class Swarm : ServiceBase, IServiceProvider
         PeerExplorer = new PeerExplorer(Transport, _peers);
         BlockDemands = new BlockDemandCollection();
         BlockBranches = new BlockBranchCollection();
-        _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
+        // _consensusSerevice = consensusOption is not null ? new ConsensusService(signer, Blockchain, consensusOption) : null;
 
         _services =
         [
             // new BlockBroadcastTask(this),
-            new TxBroadcastTask(this),
-            new EvidenceBroadcastTask(this),
+            // new TxBroadcastTask(this),
+            // new EvidenceBroadcastTask(this),
             // new BlockBranchPollService(this),
             // new BlockDemandPollTask(this),
             // new ConsumeBlockCandidatesTask(this),
             // new RefreshTableTask(PeerExplorer, options.RefreshPeriod, options.RefreshLifespan),
-            new RebuildConnectionTask(this),
-            new MaintainStaticPeerTask(this),
+            // new RebuildConnectionTask(this),
+            // new RefreshStaticPeersService(this),
             // new TransactionFetcher(Blockchain, Transport, options.TimeoutOptions),
             // new EvidenceFetcher(Blockchain, Transport, options.TimeoutOptions),
         ];
         _handlerRegistration = Transport.MessageRouter.RegisterMany(
-            [
-            new BlockRequestMessageHandler(this, options),
-            new BlockHashRequestMessageHandler(this),
-            new TransactionRequestMessageHandler(this, options),
-            new BlockchainStateRequestMessageHandler(this),
-            new BlockSummaryMessageHandler(this),
+        [
+            // new BlockRequestMessageHandler(this, options),
+            // new BlockHashRequestMessageHandler(this),
+            // new TransactionRequestMessageHandler(this, options),
+            // new BlockchainStateRequestMessageHandler(this),
+            // new BlockSummaryMessageHandler(this),
         ]);
     }
 

@@ -4,6 +4,9 @@ using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Components.MessageHandlers;
 using Libplanet.Types;
 using static Libplanet.Net.AddressUtility;
+using System.Runtime.CompilerServices;
+using Libplanet.Net.Messages;
+using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Components;
 
@@ -202,6 +205,36 @@ public sealed class PeerExplorer : IDisposable
 
         await Task.WhenAll(taskList);
         return [.. peers.Zip(taskList).Where(item => item.Second.Result).Select(item => item.First)];
+    }
+
+    public async Task<ImmutableArray<BlockchainState>> GetBlockchainStateAsync(
+        CancellationToken cancellationToken)
+    {
+        var peers = Peers.ToArray();
+        var transport = _transport;
+        var taskList = new List<Task<BlockchainState>>(peers.Length);
+
+        foreach (var peer in peers)
+        {
+            taskList.Add(GetBlockchainStateAsync(peer));
+
+            async Task<BlockchainState> GetBlockchainStateAsync(Peer peer)
+            {
+                var response = await transport.GetBlockchainStateAsync(peer, cancellationToken);
+                return new(peer, response.Genesis, response.Tip);
+            }
+        }
+
+        try
+        {
+            await Task.WhenAll(taskList);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            // do nothing
+        }
+
+        return [.. taskList.Where(item => item.IsCompletedSuccessfully).Select(item => item.Result)];
     }
 
     public void Dispose()

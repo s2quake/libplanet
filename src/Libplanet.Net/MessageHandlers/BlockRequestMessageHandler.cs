@@ -13,11 +13,6 @@ internal sealed class BlockRequestMessageHandler(Blockchain blockchain, ITranspo
     private readonly ITransport _transport = transport;
     private readonly AccessLimiter _accessLimiter = new(maxAccessCount);
 
-    internal BlockRequestMessageHandler(Swarm swarm, SwarmOptions options)
-        : this(swarm.Blockchain, swarm.Transport, options.TaskRegulationOptions.MaxTransferBlocksTaskCount)
-    {
-    }
-
     public void Dispose() => _accessLimiter.Dispose();
 
     protected override void OnHandle(BlockRequestMessage message, MessageEnvelope messageEnvelope)

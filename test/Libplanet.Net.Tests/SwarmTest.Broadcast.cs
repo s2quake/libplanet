@@ -37,8 +37,8 @@ public partial class SwarmTest
         };
         var peerExplorerA = new PeerExplorer(transportA, peersA);
         var peerExplorerB = new PeerExplorer(transportB, peersB);
-        var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
-        var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
         var serviceA = new BlockSynchronizationResponderService(blockchainA, transportA);
         var serviceB = new BlockSynchronizationService(blockchainB, transportB);
         await using var services = new ServiceCollection
@@ -849,9 +849,9 @@ public partial class SwarmTest
         using var peerExplorerB = new PeerExplorer(transportB, peersB);
         using var peerExplorerC = new PeerExplorer(transportC, peersC);
 
-        var blockchainA = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
-        var blockchainB = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
-        var blockchainC = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainA = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainB = MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainC = MakeBlockchain(genesisBlock: fx.GenesisBlock);
 
         await using var transports = new ServiceCollection
         {

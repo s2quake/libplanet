@@ -8,7 +8,7 @@ public class BlockCandidateTableTest
     public void Add()
     {
         using var fx = new MemoryRepositoryFixture();
-        var blockchain = TestUtils.CreateBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(genesisBlock: fx.GenesisBlock);
         var blockBranches = new BlockBranchCollection();
         var genesis = fx.GenesisBlock;
 

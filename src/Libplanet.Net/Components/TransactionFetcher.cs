@@ -9,11 +9,6 @@ namespace Libplanet.Net.Components;
 public sealed class TransactionFetcher(Blockchain blockchain, ITransport transport)
     : FetcherBase<TxId, Transaction>
 {
-    internal TransactionFetcher(Swarm swarm, SwarmOptions options)
-        : this(swarm.Blockchain, swarm.Transport)
-    {
-    }
-
     protected override async IAsyncEnumerable<Transaction> FetchOverrideAsync(
         Peer peer, ImmutableArray<TxId> ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {

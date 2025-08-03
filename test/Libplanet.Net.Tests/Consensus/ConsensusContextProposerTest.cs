@@ -15,7 +15,7 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task IncreaseRoundWhenTimeout()
     {
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),

@@ -9,6 +9,7 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Random = System.Random;
 using Libplanet.Net.Tests.Consensus;
+using Libplanet.Net.NetMQ;
 
 namespace Libplanet.Net.Tests;
 
@@ -42,12 +43,6 @@ public static class TestUtils
             MaxTransactionsBytes = 50 * 1024,
         },
     };
-
-    // public static readonly Protocol Protocol = new ProtocolMetadata
-    // {
-    //     Version = 1,
-    //     Signer = PrivateKeys[0].Address,
-    // }.Sign(PrivateKeys[0]);
 
     private static readonly Random Random = new();
 
@@ -83,13 +78,13 @@ public static class TestUtils
         return privateKey;
     }
 
-    public static Blockchain CreateBlockchain(BlockchainOptions? options = null, Block? genesisBlock = null)
-    {
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(
-            options: options ?? BlockchainOptions,
-            genesisBlock: genesisBlock);
-        return blockchain;
-    }
+    // public static Blockchain CreateBlockchain(BlockchainOptions? options = null, Block? genesisBlock = null)
+    // {
+    //     var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(
+    //         options: options ?? BlockchainOptions,
+    //         genesisBlock: genesisBlock);
+    //     return blockchain;
+    // }
 
     public static ConsensusProposalMessage CreateConsensusPropose(
         Block block,
@@ -272,7 +267,7 @@ public static class TestUtils
         ImmutableSortedSet<Validator>? validators = null,
         ConsensusOptions? options = null)
     {
-        blockchain ??= CreateBlockchain();
+        blockchain ??= Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensus = new Net.Consensus.Consensus(
             blockchain,
             height,
@@ -300,7 +295,7 @@ public static class TestUtils
         TimeSpan? newHeightDelay = null,
         ConsensusOptions? consensusOption = null)
     {
-        blockchain ??= CreateBlockchain();
+        blockchain ??= Libplanet.Tests.TestUtils.MakeBlockchain();
         key ??= PrivateKeys[1];
 
         var signer = key.AsSigner();
@@ -309,14 +304,15 @@ public static class TestUtils
             Validators = validatorPeers ?? Peers,
             TargetBlockInterval = newHeightDelay ?? TimeSpan.FromMilliseconds(10_000),
             ConsensusOptions = consensusOption ?? new ConsensusOptions(),
-            TransportOptions = new TransportOptions
-            {
-                Host = host,
-                Port = port,
-            }
         };
+        var transportOptions = new TransportOptions
+        {
+            Host = host,
+            Port = port,
+        };
+        var transport = new NetMQTransport(signer, transportOptions);
 
-        return new ConsensusService(signer, blockchain, consensusServiceOptions);
+        return new ConsensusService(signer, blockchain, transport, consensusServiceOptions);
     }
 
     public static byte[] GetRandomBytes(int size)

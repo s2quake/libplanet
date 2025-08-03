@@ -35,7 +35,7 @@ public class DuplicateVoteEvidenceTest
     public async Task Evidence_WithDuplicateVotes_Test()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
@@ -133,7 +133,7 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreDifferentHeightVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
@@ -209,7 +209,7 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreDifferentRoundVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
@@ -285,7 +285,7 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreDifferentFlagVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
@@ -361,7 +361,7 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreSameBlockHashVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
@@ -437,7 +437,7 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreNillVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = TestUtils.CreateBlockchain();
+        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensusService = TestUtils.CreateConsensusService(
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),

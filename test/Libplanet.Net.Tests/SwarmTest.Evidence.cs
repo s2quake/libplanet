@@ -33,10 +33,10 @@ public partial class SwarmTest
             new ConsensusServiceOptions
             {
                 Validators = consensusPeers,
-                TransportOptions = new TransportOptions
-                {
-                    Port = 6000 + i,
-                },
+                // TransportOptions = new TransportOptions
+                // {
+                //     Port = 6000 + i,
+                // },
                 Workers = 100,
                 TargetBlockInterval = TimeSpan.FromSeconds(4),
                 ConsensusOptions = new ConsensusOptions(),

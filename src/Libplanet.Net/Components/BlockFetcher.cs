@@ -9,11 +9,6 @@ namespace Libplanet.Net.Components;
 public sealed class BlockFetcher(Blockchain blockchain, ITransport transport)
     : FetcherBase<BlockHash, (Block, BlockCommit)>
 {
-    public BlockFetcher(Swarm swarm)
-        : this(swarm.Blockchain, swarm.Transport)
-    {
-    }
-
     public async Task<ImmutableArray<(Block, BlockCommit)>> FetchAsync(
         Peer peer, BlockHash branchPoint, CancellationToken cancellationToken)
     {

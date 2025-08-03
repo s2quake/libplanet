@@ -189,11 +189,11 @@ internal sealed class SwarmService(
         return new ConsensusServiceOptions
         {
             Seeds = [consensusSeedPeer],
-            TransportOptions = new Net.Options.TransportOptions
-            {
-                Host = consensusEndPoint.Host,
-                Port = consensusEndPoint.Port,
-            },
+            // TransportOptions = new Net.Options.TransportOptions
+            // {
+            //     Host = consensusEndPoint.Host,
+            //     Port = consensusEndPoint.Port,
+            // },
             TargetBlockInterval = TimeSpan.FromSeconds(2),
             ConsensusOptions = new(),
         };

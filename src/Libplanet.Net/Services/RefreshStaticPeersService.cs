@@ -3,9 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Components;
 
-namespace Libplanet.Net.Tasks;
+namespace Libplanet.Net.Services;
 
-internal sealed class MaintainStaticPeerTask(
+internal sealed class RefreshStaticPeersService(
     PeerExplorer peerExplorer, ImmutableArray<Peer> staticPeers) : PeriodicTaskService
 {
     private readonly Subject<Peer> _peerAddedSubject = new();
@@ -13,11 +13,6 @@ internal sealed class MaintainStaticPeerTask(
     public IObservable<Peer> PeerAdded => _peerAddedSubject;
 
     public TimeSpan StaticPeersMaintainPeriod { get; } = TimeSpan.FromSeconds(10);
-
-    internal MaintainStaticPeerTask(Swarm swarm)
-        : this(swarm.PeerExplorer, [.. swarm.Options.StaticPeers])
-    {
-    }
 
     protected override bool CanExecute => staticPeers.Length > 0;
 

@@ -1,19 +1,19 @@
-using System.Threading;
-using System.Threading.Tasks;
-using Libplanet.Net.Components;
+// using System.Threading;
+// using System.Threading.Tasks;
+// using Libplanet.Net.Components;
 
-namespace Libplanet.Net.Tasks;
+// namespace Libplanet.Net.Tasks;
 
-internal sealed class RebuildConnectionTask(Swarm swarm) : PeriodicTaskService
-{
-    protected override TimeSpan GetInterval()
-    {
-        return TimeSpan.FromMinutes(30);
-    }
+// internal sealed class RebuildConnectionTask(Swarm swarm) : PeriodicTaskService
+// {
+//     protected override TimeSpan GetInterval()
+//     {
+//         return TimeSpan.FromMinutes(30);
+//     }
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-    {
-        var peerDiscovery = swarm.PeerExplorer;
-        await peerDiscovery.RebuildConnectionAsync(PeerExplorer.MaxDepth, cancellationToken);
-    }
-}
+//     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+//     {
+//         var peerDiscovery = swarm.PeerExplorer;
+//         await peerDiscovery.RebuildConnectionAsync(PeerExplorer.MaxDepth, cancellationToken);
+//     }
+// }
