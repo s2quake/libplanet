@@ -17,6 +17,8 @@ public sealed class BlockBranchResolver(Blockchain blockchain, BlockFetcher bloc
 
     public IObservable<(BlockDemand, BlockBranch)> BlockBranchCreated => _blockBranchCreatedSubject;
 
+    public IObservable<(BlockDemand, Exception)> BlockBranchCreationFailed => _blockBranchCreationFailedSubject;
+
     public BlockBranchCollection BlockBranches { get; init; } = [];
 
     public void Dispose()

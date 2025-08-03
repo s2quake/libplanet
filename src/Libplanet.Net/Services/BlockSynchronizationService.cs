@@ -8,6 +8,9 @@ namespace Libplanet.Net.Services;
 internal sealed class BlockSynchronizationService : ServiceBase
 {
     private readonly Subject<BlockBranch> _appendedSubject = new();
+    private readonly Subject<(BlockBranch, Exception)> _appendingFailedSubject = new();
+    private readonly Subject<(BlockDemand, BlockBranch)> _fetchedSubject = new();
+    private readonly Subject<(BlockDemand, Exception)> _fetchingFailedSubject = new();
     private readonly Blockchain _blockchain;
     private readonly ITransport _transport;
     private readonly BlockFetcher _blockFetcher;
@@ -26,11 +29,20 @@ internal sealed class BlockSynchronizationService : ServiceBase
         _subscriptions =
         [
             _blockBranchAppender.BlockBranchAppended.Subscribe(_appendedSubject.OnNext),
+            _blockBranchAppender.BlockBranchAppendFailed.Subscribe(_appendingFailedSubject.OnNext),
+            _blockBranchResolver.BlockBranchCreated.Subscribe(_fetchedSubject.OnNext),
+            _blockBranchResolver.BlockBranchCreationFailed.Subscribe(_fetchingFailedSubject.OnNext),
             BlockDemands.Added.Subscribe(BlockDemandsAdded),
         ];
     }
 
     public IObservable<BlockBranch> Appended => _appendedSubject;
+
+    public IObservable<(BlockBranch, Exception)> AppendingFailed => _appendingFailedSubject;
+
+    public IObservable<(BlockDemand, BlockBranch)> Fetched => _fetchedSubject;
+
+    public IObservable<(BlockDemand, Exception)> FetchingFailed => _fetchingFailedSubject;
 
     public BlockDemandCollection BlockDemands { get; } = new();
 
