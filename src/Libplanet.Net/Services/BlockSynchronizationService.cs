@@ -24,13 +24,13 @@ internal sealed class BlockSynchronizationService : ServiceBase
         _blockchain = blockchain;
         _transport = transport;
         _blockFetcher = new(blockchain, transport);
-        _blockBranchResolver = new(blockchain, _blockFetcher) { BlockBranches = BlockBranches };
+        _blockBranchResolver = new(blockchain, _blockFetcher);
         _blockBranchAppender = new(blockchain);
         _subscriptions =
         [
             _blockBranchAppender.BlockBranchAppended.Subscribe(_appendedSubject.OnNext),
             _blockBranchAppender.BlockBranchAppendFailed.Subscribe(_appendingFailedSubject.OnNext),
-            _blockBranchResolver.BlockBranchCreated.Subscribe(_fetchedSubject.OnNext),
+            _blockBranchResolver.BlockBranchCreated.Subscribe(BlockBranchCreated),
             _blockBranchResolver.BlockBranchCreationFailed.Subscribe(_fetchingFailedSubject.OnNext),
             BlockDemands.Added.Subscribe(BlockDemandsAdded),
         ];
@@ -85,5 +85,11 @@ internal sealed class BlockSynchronizationService : ServiceBase
         {
             _ = Task.Run(async () => await SynchronizeAsync(default));
         }
+    }
+
+    private void BlockBranchCreated((BlockDemand _, BlockBranch BlockBranch) e)
+    {
+        BlockBranches.Add(e.BlockBranch);
+        _fetchedSubject.OnNext(e);
     }
 }

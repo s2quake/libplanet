@@ -15,11 +15,11 @@ public sealed class BlockBranchResolver(Blockchain blockchain, BlockFetcher bloc
     private readonly ConcurrentDictionary<Peer, int> _processByPeer = new();
     private bool _disposed;
 
-    public IObservable<(BlockDemand, BlockBranch)> BlockBranchCreated => _blockBranchCreatedSubject;
+    public IObservable<(BlockDemand BlockDemand, BlockBranch BlockBranch)> BlockBranchCreated
+        => _blockBranchCreatedSubject;
 
-    public IObservable<(BlockDemand, Exception)> BlockBranchCreationFailed => _blockBranchCreationFailedSubject;
-
-    public BlockBranchCollection BlockBranches { get; init; } = [];
+    public IObservable<(BlockDemand BlockDemand, Exception Exception)> BlockBranchCreationFailed
+        => _blockBranchCreationFailedSubject;
 
     public void Dispose()
     {
@@ -65,7 +65,6 @@ public sealed class BlockBranchResolver(Blockchain blockchain, BlockFetcher bloc
                 Blocks = [.. blockPairs.Select(item => item.Item1)],
                 BlockCommits = [.. blockPairs.Select(item => item.Item2)],
             };
-            BlockBranches.Add(tip.Header, blockBranch);
             _blockBranchCreatedSubject.OnNext((blockDemand, blockBranch));
         }
         catch (Exception e)

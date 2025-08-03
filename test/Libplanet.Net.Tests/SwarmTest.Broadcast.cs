@@ -891,13 +891,16 @@ public partial class SwarmTest
         await peerExplorerC.ExploreAsync([transportA.Peer], 3, default);
 
         var blockDemandCollector = new BlockDemandCollector(blockchainC, transportC);
+        var blockBranches = new BlockBranchCollection();
         using var blockFetcher = new BlockFetcher(blockchainC, transportC);
         using var blockBranchResolver = new BlockBranchResolver(blockchainC, blockFetcher);
+        using var _1 = blockBranchResolver.BlockBranchCreated
+            .Subscribe(e => blockBranches.Add(e.BlockBranch));
         var blockBranchAppender = new BlockBranchAppender(blockchainC);
 
         await blockDemandCollector.ExecuteAsync([.. peerExplorerC.Peers], default);
         await blockBranchResolver.ResolveAsync(blockDemandCollector.BlockDemands, blockchainC.Tip, default);
-        await blockBranchAppender.AppendAsync(blockBranchResolver.BlockBranches, default);
+        await blockBranchAppender.AppendAsync(blockBranches, default);
 
         Assert.Equal(blockchainC.Tip, tipA);
     }

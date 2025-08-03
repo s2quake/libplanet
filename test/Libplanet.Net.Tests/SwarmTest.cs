@@ -550,9 +550,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var key2 = new PrivateKey();
         var transportA = TestUtils.CreateTransport(key1);
         var transportB = TestUtils.CreateTransport(key2);
-        var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
-        var peerExplorerA = new PeerExplorer(transportA, peersA);
         var peerExplorerB = new PeerExplorer(transportB, peersB);
         var blockchainA = MakeBlockchain();
         var blockchainB = MakeBlockchain();
@@ -560,8 +558,6 @@ public partial class SwarmTest(ITestOutputHelper output)
         var syncResponderServiceB = new BlockSynchronizationResponderService(
             blockchainB, transportB);
 
-        // await using var swarm1 = await CreateSwarm(blockchain1, key1);
-        // await using var swarm2 = await CreateSwarm(blockchain2, key2);
         await using var transports = new ServiceCollection
         {
             transportA,
@@ -581,18 +577,12 @@ public partial class SwarmTest(ITestOutputHelper output)
         {
             Actions = [DumbAction.Create((addr, item))],
         });
-        // var block1 = blockchain1.ProposeBlock(key1);
-        // blockchain1.Append(block1, TestUtils.CreateBlockCommit(block1));
         var (tipA, _) = blockchainA.ProposeAndAppend(key1);
-        // var tipHash1 = blockchainA.Tip.BlockHash;
 
         blockchainB.StagedTransactions.Add(privateKey, submission: new()
         {
             Actions = [DumbAction.Create((addr, item))],
         });
-
-        // var block2 = blockchain2.ProposeBlock(key2);
-        // blockchain2.Append(block2, TestUtils.CreateBlockCommit(block2));
         blockchainB.ProposeAndAppend(key2);
 
         blockchainB.StagedTransactions.Add(privateKey, submission: new()
@@ -603,18 +593,11 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await transports.StartAsync(default);
         await services.StartAsync(default);
-        // await swarm1.StartAsync(default);
-        // await swarm2.StartAsync(default);
 
         peersB.Add(transportA.Peer);
         peerExplorerB.BroadcastBlock(blockchainB, tipB);
 
-        // await swarm2.AddPeersAsync([swarm1.Peer], default);
-
-        // swarm2.BroadcastBlock(latest);
         await syncServiceA.FetchingFailed.WaitAsync().WaitAsync(TimeSpan.FromSeconds(10));
-
-        await Task.Delay(500_000);
         Assert.Equal(tipA, blockchainA.Tip);
     }
 

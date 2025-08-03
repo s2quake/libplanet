@@ -44,6 +44,17 @@ public sealed class BlockDemandCollection
         }
     }
 
+    public void Add(BlockDemand demand)
+    {
+        using var _ = _lock.WriteScope();
+        if (!_demandByPeer.TryAdd(demand.Peer, demand))
+        {
+            throw new ArgumentException("A block demand with the same peer already exists.", nameof(demand));
+        }
+
+        _addedSubject.OnNext(demand);
+    }
+
     public void AddOrUpdate(BlockDemand demand)
     {
         using var _ = _lock.WriteScope();

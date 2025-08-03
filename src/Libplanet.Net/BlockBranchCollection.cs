@@ -40,12 +40,12 @@ public sealed class BlockBranchCollection : IEnumerable<BlockBranch>
         }
     }
 
-    public void Add(BlockHeader blockHeader, BlockBranch blockBranch)
+    public void Add(BlockBranch blockBranch)
     {
         using var _ = _lock.WriteScope();
-        if (!_branchByHeader.TryAdd(blockHeader, blockBranch))
+        if (!_branchByHeader.TryAdd(blockBranch.BlockHeader, blockBranch))
         {
-            throw new ArgumentException("A block branch with the same header already exists.", nameof(blockHeader));
+            throw new ArgumentException("A block branch with the same header already exists.", nameof(blockBranch));
         }
 
         _addedSubject.OnNext(blockBranch);
