@@ -693,12 +693,10 @@ public partial class SwarmTest(ITestOutputHelper output)
         var transportB = TestUtils.CreateTransport(privateKeyB);
         var transportC = TestUtils.CreateTransport(privateKeyC);
         var peersA = new PeerCollection(transportA.Peer.Address);
-        var peersB = new PeerCollection(transportB.Peer.Address);
-        var peersC = new PeerCollection(transportC.Peer.Address);
         var peerExplorerA = new PeerExplorer(transportA, peersA);
         var syncResponderServiceA = new BlockSynchronizationResponderService(blockchainA, transportA);
         var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
-        // var syncServiceC = new BlockSynchronizationService(blockchainC, transportC);
+        var syncServiceC = new BlockSynchronizationService(blockchainC, transportC);
 
         await using var services = new ServiceCollection
         {
@@ -707,33 +705,15 @@ public partial class SwarmTest(ITestOutputHelper output)
             transportC,
             syncResponderServiceA,
             syncServiceB,
-            // syncServiceC,
+            syncServiceC,
         };
-
-        // var swarmA =
-        //     await CreateSwarm(blockchainA, privateKeyA);
-        // var swarmB =
-        //     await CreateSwarm(blockchainB, privateKeyB);
-        // var swarmC =
-        //     await CreateSwarm(blockchainC, privateKeyC);
 
         await services.StartAsync(default);
 
-        peersB.Add(transportA.Peer);
-        peersC.Add(transportA.Peer);
-
-        // await swarmB.AddPeersAsync([swarmA.Peer], default);
-        // await swarmC.AddPeersAsync([swarmA.Peer], default);
+        peersA.Add(transportB.Peer);
+        peersA.Add(transportC.Peer);
 
         var (block, _) = blockchainA.ProposeAndAppend(privateKeyA);
-        // var block = swarmA.Blockchain.ProposeBlock(privateKeyA);
-        // swarmA.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
-
-        // Task.WaitAll(
-        // [
-        //     // swarmC.BlockAppended.WaitAsync(default),
-        //         Task.Run(() => swarmA.BroadcastBlock(block)),
-        //     ]);
 
         peerExplorerA.BroadcastBlock(blockchainA, block, new BroadcastOptions
         {
@@ -741,8 +721,9 @@ public partial class SwarmTest(ITestOutputHelper output)
         });
 
         await Task.WhenAll(
-            syncServiceB.FetchingFailed.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
-            // syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
+            transportB.MessageRouter.ErrorOccurred.WaitAsync(
+                predicate: e => e.MessageHandler is BlockSummaryMessageHandler).WaitAsync(TimeSpan.FromSeconds(5)),
+            syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
 
         Assert.NotEqual(blockchainA.Genesis, blockchainB.Genesis);
         Assert.Equal(blockchainA.Blocks.Keys, blockchainC.Blocks.Keys);
@@ -773,32 +754,43 @@ public partial class SwarmTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task FindSpecificPeerAsync()
     {
-        await using var swarmA = await CreateSwarm();
-        await using var swarmB = await CreateSwarm();
-        await using var swarmC = await CreateSwarm();
-        await using var swarmD = await CreateSwarm();
-        var peerServiceA = swarmA.PeerExplorer;
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var transportC = TestUtils.CreateTransport();
+        var transportD = TestUtils.CreateTransport();
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        var peersC = new PeerCollection(transportC.Peer.Address);
+        var peersD = new PeerCollection(transportD.Peer.Address);
+        using var peerExplorerA = new PeerExplorer(transportA, peersA);
+        using var peerExplorerB = new PeerExplorer(transportB, peersB);
+        using var peerExplorerC = new PeerExplorer(transportC, peersC);
+        using var peerExplorerD = new PeerExplorer(transportD, peersD);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmC.StartAsync(default);
-        await swarmD.StartAsync(default);
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            transportC,
+            transportD,
+        };
 
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
-        await swarmB.AddPeersAsync([swarmC.Peer], default);
-        await swarmC.AddPeersAsync([swarmD.Peer], default);
+        await transports.StartAsync(default);
 
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
+        await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
+        await peerExplorerC.PingAsync(peerExplorerD.Peer, default);
 
-        var foundPeer1 = await peerServiceA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
+        var foundPeer1 = await peerExplorerA.FindPeerAsync(transportB.Peer.Address, int.MaxValue, default);
 
-        Assert.Equal(swarmB.Peer.Address, foundPeer1.Address);
-        Assert.DoesNotContain(swarmC.Peer, swarmA.Peers);
+        Assert.Equal(transportB.Peer.Address, foundPeer1.Address);
+        Assert.DoesNotContain(transportC.Peer, peersA);
 
-        var foundPeer2 = await peerServiceA.FindPeerAsync(swarmD.Peer.Address, int.MaxValue, default);
+        var foundPeer2 = await peerExplorerA.FindPeerAsync(transportD.Peer.Address, int.MaxValue, default);
 
-        Assert.Equal(swarmD.Peer.Address, foundPeer2.Address);
-        Assert.Contains(swarmC.Peer, swarmA.Peers);
-        Assert.Contains(swarmD.Peer, swarmA.Peers);
+        Assert.Equal(transportD.Peer.Address, foundPeer2.Address);
+        Assert.Contains(transportC.Peer, peersA);
+        Assert.Contains(transportD.Peer, peersA);
     }
 
     [Fact(Timeout = Timeout)]

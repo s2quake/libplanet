@@ -4,9 +4,6 @@ using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Components.MessageHandlers;
 using Libplanet.Types;
 using static Libplanet.Net.AddressUtility;
-using System.Runtime.CompilerServices;
-using Libplanet.Net.Messages;
-using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Components;
 
@@ -143,7 +140,12 @@ public sealed class PeerExplorer : IDisposable
                 continue;
             }
 
-            var neighbors = await _transport.GetNeighborsAsync(peer, address, cancellationToken);
+            var neighbors = await GetNeighborsOrDefaultAsync(peer, address, cancellationToken);
+            if (neighbors == default)
+            {
+                continue;
+            }
+
             var count = 0;
             foreach (var neighbor in neighbors)
             {
@@ -151,6 +153,8 @@ public sealed class PeerExplorer : IDisposable
                 {
                     continue;
                 }
+
+                await PingAsync(neighbor, cancellationToken);
 
                 if (neighbor.Address == address)
                 {
