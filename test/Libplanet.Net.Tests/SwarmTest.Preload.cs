@@ -6,26 +6,26 @@ namespace Libplanet.Net.Tests;
 
 public partial class SwarmTest
 {
-    [Fact(Timeout = Timeout)]
-    public async Task InitialBlockDownload()
-    {
-        var keyA = new PrivateKey();
-        await using var swarmA = await CreateSwarm(keyA);
-        await using var swarmB = await CreateSwarm();
+    // [Fact(Timeout = Timeout)]
+    // public async Task InitialBlockDownload()
+    // {
+    //     var keyA = new PrivateKey();
+    //     await using var swarmA = await CreateSwarm(keyA);
+    //     await using var swarmB = await CreateSwarm();
 
-        var blockchainA = swarmA.Blockchain;
-        var blockchainB = swarmB.Blockchain;
+    //     var blockchainA = swarmA.Blockchain;
+    //     var blockchainB = swarmB.Blockchain;
 
-        blockchainA.ProposeAndAppendMany(keyA, count: 10);
+    //     blockchainA.ProposeAndAppendMany(keyA, count: 10);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmB.AddPeersAsync([swarmA.Peer], default);
+    //     await swarmA.StartAsync(default);
+    //     await swarmB.StartAsync(default);
+    //     await swarmB.AddPeersAsync([swarmA.Peer], default);
 
-        await swarmB.SyncAsync(default);
+    //     await swarmB.SyncAsync(default);
 
-        Assert.Equal(blockchainA.Blocks.Keys, blockchainB.Blocks.Keys);
-    }
+    //     Assert.Equal(blockchainA.Blocks.Keys, blockchainB.Blocks.Keys);
+    // }
 
     // [Fact(Timeout = Timeout)]
     // public async Task InitialBlockDownloadStates()

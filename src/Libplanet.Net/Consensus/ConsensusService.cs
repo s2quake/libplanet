@@ -411,13 +411,11 @@ public sealed class ConsensusService : ServiceBase
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         _dispatcher = new Dispatcher();
-        // await _gossip.StartAsync(cancellationToken);
         await _consensus.StartAsync(default);
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        // await _gossip.StopAsync(cancellationToken);
         if (_dispatcher is not null)
         {
             await _dispatcher.DisposeAsync();

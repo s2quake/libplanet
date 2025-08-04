@@ -1,15 +1,11 @@
-using System.Net;
-using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.TestUtilities.Extensions;
-using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Nito.AsyncEx;
-using Libplanet.Net.Options;
-using Libplanet.TestUtilities;
+using Libplanet.Extensions;
+using System.Reactive.Linq;
 
 namespace Libplanet.Net.Tests;
 
@@ -18,70 +14,52 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task DuplicateVote_Test()
     {
-        var policy = new BlockchainOptions();
-        var genesisBlock = new MemoryRepositoryFixture(policy).GenesisBlock;
-        var genesisProposer = Libplanet.Tests.TestUtils.GenesisProposer;
         var privateKeys = Libplanet.Tests.TestUtils.ValidatorPrivateKeys.ToArray();
         var count = privateKeys.Length;
-        var consensusPeers = Enumerable.Range(0, count).Select(i =>
-            new Peer
-            {
-                Address = privateKeys[i].Address,
-                EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i)
-            }).ToImmutableHashSet();
-        var reactorOptions = Enumerable.Range(0, count).Select(i =>
+        var transports = privateKeys.Select(item => TestUtils.CreateTransport(item)).ToArray();
+        var blockchains = transports.Select(item => Libplanet.Tests.TestUtils.MakeBlockchain()).ToArray();
+
+        var consensusPeers = transports.Select(item => item.Peer);
+        var consensusServiceOptions = Enumerable.Range(0, count).Select(i =>
             new ConsensusServiceOptions
             {
-                Validators = consensusPeers,
-                // TransportOptions = new TransportOptions
-                // {
-                //     Port = 6000 + i,
-                // },
+                Validators = [.. consensusPeers],
                 Workers = 100,
                 TargetBlockInterval = TimeSpan.FromSeconds(4),
                 ConsensusOptions = new ConsensusOptions(),
             }).ToList();
+        var consensusServices = consensusServiceOptions.Select((options, i) =>
+        {
+            return new ConsensusService(privateKeys[i].AsSigner(), blockchains[i], transports[i], options);
+        }).ToArray();
 
-        var swarmTasks = privateKeys.Select(
-            (item, index) => CreateSwarm(
-                privateKey: item,
-                blockchainOptions: policy,
-                genesis: genesisBlock,
-                consensusServiceOption: reactorOptions[index]));
-        var swarms = await Task.WhenAll(swarmTasks);
-        var blockChains = swarms.Select(item => item.Blockchain).ToArray();
-        await using var _ = new AsyncDisposerCollection(swarms);
+        await using var services = new ServiceCollection();
+        services.AddRange(consensusServices);
+        services.AddRange(transports);
 
-        var startTasks = swarms.Select(item => item.StartAsync(default));
-        await Task.WhenAll(startTasks);
-        var addPeerTasks = swarms.Select(
-            (swarm, index) => swarm.AddPeersAsync(
-                swarms.Where((_, i) => i != index).Select(item => item.Peer).ToImmutableArray(), default));
-        await Task.WhenAll(addPeerTasks);
+        await services.StartAsync(default);
 
-        var consensusContext = swarms[0].ConsensusService;
+        var consensusService = consensusServices[0];
         var round = 0;
         var height = 1;
-        var context = consensusContext.Consensus;
-        var bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
-        var methodName = "PublishMessage";
-        var methodInfo = context.GetType().GetMethod(methodName, bindingFlags);
-
-        Assert.NotNull(methodInfo);
+        var consensus = consensusService.Consensus;
 
         var vote = MakeRandomVote(privateKeys[0], height, round, VoteType.PreVote);
-        var args = new object[] { new ConsensusPreVoteMessage { PreVote = vote } };
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(100);
+            consensus.Post(new ConsensusPreVoteMessage { PreVote = vote });
+        });
 
-        await WaitUntilStepAsync(consensusContext, ConsensusStep.PreVote, default);
-        methodInfo.Invoke(context, args);
+        await consensusService.StepChanged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         var i = 2;
         for (; i < 10; i++)
         {
-            var waitTasks1 = blockChains.Select(item => WaitUntilBlockIndexAsync(item, i));
+            var waitTasks1 = blockchains.Select(item => item.TipChanged.WaitAsync(e => e.Tip.Height == i));
             await Task.WhenAll(waitTasks1);
-            Array.ForEach(blockChains, item => Assert.Equal(i + 1, item.Blocks.Count));
-            if (blockChains.Any(item => item.Blocks[i].Evidences.Count > 0))
+            Array.ForEach(blockchains, item => Assert.Equal(i + 1, item.Blocks.Count));
+            if (blockchains.Any(item => item.Blocks[i].Evidences.Count > 0))
             {
                 break;
             }
@@ -89,9 +67,9 @@ public partial class SwarmTest
 
         Assert.NotEqual(10, i);
 
-        var waitTasks2 = blockChains.Select(item => WaitUntilBlockIndexAsync(item, i));
+        var waitTasks2 = blockchains.Select(item => item.TipChanged.WaitAsync(e => e.Tip.Height == i));
         await Task.WhenAll(waitTasks2);
-        foreach (Blockchain blockChain in blockChains)
+        foreach (Blockchain blockChain in blockchains)
         {
             Assert.Equal(i + 1, blockChain.Blocks.Count);
         }
@@ -129,66 +107,5 @@ public partial class SwarmTest
 
             return bytes;
         }
-    }
-
-    private static async Task WaitUntilBlockIndexAsync(
-        Blockchain blockChain,
-        long index)
-    {
-        if (blockChain.Tip.Height < index)
-        {
-            var manualResetEvent = new ManualResetEvent(false);
-            var cancellationTokenSource = new CancellationTokenSource(Timeout);
-            var subscription = blockChain.TipChanged.Subscribe(BlockChain_TipChanged);
-            try
-            {
-                await Task.Run(WaitAction, cancellationTokenSource.Token);
-            }
-            finally
-            {
-                subscription.Dispose();
-            }
-
-            void WaitAction()
-            {
-                manualResetEvent.WaitOne(Timeout);
-            }
-
-            void BlockChain_TipChanged(TipChangedInfo e)
-            {
-                if (e.Tip.Height >= index)
-                {
-                    manualResetEvent.Set();
-                }
-            }
-        }
-    }
-
-    private static async Task WaitUntilStepAsync(
-        ConsensusService consensusContext,
-        ConsensusStep consensusStep,
-        CancellationToken cancellationToken)
-    {
-        var asyncAutoResetEvent = new AsyncAutoResetEvent();
-        // consensusContext.StateChanged += ConsensusContext_StateChanged;
-        // try
-        // {
-        //     if (consensusContext.Step != consensusStep)
-        //     {
-        //         await asyncAutoResetEvent.WaitAsync(cancellationToken);
-        //     }
-        // }
-        // finally
-        // {
-        //     consensusContext.StateChanged -= ConsensusContext_StateChanged;
-        // }
-
-        // void ConsensusContext_StateChanged(object? sender, ConsensusState e)
-        // {
-        //     if (e.Step == consensusStep)
-        //     {
-        //         asyncAutoResetEvent.Set();
-        //     }
-        // }
     }
 }

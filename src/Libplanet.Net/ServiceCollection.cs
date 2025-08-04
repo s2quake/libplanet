@@ -33,6 +33,19 @@ public sealed class ServiceCollection(IEnumerable<IService> services)
         serviceList.Add(service);
     }
 
+    public void AddRange(IEnumerable<IService> services)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+
+        if (State != ServiceState.None)
+        {
+            throw new InvalidOperationException(
+                "Cannot add services after the collection has started or stopped.");
+        }
+
+        serviceList.AddRange(services);
+    }
+
     public IEnumerator<IService> GetEnumerator()
     {
         foreach (var service in serviceList)

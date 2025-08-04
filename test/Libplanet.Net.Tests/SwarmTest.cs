@@ -233,47 +233,55 @@ public partial class SwarmTest(ITestOutputHelper output)
         var policy = new BlockchainOptions();
         var genesis = new MemoryRepositoryFixture(policy).GenesisBlock;
 
-        var consensusPeers = Enumerable.Range(0, 4).Select(i =>
-            new Peer
-            {
-                Address = TestUtils.PrivateKeys[i].Address,
-                EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i),
-            }).ToImmutableHashSet();
-        var reactorOpts = Enumerable.Range(0, 4).Select(i =>
+        var transports = TestUtils.PrivateKeys.Select(key => TestUtils.CreateTransport(key)).ToArray();
+        var consensusPeers = transports.Select(item => item.Peer).ToArray();
+        var consensusServiceOptions = TestUtils.PrivateKeys.Select(i =>
             new ConsensusServiceOptions
             {
-                Validators = consensusPeers,
-                // TransportOptions = new TransportOptions
-                // {
-                //     Port = 6000 + i,
-                // },
+                Validators = [..consensusPeers],
                 Workers = 100,
                 TargetBlockInterval = TimeSpan.FromSeconds(10),
                 ConsensusOptions = new ConsensusOptions(),
-            }).ToList();
-        var swarms = new List<Swarm>();
-        for (int i = 0; i < 4; i++)
+            }).ToArray();
+        var blockchains = transports.Select(item => Libplanet.Tests.TestUtils.MakeBlockchain()).ToArray();
+        var consensusServices = consensusServiceOptions.Select((options, i) =>
         {
-            swarms.Add(await CreateSwarm(
-                privateKey: TestUtils.PrivateKeys[i],
-                options: new SwarmOptions
-                {
-                    TransportOptions = new TransportOptions
-                    {
-                        Host = "127.0.0.1",
-                        Port = 9000 + i,
-                    },
-                },
-                blockchainOptions: policy,
-                genesis: genesis,
-                consensusServiceOption: reactorOpts[i]));
-        }
-        await using var _1 = new AsyncDisposerCollection(swarms);
+            return new ConsensusService(TestUtils.PrivateKeys[i].AsSigner(), blockchains[i], transports[i], options);
+        }).ToArray();
+        
+        await using var _1 = new ServiceCollection(transports);
+        await using var _2 = new ServiceCollection(consensusServices);
+
+        await _1.StartAsync(default);
+
+        // await using var services = new ServiceCollection();
+        // services.AddRange(consensusServices);
+        // services.AddRange(transports);
+
+
+        // var swarms = new List<Swarm>();
+        // for (int i = 0; i < 4; i++)
+        // {
+        //     swarms.Add(await CreateSwarm(
+        //         privateKey: TestUtils.PrivateKeys[i],
+        //         options: new SwarmOptions
+        //         {
+        //             TransportOptions = new TransportOptions
+        //             {
+        //                 Host = "127.0.0.1",
+        //                 Port = 9000 + i,
+        //             },
+        //         },
+        //         blockchainOptions: policy,
+        //         genesis: genesis,
+        //         consensusServiceOption: consensusServiceOptions[i]));
+        // }
+        // await using var _1 = new AsyncDisposerCollection(swarms);
 
         // swarms[1] is the round 0 proposer for height 1.
         // swarms[2] is the round 1 proposer for height 2.
-        _ = swarms[0].StartAsync(default);
-        _ = swarms[3].StartAsync(default);
+        await consensusServices[0].StartAsync(default);
+        await consensusServices[3].StartAsync(default);
 
         // swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
         // {
@@ -287,10 +295,10 @@ public partial class SwarmTest(ITestOutputHelper output)
         await collectedTwoMessages[0].WaitAsync();
 
         // Dispose swarm[3] to simulate shutdown during bootstrap.
-        await swarms[3].DisposeAsync();
+        await consensusServices[3].DisposeAsync();
 
         // Bring swarm[2] online.
-        _ = swarms[2].StartAsync(default);
+        await consensusServices[2].StartAsync(default);
         // swarms[0].ConsensusReactor.StateChanged += (_, eventArgs) =>
         // {
         //     if (eventArgs.Step == ConsensusStep.PreCommit)
@@ -317,7 +325,7 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         // After swarm[1] comes online, eventually it'll catch up to vote PreCommit,
         // at which point the round will move to 1 where swarm[2] is the proposer.
-        _ = swarms[1].StartAsync(default);
+        await consensusServices[1].StartAsync(default);
         // swarms[2].ConsensusReactor.MessagePublished += (_, eventArgs) =>
         // {
         //     if (eventArgs.Message is ConsensusProposalMessage proposalMsg &&
@@ -330,8 +338,8 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await roundOneProposed.WaitAsync();
 
-        await AssertThatEventually(() => swarms[0].Blockchain.Tip.Height == 1, int.MaxValue);
-        Assert.Equal(1, swarms[0].Blockchain.BlockCommits[1].Round);
+        await AssertThatEventually(() => blockchains[0].Tip.Height == 1, int.MaxValue);
+        Assert.Equal(1, blockchains[0].BlockCommits[1].Round);
     }
 
     [Fact(Timeout = Timeout)]
