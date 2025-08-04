@@ -951,54 +951,53 @@ public partial class SwarmTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task FillWhenGetAllBlocksFromSender()
     {
-        Swarm receiver = await CreateSwarm();
-        Swarm sender = await CreateSwarm();
-        await receiver.StartAsync(default);
-        await sender.StartAsync(default);
-
-        receiver.FindNextHashesChunkSize = 3;
-        sender.FindNextHashesChunkSize = 3;
-        Blockchain chain = sender.Blockchain;
-
-        for (int i = 0; i < 6; i++)
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        using var peerExplorerA = new PeerExplorer(transportA, peersA);
+        using var peerExplorerB = new PeerExplorer(transportB, peersB);
+        var blockchainA = MakeBlockchain();
+        var blockchainB = MakeBlockchain();
+        var syncServiceA = new BlockSynchronizationService(blockchainA, transportA);
+        var syncResponderServiceB = new BlockSynchronizationResponderService(blockchainB, transportB)
         {
-            Block block = chain.ProposeBlock(GenesisProposer);
-            chain.Append(block, TestUtils.CreateBlockCommit(block));
-        }
+            MaxHashesPerResponse = 3,
+        };
 
-        Log.Debug("Sender's BlockChain Tip index: #{index}", sender.Blockchain.Tip.Height);
+        await using var services = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            syncServiceA,
+            syncResponderServiceB,
+        };
 
-        await sender.AddPeersAsync([receiver.Peer], default);
+        await services.StartAsync(default);
 
-        sender.BroadcastBlock(sender.Blockchain.Tip);
+        blockchainB.ProposeAndAppendMany(GenesisProposer, 6);
+        await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
 
-        // await receiver.BlockReceived.WaitAsync(default);
-        // await receiver.BlockAppended.WaitAsync(default);
-        Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
-        sender.BroadcastBlock(sender.Blockchain.Tip);
-        Assert.Equal(
-            3,
-            receiver.Blockchain.Blocks.Count);
+        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(3, blockchainA.Blocks.Count);
 
-        sender.BroadcastBlock(sender.Blockchain.Tip);
+        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(5, blockchainA.Blocks.Count);
 
-        // await receiver.BlockReceived.WaitAsync(default);
-        // await receiver.BlockAppended.WaitAsync(default);
-        Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
-        sender.BroadcastBlock(sender.Blockchain.Tip);
-        Assert.Equal(
-            5,
-            receiver.Blockchain.Blocks.Count);
-
-        sender.BroadcastBlock(sender.Blockchain.Tip);
-
-        // await receiver.BlockReceived.WaitAsync(default);
-        // await receiver.BlockAppended.WaitAsync(default);
-        Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
-        sender.BroadcastBlock(sender.Blockchain.Tip);
-        Assert.Equal(
-            7,
-            receiver.Blockchain.Blocks.Count);
+        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(7, blockchainA.Blocks.Count);
     }
 
     [RetryFact(10, Timeout = Timeout)]
