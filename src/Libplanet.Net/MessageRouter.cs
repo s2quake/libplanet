@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Diagnostics;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Threading;
 
@@ -94,7 +95,7 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
         return _handlersByType.ContainsKey(messageType);
     }
 
-    public void Handle(MessageEnvelope messageEnvelope)
+    public async ValueTask HandleAsync(MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         if (messageEnvelope.ProtocolHash != protocolHash)
         {
@@ -111,7 +112,7 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
             {
                 foreach (var handler in handlers1)
                 {
-                    HandleInternal(handler, messageEnvelope);
+                    await HandleInternal(handler, messageEnvelope, cancellationToken);
                 }
             }
 
@@ -122,7 +123,7 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
         {
             foreach (var handler in handlers2)
             {
-                HandleInternal(handler, messageEnvelope);
+                await HandleInternal(handler, messageEnvelope, cancellationToken);
             }
         }
     }
@@ -168,11 +169,12 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
         }
     }
 
-    private void HandleInternal(IMessageHandler handler, MessageEnvelope messageEnvelope)
+    private async ValueTask HandleInternal(
+        IMessageHandler handler, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         try
         {
-            handler.Handle(messageEnvelope);
+            await handler.HandleAsync(messageEnvelope, cancellationToken);
         }
         catch (Exception e)
         {

@@ -13,12 +13,7 @@ internal sealed class BlockRequestMessageHandler(
 
     public void Dispose() => _accessLimiter.Dispose();
 
-    protected override void OnHandle(BlockRequestMessage message, MessageEnvelope messageEnvelope)
-    {
-        _ = Task.Run(async () => await OnHandleAsync(message, messageEnvelope, default));
-    }
-
-    private async ValueTask OnHandleAsync(
+    protected override async ValueTask OnHandleAsync(
         BlockRequestMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         using var scope = await _accessLimiter.CanAccessAsync(cancellationToken);

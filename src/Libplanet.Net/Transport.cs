@@ -149,7 +149,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
         {
             await foreach (var messageEnvelope in reader.ReadAllAsync(cancellationToken))
             {
-                messageRouter.Handle(messageEnvelope);
+                await messageRouter.HandleAsync(messageEnvelope, cancellationToken);
                 Trace.WriteLine($"Handled <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
             }
         }

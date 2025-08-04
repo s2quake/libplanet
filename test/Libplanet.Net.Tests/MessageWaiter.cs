@@ -22,6 +22,10 @@ public sealed class MessageWaiter : MessageHandlerBase<IMessage>, IDisposable
         }
     }
 
-    protected override void OnHandle(IMessage message, MessageEnvelope messageEnvelope)
-        => _receivedSubject.OnNext(message);
+    protected override ValueTask OnHandleAsync(
+        IMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+    {
+        _receivedSubject.OnNext(message);
+        return ValueTask.CompletedTask;
+    }
 }

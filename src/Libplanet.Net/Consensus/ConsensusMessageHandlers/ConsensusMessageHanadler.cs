@@ -6,8 +6,9 @@ namespace Libplanet.Net.Consensus.ConsensusMessageHandlers;
 internal sealed class ConsensusMessageHandler(ConsensusService consensusService)
     : MessageHandlerBase<ConsensusMessage>
 {
-    protected override void OnHandle(ConsensusMessage message, MessageEnvelope messageEnvelope)
+    protected override async ValueTask OnHandleAsync(
+        ConsensusMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
-        consensusService.HandleMessage(message);
+        await consensusService.HandleMessageAsync(message, cancellationToken);
     }
 }

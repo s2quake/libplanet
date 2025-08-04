@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.TestUtilities;
@@ -32,8 +33,10 @@ public class ConsensusContextTest
     {
         ConsensusProposalMessage? proposal = null;
         var proposalMessageSent = new AsyncAutoResetEvent();
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[3]);
@@ -143,9 +146,11 @@ public class ConsensusContextTest
     }
 
     [Fact(Timeout = Timeout)]
-    public void Ctor()
+    public async Task Ctor()
     {
-        var consensusService = TestUtils.CreateConsensusService(
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[1]);
 
@@ -157,7 +162,9 @@ public class ConsensusContextTest
     [Fact]
     public async Task CannotStartTwice()
     {
-        var consensusService = TestUtils.CreateConsensusService(
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[1]);
         await consensusService.StartAsync(default);
@@ -169,8 +176,10 @@ public class ConsensusContextTest
     public async Task NewHeightWhenTipChanged()
     {
         var newHeightDelay = TimeSpan.FromSeconds(1);
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: newHeightDelay,
             key: TestUtils.PrivateKeys[1]);
@@ -187,8 +196,10 @@ public class ConsensusContextTest
     [Fact(Timeout = Timeout)]
     public async Task IgnoreMessagesFromLowerHeight()
     {
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[1]);
@@ -207,8 +218,10 @@ public class ConsensusContextTest
         var heightOneEndCommit = new AsyncAutoResetEvent();
         var votes = new List<Vote>();
 
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[1]);
@@ -275,8 +288,10 @@ public class ConsensusContextTest
         BigInteger proposerPower = TestUtils.Validators[1].Power;
         AsyncAutoResetEvent stepChanged = new AsyncAutoResetEvent();
         AsyncAutoResetEvent committed = new AsyncAutoResetEvent();
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[0]);
@@ -360,8 +375,10 @@ public class ConsensusContextTest
         BigInteger proposerPower = TestUtils.Validators[1].Power;
         ConsensusStep step = ConsensusStep.Default;
         var stepChanged = new AsyncAutoResetEvent();
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[0]);
@@ -440,8 +457,10 @@ public class ConsensusContextTest
         PrivateKey proposer = TestUtils.PrivateKeys[1];
         ConsensusStep step = ConsensusStep.Default;
         var stepChanged = new AsyncAutoResetEvent();
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[0]);

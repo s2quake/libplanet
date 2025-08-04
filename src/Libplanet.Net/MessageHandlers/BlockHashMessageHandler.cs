@@ -5,7 +5,9 @@ namespace Libplanet.Net.MessageHandlers;
 internal sealed class BlockHashMessageHandler
     : MessageHandlerBase<BlockHashResponseMessage>
 {
-    protected override void OnHandle(BlockHashResponseMessage message, MessageEnvelope messageEnvelope)
+    protected override ValueTask OnHandleAsync(
+        BlockHashResponseMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
+        return ValueTask.CompletedTask;
     }
 }

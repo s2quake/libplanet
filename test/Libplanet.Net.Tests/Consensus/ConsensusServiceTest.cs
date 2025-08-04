@@ -14,6 +14,7 @@ public class ConsensusServiceTest
     public async Task StartAsync()
     {
         var count = TestUtils.PrivateKeys.Count;
+        var transports = new ITransport[count];
         var consensusServices = new ConsensusService[count];
         var blockchains = new Blockchain[count];
         using var fx = new MemoryRepositoryFixture();
@@ -22,12 +23,8 @@ public class ConsensusServiceTest
 
         for (var i = 0; i < count; i++)
         {
-            var peer = new Peer
-            {
-                Address = TestUtils.PrivateKeys[i].Address,
-                EndPoint = new DnsEndPoint("127.0.0.1", 6000 + i),
-            };
-            validatorPeers.Add(peer);
+            transports[i] = TestUtils.CreateTransport(TestUtils.PrivateKeys[i]);
+            validatorPeers.Add(transports[i].Peer);
         }
 
         for (var i = 0; i < count; i++)
@@ -42,6 +39,7 @@ public class ConsensusServiceTest
         for (var i = 0; i < count; i++)
         {
             consensusServices[i] = TestUtils.CreateConsensusService(
+                transport: transports[i],
                 blockchain: blockchains[i],
                 key: TestUtils.PrivateKeys[i],
                 validatorPeers: [.. validatorPeers],

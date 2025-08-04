@@ -211,7 +211,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         {
             await foreach (var messageEnvelope in reader.ReadAllAsync(cancellationToken))
             {
-                messageRouter.Handle(messageEnvelope);
+                await messageRouter.HandleAsync(messageEnvelope, default);
                 Trace.WriteLine($"Handled <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
             }
         }

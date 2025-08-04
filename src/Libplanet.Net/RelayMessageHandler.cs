@@ -12,5 +12,9 @@ public sealed class RelayMessageHandler<T>(Action<T, MessageEnvelope> action) : 
 
     Type IMessageHandler.MessageType => typeof(T);
 
-    void IMessageHandler.Handle(MessageEnvelope messageEnvelope) => action((T)messageEnvelope.Message, messageEnvelope);
+    async ValueTask IMessageHandler.HandleAsync(MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+    {
+        action((T)messageEnvelope.Message, messageEnvelope);
+        await ValueTask.CompletedTask;
+    }
 }

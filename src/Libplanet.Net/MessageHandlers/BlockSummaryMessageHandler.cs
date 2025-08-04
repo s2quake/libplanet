@@ -11,7 +11,8 @@ internal sealed class BlockSummaryMessageHandler(
 
     public TimeSpan BlockDemandLifespan { get; init; } = TimeSpan.FromMinutes(1);
 
-    protected override void OnHandle(BlockSummaryMessage message, MessageEnvelope messageEnvelope)
+    protected override ValueTask OnHandleAsync(
+        BlockSummaryMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         if (message.GenesisHash != _genesisHash)
         {
@@ -21,6 +22,8 @@ internal sealed class BlockSummaryMessageHandler(
         var blockSummary = ValidateAndReturn(message.BlockSummary);
         var blockDemand = new BlockDemand(messageEnvelope.Sender, blockSummary, DateTimeOffset.UtcNow);
         blockDemands.AddOrUpdate(blockDemand);
+
+        return ValueTask.CompletedTask;
     }
 
     private static BlockSummary ValidateAndReturn(BlockSummary blockSummary)

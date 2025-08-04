@@ -42,8 +42,6 @@ public static class TestUtils
         },
     };
 
-    private static readonly Random Random = new();
-
     public static Vote CreateVote(
         PrivateKey privateKey,
         BigInteger power,
@@ -75,14 +73,6 @@ public static class TestUtils
 
         return privateKey;
     }
-
-    // public static Blockchain CreateBlockchain(BlockchainOptions? options = null, Block? genesisBlock = null)
-    // {
-    //     var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(
-    //         options: options ?? BlockchainOptions,
-    //         genesisBlock: genesisBlock);
-    //     return blockchain;
-    // }
 
     public static ConsensusProposalMessage CreateConsensusPropose(
         Block block,
@@ -285,39 +275,60 @@ public static class TestUtils
     }
 
     public static ConsensusService CreateConsensusService(
+        ITransport transport,
         Blockchain? blockchain = null,
         PrivateKey? key = null,
-        string host = "127.0.0.1",
-        int port = 0,
         ImmutableHashSet<Peer>? validatorPeers = null,
         TimeSpan? newHeightDelay = null,
         ConsensusOptions? consensusOption = null)
     {
         blockchain ??= Libplanet.Tests.TestUtils.MakeBlockchain();
         key ??= PrivateKeys[1];
+        validatorPeers ??= Peers; ;
 
         var signer = key.AsSigner();
         var consensusServiceOptions = new ConsensusServiceOptions
         {
-            Validators = validatorPeers ?? Peers,
+            Validators = [.. validatorPeers.Where(peer => peer.Address != key.Address)],
             TargetBlockInterval = newHeightDelay ?? TimeSpan.FromMilliseconds(10_000),
             ConsensusOptions = consensusOption ?? new ConsensusOptions(),
         };
-        var transportOptions = new TransportOptions
-        {
-            Host = host,
-            Port = port,
-        };
-        var transport = new NetMQTransport(signer, transportOptions);
 
         return new ConsensusService(signer, blockchain, transport, consensusServiceOptions);
     }
 
-    public static byte[] GetRandomBytes(int size)
-    {
-        var bytes = new byte[size];
-        Random.NextBytes(bytes);
+    public static Blockchain MakeBlockchain(
+        BlockchainOptions? options = null,
+        IEnumerable<IAction>? actions = null,
+        ImmutableSortedSet<Validator>? validatorSet = null,
+        PrivateKey? privateKey = null,
+        DateTimeOffset? timestamp = null,
+        Block? genesisBlock = null,
+        int protocolVersion = BlockHeader.CurrentProtocolVersion)
+        => Libplanet.Tests.TestUtils.MakeBlockchain(
+            options: options ?? BlockchainOptions,
+            actions: actions,
+            validatorSet: validatorSet ?? Validators,
+            privateKey: privateKey ?? PrivateKeys[0],
+            timestamp: timestamp,
+            genesisBlock: genesisBlock,
+            protocolVersion: protocolVersion);
 
-        return bytes;
+    public static Task<T> InvokeDelay<T>(Func<T> func, int millisecondsDelay)
+        => InvokeDelay(func, TimeSpan.FromMilliseconds(millisecondsDelay));
+
+    public static async Task<T> InvokeDelay<T>(Func<T> func, TimeSpan delay)
+    {
+        await Task.Delay(delay);
+        return func();
+    }
+
+    public static Task<T> InvokeDelay<T>(Func<Task<T>> func, int millisecondsDelay)
+        => InvokeDelay(func, TimeSpan.FromMilliseconds(millisecondsDelay));
+
+    public static async Task<T> InvokeDelay<T>(Func<Task<T>> func, TimeSpan delay)
+    {
+        await Task.Delay(delay);
+        return await func();
     }
 }

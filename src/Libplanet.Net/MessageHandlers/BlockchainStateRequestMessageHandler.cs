@@ -22,8 +22,12 @@ internal sealed class BlockchainStateRequestMessageHandler : MessageHandlerBase<
 
     public void Dispose() => _subscription.Dispose();
 
-    protected override void OnHandle(BlockchainStateRequestMessage message, MessageEnvelope messageEnvelope)
-        => _transport.Post(messageEnvelope.Sender, _response, messageEnvelope.Identity);
+    protected override async ValueTask OnHandleAsync(
+        BlockchainStateRequestMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+    {
+        _transport.Post(messageEnvelope.Sender, _response, messageEnvelope.Identity);
+        await ValueTask.CompletedTask;
+    }
 
     private static BlockchainStateResponseMessage CreateResponse(Blockchain blockchain)
     {

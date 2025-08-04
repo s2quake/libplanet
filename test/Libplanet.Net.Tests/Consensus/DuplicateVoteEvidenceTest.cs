@@ -30,8 +30,10 @@ public class DuplicateVoteEvidenceTest
     public async Task Evidence_WithDuplicateVotes_Test()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
@@ -128,8 +130,10 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreDifferentHeightVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport: transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
@@ -204,8 +208,10 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreDifferentRoundVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[3]);
@@ -280,8 +286,10 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreDifferentFlagVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport: transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
@@ -356,8 +364,10 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreSameBlockHashVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[3]);
@@ -432,8 +442,10 @@ public class DuplicateVoteEvidenceTest
     public async Task IgnoreNillVote()
     {
         var privateKeys = TestUtils.PrivateKeys;
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = TestUtils.MakeBlockchain();
+        await using var transport = TestUtils.CreateTransport();
+        await using var consensusService = TestUtils.CreateConsensusService(
+            transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);

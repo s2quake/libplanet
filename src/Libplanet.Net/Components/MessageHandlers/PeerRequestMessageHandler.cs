@@ -6,7 +6,8 @@ namespace Libplanet.Net.Components.MessageHandlers;
 internal sealed class PeerRequestMessageHandler(ITransport transport, PeerCollection peers)
     : MessageHandlerBase<PeerRequestMessage>
 {
-    protected override void OnHandle(PeerRequestMessage message, MessageEnvelope messageEnvelope)
+    protected override ValueTask OnHandleAsync(
+        PeerRequestMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         if (messageEnvelope.Sender.Address == transport.Peer.Address)
         {
@@ -18,5 +19,7 @@ internal sealed class PeerRequestMessageHandler(ITransport transport, PeerCollec
         var neighbors = peers.GetNeighbors(target, k, includeTarget: true);
         var peerMessage = new PeerResponseMessage { Peers = [.. neighbors] };
         transport.Post(messageEnvelope.Sender, peerMessage, messageEnvelope.Identity);
+
+        return ValueTask.CompletedTask;
     }
 }

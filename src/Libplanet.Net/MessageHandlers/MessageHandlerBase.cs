@@ -7,8 +7,9 @@ public abstract class MessageHandlerBase<T> : IMessageHandler
 {
     Type IMessageHandler.MessageType { get; } = typeof(T);
 
-    protected abstract void OnHandle(T message, MessageEnvelope messageEnvelope);
+    protected abstract ValueTask OnHandleAsync(
+        T message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken);
 
-    void IMessageHandler.Handle(MessageEnvelope messageEnvelope)
-        => OnHandle((T)messageEnvelope.Message, messageEnvelope);
+    ValueTask IMessageHandler.HandleAsync(MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+        => OnHandleAsync((T)messageEnvelope.Message, messageEnvelope, cancellationToken);
 }

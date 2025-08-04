@@ -7,12 +7,14 @@ internal sealed class BlockHashRequestMessageHandler(Blockchain blockchain, ITra
 {
     private readonly int _maxHashes = ValidateMaxHashes(maxHashes);
 
-    protected override void OnHandle(BlockHashRequestMessage message, MessageEnvelope messageEnvelope)
+    protected override ValueTask OnHandleAsync(
+        BlockHashRequestMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         var height = blockchain.Blocks[message.BlockHash].Height;
         var hashes = blockchain.Blocks[height..].Take(_maxHashes).Select(item => item.BlockHash).ToArray();
         var response = new BlockHashResponseMessage { BlockHashes = [.. hashes] };
         transport.Post(messageEnvelope.Sender, response, messageEnvelope.Identity);
+        return ValueTask.CompletedTask;
     }
 
     private static int ValidateMaxHashes(int maxHashes)

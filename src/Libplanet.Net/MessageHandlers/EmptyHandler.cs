@@ -5,7 +5,7 @@ namespace Libplanet.Net.MessageHandlers;
 internal sealed class EmptyHandler<T> : MessageHandlerBase<T>
     where T : IMessage
 {
-    protected override void OnHandle(T message, MessageEnvelope messageEnvelope)
-    {
-    }
+    protected override ValueTask OnHandleAsync(
+        T message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+        => ValueTask.CompletedTask;
 }

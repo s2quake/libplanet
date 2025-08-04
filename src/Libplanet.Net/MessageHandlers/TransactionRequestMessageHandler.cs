@@ -11,12 +11,7 @@ internal sealed class TransactionRequestMessageHandler(
 
     public void Dispose() => _accessLimiter.Dispose();
 
-    protected override void OnHandle(TransactionRequestMessage message, MessageEnvelope messageEnvelope)
-    {
-        _ = OnHandleAsync(message, messageEnvelope, default).AsTask();
-    }
-
-    private async ValueTask OnHandleAsync(
+    protected override async ValueTask OnHandleAsync(
         TransactionRequestMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         using var scope = await _accessLimiter.CanAccessAsync(cancellationToken);

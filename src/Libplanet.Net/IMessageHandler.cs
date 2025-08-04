@@ -6,5 +6,5 @@ public interface IMessageHandler
 {
     Type MessageType { get; }
 
-    void Handle(MessageEnvelope messageEnvelope);
+    ValueTask HandleAsync(MessageEnvelope messageEnvelope, CancellationToken cancellationToken);
 }

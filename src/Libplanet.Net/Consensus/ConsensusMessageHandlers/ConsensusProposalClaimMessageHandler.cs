@@ -6,7 +6,8 @@ namespace Libplanet.Net.Consensus.ConsensusMessageHandlers;
 internal sealed class ConsensusProposalClaimMessageHandler(ConsensusService consensusService, Gossip gossip)
     : MessageHandlerBase<ConsensusProposalClaimMessage>
 {
-    protected override void OnHandle(ConsensusProposalClaimMessage message, MessageEnvelope messageEnvelope)
+    protected override ValueTask OnHandleAsync(
+        ConsensusProposalClaimMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         Proposal? proposal = consensusService.HandleProposalClaim(message.ProposalClaim);
         if (proposal is { } proposalNotNull)
@@ -17,5 +18,7 @@ internal sealed class ConsensusProposalClaimMessageHandler(ConsensusService cons
 
             gossip.PublishMessage([sender], reply);
         }
+
+        return ValueTask.CompletedTask;
     }
 }
