@@ -6,6 +6,7 @@ using Libplanet.Node.Options;
 using Libplanet.Node.Services;
 using Libplanet.Types;
 using Namotion.Reflection;
+using System.Threading.Tasks;
 
 namespace Libplanet.Node.Tests.Services;
 

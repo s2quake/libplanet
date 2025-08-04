@@ -2,6 +2,7 @@ using Libplanet.State;
 using Libplanet.Node.Options;
 using Libplanet.Node.Services;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 
 namespace Libplanet.Node.Tests.Services;
 
