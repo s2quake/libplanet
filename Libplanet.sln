@@ -55,13 +55,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sdk", "sdk", "{D8186A1A-664
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "node", "node", "{8CA69CC9-3415-4484-9342-88D495AE2FF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libplanet.Node", "sdk\node\Libplanet.Node\Libplanet.Node.csproj", "{2CBD3BE8-9DBF-483D-8E38-88E9DBC86D91}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libplanet.Node", "node\Libplanet.Node\Libplanet.Node.csproj", "{2CBD3BE8-9DBF-483D-8E38-88E9DBC86D91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libplanet.Node.Extensions", "sdk\node\Libplanet.Node.Extensions\Libplanet.Node.Extensions.csproj", "{704BA731-9C70-4CBE-A607-1A2E1FB73753}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libplanet.Node.Extensions", "node\Libplanet.Node.Extensions\Libplanet.Node.Extensions.csproj", "{704BA731-9C70-4CBE-A607-1A2E1FB73753}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libplanet.Node.Executable", "sdk\node\Libplanet.Node.Executable\Libplanet.Node.Executable.csproj", "{A0EAD8F0-B7A3-4112-9F3F-2D9922A500BA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libplanet.Node.Executable", "node\Libplanet.Node.Executable\Libplanet.Node.Executable.csproj", "{A0EAD8F0-B7A3-4112-9F3F-2D9922A500BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libplanet.Node.Tests", "sdk\node\Libplanet.Node.Tests\Libplanet.Node.Tests.csproj", "{C050C5F0-8A40-4CB1-9715-A55EBF94FBF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libplanet.Node.Tests", "test\Libplanet.Node.Tests\Libplanet.Node.Tests.csproj", "{C050C5F0-8A40-4CB1-9715-A55EBF94FBF2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Libplanet.Serialization", "src\Libplanet.Serialization\Libplanet.Serialization.csproj", "{0527BEA9-CC2D-4C31-BCFA-350619DBC7F1}"
 EndProject

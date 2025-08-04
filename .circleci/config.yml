@@ -117,8 +117,8 @@ commands:
         - "test/*/obj/"
         - "tools/*/bin/"
         - "tools/*/obj/"
-        - "sdk/node/*/bin/"
-        - "sdk/node/*/obj/"
+        - "node/*/bin/"
+        - "node/*/obj/"
 
   netcore_test_base:
     parameters:

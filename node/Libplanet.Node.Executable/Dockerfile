@@ -6,10 +6,10 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["sdk/node/Libplanet.Node.API/Libplanet.Node.API.csproj", "sdk/node/Libplanet.Node.API/"]
-RUN dotnet restore "sdk/node/Libplanet.Node.API/Libplanet.Node.API.csproj"
+COPY ["node/Libplanet.Node.API/Libplanet.Node.API.csproj", "node/Libplanet.Node.API/"]
+RUN dotnet restore "node/Libplanet.Node.API/Libplanet.Node.API.csproj"
 COPY . .
-WORKDIR "/src/sdk/node/Libplanet.Node.API"
+WORKDIR "/src/node/Libplanet.Node.API"
 RUN dotnet build "Libplanet.Node.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish

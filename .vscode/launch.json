@@ -8,14 +8,14 @@
             "name": "C#: Libplanet Node",
             "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceFolder}/sdk/node/Libplanet.Node.Executable/bin/Debug/net8.0/Libplanet.Node.Executable.dll",
+            "program": "${workspaceFolder}/node/Libplanet.Node.Executable/bin/Debug/net8.0/Libplanet.Node.Executable.dll",
             "console": "integratedTerminal",
             "args": [
             ],
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
             },
-            "cwd": "${workspaceFolder}/sdk/node/Libplanet.Node.Executable"
+            "cwd": "${workspaceFolder}/node/Libplanet.Node.Executable"
         },
     ]
 }

@@ -168,7 +168,7 @@ on GitHub consists of several projects.  There are two types of projects:
 
  -  *Libplanet.Node*: Library used to build libplanet node easily.
     This project is distributed as a distinct NuGet package: *[Libplanet.Node]*.
-    See its own [README.md](sdk/node/Libplanet.Node/README.md).
+    See its own [README.md](node/Libplanet.Node/README.md).
 
  -  *Libplanet.Node.Extensions*: Provides extensions methods for
     *Libplanet.Node*.
