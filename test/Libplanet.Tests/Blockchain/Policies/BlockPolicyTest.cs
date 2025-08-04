@@ -75,7 +75,10 @@ public class BlockPolicyTest : IDisposable
         {
             TransactionOptions = new TransactionOptions
             {
-                Validator = new RelayValidator<Transaction>(IsSignerValid),
+                Validators =
+                [
+                    new RelayObjectValidator<Transaction>(IsSignerValid),
+                ],
             },
         };
 
@@ -128,7 +131,10 @@ public class BlockPolicyTest : IDisposable
         {
             TransactionOptions = new TransactionOptions
             {
-                Validator = new RelayValidator<Transaction>(IsSignerValid),
+                Validators =
+                [
+                    new RelayObjectValidator<Transaction>(IsSignerValid),
+                ],
             },
         };
 
@@ -143,7 +149,10 @@ public class BlockPolicyTest : IDisposable
         {
             TransactionOptions = new TransactionOptions
             {
-                Validator = new RelayValidator<Transaction>(IsSignerValidWithInnerException),
+                Validators =
+                [
+                    new RelayObjectValidator<Transaction>(IsSignerValidWithInnerException),
+                ],
             },
         };
 

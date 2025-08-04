@@ -328,13 +328,7 @@ public sealed class Consensus(
 
             try
             {
-                block.Validate(blockchain);
-                blockchain.Options.BlockOptions.Validate(block);
-
-                foreach (var tx in block.Transactions)
-                {
-                    blockchain.Options.TransactionOptions.Validate(tx);
-                }
+                blockchain.Validate(block);
             }
             catch (Exception e) when (e is InvalidOperationException)
             {

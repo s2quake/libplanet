@@ -2,19 +2,15 @@ using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Components;
 
-public sealed class TransactionFetchingHandler(Blockchain blockchain, ITransport transport, int maxAccessCount)
+public sealed class TransactionBroadcastingResponder(
+    ITransport transport, TransactionDemandCollection transactionDemands)
     : IDisposable
 {
     private readonly IDisposable _handlerRegistration = transport.MessageRouter.RegisterMany(
     [
-        new TransactionRequestMessageHandler(blockchain, transport, maxAccessCount),
+        new TxIdMessageHandler(transactionDemands),
     ]);
     private bool _disposed;
-
-    public TransactionFetchingHandler(Blockchain blockchain, ITransport transport)
-        : this(blockchain, transport, 3)
-    {
-    }
 
     public void Dispose()
     {

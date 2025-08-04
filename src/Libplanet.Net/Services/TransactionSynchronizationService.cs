@@ -11,13 +11,14 @@ internal sealed class TransactionSynchronizationService(
     Blockchain blockchain, ITransport transport)
     : ServiceBase
 {
-    private readonly Subject<ImmutableArray<Transaction>> _stagedSubject = new();
+    private readonly Subject<Transaction> _stagedSubject = new();
+    private readonly Subject<(Transaction, Exception)> _stageFailedSubject = new();
     private readonly Blockchain _blockchain = blockchain;
     private readonly ITransport _transport = transport;
-    private readonly TransactionFetcher _transactionFetcher = new(blockchain, transport);
-    private TransactionBroadcastingHandler? _transactionBroadcastingHandler;
+    private readonly TransactionFetcher _fetcher = new(blockchain, transport);
+    private TransactionBroadcastingResponder? _broadcastingResponder;
 
-    public IObservable<ImmutableArray<Transaction>> Staged => _stagedSubject;
+    public IObservable<Transaction> Staged => _stagedSubject;
 
     public TransactionDemandCollection TransactionDemands { get; } = new();
 
@@ -34,7 +35,7 @@ internal sealed class TransactionSynchronizationService(
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _transactionBroadcastingHandler = new TransactionBroadcastingHandler(_transport, TransactionDemands);
+        _broadcastingResponder = new TransactionBroadcastingResponder(_transport, TransactionDemands);
         TransactionDemands.CollectionChanged += TransactionDemands_CollectionChanged;
         await Task.CompletedTask;
     }
@@ -51,18 +52,18 @@ internal sealed class TransactionSynchronizationService(
     {
         TransactionDemands.CollectionChanged -= TransactionDemands_CollectionChanged;
         TransactionDemands.Clear();
-        _transactionBroadcastingHandler?.Dispose();
-        _transactionBroadcastingHandler = null;
+        _broadcastingResponder?.Dispose();
+        _broadcastingResponder = null;
         return Task.CompletedTask;
     }
 
     protected override async ValueTask DisposeAsyncCore()
     {
         TransactionDemands.CollectionChanged -= TransactionDemands_CollectionChanged;
-        _transactionBroadcastingHandler?.Dispose();
-        _transactionBroadcastingHandler = null;
+        _broadcastingResponder?.Dispose();
+        _broadcastingResponder = null;
 
-        _transactionFetcher.Dispose();
+        _fetcher.Dispose();
         TransactionDemands.Clear();
         await base.DisposeAsyncCore();
     }
@@ -71,21 +72,23 @@ internal sealed class TransactionSynchronizationService(
     {
         var peer = demand.Peer;
         var txIds = demand.TxIds;
-        var txs = await _transactionFetcher.FetchAsync(peer, [.. txIds], cancellationToken);
+        var txs = await _fetcher.FetchAsync(peer, [.. txIds], cancellationToken);
         if (txs.Length == 0)
         {
             return;
         }
 
-        var stagedTxs = new List<Transaction>(txs.Length);
         foreach (var tx in txs)
         {
-            if (!_blockchain.Transactions.ContainsKey(tx.Id) && _blockchain.StagedTransactions.TryAdd(tx))
+            try
             {
-                stagedTxs.Add(tx);
+                _blockchain.StagedTransactions.Add(tx);
+                _stagedSubject.OnNext(tx);
+            }
+            catch (Exception e)
+            {
+                _stageFailedSubject.OnNext((tx, e));
             }
         }
-
-        _stagedSubject.OnNext([.. stagedTxs]);
     }
 }

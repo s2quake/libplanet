@@ -7,27 +7,27 @@ namespace Libplanet.Net.Services;
 public sealed class TransactionSynchronizationResponderService(Blockchain blockchain, ITransport transport)
     : ServiceBase
 {
-    private TransactionFetchingHandler? _transactionFetchingHandler;
+    private TransactionFetchingResponder? _fetchingResponder;
 
     public int MaxAccessCount { get; set; } = 3;
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _transactionFetchingHandler = new TransactionFetchingHandler(blockchain, transport, MaxAccessCount);
+        _fetchingResponder = new TransactionFetchingResponder(blockchain, transport, MaxAccessCount);
         await Task.CompletedTask;
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        _transactionFetchingHandler?.Dispose();
-        _transactionFetchingHandler = null;
+        _fetchingResponder?.Dispose();
+        _fetchingResponder = null;
         await Task.CompletedTask;
     }
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        _transactionFetchingHandler?.Dispose();
-        _transactionFetchingHandler = null;
+        _fetchingResponder?.Dispose();
+        _fetchingResponder = null;
         await base.DisposeAsyncCore();
     }
 }

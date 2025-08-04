@@ -1,6 +1,6 @@
 namespace Libplanet;
 
-public interface IValidator<in T>
+public interface IObjectValidator<in T>
 {
     void Validate(T obj);
 }

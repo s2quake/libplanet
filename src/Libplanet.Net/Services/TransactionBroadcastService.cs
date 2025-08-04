@@ -14,7 +14,6 @@ public sealed class TransactionBroadcastService(Blockchain blockchain, PeerExplo
     private TransactionBroadcaster? _transactionBroadcaster;
     private IDisposable? _subscription;
 
-
     public IObservable<(ImmutableArray<Peer>, ImmutableArray<TxId>)> Broadcasted => _broadcastedSubject;
 
     public TimeSpan BroadcastInterval

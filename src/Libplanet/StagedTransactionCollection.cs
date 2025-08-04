@@ -9,18 +9,19 @@ using System.Reactive.Subjects;
 
 namespace Libplanet;
 
-public sealed class StagedTransactionCollection(Repository repository, BlockchainOptions options)
+public sealed class StagedTransactionCollection(Repository repository, TransactionOptions options)
     : IReadOnlyDictionary<TxId, Transaction>
 {
     private readonly Subject<Transaction> _addedSubject = new();
     private readonly Subject<Transaction> _removedSubject = new();
-    private readonly PendingTransactionIndex _store = repository.PendingTransactions;
+    private readonly PendingTransactionIndex _stagedIndex = repository.PendingTransactions;
+    private readonly CommittedTransactionIndex _committedIndex = repository.CommittedTransactions;
     private readonly ConcurrentDictionary<Address, ImmutableSortedSet<long>> _noncesByAddress = new();
 
     public StagedTransactionCollection(Repository repository)
-        : this(repository, new BlockchainOptions())
+        : this(repository, new TransactionOptions())
     {
-        foreach (var transaction in _store.Values)
+        foreach (var transaction in _stagedIndex.Values)
         {
             var address = transaction.Signer;
             var newNonce = transaction.Nonce;
@@ -36,48 +37,51 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
 
     public IObservable<Transaction> Removed => _removedSubject;
 
-    public TimeSpan Lifetime { get; } = options.TransactionOptions.LifeTime;
+    public TimeSpan Lifetime { get; } = options.LifeTime;
 
-    public IEnumerable<TxId> Keys => _store.Keys;
+    public IEnumerable<TxId> Keys => _stagedIndex.Keys;
 
-    public IEnumerable<Transaction> Values => _store.Values;
+    public IEnumerable<Transaction> Values => _stagedIndex.Values;
 
-    public int Count => _store.Count;
+    public int Count => _stagedIndex.Count;
 
-    public Transaction this[TxId txId] => _store[txId];
+    public Transaction this[TxId txId] => _stagedIndex[txId];
 
-    public bool TryAdd(Transaction transaction)
-    {
-        if (transaction.Timestamp + options.TransactionOptions.LifeTime < DateTimeOffset.UtcNow)
-        {
-            return false;
-        }
+    // public bool TryAdd(Transaction transaction)
+    // {
+    //     if (transaction.Timestamp + options.LifeTime < DateTimeOffset.UtcNow)
+    //     {
+    //         return false;
+    //     }
 
-        // compare with repository genesis
+    //     // compare with repository genesis
 
-        if (_store.TryAdd(transaction))
-        {
-            AddNonce(transaction);
-            _addedSubject.OnNext(transaction);
-            return true;
-        }
+    //     if (_stagedIndex.TryAdd(transaction))
+    //     {
+    //         AddNonce(transaction);
+    //         _addedSubject.OnNext(transaction);
+    //         return true;
+    //     }
 
-        return false;
-    }
+    //     return false;
+    // }
 
     public void Add(Transaction transaction)
     {
-        if (transaction.Timestamp + options.TransactionOptions.LifeTime < DateTimeOffset.UtcNow)
+        if (_committedIndex.ContainsKey(transaction.Id))
         {
-            throw new ArgumentException("Transaction is expired.", nameof(transaction));
+            throw new ArgumentException(
+                $"Transaction {transaction.Id} already exists in the committed transactions.", nameof(transaction));
         }
+
+        options.Validate(transaction);
 
         // compare with repository genesis
 
-        if (!_store.TryAdd(transaction))
+        if (!_stagedIndex.TryAdd(transaction))
         {
             throw new ArgumentException(
-                $"Transaction {transaction.Id} already exists in the store.", nameof(transaction));
+                $"Transaction {transaction.Id} already exists in the staged transactions.", nameof(transaction));
         }
 
         AddNonce(transaction);
@@ -111,9 +115,9 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
 
     public bool Remove(TxId txId)
     {
-        if (_store.TryGetValue(txId, out var transaction))
+        if (_stagedIndex.TryGetValue(txId, out var transaction))
         {
-            _store.Remove(txId);
+            _stagedIndex.Remove(txId);
             RemoveNonce(transaction);
             _removedSubject.OnNext(transaction);
             return true;
@@ -124,7 +128,7 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
 
     public bool Remove(Transaction transaction)
     {
-        if (_store.Remove(transaction.Id))
+        if (_stagedIndex.Remove(transaction.Id))
         {
             RemoveNonce(transaction);
             _removedSubject.OnNext(transaction);
@@ -134,9 +138,10 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
         return false;
     }
 
-    public ImmutableSortedSet<Transaction> Collect()
+    public ImmutableSortedSet<Transaction> Collect() => Collect(maxTransactionsPerBlock: 100);
+
+    public ImmutableSortedSet<Transaction> Collect(int maxTransactionsPerBlock)
     {
-        var blockOptions = options.BlockOptions;
         var items = Values.OrderBy(item => item.Nonce).ThenBy(item => item.Timestamp).ToArray();
         var itemList = new List<Transaction>(items.Length);
         foreach (var item in items)
@@ -150,7 +155,7 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
                 itemList.Add(item);
             }
 
-            if (itemList.Count >= blockOptions.MaxTransactionsPerBlock)
+            if (itemList.Count >= maxTransactionsPerBlock)
             {
                 break;
             }
@@ -167,14 +172,14 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
         return transaction.Timestamp + lifetime < DateTimeOffset.UtcNow;
     }
 
-    public bool ContainsKey(TxId txId) => _store.ContainsKey(txId);
+    public bool ContainsKey(TxId txId) => _stagedIndex.ContainsKey(txId);
 
     public bool TryGetValue(TxId txId, [MaybeNullWhen(false)] out Transaction value)
-        => _store.TryGetValue(txId, out value);
+        => _stagedIndex.TryGetValue(txId, out value);
 
     IEnumerator<KeyValuePair<TxId, Transaction>> IEnumerable<KeyValuePair<TxId, Transaction>>.GetEnumerator()
     {
-        foreach (var kvp in _store)
+        foreach (var kvp in _stagedIndex)
         {
             yield return kvp;
         }
@@ -182,7 +187,7 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        foreach (var kvp in _store)
+        foreach (var kvp in _stagedIndex)
         {
             yield return kvp;
         }

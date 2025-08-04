@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Options;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Components;
@@ -9,6 +8,9 @@ namespace Libplanet.Net.Components;
 public sealed class TransactionFetcher(Blockchain blockchain, ITransport transport)
     : FetcherBase<TxId, Transaction>
 {
+    private readonly TransactionCollection _transactions = blockchain.Transactions;
+    private readonly StagedTransactionCollection _stagedTransactions = blockchain.StagedTransactions;
+
     protected override async IAsyncEnumerable<Transaction> FetchOverrideAsync(
         Peer peer, ImmutableArray<TxId> ids, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -32,19 +34,5 @@ public sealed class TransactionFetcher(Blockchain blockchain, ITransport transpo
     }
 
     protected override bool Verify(Transaction item)
-    {
-        var transactionOptions = blockchain.Options.TransactionOptions;
-        var transactions = blockchain.Transactions;
-        var stagedTransactions = blockchain.StagedTransactions;
-
-        try
-        {
-            transactionOptions.Validate(item);
-            return !transactions.ContainsKey(item.Id) && !stagedTransactions.ContainsKey(item.Id);
-        }
-        catch
-        {
-            return false;
-        }
-    }
+        => !_transactions.ContainsKey(item.Id) && !_stagedTransactions.ContainsKey(item.Id);
 }

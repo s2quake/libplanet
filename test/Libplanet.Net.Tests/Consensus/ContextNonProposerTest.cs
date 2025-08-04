@@ -314,7 +314,10 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             },
             TransactionOptions = new TransactionOptions
             {
-                Validator = new RelayValidator<Transaction>(IsSignerValid),
+                Validators =
+                [
+                    new RelayObjectValidator<Transaction>(IsSignerValid),
+                ]
             },
         };
 

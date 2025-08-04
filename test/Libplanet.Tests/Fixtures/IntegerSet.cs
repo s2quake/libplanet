@@ -60,7 +60,7 @@ public sealed class IntegerSet
 
     public int Count => Addresses.Count;
 
-    public BlockchainOptions Policy => Chain.Options;
+    // public BlockchainOptions Policy => Chain.Options;
 
     public Block Tip => Chain.Tip;
 

@@ -682,7 +682,7 @@ public partial class BlockChainTest
     public void ValidateNextBlockOnChainRestart()
     {
         var repository = new Repository();
-        var newChain = new Libplanet.Blockchain(_blockChain.Genesis, repository, _blockChain.Options);
+        var newChain = new Libplanet.Blockchain(_blockChain.Genesis, repository, _options);
         newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
         Assert.Equal(newChain.Tip, _validNext);
     }

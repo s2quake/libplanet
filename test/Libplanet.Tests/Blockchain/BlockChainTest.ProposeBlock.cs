@@ -18,7 +18,7 @@ public partial class BlockChainTest
     [Fact]
     public void ProposeBlock()
     {
-        var maxTransactionsBytes = _blockChain.Options.BlockOptions.MaxTransactionsBytes;
+        var maxTransactionsBytes = _options.BlockOptions.MaxTransactionsBytes;
         Assert.Single(_blockChain.Blocks);
         Assert.Equal(
             $"{GenesisProposer.Address}",
@@ -362,7 +362,10 @@ public partial class BlockChainTest
         {
             TransactionOptions = new TransactionOptions
             {
-                Validator = new RelayValidator<Transaction>(IsSignerValid),
+                Validators =
+                [
+                    new RelayObjectValidator<Transaction>(IsSignerValid),
+                ],
             },
         };
         var repository = new Repository();

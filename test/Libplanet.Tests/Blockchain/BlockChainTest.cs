@@ -551,11 +551,14 @@ public partial class BlockChainTest : IDisposable
         {
             BlockOptions = new BlockOptions
             {
-                Validator = new RelayValidator<Block>(obj => invoked = true),
+                Validator = new RelayObjectValidator<Block>(obj => invoked = true),
             },
             TransactionOptions = new TransactionOptions
             {
-                Validator = new RelayValidator<Transaction>(obj => invoked = true),
+                Validators =
+                [
+                    new RelayObjectValidator<Transaction>(obj => invoked = true),
+                ],
             },
         };
         var repository = new Repository();
@@ -757,9 +760,9 @@ public partial class BlockChainTest : IDisposable
         using var forkFx = new MemoryRepositoryFixture(_options);
 
         var emptyRepository = new Repository();
-        var emptyChain = new Libplanet.Blockchain(emptyFx.GenesisBlock, emptyRepository, _blockChain.Options);
+        var emptyChain = new Libplanet.Blockchain(emptyFx.GenesisBlock, emptyRepository, _options);
         var forkRepository = new Repository();
-        var forkChain = new Libplanet.Blockchain(forkFx.GenesisBlock, forkRepository, _blockChain.Options);
+        var forkChain = new Libplanet.Blockchain(forkFx.GenesisBlock, forkRepository, _options);
         forkChain.Append(b1, CreateBlockCommit(b1));
         forkChain.Append(b2, CreateBlockCommit(b2));
         Block b5 = forkChain.ProposeBlock(key);

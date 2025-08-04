@@ -18,7 +18,7 @@ public class VolatileStagePolicyTest : StagePolicyTest
             Actions = [],
             Timestamp = DateTimeOffset.UtcNow - StageTransactions.Lifetime + timeBuffer,
         }.Sign(_key);
-        Assert.True(StageTransactions.TryAdd(tx));
+        StageTransactions.Add(tx);
         Assert.Equal(tx, StageTransactions[tx.Id]);
         Assert.Contains(tx, StageTransactions.Values);
 
@@ -63,9 +63,9 @@ public class VolatileStagePolicyTest : StagePolicyTest
             Timestamp = DateTimeOffset.UtcNow - StageTransactions.Lifetime - timeBuffer,
         }.Sign(_key);
 
-        Assert.False(StageTransactions.TryAdd(staleTx));
-        Assert.True(StageTransactions.TryAdd(validTx));
-        Assert.False(StageTransactions.TryAdd(validTx));
+        Assert.Throws<ArgumentException>(() => StageTransactions.Add(staleTx));
+        StageTransactions.Add(validTx);
+        Assert.Throws<ArgumentException>(() => StageTransactions.Add(validTx));
         Assert.True(StageTransactions.Remove(validTx.Id));
         Assert.False(StageTransactions.Remove(validTx.Id));
     }

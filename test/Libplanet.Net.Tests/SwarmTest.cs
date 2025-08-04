@@ -551,21 +551,21 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task UnstageInvalidTransaction()
     {
         var validKey = new PrivateKey();
-
-        void IsSignerValid(Transaction tx)
-        {
-            var validAddress = validKey.Address;
-            if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
-            {
-                throw new InvalidOperationException("invalid signer");
-            }
-        }
-
         var blockchainOptions = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
-                Validator = new RelayValidator<Transaction>(IsSignerValid),
+                Validators =
+                [
+                    new RelayObjectValidator<Transaction>(tx =>
+                    {
+                        var validAddress = validKey.Address;
+                        if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
+                        {
+                            throw new InvalidOperationException("invalid signer");
+                        }
+                    }),
+                ],
             },
         };
         using var fx1 = new MemoryRepositoryFixture();
@@ -574,7 +574,6 @@ public partial class SwarmTest(ITestOutputHelper output)
         var transportA = TestUtils.CreateTransport();
         var transportB = TestUtils.CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
-        var peersB = new PeerCollection(transportB.Peer.Address);
         var peerExplorerA = new PeerExplorer(transportA, peersA);
         var blockchainA = MakeBlockchain(blockchainOptions, privateKey: validKey);
         var blockchainB = MakeBlockchain(blockchainOptions, privateKey: validKey);
@@ -595,26 +594,15 @@ public partial class SwarmTest(ITestOutputHelper output)
             syncServiceB,
         };
 
-        // await using var swarmA = await CreateSwarm(
-        //     MakeBlockchain(blockchainOptions, privateKey: validKey));
-        // await using var swarmB = await CreateSwarm(
-        //     MakeBlockchain(blockchainOptions, privateKey: validKey));
-
         var invalidKey = new PrivateKey();
-
         var validTx = blockchainA.StagedTransactions.Add(validKey);
         var invalidTx = blockchainA.StagedTransactions.Add(invalidKey);
 
-        // await swarmA.StartAsync(default);
-        // await swarmB.StartAsync(default);
         await transports.StartAsync(default);
         await services.StartAsync(default);
 
-        // await swarmA.AddPeersAsync([swarmB.Peer], default);
         peersA.Add(transportB.Peer);
 
-        // swarmA.BroadcastTxs([validTx, invalidTx]);
-        // await swarmB.TxReceived.WaitAsync(default);
         peerExplorerA.BroadcastTransaction([validTx, invalidTx]);
         await syncServiceB.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
@@ -644,29 +632,56 @@ public partial class SwarmTest(ITestOutputHelper output)
         {
             TransactionOptions = new TransactionOptions
             {
-                Validator = new RelayValidator<Transaction>(IsSignerValid),
+                Validators =
+                [
+                    new RelayObjectValidator<Transaction>(IsSignerValid),
+                ],
             },
         };
         using var fx1 = new MemoryRepositoryFixture();
         using var fx2 = new MemoryRepositoryFixture();
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        using var peerExplorerA = new PeerExplorer(transportA, peersA);
+        // var peersB = new PeerCollection(transportB.Peer.Address);
 
-        var swarmA = await CreateSwarm(
-            MakeBlockchain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue));
-        var swarmB = await CreateSwarm(
-            MakeBlockchain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue.AddSeconds(1)));
+        var genesisBlockA = new BlockBuilder { }.Create(validKey);
+        var genesisBlockB = new BlockBuilder { }.Create(validKey);
 
-        var tx = swarmA.Blockchain.StagedTransactions.Add(validKey);
+        var blockchainA = new Blockchain(genesisBlockA, blockchainOptions);
+        var blockchainB = new Blockchain(genesisBlockB, blockchainOptions);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
+        // var swarmA = await CreateSwarm(
+        //     MakeBlockchain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue));
+        // var swarmB = await CreateSwarm(
+        //     MakeBlockchain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue.AddSeconds(1)));
+        var syncResponderServiceA = new TransactionSynchronizationResponderService(blockchainA, transportA);
+        var syncServiceB = new TransactionSynchronizationService(blockchainB, transportB);
 
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        await using var services = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            syncResponderServiceA,
+            syncServiceB,
+        };
 
-        swarmA.BroadcastTxs([tx]);
+        var tx = blockchainA.StagedTransactions.Add(validKey);
+
+        await services.StartAsync(default);
+        // await swarmB.StartAsync(default);
+
+        // await swarmA.AddPeersAsync([swarmB.Peer], default);
+        peersA.Add(transportB.Peer);
+
+
+        peerExplorerA.BroadcastTransaction([tx]);
+        // swarmA.BroadcastTxs([tx]);
         // await swarmB.TxReceived.WaitAsync(default);
 
-        Assert.Throws<KeyNotFoundException>(() => swarmB.Blockchain.Transactions[tx.Id]);
-        Assert.DoesNotContain(tx.Id, swarmB.Blockchain.StagedTransactions.Keys);
+        Assert.Throws<KeyNotFoundException>(() => blockchainB.Transactions[tx.Id]);
+        Assert.DoesNotContain(tx.Id, blockchainB.StagedTransactions.Keys);
     }
 
     [Fact(Timeout = Timeout)]

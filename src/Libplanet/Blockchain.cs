@@ -35,6 +35,11 @@ public partial class Blockchain
     {
     }
 
+    public Blockchain(Block genesisBlock, BlockchainOptions options)
+        : this(genesisBlock, new Repository(), options)
+    {
+    }
+
     public Blockchain(Block genesisBlock, Repository repository, BlockchainOptions options)
         : this(repository, options)
     {
@@ -97,7 +102,7 @@ public partial class Blockchain
     public BlockCommit BlockCommit => Blocks.Count is not 0
         ? _repository.BlockCommit : throw new InvalidOperationException("The chain is empty.");
 
-    public BlockchainOptions Options { get; }
+    private BlockchainOptions Options { get; }
 
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
 
@@ -146,6 +151,17 @@ public partial class Blockchain
     public HashDigest<SHA256> GetStateRootHash(BlockHash blockHash)
         => _repository.StateRootHashes[blockHash];
 
+    public void Validate(Block block)
+    {
+        block.Validate(this);
+        Options.BlockOptions.Validate(block);
+
+        foreach (var tx in block.Transactions)
+        {
+            Options.TransactionOptions.Validate(tx);
+        }
+    }
+
     public World GetWorld() => GetWorld(Tip.BlockHash);
 
     public World GetWorld(int height) => GetWorld(Blocks[height].BlockHash);
@@ -169,7 +185,7 @@ public partial class Blockchain
         };
         var blockContent = new BlockContent
         {
-            Transactions = StagedTransactions.Collect(),
+            Transactions = StagedTransactions.Collect(Options.BlockOptions.MaxTransactionsPerBlock),
             Evidences = PendingEvidence.Collect(),
         };
         var rawBlock = new RawBlock

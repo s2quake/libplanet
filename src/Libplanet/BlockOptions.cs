@@ -15,7 +15,7 @@ public sealed record class BlockOptions
 
     public long MaxEvidencePendingDuration { get; init; } = 10L;
 
-    public IValidator<Block> Validator { get; init; } = new RelayValidator<Block>();
+    public IObjectValidator<Block> Validator { get; init; } = new RelayObjectValidator<Block>();
 
     public void Validate(Block block)
     {

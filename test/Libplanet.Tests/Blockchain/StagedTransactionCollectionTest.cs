@@ -9,15 +9,12 @@ public sealed class StagedTransactionCollectionTest
     [Fact]
     public void AddTransaction()
     {
-        var options = new BlockchainOptions
+        var transactionOptions = new TransactionOptions
         {
-            TransactionOptions = new TransactionOptions
-            {
-                LifeTime = TimeSpan.FromSeconds(1),
-            },
+            LifeTime = TimeSpan.FromSeconds(1),
         };
         var repository = new Repository();
-        var transactions = new StagedTransactionCollection(repository, options);
+        var transactions = new StagedTransactionCollection(repository, transactionOptions);
         var privateKey = new PrivateKey();
         var tx = new TransactionMetadata
         {
@@ -30,21 +27,18 @@ public sealed class StagedTransactionCollectionTest
     [Fact]
     public void AddTransactionWithExpiredNonce()
     {
-        var options = new BlockchainOptions
+        var transactionOptions = new TransactionOptions
         {
-            TransactionOptions = new TransactionOptions
-            {
-                LifeTime = TimeSpan.FromSeconds(1),
-            },
+            LifeTime = TimeSpan.FromSeconds(1),
         };
         var repository = new Repository();
-        var transactions = new StagedTransactionCollection(repository, options);
+        var transactions = new StagedTransactionCollection(repository, transactionOptions);
         var privateKey = new PrivateKey();
         var tx = new TransactionMetadata
         {
             Signer = privateKey.Address,
         }.Sign(privateKey);
         repository.Nonces.Increase(privateKey.Address, 100);
-        Assert.False(transactions.TryAdd(tx));
+        Assert.Throws<ArgumentException>(() => transactions.Add(tx));
     }
 }
