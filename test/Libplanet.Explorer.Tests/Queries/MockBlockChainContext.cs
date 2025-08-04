@@ -12,7 +12,7 @@ public class MockBlockChainContext : IBlockChainContext
 
     public Libplanet.Data.Repository Store { get; }
 
-    public Swarm Swarm { get; }
+    // public Swarm Swarm { get; }
 
     public IBlockChainIndex Index { get; protected init; }
 

@@ -31,7 +31,7 @@ internal sealed class BlockChainContext(
     }
 #pragma warning restore S3011
 
-    public Swarm Swarm => swarmService.Swarm;
+    // public Swarm Swarm => swarmService.Swarm;
 
     public IBlockChainIndex Index => throw new NotSupportedException();
 }

@@ -9,7 +9,7 @@ public interface ISwarmService
 
     IObservable<Unit> Stopped { get; }
 
-    Swarm Swarm { get; }
+    // Swarm Swarm { get; }
 
     bool IsRunning { get; }
 }

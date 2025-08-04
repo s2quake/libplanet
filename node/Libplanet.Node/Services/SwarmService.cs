@@ -27,7 +27,7 @@ internal sealed class SwarmService(
     private IObservable<Unit>? _startedObservable;
     private IObservable<Unit>? _stoppedObservable;
 
-    private Swarm? _swarm;
+    // private Swarm? _swarm;
     private Task _startTask = Task.CompletedTask;
     private Seed? _blocksyncSeed;
     private Seed? _consensusSeed;
@@ -38,13 +38,13 @@ internal sealed class SwarmService(
     IObservable<Unit> ISwarmService.Stopped
         => _stoppedObservable ??= _stopped.AsSystemObservable();
 
-    public bool IsRunning => _swarm is not null;
+    public bool IsRunning { get; private set; }
 
-    public Swarm Swarm => _swarm ?? throw new InvalidOperationException("Node is not running.");
+    // public Swarm Swarm => _swarm ?? throw new InvalidOperationException("Node is not running.");
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_swarm is not null)
+        if (IsRunning)
         {
             throw new InvalidOperationException("Node is already running.");
         }
@@ -103,13 +103,13 @@ internal sealed class SwarmService(
             ? CreateConsensusServiceOption(privateKey, _validatorOptions)
             : (ConsensusServiceOptions?)null;
 
-        _swarm = new Swarm(
-            signer: privateKey.AsSigner(),
-            blockchain: blockChain,
-            options: swarmOptions,
-            consensusOption: consensusServiceOption);
-        _startTask = _swarm.StartAsync(cancellationToken: default);
-        _logger.LogDebug("Node.Swarm is starting: {Address}", _swarm.Address);
+        // _swarm = new Swarm(
+        //     signer: privateKey.AsSigner(),
+        //     blockchain: blockChain,
+        //     options: swarmOptions,
+        //     consensusOption: consensusServiceOption);
+        // _startTask = _swarm.StartAsync(cancellationToken: default);
+        // _logger.LogDebug("Node.Swarm is starting: {Address}", _swarm.Address);
         // await _swarm.BootstrapAsync(cancellationToken: default);
         // _logger.LogDebug("Node.Swarm is bootstrapped: {Address}", _swarm.Address);
         _started.OnNext(Unit.Default);
@@ -117,18 +117,18 @@ internal sealed class SwarmService(
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (_swarm is null)
+        if (!IsRunning)
         {
             throw new InvalidOperationException("Node is not running.");
         }
 
-        await _swarm.StopAsync(cancellationToken: cancellationToken);
+        // await _swarm.StopAsync(cancellationToken: cancellationToken);
         await _startTask;
-        _logger.LogDebug("Node.Swarm is stopping: {Address}", _swarm.Address);
-        await _swarm.DisposeAsync();
-        _logger.LogDebug("Node.Swarm is stopped: {Address}", _swarm.Address);
+        // _logger.LogDebug("Node.Swarm is stopping: {Address}", _swarm.Address);
+        // await _swarm.DisposeAsync();
+        // _logger.LogDebug("Node.Swarm is stopped: {Address}", _swarm.Address);
 
-        _swarm = null;
+        // _swarm = null;
         _startTask = Task.CompletedTask;
 
         if (_consensusSeed is not null)
@@ -148,11 +148,11 @@ internal sealed class SwarmService(
 
     public async ValueTask DisposeAsync()
     {
-        if (_swarm is not null)
-        {
-            await _swarm.StopAsync(cancellationToken: default);
-            await _swarm.DisposeAsync();
-        }
+        // if (_swarm is not null)
+        // {
+        //     await _swarm.StopAsync(cancellationToken: default);
+        //     await _swarm.DisposeAsync();
+        // }
 
         await (_startTask ?? Task.CompletedTask);
         _startTask = Task.CompletedTask;

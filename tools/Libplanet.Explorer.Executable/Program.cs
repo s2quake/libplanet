@@ -179,7 +179,7 @@ If omitted (default) explorer only the local blockchain store.")]
                     .UseUrls($"http://{options.Host}:{options.Port}/")
                     .Build();
 
-                Swarm swarm = null;
+                // Swarm swarm = null;
                 if (!(options.Seeds is null))
                 {
                     string aggregatedSeedStrings =
@@ -227,36 +227,36 @@ If omitted (default) explorer only the local blockchain store.")]
 
                     // var transport = new NetMQTransport(privateKey.AsSigner(), transportOptions);
 
-                    swarm = new Swarm(
-                        privateKey.AsSigner(),
-                        blockChain,
-                        options: swarmOptions);
+                    // swarm = new Swarm(
+                    //     privateKey.AsSigner(),
+                    //     blockChain,
+                    //     options: swarmOptions);
                 }
 
-                Startup.SwarmSingleton = swarm;
+                // Startup.SwarmSingleton = swarm;
 
-                using (var cts = new CancellationTokenSource())
-                await using (swarm)
-                {
-                    Console.CancelKeyPress += (sender, eventArgs) =>
-                    {
-                        eventArgs.Cancel = true;
-                        cts.Cancel();
-                    };
+                // using (var cts = new CancellationTokenSource())
+                // await using (swarm)
+                // {
+                //     Console.CancelKeyPress += (sender, eventArgs) =>
+                //     {
+                //         eventArgs.Cancel = true;
+                //         cts.Cancel();
+                //     };
 
-                    try
-                    {
-                        await Task.WhenAll(
-                            webHost.RunAsync(cts.Token),
-                            StartSwarmAsync(swarm, cts.Token));
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        using var cts1 = new CancellationTokenSource(1000);
-                        await swarm?.StopAsync(cts1.Token)
-                            .ContinueWith(_ => NetMQConfig.Cleanup(false));
-                    }
-                }
+                //     try
+                //     {
+                //         await Task.WhenAll(
+                //             webHost.RunAsync(cts.Token),
+                //             StartSwarmAsync(swarm, cts.Token));
+                //     }
+                //     catch (OperationCanceledException)
+                //     {
+                //         using var cts1 = new CancellationTokenSource(1000);
+                //         await swarm?.StopAsync(cts1.Token)
+                //             .ContinueWith(_ => NetMQConfig.Cleanup(false));
+                //     }
+                // }
             }
             catch (InvalidOptionValueException e)
             {
@@ -308,31 +308,31 @@ If omitted (default) explorer only the local blockchain store.")]
             };
         }
 
-        private static async Task StartSwarmAsync(Swarm swarm, CancellationToken cancellationToken)
-        {
-            if (swarm is null)
-            {
-                Startup.PreloadedSingleton = true;
-                return;
-            }
+        // private static async Task StartSwarmAsync(Swarm swarm, CancellationToken cancellationToken)
+        // {
+        //     if (swarm is null)
+        //     {
+        //         Startup.PreloadedSingleton = true;
+        //         return;
+        //     }
 
-            try
-            {
-                await Console.Error.WriteLineAsync("Bootstrapping.");
-                // await swarm.BootstrapAsync(cancellationToken);
-            }
-            catch (TimeoutException)
-            {
-                await Console.Error.WriteLineAsync("No any neighbors.");
-            }
+        //     try
+        //     {
+        //         await Console.Error.WriteLineAsync("Bootstrapping.");
+        //         // await swarm.BootstrapAsync(cancellationToken);
+        //     }
+        //     catch (TimeoutException)
+        //     {
+        //         await Console.Error.WriteLineAsync("No any neighbors.");
+        //     }
 
-            // await Console.Error.WriteLineAsync("Starts preloading.");
-            // await swarm.PreloadAsync(cancellationToken: cancellationToken);
-            // await Console.Error.WriteLineAsync("Finished preloading.");
-            Startup.PreloadedSingleton = true;
+        //     // await Console.Error.WriteLineAsync("Starts preloading.");
+        //     // await swarm.PreloadAsync(cancellationToken: cancellationToken);
+        //     // await Console.Error.WriteLineAsync("Finished preloading.");
+        //     Startup.PreloadedSingleton = true;
 
-            await swarm.StartAsync(cancellationToken: cancellationToken);
-        }
+        //     await swarm.StartAsync(cancellationToken: cancellationToken);
+        // }
 
         // internal class DumbBlockPolicy : BlockPolicy
         // {
@@ -378,7 +378,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             public Libplanet.Data.Repository Store => StoreSingleton;
 
-            public Swarm Swarm => SwarmSingleton;
+            // public Swarm Swarm => SwarmSingleton;
 
             // XXX workaround for build; we decided to decommission Libplanet.Explorer.Executable
             // project, but it will be removed after we move the schema command. As this project
@@ -392,7 +392,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
             internal static Libplanet.Data.Repository StoreSingleton { get; set; }
 
-            internal static Swarm SwarmSingleton { get; set; }
+            // internal static Swarm SwarmSingleton { get; set; }
         }
 
         private class NoOpStateStore : StateIndex

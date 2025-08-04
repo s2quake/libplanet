@@ -14,7 +14,7 @@ namespace Libplanet.Explorer.Interfaces
 
         Libplanet.Data.Repository Store { get; }
 
-        Swarm Swarm { get; }
+        // Swarm Swarm { get; }
 
         IBlockChainIndex Index { get; }
     }
