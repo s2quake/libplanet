@@ -47,25 +47,6 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
 
     public Transaction this[TxId txId] => _stagedIndex[txId];
 
-    // public bool TryAdd(Transaction transaction)
-    // {
-    //     if (transaction.Timestamp + options.LifeTime < DateTimeOffset.UtcNow)
-    //     {
-    //         return false;
-    //     }
-
-    //     // compare with repository genesis
-
-    //     if (_stagedIndex.TryAdd(transaction))
-    //     {
-    //         AddNonce(transaction);
-    //         _addedSubject.OnNext(transaction);
-    //         return true;
-    //     }
-
-    //     return false;
-    // }
-
     public void Add(Transaction transaction)
     {
         if (_committedIndex.ContainsKey(transaction.Id))
@@ -74,9 +55,14 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
                 $"Transaction {transaction.Id} already exists in the committed transactions.", nameof(transaction));
         }
 
-        options.Validate(transaction);
+        if (repository.GenesisBlockHash != transaction.GenesisHash)
+        {
+            throw new ArgumentException(
+                $"Transaction {transaction.Id} has a different genesis hash than the repository's genesis block.",
+                nameof(transaction));
+        }
 
-        // compare with repository genesis
+        options.Validate(transaction);
 
         if (!_stagedIndex.TryAdd(transaction))
         {

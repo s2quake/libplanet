@@ -620,23 +620,20 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task IgnoreTransactionFromDifferentGenesis()
     {
         var validKey = new PrivateKey();
-
-        void IsSignerValid(Transaction tx)
-        {
-            var validAddress = validKey.Address;
-            if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
-            {
-                throw new InvalidOperationException("invalid signer");
-            }
-        }
-
         var blockchainOptions = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
                 Validators =
                 [
-                    new RelayObjectValidator<Transaction>(IsSignerValid),
+                    new RelayObjectValidator<Transaction>(tx =>
+                    {
+                        var validAddress = validKey.Address;
+                        if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
+                        {
+                            throw new InvalidOperationException("invalid signer");
+                        }
+                    }),
                 ],
             },
         };
@@ -646,18 +643,12 @@ public partial class SwarmTest(ITestOutputHelper output)
         var transportB = TestUtils.CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         using var peerExplorerA = new PeerExplorer(transportA, peersA);
-        // var peersB = new PeerCollection(transportB.Peer.Address);
 
         var genesisBlockA = new BlockBuilder { }.Create(validKey);
         var genesisBlockB = new BlockBuilder { }.Create(validKey);
-
         var blockchainA = new Blockchain(genesisBlockA, blockchainOptions);
         var blockchainB = new Blockchain(genesisBlockB, blockchainOptions);
 
-        // var swarmA = await CreateSwarm(
-        //     MakeBlockchain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue));
-        // var swarmB = await CreateSwarm(
-        //     MakeBlockchain(blockchainOptions, privateKey: validKey, timestamp: DateTimeOffset.MinValue.AddSeconds(1)));
         var syncResponderServiceA = new TransactionSynchronizationResponderService(blockchainA, transportA);
         var syncServiceB = new TransactionSynchronizationService(blockchainB, transportB);
 
@@ -672,15 +663,10 @@ public partial class SwarmTest(ITestOutputHelper output)
         var tx = blockchainA.StagedTransactions.Add(validKey);
 
         await services.StartAsync(default);
-        // await swarmB.StartAsync(default);
-
-        // await swarmA.AddPeersAsync([swarmB.Peer], default);
         peersA.Add(transportB.Peer);
 
-
         peerExplorerA.BroadcastTransaction([tx]);
-        // swarmA.BroadcastTxs([tx]);
-        // await swarmB.TxReceived.WaitAsync(default);
+        await syncServiceB.StageFailed.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Throws<KeyNotFoundException>(() => blockchainB.Transactions[tx.Id]);
         Assert.DoesNotContain(tx.Id, blockchainB.StagedTransactions.Keys);

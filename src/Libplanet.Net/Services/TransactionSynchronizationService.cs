@@ -20,6 +20,8 @@ internal sealed class TransactionSynchronizationService(
 
     public IObservable<Transaction> Staged => _stagedSubject;
 
+    public IObservable<(Transaction, Exception)> StageFailed => _stageFailedSubject;
+
     public TransactionDemandCollection TransactionDemands { get; } = new();
 
     public async Task SynchronizeAsync(CancellationToken cancellationToken)
