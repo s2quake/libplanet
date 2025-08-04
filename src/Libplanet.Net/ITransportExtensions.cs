@@ -25,26 +25,19 @@ public static class ITransportExtensions
         using var timeoutCancellationTokenSource = new CancellationTokenSource(request.ReplyTimeout);
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             @this.StoppingToken, cancellationToken, timeoutCancellationTokenSource.Token);
-        var resetEvent = new ManualResetEventSlim(false);
-        MessageEnvelope? response = null;
-        using var _1 = @this.MessageRouter.Register<T>((m, e) =>
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var _1 = cancellationTokenSource.Token.Register(() => tcs.TrySetCanceled(cancellationTokenSource.Token));
+        using var _2 = @this.MessageRouter.Register<T>((m, e) =>
         {
             if (e.ReplyTo == request.Identity)
             {
-                response = e;
-                resetEvent.Set();
+                tcs.SetResult((T)e.Message);
             }
         });
 
         try
         {
-            await Task.Run(() => resetEvent.Wait(cancellationTokenSource.Token), cancellationTokenSource.Token);
-            if (response is null)
-            {
-                throw new UnreachableException("No response received before cancellation.");
-            }
-
-            return (T)response.Message;
+            return await tcs.Task;
         }
         catch (OperationCanceledException e) when (timeoutCancellationTokenSource.IsCancellationRequested)
         {

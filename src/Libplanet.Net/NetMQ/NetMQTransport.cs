@@ -28,7 +28,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
     }
 
-    public MessageRouter MessageRouter { get; } = [];
+    public MessageRouter MessageRouter { get; } = new MessageRouter(options.Protocol.Hash);
 
     public Peer Peer => _peer;
 

@@ -8,20 +8,18 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
-public sealed class MessageRouter(IEnumerable<IMessageHandler> handlers)
+public sealed class MessageRouter(ProtocolHash protocolHash)
     : IEnumerable<IMessageHandler>, IAsyncDisposable, IMessageRouter
 {
     private readonly Subject<(IMessageHandler, Exception)> _errorOccurredSubject = new();
-    private readonly Dictionary<Type, List<IMessageHandler>> _handlersByType = CreateHandlersByType(handlers);
-    private readonly List<IMessageHandler> _handlerList = [.. handlers];
+    private readonly Subject<MessageEnvelope> _invalidProtocolSubject = new();
+    private readonly Dictionary<Type, List<IMessageHandler>> _handlersByType = [];
+    private readonly List<IMessageHandler> _handlerList = [];
     private readonly ReaderWriterLockSlim _lock = new();
 
-    public MessageRouter()
-        : this([])
-    {
-    }
-
     public IObservable<(IMessageHandler, Exception)> ErrorOccurred => _errorOccurredSubject;
+
+    public IObservable<MessageEnvelope> InvalidProtocol => _invalidProtocolSubject;
 
     public int Count
     {
@@ -100,6 +98,12 @@ public sealed class MessageRouter(IEnumerable<IMessageHandler> handlers)
 
     public void Handle(MessageEnvelope messageEnvelope)
     {
+        if (messageEnvelope.ProtocolHash != protocolHash)
+        {
+            _invalidProtocolSubject.OnNext(messageEnvelope);
+            return;
+        }
+
         using var _ = new ReadScope(_lock);
         var message = messageEnvelope.Message;
         var messageType = message.GetType();
@@ -134,14 +138,6 @@ public sealed class MessageRouter(IEnumerable<IMessageHandler> handlers)
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    private static Dictionary<Type, List<IMessageHandler>> CreateHandlersByType(IEnumerable<IMessageHandler> handlers)
-    {
-        var query = from handler in handlers
-                    group handler by handler.MessageType into @group
-                    select new { Type = @group.Key, Handlers = @group.ToList() };
-        return query.ToDictionary(item => item.Type, item => item.Handlers);
-    }
 
     private void AddInternal(IMessageHandler handler)
     {

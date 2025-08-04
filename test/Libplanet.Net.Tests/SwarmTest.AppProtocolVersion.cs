@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 using Libplanet.Net.Options;
 using Libplanet.Types;
 using Libplanet.TestUtilities.Extensions;
+using Libplanet.Net.Components;
+using Libplanet.Extensions;
+using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.Tests;
 
@@ -12,68 +15,71 @@ public partial class SwarmTest
     public async Task DetectAppProtocolVersion()
     {
         var signer = new PrivateKey();
-        var v2 = new SwarmOptions()
+        var v2 = new TransportOptions()
         {
-            TransportOptions = new TransportOptions()
-            {
-                Protocol = new ProtocolBuilder { Version = 2 }.Create(signer),
-            },
+            Protocol = new ProtocolBuilder { Version = 2 }.Create(signer),
         };
-        var v3 = new SwarmOptions
+        var v3 = new TransportOptions
         {
-            TransportOptions = new TransportOptions()
-            {
-                Protocol = new ProtocolBuilder { Version = 3 }.Create(signer),
-            },
+            Protocol = new ProtocolBuilder { Version = 3 }.Create(signer),
         };
-        await using var a = await CreateSwarm(options: v2);
-        await using var b = await CreateSwarm(options: v3);
-        await using var c = await CreateSwarm(options: v2);
-        await using var d = await CreateSwarm(options: v3);
 
-        await c.StartAsync(default);
-        await d.StartAsync(default);
+        var transportA = TestUtils.CreateTransport(options: v2);
+        var transportB = TestUtils.CreateTransport(options: v3);
+        var transportC = TestUtils.CreateTransport(options: v2);
+        var transportD = TestUtils.CreateTransport(options: v3);
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        var peersC = new PeerCollection(transportC.Peer.Address);
+        var peersD = new PeerCollection(transportD.Peer.Address);
+        using var peerExplorerA = new PeerExplorer(transportA, peersA);
+        using var peerExplorerB = new PeerExplorer(transportB, peersB);
+        using var peerExplorerC = new PeerExplorer(transportC, peersC);
+        using var peerExplorerD = new PeerExplorer(transportD, peersD);
 
-        var peers = new[] { c.Peer, d.Peer };
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            transportC,
+            transportD,
+        };
+
+        await transports.StartAsync(default);
+
+        var peers = new[] { transportC.Peer, transportD.Peer };
 
         foreach (var peer in peers)
         {
-            await a.AddPeersAsync([peer], default);
-            await b.AddPeersAsync([peer], default);
+            await peerExplorerA.PingAsync(peer, default);
+            await peerExplorerB.PingAsync(peer, default);
         }
 
-        Assert.Equal([c.Peer], [.. a.Peers]);
-        Assert.Equal([d.Peer], [.. b.Peers]);
+        Assert.Equal([transportC.Peer, transportD.Peer], [.. peersA]);
+        Assert.Equal([transportC.Peer, transportD.Peer], [.. peersB]);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task HandleDifferentAppProtocolVersion()
     {
-        var isCalled = false;
-
         var signer = new PrivateKey();
-        var v1 = new SwarmOptions
+        var v1 = new TransportOptions
         {
-            TransportOptions = new TransportOptions
-            {
-                Protocol = new ProtocolBuilder { Version = 1 }.Create(signer),
-            },
+            Protocol = new ProtocolBuilder { Version = 1 }.Create(signer),
         };
-        var v2 = new SwarmOptions
+        var v2 = new TransportOptions
         {
-            TransportOptions = new TransportOptions
-            {
-                Protocol = new ProtocolBuilder { Version = 2 }.Create(signer),
-            },
+            Protocol = new ProtocolBuilder { Version = 2 }.Create(signer),
         };
-        await using var a = await CreateSwarm(options: v1);
-        await using var b = await CreateSwarm(options: v2);
+        await using var transportA = TestUtils.CreateTransport(options: v1);
+        await using var transportB = TestUtils.CreateTransport(options: v2);
 
-        await b.StartAsync(default);
+        await transportA.StartAsync(default);
+        await transportB.StartAsync(default);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => a.AddPeersAsync([b.Peer], default));
-
-        Assert.True(isCalled);
+        var waitTask = transportB.MessageRouter.InvalidProtocol.WaitAsync(m => m.Message is PingMessage);
+        await Assert.ThrowsAsync<TimeoutException>(() => transportA.PingAsync(transportB.Peer, default));
+        await waitTask.WaitAsync(TimeSpan.FromSeconds(5));
     }
 
     [Fact(Timeout = Timeout)]

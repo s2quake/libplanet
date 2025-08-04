@@ -6,6 +6,8 @@ public interface IMessageRouter
 {
     IObservable<(IMessageHandler MessageHandler, Exception Exception)> ErrorOccurred { get; }
 
+    IObservable<MessageEnvelope> InvalidProtocol { get; }
+
     IDisposable Register(IMessageHandler handler);
 
     IDisposable Register<T>(Action<T, MessageEnvelope> action)
