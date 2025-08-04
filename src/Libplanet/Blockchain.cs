@@ -55,7 +55,7 @@ public partial class Blockchain
         Id = _repository.Id;
         Blocks = new BlockCollection(repository);
         BlockCommits = new BlockCommitCollection(repository);
-        StagedTransactions = new StagedTransactionCollection(repository);
+        StagedTransactions = new StagedTransactionCollection(repository, options.TransactionOptions);
         Transactions = new TransactionCollection(repository);
         PendingEvidence = new PendingEvidenceCollection(repository);
         Evidence = new EvidenceCollection(repository);

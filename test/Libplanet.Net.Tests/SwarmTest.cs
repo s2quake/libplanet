@@ -578,10 +578,8 @@ public partial class SwarmTest(ITestOutputHelper output)
         var blockchainA = MakeBlockchain(blockchainOptions, privateKey: validKey);
         var blockchainB = MakeBlockchain(blockchainOptions, privateKey: validKey);
 
-        var syncResponderServiceA = new TransactionSynchronizationResponderService(
-            blockchainA, transportA);
-        var syncServiceB = new TransactionSynchronizationService(
-            blockchainB, transportB);
+        var syncResponderServiceA = new TransactionSynchronizationResponderService(blockchainA, transportA);
+        var syncServiceB = new TransactionSynchronizationService(blockchainB, transportB);
 
         await using var transports = new ServiceCollection
         {
@@ -596,7 +594,11 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         var invalidKey = new PrivateKey();
         var validTx = blockchainA.StagedTransactions.Add(validKey);
-        var invalidTx = blockchainA.StagedTransactions.Add(invalidKey);
+        var invalidTx = new TransactionBuilder
+        {
+            GenesisHash = blockchainB.Genesis.BlockHash,
+        }.Create(invalidKey);
+        Assert.Throws<InvalidOperationException>(() => blockchainA.StagedTransactions.Add(invalidKey));
 
         await transports.StartAsync(default);
         await services.StartAsync(default);
@@ -606,7 +608,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         peerExplorerA.BroadcastTransaction([validTx, invalidTx]);
         await syncServiceB.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
-        Assert.Equal(blockchainB.Transactions[validTx.Id], validTx);
+        Assert.Equal(blockchainB.StagedTransactions[validTx.Id], validTx);
         Assert.Throws<KeyNotFoundException>(
             () => blockchainB.Transactions[invalidTx.Id]);
 
