@@ -2,17 +2,16 @@ using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Components;
 
-public sealed class BlockFetchingHandler(Blockchain blockchain, ITransport transport, int maxAccessCount)
+public sealed class EvidenceFetchingResponder(Blockchain blockchain, ITransport transport, int maxAccessCount)
     : IDisposable
 {
     private readonly IDisposable _handlerRegistration = transport.MessageRouter.RegisterMany(
     [
-        new BlockHashRequestMessageHandler(blockchain, transport),
-        new BlockRequestMessageHandler(blockchain, transport, maxAccessCount),
+        new EvidenceRequestMessageHandler(blockchain, transport, maxAccessCount),
     ]);
     private bool _disposed;
 
-    public BlockFetchingHandler(Blockchain blockchain, ITransport transport)
+    public EvidenceFetchingResponder(Blockchain blockchain, ITransport transport)
         : this(blockchain, transport, 3)
     {
     }

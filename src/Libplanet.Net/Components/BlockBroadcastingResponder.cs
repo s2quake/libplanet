@@ -2,7 +2,7 @@ using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Components;
 
-public sealed class BlockBroadcastingHandler(
+public sealed class BlockBroadcastingResponder(
     Blockchain blockchain, ITransport transport, BlockDemandCollection blockDemands)
     : IDisposable
 {

@@ -7,13 +7,13 @@ namespace Libplanet.Net.Services;
 public sealed class EvidenceSynchronizationResponderService(Blockchain blockchain, ITransport transport)
     : ServiceBase
 {
-    private EvidenceFetchingHandler? _evidenceFetchingHandler;
+    private EvidenceFetchingResponder? _evidenceFetchingHandler;
 
     public int MaxAccessCount { get; set; } = 3;
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _evidenceFetchingHandler = new EvidenceFetchingHandler(blockchain, transport, MaxAccessCount);
+        _evidenceFetchingHandler = new EvidenceFetchingResponder(blockchain, transport, MaxAccessCount);
         await Task.CompletedTask;
     }
 

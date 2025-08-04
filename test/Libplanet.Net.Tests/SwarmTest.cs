@@ -675,81 +675,96 @@ public partial class SwarmTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task DoNotReceiveBlockFromNodeHavingDifferentGenesisBlock()
     {
-        var keyA = ByteUtility.ParseHex(
-            "8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
-        var keyB = ByteUtility.ParseHex(
-            "c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
-        var keyC = ByteUtility.ParseHex(
-            "941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
-
-        var privateKeyA = new PrivateKey(keyA);
-        var privateKeyB = new PrivateKey(keyB);
-        var privateKeyC = new PrivateKey(keyC);
+        var privateKeyA = PrivateKey.Parse("8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
+        var privateKeyB = PrivateKey.Parse("c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
+        var privateKeyC = PrivateKey.Parse("941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
 
         var signerAddress = new PrivateKey().Address;
 
         var actionsA = new[] { DumbAction.Create((signerAddress, "1")) };
         var actionsB = new[] { DumbAction.Create((signerAddress, "2")) };
 
-        var genesisChainA = MakeBlockchain(
-            new BlockchainOptions(),
-            actionsA,
-            null,
-            privateKeyA);
-        var genesisBlockA = genesisChainA.Genesis;
-        var genesisChainB = MakeBlockchain(
-            new BlockchainOptions(),
-            actionsB,
-            null,
-            privateKeyB);
-        var genesisChainC = MakeBlockchain(
-            new BlockchainOptions(),
-            genesisBlock: genesisBlockA);
+        var blockchainA = MakeBlockchain(new BlockchainOptions(), actionsA, null, privateKeyA);
+        var genesisBlockA = blockchainA.Genesis;
+        var blockchainB = MakeBlockchain(new BlockchainOptions(), actionsB, null, privateKeyB);
+        var blockchainC = MakeBlockchain(new BlockchainOptions(), genesisBlock: genesisBlockA);
 
-        var swarmA =
-            await CreateSwarm(genesisChainA, privateKeyA);
-        var swarmB =
-            await CreateSwarm(genesisChainB, privateKeyB);
-        var swarmC =
-            await CreateSwarm(genesisChainC, privateKeyC);
+        var transportA = TestUtils.CreateTransport(privateKeyA);
+        var transportB = TestUtils.CreateTransport(privateKeyB);
+        var transportC = TestUtils.CreateTransport(privateKeyC);
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        var peersC = new PeerCollection(transportC.Peer.Address);
+        var peerExplorerA = new PeerExplorer(transportA, peersA);
+        var syncResponderServiceA = new BlockSynchronizationResponderService(blockchainA, transportA);
+        var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
+        // var syncServiceC = new BlockSynchronizationService(blockchainC, transportC);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmC.StartAsync(default);
+        await using var services = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            transportC,
+            syncResponderServiceA,
+            syncServiceB,
+            // syncServiceC,
+        };
 
-        await swarmB.AddPeersAsync([swarmA.Peer], default);
-        await swarmC.AddPeersAsync([swarmA.Peer], default);
+        // var swarmA =
+        //     await CreateSwarm(blockchainA, privateKeyA);
+        // var swarmB =
+        //     await CreateSwarm(blockchainB, privateKeyB);
+        // var swarmC =
+        //     await CreateSwarm(blockchainC, privateKeyC);
 
-        var block = swarmA.Blockchain.ProposeBlock(privateKeyA);
-        swarmA.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+        await services.StartAsync(default);
 
-        Task.WaitAll(
-        [
-            // swarmC.BlockAppended.WaitAsync(default),
-                Task.Run(() => swarmA.BroadcastBlock(block)),
-            ]);
+        peersB.Add(transportA.Peer);
+        peersC.Add(transportA.Peer);
 
-        Assert.NotEqual(genesisChainA.Genesis, genesisChainB.Genesis);
-        Assert.Equal(genesisChainA.Blocks.Keys, genesisChainC.Blocks.Keys);
-        Assert.Equal(2, genesisChainA.Blocks.Count);
-        Assert.Equal(1, genesisChainB.Blocks.Count);
-        Assert.Equal(2, genesisChainC.Blocks.Count);
+        // await swarmB.AddPeersAsync([swarmA.Peer], default);
+        // await swarmC.AddPeersAsync([swarmA.Peer], default);
+
+        var (block, _) = blockchainA.ProposeAndAppend(privateKeyA);
+        // var block = swarmA.Blockchain.ProposeBlock(privateKeyA);
+        // swarmA.Blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+
+        // Task.WaitAll(
+        // [
+        //     // swarmC.BlockAppended.WaitAsync(default),
+        //         Task.Run(() => swarmA.BroadcastBlock(block)),
+        //     ]);
+
+        peerExplorerA.BroadcastBlock(blockchainA, block, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+
+        await Task.WhenAll(
+            syncServiceB.FetchingFailed.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
+            // syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
+
+        Assert.NotEqual(blockchainA.Genesis, blockchainB.Genesis);
+        Assert.Equal(blockchainA.Blocks.Keys, blockchainC.Blocks.Keys);
+        Assert.Equal(2, blockchainA.Blocks.Count);
+        Assert.Single(blockchainB.Blocks);
+        Assert.Equal(2, blockchainC.Blocks.Count);
 
         Assert.Equal(
             "1",
-            genesisChainA
+            blockchainA
                 .GetWorld()
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(signerAddress));
         Assert.Equal(
             "2",
-            genesisChainB
+            blockchainB
                 .GetWorld()
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(signerAddress));
         Assert.Equal(
             "1",
-            genesisChainC
+            blockchainC
                 .GetWorld()
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(signerAddress));

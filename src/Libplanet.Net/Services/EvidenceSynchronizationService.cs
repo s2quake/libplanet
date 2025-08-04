@@ -15,7 +15,7 @@ internal sealed class EvidenceSynchronizationService(
     private readonly Blockchain _blockchain = blockchain;
     private readonly ITransport _transport = transport;
     private readonly EvidenceFetcher _evidenceFetcher = new(blockchain, transport);
-    private EvidenceBroadcastingHandler? _transactionBroadcastingHandler;
+    private EvidenceBroadcastingResponder? _transactionBroadcastingHandler;
 
     public IObservable<ImmutableArray<EvidenceBase>> EvidenceAdded => _evidenceAddedSubject;
 
@@ -34,7 +34,7 @@ internal sealed class EvidenceSynchronizationService(
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _transactionBroadcastingHandler = new EvidenceBroadcastingHandler(_transport, EvidenceDemands);
+        _transactionBroadcastingHandler = new EvidenceBroadcastingResponder(_transport, EvidenceDemands);
         EvidenceDemands.CollectionChanged += EvidenceDemands_CollectionChanged;
         await Task.CompletedTask;
     }

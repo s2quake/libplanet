@@ -7,13 +7,13 @@ namespace Libplanet.Net.Services;
 public sealed class BlockSynchronizationResponderService(Blockchain blockchain, ITransport transport)
     : ServiceBase
 {
-    private BlockFetchingHandler? _blockFetchingHandler;
+    private BlockFetchingResponder? _blockFetchingHandler;
 
     public int MaxAccessCount { get; set; } = 3;
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _blockFetchingHandler = new BlockFetchingHandler(blockchain, transport, MaxAccessCount);
+        _blockFetchingHandler = new BlockFetchingResponder(blockchain, transport, MaxAccessCount);
         await Task.CompletedTask;
     }
 

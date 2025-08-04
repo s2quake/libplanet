@@ -2,7 +2,7 @@ using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Components;
 
-public sealed class EvidenceBroadcastingHandler(
+public sealed class EvidenceBroadcastingResponder(
     ITransport transport, EvidenceDemandCollection evidenceDemands)
     : IDisposable
 {

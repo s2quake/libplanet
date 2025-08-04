@@ -17,7 +17,7 @@ internal sealed class BlockSynchronizationService : ServiceBase
     private readonly BlockBranchResolver _blockBranchResolver;
     private readonly BlockBranchAppender _blockBranchAppender;
     private readonly DisposerCollection _subscriptions;
-    private BlockBroadcastingHandler? _blockBroadcastingHandler;
+    private BlockBroadcastingResponder? _blockBroadcastingResponder;
 
     public BlockSynchronizationService(Blockchain blockchain, ITransport transport)
     {
@@ -32,7 +32,7 @@ internal sealed class BlockSynchronizationService : ServiceBase
             _blockBranchAppender.BlockBranchAppendFailed.Subscribe(_appendingFailedSubject.OnNext),
             _blockBranchResolver.BlockBranchCreated.Subscribe(BlockBranchCreated),
             _blockBranchResolver.BlockBranchCreationFailed.Subscribe(_fetchingFailedSubject.OnNext),
-            BlockDemands.Added.Subscribe(BlockDemandsAdded),
+            BlockDemands.Added.Subscribe(BlockDemandAdded),
         ];
     }
 
@@ -44,7 +44,7 @@ internal sealed class BlockSynchronizationService : ServiceBase
 
     public IObservable<(BlockDemand, Exception)> FetchingFailed => _fetchingFailedSubject;
 
-    public BlockDemandCollection BlockDemands { get; } = new();
+    public BlockDemandCollection BlockDemands { get; } = [];
 
     public BlockBranchCollection BlockBranches { get; } = [];
 
@@ -56,21 +56,21 @@ internal sealed class BlockSynchronizationService : ServiceBase
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _blockBroadcastingHandler = new BlockBroadcastingHandler(_blockchain, _transport, BlockDemands);
+        _blockBroadcastingResponder = new BlockBroadcastingResponder(_blockchain, _transport, BlockDemands);
         await Task.CompletedTask;
     }
 
     protected override Task OnStopAsync(CancellationToken cancellationToken)
     {
-        _blockBroadcastingHandler?.Dispose();
-        _blockBroadcastingHandler = null;
+        _blockBroadcastingResponder?.Dispose();
+        _blockBroadcastingResponder = null;
         return Task.CompletedTask;
     }
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        _blockBroadcastingHandler?.Dispose();
-        _blockBroadcastingHandler = null;
+        _blockBroadcastingResponder?.Dispose();
+        _blockBroadcastingResponder = null;
 
         _subscriptions.Dispose();
         _blockBranchResolver.Dispose();
@@ -79,7 +79,7 @@ internal sealed class BlockSynchronizationService : ServiceBase
         await base.DisposeAsyncCore();
     }
 
-    private void BlockDemandsAdded(BlockDemand demand)
+    private void BlockDemandAdded(BlockDemand demand)
     {
         if (IsRunning)
         {
