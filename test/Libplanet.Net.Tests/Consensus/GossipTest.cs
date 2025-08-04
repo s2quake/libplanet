@@ -1,8 +1,6 @@
-using System.Net;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests.Store;
-using Libplanet.Types;
 using Xunit.Abstractions;
 using Libplanet.TestUtilities;
 using Libplanet.Net.Components;
@@ -20,8 +18,8 @@ public sealed class GossipTest(ITestOutputHelper output)
         var received1 = false;
         var received2 = false;
         var receivedEvent = new ManualResetEvent(false);
-        await using var transport1 = TestUtils.CreateTransport();
-        await using var transport2 = TestUtils.CreateTransport();
+        var transport1 = TestUtils.CreateTransport();
+        var transport2 = TestUtils.CreateTransport();
         var peers1 = new PeerCollection(transport1.Peer.Address)
         {
             transport2.Peer,
@@ -199,26 +197,4 @@ public sealed class GossipTest(ITestOutputHelper output)
         await Task.Delay(2 * 1000);
         Assert.Equal(1, handled);
     }
-
-    private static Peer CreatePeer(PrivateKey? privateKey = null, int? port = null) => new()
-    {
-        Address = (privateKey ?? new PrivateKey()).Address,
-        EndPoint = new DnsEndPoint("127.0.0.1", port ?? 0),
-    };
-
-    // private static Gossip CreateGossip(
-    //     PrivateKey? privateKey = null,
-    //     int? port = null,
-    //     PeerCollection? peerExplorer = null)
-    // {
-    //     var transport = TestUtils.CreateTransport(privateKey, port);
-    //     return new Gossip(transport, peerExplorer.Peers);
-    // }
-
-    // private static Gossip CreateGossip(
-    //     ITransport transport,
-    //     PeerExplorer peerExplorer)
-    // {
-    //     return new Gossip(transport, peerExplorer);
-    // }
 }
