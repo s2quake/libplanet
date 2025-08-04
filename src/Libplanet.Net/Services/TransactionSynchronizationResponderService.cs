@@ -9,11 +9,11 @@ public sealed class TransactionSynchronizationResponderService(Blockchain blockc
 {
     private TransactionFetchingResponder? _fetchingResponder;
 
-    public int MaxAccessCount { get; set; } = 3;
+    public int MaxConcurrentResponses { get; set; } = 3;
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _fetchingResponder = new TransactionFetchingResponder(blockchain, transport, MaxAccessCount);
+        _fetchingResponder = new TransactionFetchingResponder(blockchain, transport, MaxConcurrentResponses);
         await Task.CompletedTask;
     }
 

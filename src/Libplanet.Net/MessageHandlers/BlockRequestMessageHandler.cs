@@ -5,7 +5,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class BlockRequestMessageHandler(Blockchain blockchain, ITransport transport, int maxConcurrentResponses)
+internal sealed class BlockRequestMessageHandler(
+    Blockchain blockchain, ITransport transport, int maxConcurrentResponses)
     : MessageHandlerBase<BlockRequestMessage>, IDisposable
 {
     private readonly Blockchain _blockchain = blockchain;

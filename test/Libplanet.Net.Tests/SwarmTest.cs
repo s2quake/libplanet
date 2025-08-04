@@ -1066,27 +1066,29 @@ public partial class SwarmTest(ITestOutputHelper output)
     [RetryFact(10, Timeout = Timeout)]
     public async Task RegulateGetBlocksMsg()
     {
-        var options = new SwarmOptions
+        const int MaxConcurrentResponses = 3;
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var blockchainA = MakeBlockchain();
+        var syncResponderServiceA = new BlockSynchronizationResponderService(blockchainA, transportA)
         {
-            TaskRegulationOptions =
-            {
-                MaxTransferBlocksTaskCount = 3,
-            },
-            TransportOptions = new TransportOptions
-            {
-                Host = "localhost",
-            },
+            MaxConcurrentResponses = MaxConcurrentResponses,
         };
 
-        await using var swarm = await CreateSwarm(options: options);
-        var transport = swarm.Transport;
+        await using var services = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            syncResponderServiceA,
+        };
 
-        await swarm.StartAsync(default);
+        await services.StartAsync(default);
+
         var tasks = new List<Task>();
-        BlockHash[] blockHashes = [swarm.Blockchain.Genesis.BlockHash];
+        BlockHash[] blockHashes = [blockchainA.Genesis.BlockHash];
         for (var i = 0; i < 5; i++)
         {
-            tasks.Add(transport.GetBlocksAsync(swarm.Peer, blockHashes, default).ToArrayAsync(default).AsTask());
+            tasks.Add(transportB.GetBlocksAsync(transportA.Peer, blockHashes, default).ToArrayAsync(default).AsTask());
         }
 
         await TaskUtility.TryWhenAll(tasks);
@@ -1094,9 +1096,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var failedTasks = tasks.Where(item => item.IsFaulted);
         var succeededTasks = tasks.Where(item => item.IsCompletedSuccessfully);
 
-        Assert.Equal(
-            options.TaskRegulationOptions.MaxTransferBlocksTaskCount,
-            succeededTasks.Count());
+        Assert.Equal(MaxConcurrentResponses, succeededTasks.Count());
         Assert.All(failedTasks, task =>
         {
             var e = Assert.IsType<AggregateException>(task.Exception);
@@ -1108,29 +1108,30 @@ public partial class SwarmTest(ITestOutputHelper output)
     [RetryFact(10, Timeout = Timeout)]
     public async Task RegulateGetTxsMsg()
     {
-        var options = new SwarmOptions
+        const int MaxConcurrentResponses = 3;
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var blockchainA = MakeBlockchain();
+        var txIds = blockchainA.Transactions.Keys.ToArray();
+
+        var syncResponderServiceA = new TransactionSynchronizationResponderService(blockchainA, transportA)
         {
-            TaskRegulationOptions =
-            {
-                MaxTransferTxsTaskCount = 3,
-            },
-            TransportOptions = new TransportOptions
-            {
-                Host = "localhost",
-            },
+            MaxConcurrentResponses = MaxConcurrentResponses,
         };
 
-        await using var swarm = await CreateSwarm(options: options);
-        var transport = swarm.Transport;
-        var blockchain = swarm.Blockchain;
-        var txIds = blockchain.Transactions.Keys.ToArray();
+        await using var services = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            syncResponderServiceA,
+        };
 
-        await swarm.StartAsync(default);
+        await services.StartAsync(default);
 
         var tasks = new List<Task>();
         for (var i = 0; i < 5; i++)
         {
-            tasks.Add(transport.GetTransactionsAsync(swarm.Peer, txIds, default).ToArrayAsync(default).AsTask());
+            tasks.Add(transportB.GetTransactionsAsync(transportA.Peer, txIds, default).ToArrayAsync(default).AsTask());
         }
 
         await TaskUtility.TryWhenAll(tasks);
@@ -1138,9 +1139,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var failedTasks = tasks.Where(item => item.IsFaulted);
         var succeededTasks = tasks.Where(item => item.IsCompletedSuccessfully);
 
-        Assert.Equal(
-            options.TaskRegulationOptions.MaxTransferBlocksTaskCount,
-            succeededTasks.Count());
+        Assert.Equal(MaxConcurrentResponses, succeededTasks.Count());
         Assert.All(failedTasks, task =>
         {
             var e = Assert.IsType<AggregateException>(task.Exception);
