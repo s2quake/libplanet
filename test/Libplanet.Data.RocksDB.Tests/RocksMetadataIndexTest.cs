@@ -1,5 +1,4 @@
 using Libplanet.TestUtilities;
-using Libplanet.Types.Tests;
 using Xunit.Abstractions;
 
 namespace Libplanet.Data.RocksDB.Tests;

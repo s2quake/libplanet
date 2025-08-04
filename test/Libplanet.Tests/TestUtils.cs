@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.JsonDiffPatch.Xunit;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.Data;

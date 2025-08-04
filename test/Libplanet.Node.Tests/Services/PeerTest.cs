@@ -1,7 +1,5 @@
 using Libplanet.Net;
 using Libplanet.Net.Messages;
-using Libplanet.Net.NetMQ;
-using Libplanet.Node.Services;
 using Libplanet.Types;
 using Moq;
 

@@ -1,4 +1,3 @@
-using Libplanet.Net.Components;
 using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Consensus;

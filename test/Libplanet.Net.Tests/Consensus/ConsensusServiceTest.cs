@@ -1,10 +1,7 @@
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests.Consensus;
 

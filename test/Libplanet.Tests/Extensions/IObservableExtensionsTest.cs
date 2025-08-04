@@ -1,7 +1,5 @@
 using System.Reactive;
 using System.Reactive.Subjects;
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Extensions;
 
 namespace Libplanet.Tests.Extensions;

@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.TestUtilities.Extensions;

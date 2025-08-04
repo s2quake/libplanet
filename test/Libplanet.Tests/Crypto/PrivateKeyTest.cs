@@ -1,7 +1,6 @@
 using System.Text;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;
-using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Crypto;
 

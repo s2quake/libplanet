@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 

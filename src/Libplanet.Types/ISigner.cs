@@ -1,6 +1,3 @@
-using Libplanet.Types.Crypto;
-using Secp256k1Net;
-
 namespace Libplanet.Types;
 
 public interface ISigner

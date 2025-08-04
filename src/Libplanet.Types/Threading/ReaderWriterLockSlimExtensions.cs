@@ -1,5 +1,3 @@
-using System.Threading;
-
 namespace Libplanet.Types.Threading;
 
 public static class ReaderWriterLockSlimExtensions

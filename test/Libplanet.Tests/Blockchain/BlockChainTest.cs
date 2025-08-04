@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Actions;
@@ -9,7 +8,6 @@ using Libplanet.Types;
 using Serilog;
 using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
-using Libplanet.Types.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 

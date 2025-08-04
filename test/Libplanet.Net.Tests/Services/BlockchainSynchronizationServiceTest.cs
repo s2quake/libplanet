@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Libplanet.Extensions;
 using Libplanet.Net.Services;
 using Libplanet.Tests;

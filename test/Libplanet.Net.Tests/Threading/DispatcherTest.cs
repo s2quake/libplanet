@@ -3,8 +3,6 @@
 #pragma warning disable S108 // Nested blocks of code should not be left empty
 #pragma warning disable S1186 // Methods should not be empty
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Threading;
 using Libplanet.TestUtilities;
 using Xunit.Abstractions;

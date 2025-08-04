@@ -1,8 +1,5 @@
 using System.Reactive;
 using System.Reactive.Subjects;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Schema;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
 using Libplanet.Extensions;

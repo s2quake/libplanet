@@ -1,6 +1,4 @@
 using System.Reactive.Subjects;
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 

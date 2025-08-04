@@ -1,4 +1,3 @@
-using System.Threading;
 using Libplanet.Net.Messages;
 
 namespace Libplanet.Net;

@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
@@ -8,9 +7,7 @@ using Libplanet.Net.Messages;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Nito.AsyncEx;
-using Serilog;
 using Xunit.Abstractions;
-using Libplanet.Types.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 

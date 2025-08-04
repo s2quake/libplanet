@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Libplanet.Data;
-using Libplanet.Net;
 using Libplanet.Types;
 
 namespace Libplanet.TestUtilities;

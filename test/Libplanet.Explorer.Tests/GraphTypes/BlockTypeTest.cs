@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
 using GraphQL.Types;
@@ -9,7 +8,6 @@ using Libplanet.Serialization;
 using Libplanet.Data;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
-using Libplanet.Types.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 

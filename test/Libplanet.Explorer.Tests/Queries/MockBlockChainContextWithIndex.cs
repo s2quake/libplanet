@@ -1,6 +1,4 @@
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Explorer.Indexing;
 
 namespace Libplanet.Explorer.Tests.Queries;

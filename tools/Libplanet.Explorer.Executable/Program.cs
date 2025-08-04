@@ -1,7 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
 using Cocona;
 using GraphQL.Server;
 using GraphQL.Utilities;
@@ -11,8 +9,6 @@ using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
 using Libplanet.Explorer.Schemas;
 using Libplanet.Net;
-using Libplanet.Net.Options;
-using Libplanet.Net.NetMQ;
 using Libplanet.Data.RocksDB;
 using Libplanet.Data;
 using Libplanet.Data.Structures;
@@ -20,10 +16,8 @@ using Libplanet.Types;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using NetMQ;
 using Serilog;
 using Serilog.Events;
-using Microsoft.Extensions.Hosting;
 
 namespace Libplanet.Explorer.Executable
 {
@@ -205,17 +199,17 @@ If omitted (default) explorer only the local blockchain store.")]
                     var consensusPrivateKey = new PrivateKey();
 
                     // FIXME: The appProtocolVersion should be fixed properly.
-                    var swarmOptions = new SwarmOptions
-                    {
-                        BootstrapOptions = new BootstrapOptions
-                        {
-                            SeedPeers = options.Seeds.ToImmutableHashSet(),
-                        },
-                        TimeoutOptions = new TimeoutOptions
-                        {
-                            MaxTimeout = TimeSpan.FromSeconds(10),
-                        },
-                    };
+                    // var swarmOptions = new SwarmOptions
+                    // {
+                    //     BootstrapOptions = new BootstrapOptions
+                    //     {
+                    //         SeedPeers = options.Seeds.ToImmutableHashSet(),
+                    //     },
+                    //     TimeoutOptions = new TimeoutOptions
+                    //     {
+                    //         MaxTimeout = TimeSpan.FromSeconds(10),
+                    //     },
+                    // };
 
                     var transportOptions = new TransportOptions()
                     {

@@ -1,4 +1,3 @@
-using Libplanet.Net;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Tests.Protocols;

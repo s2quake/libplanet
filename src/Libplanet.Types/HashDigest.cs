@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
-using System.Threading;
 using Libplanet.Serialization;
 using Libplanet.Types.Converters;
 using Libplanet.Types.JsonConverters;

@@ -1,9 +1,5 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
-using Nito.AsyncEx;
-using Serilog;
 using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus;

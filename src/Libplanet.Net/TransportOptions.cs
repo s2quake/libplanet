@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using Libplanet.Serialization.DataAnnotations;
 
-namespace Libplanet.Net.Options;
+namespace Libplanet.Net;
 
 public sealed record class TransportOptions
 {

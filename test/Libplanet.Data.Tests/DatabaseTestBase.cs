@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using Libplanet.TestUtilities;
-using Libplanet.Types.Tests;
 
 namespace Libplanet.Data.Tests;
 

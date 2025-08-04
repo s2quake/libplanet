@@ -1,6 +1,5 @@
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
-using Libplanet.Net;
 
 namespace Libplanet.Explorer.Tests.Queries;
 

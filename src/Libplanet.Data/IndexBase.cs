@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
 using Libplanet.Types.Threading;

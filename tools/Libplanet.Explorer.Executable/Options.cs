@@ -1,5 +1,4 @@
 using System.Net;
-using System.Threading.Tasks;
 using Libplanet.Net;
 using Libplanet.Serialization;
 using Libplanet.Types;

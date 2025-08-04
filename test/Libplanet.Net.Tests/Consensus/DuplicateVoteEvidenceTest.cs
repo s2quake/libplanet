@@ -1,15 +1,10 @@
 #pragma warning disable S125
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Libplanet.Types.Tests;
 using Serilog;
 using Xunit.Abstractions;
-using static Libplanet.Net.Tests.Consensus.ConsensusReactorExtensions;
 
 namespace Libplanet.Net.Tests.Consensus;
 

@@ -3,7 +3,6 @@ using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Libplanet.Types.Tests;
 
 namespace Libplanet.Tests.Blocks;
 

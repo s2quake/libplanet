@@ -1,4 +1,3 @@
-using Libplanet.Net.Options;
 using Libplanet.Types;
 using Xunit.Abstractions;
 

@@ -1,10 +1,7 @@
 #pragma warning disable S1751 // Loops with at most one iteration should be refactored
 using System.Diagnostics;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Options;
 using Libplanet.Net.Tests.Protocols;
 using Libplanet.TestUtilities;
 using Libplanet.Types;

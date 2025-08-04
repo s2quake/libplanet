@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Execution;
 using Libplanet.Explorer.GraphTypes;

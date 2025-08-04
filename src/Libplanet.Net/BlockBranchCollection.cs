@@ -2,7 +2,6 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
 using System.Reactive.Subjects;
-using System.Threading;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 

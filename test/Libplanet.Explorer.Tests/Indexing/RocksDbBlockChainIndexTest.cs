@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace Libplanet.Explorer.Tests.Indexing;
 
 public class RocksDbBlockChainIndexTest: BlockChainIndexTest

@@ -3,8 +3,6 @@ using Libplanet.Data;
 using Libplanet.Data.Structures;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
-using Libplanet.Types.Tests;
-using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Store;
 

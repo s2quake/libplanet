@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 

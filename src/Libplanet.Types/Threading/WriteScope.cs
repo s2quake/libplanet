@@ -1,5 +1,3 @@
-using System.Threading;
-
 namespace Libplanet.Types.Threading;
 
 public readonly struct WriteScope : IDisposable

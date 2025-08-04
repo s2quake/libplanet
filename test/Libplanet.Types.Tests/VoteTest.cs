@@ -1,7 +1,6 @@
 using System.Reflection;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
-using Libplanet.Types;
 using Xunit.Abstractions;
 
 namespace Libplanet.Types.Tests;

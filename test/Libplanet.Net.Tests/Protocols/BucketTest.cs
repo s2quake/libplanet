@@ -1,5 +1,4 @@
 using System.Net;
-using System.Threading.Tasks;
 using Libplanet.TestUtilities;
 using Xunit.Abstractions;
 

@@ -1,7 +1,5 @@
-using System.Threading.Tasks;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
-using Libplanet.Serialization;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Nito.AsyncEx;

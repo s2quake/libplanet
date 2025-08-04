@@ -7,7 +7,6 @@ using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 using static Libplanet.Tests.TestUtils;
 using Random = System.Random;
-using Libplanet.Types.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 

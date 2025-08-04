@@ -4,7 +4,6 @@ using System.Text.Json;
 using global::Cocona;
 using Libplanet.KeyStore;
 using Libplanet.Net;
-using Libplanet.Net.NetMQ;
 using Libplanet.Types;
 
 namespace Libplanet.Extensions.Cocona.Commands;

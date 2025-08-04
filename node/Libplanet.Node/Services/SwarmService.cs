@@ -87,14 +87,14 @@ internal sealed class SwarmService(
             endPoint: swarmEndPoint,
             protocol: protocol);
         var blocksyncSeedPeer = Net.Peer.Parse(nodeOptions.BlocksyncSeedPeer);
-        var swarmOptions = new Net.Options.SwarmOptions
-        {
-            StaticPeers = [blocksyncSeedPeer],
-            BootstrapOptions = new()
-            {
-                SeedPeers = [blocksyncSeedPeer],
-            },
-        };
+        // var swarmOptions = new Net.Options.SwarmOptions
+        // {
+        //     StaticPeers = [blocksyncSeedPeer],
+        //     BootstrapOptions = new()
+        //     {
+        //         SeedPeers = [blocksyncSeedPeer],
+        //     },
+        // };
 
         var consensusTransport = _validatorOptions.IsEnabled
             ? CreateConsensusTransport(privateKey, protocol, _validatorOptions)
@@ -172,7 +172,7 @@ internal sealed class SwarmService(
 
     private static NetMQTransport CreateTransport(ISigner signer, DnsEndPoint endPoint, Protocol protocol)
     {
-        var transportOptions = new Net.Options.TransportOptions
+        var transportOptions = new Net.TransportOptions
         {
             Protocol = protocol,
             Host = endPoint.Host,

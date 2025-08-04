@@ -1,5 +1,3 @@
-using System.Threading;
-
 namespace Libplanet.State;
 
 public static class GasTracer

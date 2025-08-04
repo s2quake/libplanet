@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Libplanet.Explorer.Queries;
 
 namespace Libplanet.Explorer.Tests.Queries;

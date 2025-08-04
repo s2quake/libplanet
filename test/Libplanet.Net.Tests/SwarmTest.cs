@@ -1,15 +1,11 @@
-using System.Net;
-using System.Threading.Tasks;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Options;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Nito.AsyncEx;
-using Serilog;
 using xRetry;
 using Xunit.Abstractions;
 using Libplanet.Extensions;

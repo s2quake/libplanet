@@ -1,6 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace Libplanet.Net.Tests;
 
 public class AccessLimiterTest

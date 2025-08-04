@@ -1,4 +1,3 @@
-using System.Threading;
 using Libplanet.Explorer.Indexing;
 
 namespace Libplanet.Explorer.Tests.Indexing;

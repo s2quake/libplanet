@@ -1,4 +1,3 @@
-using Libplanet.Net;
 using Libplanet.Node.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

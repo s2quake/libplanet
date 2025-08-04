@@ -1,7 +1,6 @@
 using System.Reflection;
 using Libplanet.Explorer.Indexing;
 using Libplanet.Explorer.Interfaces;
-using Libplanet.Net;
 using Libplanet.Node.Services;
 
 namespace Libplanet.Node.API.Explorer;

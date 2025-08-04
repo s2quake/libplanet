@@ -1,7 +1,5 @@
 #pragma warning disable S1751 // Loops with at most one iteration should be refactored
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Options;
 using Libplanet.Net.NetMQ;
 using Libplanet.TestUtilities;
 using Libplanet.Types;

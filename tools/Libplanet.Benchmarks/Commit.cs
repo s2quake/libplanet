@@ -1,10 +1,8 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.Serialization;
-using Libplanet.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Libplanet.Types.Tests;
 
 namespace Libplanet.Benchmarks
 {

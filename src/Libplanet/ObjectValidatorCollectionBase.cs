@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Threading;
 using Libplanet.Types.Threading;
 
 namespace Libplanet;
