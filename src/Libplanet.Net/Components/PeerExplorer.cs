@@ -154,9 +154,7 @@ public sealed class PeerExplorer : IDisposable
                     continue;
                 }
 
-                await PingAsync(neighbor, cancellationToken);
-
-                if (neighbor.Address == address)
+                if (await PingAsync(neighbor, cancellationToken) && neighbor.Address == address)
                 {
                     return neighbor;
                 }

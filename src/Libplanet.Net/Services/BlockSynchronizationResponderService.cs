@@ -7,27 +7,33 @@ namespace Libplanet.Net.Services;
 public sealed class BlockSynchronizationResponderService(Blockchain blockchain, ITransport transport)
     : ServiceBase
 {
-    private BlockFetchingResponder? _blockFetchingHandler;
+    private BlockFetchingResponder? _blockFetchingResponder;
 
-    public int MaxAccessCount { get; set; } = 3;
+    public int MaxHashesPerResponse { get; set; } = 100;
+
+    public int MaxConcurrentResponses { get; set; } = 3;
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
-        _blockFetchingHandler = new BlockFetchingResponder(blockchain, transport, MaxAccessCount);
+        _blockFetchingResponder = new BlockFetchingResponder(blockchain, transport, new()
+        {
+            MaxHashes = MaxHashesPerResponse,
+            MaxConcurrentResponses = MaxConcurrentResponses,
+        });
         await Task.CompletedTask;
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
     {
-        _blockFetchingHandler?.Dispose();
-        _blockFetchingHandler = null;
+        _blockFetchingResponder?.Dispose();
+        _blockFetchingResponder = null;
         await Task.CompletedTask;
     }
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        _blockFetchingHandler?.Dispose();
-        _blockFetchingHandler = null;
+        _blockFetchingResponder?.Dispose();
+        _blockFetchingResponder = null;
         await base.DisposeAsyncCore();
     }
 }

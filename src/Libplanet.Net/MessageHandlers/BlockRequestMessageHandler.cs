@@ -1,17 +1,16 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
-using Libplanet.Net.Options;
 using Libplanet.Types;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class BlockRequestMessageHandler(Blockchain blockchain, ITransport transport, int maxAccessCount)
+internal sealed class BlockRequestMessageHandler(Blockchain blockchain, ITransport transport, int maxConcurrentResponses)
     : MessageHandlerBase<BlockRequestMessage>, IDisposable
 {
     private readonly Blockchain _blockchain = blockchain;
     private readonly ITransport _transport = transport;
-    private readonly AccessLimiter _accessLimiter = new(maxAccessCount);
+    private readonly AccessLimiter _accessLimiter = new(maxConcurrentResponses);
 
     public void Dispose() => _accessLimiter.Dispose();
 

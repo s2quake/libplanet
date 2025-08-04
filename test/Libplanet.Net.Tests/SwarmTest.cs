@@ -796,121 +796,156 @@ public partial class SwarmTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task FindSpecificPeerAsyncFail()
     {
-        await using var swarmA = await CreateSwarm();
-        await using var swarmB = await CreateSwarm();
-        await using var swarmC = await CreateSwarm();
-        var peerServiceA = swarmA.PeerExplorer;
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var transportC = TestUtils.CreateTransport();
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        var peersC = new PeerCollection(transportC.Peer.Address);
+        var peerExplorerA = new PeerExplorer(transportA, peersA);
+        var peerExplorerB = new PeerExplorer(transportB, peersB);
+        var peerExplorerC = new PeerExplorer(transportC, peersC);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmC.StartAsync(default);
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            transportC,
+        };
 
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
-        await swarmB.AddPeersAsync([swarmC.Peer], default);
+        await transports.StartAsync(default);
 
-        await swarmB.DisposeAsync();
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
+        await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
 
-        Peer foundPeer = await peerServiceA.FindPeerAsync(swarmB.Peer.Address, int.MaxValue, default);
+        await transportB.DisposeAsync();
 
-        Assert.Null(foundPeer);
+        await Assert.ThrowsAsync<PeerNotFoundException>(
+            async () => await peerExplorerA.FindPeerAsync(transportB.Peer.Address, int.MaxValue, default));
+        await Assert.ThrowsAsync<PeerNotFoundException>(
+            async () => await peerExplorerA.FindPeerAsync(transportC.Peer.Address, int.MaxValue, default));
 
-        foundPeer = await peerServiceA.FindPeerAsync(swarmC.Peer.Address, int.MaxValue, default);
-
-        Assert.Null(foundPeer);
-        Assert.DoesNotContain(swarmC.Peer, swarmA.Peers);
+        Assert.DoesNotContain(transportC.Peer, peersA);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task FindSpecificPeerAsyncDepthFail()
     {
-        await using var swarmA = await CreateSwarm();
-        await using var swarmB = await CreateSwarm();
-        await using var swarmC = await CreateSwarm();
-        await using var swarmD = await CreateSwarm();
-        var peerServiceA = swarmA.PeerExplorer;
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var transportC = TestUtils.CreateTransport();
+        var transportD = TestUtils.CreateTransport();
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        var peersC = new PeerCollection(transportC.Peer.Address);
+        var peersD = new PeerCollection(transportD.Peer.Address);
+        var peerExplorerA = new PeerExplorer(transportA, peersA);
+        var peerExplorerB = new PeerExplorer(transportB, peersB);
+        var peerExplorerC = new PeerExplorer(transportC, peersC);
+        var peerExplorerD = new PeerExplorer(transportD, peersD);
 
-        await swarmA.StartAsync(default);
-        await swarmB.StartAsync(default);
-        await swarmC.StartAsync(default);
-        await swarmD.StartAsync(default);
+        await using var transports = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            transportC,
+            transportD,
+        };
 
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
-        await swarmB.AddPeersAsync([swarmC.Peer], default);
-        await swarmC.AddPeersAsync([swarmD.Peer], default);
+        await transports.StartAsync(default);
 
-        var foundPeer1 = await peerServiceA.FindPeerAsync(swarmC.Peer.Address, 1, default);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
+        await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
+        await peerExplorerC.PingAsync(peerExplorerD.Peer, default);
 
-        Assert.Equal(swarmC.Peer.Address, foundPeer1.Address);
-        peerServiceA.Peers.Clear();
-        Assert.Empty(swarmA.Peers);
-        await swarmA.AddPeersAsync([swarmB.Peer], default);
+        var foundPeer = await peerExplorerA.FindPeerAsync(transportC.Peer.Address, 1, default);
 
-        var foundPeer2 = await peerServiceA.FindPeerAsync(swarmD.Peer.Address, 1, default);
+        Assert.Equal(transportC.Peer.Address, foundPeer.Address);
+        peerExplorerA.Peers.Clear();
+        Assert.Empty(peersA);
 
-        Assert.Null(foundPeer2);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
+        await Assert.ThrowsAsync<PeerNotFoundException>(
+            async () => await peerExplorerA.FindPeerAsync(transportD.Peer.Address, 1, default));
     }
 
     [Fact(Timeout = Timeout)]
     public async Task DoNotFillWhenGetAllBlockAtFirstTimeFromSender()
     {
-        Swarm receiver = await CreateSwarm();
-        Swarm sender = await CreateSwarm();
-        await receiver.StartAsync(default);
-        await sender.StartAsync(default);
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        var peerExplorerA = new PeerExplorer(transportA, peersA);
+        var peerExplorerB = new PeerExplorer(transportB, peersB);
+        var blockchainA = MakeBlockchain();
+        var blockchainB = MakeBlockchain();
 
-        receiver.FindNextHashesChunkSize = 8;
-        sender.FindNextHashesChunkSize = 8;
-        Blockchain chain = sender.Blockchain;
-
-        for (int i = 0; i < 6; i++)
+        var syncServiceA = new BlockSynchronizationService(blockchainA, transportA);
+        var syncResponderServiceB = new BlockSynchronizationResponderService(blockchainB, transportB)
         {
-            Block block = chain.ProposeBlock(GenesisProposer);
-            chain.Append(block, TestUtils.CreateBlockCommit(block));
-        }
+            MaxHashesPerResponse = 8,
+        };
 
-        Log.Debug("Sender's BlockChain Tip index: #{index}", sender.Blockchain.Tip.Height);
+        await using var services = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            syncServiceA,
+            syncResponderServiceB,
+        };
 
-        await sender.AddPeersAsync([receiver.Peer], default);
+        await services.StartAsync(default);
 
-        sender.BroadcastBlock(sender.Blockchain.Tip);
+        blockchainB.ProposeAndAppendMany(GenesisProposer, 6);
 
-        // await receiver.BlockReceived.WaitAsync(default);
-        // await receiver.BlockAppended.WaitAsync(default);
-        Assert.Equal(
-            7,
-            receiver.Blockchain.Blocks.Count);
+        await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
+        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal(7, blockchainA.Blocks.Count);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task FillWhenGetAChunkOfBlocksFromSender()
     {
-        Swarm receiver = await CreateSwarm();
-        Swarm sender = await CreateSwarm();
-        await receiver.StartAsync(default);
-        await sender.StartAsync(default);
-
-        receiver.FindNextHashesChunkSize = 2;
-        sender.FindNextHashesChunkSize = 2;
-        Blockchain chain = sender.Blockchain;
-
-        for (int i = 0; i < 6; i++)
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        var peersB = new PeerCollection(transportB.Peer.Address);
+        using var peerExplorerA = new PeerExplorer(transportA, peersA);
+        using var peerExplorerB = new PeerExplorer(transportB, peersB);
+        var blockchainA = MakeBlockchain();
+        var blockchainB = MakeBlockchain();
+        var syncServiceA = new BlockSynchronizationService(blockchainA, transportA);
+        var syncResponderServiceB = new BlockSynchronizationResponderService(blockchainB, transportB)
         {
-            Block block = chain.ProposeBlock(GenesisProposer);
-            chain.Append(block, TestUtils.CreateBlockCommit(block));
-        }
+            MaxHashesPerResponse = 2,
+        };
 
-        Log.Debug("Sender's BlockChain Tip index: #{index}", sender.Blockchain.Tip.Height);
+        await using var services = new ServiceCollection
+        {
+            transportA,
+            transportB,
+            syncServiceA,
+            syncResponderServiceB,
+        };
 
-        await sender.AddPeersAsync([receiver.Peer], default);
+        await services.StartAsync(default);
 
-        sender.BroadcastBlock(sender.Blockchain.Tip);
+        blockchainB.ProposeAndAppendMany(GenesisProposer, 6);
 
-        // await receiver.BlockReceived.WaitAsync(default);
-        // await receiver.BlockAppended.WaitAsync(default);
-        Log.Debug("Count: {Count}", receiver.Blockchain.Blocks.Count);
-        Assert.Equal(
-            2,
-            receiver.Blockchain.Blocks.Count);
+        await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
+        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
+        {
+            Delay = TimeSpan.FromMilliseconds(100),
+        });
+        await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.Equal(2, blockchainA.Blocks.Count);
     }
 
     [Fact(Timeout = Timeout)]
