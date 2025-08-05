@@ -323,6 +323,15 @@ public static class TestUtils
         });
     }
 
+    public static void InvokeDelay(Func<Task> func, int millisecondsDelay)
+    {
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(millisecondsDelay);
+            await func();
+        });
+    }
+
     // public static Task<T> InvokeDelay<T>(Func<T> func, int millisecondsDelay)
     //     => InvokeDelay(func, TimeSpan.FromMilliseconds(millisecondsDelay));
 

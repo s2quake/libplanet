@@ -59,6 +59,13 @@ public static class BlockchainExtensions
         return blocks;
     }
 
+    public static BlockCommit AppendWithBlockCommit(this Libplanet.Blockchain @this, Block block)
+    {
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        @this.Append(block, blockCommit);
+        return blockCommit;
+    }
+
     public static void AppendTo(this Libplanet.Blockchain @this, Libplanet.Blockchain other, Range range)
     {
         var (start, length) = range.GetOffsetAndLength(@this.Blocks.Count);

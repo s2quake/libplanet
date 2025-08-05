@@ -35,11 +35,11 @@ public sealed class GossipTest
 
         var tcs1 = new TaskCompletionSource();
         var tcs2 = new TaskCompletionSource();
-        transport1.MessageRouter.Register<ConsensusProposalMessage>(_ =>
+        using var _1 = transport1.MessageRouter.Register<ConsensusProposalMessage>(_ =>
         {
             tcs1.SetResult();
         });
-        transport2.MessageRouter.Register<ConsensusProposalMessage>(_ =>
+        using var _2 = transport2.MessageRouter.Register<ConsensusProposalMessage>(_ =>
         {
             tcs2.SetResult();
         });
@@ -84,14 +84,14 @@ public sealed class GossipTest
             transport1,
             transport2,
         };
-        transport1.MessageRouter.Register<ConsensusProposalMessage>(_ =>
+        using var _1 = transport1.MessageRouter.Register<ConsensusProposalMessage>(_ =>
         {
             if (Interlocked.Increment(ref received1) == messages.Length)
             {
                 tcs1.SetResult();
             }
         });
-        transport2.MessageRouter.Register<ConsensusProposalMessage>(_ =>
+        using var _2 = transport2.MessageRouter.Register<ConsensusProposalMessage>(_ =>
         {
             if (Interlocked.Increment(ref received2) == messages.Length)
             {
@@ -100,7 +100,7 @@ public sealed class GossipTest
         });
 
         await transports.StartAsync(default);
-        
+
 
         Parallel.ForEach(messages, gossip1.PublishMessage);
 
@@ -149,7 +149,7 @@ public sealed class GossipTest
             transportB,
         };
 
-        transportA.MessageRouter.Register<HaveMessage>(_ =>
+        using var _1 = transportA.MessageRouter.Register<HaveMessage>(_ =>
         {
             tcs.SetResult();
         });

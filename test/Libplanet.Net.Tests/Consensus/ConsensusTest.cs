@@ -8,6 +8,8 @@ using Libplanet.Types;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 using Libplanet.TestUtilities;
+using Libplanet.Extensions;
+using Libplanet.Tests;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -18,22 +20,14 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposer()
     {
-        using var blockProposeEvent = new ManualResetEvent(false);
-        using var preVoteEvent = new ManualResetEvent(false);
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
+        var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
-        using var _1 = consensus.PreVote.Subscribe(_ =>
-        {
-            preVoteEvent.Set();
-        });
-        using var _2 = consensus.BlockPropose.Subscribe(_ =>
-        {
-            blockProposeEvent.Set();
-        });
 
-        await consensus.StartAsync(default);
-        Assert.True(blockProposeEvent.WaitOne(1000), "Block proposal did not happen in time.");
-        Assert.True(preVoteEvent.WaitOne(10000), "PreVote step did not happen in time.");
+        TestUtils.InvokeDelay(() => consensus.StartAsync(default), 100);
+        await Task.WhenAll(
+            consensus.PreVote.WaitAsync(),
+            consensus.BlockPropose.WaitAsync()
+        ).WaitAsync(TimeSpan.FromSeconds(2));
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -43,69 +37,47 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposerWithLastCommit()
     {
-        Block? proposedBlock = null;
-        using var preVoteEnteredEvent = new ManualResetEvent(false);
-        using var blockProposedEvent = new ManualResetEvent(false);
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        var previousCommit = TestUtils.CreateBlockCommit(block1);
-        blockchain.Append(block1, previousCommit);
-
+        var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(
             blockchain,
             height: 2,
             privateKey: TestUtils.PrivateKeys[2]);
 
-        using var _1 = consensus.PreVote.Subscribe(state =>
+        var tcs = new TaskCompletionSource<Block>();
+        using var _1 = consensus.BlockPropose.Subscribe(e =>
         {
-            preVoteEnteredEvent.Set();
+            tcs.SetResult(e.Block);
         });
-        using var _2 = consensus.BlockPropose.Subscribe(e =>
-        {
-            proposedBlock = e.Block;
-            blockProposedEvent.Set();
-        });
+        var (_, blockCommit1) = blockchain.ProposeAndAppend(TestUtils.PrivateKeys[1]);
 
-        await consensus.StartAsync(default);
-        Assert.True(preVoteEnteredEvent.WaitOne(1000), "PreVote step did not happen in time.");
-        Assert.True(blockProposedEvent.WaitOne(1000), "Block proposal did not happen in time.");
+        TestUtils.InvokeDelay(() => consensus.StartAsync(default), 100);
+        await consensus.PreVote.WaitAsync().WaitAsync(TimeSpan.FromSeconds(2));
+        var proposedBlock = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
-        Assert.NotNull(proposedBlock);
-        Assert.Equal(previousCommit, proposedBlock.PreviousCommit);
+        Assert.Equal(blockCommit1, proposedBlock.PreviousCommit);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task CannotStartTwice()
     {
-        using var stepChangedEvent = new ManualResetEvent(false);
         await using var consensus = TestUtils.CreateConsensus();
-        using var _ = consensus.StepChanged.Subscribe(step =>
-        {
-            if (step == ConsensusStep.Propose)
-            {
-                stepChangedEvent.Set();
-            }
-        });
-        await consensus.StartAsync(default);
 
-        Assert.True(stepChangedEvent.WaitOne(1000), "Consensus did not enter Propose step in time.");
+        TestUtils.InvokeDelay(() => consensus.StartAsync(default), 100);
+        await consensus.StepChanged.WaitAsync(e => e == ConsensusStep.Propose).WaitAsync(TimeSpan.FromSeconds(2));
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await consensus.StartAsync(default));
     }
 
     [Fact(Timeout = Timeout)]
     public async Task CanAcceptMessagesAfterCommitFailure()
     {
-        Block? proposedBlock = null;
-        using var preVoteEnteredEvent = new ManualResetEvent(false);
-        using var endCommitEnteredEvent = new ManualResetEvent(false);
-        using var blockProposedEvent = new ManualResetEvent(false);
+        var preVoteEvent = new TaskCompletionSource();
+        var endCommitEvent = new TaskCompletionSource();
+        var proposeEvent = new TaskCompletionSource<Block>();
 
         // Add block #1 so we can start with a last commit for height 2.
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        var previousCommit = TestUtils.CreateBlockCommit(block1);
-        blockchain.Append(block1, previousCommit);
+        var blockchain = TestUtils.MakeBlockchain();
+        blockchain.ProposeAndAppend(TestUtils.PrivateKeys[1]);
 
         await using var consensus = TestUtils.CreateConsensus(
             blockchain,
@@ -116,28 +88,25 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         {
             if (step == ConsensusStep.PreVote)
             {
-                preVoteEnteredEvent.Set();
+                preVoteEvent.SetResult();
             }
             else if (step == ConsensusStep.EndCommit)
             {
-                endCommitEnteredEvent.Set();
+                endCommitEvent.SetResult();
             }
         });
         using var _2 = consensus.BlockPropose.Subscribe(e =>
         {
-            proposedBlock = e.Block;
-            blockProposedEvent.Set();
+            proposeEvent.SetResult(e.Block);
         });
 
         await consensus.StartAsync(default);
 
-        Assert.True(preVoteEnteredEvent.WaitOne(1000), "Consensus did not enter PreVote step in time.");
-        Assert.True(blockProposedEvent.WaitOne(1000), "Consensus did not send proposal in time.");
+        await preVoteEvent.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        var proposedBlock = await proposeEvent.Task.WaitAsync(TimeSpan.FromSeconds(1));
 
-        // Simulate bypass of consensus and block sync by swarm by
-        // directly appending to the blockchain.
-        Assert.NotNull(proposedBlock);
-        blockchain.Append(proposedBlock!, TestUtils.CreateBlockCommit(proposedBlock!));
+        blockchain.AppendWithBlockCommit(proposedBlock);
+
         Assert.Equal(2, blockchain.Tip.Height);
 
         // Make PreVotes to normally move to PreCommit step.
@@ -172,7 +141,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             consensus.Post(vote);
         }
 
-        Assert.True(endCommitEnteredEvent.WaitOne(1000), "Consensus did not enter EndCommit step in time.");
+        await endCommitEvent.Task.WaitAsync(TimeSpan.FromSeconds(1));
 
         // Check consensus has only three votes.
         var blockCommit = consensus.GetBlockCommit();
@@ -199,16 +168,10 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task ThrowOnInvalidProposerMessage()
     {
-        Exception? exceptionThrown = null;
-        using var exceptionOccurredEvent = new ManualResetEvent(false);
-
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
+        var tcs = new TaskCompletionSource<Exception>();
+        var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(blockchain, privateKey: TestUtils.PrivateKeys[0]);
-        using var _ = consensus.ExceptionOccurred.Subscribe(e =>
-        {
-            exceptionThrown = e;
-            exceptionOccurredEvent.Set();
-        });
+        using var _ = consensus.ExceptionOccurred.Subscribe(tcs.SetResult);
         var signer = TestUtils.PrivateKeys[0];
         var block = blockchain.ProposeBlock(signer);
         var proposal = new ProposalBuilder
@@ -220,8 +183,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         await consensus.StartAsync(default);
 
         consensus.Post(proposal);
-        Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
-        var e = Assert.IsType<ArgumentException>(exceptionThrown);
+        var exception = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        var e = Assert.IsType<ArgumentException>(exception);
         Assert.Equal("proposal", e.ParamName);
     }
 
@@ -231,7 +194,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         Exception? exceptionThrown = null;
         using var exceptionOccurredEvent = new ManualResetEvent(false);
 
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
+        var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(blockchain);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
@@ -292,7 +255,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
                 MaxTransactionsBytes = 50 * 1024,
             },
         };
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(blockchainOptions);
+        var blockchain = TestUtils.MakeBlockchain(blockchainOptions);
         await using var consensus = TestUtils.CreateConsensus(blockchain, 1, TestUtils.PrivateKeys[0]);
 
         using var _1 = consensus.StepChanged.Subscribe(step =>
@@ -421,7 +384,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             new Validator { Address = key2.Address }
         );
 
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
+        var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(
             blockchain: blockchain,
             privateKey: privateKeys[0],
@@ -549,7 +512,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
 
         using var fx = new MemoryRepositoryFixture();
         var privateKey0 = TestUtils.PrivateKeys[0];
-        var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(fx.Options);
+        var blockchain = TestUtils.MakeBlockchain(fx.Options);
         await using var transport = TestUtils.CreateTransport(privateKey0);
         var options = new ConsensusServiceOptions
         {
