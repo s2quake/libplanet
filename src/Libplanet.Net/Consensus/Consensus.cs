@@ -33,7 +33,6 @@ public sealed class Consensus(
 
     private readonly VoteContext _preVotes = new(height, VoteType.PreVote, validators);
     private readonly VoteContext _preCommits = new(height, VoteType.PreCommit, validators);
-    private readonly ImmutableSortedSet<Validator> _validators = validators;
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
     private readonly HashSet<int> _preVoteTimeouts = [];
     private readonly HashSet<int> _preCommitTimeouts = [];
@@ -81,6 +80,8 @@ public sealed class Consensus(
 
     public IObservable<Proposal> ShouldPropose => _shouldProposeSubject;
 
+    public Address Signer => signer.Address;
+
     public int Height { get; } = ValidateHeight(height);
 
     public int Round { get; private set; } = -1;
@@ -110,6 +111,8 @@ public sealed class Consensus(
             }
         }
     }
+
+    public ImmutableSortedSet<Validator> Validators { get; } = validators;
 
     public BlockCommit GetBlockCommit()
     {
@@ -254,6 +257,17 @@ public sealed class Consensus(
         {
             Propose(proposalMessage.Proposal);
         }
+    }
+
+    internal bool IsSigner(Address address)
+    {
+        if (_dispatcher is null)
+        {
+            throw new InvalidOperationException("Consensus is not running.");
+        }
+
+        _dispatcher.VerifyAccess();
+        return Validators.GetProposer(Height, Round).Address == address;
     }
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
@@ -493,7 +507,7 @@ public sealed class Consensus(
         Proposal = null;
         Step = ConsensusStep.Propose;
         _roundChangedSubject.OnNext(round);
-        if (_validators.GetProposer(Height, Round).Address == signer.Address
+        if (Validators.GetProposer(Height, Round).Address == signer.Address
             && (_validBlock ?? ProposeBlock()) is Block proposalBlock)
         {
             var proposal = new ProposalBuilder
@@ -516,7 +530,7 @@ public sealed class Consensus(
             throw new InvalidOperationException($"Proposal already exists for height {Height} and round {Round}");
         }
 
-        if (!_validators.GetProposer(Height, Round).Address.Equals(proposal.Validator))
+        if (!Validators.GetProposer(Height, Round).Address.Equals(proposal.Validator))
         {
             var message = $"Given proposal's proposer {proposal.Validator} does not match " +
                           $"with the current proposer for height {Height} and round {Round}.";
@@ -702,7 +716,7 @@ public sealed class Consensus(
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = signer.Address,
-            ValidatorPower = _validators.GetValidator(signer.Address).Power,
+            ValidatorPower = Validators.GetValidator(signer.Address).Power,
             Type = VoteType.PreVote,
         }.Sign(signer);
         Step = ConsensusStep.PreVote;
@@ -723,7 +737,7 @@ public sealed class Consensus(
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = signer.Address,
-            ValidatorPower = _validators.GetValidator(signer.Address).Power,
+            ValidatorPower = Validators.GetValidator(signer.Address).Power,
             Type = VoteType.PreCommit,
         }.Sign(signer);
         Step = ConsensusStep.PreCommit;
