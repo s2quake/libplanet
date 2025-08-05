@@ -19,6 +19,10 @@ public static class ITransportExtensions
         await tcs.Task;
     }
 
+    public static Task<MessageEnvelope> WaitAsync<T>(this ITransport @this)
+        where T : IMessage
+        => WaitAsync<T>(@this, cancellationToken: default);
+
     public static Task<MessageEnvelope> WaitAsync<T>(this ITransport @this, CancellationToken cancellationToken)
         where T : IMessage
         => WaitAsync<T>(@this, (_, _) => true, cancellationToken);

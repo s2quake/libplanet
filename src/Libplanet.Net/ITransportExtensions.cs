@@ -9,7 +9,7 @@ namespace Libplanet.Net;
 public static class ITransportExtensions
 {
     public static MessageEnvelope Post(this ITransport @this, Peer receiver, IMessage message)
-        => @this.Post(receiver, message, null);
+        => @this.Post(receiver, message, replyTo: null);
 
     public static void Post(this ITransport @this, ImmutableArray<Peer> receivers, IMessage message)
         => Parallel.ForEach(receivers, peer => @this.Post(peer, message, replyTo: null));

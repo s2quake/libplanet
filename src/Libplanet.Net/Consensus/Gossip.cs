@@ -1,8 +1,9 @@
+using Libplanet.Net.Components;
 using Libplanet.Net.MessageHandlers;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Gossip : IDisposable
+public sealed class Gossip : IAsyncDisposable
 {
     private const int DLazy = 6;
     private readonly ITransport _transport;
@@ -10,6 +11,7 @@ public sealed class Gossip : IDisposable
     private readonly HashSet<Peer> _deniedPeers = [];
     private readonly IDisposable _handlerRegistration;
     private readonly PeerMessageIdCollection _peerMessageIds = [];
+    private readonly MessageRequester _messageRequester;
     private bool _disposed;
 
     public Gossip(ITransport transport, PeerCollection peers)
@@ -18,14 +20,10 @@ public sealed class Gossip : IDisposable
         Peers = peers;
         _handlerRegistration = _transport.MessageRouter.RegisterMany(
         [
-            new HaveMessageHandler(_messages, _peerMessageIds),
+            new HaveMessageHandler(peers, _messages, _peerMessageIds),
             new WantMessageHandler(_transport, _messages),
         ]);
-    }
-
-    public Gossip(ITransport transport)
-        : this(transport, new PeerCollection(transport.Peer.Address))
-    {
+        _messageRequester = new MessageRequester(_transport, _messages, _peerMessageIds);
     }
 
     public MessageValidatorCollection MessageValidators { get; } = [];
@@ -40,16 +38,29 @@ public sealed class Gossip : IDisposable
 
     public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (!_disposed)
         {
+            await _messageRequester.DisposeAsync();
             _handlerRegistration.Dispose();
             _messages.Clear();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
     }
+
+
+    // public void Dispose()
+    // {
+    //     if (!_disposed)
+    //     {
+    //         _handlerRegistration.Dispose();
+    //         _messages.Clear();
+    //         _disposed = true;
+    //         GC.SuppressFinalize(this);
+    //     }
+    // }
 
     public void ClearCache()
     {

@@ -1,13 +1,11 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests.Store;
-using Xunit.Abstractions;
-using Libplanet.TestUtilities;
 using Libplanet.Net.Components;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public sealed class GossipTest(ITestOutputHelper output)
+public sealed class GossipTest
 {
     private const int Timeout = 60 * 1000;
 
@@ -15,9 +13,6 @@ public sealed class GossipTest(ITestOutputHelper output)
     public async Task PublishMessage()
     {
         using var fx = new MemoryRepositoryFixture();
-        var received1 = false;
-        var received2 = false;
-        var receivedEvent = new ManualResetEvent(false);
         var transport1 = TestUtils.CreateTransport();
         var transport2 = TestUtils.CreateTransport();
         var peers1 = new PeerCollection(transport1.Peer.Address)
@@ -28,42 +23,52 @@ public sealed class GossipTest(ITestOutputHelper output)
         {
             transport1.Peer,
         };
-        using var gossip1 = new Gossip(transport1, peers1);
-        using var gossip2 = new Gossip(transport2, peers2);
+        await using var gossip1 = new Gossip(transport1, peers1);
+        await using var gossip2 = new Gossip(transport2, peers2);
         await using var transports = new ServiceCollection
         {
             transport1,
             transport2,
         };
-        transport1.MessageRouter.Register<ConsensusProposalMessage>(message =>
-        {
-            received1 = true;
-        });
-        transport2.MessageRouter.Register<ConsensusProposalMessage>(message =>
-        {
-            received2 = true;
-            receivedEvent.Set();
-        });
+
         await transports.StartAsync(default);
+
+        var tcs1 = new TaskCompletionSource();
+        var tcs2 = new TaskCompletionSource();
+        transport1.MessageRouter.Register<ConsensusProposalMessage>(_ =>
+        {
+            tcs1.SetResult();
+        });
+        transport2.MessageRouter.Register<ConsensusProposalMessage>(_ =>
+        {
+            tcs2.SetResult();
+        });
+
         var message = TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1);
         gossip1.PublishMessage(message);
-        receivedEvent.WaitOne();
-        Assert.True(received1);
-        Assert.True(received2);
+
+        await Task.WhenAll(tcs1.Task, tcs2.Task).WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.True(tcs1.Task.IsCompletedSuccessfully);
+        Assert.True(tcs2.Task.IsCompletedSuccessfully);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task AddMessages()
     {
-        var random = RandomUtility.GetRandom(output);
         using var fx = new MemoryRepositoryFixture();
         var received1 = 0;
         var received2 = 0;
-        var key1 = RandomUtility.PrivateKey(random);
-        var key2 = RandomUtility.PrivateKey(random);
-        var receivedEvent = new ManualResetEvent(false);
-        await using var transport1 = TestUtils.CreateTransport(key1);
-        await using var transport2 = TestUtils.CreateTransport(key2);
+        IMessage[] messages =
+        [
+            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1),
+            TestUtils.CreateConsensusPropose(fx.Block2, fx.Proposer, 2),
+            TestUtils.CreateConsensusPropose(fx.Block3, fx.Proposer, 3),
+            TestUtils.CreateConsensusPropose(fx.Block4, fx.Proposer, 4),
+        ];
+        var tcs1 = new TaskCompletionSource();
+        var tcs2 = new TaskCompletionSource();
+        var transport1 = TestUtils.CreateTransport();
+        var transport2 = TestUtils.CreateTransport();
         var peers1 = new PeerCollection(transport1.Peer.Address)
         {
             transport2.Peer,
@@ -72,38 +77,34 @@ public sealed class GossipTest(ITestOutputHelper output)
         {
             transport1.Peer,
         };
-        using var gossip1 = new Gossip(transport1, peers1);
-        using var gossip2 = new Gossip(transport2, peers2);
+        await using var gossip1 = new Gossip(transport1, peers1);
+        await using var gossip2 = new Gossip(transport2, peers2);
         await using var transports = new ServiceCollection
         {
             transport1,
             transport2,
         };
-        transport1.MessageRouter.Register<ConsensusProposalMessage>(message =>
+        transport1.MessageRouter.Register<ConsensusProposalMessage>(_ =>
         {
-            received1++;
-        });
-        transport2.MessageRouter.Register<ConsensusProposalMessage>(message =>
-        {
-            received2++;
-            if (received2 == 4)
+            if (Interlocked.Increment(ref received1) == messages.Length)
             {
-                receivedEvent.Set();
+                tcs1.SetResult();
+            }
+        });
+        transport2.MessageRouter.Register<ConsensusProposalMessage>(_ =>
+        {
+            if (Interlocked.Increment(ref received2) == messages.Length)
+            {
+                tcs2.SetResult();
             }
         });
 
         await transports.StartAsync(default);
-        IMessage[] message =
-        [
-            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1),
-            TestUtils.CreateConsensusPropose(fx.Block2, fx.Proposer, 2),
-            TestUtils.CreateConsensusPropose(fx.Block3, fx.Proposer, 3),
-            TestUtils.CreateConsensusPropose(fx.Block4, fx.Proposer, 4),
-        ];
+        
 
-        Parallel.ForEach(message, gossip1.PublishMessage);
+        Parallel.ForEach(messages, gossip1.PublishMessage);
 
-        Assert.True(receivedEvent.WaitOne());
+        await Task.WhenAll(tcs1.Task, tcs2.Task).WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(4, received1);
         Assert.Equal(4, received2);
     }
@@ -111,90 +112,94 @@ public sealed class GossipTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task AddPeerWithHaveMessage()
     {
-        var transport1 = TestUtils.CreateTransport();
-        var transport2 = TestUtils.CreateTransport();
-        using var gossip1 = new Gossip(transport1);
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var peersA = new PeerCollection(transportA.Peer.Address);
+        await using var gossipA = new Gossip(transportA, peersA);
         await using var transports = new ServiceCollection
         {
-            transport1,
-            transport2,
+            transportA,
+            transportB,
         };
 
         await transports.StartAsync(default);
 
-        transport2.Post(gossip1.Peer, new HaveMessage(), default);
-        await transport1.WaitAsync<HaveMessage>(default);
-        Assert.Contains(transport2.Peer, gossip1.Peers);
+        TestUtils.InvokeDelay(() => transportB.Post(gossipA.Peer, new HaveMessage()), 100);
+        await transportA.WaitAsync<HaveMessage>().WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Contains(transportB.Peer, gossipA.Peers);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task DoNotBroadcastToSeedPeers()
     {
-        var handled = false;
-        var transport1 = TestUtils.CreateTransport();
-        var transport2 = TestUtils.CreateTransport();
-        var peers2 = new PeerCollection(transport2.Peer.Address);
+        var tcs = new TaskCompletionSource();
+        var transportA = TestUtils.CreateTransport();
+        var transportB = TestUtils.CreateTransport();
+        var peersB = new PeerCollection(transportB.Peer.Address);
 
-        var peerExplorer2 = new PeerExplorer(transport2, peers2)
+        var peerExplorerB = new PeerExplorer(transportB, peersB)
         {
-            SeedPeers = [transport1.Peer]
+            SeedPeers = [transportA.Peer]
         };
-        using var gossip2 = new Gossip(transport2, peerExplorer2.Peers);
+        await using var gossipB = new Gossip(transportB, peerExplorerB.Peers);
 
         await using var transports = new ServiceCollection
         {
-            transport1,
-            transport2,
+            transportA,
+            transportB,
         };
 
-        transport1.MessageRouter.Register<HaveMessage>(_ =>
+        transportA.MessageRouter.Register<HaveMessage>(_ =>
         {
-            handled = true;
+            tcs.SetResult();
         });
 
         await transports.StartAsync(default);
 
-        gossip2.PublishMessage(new PingMessage());
+        gossipB.PublishMessage(new PingMessage());
 
-        // Wait heartbeat interval * 2.
-        await Task.Delay(2 * 1000);
-        Assert.False(handled);
+        await Assert.ThrowsAsync<TimeoutException>(() => tcs.Task.WaitAsync(TimeSpan.FromSeconds(2)));
     }
 
     [Fact(Timeout = Timeout)]
     public async Task DoNotSendDuplicateMessageRequest()
     {
-        var handled = 0;
-        void HandelMessage(IMessage message)
-        {
-            if (message is WantMessage)
-            {
-                Interlocked.Increment(ref handled);
-            }
-        }
-
         var transport = TestUtils.CreateTransport();
-        var peers = new PeerCollection(transport.Peer)
-        {
-            transport.Peer,
-        };
-        using var receiver = new Gossip(transport, peers);
-        await using var sender1 = TestUtils.CreateTransport();
-        sender1.MessageRouter.Register<IMessage>(HandelMessage);
-        await using var sender2 = TestUtils.CreateTransport();
-        sender2.MessageRouter.Register<IMessage>(HandelMessage);
+        var peers = new PeerCollection(transport.Peer);
+        await using var gossip = new Gossip(transport, peers);
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
 
-        // await receiver.StartAsync(default);
-        await transport.StartAsync(default);
-        await sender1.StartAsync(default);
-        await sender2.StartAsync(default);
+        await using var transports = new ServiceCollection
+        {
+            transport,
+            transportA,
+            transportB,
+        };
+
+        await transports.StartAsync(default);
+
+        var handled = 0;
+        var tcs1 = new TaskCompletionSource();
+        var tcs2 = new TaskCompletionSource();
+        using var _1 = transportA.MessageRouter.Register<WantMessage>(_ =>
+        {
+            Interlocked.Increment(ref handled);
+            tcs1.SetResult();
+        });
+        using var _2 = transportB.MessageRouter.Register<WantMessage>(_ =>
+        {
+            Interlocked.Increment(ref handled);
+            tcs2.SetResult();
+        });
+
         var message1 = new PingMessage();
         var message2 = new PongMessage();
-        sender1.Post(receiver.Peer, new HaveMessage { Ids = [message1.Id, message2.Id] });
-        sender2.Post(receiver.Peer, new HaveMessage { Ids = [message1.Id, message2.Id] });
+        transportA.Post(gossip.Peer, new HaveMessage { Ids = [message1.Id, message2.Id] });
+        transportB.Post(gossip.Peer, new HaveMessage { Ids = [message1.Id, message2.Id] });
 
-        // Wait heartbeat interval * 2.
-        await Task.Delay(2 * 1000);
+        await Assert.ThrowsAsync<TimeoutException>(
+            () => Task.WhenAll(tcs1.Task, tcs2.Task).WaitAsync(TimeSpan.FromSeconds(2)));
         Assert.Equal(1, handled);
     }
 }

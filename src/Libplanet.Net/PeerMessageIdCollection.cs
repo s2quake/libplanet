@@ -99,12 +99,17 @@ public sealed class PeerMessageIdCollection
     public ImmutableArray<(Peer, ImmutableArray<MessageId>)> Flush(MessageCollection messages)
     {
         using var _ = _lock.WriteScope();
+        var hashSet = new HashSet<MessageId>();
         var query = from kv in _itemsByPeer
                     let ids = kv.Value.Flush(messages)
                     where ids.Length > 0
-                    select (kv.Key, ids);
+                    from id in ids
+                    where hashSet.Add(id)
+                    group id by kv.Key into @group
+                    select (@group.Key, @group.ToImmutableArray());
 
-        return [.. query];
+        var items = query.ToImmutableArray();
+        return items;
     }
 
     public IEnumerator<KeyValuePair<Peer, MessageIdCollection>> GetEnumerator()

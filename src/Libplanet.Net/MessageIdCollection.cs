@@ -96,7 +96,7 @@ public sealed class MessageIdCollection : IEnumerable<MessageId>
     public ImmutableArray<MessageId> Flush(MessageCollection messages)
     {
         using var _ = _lock.WriteScope();
-        var items = messages.Except(_messageIds);
+        var items = _messageIds.Where(id => !messages.Contains(id)).ToImmutableArray();
         _messageIds.Clear();
         _clearedSubject.OnNext(Unit.Default);
 

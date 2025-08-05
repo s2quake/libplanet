@@ -426,7 +426,7 @@ public sealed class ConsensusService : ServiceBase
     protected override async ValueTask DisposeAsyncCore()
     {
         _handlerRegistration.Dispose();
-        _gossip.Dispose();
+        await _gossip.DisposeAsync();
         _peerExplorer.Dispose();
         Array.ForEach(_blockchainSubscriptions, subscription => subscription.Dispose());
         Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());

@@ -13,7 +13,7 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
     private readonly Subject<MessageEnvelope> _invalidProtocolSubject = new();
     private readonly Dictionary<Type, List<IMessageHandler>> _handlersByType = [];
     private readonly List<IMessageHandler> _handlerList = [];
-    private readonly ReaderWriterLockSlim _lock = new();
+    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
 
     public IObservable<(IMessageHandler, Exception)> ErrorOccurred => _errorOccurredSubject;
 
@@ -102,23 +102,25 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
             return;
         }
 
-        using var _ = new ReadScope(_lock);
-        var message = messageEnvelope.Message;
-        var messageType = message.GetType();
         var handlerList = new List<IMessageHandler>();
-        while (messageType is not null && typeof(IMessage).IsAssignableFrom(messageType))
+        using (new ReadScope(_lock))
         {
-            if (_handlersByType.TryGetValue(messageType, out var handlers1))
+            var message = messageEnvelope.Message;
+            var messageType = message.GetType();
+            while (messageType is not null && typeof(IMessage).IsAssignableFrom(messageType))
             {
-                handlerList.AddRange(handlers1);
+                if (_handlersByType.TryGetValue(messageType, out var handlers1))
+                {
+                    handlerList.AddRange(handlers1);
+                }
+
+                messageType = messageType.BaseType;
             }
 
-            messageType = messageType.BaseType;
-        }
-
-        if (_handlersByType.TryGetValue(typeof(IMessage), out var handlers2))
-        {
-            handlerList.AddRange(handlers2);
+            if (_handlersByType.TryGetValue(typeof(IMessage), out var handlers2))
+            {
+                handlerList.AddRange(handlers2);
+            }
         }
 
         await Parallel.ForEachAsync(handlerList, cancellationToken, async (handler, cancellationToken) =>

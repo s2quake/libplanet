@@ -2,7 +2,8 @@ using Libplanet.Net.Messages;
 
 namespace Libplanet.Net.MessageHandlers;
 
-internal sealed class HaveMessageHandler(MessageCollection messages, PeerMessageIdCollection peerMessageIds)
+internal sealed class HaveMessageHandler(
+    PeerCollection peers, MessageCollection messages, PeerMessageIdCollection peerMessageIds)
     : MessageHandlerBase<HaveMessage>
 {
     protected override async ValueTask OnHandleAsync(
@@ -11,12 +12,13 @@ internal sealed class HaveMessageHandler(MessageCollection messages, PeerMessage
         var ids = message.Ids.Where(id => !messages.Contains(id)).ToImmutableArray();
         var peer = messageEnvelope.Sender;
 
-        if (ids.Length is 0)
+        if (ids.Length is not 0)
         {
-            return;
+            peerMessageIds.Add(peer, ids);
         }
 
-        peerMessageIds.Add(peer, ids);
+        peers.Add(messageEnvelope.Sender);
+
         await ValueTask.CompletedTask;
     }
 }
