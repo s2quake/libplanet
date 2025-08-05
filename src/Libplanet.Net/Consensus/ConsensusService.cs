@@ -33,7 +33,8 @@ public sealed class ConsensusService : ServiceBase
 
     private Dispatcher? _dispatcher;
     private Consensus _consensus;
-    private ConsensusCommunicator _communicator;
+    // private ConsensusCommunicator _communicator;
+    private IDisposable[] _publishSubscriptions;
     private IDisposable[] _consensusSubscriptions;
     private CancellationTokenSource? _cancellationTokenSource;
     private DateTimeOffset _tipChangedTime;
@@ -56,7 +57,8 @@ public sealed class ConsensusService : ServiceBase
         _consensusOption = options.ConsensusOptions;
         Height = _blockchain.Tip.Height + 1;
         _consensus = new Consensus(_blockchain, Height, _signer, _consensusOption);
-        _communicator = new ConsensusCommunicator(_consensus, _gossip);
+
+        _publishSubscriptions = [.. Subscribe(_consensus, _gossip)];
         _consensusSubscriptions = [.. Subscribe(_consensus)];
         _blockchainSubscriptions =
         [
@@ -141,6 +143,20 @@ public sealed class ConsensusService : ServiceBase
         }
     }
 
+    private static IEnumerable<IDisposable> Subscribe(Consensus consensus, Gossip gossip)
+    {
+        yield return consensus.PreVote.Subscribe(vote
+            => gossip.PublishMessage(new ConsensusPreVoteMessage { PreVote = vote }));
+        yield return consensus.PreCommit.Subscribe(vote
+            => gossip.PublishMessage(new ConsensusPreCommitMessage { PreCommit = vote }));
+        yield return consensus.QuorumReach.Subscribe(maj23
+            => gossip.PublishMessage(new ConsensusMaj23Message { Maj23 = maj23 }));
+        yield return consensus.ProposalClaim.Subscribe(proposalClaim
+            => gossip.PublishMessage(new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim }));
+        yield return consensus.BlockPropose.Subscribe(proposal
+            => gossip.PublishMessage(new ConsensusProposalMessage { Proposal = proposal }));
+    }
+
     private IEnumerable<IDisposable> Subscribe(Consensus consensus)
     {
         yield return consensus.ExceptionOccurred.Subscribe(exception =>
@@ -216,11 +232,12 @@ public sealed class ConsensusService : ServiceBase
         await _dispatcher.InvokeAsync(async cancellationToken =>
         {
             Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
-            _communicator.Dispose();
+            Array.ForEach(_publishSubscriptions, subscription => subscription.Dispose());
+
             await _consensus.StopAsync(cancellationToken);
             await _consensus.DisposeAsync();
             _consensus = new Consensus(_blockchain, height, _signer, _consensusOption);
-            _communicator = new ConsensusCommunicator(_consensus, _gossip);
+            _publishSubscriptions = [.. Subscribe(_consensus, _gossip)];
             _consensusSubscriptions = [.. Subscribe(_consensus)];
             await _consensus.StartAsync(cancellationToken);
             Height = height;

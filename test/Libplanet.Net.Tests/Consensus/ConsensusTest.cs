@@ -554,6 +554,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             Round = 0,
         }.Create(TestUtils.PrivateKeys[1]);
 
+        await transport.StartAsync(default);
         await consensusService.StartAsync(default);
         consensusService.Post(proposal);
 
