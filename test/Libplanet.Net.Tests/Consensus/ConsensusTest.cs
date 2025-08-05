@@ -219,4 +219,31 @@ public sealed class ConsensusTest
         Assert.StartsWith("Given proposal's round", e2.Message);
         Assert.Equal("proposal", e2.ParamName);
     }
+
+    [Theory(Timeout = Timeout)]
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task TimeoutOccured_Propose_Without_Proposal(int index)
+    {
+        var blockchain = TestUtils.MakeBlockchain();
+        var options = new ConsensusOptions
+        {
+            ProposeTimeoutBase = TimeSpan.FromSeconds(1),
+            ProposeTimeoutDelta = TimeSpan.FromMilliseconds(100),
+        };
+        await using var consensus = new Net.Consensus.Consensus(
+            blockchain,
+            height: 1,
+            signer: TestUtils.PrivateKeys[index].AsSigner(),
+            validators: TestUtils.Validators,
+            options: options);
+
+        var timeoutOccurredTask = consensus.TimeoutOccurred.WaitAsync();
+        var stepChangedTask = consensus.StepChanged.WaitAsync();
+        await consensus.StartAsync(default);
+        await timeoutOccurredTask.WaitAsync(options.TimeoutPropose(consensus.Round));
+        await stepChangedTask.WaitAsync(options.TimeoutPropose(consensus.Round));
+        Assert.Equal(ConsensusStep.Propose, consensus.Step);
+        Assert.Equal(1, consensus.Round);
+    }
 }

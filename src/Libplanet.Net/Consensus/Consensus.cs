@@ -307,6 +307,12 @@ public sealed class Consensus(
         await base.DisposeAsyncCore();
     }
 
+    private static int ValidateHeight(int height)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+        return height;
+    }
+
     private Block ProposeBlock() => blockchain.ProposeBlock(signer);
 
     private bool IsValid(Block block)
@@ -400,9 +406,16 @@ public sealed class Consensus(
         {
             if (round == Round && Step == ConsensusStep.Propose)
             {
-                EnterPreVote(round, default);
                 _timeoutOccurredSubject.OnNext((round, ConsensusStep.Propose));
-                ProcessGenericUponRules();
+                if (Proposal is null)
+                {
+                    StartRound(round + 1);
+                }
+                else
+                {
+                    EnterPreVote(round, default);
+                    ProcessGenericUponRules();
+                }
             }
         }
     }
@@ -492,10 +505,8 @@ public sealed class Consensus(
             }.Create(signer);
             _shouldProposeSubject.OnNext(proposal);
         }
-        else
-        {
-            PostProposeTimeout(Round);
-        }
+
+        PostProposeTimeout(Round);
     }
 
     private void SetProposal(Proposal proposal)
@@ -744,12 +755,6 @@ public sealed class Consensus(
                 return;
             }
         }
-    }
-
-    private static int ValidateHeight(int height)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
-        return height;
     }
 
     private void Dispatcher_UnhandledException(object sender, UnhandledExceptionEventArgs e)
