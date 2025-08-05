@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Threading;
 
@@ -95,7 +94,7 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
         return _handlersByType.ContainsKey(messageType);
     }
 
-    public async ValueTask HandleAsync(MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+    public async Task HandleAsync(MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         if (messageEnvelope.ProtocolHash != protocolHash)
         {
@@ -106,14 +105,12 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
         using var _ = new ReadScope(_lock);
         var message = messageEnvelope.Message;
         var messageType = message.GetType();
+        var handlerList = new List<IMessageHandler>();
         while (messageType is not null && typeof(IMessage).IsAssignableFrom(messageType))
         {
             if (_handlersByType.TryGetValue(messageType, out var handlers1))
             {
-                foreach (var handler in handlers1)
-                {
-                    await HandleInternal(handler, messageEnvelope, cancellationToken);
-                }
+                handlerList.AddRange(handlers1);
             }
 
             messageType = messageType.BaseType;
@@ -121,11 +118,20 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
 
         if (_handlersByType.TryGetValue(typeof(IMessage), out var handlers2))
         {
-            foreach (var handler in handlers2)
-            {
-                await HandleInternal(handler, messageEnvelope, cancellationToken);
-            }
+            handlerList.AddRange(handlers2);
         }
+
+        await Parallel.ForEachAsync(handlerList, cancellationToken, async (handler, cancellationToken) =>
+        {
+            try
+            {
+                await handler.HandleAsync(messageEnvelope, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                _errorOccurredSubject.OnNext((handler, e));
+            }
+        });
     }
 
     public IEnumerator<IMessageHandler> GetEnumerator()
@@ -166,19 +172,6 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
         if (value.Count == 0)
         {
             _handlersByType.Remove(handler.MessageType);
-        }
-    }
-
-    private async ValueTask HandleInternal(
-        IMessageHandler handler, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await handler.HandleAsync(messageEnvelope, cancellationToken);
-        }
-        catch (Exception e)
-        {
-            _errorOccurredSubject.OnNext((handler, e));
         }
     }
 

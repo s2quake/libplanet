@@ -314,21 +314,30 @@ public static class TestUtils
             genesisBlock: genesisBlock,
             protocolVersion: protocolVersion);
 
-    public static Task<T> InvokeDelay<T>(Func<T> func, int millisecondsDelay)
-        => InvokeDelay(func, TimeSpan.FromMilliseconds(millisecondsDelay));
-
-    public static async Task<T> InvokeDelay<T>(Func<T> func, TimeSpan delay)
+    public static void InvokeDelay(Action action, int millisecondsDelay)
     {
-        await Task.Delay(delay);
-        return func();
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(millisecondsDelay);
+            action();
+        });
     }
 
-    public static Task<T> InvokeDelay<T>(Func<Task<T>> func, int millisecondsDelay)
-        => InvokeDelay(func, TimeSpan.FromMilliseconds(millisecondsDelay));
+    // public static Task<T> InvokeDelay<T>(Func<T> func, int millisecondsDelay)
+    //     => InvokeDelay(func, TimeSpan.FromMilliseconds(millisecondsDelay));
 
-    public static async Task<T> InvokeDelay<T>(Func<Task<T>> func, TimeSpan delay)
-    {
-        await Task.Delay(delay);
-        return await func();
-    }
+    // public static async Task<T> InvokeDelay<T>(Func<T> func, TimeSpan delay)
+    // {
+    //     await Task.Delay(delay);
+    //     return func();
+    // }
+
+    // public static Task<T> InvokeDelay<T>(Func<Task<T>> func, int millisecondsDelay)
+    //     => InvokeDelay(func, TimeSpan.FromMilliseconds(millisecondsDelay));
+
+    // public static async Task<T> InvokeDelay<T>(Func<Task<T>> func, TimeSpan delay)
+    // {
+    //     await Task.Delay(delay);
+    //     return await func();
+    // }
 }

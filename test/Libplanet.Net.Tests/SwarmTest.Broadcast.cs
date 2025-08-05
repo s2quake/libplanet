@@ -518,10 +518,7 @@ public partial class SwarmTest
         await transportB.StartAsync(default);
         await services.StartAsync(default);
         await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
-        peerExplorerA.BroadcastTransaction([tx1, tx2], new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastTransaction([tx1, tx2]), 100);
         await syncServiceB.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(
             new HashSet<TxId> { tx1.Id, tx2.Id },
@@ -556,10 +553,7 @@ public partial class SwarmTest
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
         await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
 
-        peerExplorerA.BroadcastTransaction([tx3, tx4], new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastTransaction([tx3, tx4]), 100);
         await syncServiceB.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
         await syncServiceC.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
@@ -623,21 +617,14 @@ public partial class SwarmTest
             peerExplorerB.ExploreAsync([peerExplorerA.Peer], 3, default),
             peerExplorerC.ExploreAsync([peerExplorerA.Peer], 3, default));
 
-        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
         await Task.WhenAll(
             syncServiceA.BlockDemands.Added.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)),
             syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
 
         Assert.NotEqual(blockchainB.Tip, blockchainA.Tip);
 
-        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
-
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
         await Task.WhenAll(
             syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)),
             syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
@@ -712,10 +699,7 @@ public partial class SwarmTest
 
         await peerExplorerB.PingAsync(transportA.Peer, default);
 
-        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
         await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(50));
 
         Assert.Equal(3, blockchainB.Blocks.Count);
@@ -755,19 +739,13 @@ public partial class SwarmTest
         await peerExplorerB.PingAsync(transportA.Peer, default);
 
         blockchainA.ProposeAndAppend(keyA);
-        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
         await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(blockchainB.Blocks.Keys, blockchainA.Blocks.Keys);
 
         blockchainA.ProposeAndAppend(keyB);
-        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
         await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(blockchainB.Blocks.Keys, blockchainA.Blocks.Keys);
@@ -810,19 +788,12 @@ public partial class SwarmTest
 
         await peerExplorerB.PingAsync(transportA.Peer, default);
 
-        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
         await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(blockchainA.Blocks.Keys, blockchainB.Blocks.Keys);
 
-        peerExplorerA.BroadcastBlock(blockchainA, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
-
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
         await Assert.ThrowsAsync<TimeoutException>(
             async () => await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
     }
@@ -1082,10 +1053,7 @@ public partial class SwarmTest
         await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
         await peerExplorerC.PingAsync(peerExplorerA.Peer, default);
 
-        peerExplorerA.BroadcastEvidence([evidence], new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastEvidence([evidence]), 100);
         await Task.WhenAll(
             syncServiceB.EvidenceAdded.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)),
             syncServiceC.EvidenceAdded.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));

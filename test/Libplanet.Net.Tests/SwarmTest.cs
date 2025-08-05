@@ -88,7 +88,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await using var transportB = TestUtils.CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
-        _ = new PeerExplorer(transportA, peersA);
+        using var _ = new PeerExplorer(transportA, peersA);
         var peerExplorerB = new PeerExplorer(transportB, peersB)
         {
             SeedPeers = [transportA.Peer],
@@ -97,7 +97,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
         await peerExplorerB.ExploreAsync(default);
-        Assert.Empty(peerExplorerB.Peers);
+        Assert.Single(peerExplorerB.Peers, transportA.Peer);
     }
 
     [Fact(Timeout = Timeout)]
@@ -111,19 +111,20 @@ public partial class SwarmTest(ITestOutputHelper output)
         var peersB = new PeerCollection(transportB.Peer.Address);
         var peersC = new PeerCollection(transportC.Peer.Address);
         var peersD = new PeerCollection(transportD.Peer.Address);
-        _ = new PeerExplorer(transportA, peersA);
-        var peerExplorerB = new PeerExplorer(transportB, peersB);
-        var peerExplorerC = new PeerExplorer(transportC, peersC);
-        _ = new PeerExplorer(transportD, peersD);
+        using var peerExplorerA = new PeerExplorer(transportA, peersA);
+        using var peerExplorerB = new PeerExplorer(transportB, peersB);
+        using var peerExplorerC = new PeerExplorer(transportC, peersC);
+        using var peerExplorerD = new PeerExplorer(transportD, peersD);
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
+        await transportC.StartAsync(default);
         await transportD.StartAsync(default);
 
         var bootstrappedAt = DateTimeOffset.UtcNow;
         peerExplorerC.Peers.AddOrUpdate(transportD.Peer);
-        await peerExplorerB.PingAsync(transportA.Peer, default);
-        await peerExplorerC.PingAsync(transportA.Peer, default);
+        await peerExplorerB.ExploreAsync([transportA.Peer], 3, default);
+        await peerExplorerC.ExploreAsync([transportA.Peer], 3, default);
 
         Assert.Contains(transportB.Peer, peerExplorerC.Peers);
         Assert.Contains(transportC.Peer, peerExplorerB.Peers);
@@ -136,15 +137,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         foreach (var peer in peerExplorerC.Peers)
         {
             var peerState = peerExplorerC.Peers.GetState(peer.Address);
-            if (peer.Address == transportD.Peer.Address)
-            {
-                // Peers added before bootstrap should not be marked as stale.
-                Assert.InRange(peerState.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
-            }
-            else
-            {
-                Assert.Equal(DateTimeOffset.MinValue, peerState.LastUpdated);
-            }
+            Assert.InRange(peerState.LastUpdated, bootstrappedAt, DateTimeOffset.UtcNow);
         }
     }
 
@@ -234,7 +227,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var consensusServiceOptions = TestUtils.PrivateKeys.Select(i =>
             new ConsensusServiceOptions
             {
-                Validators = [..consensusPeers],
+                Validators = [.. consensusPeers],
                 Workers = 100,
                 TargetBlockInterval = TimeSpan.FromSeconds(10),
                 ConsensusOptions = new ConsensusOptions(),
@@ -244,7 +237,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         {
             return new ConsensusService(TestUtils.PrivateKeys[i].AsSigner(), blockchains[i], transports[i], options);
         }).ToArray();
-        
+
         await using var _1 = new ServiceCollection(transports);
         await using var _2 = new ServiceCollection(consensusServices);
 
@@ -719,10 +712,7 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         var (block, _) = blockchainA.ProposeAndAppend(privateKeyA);
 
-        peerExplorerA.BroadcastBlock(blockchainA, block, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA, block), 100);
 
         await Task.WhenAll(
             transportB.MessageRouter.ErrorOccurred.WaitAsync(
@@ -904,10 +894,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         blockchainB.ProposeAndAppendMany(GenesisProposer, 6);
 
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
-        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
         await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(7, blockchainA.Blocks.Count);
@@ -943,10 +930,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         blockchainB.ProposeAndAppendMany(GenesisProposer, 6);
 
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
-        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
         await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.Equal(2, blockchainA.Blocks.Count);
@@ -982,24 +966,15 @@ public partial class SwarmTest(ITestOutputHelper output)
         blockchainB.ProposeAndAppendMany(GenesisProposer, 6);
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
 
-        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
         await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(3, blockchainA.Blocks.Count);
 
-        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
         await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(5, blockchainA.Blocks.Count);
 
-        peerExplorerB.BroadcastBlock(blockchainB, new BroadcastOptions
-        {
-            Delay = TimeSpan.FromMilliseconds(100),
-        });
+        TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
         await syncServiceA.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(7, blockchainA.Blocks.Count);
     }

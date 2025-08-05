@@ -45,29 +45,13 @@ public sealed class PeerExplorer : IDisposable
 
     public PeerCollection Peers { get; }
 
-    public ImmutableArray<Peer> Broadcast(IMessage message)
+    public ImmutableArray<Peer> Broadcast(IMessage message) => Broadcast(message, except: default);
+
+    public ImmutableArray<Peer> Broadcast(IMessage message, ImmutableArray<Peer> except)
     {
-        var peers = Peers.PeersToBroadcast(default);
+        var peers = Peers.PeersToBroadcast(except, MinimumBroadcastTarget);
         _transport.Post(peers, message);
         return peers;
-    }
-
-    public ImmutableArray<Peer> Broadcast(IMessage message, BroadcastOptions options)
-    {
-        var except = options.Except;
-        var peers = Peers.PeersToBroadcast(except, MinimumBroadcastTarget);
-        _ = PostAsync();
-        return peers;
-
-        async Task PostAsync()
-        {
-            if (options.Delay > TimeSpan.Zero)
-            {
-                await Task.Delay(options.Delay);
-            }
-
-            _transport.Post(peers, message);
-        }
     }
 
     public Task ExploreAsync(CancellationToken cancellationToken)
@@ -169,6 +153,8 @@ public sealed class PeerExplorer : IDisposable
 
         throw new PeerNotFoundException("Failed to find peer.");
     }
+
+    public Task<bool> PingAsync(Peer peer) => PingAsync(peer, cancellationToken: default);
 
     public async Task<bool> PingAsync(Peer peer, CancellationToken cancellationToken)
     {
