@@ -17,7 +17,7 @@ public static class ConsensusExtensions
         }
         else if (consensusMessage is ConsensusProposalMessage proposalMessage)
         {
-            @this.Post(proposalMessage.Proposal);
+            @this.Propose(proposalMessage.Proposal);
         }
     }
 

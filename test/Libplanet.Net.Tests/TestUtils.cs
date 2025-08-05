@@ -263,9 +263,9 @@ public static class TestUtils
             validators: validators ?? Validators,
             options: options ?? new ConsensusOptions());
 
-        consensus.BlockPropose.Subscribe(consensus.Post);
-        consensus.PreVote.Subscribe(consensus.Post);
-        consensus.PreCommit.Subscribe(consensus.Post);
+        consensus.ShouldPropose.Subscribe(consensus.Propose);
+        consensus.ShouldPreVote.Subscribe(consensus.Post);
+        consensus.ShouldPreCommit.Subscribe(consensus.Post);
         consensus.Completed.Subscribe(e =>
         {
             _ = Task.Run(() => blockchain.Append(e.Block, e.BlockCommit));

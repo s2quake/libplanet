@@ -7,7 +7,7 @@ public sealed record class ConsensusOptions
     public static ConsensusOptions Default { get; } = new();
 
     [Positive]
-    public int ProposeTimeoutBase { get; init; } = 8_000;
+    public TimeSpan ProposeTimeoutBase { get; init; } = TimeSpan.FromSeconds(8);
 
     [Positive]
     public int PreVoteTimeoutBase { get; init; } = 1_000;
@@ -16,7 +16,7 @@ public sealed record class ConsensusOptions
     public int PreCommitTimeoutBase { get; init; } = 1_000;
 
     [Positive]
-    public int ProposeTimeoutDelta { get; init; } = 4_000;
+    public TimeSpan ProposeTimeoutDelta { get; init; } = TimeSpan.FromSeconds(4);
 
     [Positive]
     public int PreVoteTimeoutDelta { get; init; } = 500;
@@ -33,8 +33,7 @@ public sealed record class ConsensusOptions
     [NonNegative]
     public int EnterEndCommitDelay { get; init; }
 
-    public TimeSpan TimeoutPropose(int round)
-        => TimeSpan.FromMilliseconds(ProposeTimeoutBase + (ProposeTimeoutDelta * round));
+    public TimeSpan TimeoutPropose(int round) => ProposeTimeoutBase + (ProposeTimeoutDelta * round);
 
     public TimeSpan TimeoutPreVote(int round)
         => TimeSpan.FromMilliseconds(PreVoteTimeoutBase + (PreVoteTimeoutDelta * round));

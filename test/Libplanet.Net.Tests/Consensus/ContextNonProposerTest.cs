@@ -574,7 +574,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             privateKey: TestUtils.PrivateKeys[0],
             options: new ConsensusOptions
             {
-                ProposeTimeoutBase = 1_000
+                ProposeTimeoutBase = TimeSpan.FromSeconds(1),
             });
 
         // using var _1 = consensus.StateChanged.Subscribe(state =>

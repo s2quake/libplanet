@@ -25,11 +25,11 @@ public sealed class Consensus(
     private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
     private readonly Subject<Vote> _voteAddedSubject = new();
 
-    private readonly Subject<Vote> _preVoteSubject = new();
-    private readonly Subject<Vote> _preCommitSubject = new();
-    private readonly Subject<Maj23> _quorumReachSubject = new();
-    private readonly Subject<ProposalClaim> _proposalClaimSubject = new();
-    private readonly Subject<Proposal> _blockProposeSubject = new();
+    private readonly Subject<Vote> _shouldPreVoteSubject = new();
+    private readonly Subject<Vote> _shouldPreCommitSubject = new();
+    private readonly Subject<Maj23> _shouldQuorumReachSubject = new();
+    private readonly Subject<ProposalClaim> _shouldProposalClaimSubject = new();
+    private readonly Subject<Proposal> _shouldProposeSubject = new();
 
     private readonly VoteContext _preVotes = new(height, VoteType.PreVote, validators);
     private readonly VoteContext _preCommits = new(height, VoteType.PreCommit, validators);
@@ -71,15 +71,15 @@ public sealed class Consensus(
 
     public IObservable<(Block Block, BlockCommit BlockCommit)> Completed => _completedSubject;
 
-    public IObservable<Vote> PreVote => _preVoteSubject;
+    public IObservable<Vote> ShouldPreVote => _shouldPreVoteSubject;
 
-    public IObservable<Vote> PreCommit => _preCommitSubject;
+    public IObservable<Vote> ShouldPreCommit => _shouldPreCommitSubject;
 
-    public IObservable<Maj23> QuorumReach => _quorumReachSubject;
+    public IObservable<Maj23> ShouldQuorumReach => _shouldQuorumReachSubject;
 
-    public IObservable<ProposalClaim> ProposalClaim => _proposalClaimSubject;
+    public IObservable<ProposalClaim> ShouldProposalClaim => _shouldProposalClaimSubject;
 
-    public IObservable<Proposal> BlockPropose => _blockProposeSubject;
+    public IObservable<Proposal> ShouldPropose => _shouldProposeSubject;
 
     public int Height { get; } = ValidateHeight(height);
 
@@ -201,7 +201,7 @@ public sealed class Consensus(
         };
     }
 
-    public void Post(Proposal proposal)
+    public void Propose(Proposal proposal)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
@@ -252,7 +252,7 @@ public sealed class Consensus(
         }
         else if (consensusMessage is ConsensusProposalMessage proposalMessage)
         {
-            Post(proposalMessage.Proposal);
+            Propose(proposalMessage.Proposal);
         }
     }
 
@@ -299,11 +299,11 @@ public sealed class Consensus(
         _proposalChangedSubject.Dispose();
         _completedSubject.Dispose();
         _voteAddedSubject.Dispose();
-        _preVoteSubject.Dispose();
-        _preCommitSubject.Dispose();
-        _quorumReachSubject.Dispose();
-        _proposalClaimSubject.Dispose();
-        _blockProposeSubject.Dispose();
+        _shouldPreVoteSubject.Dispose();
+        _shouldPreCommitSubject.Dispose();
+        _shouldQuorumReachSubject.Dispose();
+        _shouldProposalClaimSubject.Dispose();
+        _shouldProposeSubject.Dispose();
         await base.DisposeAsyncCore();
     }
 
@@ -490,7 +490,7 @@ public sealed class Consensus(
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidRound = _validRound,
             }.Create(signer);
-            _blockProposeSubject.OnNext(proposal);
+            _shouldProposeSubject.OnNext(proposal);
         }
         else
         {
@@ -604,7 +604,7 @@ public sealed class Consensus(
                     Validator = signer.Address,
                     VoteType = VoteType.PreVote,
                 }.Sign(signer);
-                _quorumReachSubject.OnNext(maj23);
+                _shouldQuorumReachSubject.OnNext(maj23);
             }
 
             _validBlock = p3.Block;
@@ -631,7 +631,7 @@ public sealed class Consensus(
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = signer.Address,
                 }.Sign(signer);
-                _proposalClaimSubject.OnNext(proposalClaim);
+                _shouldProposalClaimSubject.OnNext(proposalClaim);
             }
         }
 
@@ -666,7 +666,7 @@ public sealed class Consensus(
                 Validator = signer.Address,
                 VoteType = VoteType.PreCommit,
             }.Sign(signer);
-            _quorumReachSubject.OnNext(maj23);
+            _shouldQuorumReachSubject.OnNext(maj23);
             EnterEndCommitWait(Round);
             return;
         }
@@ -695,7 +695,7 @@ public sealed class Consensus(
             Type = VoteType.PreVote,
         }.Sign(signer);
         Step = ConsensusStep.PreVote;
-        _preVoteSubject.OnNext(vote);
+        _shouldPreVoteSubject.OnNext(vote);
     }
 
     private void EnterPreCommit(int round, BlockHash blockHash)
@@ -716,7 +716,7 @@ public sealed class Consensus(
             Type = VoteType.PreCommit,
         }.Sign(signer);
         Step = ConsensusStep.PreCommit;
-        _preCommitSubject.OnNext(vote);
+        _shouldPreCommitSubject.OnNext(vote);
     }
 
     private void EnterEndCommit(int round)

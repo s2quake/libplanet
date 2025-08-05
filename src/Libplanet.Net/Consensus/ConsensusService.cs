@@ -145,15 +145,15 @@ public sealed class ConsensusService : ServiceBase
 
     private static IEnumerable<IDisposable> Subscribe(Consensus consensus, Gossip gossip)
     {
-        yield return consensus.PreVote.Subscribe(vote
+        yield return consensus.ShouldPreVote.Subscribe(vote
             => gossip.PublishMessage(new ConsensusPreVoteMessage { PreVote = vote }));
-        yield return consensus.PreCommit.Subscribe(vote
+        yield return consensus.ShouldPreCommit.Subscribe(vote
             => gossip.PublishMessage(new ConsensusPreCommitMessage { PreCommit = vote }));
-        yield return consensus.QuorumReach.Subscribe(maj23
+        yield return consensus.ShouldQuorumReach.Subscribe(maj23
             => gossip.PublishMessage(new ConsensusMaj23Message { Maj23 = maj23 }));
-        yield return consensus.ProposalClaim.Subscribe(proposalClaim
+        yield return consensus.ShouldProposalClaim.Subscribe(proposalClaim
             => gossip.PublishMessage(new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim }));
-        yield return consensus.BlockPropose.Subscribe(proposal
+        yield return consensus.ShouldPropose.Subscribe(proposal
             => gossip.PublishMessage(new ConsensusProposalMessage { Proposal = proposal }));
     }
 
@@ -197,7 +197,7 @@ public sealed class ConsensusService : ServiceBase
             var blockCommit = e.BlockCommit;
             _ = Task.Run(() => _blockchain.Append(block, blockCommit));
         });
-        yield return consensus.BlockPropose.Subscribe(proposal =>
+        yield return consensus.ShouldPropose.Subscribe(proposal =>
         {
             _dispatcher?.Post(() =>
             {
@@ -305,7 +305,7 @@ public sealed class ConsensusService : ServiceBase
             throw new InvalidOperationException("Consensus reactor is not running.");
         }
 
-        _dispatcher.Post(() => _consensus.Post(proposal));
+        _dispatcher.Post(() => _consensus.Propose(proposal));
     }
 
     public void Post(Vote vote)
