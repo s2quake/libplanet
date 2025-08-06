@@ -17,7 +17,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.False(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TwoThirdsMajority(out var hash0));
+        Assert.False(votes.TryGetMajorityBlockHash(out var hash0));
         Assert.Equal(default, hash0);
 
         votes.Add(new VoteMetadata
@@ -33,7 +33,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.False(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TwoThirdsMajority(out var hash1));
+        Assert.False(votes.TryGetMajorityBlockHash(out var hash1));
         Assert.Equal(default, hash1);
 
         votes.Add(new VoteMetadata
@@ -49,7 +49,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.True(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TwoThirdsMajority(out var hash2));
+        Assert.False(votes.TryGetMajorityBlockHash(out var hash2));
         Assert.Equal(default, hash2);
 
         votes.Add(new VoteMetadata
@@ -65,7 +65,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.True(votes.HasOneThirdsAny);
         Assert.True(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TwoThirdsMajority(out var hash3));
+        Assert.False(votes.TryGetMajorityBlockHash(out var hash3));
         Assert.Equal(default, hash3);
 
         votes.Add(new VoteMetadata
@@ -81,7 +81,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.True(votes.HasOneThirdsAny);
         Assert.True(votes.HasTwoThirdsAny);
         Assert.True(votes.HasTwoThirdsMajority);
-        Assert.True(votes.TwoThirdsMajority(out var hash4));
+        Assert.True(votes.TryGetMajorityBlockHash(out var hash4));
         Assert.Equal(blockHash, hash4);
     }
 }

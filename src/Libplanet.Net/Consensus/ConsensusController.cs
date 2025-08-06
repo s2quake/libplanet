@@ -53,17 +53,17 @@ public sealed class ConsensusController
                 break;
             case ConsensusStep.PreVote:
                 {
-                    var vote = new VoteMetadata
-                    {
-                        Height = _consensus.Height,
-                        Round = _consensus.Round,
-                        BlockHash = blockHash,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Validator = signer.Address,
-                        ValidatorPower = Validators.GetValidator(signer.Address).Power,
-                        Type = VoteType.PreVote,
-                    }.Sign(signer);
-                    Step = ConsensusStep.PreVote;
+                    // var vote = new VoteMetadata
+                    // {
+                    //     Height = _consensus.Height,
+                    //     Round = _consensus.Round,
+                    //     BlockHash = blockHash,
+                    //     Timestamp = DateTimeOffset.UtcNow,
+                    //     Validator = signer.Address,
+                    //     ValidatorPower = Validators.GetValidator(signer.Address).Power,
+                    //     Type = VoteType.PreVote,
+                    // }.Sign(signer);
+                    // Step = ConsensusStep.PreVote;
                 }
                 break;
             case ConsensusStep.PreCommit:

@@ -112,6 +112,8 @@ public sealed class Consensus(
         }
     }
 
+    public BlockHash BlockHash { get; private set; }
+
     public ImmutableSortedSet<Validator> Validators { get; } = validators;
 
     public BlockCommit GetBlockCommit()
@@ -474,7 +476,7 @@ public sealed class Consensus(
         }
 
         var timeout = options.TimeoutPreCommit(round);
-        _ = _dispatcher.PostAfterAsync(Invoke, timeout, default);
+        _ = _dispatcher.PostAfterAsync(Invoke, timeout, StoppingToken);
 
         void Invoke(CancellationToken _)
         {
@@ -545,7 +547,7 @@ public sealed class Consensus(
         }
 
         // Should check if +2/3 votes already collected and the proposal does not match
-        if (_preVotes[Round].TwoThirdsMajority(out var preVoteMaj23) &&
+        if (_preVotes[Round].TryGetMajorityBlockHash(out var preVoteMaj23) &&
             !proposal.BlockHash.Equals(preVoteMaj23))
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
@@ -553,7 +555,7 @@ public sealed class Consensus(
             throw new ArgumentException(message, nameof(proposal));
         }
 
-        if (_preVotes[Round].TwoThirdsMajority(out var preCommitMaj23) &&
+        if (_preVotes[Round].TryGetMajorityBlockHash(out var preCommitMaj23) &&
             !proposal.BlockHash.Equals(preCommitMaj23))
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
@@ -588,7 +590,7 @@ public sealed class Consensus(
             && propose is { } p2
             && p2.ValidRound >= 0
             && p2.ValidRound < Round
-            && _preVotes[p2.ValidRound].TwoThirdsMajority(out BlockHash hash1)
+            && _preVotes[p2.ValidRound].TryGetMajorityBlockHash(out BlockHash hash1)
             && hash1.Equals(p2.Block.BlockHash))
         {
             if (IsValid(p2.Block) && (_lockedRound <= p2.ValidRound || _lockedBlock == p2.Block))
@@ -608,8 +610,8 @@ public sealed class Consensus(
 
         if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
             && propose is { } p3
-            && _preVotes[Round].TwoThirdsMajority(out BlockHash hash2)
-            && hash2.Equals(p3.Block.BlockHash)
+            && _preVotes[Round].TryGetMajorityBlockHash(out BlockHash blockHash2)
+            && blockHash2.Equals(p3.Block.BlockHash)
             && IsValid(p3.Block)
             && !_hasTwoThirdsPreVoteTypes.Contains(Round))
         {
@@ -636,7 +638,7 @@ public sealed class Consensus(
             _validRound = Round;
         }
 
-        if (Step == ConsensusStep.PreVote && _preVotes[Round].TwoThirdsMajority(out BlockHash hash3))
+        if (Step == ConsensusStep.PreVote && _preVotes[Round].TryGetMajorityBlockHash(out BlockHash hash3))
         {
             if (hash3.Equals(default))
             {
@@ -675,7 +677,7 @@ public sealed class Consensus(
 
         var round = vote.Round;
         if (GetProposal() is (Block block4, _) &&
-            _preCommits[Round].TwoThirdsMajority(out BlockHash hash) &&
+            _preCommits[Round].TryGetMajorityBlockHash(out BlockHash hash) &&
             block4.BlockHash.Equals(hash) &&
             IsValid(block4))
         {

@@ -91,7 +91,7 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
             "Cannot create BlockCommit from VoteSet without a two-thirds majority.");
     }
 
-    public bool TwoThirdsMajority(out BlockHash blockHash)
+    public bool TryGetMajorityBlockHash(out BlockHash blockHash)
     {
         if (_maj23 is { } maj23)
         {
