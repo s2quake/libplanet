@@ -254,12 +254,13 @@ public sealed class ConsensusService : ServiceBase
         {
             if (message.Height == height)
             {
-                _consensus.Post(message);
+                HandleMessageInternal(message);
             }
         }
 
         _pendingMessages.RemoveWhere(message => message.Height <= height);
     }
+
 
     public Task<bool> HandleMessageAsync(ConsensusMessage consensusMessage, CancellationToken cancellationToken)
     {
@@ -288,7 +289,7 @@ public sealed class ConsensusService : ServiceBase
 
         if (_consensus.Height == height)
         {
-            _consensus.Post(consensusMessage);
+            HandleMessageInternal(consensusMessage);
         }
         else
         {
@@ -296,6 +297,28 @@ public sealed class ConsensusService : ServiceBase
         }
 
         return true;
+    }
+
+    private void HandleMessageInternal(ConsensusMessage consensusMessage)
+    {
+        if (consensusMessage.Height != Height)
+        {
+            var message = $"ConsensusMessage height {consensusMessage.Height} does not match expected height {Height}.";
+            throw new ArgumentException(message, nameof(consensusMessage));
+        }
+
+        if (consensusMessage is ConsensusPreVoteMessage preVoteMessage)
+        {
+            _consensus.PreVote(preVoteMessage.PreVote);
+        }
+        else if (consensusMessage is ConsensusPreCommitMessage preCommitMessage)
+        {
+            _consensus.PreCommit(preCommitMessage.PreCommit);
+        }
+        else if (consensusMessage is ConsensusProposalMessage proposalMessage)
+        {
+            _consensus.Propose(proposalMessage.Proposal);
+        }
     }
 
     public void Post(Proposal proposal)
@@ -308,14 +331,24 @@ public sealed class ConsensusService : ServiceBase
         _dispatcher.Post(() => _consensus.Propose(proposal));
     }
 
-    public void Post(Vote vote)
+    public void PreVote(Vote vote)
     {
         if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus reactor is not running.");
         }
 
-        _dispatcher.Post(() => _consensus.Post(vote));
+        _dispatcher.Post(() => _consensus.PreVote(vote));
+    }
+
+    public void PreCommit(Vote vote)
+    {
+        if (_dispatcher is null)
+        {
+            throw new InvalidOperationException("Consensus reactor is not running.");
+        }
+
+        _dispatcher.Post(() => _consensus.PreCommit(vote));
     }
 
     public VoteSetBits? HandleMaj23(Maj23 maj23)

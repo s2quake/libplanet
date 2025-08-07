@@ -264,8 +264,8 @@ public static class TestUtils
             options: options ?? new ConsensusOptions());
 
         consensus.ShouldPropose.Subscribe(consensus.Propose);
-        consensus.ShouldPreVote.Subscribe(consensus.Post);
-        consensus.ShouldPreCommit.Subscribe(consensus.Post);
+        consensus.ShouldPreVote.Subscribe(consensus.PreVote);
+        consensus.ShouldPreCommit.Subscribe(consensus.PreCommit);
         consensus.Completed.Subscribe(e =>
         {
             _ = Task.Run(() => blockchain.Append(e.Block, e.BlockCommit));

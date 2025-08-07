@@ -122,7 +122,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensus.Post(vote);
+            consensus.PreVote(vote);
         }
 
         // Validator 2 will automatically vote its PreCommit.
@@ -138,7 +138,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensus.Post(vote);
+            consensus.PreCommit(vote);
         }
 
         await endCommitEvent.Task.WaitAsync(TimeSpan.FromSeconds(1));
@@ -158,7 +158,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             ValidatorPower = TestUtils.Validators[3].Power,
             Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[3]);
-        consensus.Post(vote2);
+        consensus.PreCommit(vote2);
 
         await Task.Delay(100);  // Wait for the new message to be added to the message log.
         blockCommit = consensus.GetBlockCommit();
@@ -231,7 +231,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             0,
             block.BlockHash,
             VoteType.PreVote);
-        consensus.Post(vote);
+        consensus.PreVote(vote);
         Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
         Assert.IsType<ArgumentException>(exceptionThrown);
     }
@@ -314,7 +314,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensus.Post(preVote);
+            consensus.PreVote(preVote);
         }
 
         // Two additional votes should be enough to reach a consensus.
@@ -330,7 +330,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensus.Post(preCommit);
+            consensus.PreCommit(preCommit);
         }
 
         Assert.True(blockHeightOneAppended.WaitOne(1000), "Block #1 was not appended in time.");
@@ -353,7 +353,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             ValidatorPower = BigInteger.One,
             Type = VoteType.PreCommit,
         }.Sign(TestUtils.PrivateKeys[3]);
-        consensus.Post(vote);
+        consensus.PreCommit(vote);
         await Task.Delay(10);
         Assert.Equal(4, consensus.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));
     }
@@ -442,7 +442,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         // Proposal B is ignored because proposal A is received first.
         consensus.Propose(proposalB);
         Assert.Equal(proposalA, consensus.Proposal);
-        consensus.Post(preVoteA2);
+        consensus.PreVote(preVoteA2);
 
         // Validator 1 (key1) collected +2/3 pre-vote messages,
         // sends maj23 message to consensus.
@@ -487,9 +487,9 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             ValidatorPower = power2,
             Type = VoteType.PreVote,
         }.Sign(key2);
-        consensus.Post(preVoteB0);
-        consensus.Post(preVoteB1);
-        consensus.Post(preVoteB2);
+        consensus.PreVote(preVoteB0);
+        consensus.PreVote(preVoteB1);
+        consensus.PreVote(preVoteB2);
         Assert.True(proposalModified.WaitOne(1000), "Proposal was not modified in time.");
         Assert.Null(consensus.Proposal);
         consensus.Propose(proposalB);
@@ -570,7 +570,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensusService.Post(preVote);
+            consensusService.PreVote(preVote);
         }
 
         foreach (var i in new int[] { 1, 2, 3 })
@@ -585,7 +585,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreCommit,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensusService.Post(preCommit);
+            consensusService.PreCommit(preCommit);
         }
 
         Assert.Equal(1, consensusService.Height);
@@ -660,7 +660,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensus.Post(preVote);
+            consensus.PreVote(preVote);
         }
 
         // Send delayed PreVote message after sending preCommit message
@@ -680,7 +680,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                     ValidatorPower = TestUtils.Validators[3].Power,
                     Type = VoteType.PreVote,
                 }.Sign(TestUtils.PrivateKeys[3]);
-                consensus.Post(preVote);
+                consensus.PreVote(preVote);
             },
             cancellationToken.Token);
 
