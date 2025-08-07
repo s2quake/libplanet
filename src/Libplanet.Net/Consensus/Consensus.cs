@@ -418,7 +418,7 @@ public sealed class Consensus(
 
         void Invoke(CancellationToken _)
         {
-            EnterPreCommit(round, blockHash);
+            EnterPreCommitStep(round, blockHash);
             ProcessGenericUponRules();
         }
     }
@@ -441,7 +441,7 @@ public sealed class Consensus(
 
         void Invoke(CancellationToken _)
         {
-            EnterEndCommit(round);
+            EnterEndCommitStep(round);
             ProcessGenericUponRules();
         }
     }
@@ -469,7 +469,7 @@ public sealed class Consensus(
                 }
                 else
                 {
-                    EnterPreVote(round, default);
+                    EnterPreVoteStep(round, default);
                     ProcessGenericUponRules();
                 }
             }
@@ -495,7 +495,7 @@ public sealed class Consensus(
         {
             if (round == _round && Step == ConsensusStep.PreVote)
             {
-                EnterPreCommit(round, default);
+                EnterPreCommitStep(round, default);
                 _timeoutOccurredSubject.OnNext((round, ConsensusStep.PreVote));
                 ProcessGenericUponRules();
             }
@@ -519,7 +519,7 @@ public sealed class Consensus(
         {
             if (round == _round && Step is ConsensusStep.PreVote or ConsensusStep.PreCommit)
             {
-                EnterEndCommit(round);
+                EnterEndCommitStep(round);
                 _timeoutOccurredSubject.OnNext((round, ConsensusStep.PreCommit));
                 ProcessGenericUponRules();
             }
@@ -599,7 +599,7 @@ public sealed class Consensus(
 
     private void ProcessGenericUponRules()
     {
-        if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
+        if (Step is ConsensusStep.Default or ConsensusStep.EndCommit)
         {
             return;
         }
@@ -612,11 +612,11 @@ public sealed class Consensus(
         {
             if (IsValid(p1.Block) && (_lockedRound == -1 || _lockedBlock == p1.Block))
             {
-                EnterPreVote(Round, p1.Block.BlockHash);
+                EnterPreVoteStep(Round, p1.Block.BlockHash);
             }
             else
             {
-                EnterPreVote(Round, default);
+                EnterPreVoteStep(Round, default);
             }
         }
 
@@ -628,11 +628,11 @@ public sealed class Consensus(
         {
             if (IsValid(p2.Block) && (_lockedRound <= p2.ValidRound || _lockedBlock == p2.Block))
             {
-                EnterPreVote(Round, p2.Block.BlockHash);
+                EnterPreVoteStep(Round, p2.Block.BlockHash);
             }
             else
             {
-                EnterPreVote(Round, default);
+                EnterPreVoteStep(Round, default);
             }
         }
 
@@ -737,7 +737,7 @@ public sealed class Consensus(
         }
     }
 
-    private void EnterPreVote(Round round, BlockHash blockHash)
+    private void EnterPreVoteStep(Round round, BlockHash blockHash)
     {
         if (round != _round || Step >= ConsensusStep.PreVote)
         {
@@ -758,7 +758,7 @@ public sealed class Consensus(
         _shouldPreVoteSubject.OnNext(vote);
     }
 
-    private void EnterPreCommit(Round round, BlockHash blockHash)
+    private void EnterPreCommitStep(Round round, BlockHash blockHash)
     {
         if (_round != round || Step >= ConsensusStep.PreCommit)
         {
@@ -779,7 +779,7 @@ public sealed class Consensus(
         _shouldPreCommitSubject.OnNext(vote);
     }
 
-    private void EnterEndCommit(Round round)
+    private void EnterEndCommitStep(Round round)
     {
         if (round != _round || Step is ConsensusStep.Default or ConsensusStep.EndCommit)
         {
