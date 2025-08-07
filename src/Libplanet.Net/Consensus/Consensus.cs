@@ -31,8 +31,9 @@ public sealed class Consensus(
     private readonly Subject<ProposalClaim> _shouldProposalClaimSubject = new();
     private readonly Subject<Proposal> _shouldProposeSubject = new();
 
-    private readonly VoteContext _preVotes = new(height, VoteType.PreVote, validators);
-    private readonly VoteContext _preCommits = new(height, VoteType.PreCommit, validators);
+    // private readonly VoteContext _preVotes = new(height, VoteType.PreVote, validators);
+    // private readonly VoteContext _preCommits = new(height, VoteType.PreCommit, validators);
+    private readonly List<ConsensusRound> _roundList = [];
     private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
     private readonly HashSet<int> _preVoteTimeouts = [];
     private readonly HashSet<int> _preCommitTimeouts = [];
@@ -116,17 +117,7 @@ public sealed class Consensus(
 
     public ImmutableSortedSet<Validator> Validators { get; } = validators;
 
-    public BlockCommit GetBlockCommit()
-    {
-        try
-        {
-            return _preCommits[Round].ToBlockCommit();
-        }
-        catch (KeyNotFoundException)
-        {
-            return BlockCommit.Empty;
-        }
-    }
+    public BlockCommit GetBlockCommit() => _roundList[Round].PreCommits.GetBlockCommit();
 
     public VoteSetBits GetVoteSetBits(int round, BlockHash blockHash, VoteType voteType)
     {
@@ -135,8 +126,8 @@ public sealed class Consensus(
         // since RoundVoteSet has been already created on SetPeerMaj23.
         bool[] voteBits = voteType switch
         {
-            VoteType.PreVote => _preVotes[round].BitArrayByBlockHash(blockHash),
-            VoteType.PreCommit => _preCommits[round].BitArrayByBlockHash(blockHash),
+            VoteType.PreVote => _roundList[round].PreVotes.GetVoteBits(blockHash),
+            VoteType.PreCommit => _roundList[round].PreCommits.GetVoteBits(blockHash),
             _ => throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(voteType)),
         };
 
@@ -152,58 +143,143 @@ public sealed class Consensus(
         }.Sign(signer);
     }
 
-    public VoteSetBits? AddMaj23(Maj23 maj23)
+    public bool AddMaj23(Maj23 maj23)
     {
         if (maj23.VoteType is not VoteType.PreVote and not VoteType.PreCommit)
         {
             throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(maj23));
         }
 
-        var voteContext = maj23.VoteType == VoteType.PreVote ? _preVotes : _preCommits;
-        if (voteContext.SetMaj23(maj23))
+        var round = _roundList[maj23.Round];
+
+        var majorities = maj23.VoteType == VoteType.PreVote ? round.PreVoteMajorities : round.PreCommitMajorities;
+        if (!majorities.ContainsKey(maj23.Validator))
         {
-            var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.VoteType);
-            return voteSetBits.VoteBits.All(b => b) ? null : voteSetBits;
+            majorities.Add(maj23);
+            return true;
         }
 
-        return null;
+        return false;
+        // if ()
+        // {
+        //     var voteSetBits = GetVoteSetBits(maj23.Round, maj23.BlockHash, maj23.VoteType);
+        //     return voteSetBits.VoteBits.All(b => b) ? null : voteSetBits;
+        // }
+
+        // return null;
     }
 
-    public IEnumerable<ConsensusMessage> GetVoteSetBitsResponse(VoteSetBits voteSetBits)
+    public VoteSetBits GetVoteSetBits(Maj23 maj23)
     {
-        IEnumerable<Vote> votes;
-        try
+        if (maj23.Height != Height)
         {
-            votes = voteSetBits.VoteType switch
+            throw new ArgumentException(
+                $"Maj23 height {maj23.Height} does not match expected height {Height}.", nameof(maj23));
+        }
+
+        if (maj23.Round < 0 || maj23.Round >= _roundList.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maj23.Round), "Round is out of range.");
+        }
+
+        var round = _roundList[maj23.Round];
+        var votes = maj23.VoteType == VoteType.PreVote
+            ? round.PreVotes
+            : round.PreCommits;
+
+        var voteBits = votes.GetVoteBits(maj23.BlockHash);
+        return new VoteSetBitsMetadata
+        {
+            Height = Height,
+            Round = maj23.Round,
+            BlockHash = maj23.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = maj23.Validator,
+            VoteType = maj23.VoteType,
+            VoteBits = [.. voteBits],
+        }.Sign(signer);
+    }
+
+    public ImmutableArray<Vote> GetVotes(VoteSetBits voteSetBits)
+    {
+        if (voteSetBits.Height != Height)
+        {
+            throw new ArgumentException(
+                $"VoteSetBits height {voteSetBits.Height} does not match expected height {Height}.",
+                nameof(voteSetBits));
+        }
+
+        if (voteSetBits.VoteType is not VoteType.PreVote and not VoteType.PreCommit)
+        {
+            throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(voteSetBits));
+        }
+
+        if (voteSetBits.VoteBits.Length != validators.Count)
+        {
+            throw new ArgumentException(
+                $"VoteBits length {voteSetBits.VoteBits.Length} does not match validators count {validators.Count}.",
+                nameof(voteSetBits));
+        }
+
+        var round = _roundList[voteSetBits.Round];
+        var voteBits = voteSetBits.VoteBits;
+        var votes = voteSetBits.VoteType is VoteType.PreVote ? round.PreVotes : round.PreCommits;
+
+        var voteList = new List<Vote>(Validators.Count);
+        for (var i = 0; i < voteBits.Length; i++)
+        {
+            if (!voteBits[i] && votes.TryGetValue(Validators[i].Address, out var vote))
             {
-                VoteType.PreVote =>
-                _preVotes[voteSetBits.Round].MappedList().Where(
-                    (vote, index)
-                    => !voteSetBits.VoteBits[index]
-                    && vote is { }
-                    && vote.Type == VoteType.PreVote).Select(vote => vote!),
-                VoteType.PreCommit =>
-                _preCommits[voteSetBits.Round].MappedList().Where(
-                    (vote, index)
-                    => !voteSetBits.VoteBits[index]
-                    && vote is { }
-                    && vote.Type == VoteType.PreCommit).Select(vote => vote!),
-                _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(voteSetBits)),
-            };
-        }
-        catch (KeyNotFoundException)
-        {
-            votes = [];
+                voteList.Add(vote);
+            }
         }
 
-        return votes.Select(GetMessage);
+        return [.. voteList];
 
-        static ConsensusMessage GetMessage(Vote vote) => vote.Type switch
-        {
-            VoteType.PreVote => new ConsensusPreVoteMessage { PreVote = vote },
-            VoteType.PreCommit => new ConsensusPreCommitMessage { PreCommit = vote },
-            _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(vote)),
-        };
+        // foreach (var vote in voteList)
+        // {
+        //     yield return vote.Type switch
+        //     {
+        //         VoteType.PreVote => new ConsensusPreVoteMessage { PreVote = vote },
+        //         VoteType.PreCommit => new ConsensusPreCommitMessage { PreCommit = vote },
+        //         _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(vote)),
+        //     };
+        // }
+
+
+        // IEnumerable<Vote> votes;
+        // try
+        // {
+        //     votes = voteSetBits.VoteType switch
+        //     {
+        //         VoteType.PreVote =>
+        //         _roundList[voteSetBits.Round].PreVotes.MappedList().Where(
+        //             (vote, index)
+        //             => !voteSetBits.VoteBits[index]
+        //             && vote is { }
+        //             && vote.Type == VoteType.PreVote).Select(vote => vote!),
+        //         VoteType.PreCommit =>
+        //         _roundList[voteSetBits.Round].PreCommits.MappedList().Where(
+        //             (vote, index)
+        //             => !voteSetBits.VoteBits[index]
+        //             && vote is { }
+        //             && vote.Type == VoteType.PreCommit).Select(vote => vote!),
+        //         _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(voteSetBits)),
+        //     };
+        // }
+        // catch (KeyNotFoundException)
+        // {
+        //     votes = [];
+        // }
+
+        // return votes.Select(GetMessage);
+
+        // static ConsensusMessage GetMessage(Vote vote) => vote.Type switch
+        // {
+        //     VoteType.PreVote => new ConsensusPreVoteMessage { PreVote = vote },
+        //     VoteType.PreCommit => new ConsensusPreCommitMessage { PreCommit = vote },
+        //     _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(vote)),
+        // };
     }
 
     public void Propose(Proposal proposal)
@@ -231,7 +307,7 @@ public sealed class Consensus(
 
         _dispatcher.Post(() =>
         {
-            var voteContext = vote.Type is VoteType.PreVote ? _preVotes : _preCommits;
+            var voteContext = vote.Type is VoteType.PreVote ? _roundList[Round].PreVotes : _roundList[Round].PreCommits;
             voteContext.Add(vote);
             _voteAddedSubject.OnNext(vote);
             ProcessHeightOrRoundUponRules(vote);
@@ -503,9 +579,11 @@ public sealed class Consensus(
 
         _dispatcher.VerifyAccess();
 
+        var consensusRound = new ConsensusRound(round, this);
+
+        _roundList.Add(consensusRound);
+
         Round = round;
-        _preVotes.Round = round;
-        _preCommits.Round = round;
         Proposal = null;
         Step = ConsensusStep.Propose;
         _roundChangedSubject.OnNext(round);
@@ -547,19 +625,17 @@ public sealed class Consensus(
         }
 
         // Should check if +2/3 votes already collected and the proposal does not match
-        if (_preVotes[Round].TryGetMajorityBlockHash(out var preVoteMaj23) &&
-            !proposal.BlockHash.Equals(preVoteMaj23))
+        if (_roundList[Round].PreVotes.BlockHash != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
-                          $"with the collected +2/3 preVotes' block hash {preVoteMaj23}.";
+                          $"with the collected +2/3 preVotes' block hash {_roundList[Round].PreVotes.BlockHash}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
-        if (_preVotes[Round].TryGetMajorityBlockHash(out var preCommitMaj23) &&
-            !proposal.BlockHash.Equals(preCommitMaj23))
+        if (_roundList[Round].PreCommits.BlockHash != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
-                          $"with the collected +2/3 preCommits' block hash {preCommitMaj23}.";
+                          $"with the collected +2/3 preCommits' block hash {_roundList[Round].PreCommits.BlockHash}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
@@ -590,8 +666,7 @@ public sealed class Consensus(
             && propose is { } p2
             && p2.ValidRound >= 0
             && p2.ValidRound < Round
-            && _preVotes[p2.ValidRound].TryGetMajorityBlockHash(out BlockHash hash1)
-            && hash1.Equals(p2.Block.BlockHash))
+            && _roundList[p2.ValidRound].PreVotes.BlockHash == p2.Block.BlockHash)
         {
             if (IsValid(p2.Block) && (_lockedRound <= p2.ValidRound || _lockedBlock == p2.Block))
             {
@@ -603,15 +678,14 @@ public sealed class Consensus(
             }
         }
 
-        if (Step == ConsensusStep.PreVote && _preVotes[Round].HasTwoThirdsAny)
+        if (Step == ConsensusStep.PreVote && _roundList[Round].PreVotes.HasTwoThirdsAny)
         {
             PostPreVoteTimeout(Round);
         }
 
         if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
             && propose is { } p3
-            && _preVotes[Round].TryGetMajorityBlockHash(out BlockHash blockHash2)
-            && blockHash2.Equals(p3.Block.BlockHash)
+            && _roundList[Round].PreVotes.BlockHash == p3.Block.BlockHash
             && IsValid(p3.Block)
             && !_hasTwoThirdsPreVoteTypes.Contains(Round))
         {
@@ -638,9 +712,10 @@ public sealed class Consensus(
             _validRound = Round;
         }
 
-        if (Step == ConsensusStep.PreVote && _preVotes[Round].TryGetMajorityBlockHash(out BlockHash hash3))
+        if (Step == ConsensusStep.PreVote)
         {
-            if (hash3.Equals(default))
+            var hash3 = _roundList[Round].PreVotes.BlockHash;
+            if (hash3 == default)
             {
                 EnterPreCommitWait(Round, default);
             }
@@ -662,7 +737,7 @@ public sealed class Consensus(
             }
         }
 
-        if (_preCommits[Round].HasTwoThirdsAny)
+        if (_roundList[Round].PreCommits.HasTwoThirdsAny)
         {
             PostPreCommitTimeout(Round);
         }
@@ -676,10 +751,9 @@ public sealed class Consensus(
         }
 
         var round = vote.Round;
-        if (GetProposal() is (Block block4, _) &&
-            _preCommits[Round].TryGetMajorityBlockHash(out BlockHash hash) &&
-            block4.BlockHash.Equals(hash) &&
-            IsValid(block4))
+        if (GetProposal() is (Block block4, _)
+            && _roundList[Round].PreCommits.BlockHash == block4.BlockHash
+            && IsValid(block4))
         {
             _decidedBlock = block4;
 
@@ -698,7 +772,7 @@ public sealed class Consensus(
             return;
         }
 
-        if (round > Round && _preVotes[round].HasOneThirdsAny)
+        if (round > Round && _roundList[round].PreVotes.HasOneThirdsAny)
         {
             StartRound(round);
         }

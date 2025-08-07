@@ -327,9 +327,9 @@ public sealed class ConsensusService : ServiceBase
         }
         else
         {
-            if (_consensus.Height == height)
+            if (_consensus.Height == height && _consensus.AddMaj23(maj23))
             {
-                return _consensus.AddMaj23(maj23);
+                return _consensus.GetVoteSetBits(maj23);
             }
         }
 
@@ -349,11 +349,18 @@ public sealed class ConsensusService : ServiceBase
             {
                 // NOTE: Should check if collected messages have same BlockHash with
                 // VoteSetBit's BlockHash?
-                return _consensus.GetVoteSetBitsResponse(voteSetBits);
+                var votes = _consensus.GetVotes(voteSetBits);
+                foreach (var vote in votes)
+                {
+                    yield return vote.Type switch
+                    {
+                        VoteType.PreVote => new ConsensusPreVoteMessage { PreVote = vote },
+                        VoteType.PreCommit => new ConsensusPreCommitMessage { PreCommit = vote },
+                        _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(vote)),
+                    };
+                }
             }
         }
-
-        return [];
     }
 
     public Proposal? HandleProposalClaim(ProposalClaim proposalClaim)
