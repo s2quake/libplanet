@@ -12,9 +12,9 @@ namespace Libplanet.Net.Consensus;
 public sealed class ConsensusService : ServiceBase
 {
     private readonly Subject<int> _heightChangedSubject = new();
-    private readonly Subject<int> _roundChangedSubject = new();
+    private readonly Subject<Round> _roundChangedSubject = new();
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
-    private readonly Subject<(int Round, ConsensusStep Step)> _timeoutOccurredSubject = new();
+    private readonly Subject<(Round Round, ConsensusStep Step)> _timeoutOccurredSubject = new();
 
     private readonly Subject<Proposal> _blockProposeSubject = new();
     private readonly ITransport _transport;
@@ -77,11 +77,11 @@ public sealed class ConsensusService : ServiceBase
 
     public IObservable<int> HeightChanged => _heightChangedSubject;
 
-    public IObservable<int> RoundChanged => _roundChangedSubject;
+    public IObservable<Round> RoundChanged => _roundChangedSubject;
 
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
-    public IObservable<(int Round, ConsensusStep Step)> TimeoutOccurred => _timeoutOccurredSubject;
+    public IObservable<(Round Round, ConsensusStep Step)> TimeoutOccurred => _timeoutOccurredSubject;
 
     public IObservable<Proposal> BlockPropose => _blockProposeSubject;
 
@@ -177,7 +177,7 @@ public sealed class ConsensusService : ServiceBase
         {
             _dispatcher?.Post(() =>
             {
-                Round = round;
+                Round = round.Index;
                 _gossip.ClearCache();
                 _roundChangedSubject.OnNext(round);
             });

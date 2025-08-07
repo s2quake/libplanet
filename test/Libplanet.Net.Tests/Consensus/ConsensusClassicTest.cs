@@ -31,7 +31,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
     }
 
     [Fact(Timeout = Timeout)]

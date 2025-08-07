@@ -27,7 +27,7 @@ public static class ConsensusExtensions
         using var resetEvent = new ManualResetEvent(false);
         using var _ = @this.StepChanged.Subscribe(e =>
         {
-            if (@this.Round == round && @this.Step == step)
+            if (@this.Round.Index == round && @this.Step == step)
             {
                 resetEvent.Set();
             }

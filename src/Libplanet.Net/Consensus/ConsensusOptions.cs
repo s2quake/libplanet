@@ -33,11 +33,11 @@ public sealed record class ConsensusOptions
     [NonNegative]
     public int EnterEndCommitDelay { get; init; }
 
-    public TimeSpan TimeoutPropose(int round) => ProposeTimeoutBase + (ProposeTimeoutDelta * round);
+    internal TimeSpan TimeoutPropose(Round round) => ProposeTimeoutBase + (ProposeTimeoutDelta * round.Index);
 
-    public TimeSpan TimeoutPreVote(int round)
-        => TimeSpan.FromMilliseconds(PreVoteTimeoutBase + (PreVoteTimeoutDelta * round));
+    internal TimeSpan TimeoutPreVote(Round round)
+        => TimeSpan.FromMilliseconds(PreVoteTimeoutBase + (PreVoteTimeoutDelta * round.Index));
 
-    public TimeSpan TimeoutPreCommit(int round)
-        => TimeSpan.FromMilliseconds(PreCommitTimeoutBase + (PreCommitTimeoutDelta * round));
+    internal TimeSpan TimeoutPreCommit(Round round)
+        => TimeSpan.FromMilliseconds(PreCommitTimeoutBase + (PreCommitTimeoutDelta * round.Index));
 }

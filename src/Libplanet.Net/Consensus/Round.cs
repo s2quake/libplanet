@@ -2,7 +2,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-internal sealed class Round(int height, int index, ImmutableSortedSet<Validator> validators)
+public sealed class Round(int height, int index, ImmutableSortedSet<Validator> validators)
 {
     public int Height { get; } = ValidateHeight(height);
 
@@ -20,13 +20,57 @@ internal sealed class Round(int height, int index, ImmutableSortedSet<Validator>
 
     public bool IsQuorumReached { get; set; }
 
-    public bool IsPreVoteTimeoutScheduled { get; set; }
+    public bool IsPreVoteTimeoutScheduled { get; private set; }
 
-    public bool IsPreCommitTimeoutScheduled { get; set; }
+    public bool IsPreCommitTimeoutScheduled { get; private set; }
 
-    public bool IsPreCommitWaitScheduled { get; set; }
+    public bool IsPreCommitWaitScheduled { get; private  set; }
 
-    public bool IsEndCommitWaitScheduled { get; set; }
+    public bool IsEndCommitWaitScheduled { get; private set; }
+
+    public bool TrySetPreVoteTimeout()
+    {
+        if (IsPreVoteTimeoutScheduled)
+        {
+            return false;
+        }
+
+        IsPreVoteTimeoutScheduled = true;
+        return true;
+    }
+
+    public bool TrySetPreCommitTimeout()
+    {
+        if (IsPreCommitTimeoutScheduled)
+        {
+            return false;
+        }
+
+        IsPreCommitTimeoutScheduled = true;
+        return true;
+    }
+
+    public bool TrySetPreCommitWait()
+    {
+        if (IsPreCommitWaitScheduled)
+        {
+            return false;
+        }
+
+        IsPreCommitWaitScheduled = true;
+        return true;
+    }
+
+    public bool TrySetEndCommitWait()
+    {
+        if (IsEndCommitWaitScheduled)
+        {
+            return false;
+        }
+
+        IsEndCommitWaitScheduled = true;
+        return true;
+    }
 
     private static int ValidateHeight(int height)
     {

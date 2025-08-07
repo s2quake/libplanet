@@ -22,7 +22,7 @@ public sealed class ConsensusTest
             options: new ConsensusOptions());
 
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(-1, consensus.Round);
+        Assert.Throws<InvalidOperationException>(() => consensus.Round);
         Assert.Equal(ConsensusStep.Default, consensus.Step);
         Assert.Null(consensus.Proposal);
     }
@@ -45,7 +45,7 @@ public sealed class ConsensusTest
         await consensus.StartAsync(default);
 
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
         Assert.Null(consensus.Proposal);
         if (isProposer)
@@ -73,7 +73,7 @@ public sealed class ConsensusTest
         await consensus.StopAsync(default);
 
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
         Assert.Equal(ConsensusStep.Default, consensus.Step);
         Assert.Null(consensus.Proposal);
     }
@@ -244,6 +244,6 @@ public sealed class ConsensusTest
         await timeoutOccurredTask.WaitAsync(options.TimeoutPropose(consensus.Round));
         await stepChangedTask.WaitAsync(options.TimeoutPropose(consensus.Round));
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
-        Assert.Equal(1, consensus.Round);
+        Assert.Equal(1, consensus.Round.Index);
     }
 }

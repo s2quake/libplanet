@@ -42,7 +42,7 @@ public sealed class ConsensusController
                         var proposal = new ProposalBuilder
                         {
                             Block = _blockchain.ProposeBlock(_signer),
-                            Round = _consensus.Round,
+                            Round = _consensus.Round.Index,
                             Timestamp = DateTimeOffset.UtcNow,
                             ValidRound = -1,
                         }.Create(_signer);

@@ -155,7 +155,7 @@ public static class TestUtils
                     PreCommit = new VoteMetadata
                     {
                         Height = context.Height,
-                        Round = context.Round,
+                        Round = context.Round.Index,
                         BlockHash = roundBlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = privateKey.Address,
@@ -187,7 +187,7 @@ public static class TestUtils
                     PreVote = new VoteMetadata
                     {
                         Height = context.Height,
-                        Round = context.Round,
+                        Round = context.Round.Index,
                         BlockHash = roundBlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = privateKey.Address,

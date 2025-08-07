@@ -15,9 +15,9 @@ public sealed class Consensus(
     ConsensusOptions options)
     : ServiceBase
 {
-    private readonly Subject<int> _roundChangedSubject = new();
+    private readonly Subject<Round> _roundChangedSubject = new();
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
-    private readonly Subject<(int Round, ConsensusStep Step)> _timeoutOccurredSubject = new();
+    private readonly Subject<(Round Round, ConsensusStep Step)> _timeoutOccurredSubject = new();
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
     private readonly Subject<Proposal?> _proposalChangedSubject = new();
     private readonly Subject<(Block Block, BlockCommit BlockCommit)> _completedSubject = new();
@@ -44,17 +44,18 @@ public sealed class Consensus(
     private Block? _decidedBlock;
     private ConsensusStep _step;
     private Proposal? _proposal;
+    private Round? _round;
 
     public Consensus(Blockchain blockchain, int height, ISigner signer, ConsensusOptions options)
         : this(blockchain, height, signer, blockchain.GetValidators(height), options)
     {
     }
 
-    public IObservable<int> RoundChanged => _roundChangedSubject;
+    public IObservable<Round> RoundChanged => _roundChangedSubject;
 
     public IObservable<Exception> ExceptionOccurred => _exceptionOccurredSubject;
 
-    public IObservable<(int Round, ConsensusStep Step)> TimeoutOccurred => _timeoutOccurredSubject;
+    public IObservable<(Round Round, ConsensusStep Step)> TimeoutOccurred => _timeoutOccurredSubject;
 
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
@@ -78,7 +79,18 @@ public sealed class Consensus(
 
     public int Height { get; } = ValidateHeight(height);
 
-    public int Round { get; private set; } = -1;
+    public Round Round
+    {
+        get => _round ?? throw new InvalidOperationException("Round is not set.");
+        private set
+        {
+            if (_round != value)
+            {
+                _round = value;
+                _roundChangedSubject.OnNext(value);
+            }
+        }
+    }
 
     public ConsensusStep Step
     {
@@ -110,7 +122,7 @@ public sealed class Consensus(
 
     public ImmutableSortedSet<Validator> Validators => validators;
 
-    public BlockCommit GetBlockCommit() => _rounds[Round].PreCommits.GetBlockCommit();
+    public BlockCommit GetBlockCommit() => Round.PreCommits.GetBlockCommit();
 
     public bool AddMaj23(Maj23 maj23)
     {
@@ -333,8 +345,7 @@ public sealed class Consensus(
 
         _dispatcher.Post(() =>
         {
-            var round = _rounds[Round];
-            var votes = round.PreCommits;
+            var votes = Round.PreCommits;
             votes.Add(vote);
             _voteAddedSubject.OnNext(vote);
             ProcessHeightOrRoundUponRules(vote);
@@ -350,7 +361,7 @@ public sealed class Consensus(
         }
 
         _dispatcher.VerifyAccess();
-        return Validators.GetProposer(Height, Round).Address == address;
+        return Validators.GetProposer(Height, Round.Index).Address == address;
     }
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
@@ -360,7 +371,7 @@ public sealed class Consensus(
         _validBlock = null;
         _validRound = -1;
         _decidedBlock = null;
-        Round = -1;
+        _round = null;
         _dispatcher = new Dispatcher(this);
         _dispatcher.UnhandledException += Dispatcher_UnhandledException;
         await _dispatcher.InvokeAsync(_ =>
@@ -441,7 +452,7 @@ public sealed class Consensus(
         }
     }
 
-    private void EnterPreCommitWait(int round, BlockHash blockHash)
+    private void EnterPreCommitWait(Round round, BlockHash blockHash)
     {
         if (_dispatcher is null)
         {
@@ -450,8 +461,7 @@ public sealed class Consensus(
 
         _dispatcher.VerifyAccess();
 
-        var currentRound = _rounds[round];
-        if (!_preCommitWaits.Add(round))
+        if (round.IsPreCommitWaitScheduled)
         {
             return;
         }
@@ -466,7 +476,7 @@ public sealed class Consensus(
         }
     }
 
-    private void EnterEndCommitWait(int round)
+    private void EnterEndCommitWait(Round round)
     {
         if (_dispatcher is null)
         {
@@ -474,7 +484,7 @@ public sealed class Consensus(
         }
 
         _dispatcher.VerifyAccess();
-        if (!_endCommitWaits.Add(round))
+        if (!round.TrySetEndCommitWait())
         {
             return;
         }
@@ -489,7 +499,7 @@ public sealed class Consensus(
         }
     }
 
-    private void PostProposeTimeout(int round)
+    private void PostProposeTimeout(Round round)
     {
         if (_dispatcher is null)
         {
@@ -503,12 +513,12 @@ public sealed class Consensus(
 
         void Invoke(CancellationToken _)
         {
-            if (round == Round && Step == ConsensusStep.Propose)
+            if (round == _round && Step == ConsensusStep.Propose)
             {
                 _timeoutOccurredSubject.OnNext((round, ConsensusStep.Propose));
                 if (Proposal is null)
                 {
-                    StartRound(round + 1);
+                    StartRound(round.Index + 1);
                 }
                 else
                 {
@@ -519,7 +529,7 @@ public sealed class Consensus(
         }
     }
 
-    private void PostPreVoteTimeout(int round)
+    private void PostPreVoteTimeout(Round round)
     {
         if (_dispatcher is null)
         {
@@ -527,7 +537,8 @@ public sealed class Consensus(
         }
 
         _dispatcher.VerifyAccess();
-        if (_preCommitTimeouts.Contains(round) || !_preVoteTimeouts.Add(round))
+
+        if (!round.TrySetPreVoteTimeout())
         {
             return;
         }
@@ -537,7 +548,7 @@ public sealed class Consensus(
 
         void Invoke(CancellationToken _)
         {
-            if (round == Round && Step == ConsensusStep.PreVote)
+            if (round == _round && Step == ConsensusStep.PreVote)
             {
                 EnterPreCommit(round, default);
                 _timeoutOccurredSubject.OnNext((round, ConsensusStep.PreVote));
@@ -546,14 +557,14 @@ public sealed class Consensus(
         }
     }
 
-    private void PostPreCommitTimeout(int round)
+    private void PostPreCommitTimeout(Round round)
     {
         if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
         }
 
-        if (!_preCommitTimeouts.Add(round))
+        if (!round.TrySetPreCommitTimeout())
         {
             return;
         }
@@ -568,7 +579,7 @@ public sealed class Consensus(
                 return;
             }
 
-            if (round == Round)
+            if (round == _round)
             {
                 EnterEndCommit(round);
                 _timeoutOccurredSubject.OnNext((round, ConsensusStep.PreCommit));
@@ -577,7 +588,7 @@ public sealed class Consensus(
         }
     }
 
-    private void StartRound(int round)
+    private void StartRound(int roundIndex)
     {
         if (_dispatcher is null)
         {
@@ -586,17 +597,18 @@ public sealed class Consensus(
 
         _dispatcher.VerifyAccess();
 
-        Round = round;
+        Round = _rounds[roundIndex];
         Proposal = null;
         Step = ConsensusStep.Propose;
-        _roundChangedSubject.OnNext(round);
-        if (Validators.GetProposer(Height, Round).Address == signer.Address
+
+        _roundChangedSubject.OnNext(Round);
+        if (Validators.GetProposer(Height, Round.Index).Address == signer.Address
             && (_validBlock ?? ProposeBlock()) is Block proposalBlock)
         {
             var proposal = new ProposalBuilder
             {
                 Block = proposalBlock,
-                Round = Round,
+                Round = Round.Index,
                 Timestamp = DateTimeOffset.UtcNow,
                 ValidRound = _validRound,
             }.Create(signer);
@@ -613,32 +625,34 @@ public sealed class Consensus(
             throw new InvalidOperationException($"Proposal already exists for height {Height} and round {Round}");
         }
 
-        if (!Validators.GetProposer(Height, Round).Address.Equals(proposal.Validator))
+        var roundIndex = Round.Index;
+
+        if (!Validators.GetProposer(Height, roundIndex).Address.Equals(proposal.Validator))
         {
             var message = $"Given proposal's proposer {proposal.Validator} does not match " +
-                          $"with the current proposer for height {Height} and round {Round}.";
+                          $"with the current proposer for height {Height} and round {roundIndex}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
-        if (proposal.Round != Round)
+        if (proposal.Round != roundIndex)
         {
             var message = $"Given proposal's round {proposal.Round} does not match " +
-                          $"with the current round {Round}.";
+                          $"with the current round {roundIndex}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
         // Should check if +2/3 votes already collected and the proposal does not match
-        if (_rounds[Round].PreVotes.BlockHash != proposal.BlockHash)
+        if (_rounds[roundIndex].PreVotes.BlockHash != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
-                          $"with the collected +2/3 preVotes' block hash {_rounds[Round].PreVotes.BlockHash}.";
+                          $"with the collected +2/3 preVotes' block hash {_rounds[roundIndex].PreVotes.BlockHash}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
-        if (_rounds[Round].PreCommits.BlockHash != proposal.BlockHash)
+        if (_rounds[roundIndex].PreCommits.BlockHash != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
-                          $"with the collected +2/3 preCommits' block hash {_rounds[Round].PreCommits.BlockHash}.";
+                          $"with the collected +2/3 preCommits' block hash {_rounds[roundIndex].PreCommits.BlockHash}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
@@ -651,6 +665,9 @@ public sealed class Consensus(
         {
             return;
         }
+
+        var round = Round;
+        var roundIndex = round.Index;
 
         (Block Block, int ValidRound)? propose = GetProposal();
         if (Step == ConsensusStep.Propose && propose is { } p1 && p1.ValidRound == -1)
@@ -668,7 +685,7 @@ public sealed class Consensus(
         if (Step == ConsensusStep.Propose
             && propose is { } p2
             && p2.ValidRound >= 0
-            && p2.ValidRound < Round
+            && p2.ValidRound < roundIndex
             && _rounds[p2.ValidRound].PreVotes.BlockHash == p2.Block.BlockHash)
         {
             if (IsValid(p2.Block) && (_lockedRound <= p2.ValidRound || _lockedBlock == p2.Block))
@@ -681,28 +698,28 @@ public sealed class Consensus(
             }
         }
 
-        if (Step == ConsensusStep.PreVote && _rounds[Round].PreVotes.HasTwoThirdsAny)
+        if (Step == ConsensusStep.PreVote && _rounds[roundIndex].PreVotes.HasTwoThirdsAny)
         {
             PostPreVoteTimeout(Round);
         }
 
         if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
             && propose is { } p3
-            && _rounds[Round].PreVotes.BlockHash == p3.Block.BlockHash
+            && round.PreVotes.BlockHash == p3.Block.BlockHash
             && IsValid(p3.Block)
-            && !_hasTwoThirdsPreVoteTypes.Contains(Round))
+            && !_hasTwoThirdsPreVoteTypes.Contains(roundIndex))
         {
-            _hasTwoThirdsPreVoteTypes.Add(Round);
+            _hasTwoThirdsPreVoteTypes.Add(roundIndex);
             if (Step == ConsensusStep.PreVote)
             {
                 _lockedBlock = p3.Block;
-                _lockedRound = Round;
-                EnterPreCommitWait(Round, p3.Block.BlockHash);
+                _lockedRound = roundIndex;
+                EnterPreCommitWait(round, p3.Block.BlockHash);
 
                 var maj23 = new Maj23Metadata
                 {
                     Height = Height,
-                    Round = Round,
+                    Round = roundIndex,
                     BlockHash = p3.Block.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = signer.Address,
@@ -712,15 +729,15 @@ public sealed class Consensus(
             }
 
             _validBlock = p3.Block;
-            _validRound = Round;
+            _validRound = Round.Index;
         }
 
         if (Step == ConsensusStep.PreVote)
         {
-            var hash3 = _rounds[Round].PreVotes.BlockHash;
+            var hash3 = round.PreVotes.BlockHash;
             if (hash3 == default)
             {
-                EnterPreCommitWait(Round, default);
+                EnterPreCommitWait(round, default);
             }
             else if (Proposal is { } proposal && !proposal.BlockHash.Equals(hash3))
             {
@@ -731,7 +748,7 @@ public sealed class Consensus(
                 var proposalClaim = new ProposalClaimMetadata
                 {
                     Height = Height,
-                    Round = Round,
+                    Round = roundIndex,
                     BlockHash = hash3,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = signer.Address,
@@ -740,9 +757,9 @@ public sealed class Consensus(
             }
         }
 
-        if (_rounds[Round].PreCommits.HasTwoThirdsAny)
+        if (round.PreCommits.HasTwoThirdsAny)
         {
-            PostPreCommitTimeout(Round);
+            PostPreCommitTimeout(round);
         }
     }
 
@@ -753,9 +770,10 @@ public sealed class Consensus(
             return;
         }
 
-        var round = vote.Round;
+        var round = _rounds[vote.Round];
+        var roundIndex = round.Index;
         if (GetProposal() is (Block block4, _)
-            && _rounds[Round].PreCommits.BlockHash == block4.BlockHash
+            && round.PreCommits.BlockHash == block4.BlockHash
             && IsValid(block4))
         {
             _decidedBlock = block4;
@@ -764,7 +782,7 @@ public sealed class Consensus(
             var maj23 = new Maj23Metadata
             {
                 Height = Height,
-                Round = round,
+                Round = roundIndex,
                 BlockHash = block4.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
@@ -775,15 +793,15 @@ public sealed class Consensus(
             return;
         }
 
-        if (round > Round && _rounds[round].PreVotes.HasOneThirdsAny)
+        if (roundIndex > Round.Index && round.PreVotes.HasOneThirdsAny)
         {
-            StartRound(round);
+            StartRound(roundIndex);
         }
     }
 
-    private void EnterPreVote(int round, BlockHash blockHash)
+    private void EnterPreVote(Round round, BlockHash blockHash)
     {
-        if (Round != round || Step >= ConsensusStep.PreVote)
+        if (round != _round || Step >= ConsensusStep.PreVote)
         {
             return;
         }
@@ -791,7 +809,7 @@ public sealed class Consensus(
         var vote = new VoteMetadata
         {
             Height = Height,
-            Round = round,
+            Round = round.Index,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = signer.Address,
@@ -802,9 +820,9 @@ public sealed class Consensus(
         _shouldPreVoteSubject.OnNext(vote);
     }
 
-    private void EnterPreCommit(int round, BlockHash blockHash)
+    private void EnterPreCommit(Round round, BlockHash blockHash)
     {
-        if (Round != round || Step >= ConsensusStep.PreCommit)
+        if (_round != round || Step >= ConsensusStep.PreCommit)
         {
             return;
         }
@@ -812,7 +830,7 @@ public sealed class Consensus(
         var vote = new VoteMetadata
         {
             Height = Height,
-            Round = round,
+            Round = round.Index,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = signer.Address,
@@ -823,9 +841,9 @@ public sealed class Consensus(
         _shouldPreCommitSubject.OnNext(vote);
     }
 
-    private void EnterEndCommit(int round)
+    private void EnterEndCommit(Round round)
     {
-        if (Round != round || Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
+        if (_round != round || Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
         {
             return;
         }
@@ -833,7 +851,7 @@ public sealed class Consensus(
         Step = ConsensusStep.EndCommit;
         if (_decidedBlock is not { } block)
         {
-            StartRound(Round + 1);
+            StartRound(round.Index + 1);
         }
         else
         {
