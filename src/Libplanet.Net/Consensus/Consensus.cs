@@ -1,6 +1,4 @@
 using System.Reactive.Subjects;
-using BitFaster.Caching;
-using BitFaster.Caching.Lru;
 using Libplanet.Extensions;
 using Libplanet.Net.Threading;
 using Libplanet.Types;
@@ -29,12 +27,8 @@ public sealed class Consensus(
     private readonly Subject<ProposalClaim> _shouldProposalClaimSubject = new();
     private readonly Subject<Proposal> _shouldProposeSubject = new();
 
+    private readonly Dictionary<BlockHash, bool> _blockValidationCache = [];
     private readonly RoundCollection _rounds = new(height, validators);
-    private readonly HashSet<int> _hasTwoThirdsPreVoteTypes = [];
-
-    private readonly ICache<BlockHash, bool> _blockValidationCache = new ConcurrentLruBuilder<BlockHash, bool>()
-        .WithCapacity(128)
-        .Build();
 
     private Dispatcher? _dispatcher;
     private Block? _lockedBlock;
@@ -130,7 +124,7 @@ public sealed class Consensus(
         }
 
         var round = _rounds[maj23.Round];
-        var majorities = maj23.VoteType == VoteType.PreVote ? round.PreVoteMajorities : round.PreCommitMajorities;
+        var majorities = maj23.VoteType == VoteType.PreVote ? round.PreVoteMaj23s : round.PreCommitMaj23s;
         if (!majorities.ContainsKey(maj23.Validator))
         {
             majorities.Add(maj23);
@@ -378,7 +372,7 @@ public sealed class Consensus(
 
     private bool IsValid(Block block)
     {
-        if (_blockValidationCache.TryGet(block.BlockHash, out var isValid))
+        if (_blockValidationCache.TryGetValue(block.BlockHash, out var isValid))
         {
             return isValid;
         }
@@ -386,7 +380,7 @@ public sealed class Consensus(
         {
             if (block.Height != Height)
             {
-                _blockValidationCache.AddOrUpdate(block.BlockHash, false);
+                _blockValidationCache[block.BlockHash] = false;
                 return false;
             }
 
@@ -396,11 +390,11 @@ public sealed class Consensus(
             }
             catch (Exception e) when (e is InvalidOperationException)
             {
-                _blockValidationCache.AddOrUpdate(block.BlockHash, false);
+                _blockValidationCache[block.BlockHash] = false;
                 return false;
             }
 
-            _blockValidationCache.AddOrUpdate(block.BlockHash, true);
+            _blockValidationCache[block.BlockHash] = true;
             return true;
         }
     }
@@ -651,9 +645,9 @@ public sealed class Consensus(
             && propose is { } p3
             && round.PreVotes.BlockHash == p3.Block.BlockHash
             && IsValid(p3.Block)
-            && !_hasTwoThirdsPreVoteTypes.Contains(roundIndex))
+            && !round.HasTwoThirdsPreVoteTypes)
         {
-            _hasTwoThirdsPreVoteTypes.Add(roundIndex);
+            round.HasTwoThirdsPreVoteTypes = true;
             if (Step == ConsensusStep.PreVote)
             {
                 _lockedBlock = p3.Block;
@@ -787,13 +781,13 @@ public sealed class Consensus(
 
     private void EnterEndCommit(Round round)
     {
-        if (_round != round || Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
+        if (round != _round || Step is ConsensusStep.Default or ConsensusStep.EndCommit)
         {
             return;
         }
 
         Step = ConsensusStep.EndCommit;
-        if (_decidedBlock is not { } block)
+        if (_decidedBlock is not { } decidedBlock)
         {
             StartRound(round.Index + 1);
         }
@@ -801,8 +795,8 @@ public sealed class Consensus(
         {
             try
             {
-                IsValid(block);
-                _completedSubject.OnNext((block, GetBlockCommit()));
+                IsValid(decidedBlock);
+                _completedSubject.OnNext((decidedBlock, GetBlockCommit()));
             }
             catch (Exception e)
             {

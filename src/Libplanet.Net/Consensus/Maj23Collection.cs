@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class MajorityBox(int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
+public sealed class Maj23Collection(int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
     : IEnumerable<Maj23>
 {
     private readonly Dictionary<Address, Maj23> _maj23ByValidator = [];

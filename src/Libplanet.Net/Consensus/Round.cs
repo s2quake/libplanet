@@ -8,23 +8,21 @@ public sealed class Round(int height, int index, ImmutableSortedSet<Validator> v
 
     public int Index { get; } = ValidateRound(index);
 
-    public Proposal? Proposal { get; set; }
-
     public VoteCollection PreVotes { get; } = new(height, index, VoteType.PreVote, validators);
 
     public VoteCollection PreCommits { get; } = new(height, index, VoteType.PreCommit, validators);
 
-    public MajorityBox PreVoteMajorities { get; } = new(height, index, VoteType.PreVote, validators);
+    public Maj23Collection PreVoteMaj23s { get; } = new(height, index, VoteType.PreVote, validators);
 
-    public MajorityBox PreCommitMajorities { get; } = new(height, index, VoteType.PreCommit, validators);
+    public Maj23Collection PreCommitMaj23s { get; } = new(height, index, VoteType.PreCommit, validators);
 
-    public bool IsQuorumReached { get; set; }
+    public bool HasTwoThirdsPreVoteTypes { get; set; }
 
     public bool IsPreVoteTimeoutScheduled { get; private set; }
 
     public bool IsPreCommitTimeoutScheduled { get; private set; }
 
-    public bool IsPreCommitWaitScheduled { get; private  set; }
+    public bool IsPreCommitWaitScheduled { get; private set; }
 
     public bool IsEndCommitWaitScheduled { get; private set; }
 
