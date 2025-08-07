@@ -118,8 +118,6 @@ public sealed class Consensus(
         }
     }
 
-    public BlockHash BlockHash { get; private set; }
-
     public ImmutableSortedSet<Validator> Validators => validators;
 
     public BlockCommit GetBlockCommit() => Round.PreCommits.GetBlockCommit();
@@ -222,51 +220,6 @@ public sealed class Consensus(
         }
 
         return [.. voteList];
-
-        // foreach (var vote in voteList)
-        // {
-        //     yield return vote.Type switch
-        //     {
-        //         VoteType.PreVote => new ConsensusPreVoteMessage { PreVote = vote },
-        //         VoteType.PreCommit => new ConsensusPreCommitMessage { PreCommit = vote },
-        //         _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(vote)),
-        //     };
-        // }
-
-
-        // IEnumerable<Vote> votes;
-        // try
-        // {
-        //     votes = voteSetBits.VoteType switch
-        //     {
-        //         VoteType.PreVote =>
-        //         _roundList[voteSetBits.Round].PreVotes.MappedList().Where(
-        //             (vote, index)
-        //             => !voteSetBits.VoteBits[index]
-        //             && vote is { }
-        //             && vote.Type == VoteType.PreVote).Select(vote => vote!),
-        //         VoteType.PreCommit =>
-        //         _roundList[voteSetBits.Round].PreCommits.MappedList().Where(
-        //             (vote, index)
-        //             => !voteSetBits.VoteBits[index]
-        //             && vote is { }
-        //             && vote.Type == VoteType.PreCommit).Select(vote => vote!),
-        //         _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(voteSetBits)),
-        //     };
-        // }
-        // catch (KeyNotFoundException)
-        // {
-        //     votes = [];
-        // }
-
-        // return votes.Select(GetMessage);
-
-        // static ConsensusMessage GetMessage(Vote vote) => vote.Type switch
-        // {
-        //     VoteType.PreVote => new ConsensusPreVoteMessage { PreVote = vote },
-        //     VoteType.PreCommit => new ConsensusPreCommitMessage { PreCommit = vote },
-        //     _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(vote)),
-        // };
     }
 
     public void Propose(Proposal proposal)
@@ -538,13 +491,11 @@ public sealed class Consensus(
 
         _dispatcher.VerifyAccess();
 
-        if (!round.TrySetPreVoteTimeout())
+        if (round.TrySetPreVoteTimeout())
         {
-            return;
+            var timeout = options.TimeoutPreVote(round);
+            _ = _dispatcher.PostAfterAsync(Invoke, timeout, default);
         }
-
-        var timeout = options.TimeoutPreVote(round);
-        _ = _dispatcher.PostAfterAsync(Invoke, timeout, default);
 
         void Invoke(CancellationToken _)
         {
@@ -564,22 +515,15 @@ public sealed class Consensus(
             throw new InvalidOperationException("Consensus is not running.");
         }
 
-        if (!round.TrySetPreCommitTimeout())
+        if (round.TrySetPreCommitTimeout())
         {
-            return;
+            var timeout = options.TimeoutPreCommit(round);
+            _ = _dispatcher.PostAfterAsync(Invoke, timeout, StoppingToken);
         }
-
-        var timeout = options.TimeoutPreCommit(round);
-        _ = _dispatcher.PostAfterAsync(Invoke, timeout, StoppingToken);
 
         void Invoke(CancellationToken _)
         {
-            if (Step == ConsensusStep.Default || Step == ConsensusStep.EndCommit)
-            {
-                return;
-            }
-
-            if (round == _round)
+            if (round == _round && Step is ConsensusStep.PreVote or ConsensusStep.PreCommit)
             {
                 EnterEndCommit(round);
                 _timeoutOccurredSubject.OnNext((round, ConsensusStep.PreCommit));

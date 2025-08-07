@@ -88,7 +88,7 @@ namespace Libplanet.Net.Tests.Consensus
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
             Assert.Equal(default(BlockHash), preCommit?.BlockHash);
             Assert.Equal(1, consensus.Height);
-            Assert.Equal(0, consensus.Round);
+            Assert.Equal(0, consensus.Round.Index);
             Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         }
 
@@ -166,7 +166,7 @@ namespace Libplanet.Net.Tests.Consensus
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
             Assert.Equal(proposedblockHash, preCommit?.BlockHash);
             Assert.Equal(1, consensus.Height);
-            Assert.Equal(0, consensus.Round);
+            Assert.Equal(0, consensus.Round.Index);
             Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         }
 
@@ -221,7 +221,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             await roundChangedToOne.WaitAsync();
             Assert.Equal(1, consensus.Height);
-            Assert.Equal(1, consensus.Round);
+            Assert.Equal(1, consensus.Round.Index);
             Assert.Equal(ConsensusStep.Propose, consensus.Step);
         }
 
@@ -276,7 +276,7 @@ namespace Libplanet.Net.Tests.Consensus
             await stepChangedToEndCommit.WaitAsync();
             Assert.Equal(proposal?.BlockHash, consensus.GetBlockCommit().BlockHash);
             Assert.Equal(1, consensus.Height);
-            Assert.Equal(0, consensus.Round);
+            Assert.Equal(0, consensus.Round.Index);
             Assert.Equal(ConsensusStep.EndCommit, consensus.Step);
         }
 
@@ -347,7 +347,7 @@ namespace Libplanet.Net.Tests.Consensus
             await Task.WhenAll(preVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
             Assert.Equal(proposal?.BlockHash, preVote?.BlockHash);
             Assert.Equal(1, consensus.Height);
-            Assert.Equal(0, consensus.Round);
+            Assert.Equal(0, consensus.Round.Index);
             Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         }
 

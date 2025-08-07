@@ -65,7 +65,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(1, consensus.Round);
+        Assert.Equal(1, consensus.Round.Index);
     }
 
     [Fact(Timeout = Timeout)]
@@ -139,7 +139,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         Assert.Equal(block.BlockHash, preCommit?.BlockHash);
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
 
         var json =
             JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(consensus.ToString())
@@ -230,7 +230,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
     }
 
     [Fact(Timeout = Timeout)]
@@ -288,7 +288,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         Assert.False(timeoutProcessed); // Check step transition isn't by timeout.
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
     }
 
     [Fact(Timeout = Timeout)]
@@ -371,7 +371,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         Assert.False(timeoutProcessed); // Check step transition isn't by timeout.
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
     }
 
     [Fact(Timeout = Timeout)]
@@ -477,7 +477,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         Assert.False(timeoutProcessed); // Check step transition isn't by timeout.
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
 
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
@@ -561,7 +561,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         await stepChangedToRoundOnePreVote.WaitAsync();
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(1, consensus.Round);
+        Assert.Equal(1, consensus.Round.Index);
     }
 
     [Fact(Timeout = Timeout)]
@@ -596,7 +596,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         await Task.WhenAll(preVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
     }
 
     [Fact(Timeout = Timeout)]
@@ -689,7 +689,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         // Round 1 PreVote (due to state mutation check and Round 1 Propose message)
         await roundOneStepChangedToPreVote.WaitAsync();
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(1, consensus.Round);
+        Assert.Equal(1, consensus.Round.Index);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
     }
 
@@ -752,7 +752,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         await timeoutProcessed.WaitAsync();
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round);
+        Assert.Equal(0, consensus.Round.Index);
     }
 
     [Fact(Timeout = Timeout)]
@@ -814,6 +814,6 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         await timeoutProcessed.WaitAsync();
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(1, consensus.Round);
+        Assert.Equal(1, consensus.Round.Index);
     }
 }

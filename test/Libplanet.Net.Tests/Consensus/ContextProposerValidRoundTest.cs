@@ -89,7 +89,7 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreVote)
                 });
             await stateChangedToRoundTwoPropose.WaitAsync();
-            Assert.Equal(2, consensus.Round);
+            Assert.Equal(2, consensus.Round.Index);
 
             consensus.ProduceMessage(TestUtils.CreateConsensusPropose(
                 proposedBlock, TestUtils.PrivateKeys[3], round: 2, validRound: 1));
@@ -222,7 +222,7 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreVote)
                 });
             await stateChangedToRoundTwoPropose.WaitAsync();
-            Assert.Equal(2, consensus.Round);
+            Assert.Equal(2, consensus.Round.Index);
             Assert.False(timeoutProcessed); // Assert no transition is due to timeout.
 
             // Updated locked round and valid round to 2.
@@ -270,7 +270,7 @@ namespace Libplanet.Net.Tests.Consensus
                         flag: VoteType.PreVote)
                 });
             await stateChangedToRoundThreePropose.WaitAsync();
-            Assert.Equal(3, consensus.Round);
+            Assert.Equal(3, consensus.Round.Index);
 
             consensus.ProduceMessage(TestUtils.CreateConsensusPropose(
                 differentBlock, TestUtils.PrivateKeys[0], round: 3, validRound: 0));
