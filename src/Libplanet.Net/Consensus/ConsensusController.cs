@@ -23,13 +23,6 @@ public sealed class ConsensusController
 
     internal ConsensusController(ISigner signer, Consensus consensus, Blockchain blockchain)
     {
-        // if (signer.Address != consensus.Signer)
-        // {
-        //     throw new ArgumentException(
-        //         $"Signer address {signer.Address} does not match consensus signer address {consensus.Signer}",
-        //         nameof(signer));
-        // }
-
         _signer = signer;
         _consensus = consensus;
         _blockchain = blockchain;

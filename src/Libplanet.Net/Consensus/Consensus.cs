@@ -502,6 +502,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             throw new InvalidOperationException($"Proposal already exists for height {Height} and round {Round}");
         }
 
+        var round = Round;
         var roundIndex = Round.Index;
 
         if (!Validators.GetProposer(Height, roundIndex).Address.Equals(proposal.Validator))
@@ -519,14 +520,14 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }
 
         // Should check if +2/3 votes already collected and the proposal does not match
-        if (_rounds[roundIndex].PreVotes.BlockHash != proposal.BlockHash)
+        if (round.PreVotes.BlockHash != default && round.PreVotes.BlockHash != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
                           $"with the collected +2/3 preVotes' block hash {_rounds[roundIndex].PreVotes.BlockHash}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
-        if (_rounds[roundIndex].PreCommits.BlockHash != proposal.BlockHash)
+        if (round.PreCommits.BlockHash != default && round.PreCommits.BlockHash != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
                           $"with the collected +2/3 preCommits' block hash {_rounds[roundIndex].PreCommits.BlockHash}.";

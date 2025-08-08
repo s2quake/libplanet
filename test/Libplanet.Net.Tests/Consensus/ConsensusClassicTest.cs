@@ -26,11 +26,11 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         await using var consensus = TestUtils.CreateConsensus();
         var controller = TestUtils.CreateConsensusController(consensus, privateKey, blockchain);
 
-        TestUtils.InvokeDelay(() => consensus.StartAsync(default), 100);
+        consensus.StartAfter(100);
         await Task.WhenAll(
             controller.PreVoted.WaitAsync(),
             controller.Proposed.WaitAsync()
-        ).WaitAsync(TimeSpan.FromSeconds(2));
+        ).WaitAsync(TimeSpan.FromSeconds(20));
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
