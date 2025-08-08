@@ -47,30 +47,30 @@ public static class ConsensusReactorExtensions
         using var resetvent = new ManualResetEvent(false);
 
         var consensus = @this.Consensus;
-        var stepChangedSubscription = @this.Consensus.StepChanged.Subscribe(Consensus_StepChanged);
+        // var stepChangedSubscription = @this.Consensus.StepChanged.Subscribe(Consensus_StepChanged);
 
-        try
-        {
-            using var _2 = @this.HeightChanged.Subscribe(consensus =>
-            {
-                stepChangedSubscription.Dispose();
-                stepChangedSubscription = @this.Consensus.StepChanged.Subscribe(Consensus_StepChanged);
-            });
+        // try
+        // {
+        //     using var _2 = @this.HeightChanged.Subscribe(consensus =>
+        //     {
+        //         stepChangedSubscription.Dispose();
+        //         stepChangedSubscription = @this.Consensus.StepChanged.Subscribe(Consensus_StepChanged);
+        //     });
 
-            while (true)
-            {
-                if (resetvent.WaitOne(0))
-                {
-                    return;
-                }
+        //     while (true)
+        //     {
+        //         if (resetvent.WaitOne(0))
+        //         {
+        //             return;
+        //         }
 
-                await Task.Delay(100, cancellationToken);
-            }
-        }
-        finally
-        {
-            stepChangedSubscription.Dispose();
-        }
+        //         await Task.Delay(100, cancellationToken);
+        //     }
+        // }
+        // finally
+        // {
+        //     stepChangedSubscription.Dispose();
+        // }
 
         void Consensus_StepChanged(ConsensusStep e)
         {

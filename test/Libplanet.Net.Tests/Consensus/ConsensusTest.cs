@@ -39,8 +39,10 @@ public sealed class ConsensusTest
             signer: TestUtils.PrivateKeys[index].AsSigner(),
             validators: TestUtils.Validators,
             options: new ConsensusOptions());
-        var tcs = new TaskCompletionSource();
-        using var _ = consensus.ShouldPropose.Subscribe(_ => tcs.SetResult());
+        var controller = consensus.CreateController();
+        // var tcs = new TaskCompletionSource();
+        // using var _ = consensus.ShouldPropose.Subscribe(_ => tcs.SetResult());
+        var proposedTask = controller.Proposed.WaitAsync();
 
         await consensus.StartAsync(default);
 
@@ -50,11 +52,11 @@ public sealed class ConsensusTest
         Assert.Null(consensus.Proposal);
         if (isProposer)
         {
-            await tcs.Task;
+            await proposedTask;
         }
         else
         {
-            await Assert.ThrowsAsync<TimeoutException>(() => tcs.Task.WaitAsync(TimeSpan.FromSeconds(1)));
+            await Assert.ThrowsAsync<TimeoutException>(() => proposedTask.WaitAsync(TimeSpan.FromSeconds(1)));
         }
     }
 

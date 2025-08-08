@@ -145,16 +145,16 @@ public sealed class ConsensusService : ServiceBase
 
     private static IEnumerable<IDisposable> Subscribe(Consensus consensus, Gossip gossip)
     {
-        yield return consensus.ShouldPreVote.Subscribe(vote
-            => gossip.PublishMessage(new ConsensusPreVoteMessage { PreVote = vote }));
-        yield return consensus.ShouldPreCommit.Subscribe(vote
-            => gossip.PublishMessage(new ConsensusPreCommitMessage { PreCommit = vote }));
+        // yield return consensus.ShouldPreVote.Subscribe(vote
+        //     => gossip.PublishMessage(new ConsensusPreVoteMessage { PreVote = vote }));
+        // yield return consensus.ShouldPreCommit.Subscribe(vote
+        //     => gossip.PublishMessage(new ConsensusPreCommitMessage { PreCommit = vote }));
         yield return consensus.ShouldQuorumReach.Subscribe(maj23
             => gossip.PublishMessage(new ConsensusMaj23Message { Maj23 = maj23 }));
         yield return consensus.ShouldProposalClaim.Subscribe(proposalClaim
             => gossip.PublishMessage(new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim }));
-        yield return consensus.ShouldPropose.Subscribe(proposal
-            => gossip.PublishMessage(new ConsensusProposalMessage { Proposal = proposal }));
+        // yield return consensus.ShouldPropose.Subscribe(proposal
+        //     => gossip.PublishMessage(new ConsensusProposalMessage { Proposal = proposal }));
     }
 
     private IEnumerable<IDisposable> Subscribe(Consensus consensus)
@@ -182,14 +182,14 @@ public sealed class ConsensusService : ServiceBase
                 _roundChangedSubject.OnNext(round);
             });
         });
-        yield return consensus.StepChanged.Subscribe((Action<ConsensusStep>)(step =>
+        yield return consensus.StepChanged.Subscribe(e =>
         {
             _dispatcher?.Post((Action)(() =>
             {
-                this.Step = step;
-                _stepChangedSubject.OnNext(step);
+                this.Step = e.Step;
+                _stepChangedSubject.OnNext(e.Step);
             }));
-        }));
+        });
 
         yield return consensus.Completed.Subscribe(e =>
         {
@@ -197,13 +197,13 @@ public sealed class ConsensusService : ServiceBase
             var blockCommit = e.BlockCommit;
             _ = Task.Run(() => _blockchain.Append(block, blockCommit));
         });
-        yield return consensus.ShouldPropose.Subscribe(proposal =>
-        {
-            _dispatcher?.Post(() =>
-            {
-                _blockProposeSubject.OnNext(proposal);
-            });
-        });
+        // yield return consensus.ShouldPropose.Subscribe(proposal =>
+        // {
+        //     _dispatcher?.Post(() =>
+        //     {
+        //         _blockProposeSubject.OnNext(proposal);
+        //     });
+        // });
     }
 
     public int Height { get; private set; }
