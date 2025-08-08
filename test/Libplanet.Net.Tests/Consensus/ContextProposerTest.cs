@@ -369,8 +369,6 @@ namespace Libplanet.Net.Tests.Consensus
             blockChain.Append(block2, block2Commit);
 
             await using var consensus = TestUtils.CreateConsensus(
-                blockChain,
-                // privateKey: TestUtils.PrivateKeys[2],
                 height: 2);
             // using var _ = consensus.MessagePublished.Subscribe(message =>
             // {

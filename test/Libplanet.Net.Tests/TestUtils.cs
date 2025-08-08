@@ -249,22 +249,19 @@ public static class TestUtils
 
 
     public static Net.Consensus.Consensus CreateConsensus(
-        Blockchain? blockchain = null,
         int height = 1,
         ImmutableSortedSet<Validator>? validators = null,
         ConsensusOptions? options = null)
     {
-        blockchain ??= Libplanet.Tests.TestUtils.MakeBlockchain();
         var consensus = new Net.Consensus.Consensus(
-            blockchain,
             height,
             validators: validators ?? Validators,
             options: options ?? new ConsensusOptions());
 
-        consensus.Completed.Subscribe(e =>
-        {
-            _ = Task.Run(() => blockchain.Append(e.Block, e.BlockCommit));
-        });
+        // consensus.Completed.Subscribe(e =>
+        // {
+        //     _ = Task.Run(() => blockchain.Append(e.Block, e.BlockCommit));
+        // });
 
         return consensus;
     }

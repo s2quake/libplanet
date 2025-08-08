@@ -1,4 +1,5 @@
 using Libplanet.Serialization.DataAnnotations;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
@@ -33,6 +34,8 @@ public sealed record class ConsensusOptions
     [NonNegative]
     public int EnterEndCommitDelay { get; init; }
 
+    public ImmutableArray<IObjectValidator<Block>> BlockValidators { get; init; } = [];
+
     internal TimeSpan TimeoutPropose(Round round) => ProposeTimeoutBase + (ProposeTimeoutDelta * round.Index);
 
     internal TimeSpan TimeoutPreVote(Round round)
@@ -40,4 +43,12 @@ public sealed record class ConsensusOptions
 
     internal TimeSpan TimeoutPreCommit(Round round)
         => TimeSpan.FromMilliseconds(PreCommitTimeoutBase + (PreCommitTimeoutDelta * round.Index));
+
+    internal void ValidateBlock(Block block)
+    {
+        foreach (var validator in BlockValidators)
+        {
+            validator.Validate(block);
+        }
+    }
 }

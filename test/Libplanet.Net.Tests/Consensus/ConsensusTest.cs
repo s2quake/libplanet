@@ -15,7 +15,6 @@ public sealed class ConsensusTest
     {
         var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
@@ -34,7 +33,6 @@ public sealed class ConsensusTest
     {
         var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[index].AsSigner(),
             validators: TestUtils.Validators,
@@ -68,7 +66,6 @@ public sealed class ConsensusTest
     {
         var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[1].AsSigner(),
             validators: TestUtils.Validators,
@@ -88,13 +85,11 @@ public sealed class ConsensusTest
     {
         var blockchain = TestUtils.MakeBlockchain();
         var consensus1 = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[1].AsSigner(),
             validators: TestUtils.Validators,
             options: new ConsensusOptions());
         var consensus2 = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[1].AsSigner(),
             validators: TestUtils.Validators,
@@ -121,7 +116,6 @@ public sealed class ConsensusTest
             ProposeTimeoutDelta = TimeSpan.FromMilliseconds(100),
         };
         await using var consensus = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
@@ -152,7 +146,6 @@ public sealed class ConsensusTest
             ProposeTimeoutDelta = TimeSpan.FromMilliseconds(100),
         };
         await using var consensus = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
@@ -181,7 +174,6 @@ public sealed class ConsensusTest
     {
         var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
@@ -205,7 +197,6 @@ public sealed class ConsensusTest
     {
         var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
@@ -237,7 +228,6 @@ public sealed class ConsensusTest
             ProposeTimeoutDelta = TimeSpan.FromMilliseconds(100),
         };
         await using var consensus = new Net.Consensus.Consensus(
-            blockchain,
             height: 1,
             // signer: TestUtils.PrivateKeys[index].AsSigner(),
             validators: TestUtils.Validators,

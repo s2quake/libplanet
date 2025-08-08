@@ -6,6 +6,7 @@ using Libplanet.Net.Threading;
 using Libplanet.State;
 using Libplanet.Types;
 using Libplanet.Net.Components;
+using Libplanet.Extensions;
 
 namespace Libplanet.Net.Consensus;
 
@@ -54,9 +55,12 @@ public sealed class ConsensusService : ServiceBase
 
         _blockchain = blockchain;
         _newHeightDelay = options.TargetBlockInterval;
-        _consensusOption = options.ConsensusOptions;
+        _consensusOption = options.ConsensusOptions with
+        {
+            BlockValidators = options.ConsensusOptions.BlockValidators.Add(new RelayObjectValidator<Block>(b => _blockchain.Validate(b)))
+        };
         Height = _blockchain.Tip.Height + 1;
-        _consensus = new Consensus(_blockchain, Height, _consensusOption);
+        _consensus = new Consensus(Height, _blockchain.GetValidators(Height), _consensusOption);
 
         _publishSubscriptions = [.. Subscribe(_consensus, _gossip)];
         _consensusSubscriptions = [.. Subscribe(_consensus)];
@@ -237,7 +241,7 @@ public sealed class ConsensusService : ServiceBase
 
             await _consensus.StopAsync(cancellationToken);
             await _consensus.DisposeAsync();
-            _consensus = new Consensus(_blockchain, height, _consensusOption);
+            _consensus = new Consensus(height, _blockchain.GetValidators(height), _consensusOption);
             _publishSubscriptions = [.. Subscribe(_consensus, _gossip)];
             _consensusSubscriptions = [.. Subscribe(_consensus)];
             await _consensus.StartAsync(cancellationToken);

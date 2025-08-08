@@ -23,7 +23,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     {
         var privateKey = TestUtils.PrivateKeys[1];
         var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
         var controller = TestUtils.CreateConsensusController(consensus, privateKey, blockchain);
 
         TestUtils.InvokeDelay(() => consensus.StartAsync(default), 100);
@@ -43,7 +43,6 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         var privateKey = TestUtils.PrivateKeys[2];
         var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(
-            blockchain,
             height: 2);
         var controller = TestUtils.CreateConsensusController(consensus, privateKey, blockchain);
         var (_, blockCommit1) = blockchain.ProposeAndAppend(TestUtils.PrivateKeys[1]);
@@ -80,7 +79,6 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         blockchain.ProposeAndAppend(TestUtils.PrivateKeys[1]);
 
         await using var consensus = TestUtils.CreateConsensus(
-            blockchain,
             height: 2);
         // privateKey: TestUtils.PrivateKeys[2]);
         var controller = TestUtils.CreateConsensusController(
@@ -181,7 +179,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     {
         var tcs = new TaskCompletionSource<Exception>();
         var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
         using var _ = consensus.ExceptionOccurred.Subscribe(tcs.SetResult);
         var signer = TestUtils.PrivateKeys[0];
         var block = blockchain.ProposeBlock(signer);
@@ -206,7 +204,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         using var exceptionOccurredEvent = new ManualResetEvent(false);
 
         var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
             exceptionThrown = e;
@@ -267,7 +265,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             },
         };
         var blockchain = TestUtils.MakeBlockchain(blockchainOptions);
-        await using var consensus = TestUtils.CreateConsensus(blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
         var controller = TestUtils.CreateConsensusController(consensus, TestUtils.PrivateKeys[0], blockchain);
 
         // using var _1 = consensus.StepChanged.Subscribe(step =>
@@ -398,7 +396,6 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain,
             // privateKey: privateKeys[0],
             validators: validators);
         var blockA = blockchain.ProposeBlock(proposer);
@@ -630,7 +627,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             EnterPreCommitDelay = delay,
         };
         var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(blockchain: blockchain, options: options);
+        await using var consensus = TestUtils.CreateConsensus(options: options);
         var controller = TestUtils.CreateConsensusController(consensus, blockchain: blockchain);
         var preVoteStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit);

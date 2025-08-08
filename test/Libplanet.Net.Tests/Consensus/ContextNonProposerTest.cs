@@ -21,8 +21,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task EnterPreVoteBlockOneThird()
     {
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
             // privateKey: TestUtils.PrivateKeys[0]);
 
         var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
@@ -75,9 +74,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         ConsensusPreCommitMessage? preCommit = null;
         var preCommitSent = new AsyncAutoResetEvent();
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain);
-            // privateKey: TestUtils.PrivateKeys[0]);
+        await using var consensus = TestUtils.CreateConsensus();
 
         var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
 
@@ -158,8 +155,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         var preCommitSent = new AsyncAutoResetEvent();
 
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
             // privateKey: TestUtils.PrivateKeys[0]);
 
         var key = new PrivateKey();
@@ -241,8 +237,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         var nilPreVoteSent = new AsyncAutoResetEvent();
 
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
             // privateKey: TestUtils.PrivateKeys[0]);
         // using var _1 = consensus.StateChanged.Subscribe(state =>
         // {
@@ -328,8 +323,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         }
 
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(policy);
-        await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
             // privateKey: TestUtils.PrivateKeys[0]);
         // using var _1 = consensus.StateChanged.Subscribe(state =>
         // {
@@ -396,8 +390,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         };
 
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain(policy);
-        await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
             // privateKey: TestUtils.PrivateKeys[0]);
         // using var _1 = consensus.StateChanged.Subscribe(state =>
         // {
@@ -520,8 +513,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task EnterPreVoteNilOneThird()
     {
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain);
+        await using var consensus = TestUtils.CreateConsensus();
             // privateKey: TestUtils.PrivateKeys[0]);
 
         var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
@@ -604,8 +596,6 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     {
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain,
-            // privateKey: TestUtils.PrivateKeys[0],
             options: new ConsensusOptions
             {
                 PreVoteTimeoutBase = 1_000,
@@ -698,8 +688,6 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     {
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain,
-            // privateKey: TestUtils.PrivateKeys[0],
             options: new ConsensusOptions
             {
                 PreVoteTimeoutBase = 1_000,
@@ -760,8 +748,6 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     {
         var blockchain = Libplanet.Tests.TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus(
-            blockchain: blockchain,
-            // privateKey: TestUtils.PrivateKeys[0],
             options: new ConsensusOptions
             {
                 PreCommitTimeoutBase = 1_000,

@@ -1,15 +1,10 @@
 using System.Reactive.Subjects;
-using Libplanet.Extensions;
 using Libplanet.Net.Threading;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Consensus(
-    Blockchain blockchain,
-    int height,
-    ImmutableSortedSet<Validator> validators,
-    ConsensusOptions options)
+public sealed class Consensus(int height, ImmutableSortedSet<Validator> validators, ConsensusOptions options)
     : ServiceBase
 {
     private readonly Subject<Round> _roundChangedSubject = new();
@@ -33,11 +28,6 @@ public sealed class Consensus(
     private int _validRound = -1;
     private Block? _decidedBlock;
     private Round? _round;
-
-    public Consensus(Blockchain blockchain, int height, ConsensusOptions options)
-        : this(blockchain, height, blockchain.GetValidators(height), options)
-    {
-    }
 
     public IObservable<Round> RoundChanged => _roundChangedSubject;
 
@@ -346,7 +336,7 @@ public sealed class Consensus(
 
             try
             {
-                blockchain.Validate(block);
+                options.ValidateBlock(block);
             }
             catch (Exception e) when (e is InvalidOperationException)
             {
