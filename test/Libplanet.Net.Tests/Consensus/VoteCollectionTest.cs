@@ -17,7 +17,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.False(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.Equal(default, votes.BlockHash);
+        Assert.False(votes.TryGetDecidedBlockHash(out var decidedBlockHash1));
+        Assert.Equal(default, decidedBlockHash1);
 
         votes.Add(new VoteMetadata
         {
@@ -32,7 +33,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.False(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.Equal(default, votes.BlockHash);
+        Assert.False(votes.TryGetDecidedBlockHash(out var decidedBlockHash2));
+        Assert.Equal(default, decidedBlockHash2);
 
         votes.Add(new VoteMetadata
         {
@@ -47,7 +49,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.True(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.Equal(default, votes.BlockHash);
+        Assert.False(votes.TryGetDecidedBlockHash(out var decidedBlockHash3));
+        Assert.Equal(default, decidedBlockHash3);
 
         votes.Add(new VoteMetadata
         {
@@ -62,7 +65,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.True(votes.HasOneThirdsAny);
         Assert.True(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.Equal(default, votes.BlockHash);
+        Assert.False(votes.TryGetDecidedBlockHash(out var decidedBlockHash4));
+        Assert.Equal(default, decidedBlockHash4);
 
         votes.Add(new VoteMetadata
         {
@@ -77,6 +81,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         Assert.True(votes.HasOneThirdsAny);
         Assert.True(votes.HasTwoThirdsAny);
         Assert.True(votes.HasTwoThirdsMajority);
-        Assert.Equal(blockHash, votes.BlockHash);
+        Assert.False(votes.TryGetDecidedBlockHash(out var decidedBlockHash5));
+        Assert.Equal(blockHash, decidedBlockHash5);
     }
 }

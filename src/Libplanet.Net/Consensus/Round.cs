@@ -2,19 +2,37 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Round(int height, int index, ImmutableSortedSet<Validator> validators)
+public sealed class Round
 {
-    public int Height { get; } = ValidateHeight(height);
+    public Round(int height, int index, ImmutableSortedSet<Validator> validators)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(height, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
 
-    public int Index { get; } = ValidateRound(index);
+        if (validators.Count is 0)
+        {
+            throw new ArgumentException("Validators cannot be empty.", nameof(validators));
+        }
 
-    public VoteCollection PreVotes { get; } = new(height, index, VoteType.PreVote, validators);
+        Height = height;
+        Index = index;
+        PreVotes = new(height, index, VoteType.PreVote, validators);
+        PreCommits = new(height, index, VoteType.PreCommit, validators);
+        PreVoteMaj23s = new(height, index, VoteType.PreVote, validators);
+        PreCommitMaj23s = new(height, index, VoteType.PreCommit, validators);
+    }
 
-    public VoteCollection PreCommits { get; } = new(height, index, VoteType.PreCommit, validators);
+    public int Height { get; }
 
-    public Maj23Collection PreVoteMaj23s { get; } = new(height, index, VoteType.PreVote, validators);
+    public int Index { get; }
 
-    public Maj23Collection PreCommitMaj23s { get; } = new(height, index, VoteType.PreCommit, validators);
+    public VoteCollection PreVotes { get; }
+
+    public VoteCollection PreCommits { get; }
+
+    public Maj23Collection PreVoteMaj23s { get; }
+
+    public Maj23Collection PreCommitMaj23s { get; }
 
     public bool HasTwoThirdsPreVoteTypes { get; set; }
 
@@ -68,17 +86,5 @@ public sealed class Round(int height, int index, ImmutableSortedSet<Validator> v
 
         IsEndCommitWaitScheduled = true;
         return true;
-    }
-
-    private static int ValidateHeight(int height)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(height, 0);
-        return height;
-    }
-
-    private static int ValidateRound(int round)
-    {
-        ArgumentOutOfRangeException.ThrowIfLessThan(round, 0);
-        return round;
     }
 }

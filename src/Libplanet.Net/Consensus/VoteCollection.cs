@@ -1,74 +1,85 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive.Subjects;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class VoteCollection(int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
-    : IEnumerable<Vote>
+public sealed class VoteCollection : IEnumerable<Vote>
 {
+    private readonly int _height;
+    private readonly int _round;
+    private readonly VoteType _voteType;
+    private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Dictionary<Address, Vote> _voteByValidator = [];
     private readonly Dictionary<BlockHash, ImmutableArray<Vote>> _votesByBlockHash = [];
-    private BlockHash _blockHash;
+    private BlockHash? _decidedBlockHash;
 
-    public Vote this[int index]
+    public VoteCollection(int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
     {
-        get
+        ArgumentOutOfRangeException.ThrowIfLessThan(height, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(round, 0);
+        if (voteType is not VoteType.PreVote and not VoteType.PreCommit)
         {
-            var validator = validators[index];
-            if (_voteByValidator.TryGetValue(validator.Address, out var vote))
-            {
-                return vote;
-            }
-
-            throw new KeyNotFoundException($"No vote found for validator {validator.Address} at index {index}.");
+            throw new ArgumentException(
+                $"Invalid vote type: {voteType}. Expected PreVote or PreCommit.", nameof(voteType));
         }
+
+        if (validators.Count is 0)
+        {
+            throw new ArgumentException("Validators cannot be empty.", nameof(validators));
+        }
+
+        _height = height;
+        _round = round;
+        _voteType = voteType;
+        _validators = validators;
     }
 
     public Vote this[Address validator] => _voteByValidator[validator];
 
-    public BigInteger TotalVotingPower => validators.GetValidatorsPower([.. _voteByValidator.Values.Select(vote => vote.Validator)]);
+    public int Count => _voteByValidator.Count;
 
-    public BlockHash BlockHash => _blockHash;
+    public BigInteger TotalVotingPower => _validators.GetValidatorsPower([.. _voteByValidator.Values.Select(vote => vote.Validator)]);
 
-    public bool HasTwoThirdsMajority => _blockHash != default;
+    public bool HasTwoThirdsMajority => _decidedBlockHash is not null;
 
-    public bool HasOneThirdsAny => TotalVotingPower > validators.GetOneThirdPower();
+    public bool IsDecided => _decidedBlockHash is not null;
 
-    public bool HasTwoThirdsAny => TotalVotingPower > validators.GetTwoThirdsPower();
+    public bool HasOneThirdsAny => TotalVotingPower > _validators.GetOneThirdPower();
+
+    public bool HasTwoThirdsAny => TotalVotingPower > _validators.GetTwoThirdsPower();
 
     public void Add(Vote vote)
     {
-        if (vote.Height != height)
+        if (vote.Height != _height)
         {
             throw new ArgumentException(
-                $"Vote height {vote.Height} does not match expected height {height}", nameof(vote));
+                $"Vote height {vote.Height} does not match expected height {_height}", nameof(vote));
         }
 
-        if (vote.Round != round)
+        if (vote.Round != _round)
         {
             throw new ArgumentException(
-                $"Vote round {vote.Round} does not match expected round {round}", nameof(vote));
+                $"Vote round {vote.Round} does not match expected round {_round}", nameof(vote));
         }
 
-        if (vote.Type != voteType)
+        if (vote.Type != _voteType)
         {
             throw new ArgumentException(
-                $"Vote type {vote.Type} does not match expected type {voteType}", nameof(vote));
+                $"Vote type {vote.Type} does not match expected type {_voteType}", nameof(vote));
         }
 
-        if (!validators.Contains(vote.Validator))
+        if (!_validators.Contains(vote.Validator))
         {
             throw new ArgumentException(
-                $"Validator {vote.Validator} is not in the validators for height {height}", nameof(vote));
+                $"Validator {vote.Validator} is not in the validators for height {_height}", nameof(vote));
         }
 
-        if (validators.GetValidator(vote.Validator).Power != vote.ValidatorPower)
+        if (_validators.GetValidator(vote.Validator).Power != vote.ValidatorPower)
         {
             throw new ArgumentException(
                 $"Validator {vote.Validator} power {vote.ValidatorPower} does not match " +
-                $"expected power {validators.GetValidator(vote.Validator).Power}", nameof(vote));
+                $"expected power {_validators.GetValidator(vote.Validator).Power}", nameof(vote));
         }
 
         var validator = vote.Validator;
@@ -80,7 +91,7 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
             {
                 throw new ArgumentException($"{nameof(Add)}() does not expect duplicate votes", nameof(vote));
             }
-            else if (_blockHash == vote.BlockHash)
+            else if (_decidedBlockHash == vote.BlockHash)
             {
                 _voteByValidator[validator] = vote;
             }
@@ -106,46 +117,50 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
         }
 
         var totalPower = BigIntegerUtility.Sum(votes.Select(v => v.ValidatorPower));
-        var quorum = validators.GetTwoThirdsPower() + 1;
+        var quorum = _validators.GetTwoThirdsPower() + 1;
 
-        if (quorum <= totalPower && _blockHash == default)
+        if (quorum <= totalPower && _decidedBlockHash is null)
         {
-            _blockHash = vote.BlockHash;
+            _decidedBlockHash = vote.BlockHash;
         }
+    }
+
+    public BlockHash GetDecidedBlockHash()
+        => _decidedBlockHash ?? throw new InvalidOperationException(
+            "No consensus has been reached yet. Check IsDecided first.");
+
+    public bool TryGetDecidedBlockHash(out BlockHash blockHash)
+    {
+        if (_decidedBlockHash is { } hash)
+        {
+            blockHash = hash;
+            return true;
+        }
+
+        blockHash = default;
+        return false;
     }
 
     public bool TryGetValue(Address validator, [MaybeNullWhen(false)] out Vote value)
         => _voteByValidator.TryGetValue(validator, out value);
 
-    public bool TryGetValue(int index, [MaybeNullWhen(false)] out Vote value)
-    {
-        if (index < 0 || index >= validators.Count)
-        {
-            value = null;
-            return false;
-        }
-
-        var validator = validators[index];
-        return _voteByValidator.TryGetValue(validator.Address, out value);
-    }
-
     public bool Contains(Address validator) => _voteByValidator.ContainsKey(validator);
 
     public bool Contains(int index)
     {
-        if (index < 0 || index >= validators.Count)
+        if (index < 0 || index >= _validators.Count)
         {
             return false;
         }
 
-        var validator = validators[index];
+        var validator = _validators[index];
         return _voteByValidator.ContainsKey(validator.Address);
     }
 
     public ImmutableArray<bool> GetVoteBits(BlockHash blockHash)
     {
-        var bitList = new List<bool>(validators.Count);
-        foreach (var validator in validators)
+        var bitList = new List<bool>(_validators.Count);
+        foreach (var validator in _validators)
         {
             if (_voteByValidator.TryGetValue(validator.Address, out var vote) && vote.BlockHash == blockHash)
             {
@@ -162,39 +177,39 @@ public sealed class VoteCollection(int height, int round, VoteType voteType, Imm
 
     public BlockCommit GetBlockCommit()
     {
-        if (_blockHash == default)
+        if (_decidedBlockHash is not { } decidedBlockHash)
         {
             throw new InvalidOperationException(
                 "Cannot create BlockCommit from VoteSet without a two-thirds majority.");
         }
 
-        var query = from validator in validators
+        var query = from validator in _validators
                     let key = validator.Address
                     let vote = _voteByValidator.TryGetValue(key, out var vote) ? vote : new VoteMetadata
                     {
-                        Height = height,
-                        Round = round,
-                        BlockHash = _blockHash,
+                        Height = _height,
+                        Round = _round,
+                        BlockHash = decidedBlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = key,
                         ValidatorPower = validator.Power,
                         Type = VoteType.Null,
                     }.WithoutSignature()
-                    where vote.BlockHash == _blockHash
+                    where vote.BlockHash == decidedBlockHash
                     select vote;
 
         return new BlockCommit
         {
-            Height = height,
-            Round = round,
-            BlockHash = _blockHash,
+            Height = _height,
+            Round = _round,
+            BlockHash = decidedBlockHash,
             Votes = [.. query],
         };
     }
 
     public IEnumerator<Vote> GetEnumerator()
     {
-        foreach (var validator in validators)
+        foreach (var validator in _validators)
         {
             if (_voteByValidator.TryGetValue(validator.Address, out var vote))
             {

@@ -3,10 +3,24 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-internal sealed class RoundCollection(int height, ImmutableSortedSet<Validator> validators)
-    : IEnumerable<Round>
+internal sealed class RoundCollection : IEnumerable<Round>
 {
+    private readonly int _height;
+    private readonly ImmutableSortedSet<Validator> _validators;
     private readonly SortedDictionary<int, Round> _roundByIndex = [];
+
+    public RoundCollection(int height, ImmutableSortedSet<Validator> validators)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(height, 1);
+
+        if (validators.Count is 0)
+        {
+            throw new ArgumentException("Validators cannot be empty.", nameof(validators));
+        }
+
+        _height = height;
+        _validators = validators;
+    }
 
     public Round this[int index]
     {
@@ -14,7 +28,7 @@ internal sealed class RoundCollection(int height, ImmutableSortedSet<Validator> 
         {
             if (!_roundByIndex.TryGetValue(index, out var consensusRound))
             {
-                consensusRound = new Round(height, index, validators);
+                consensusRound = new Round(_height, index, _validators);
                 _roundByIndex[index] = consensusRound;
             }
 

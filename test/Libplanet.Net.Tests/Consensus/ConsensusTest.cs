@@ -2,7 +2,6 @@ using System.Reactive.Linq;
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
 using Libplanet.TestUtilities.Extensions;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -13,10 +12,8 @@ public sealed class ConsensusTest
     [Fact(Timeout = Timeout)]
     public async Task BaseTest()
     {
-        var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
-            // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
             options: new ConsensusOptions());
 
@@ -24,6 +21,7 @@ public sealed class ConsensusTest
         Assert.Throws<InvalidOperationException>(() => consensus.Round);
         Assert.Equal(ConsensusStep.Default, consensus.Step);
         Assert.Null(consensus.Proposal);
+        Assert.Equal(TestUtils.Validators, consensus.Validators);
     }
 
     [Theory(Timeout = Timeout)]

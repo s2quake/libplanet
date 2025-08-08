@@ -520,17 +520,17 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }
 
         // Should check if +2/3 votes already collected and the proposal does not match
-        if (round.PreVotes.BlockHash != default && round.PreVotes.BlockHash != proposal.BlockHash)
+        if (round.PreVotes.TryGetDecidedBlockHash(out var blockHash1) && blockHash1 != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
-                          $"with the collected +2/3 preVotes' block hash {_rounds[roundIndex].PreVotes.BlockHash}.";
+                          $"with the collected +2/3 preVotes' block hash {blockHash1}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
-        if (round.PreCommits.BlockHash != default && round.PreCommits.BlockHash != proposal.BlockHash)
+        if (round.PreCommits.TryGetDecidedBlockHash(out var blockHash2) && blockHash2 != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
-                          $"with the collected +2/3 preCommits' block hash {_rounds[roundIndex].PreCommits.BlockHash}.";
+                          $"with the collected +2/3 preCommits' block hash {blockHash2}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
@@ -565,7 +565,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             && propose is { } p2
             && p2.ValidRound >= 0
             && p2.ValidRound < roundIndex
-            && _rounds[p2.ValidRound].PreVotes.BlockHash == p2.Block.BlockHash)
+            && _rounds[p2.ValidRound].PreVotes.TryGetDecidedBlockHash(out var blockHash2)
+            && blockHash2 == p2.Block.BlockHash)
         {
             if (IsValid(p2.Block) && (_lockedRound <= p2.ValidRound || _lockedBlock == p2.Block))
             {
@@ -584,7 +585,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
         if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
             && propose is { } p3
-            && round.PreVotes.BlockHash == p3.Block.BlockHash
+            && round.PreVotes.TryGetDecidedBlockHash(out var blockHash3)
+            && blockHash3 == p3.Block.BlockHash
             && IsValid(p3.Block)
             && !round.HasTwoThirdsPreVoteTypes)
         {
@@ -602,17 +604,16 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             _validRound = Round.Index;
         }
 
-        if (Step == ConsensusStep.PreVote)
+        if (Step == ConsensusStep.PreVote && round.PreVotes.TryGetDecidedBlockHash(out var blockHash4))
         {
-            var hash3 = round.PreVotes.BlockHash;
-            if (hash3 == default)
+            if (blockHash4 == default)
             {
                 EnterPreCommitWait(round, default);
             }
-            else if (Proposal is { } proposal && !proposal.BlockHash.Equals(hash3))
+            else if (Proposal is { } proposal && proposal.BlockHash != blockHash4)
             {
                 Proposal = null;
-                _proposalRejectedSubject.OnNext((proposal, hash3));
+                _proposalRejectedSubject.OnNext((proposal, blockHash4));
             }
         }
 
@@ -631,17 +632,20 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
         var round = _rounds[vote.Round];
         var roundIndex = round.Index;
-        if (GetProposal() is (Block block4, _)
-            && round.PreCommits.BlockHash == block4.BlockHash
-            && IsValid(block4))
+        var preCommits = round.PreCommits;
+        if (Proposal is { } proposal
+            && preCommits.TryGetDecidedBlockHash(out var blockHash)
+            && blockHash == proposal.BlockHash
+            && IsValid(proposal.Block))
         {
-            _decidedBlock = block4;
-            _quorumReachedSubject.OnNext((block4, VoteType.PreCommit));
+            _decidedBlock = proposal.Block;
+            _quorumReachedSubject.OnNext((_decidedBlock, VoteType.PreCommit));
             EnterEndCommitWait(Round);
             return;
         }
 
-        if (roundIndex > Round.Index && round.PreVotes.HasOneThirdsAny)
+        var preVotes = round.PreVotes;
+        if (roundIndex > Round.Index && preVotes.HasOneThirdsAny)
         {
             StartRound(roundIndex);
         }

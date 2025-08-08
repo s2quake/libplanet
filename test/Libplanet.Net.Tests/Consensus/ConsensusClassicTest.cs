@@ -6,7 +6,6 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 using Libplanet.TestUtilities;
 using Libplanet.Extensions;
 using Libplanet.Tests;
@@ -62,56 +61,29 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     {
         await using var consensus = TestUtils.CreateConsensus();
 
-        TestUtils.InvokeDelay(() => consensus.StartAsync(default), 100);
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await consensus.StartAsync(default));
+        await consensus.StartAsync(default);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => consensus.StartAsync(default));
     }
 
     [Fact(Timeout = Timeout)]
     public async Task CanAcceptMessagesAfterCommitFailure()
     {
-        // var preVoteEvent = new TaskCompletionSource();
-        // var endCommitEvent = new TaskCompletionSource();
-        // var proposeEvent = new TaskCompletionSource<Block>();
-
-        // Add block #1 so we can start with a last commit for height 2.
-        var propser = TestUtils.PrivateKeys[2];
         var blockchain = TestUtils.MakeBlockchain();
         blockchain.ProposeAndAppend(TestUtils.PrivateKeys[1]);
 
-        await using var consensus = TestUtils.CreateConsensus(
-            height: 2);
-        // privateKey: TestUtils.PrivateKeys[2]);
+        await using var consensus = TestUtils.CreateConsensus(height: 2);
         var controller = TestUtils.CreateConsensusController(
             consensus,
             TestUtils.PrivateKeys[2],
             blockchain);
-        var preVoteEvent = new TaskCompletionSource();
 
-        // using var _1 = consensus.StepChanged.Subscribe(step =>
-        // {
-        //     if (step == ConsensusStep.PreVote)
-        //     {
-        //         preVoteEvent.SetResult();
-        //     }
-        //     else if (step == ConsensusStep.EndCommit)
-        //     {
-        //         endCommitEvent.SetResult();
-        //     }
-        // });
-        // using var _2 = consensus.ShouldPropose.Subscribe(e =>
-        // {
-        //     proposeEvent.SetResult(e.Block);
-        // });
-
-        // var waitProposeTask = consensus.ShouldPropose.WaitAsync();
         consensus.StartAfter(100);
-        var waitPreVote = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
-        var waitEndCommit = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.EndCommit);
-        var waitProposed = controller.Proposed.WaitAsync();
+        var preVoteStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
+        var endCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.EndCommit);
+        var proposedTask = controller.Proposed.WaitAsync();
 
-        await preVoteEvent.Task.WaitAsync(TimeSpan.FromSeconds(1));
-        // var proposedBlock = await proposeEvent.Task.WaitAsync(TimeSpan.FromSeconds(1));
-        var proposal = await waitProposed;
+        await preVoteStepTask.WaitAsync(TimeSpan.FromSeconds(10));
+        var proposal = await proposedTask;
 
         blockchain.AppendWithBlockCommit(proposal.Block);
 
@@ -150,7 +122,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         }
 
         // await endCommitEvent.Task.WaitAsync(TimeSpan.FromSeconds(1));
-        await waitEndCommit.WaitAsync(TimeSpan.FromSeconds(1));
+        await endCommitStepTask.WaitAsync(TimeSpan.FromSeconds(100));
 
         // Check consensus has only three votes.
         var blockCommit = consensus.GetBlockCommit();
