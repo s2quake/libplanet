@@ -5,9 +5,7 @@ using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Random = System.Random;
 using Libplanet.Net.Tests.Consensus;
-using Libplanet.Net.NetMQ;
 
 namespace Libplanet.Net.Tests;
 
@@ -254,14 +252,9 @@ public static class TestUtils
         ConsensusOptions? options = null)
     {
         var consensus = new Net.Consensus.Consensus(
-            height,
+            height: height,
             validators: validators ?? Validators,
             options: options ?? new ConsensusOptions());
-
-        // consensus.Completed.Subscribe(e =>
-        // {
-        //     _ = Task.Run(() => blockchain.Append(e.Block, e.BlockCommit));
-        // });
 
         return consensus;
     }
@@ -289,7 +282,7 @@ public static class TestUtils
     {
         blockchain ??= Libplanet.Tests.TestUtils.MakeBlockchain();
         key ??= PrivateKeys[1];
-        validatorPeers ??= Peers; ;
+        validatorPeers ??= Peers;
 
         var signer = key.AsSigner();
         var consensusServiceOptions = new ConsensusServiceOptions
@@ -336,22 +329,4 @@ public static class TestUtils
             await func();
         });
     }
-
-    // public static Task<T> InvokeDelay<T>(Func<T> func, int millisecondsDelay)
-    //     => InvokeDelay(func, TimeSpan.FromMilliseconds(millisecondsDelay));
-
-    // public static async Task<T> InvokeDelay<T>(Func<T> func, TimeSpan delay)
-    // {
-    //     await Task.Delay(delay);
-    //     return func();
-    // }
-
-    // public static Task<T> InvokeDelay<T>(Func<Task<T>> func, int millisecondsDelay)
-    //     => InvokeDelay(func, TimeSpan.FromMilliseconds(millisecondsDelay));
-
-    // public static async Task<T> InvokeDelay<T>(Func<Task<T>> func, TimeSpan delay)
-    // {
-    //     await Task.Delay(delay);
-    //     return await func();
-    // }
 }
