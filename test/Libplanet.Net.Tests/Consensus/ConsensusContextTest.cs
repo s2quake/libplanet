@@ -359,11 +359,11 @@ public class ConsensusContextTest
 
         // VoteSetBits expects missing votes
         VoteSetBits voteSetBits = consensusService.Consensus
-        .GetVoteSetBits(0, block.BlockHash, VoteType.PreVote);
+        .GetVoteSetBits(TestUtils.PrivateKeys[0].AsSigner(), 0, block.BlockHash, VoteType.PreVote);
         Assert.True(
         voteSetBits.VoteBits.SequenceEqual(new[] { true, true, false, true }));
         voteSetBits = consensusService.Consensus
-        .GetVoteSetBits(0, block.BlockHash, VoteType.PreCommit);
+        .GetVoteSetBits(TestUtils.PrivateKeys[0].AsSigner(),0, block.BlockHash, VoteType.PreCommit);
         Assert.True(
         voteSetBits.VoteBits.SequenceEqual(new[] { true, false, false, false }));
     }

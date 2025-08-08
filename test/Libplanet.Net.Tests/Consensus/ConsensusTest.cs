@@ -17,7 +17,7 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[0].AsSigner(),
+            // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
             options: new ConsensusOptions());
 
@@ -36,10 +36,13 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[index].AsSigner(),
+            // signer: TestUtils.PrivateKeys[index].AsSigner(),
             validators: TestUtils.Validators,
             options: new ConsensusOptions());
-        var controller = consensus.CreateController();
+        var controller = new ConsensusController(
+            TestUtils.PrivateKeys[index].AsSigner(),
+            consensus,
+            blockchain);
         // var tcs = new TaskCompletionSource();
         // using var _ = consensus.ShouldPropose.Subscribe(_ => tcs.SetResult());
         var proposedTask = controller.Proposed.WaitAsync();
@@ -67,7 +70,7 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[1].AsSigner(),
+            // signer: TestUtils.PrivateKeys[1].AsSigner(),
             validators: TestUtils.Validators,
             options: new ConsensusOptions());
 
@@ -87,13 +90,13 @@ public sealed class ConsensusTest
         var consensus1 = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[1].AsSigner(),
+            // signer: TestUtils.PrivateKeys[1].AsSigner(),
             validators: TestUtils.Validators,
             options: new ConsensusOptions());
         var consensus2 = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[1].AsSigner(),
+            // signer: TestUtils.PrivateKeys[1].AsSigner(),
             validators: TestUtils.Validators,
             options: new ConsensusOptions());
 
@@ -120,7 +123,7 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[0].AsSigner(),
+            // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
             options: options);
 
@@ -151,7 +154,7 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[0].AsSigner(),
+            // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
             options: options);
 
@@ -180,7 +183,7 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[0].AsSigner(),
+            // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
             options: new());
 
@@ -204,7 +207,7 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[0].AsSigner(),
+            // signer: TestUtils.PrivateKeys[0].AsSigner(),
             validators: TestUtils.Validators,
             options: new());
 
@@ -236,7 +239,7 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             blockchain,
             height: 1,
-            signer: TestUtils.PrivateKeys[index].AsSigner(),
+            // signer: TestUtils.PrivateKeys[index].AsSigner(),
             validators: TestUtils.Validators,
             options: options);
 

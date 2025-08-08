@@ -370,7 +370,7 @@ namespace Libplanet.Net.Tests.Consensus
 
             await using var consensus = TestUtils.CreateConsensus(
                 blockChain,
-                privateKey: TestUtils.PrivateKeys[2],
+                // privateKey: TestUtils.PrivateKeys[2],
                 height: 2);
             // using var _ = consensus.MessagePublished.Subscribe(message =>
             // {

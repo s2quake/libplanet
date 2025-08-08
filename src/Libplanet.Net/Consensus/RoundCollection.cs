@@ -22,6 +22,8 @@ internal sealed class RoundCollection(int height, ImmutableSortedSet<Validator> 
         }
     }
 
+    public void Clear() => _roundByIndex.Clear();
+
     public int Count => _roundByIndex.Count;
 
     public IEnumerator<Round> GetEnumerator()

@@ -23,17 +23,74 @@ public sealed class ConsensusController
 
     internal ConsensusController(ISigner signer, Consensus consensus, Blockchain blockchain)
     {
-        if (signer.Address != consensus.Signer)
-        {
-            throw new ArgumentException(
-                $"Signer address {signer.Address} does not match consensus signer address {consensus.Signer}",
-                nameof(signer));
-        }
+        // if (signer.Address != consensus.Signer)
+        // {
+        //     throw new ArgumentException(
+        //         $"Signer address {signer.Address} does not match consensus signer address {consensus.Signer}",
+        //         nameof(signer));
+        // }
 
         _signer = signer;
         _consensus = consensus;
         _blockchain = blockchain;
         _consensus.StepChanged.Subscribe(Consensus_StepChanged);
+        _consensus.PreVoted.Subscribe(Consensus_PreVoted);
+        _consensus.ProposalRejected.Subscribe(Consensus_ProposalRejected);
+        _consensus.QuorumReached.Subscribe(Consensus_BlockDecided);
+
+    }
+
+    private void Consensus_BlockDecided((Block Block, VoteType VoteType) e)
+    {
+        // throw new NotImplementedException();
+        var round = _consensus.Round;
+
+        var maj23 = new Maj23Metadata
+        {
+            Height = _consensus.Height,
+            Round = round.Index,
+            BlockHash = e.Block.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = _signer.Address,
+            VoteType = e.VoteType,
+        }.Sign(_signer);
+    }
+
+    private void Consensus_ProposalRejected((Proposal Proposal, BlockHash BlockHash) e)
+    {
+        var round = _consensus.Round;
+
+        var proposalClaim = new ProposalClaimMetadata
+        {
+            Height = _consensus.Height,
+            Round = round.Index,
+            BlockHash = e.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = _signer.Address,
+        }.Sign(_signer);
+    }
+
+    private void Consensus_PreVoted(Vote vote)
+    {
+        var round = _consensus.Round;
+        var proposal = _consensus.Proposal;
+        // if (round.PreVotes.BlockHash != default)
+        // if (proposal is not null && !proposal.BlockHash.Equals(hash3))
+        //         {
+        //             // +2/3 votes were collected and is not equal to proposal's,
+        //             // remove invalid proposal.
+        //             Proposal = null;
+
+        //             var proposalClaim = new ProposalClaimMetadata
+        //             {
+        //                 Height = Height,
+        //                 Round = roundIndex,
+        //                 BlockHash = hash3,
+        //                 Timestamp = DateTimeOffset.UtcNow,
+        //                 Validator = signer.Address,
+        //             }.Sign(signer);
+        //             _shouldProposalClaimSubject.OnNext(proposalClaim);
+        //         }
     }
 
     public IObservable<Vote> PreVoted => _preVotedSubject;

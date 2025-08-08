@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Subjects;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;

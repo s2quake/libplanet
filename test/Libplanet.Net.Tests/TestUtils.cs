@@ -251,7 +251,6 @@ public static class TestUtils
     public static Net.Consensus.Consensus CreateConsensus(
         Blockchain? blockchain = null,
         int height = 1,
-        PrivateKey? privateKey = null,
         ImmutableSortedSet<Validator>? validators = null,
         ConsensusOptions? options = null)
     {
@@ -259,7 +258,6 @@ public static class TestUtils
         var consensus = new Net.Consensus.Consensus(
             blockchain,
             height,
-            (privateKey ?? PrivateKeys[1]).AsSigner(),
             validators: validators ?? Validators,
             options: options ?? new ConsensusOptions());
 
@@ -269,6 +267,19 @@ public static class TestUtils
         });
 
         return consensus;
+    }
+
+    public static ConsensusController CreateConsensusController(
+        Net.Consensus.Consensus consensus,
+        PrivateKey? privateKey = null,
+        Blockchain? blockchain = null)
+    {
+        blockchain ??= Libplanet.Tests.TestUtils.MakeBlockchain();
+        privateKey ??= PrivateKeys[1];
+        return new ConsensusController(
+            privateKey.AsSigner(),
+            consensus,
+            blockchain);
     }
 
     public static ConsensusService CreateConsensusService(

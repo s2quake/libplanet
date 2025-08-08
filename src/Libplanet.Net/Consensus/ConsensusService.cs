@@ -56,7 +56,7 @@ public sealed class ConsensusService : ServiceBase
         _newHeightDelay = options.TargetBlockInterval;
         _consensusOption = options.ConsensusOptions;
         Height = _blockchain.Tip.Height + 1;
-        _consensus = new Consensus(_blockchain, Height, _signer, _consensusOption);
+        _consensus = new Consensus(_blockchain, Height, _consensusOption);
 
         _publishSubscriptions = [.. Subscribe(_consensus, _gossip)];
         _consensusSubscriptions = [.. Subscribe(_consensus)];
@@ -149,12 +149,13 @@ public sealed class ConsensusService : ServiceBase
         //     => gossip.PublishMessage(new ConsensusPreVoteMessage { PreVote = vote }));
         // yield return consensus.ShouldPreCommit.Subscribe(vote
         //     => gossip.PublishMessage(new ConsensusPreCommitMessage { PreCommit = vote }));
-        yield return consensus.ShouldQuorumReach.Subscribe(maj23
-            => gossip.PublishMessage(new ConsensusMaj23Message { Maj23 = maj23 }));
-        yield return consensus.ShouldProposalClaim.Subscribe(proposalClaim
-            => gossip.PublishMessage(new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim }));
+        // yield return consensus.ShouldQuorumReach.Subscribe(maj23
+        //     => gossip.PublishMessage(new ConsensusMaj23Message { Maj23 = maj23 }));
+        // yield return consensus.ShouldProposalClaim.Subscribe(proposalClaim
+        //     => gossip.PublishMessage(new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim }));
         // yield return consensus.ShouldPropose.Subscribe(proposal
         //     => gossip.PublishMessage(new ConsensusProposalMessage { Proposal = proposal }));
+        yield break;
     }
 
     private IEnumerable<IDisposable> Subscribe(Consensus consensus)
@@ -236,7 +237,7 @@ public sealed class ConsensusService : ServiceBase
 
             await _consensus.StopAsync(cancellationToken);
             await _consensus.DisposeAsync();
-            _consensus = new Consensus(_blockchain, height, _signer, _consensusOption);
+            _consensus = new Consensus(_blockchain, height, _consensusOption);
             _publishSubscriptions = [.. Subscribe(_consensus, _gossip)];
             _consensusSubscriptions = [.. Subscribe(_consensus)];
             await _consensus.StartAsync(cancellationToken);
@@ -362,7 +363,7 @@ public sealed class ConsensusService : ServiceBase
         {
             if (_consensus.Height == height && _consensus.AddMaj23(maj23))
             {
-                return _consensus.GetVoteSetBits(maj23);
+                return _consensus.GetVoteSetBits(_signer, maj23);
             }
         }
 
