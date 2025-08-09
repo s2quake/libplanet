@@ -206,13 +206,22 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         // Reset exception thrown.
         exceptionThrown = null;
         exceptionOccurredEvent.Reset();
-        var vote = TestUtils.CreateVote(
-            TestUtils.PrivateKeys[2],
-            TestUtils.Validators[2].Power,
-            2,
-            0,
-            block.BlockHash,
-            VoteType.PreVote);
+        // var vote = TestUtils.CreateVote(
+        //     TestUtils.PrivateKeys[2],
+        //     TestUtils.Validators[2].Power,
+        //     2,
+        //     0,
+        //     block.BlockHash,
+        //     VoteType.PreVote);
+        var vote = new VoteBuilder
+        {
+            Validator = TestUtils.Validators[2],
+            Height = 2,
+            BlockHash = block.BlockHash,
+            Type = VoteType.PreVote,
+        }.Create(TestUtils.PrivateKeys[2]);
+
+
         consensus.PreVote(vote);
         Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
         Assert.IsType<ArgumentException>(exceptionThrown);

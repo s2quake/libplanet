@@ -136,21 +136,21 @@ public sealed class MessageTest(ITestOutputHelper output)
     {
         var blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
 
-        var preVote = TestUtils.CreateVote(
-            TestUtils.PrivateKeys[0],
-            TestUtils.Validators[0].Power,
-            1,
-            0,
-            blockHash,
-            VoteType.PreVote);
+        var preVote = new VoteBuilder
+        {
+            Validator = TestUtils.Validators[0],
+            Height = 1,
+            BlockHash = blockHash,
+            Type = VoteType.PreVote,
+        }.Create(TestUtils.PrivateKeys[0]);
 
-        var preCommit = TestUtils.CreateVote(
-            TestUtils.PrivateKeys[0],
-            TestUtils.Validators[0].Power,
-            1,
-            0,
-            blockHash,
-            VoteType.PreCommit);
+        var preCommit = new VoteBuilder
+        {
+            Validator = TestUtils.Validators[0],
+            Height = 1,
+            BlockHash = blockHash,
+            Type = VoteType.PreCommit,
+        }.Create(TestUtils.PrivateKeys[0]);
 
         // Valid message cases
         ValidationUtility.Validate(() => new ConsensusPreVoteMessage { PreVote = preVote });

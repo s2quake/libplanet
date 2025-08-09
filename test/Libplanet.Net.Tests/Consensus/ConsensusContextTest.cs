@@ -100,37 +100,37 @@ public class ConsensusContextTest
         await consensusService.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
-                PreCommit = TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[0],
-                    TestUtils.Validators[0].Power,
-                    3,
-                    0,
-                    hash: proposedblockHash,
-                    flag: VoteType.PreCommit)
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    BlockHash = proposedblockHash,
+                    Height = 3,
+                    Type = VoteType.PreCommit,
+                }.Create(TestUtils.PrivateKeys[0])
             },
             default);
         await consensusService.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
-                PreCommit = TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[1],
-                    TestUtils.Validators[1].Power,
-                    3,
-                    0,
-                    hash: proposedblockHash,
-                    flag: VoteType.PreCommit)
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[1],
+                    BlockHash = proposedblockHash,
+                    Height = 3,
+                    Type = VoteType.PreCommit,
+                }.Create(TestUtils.PrivateKeys[1])
             },
             default);
         await consensusService.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
-                PreCommit = TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[2],
-                    TestUtils.Validators[2].Power,
-                    3,
-                    0,
-                    hash: proposedblockHash,
-                    flag: VoteType.PreCommit)
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[2],
+                    BlockHash = proposedblockHash,
+                    Height = 3,
+                    Type = VoteType.PreCommit,
+                }.Create(TestUtils.PrivateKeys[2])
             },
             default);
 
@@ -245,20 +245,20 @@ public class ConsensusContextTest
         await heightOneProposalSent.WaitAsync();
         BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
-        votes.Add(TestUtils.CreateVote(
-            TestUtils.PrivateKeys[0],
-            TestUtils.Validators[0].Power,
-            1,
-            0,
-            new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-            VoteType.PreCommit));
-        votes.AddRange(Enumerable.Range(1, 3).Select(x => TestUtils.CreateVote(
-            TestUtils.PrivateKeys[x],
-            TestUtils.Validators[x].Power,
-            1,
-            0,
-            proposedblockHash,
-            VoteType.PreCommit)));
+        votes.Add(new VoteBuilder
+        {
+            Validator = TestUtils.Validators[0],
+            Height = 1,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Type = VoteType.PreCommit,
+        }.Create(TestUtils.PrivateKeys[0]));
+        votes.AddRange(Enumerable.Range(1, 3).Select(x => new VoteBuilder
+        {
+            Validator = TestUtils.Validators[x],
+            Height = 1,
+            BlockHash = proposedblockHash,
+            Type = VoteType.PreCommit,
+        }.Create(TestUtils.PrivateKeys[x])));
 
         foreach (var vote in votes)
         {

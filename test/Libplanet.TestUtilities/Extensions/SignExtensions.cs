@@ -42,6 +42,9 @@ public static class SignExtensions
     public static Protocol Create(this ProtocolBuilder @this, PrivateKey privateKey)
         => @this.Create(privateKey.AsSigner());
 
+    public static Vote Create(this VoteBuilder @this, PrivateKey privateKey)
+        => @this.Create(privateKey.AsSigner());
+
     public static Block ProposeBlock(this Blockchain @this, PrivateKey privateKey)
         => @this.ProposeBlock(privateKey.AsSigner());
 

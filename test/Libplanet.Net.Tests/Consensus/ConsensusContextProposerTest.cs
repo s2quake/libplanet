@@ -1,6 +1,7 @@
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 using Xunit.Abstractions;
+using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -44,26 +45,24 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
         await consensusService.HandleMessageAsync(
             new ConsensusPreVoteMessage
             {
-                PreVote = TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[2],
-                    TestUtils.Validators[2].Power,
-                    1,
-                    0,
-                    hash: default,
-                    flag: VoteType.PreVote)
+                PreVote = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[2],
+                    Height = 1,
+                    Type = VoteType.PreVote,
+                }.Create(TestUtils.PrivateKeys[2])
             },
             default);
 
         await consensusService.HandleMessageAsync(
             new ConsensusPreVoteMessage
             {
-                PreVote = TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[3],
-                    TestUtils.Validators[3].Power,
-                    1,
-                    0,
-                    hash: default,
-                    flag: VoteType.PreVote)
+                PreVote = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[3],
+                    Height = 1,
+                    Type = VoteType.PreVote,
+                }.Create(TestUtils.PrivateKeys[3])
             },
             default);
 
@@ -72,26 +71,24 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
         await consensusService.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
-                PreCommit = TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[2],
-                    TestUtils.Validators[2].Power,
-                    1,
-                    0,
-                    hash: default,
-                    flag: VoteType.PreCommit)
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[2],
+                    Height = 1,
+                    Type = VoteType.PreCommit,
+                }.Create(TestUtils.PrivateKeys[2])
             },
             default);
 
         await consensusService.HandleMessageAsync(
             new ConsensusPreCommitMessage
             {
-                PreCommit = TestUtils.CreateVote(
-                    TestUtils.PrivateKeys[3],
-                    TestUtils.Validators[3].Power,
-                    1,
-                    0,
-                    hash: default,
-                    flag: VoteType.PreCommit)
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[3],
+                    Height = 1,
+                    Type = VoteType.PreCommit,
+                }.Create(TestUtils.PrivateKeys[3])
             },
             default);
 

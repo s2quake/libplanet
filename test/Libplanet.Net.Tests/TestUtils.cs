@@ -40,24 +40,6 @@ public static class TestUtils
         },
     };
 
-    public static Vote CreateVote(
-        PrivateKey privateKey,
-        BigInteger power,
-        int height,
-        int round,
-        BlockHash hash,
-        VoteType flag) =>
-        new VoteMetadata
-        {
-            Height = height,
-            Round = round,
-            BlockHash = hash,
-            Timestamp = DateTimeOffset.Now,
-            Validator = privateKey.Address,
-            ValidatorPower = power,
-            Type = flag,
-        }.Sign(privateKey);
-
     public static PrivateKey GeneratePrivateKeyOfBucketIndex(Address tableAddress, int target)
     {
         var table = new PeerCollection(tableAddress);
