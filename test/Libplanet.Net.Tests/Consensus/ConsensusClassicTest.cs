@@ -121,7 +121,6 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             consensus.PreCommit(vote);
         }
 
-        // await endCommitEvent.Task.WaitAsync(TimeSpan.FromSeconds(1));
         await endCommitStepTask.WaitAsync(TimeSpan.FromSeconds(100));
 
         // Check consensus has only three votes.
@@ -177,6 +176,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus();
+        var controller = TestUtils.CreateConsensusController(
+            consensus,
+            TestUtils.PrivateKeys[1],
+            blockchain);
         using var _ = consensus.ExceptionOccurred.Subscribe(e =>
         {
             exceptionThrown = e;
@@ -187,15 +190,13 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         {
             Height = 2,
         }.Create(signer);
-        var proposal = new ProposalMetadata
+        var proposal = new ProposalBuilder
         {
-            BlockHash = block.BlockHash,
-            Height = 2,
+            Block = block,
             Round = 2,
             Timestamp = DateTimeOffset.UtcNow,
-            Proposer = signer.Address,
             ValidRound = -1,
-        }.Sign(signer, block);
+        }.Create(signer);
 
         await consensus.StartAsync(default);
         consensus.Propose(proposal);
