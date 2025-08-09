@@ -20,8 +20,6 @@ public sealed class ConsensusController
     private readonly ISigner _signer;
     private readonly Consensus _consensus;
     private readonly Blockchain _blockchain;
-    private Block? _validBlock;
-    private int _validRound = -1;
 
     internal ConsensusController(ISigner signer, Consensus consensus, Blockchain blockchain)
     {
@@ -32,7 +30,6 @@ public sealed class ConsensusController
         _consensus.PreVoted.Subscribe(Consensus_PreVoted);
         _consensus.ProposalRejected.Subscribe(Consensus_ProposalRejected);
         _consensus.QuorumReached.Subscribe(Consensus_BlockDecided);
-
     }
 
     private void Consensus_BlockDecided((Block Block, VoteType VoteType) e)
@@ -106,12 +103,13 @@ public sealed class ConsensusController
                 {
                     if (_consensus.IsProposer(_signer.Address))
                     {
+                        var candidateProposal = _consensus.CandidatedProposal;
                         var proposal = new ProposalBuilder
                         {
-                            Block = _validBlock ?? _blockchain.ProposeBlock(_signer),
+                            Block = candidateProposal?.Block ?? _blockchain.ProposeBlock(_signer),
                             Round = e.Round.Index,
                             Timestamp = DateTimeOffset.UtcNow,
-                            ValidRound = _validRound,
+                            ValidRound = candidateProposal?.ValidRound ?? -1,
                         }.Create(_signer);
                         _consensus.Propose(proposal);
                         _proposedSubject.OnNext(proposal);

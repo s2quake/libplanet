@@ -22,10 +22,6 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     private readonly RoundCollection _rounds = new(height, validators);
 
     private Dispatcher? _dispatcher;
-    private Block? _lockedBlock;
-    private int _lockedRound = -1;
-    private Block? _validBlock;
-    private int _validRound = -1;
     private Block? _decidedBlock;
     private Round? _round;
 
@@ -67,6 +63,10 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     public ConsensusStep Step { get; private set; }
 
     public Proposal? Proposal { get; private set; }
+
+    public Proposal? CandidatedProposal { get; private set; }
+
+    public Proposal? PreferredProposal { get; private set; }
 
     public ImmutableSortedSet<Validator> Validators => validators;
 
@@ -287,10 +287,9 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             _dispatcher = null;
         }
 
-        _lockedBlock = null;
-        _lockedRound = -1;
-        _validBlock = null;
-        _validRound = -1;
+        Proposal = null;
+        PreferredProposal = null;
+        CandidatedProposal = null;
         _decidedBlock = null;
         _round = null;
         Step = ConsensusStep.Default;
@@ -520,14 +519,14 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }
 
         // Should check if +2/3 votes already collected and the proposal does not match
-        if (round.PreVotes.TryGetDecidedBlockHash(out var blockHash1) && blockHash1 != proposal.BlockHash)
+        if (round.PreVotes.TryGetMajority23(out var blockHash1) && blockHash1 != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
                           $"with the collected +2/3 preVotes' block hash {blockHash1}.";
             throw new ArgumentException(message, nameof(proposal));
         }
 
-        if (round.PreCommits.TryGetDecidedBlockHash(out var blockHash2) && blockHash2 != proposal.BlockHash)
+        if (round.PreCommits.TryGetMajority23(out var blockHash2) && blockHash2 != proposal.BlockHash)
         {
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
                           $"with the collected +2/3 preCommits' block hash {blockHash2}.";
@@ -548,12 +547,16 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         var round = Round;
         var roundIndex = round.Index;
 
-        (Block Block, int ValidRound)? propose = GetProposal();
-        if (Step == ConsensusStep.Propose && propose is { } p1 && p1.ValidRound == -1)
+        var proposal = Proposal;
+        if (Step == ConsensusStep.Propose
+            && proposal is not null
+            && proposal.ValidRound == -1)
         {
-            if (IsValid(p1.Block) && (_lockedRound == -1 || _lockedBlock == p1.Block))
+            var lockedRound = PreferredProposal?.ValidRound ?? -1;
+            var lockedBlock = PreferredProposal?.Block;
+            if (IsValid(proposal.Block) && (lockedRound == -1 || lockedBlock == proposal.Block))
             {
-                EnterPreVoteStep(Round, p1.Block.BlockHash);
+                EnterPreVoteStep(Round, proposal.BlockHash);
             }
             else
             {
@@ -562,15 +565,17 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }
 
         if (Step == ConsensusStep.Propose
-            && propose is { } p2
-            && p2.ValidRound >= 0
-            && p2.ValidRound < roundIndex
-            && _rounds[p2.ValidRound].PreVotes.TryGetDecidedBlockHash(out var blockHash2)
-            && blockHash2 == p2.Block.BlockHash)
+            && proposal is not null
+            && proposal.ValidRound >= 0
+            && proposal.ValidRound < roundIndex
+            && _rounds[proposal.ValidRound].PreVotes.TryGetMajority23(out var blockHash2)
+            && blockHash2 == proposal.BlockHash)
         {
-            if (IsValid(p2.Block) && (_lockedRound <= p2.ValidRound || _lockedBlock == p2.Block))
+            var lockedRound = PreferredProposal?.ValidRound ?? -1;
+            var lockedBlock = PreferredProposal?.Block;
+            if (IsValid(proposal.Block) && (lockedRound <= proposal.ValidRound || lockedBlock == proposal.Block))
             {
-                EnterPreVoteStep(Round, p2.Block.BlockHash);
+                EnterPreVoteStep(Round, proposal.BlockHash);
             }
             else
             {
@@ -584,33 +589,31 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }
 
         if ((Step == ConsensusStep.PreVote || Step == ConsensusStep.PreCommit)
-            && propose is { } p3
-            && round.PreVotes.TryGetDecidedBlockHash(out var blockHash3)
-            && blockHash3 == p3.Block.BlockHash
-            && IsValid(p3.Block)
+            && proposal is not null
+            && round.PreVotes.TryGetMajority23(out var blockHash3)
+            && blockHash3 == proposal.BlockHash
+            && IsValid(proposal.Block)
             && !round.HasTwoThirdsPreVoteTypes)
         {
             round.HasTwoThirdsPreVoteTypes = true;
             if (Step == ConsensusStep.PreVote)
             {
-                _lockedBlock = p3.Block;
-                _lockedRound = roundIndex;
-                EnterPreCommitWait(round, p3.Block.BlockHash);
+                PreferredProposal = proposal;
+                EnterPreCommitWait(round, proposal.BlockHash);
 
-                _quorumReachedSubject.OnNext((p3.Block, VoteType.PreVote));
+                _quorumReachedSubject.OnNext((proposal.Block, VoteType.PreVote));
             }
 
-            _validBlock = p3.Block;
-            _validRound = Round.Index;
+            CandidatedProposal = proposal;
         }
 
-        if (Step == ConsensusStep.PreVote && round.PreVotes.TryGetDecidedBlockHash(out var blockHash4))
+        if (Step == ConsensusStep.PreVote && round.PreVotes.TryGetMajority23(out var blockHash4))
         {
             if (blockHash4 == default)
             {
                 EnterPreCommitWait(round, default);
             }
-            else if (Proposal is { } proposal && proposal.BlockHash != blockHash4)
+            else if (proposal is not null && proposal.BlockHash != blockHash4)
             {
                 Proposal = null;
                 _proposalRejectedSubject.OnNext((proposal, blockHash4));
@@ -634,7 +637,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         var roundIndex = round.Index;
         var preCommits = round.PreCommits;
         if (Proposal is { } proposal
-            && preCommits.TryGetDecidedBlockHash(out var blockHash)
+            && preCommits.TryGetMajority23(out var blockHash)
             && blockHash == proposal.BlockHash
             && IsValid(proposal.Block))
         {
@@ -694,6 +697,4 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
     private void Dispatcher_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         => _exceptionOccurredSubject.OnNext((Exception)e.ExceptionObject);
-
-    private (Block, int)? GetProposal() => Proposal is { } p ? (p.Block, p.ValidRound) : null;
 }

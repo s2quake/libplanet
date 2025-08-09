@@ -12,7 +12,7 @@ public sealed class VoteCollection : IEnumerable<Vote>
     private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Dictionary<Address, Vote> _voteByValidator = [];
     private readonly Dictionary<BlockHash, ImmutableArray<Vote>> _votesByBlockHash = [];
-    private BlockHash? _decidedBlockHash;
+    private BlockHash? _23Majority;
 
     public VoteCollection(int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
     {
@@ -41,9 +41,7 @@ public sealed class VoteCollection : IEnumerable<Vote>
 
     public BigInteger TotalVotingPower => _validators.GetValidatorsPower([.. _voteByValidator.Values.Select(vote => vote.Validator)]);
 
-    public bool HasTwoThirdsMajority => _decidedBlockHash is not null;
-
-    public bool IsDecided => _decidedBlockHash is not null;
+    public bool HasTwoThirdsMajority => _23Majority is not null;
 
     public bool HasOneThirdsAny => TotalVotingPower > _validators.GetOneThirdPower();
 
@@ -91,7 +89,7 @@ public sealed class VoteCollection : IEnumerable<Vote>
             {
                 throw new ArgumentException($"{nameof(Add)}() does not expect duplicate votes", nameof(vote));
             }
-            else if (_decidedBlockHash == vote.BlockHash)
+            else if (_23Majority == vote.BlockHash)
             {
                 _voteByValidator[validator] = vote;
             }
@@ -119,19 +117,19 @@ public sealed class VoteCollection : IEnumerable<Vote>
         var totalPower = BigIntegerUtility.Sum(votes.Select(v => v.ValidatorPower));
         var quorum = _validators.GetTwoThirdsPower() + 1;
 
-        if (quorum <= totalPower && _decidedBlockHash is null)
+        if (quorum <= totalPower && _23Majority is null)
         {
-            _decidedBlockHash = vote.BlockHash;
+            _23Majority = vote.BlockHash;
         }
     }
 
-    public BlockHash GetDecidedBlockHash()
-        => _decidedBlockHash ?? throw new InvalidOperationException(
-            "No consensus has been reached yet. Check IsDecided first.");
+    public BlockHash GetMajority23()
+        => _23Majority ?? throw new InvalidOperationException(
+            "No consensus has been reached yet. Check HasTwoThirdsMajority first.");
 
-    public bool TryGetDecidedBlockHash(out BlockHash blockHash)
+    public bool TryGetMajority23(out BlockHash blockHash)
     {
-        if (_decidedBlockHash is { } hash)
+        if (_23Majority is { } hash)
         {
             blockHash = hash;
             return true;
@@ -177,7 +175,7 @@ public sealed class VoteCollection : IEnumerable<Vote>
 
     public BlockCommit GetBlockCommit()
     {
-        if (_decidedBlockHash is not { } decidedBlockHash)
+        if (_23Majority is not { } decidedBlockHash)
         {
             throw new InvalidOperationException(
                 "Cannot create BlockCommit from VoteSet without a two-thirds majority.");
