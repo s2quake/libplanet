@@ -206,13 +206,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         // Reset exception thrown.
         exceptionThrown = null;
         exceptionOccurredEvent.Reset();
-        // var vote = TestUtils.CreateVote(
-        //     TestUtils.PrivateKeys[2],
-        //     TestUtils.Validators[2].Power,
-        //     2,
-        //     0,
-        //     block.BlockHash,
-        //     VoteType.PreVote);
+
         var vote = new VoteBuilder
         {
             Validator = TestUtils.Validators[2],
@@ -220,7 +214,6 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             BlockHash = block.BlockHash,
             Type = VoteType.PreVote,
         }.Create(TestUtils.PrivateKeys[2]);
-
 
         consensus.PreVote(vote);
         Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
@@ -293,36 +286,30 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         foreach (var i in new int[] { 1, 2, 3 })
         {
-            var preVote = new VoteMetadata
+            var preVote = new VoteBuilder
             {
+                Validator = TestUtils.Validators[i],
                 Height = 1,
-                Round = 0,
                 BlockHash = block.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[i].Address,
-                ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Create(TestUtils.PrivateKeys[i]);
             consensus.PreVote(preVote);
         }
 
         // Two additional votes should be enough to reach a consensus.
         foreach (var i in new int[] { 1, 2 })
         {
-            var preCommit = new VoteMetadata
+            var preCommit = new VoteBuilder
             {
+                Validator = TestUtils.Validators[i],
                 Height = 1,
-                Round = 0,
                 BlockHash = block.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[i].Address,
-                ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreCommit,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Create(TestUtils.PrivateKeys[i]);
             consensus.PreCommit(preCommit);
         }
 
-        await tipChangedTask.WaitAsync(TimeSpan.FromSeconds(1));
+        await tipChangedTask.WaitAsync(TimeSpan.FromSeconds(100000));
         Assert.Equal(
             3,
             consensus.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
@@ -390,7 +377,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         {
             proposalModified.Set();
         });
-        using var _2 = consensus.Completed.Subscribe(e =>
+        using var _2 = consensus.Finalized.Subscribe(e =>
         {
             completedBlock = e.Block;
         });

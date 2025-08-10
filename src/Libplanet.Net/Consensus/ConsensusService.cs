@@ -196,7 +196,7 @@ public sealed class ConsensusService : ServiceBase
             }));
         });
 
-        yield return consensus.Completed.Subscribe(e =>
+        yield return consensus.Finalized.Subscribe(e =>
         {
             var block = e.Block;
             var blockCommit = e.BlockCommit;

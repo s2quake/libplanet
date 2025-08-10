@@ -13,8 +13,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     private readonly Subject<(Round, ConsensusStep, BlockHash BlockHash)> _stepChangedSubject = new();
     private readonly Subject<Proposal> _proposedSubject = new();
     private readonly Subject<(Proposal, BlockHash)> _proposalRejectedSubject = new();
-    private readonly Subject<(Block, VoteType)> _quorumReachedSubject = new();
-    private readonly Subject<(Block, BlockCommit)> _completedSubject = new();
+    private readonly Subject<(Block, VoteType)> _majority23ObservedSubject = new();
+    private readonly Subject<(Block, BlockCommit)> _finalizedSubject = new();
     private readonly Subject<Vote> _preVotedSubject = new();
     private readonly Subject<Vote> _preCommittedSubject = new();
 
@@ -22,7 +22,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     private readonly RoundCollection _rounds = new(height, validators);
 
     private Dispatcher? _dispatcher;
-    private Block? _decidedBlock;
+    private Proposal? _preVoteProposal;
+    private Proposal? _decidedProposal;
     private Round? _round;
 
     public IObservable<Round> RoundChanged => _roundChangedSubject;
@@ -37,13 +38,13 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
     public IObservable<(Proposal Proposal, BlockHash BlockHash)> ProposalRejected => _proposalRejectedSubject;
 
-    public IObservable<(Block Block, VoteType VoteType)> QuorumReached => _quorumReachedSubject;
+    public IObservable<(Block Block, VoteType VoteType)> Majority23Observed => _majority23ObservedSubject;
 
     public IObservable<Vote> PreVoted => _preVotedSubject;
 
     public IObservable<Vote> PreCommitted => _preCommittedSubject;
 
-    public IObservable<(Block Block, BlockCommit BlockCommit)> Completed => _completedSubject;
+    public IObservable<(Block Block, BlockCommit BlockCommit)> Finalized => _finalizedSubject;
 
     public int Height { get; } = ValidateHeight(height);
 
@@ -64,9 +65,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
     public Proposal? Proposal { get; private set; }
 
-    public Proposal? CandidatedProposal { get; private set; }
-
-    public Proposal? PreferredProposal { get; private set; }
+    public Proposal? ValidProposal { get; private set; }
 
     public ImmutableSortedSet<Validator> Validators => validators;
 
@@ -198,17 +197,17 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         if (vote.Height != Height)
         {
             throw new ArgumentException(
-                $"Vote height {vote.Height} does not match expected height {Height}.", nameof(vote));
+                $"Height of vote {vote.Height} does not match expected height {Height}.", nameof(vote));
         }
 
         if (vote.Type is not VoteType.PreVote)
         {
-            throw new ArgumentException("Vote type must be PreVote.", nameof(vote));
+            throw new ArgumentException("Type of vote must be PreVote.", nameof(vote));
         }
 
         if (vote.Round < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(vote), "Round must be non-negative.");
+            throw new ArgumentOutOfRangeException(nameof(vote), "Round of vote must be non-negative.");
         }
 
         _dispatcher.Post(() =>
@@ -288,9 +287,9 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }
 
         Proposal = null;
-        PreferredProposal = null;
-        CandidatedProposal = null;
-        _decidedBlock = null;
+        ValidProposal = null;
+        _preVoteProposal = null;
+        _decidedProposal = null;
         _round = null;
         Step = ConsensusStep.Default;
         _stepChangedSubject.OnNext((Round, Step, default));
@@ -308,7 +307,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         _exceptionOccurredSubject.Dispose();
         _stepChangedSubject.Dispose();
         _proposedSubject.Dispose();
-        _completedSubject.Dispose();
+        _finalizedSubject.Dispose();
         _preVotedSubject.Dispose();
         await base.DisposeAsyncCore();
     }
@@ -552,8 +551,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             && proposal is not null
             && proposal.ValidRound == -1)
         {
-            var lockedRound = PreferredProposal?.ValidRound ?? -1;
-            var lockedBlock = PreferredProposal?.Block;
+            var lockedRound = _preVoteProposal?.ValidRound ?? -1;
+            var lockedBlock = _preVoteProposal?.Block;
             if (IsValid(proposal.Block) && (lockedRound == -1 || lockedBlock == proposal.Block))
             {
                 EnterPreVoteStep(Round, proposal.BlockHash);
@@ -571,8 +570,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             && _rounds[proposal.ValidRound].PreVotes.TryGetMajority23(out var blockHash2)
             && blockHash2 == proposal.BlockHash)
         {
-            var lockedRound = PreferredProposal?.ValidRound ?? -1;
-            var lockedBlock = PreferredProposal?.Block;
+            var lockedRound = _preVoteProposal?.ValidRound ?? -1;
+            var lockedBlock = _preVoteProposal?.Block;
             if (IsValid(proposal.Block) && (lockedRound <= proposal.ValidRound || lockedBlock == proposal.Block))
             {
                 EnterPreVoteStep(Round, proposal.BlockHash);
@@ -598,13 +597,13 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             round.HasTwoThirdsPreVoteTypes = true;
             if (Step == ConsensusStep.PreVote)
             {
-                PreferredProposal = proposal;
+                _preVoteProposal = proposal;
                 EnterPreCommitWait(round, proposal.BlockHash);
 
-                _quorumReachedSubject.OnNext((proposal.Block, VoteType.PreVote));
+                _majority23ObservedSubject.OnNext((proposal.Block, VoteType.PreVote));
             }
 
-            CandidatedProposal = proposal;
+            ValidProposal = proposal;
         }
 
         if (Step == ConsensusStep.PreVote && round.PreVotes.TryGetMajority23(out var blockHash4))
@@ -641,8 +640,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             && blockHash == proposal.BlockHash
             && IsValid(proposal.Block))
         {
-            _decidedBlock = proposal.Block;
-            _quorumReachedSubject.OnNext((_decidedBlock, VoteType.PreCommit));
+            _decidedProposal = proposal;
+            _majority23ObservedSubject.OnNext((_decidedProposal.Block, VoteType.PreCommit));
             EnterEndCommitWait(Round);
             return;
         }
@@ -683,15 +682,15 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             return;
         }
 
-        if (_decidedBlock is not { } decidedBlock)
+        if (_decidedProposal is not { } decidedProposal)
         {
             StartRound(round.Index + 1);
         }
         else
         {
             Step = ConsensusStep.EndCommit;
-            _stepChangedSubject.OnNext((round, Step, decidedBlock.BlockHash));
-            _completedSubject.OnNext((decidedBlock, GetBlockCommit()));
+            _stepChangedSubject.OnNext((round, Step, decidedProposal.BlockHash));
+            _finalizedSubject.OnNext((decidedProposal.Block, GetBlockCommit()));
         }
     }
 

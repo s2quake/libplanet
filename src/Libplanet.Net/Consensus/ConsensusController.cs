@@ -28,11 +28,16 @@ public sealed class ConsensusController
         _blockchain = blockchain;
         _consensus.StepChanged.Subscribe(Consensus_StepChanged);
         _consensus.PreVoted.Subscribe(Consensus_PreVoted);
+        _consensus.PreCommitted.Subscribe(Consensus_PreCommitted);
         _consensus.ProposalRejected.Subscribe(Consensus_ProposalRejected);
-        _consensus.QuorumReached.Subscribe(Consensus_BlockDecided);
+        _consensus.Majority23Observed.Subscribe(Consensus_Majority23Observed);
+        _consensus.Finalized.Subscribe(Consensus_Finalized);
     }
 
-    private void Consensus_BlockDecided((Block Block, VoteType VoteType) e)
+    private void Consensus_Finalized((Block Block, BlockCommit BlockCommit) e)
+        => _ = Task.Run(() => _blockchain.Append(e.Block, e.BlockCommit));
+
+    private void Consensus_Majority23Observed((Block Block, VoteType VoteType) e)
     {
         // throw new NotImplementedException();
         var round = _consensus.Round;
@@ -85,6 +90,11 @@ public sealed class ConsensusController
         //         }
     }
 
+    private void Consensus_PreCommitted(Vote vote)
+    {
+        // throw new NotImplementedException();
+    }
+
     public IObservable<Vote> PreVoted => _preVotedSubject;
 
     public IObservable<Vote> PreCommitted => _preCommittedSubject;
@@ -103,7 +113,7 @@ public sealed class ConsensusController
                 {
                     if (_consensus.IsProposer(_signer.Address))
                     {
-                        var candidateProposal = _consensus.CandidatedProposal;
+                        var candidateProposal = _consensus.ValidProposal;
                         var proposal = new ProposalBuilder
                         {
                             Block = candidateProposal?.Block ?? _blockchain.ProposeBlock(_signer),
@@ -146,6 +156,11 @@ public sealed class ConsensusController
                     }.Sign(_signer);
                     _consensus.PreCommit(vote);
                     _preCommittedSubject.OnNext(vote);
+                }
+                break;
+            case ConsensusStep.EndCommit:
+                {
+                    int qwer = 0;
                 }
                 break;
             default:
