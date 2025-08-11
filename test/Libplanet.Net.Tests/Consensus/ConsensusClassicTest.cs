@@ -171,20 +171,12 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task ThrowOnDifferentHeightMessage()
     {
-        Exception? exceptionThrown = null;
-        using var exceptionOccurredEvent = new ManualResetEvent(false);
-
         var blockchain = TestUtils.MakeBlockchain();
         await using var consensus = TestUtils.CreateConsensus();
-        var controller = TestUtils.CreateConsensusController(
+        using var controller = TestUtils.CreateConsensusController(
             consensus,
             TestUtils.PrivateKeys[1],
             blockchain);
-        using var _ = consensus.ExceptionOccurred.Subscribe(e =>
-        {
-            exceptionThrown = e;
-            exceptionOccurredEvent.Set();
-        });
         var signer = TestUtils.PrivateKeys[2].AsSigner();
         var block = new BlockBuilder
         {
@@ -199,13 +191,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         }.Create(signer);
 
         await consensus.StartAsync(default);
-        consensus.Propose(proposal);
-        Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
-        Assert.IsType<InvalidOperationException>(exceptionThrown);
-
-        // Reset exception thrown.
-        exceptionThrown = null;
-        exceptionOccurredEvent.Reset();
+        Assert.Throws<ArgumentException>(() => consensus.Propose(proposal));
 
         var vote = new VoteBuilder
         {
@@ -215,9 +201,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             Type = VoteType.PreVote,
         }.Create(TestUtils.PrivateKeys[2]);
 
-        consensus.PreVote(vote);
-        Assert.True(exceptionOccurredEvent.WaitOne(1000), "Exception did not occur in time.");
-        Assert.IsType<ArgumentException>(exceptionThrown);
+        Assert.Throws<ArgumentException>(() => consensus.PreVote(vote));
     }
 
     [Fact(Timeout = Timeout)]
@@ -241,7 +225,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         };
         var blockchain = TestUtils.MakeBlockchain(blockchainOptions);
         await using var consensus = TestUtils.CreateConsensus();
-        var controller = TestUtils.CreateConsensusController(consensus, TestUtils.PrivateKeys[0], blockchain);
+        using var controller = TestUtils.CreateConsensusController(consensus, TestUtils.PrivateKeys[0], blockchain);
 
         // using var _1 = consensus.StepChanged.Subscribe(step =>
         // {
@@ -267,13 +251,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         var tipChangedTask = blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 1);
 
         var action = new DelayAction(100);
-        var tx = new TransactionMetadata
+        var tx = blockchain.StagedTransactions.Add(TestUtils.PrivateKeys[1], new()
         {
-            Signer = TestUtils.PrivateKeys[1].Address,
-            GenesisHash = blockchain.Genesis.BlockHash,
-            Actions = new[] { action }.ToBytecodes(),
-        }.Sign(TestUtils.PrivateKeys[1]);
-        blockchain.StagedTransactions.Add(tx);
+            Actions = [action],
+        });
         var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
         var proposal = new ProposalBuilder
         {
@@ -322,16 +303,14 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         await endCommitStepTask.WaitAsync(TimeSpan.FromSeconds(1));
 
         // Add the last vote and wait for it to be consumed.
-        var vote = new VoteMetadata
+        var vote = new VoteBuilder
         {
+            Validator = TestUtils.Validators[3],
             Height = 1,
-            Round = 0,
             BlockHash = block.BlockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = TestUtils.PrivateKeys[3].Address,
-            ValidatorPower = BigInteger.One,
             Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[3]);
+        }.Create(TestUtils.PrivateKeys[3]);
         consensus.PreCommit(vote);
         await Task.Delay(10);
         Assert.Equal(4, consensus.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));

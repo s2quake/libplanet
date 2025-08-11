@@ -11,10 +11,11 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
     private readonly Subject<(Round, ConsensusStep)> _timeoutOccurredSubject = new();
     private readonly Subject<(Round, ConsensusStep, BlockHash BlockHash)> _stepChangedSubject = new();
-    private readonly Subject<Proposal> _proposedSubject = new();
     private readonly Subject<(Proposal, BlockHash)> _proposalRejectedSubject = new();
     private readonly Subject<(Block, VoteType)> _majority23ObservedSubject = new();
     private readonly Subject<(Block, BlockCommit)> _finalizedSubject = new();
+
+    private readonly Subject<Proposal> _proposedSubject = new();
     private readonly Subject<Vote> _preVotedSubject = new();
     private readonly Subject<Vote> _preCommittedSubject = new();
 
@@ -34,17 +35,17 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
     public IObservable<(Round Round, ConsensusStep Step, BlockHash BlockHash)> StepChanged => _stepChangedSubject;
 
-    public IObservable<Proposal> Proposed => _proposedSubject;
-
     public IObservable<(Proposal Proposal, BlockHash BlockHash)> ProposalRejected => _proposalRejectedSubject;
 
     public IObservable<(Block Block, VoteType VoteType)> Majority23Observed => _majority23ObservedSubject;
 
+    public IObservable<(Block Block, BlockCommit BlockCommit)> Finalized => _finalizedSubject;
+
+    public IObservable<Proposal> Proposed => _proposedSubject;
+
     public IObservable<Vote> PreVoted => _preVotedSubject;
 
     public IObservable<Vote> PreCommitted => _preCommittedSubject;
-
-    public IObservable<(Block Block, BlockCommit BlockCommit)> Finalized => _finalizedSubject;
 
     public int Height { get; } = ValidateHeight(height);
 
@@ -179,6 +180,12 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             throw new InvalidOperationException("Consensus is not running.");
         }
 
+        if (proposal.Height != Height)
+        {
+            throw new ArgumentException(
+                $"Proposal height {proposal.Height} does not match expected height {Height}.", nameof(proposal));
+        }
+
         _dispatcher.Post(() =>
         {
             SetProposal(proposal);
@@ -305,10 +312,16 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
         _roundChangedSubject.Dispose();
         _exceptionOccurredSubject.Dispose();
+        _timeoutOccurredSubject.Dispose();
         _stepChangedSubject.Dispose();
-        _proposedSubject.Dispose();
+        _proposalRejectedSubject.Dispose();
+        _majority23ObservedSubject.Dispose();
         _finalizedSubject.Dispose();
+
+        _proposedSubject.Dispose();
         _preVotedSubject.Dispose();
+        _preCommittedSubject.Dispose();
+
         await base.DisposeAsyncCore();
     }
 
