@@ -24,7 +24,7 @@ public sealed class ConsensusController : IDisposable
         _blockchain = blockchain;
         _validator = consensus.Validators.GetValidator(signer.Address);
         _consensus.StepChanged.Subscribe(Consensus_StepChanged);
-        _consensus.ProposalRejected.Subscribe(Consensus_ProposalRejected);
+        _consensus.ProposalClaimed.Subscribe(Consensus_ProposalClaimed);
         _consensus.Majority23Observed.Subscribe(Consensus_Majority23Observed);
     }
 
@@ -115,11 +115,11 @@ public sealed class ConsensusController : IDisposable
             Validator = _signer.Address,
             VoteType = e.VoteType,
         }.Sign(_signer);
-        _consensus.AddMaj23(maj23);
+        _consensus.AddPreVoteMaj23(maj23);
         _majority23ObservedSubject.OnNext(maj23);
     }
 
-    private void Consensus_ProposalRejected((Proposal Proposal, BlockHash BlockHash) e)
+    private void Consensus_ProposalClaimed((Proposal Proposal, BlockHash BlockHash) e)
     {
         var round = _consensus.Round;
         var proposalClaim = new ProposalClaimMetadata

@@ -12,6 +12,7 @@ public sealed class VoteCollection : IEnumerable<Vote>
     private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Dictionary<Address, Vote> _voteByValidator = [];
     private readonly Dictionary<BlockHash, ImmutableArray<Vote>> _votesByBlockHash = [];
+    private readonly Dictionary<BlockHash, Maj23> _maj23ByBlockHash = [];
     private BlockHash? _23Majority;
 
     public VoteCollection(int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
@@ -123,6 +124,11 @@ public sealed class VoteCollection : IEnumerable<Vote>
         }
     }
 
+    public void Update(Vote vote)
+    {
+
+    }
+
     public BlockHash GetMajority23()
         => _23Majority ?? throw new InvalidOperationException(
             "No consensus has been reached yet. Check HasTwoThirdsMajority first.");
@@ -203,6 +209,36 @@ public sealed class VoteCollection : IEnumerable<Vote>
             BlockHash = decidedBlockHash,
             Votes = [.. query],
         };
+    }
+
+    public void SetMaj23(Maj23 maj23)
+    {
+        if (maj23.Height != _height)
+        {
+            throw new ArgumentException(
+                $"Maj23 height {maj23.Height} does not match expected height {_height}", nameof(maj23));
+        }
+
+        if (maj23.Round != _round)
+        {
+            throw new ArgumentException(
+                $"Maj23 round {maj23.Round} does not match expected round {_round}", nameof(maj23));
+        }
+
+        if (maj23.VoteType != _voteType)
+        {
+            throw new ArgumentException(
+                $"Maj23 vote type {maj23.VoteType} does not match expected type {_voteType}", nameof(maj23));
+        }
+
+        if (!_validators.Contains(maj23.Validator))
+        {
+            throw new ArgumentException(
+                $"Validator {maj23.Validator} is not in the validators for height {_height}", nameof(maj23));
+        }
+
+
+        _maj23ByBlockHash[maj23.BlockHash] = maj23;
     }
 
     public IEnumerator<Vote> GetEnumerator()

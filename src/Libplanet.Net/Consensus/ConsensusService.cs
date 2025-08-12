@@ -365,7 +365,7 @@ public sealed class ConsensusService : ServiceBase
         }
         else
         {
-            if (_consensus.Height == height && _consensus.AddMaj23(maj23))
+            if (_consensus.Height == height && _consensus.AddPreVoteMaj23(maj23))
             {
                 return _consensus.GetVoteSetBits(_signer, maj23);
             }

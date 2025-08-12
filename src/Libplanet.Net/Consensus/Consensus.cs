@@ -1,4 +1,5 @@
 using System.Reactive.Subjects;
+using System.Runtime.InteropServices;
 using Libplanet.Net.Threading;
 using Libplanet.Types;
 
@@ -11,7 +12,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
     private readonly Subject<(Round, ConsensusStep)> _timeoutOccurredSubject = new();
     private readonly Subject<(Round, ConsensusStep, BlockHash BlockHash)> _stepChangedSubject = new();
-    private readonly Subject<(Proposal, BlockHash)> _proposalRejectedSubject = new();
+    private readonly Subject<(Proposal, BlockHash)> _proposalClaimedSubject = new();
     private readonly Subject<(Block, VoteType)> _majority23ObservedSubject = new();
     private readonly Subject<(Block, BlockCommit)> _finalizedSubject = new();
 
@@ -35,7 +36,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
     public IObservable<(Round Round, ConsensusStep Step, BlockHash BlockHash)> StepChanged => _stepChangedSubject;
 
-    public IObservable<(Proposal Proposal, BlockHash BlockHash)> ProposalRejected => _proposalRejectedSubject;
+    public IObservable<(Proposal Proposal, BlockHash BlockHash)> ProposalClaimed => _proposalClaimedSubject;
 
     public IObservable<(Block Block, VoteType VoteType)> Majority23Observed => _majority23ObservedSubject;
 
@@ -72,15 +73,23 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
     public BlockCommit GetBlockCommit() => Round.PreCommits.GetBlockCommit();
 
-    public bool AddMaj23(Maj23 maj23)
+    public bool AddPreVoteMaj23(Maj23 maj23)
     {
-        if (maj23.VoteType is not VoteType.PreVote and not VoteType.PreCommit)
+        var round = _rounds[maj23.Round];
+        var majorities = round.PreVoteMaj23s;
+        if (!majorities.ContainsKey(maj23.Validator))
         {
-            throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(maj23));
+            majorities.Add(maj23);
+            return true;
         }
 
+        return false;
+    }
+
+    public bool AddPreCommitMaj23(Maj23 maj23)
+    {
         var round = _rounds[maj23.Round];
-        var majorities = maj23.VoteType == VoteType.PreVote ? round.PreVoteMaj23s : round.PreCommitMaj23s;
+        var majorities = round.PreCommitMaj23s;
         if (!majorities.ContainsKey(maj23.Validator))
         {
             majorities.Add(maj23);
@@ -222,6 +231,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             var round = _rounds[vote.Round];
             var votes = round.PreVotes;
             votes.Add(vote);
+            round.PreVoteMaj23s.con
+            round.PreVoteMaj23s;
             _preVotedSubject.OnNext(vote);
             ProcessHeightOrRoundUponRules(vote);
             ProcessGenericUponRules();
@@ -314,7 +325,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         _exceptionOccurredSubject.Dispose();
         _timeoutOccurredSubject.Dispose();
         _stepChangedSubject.Dispose();
-        _proposalRejectedSubject.Dispose();
+        _proposalClaimedSubject.Dispose();
         _majority23ObservedSubject.Dispose();
         _finalizedSubject.Dispose();
 
@@ -628,7 +639,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             else if (proposal is not null && proposal.BlockHash != blockHash4)
             {
                 Proposal = null;
-                _proposalRejectedSubject.OnNext((proposal, blockHash4));
+                _proposalClaimedSubject.OnNext((proposal, blockHash4));
             }
         }
 
