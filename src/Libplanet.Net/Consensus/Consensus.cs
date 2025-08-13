@@ -1,5 +1,4 @@
 using System.Reactive.Subjects;
-using System.Runtime.InteropServices;
 using Libplanet.Net.Threading;
 using Libplanet.Types;
 
@@ -73,8 +72,6 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
     public ImmutableSortedSet<Validator> Validators => validators;
 
-    public BlockCommit GetBlockCommit() => Round.PreCommits.GetBlockCommit();
-
     public bool AddPreVoteMaj23(Maj23 maj23)
     {
         var round = _rounds[maj23.Round];
@@ -101,87 +98,42 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         return false;
     }
 
-    public VoteSetBits GetVoteSetBits(ISigner signer, int round, BlockHash blockHash, VoteType voteType)
-    {
-        var votes = voteType == VoteType.PreVote ? _rounds[round].PreVotes : _rounds[round].PreCommits;
-        var voteBits = votes.GetVoteBits(blockHash);
-        return new VoteSetBitsMetadata
-        {
-            Height = Height,
-            Round = round,
-            BlockHash = blockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = signer.Address,
-            VoteType = voteType,
-            VoteBits = voteBits,
-        }.Sign(signer);
-    }
-
-    // public VoteSetBits GetVoteSetBits(ISigner signer, Maj23 maj23)
+    // public ImmutableArray<Vote> GetVotes(VoteBits voteBits)
     // {
-    //     if (maj23.Height != Height)
+    //     if (voteBits.Height != Height)
     //     {
     //         throw new ArgumentException(
-    //             $"Maj23 height {maj23.Height} does not match expected height {Height}.", nameof(maj23));
+    //             $"VoteSetBits height {voteBits.Height} does not match expected height {Height}.",
+    //             nameof(voteBits));
     //     }
 
-    //     if (maj23.Round < 0 || maj23.Round >= _rounds.Count)
+    //     if (voteBits.VoteType is not VoteType.PreVote and not VoteType.PreCommit)
     //     {
-    //         throw new ArgumentOutOfRangeException(nameof(maj23), "Round is out of range.");
+    //         throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(voteBits));
     //     }
 
-    //     var round = _rounds[maj23.Round];
-    //     var votes = maj23.VoteType == VoteType.PreVote ? round.PreVotes : round.PreCommits;
-
-    //     var voteBits = votes.GetVoteBits(maj23.BlockHash);
-    //     return new VoteSetBitsMetadata
+    //     if (voteBits.Bits.Length != validators.Count)
     //     {
-    //         Height = Height,
-    //         Round = maj23.Round,
-    //         BlockHash = maj23.BlockHash,
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Validator = maj23.Validator,
-    //         VoteType = maj23.VoteType,
-    //         VoteBits = [.. voteBits],
-    //     }.Sign(signer);
+    //         throw new ArgumentException(
+    //             $"VoteBits length {voteBits.Bits.Length} does not match validators count {validators.Count}.",
+    //             nameof(voteBits));
+    //     }
+
+    //     var round = _rounds[voteBits.Round];
+    //     var bits = voteBits.Bits;
+    //     var votes = voteBits.VoteType is VoteType.PreVote ? round.PreVotes : round.PreCommits;
+
+    //     var voteList = new List<Vote>(Validators.Count);
+    //     for (var i = 0; i < bits.Length; i++)
+    //     {
+    //         if (!bits[i] && votes.TryGetValue(Validators[i].Address, out var vote))
+    //         {
+    //             voteList.Add(vote);
+    //         }
+    //     }
+
+    //     return [.. voteList];
     // }
-
-    public ImmutableArray<Vote> GetVotes(VoteSetBits voteSetBits)
-    {
-        if (voteSetBits.Height != Height)
-        {
-            throw new ArgumentException(
-                $"VoteSetBits height {voteSetBits.Height} does not match expected height {Height}.",
-                nameof(voteSetBits));
-        }
-
-        if (voteSetBits.VoteType is not VoteType.PreVote and not VoteType.PreCommit)
-        {
-            throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(voteSetBits));
-        }
-
-        if (voteSetBits.VoteBits.Length != validators.Count)
-        {
-            throw new ArgumentException(
-                $"VoteBits length {voteSetBits.VoteBits.Length} does not match validators count {validators.Count}.",
-                nameof(voteSetBits));
-        }
-
-        var round = _rounds[voteSetBits.Round];
-        var voteBits = voteSetBits.VoteBits;
-        var votes = voteSetBits.VoteType is VoteType.PreVote ? round.PreVotes : round.PreCommits;
-
-        var voteList = new List<Vote>(Validators.Count);
-        for (var i = 0; i < voteBits.Length; i++)
-        {
-            if (!voteBits[i] && votes.TryGetValue(Validators[i].Address, out var vote))
-            {
-                voteList.Add(vote);
-            }
-        }
-
-        return [.. voteList];
-    }
 
     public void Propose(Proposal proposal)
     {
@@ -712,7 +664,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         {
             Step = ConsensusStep.EndCommit;
             _stepChangedSubject.OnNext((Step, decidedProposal.BlockHash));
-            _finalizedSubject.OnNext((decidedProposal.Block, GetBlockCommit()));
+            _finalizedSubject.OnNext((decidedProposal.Block, round.PreCommits.GetBlockCommit()));
         }
     }
 

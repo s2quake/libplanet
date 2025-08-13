@@ -18,7 +18,7 @@ public static class SignExtensions
     public static Proposal Sign(this ProposalMetadata @this, PrivateKey privateKey, Block block)
         => @this.Sign(privateKey.AsSigner(), block);
 
-    public static VoteSetBits Sign(this VoteSetBitsMetadata @this, PrivateKey privateKey)
+    public static VoteBits Sign(this VoteBitsMetadata @this, PrivateKey privateKey)
         => @this.Sign(privateKey.AsSigner());
 
     public static ProposalClaim Sign(this ProposalClaimMetadata @this, PrivateKey privateKey)

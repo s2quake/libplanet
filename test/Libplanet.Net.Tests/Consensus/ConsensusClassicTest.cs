@@ -124,7 +124,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         await endCommitStepTask.WaitAsync(TimeSpan.FromSeconds(100));
 
         // Check consensus has only three votes.
-        var blockCommit = consensus.GetBlockCommit();
+        var blockCommit = consensus.Round.PreCommits.GetBlockCommit();
         Assert.Equal(3, blockCommit.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
 
         // Context should still accept new votes.
@@ -141,7 +141,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         consensus.PreCommit(vote2);
 
         await Task.Delay(100);  // Wait for the new message to be added to the message log.
-        blockCommit = consensus.GetBlockCommit();
+        blockCommit = consensus.Round.PreCommits.GetBlockCommit();
         Assert.Equal(4, blockCommit.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
     }
 
@@ -272,7 +272,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         await tipChangedTask.WaitAsync(TimeSpan.FromSeconds(100000));
         Assert.Equal(
             3,
-            consensus.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
+            consensus.Round.PreCommits.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
 
         await preVoteStepTask.WaitAsync(TimeSpan.FromSeconds(1));
         await preCommitStepTask.WaitAsync(TimeSpan.FromSeconds(1));
@@ -289,7 +289,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         }.Create(TestUtils.PrivateKeys[3]);
         consensus.PreCommit(vote);
         await consensus.PreCommitted.WaitAsync();
-        Assert.Equal(4, consensus.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));
+        Assert.Equal(4, consensus.Round.PreCommits.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));
     }
 
     [Fact(Timeout = Timeout)]

@@ -5,8 +5,8 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-[Model(Version = 1, TypeName = "VoteSetBitsMetadata")]
-public sealed partial record class VoteSetBitsMetadata
+[Model(Version = 1, TypeName = "VoteBitsMetadata")]
+public sealed partial record class VoteBitsMetadata
 {
     [Property(0)]
     [NonNegative]
@@ -31,9 +31,9 @@ public sealed partial record class VoteSetBitsMetadata
     [AllowedValues(VoteType.PreVote, VoteType.PreCommit)]
     public VoteType VoteType { get; init; }
 
-    public ImmutableArray<bool> VoteBits { get; init; }
+    public ImmutableArray<bool> Bits { get; init; }
 
-    public VoteSetBits Sign(ISigner signer)
+    public VoteBits Sign(ISigner signer)
     {
         var options = new ModelOptions
         {
@@ -41,6 +41,6 @@ public sealed partial record class VoteSetBitsMetadata
         };
         var bytes = ModelSerializer.SerializeToBytes(this, options);
         var signature = signer.Sign(bytes).ToImmutableArray();
-        return new VoteSetBits { Metadata = this, Signature = signature };
+        return new VoteBits { Metadata = this, Signature = signature };
     }
 }

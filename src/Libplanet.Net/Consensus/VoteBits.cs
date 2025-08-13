@@ -4,11 +4,11 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-[Model(Version = 1, TypeName = "VoteSetBits")]
-public sealed partial record class VoteSetBits : IEquatable<VoteSetBits>
+[Model(Version = 1, TypeName = "VoteBits")]
+public sealed partial record class VoteBits : IEquatable<VoteBits>
 {
     [Property(0)]
-    public required VoteSetBitsMetadata Metadata { get; init; }
+    public required VoteBitsMetadata Metadata { get; init; }
 
     [Property(1)]
     [NotDefault]
@@ -26,7 +26,7 @@ public sealed partial record class VoteSetBits : IEquatable<VoteSetBits>
 
     public VoteType VoteType => Metadata.VoteType;
 
-    public ImmutableArray<bool> VoteBits => Metadata.VoteBits;
+    public ImmutableArray<bool> Bits => Metadata.Bits;
 
     public bool Verify()
     {

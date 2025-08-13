@@ -72,7 +72,7 @@ public sealed class ConsensusService : ServiceBase
         ];
         _handlerRegistration = _transport.MessageRouter.RegisterMany(
         [
-            new ConsensusVoteSetBitsMessageHandler(this, _gossip),
+            new ConsensusVoteBitsMessageHandler(this, _gossip),
             new ConsensusMaj23MessageHandler(signer, this, _gossip),
             new ConsensusProposalClaimMessageHandler(this, _gossip),
             new ConsensusMessageHandler(this),
@@ -370,32 +370,32 @@ public sealed class ConsensusService : ServiceBase
     //     return null;
     // }
 
-    public IEnumerable<ConsensusMessage> HandleVoteSetBits(VoteSetBits voteSetBits)
-    {
-        int height = voteSetBits.Height;
-        if (height < Height)
-        {
-            // logging
-        }
-        else
-        {
-            if (_consensus.Height == height)
-            {
-                // NOTE: Should check if collected messages have same BlockHash with
-                // VoteSetBit's BlockHash?
-                var votes = _consensus.GetVotes(voteSetBits);
-                foreach (var vote in votes)
-                {
-                    yield return vote.Type switch
-                    {
-                        VoteType.PreVote => new ConsensusPreVoteMessage { PreVote = vote },
-                        VoteType.PreCommit => new ConsensusPreCommitMessage { PreCommit = vote },
-                        _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(vote)),
-                    };
-                }
-            }
-        }
-    }
+    // public IEnumerable<ConsensusMessage> HandleVoteSetBits(VoteBits voteSetBits)
+    // {
+    //     int height = voteSetBits.Height;
+    //     if (height < Height)
+    //     {
+    //         // logging
+    //     }
+    //     else
+    //     {
+    //         if (_consensus.Height == height)
+    //         {
+    //             // NOTE: Should check if collected messages have same BlockHash with
+    //             // VoteSetBit's BlockHash?
+    //             var votes = _consensus.GetVotes(voteSetBits);
+    //             foreach (var vote in votes)
+    //             {
+    //                 yield return vote.Type switch
+    //                 {
+    //                     VoteType.PreVote => new ConsensusPreVoteMessage { PreVote = vote },
+    //                     VoteType.PreCommit => new ConsensusPreCommitMessage { PreCommit = vote },
+    //                     _ => throw new ArgumentException("VoteType should be PreVote or PreCommit.", nameof(vote)),
+    //                 };
+    //             }
+    //         }
+    //     }
+    // }
 
     public Proposal? HandleProposalClaim(ProposalClaim proposalClaim)
     {
