@@ -10,8 +10,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 {
     private readonly Subject<Round> _roundChangedSubject = new();
     private readonly Subject<Exception> _exceptionOccurredSubject = new();
-    private readonly Subject<(Round, ConsensusStep)> _timeoutOccurredSubject = new();
-    private readonly Subject<(Round, ConsensusStep, BlockHash BlockHash)> _stepChangedSubject = new();
+    private readonly Subject<ConsensusStep> _timeoutOccurredSubject = new();
+    private readonly Subject<(ConsensusStep, BlockHash BlockHash)> _stepChangedSubject = new();
     private readonly Subject<(Proposal, BlockHash)> _proposalClaimedSubject = new();
     private readonly Subject<(Block, VoteType)> _majority23ObservedSubject = new();
     private readonly Subject<(Block, BlockCommit)> _finalizedSubject = new();
@@ -32,9 +32,9 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
     public IObservable<Exception> ExceptionOccurred => _exceptionOccurredSubject;
 
-    public IObservable<(Round Round, ConsensusStep Step)> TimeoutOccurred => _timeoutOccurredSubject;
+    public IObservable<ConsensusStep> TimeoutOccurred => _timeoutOccurredSubject;
 
-    public IObservable<(Round Round, ConsensusStep Step, BlockHash BlockHash)> StepChanged => _stepChangedSubject;
+    public IObservable<(ConsensusStep Step, BlockHash BlockHash)> StepChanged => _stepChangedSubject;
 
     public IObservable<(Proposal Proposal, BlockHash BlockHash)> ProposalClaimed => _proposalClaimedSubject;
 
@@ -76,10 +76,10 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     public bool AddPreVoteMaj23(Maj23 maj23)
     {
         var round = _rounds[maj23.Round];
-        var majorities = round.PreVoteMaj23s;
-        if (!majorities.ContainsKey(maj23.Validator))
+        var maj23s = round.PreVoteMaj23s;
+        if (!maj23s.Contains(maj23.Validator))
         {
-            majorities.Add(maj23);
+            maj23s.Add(maj23);
             return true;
         }
 
@@ -89,10 +89,10 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     public bool AddPreCommitMaj23(Maj23 maj23)
     {
         var round = _rounds[maj23.Round];
-        var majorities = round.PreCommitMaj23s;
-        if (!majorities.ContainsKey(maj23.Validator))
+        var maj23s = round.PreCommitMaj23s;
+        if (!maj23s.Contains(maj23.Validator))
         {
-            majorities.Add(maj23);
+            maj23s.Add(maj23);
             return true;
         }
 
@@ -229,10 +229,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         _dispatcher.Post(() =>
         {
             var round = _rounds[vote.Round];
-            var votes = round.PreVotes;
-            votes.Add(vote);
-            round.PreVoteMaj23s.con
-            round.PreVoteMaj23s;
+            round.PreVote(vote);
             _preVotedSubject.OnNext(vote);
             ProcessHeightOrRoundUponRules(vote);
             ProcessGenericUponRules();
@@ -265,8 +262,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
         _dispatcher.Post(() =>
         {
-            var votes = Round.PreCommits;
-            votes.Add(vote);
+            var round = _rounds[vote.Round];
+            round.PreCommit(vote);
             _preCommittedSubject.OnNext(vote);
             ProcessHeightOrRoundUponRules(vote);
             ProcessGenericUponRules();
@@ -310,7 +307,6 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         _decidedProposal = null;
         _round = null;
         Step = ConsensusStep.Default;
-        _stepChangedSubject.OnNext((Round, Step, default));
     }
 
     protected override async ValueTask DisposeAsyncCore()
@@ -434,7 +430,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         {
             if (round == _round && Step == ConsensusStep.Propose)
             {
-                _timeoutOccurredSubject.OnNext((round, ConsensusStep.Propose));
+                _timeoutOccurredSubject.OnNext(ConsensusStep.Propose);
                 if (Proposal is null)
                 {
                     StartRound(round.Index + 1);
@@ -468,7 +464,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             if (round == _round && Step == ConsensusStep.PreVote)
             {
                 EnterPreCommitStep(round, default);
-                _timeoutOccurredSubject.OnNext((round, ConsensusStep.PreVote));
+                _timeoutOccurredSubject.OnNext(ConsensusStep.PreVote);
                 ProcessGenericUponRules();
             }
         }
@@ -492,7 +488,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             if (round == _round && Step is ConsensusStep.PreVote or ConsensusStep.PreCommit)
             {
                 EnterEndCommitStep(round);
-                _timeoutOccurredSubject.OnNext((round, ConsensusStep.PreCommit));
+                _timeoutOccurredSubject.OnNext(ConsensusStep.PreCommit);
                 ProcessGenericUponRules();
             }
         }
@@ -512,7 +508,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         Step = ConsensusStep.Propose;
 
         _roundChangedSubject.OnNext(Round);
-        _stepChangedSubject.OnNext((Round, Step, default));
+        _stepChangedSubject.OnNext((Step, default));
 
         PostProposeTimeout(Round);
     }
@@ -685,7 +681,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }
 
         Step = ConsensusStep.PreVote;
-        _stepChangedSubject.OnNext((round, Step, blockHash));
+        _stepChangedSubject.OnNext((Step, blockHash));
     }
 
     private void EnterPreCommitStep(Round round, BlockHash blockHash)
@@ -696,7 +692,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }
 
         Step = ConsensusStep.PreCommit;
-        _stepChangedSubject.OnNext((round, Step, blockHash));
+        _stepChangedSubject.OnNext((Step, blockHash));
     }
 
     private void EnterEndCommitStep(Round round)
@@ -713,7 +709,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         else
         {
             Step = ConsensusStep.EndCommit;
-            _stepChangedSubject.OnNext((round, Step, decidedProposal.BlockHash));
+            _stepChangedSubject.OnNext((Step, decidedProposal.BlockHash));
             _finalizedSubject.OnNext((decidedProposal.Block, GetBlockCommit()));
         }
     }

@@ -9,79 +9,187 @@ namespace Libplanet.Net.Tests.Consensus;
 public sealed class VoteCollectionTest(ITestOutputHelper output)
 {
     [Fact]
-    public void Majority()
+    public void BaseTest()
+    {
+        var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
+
+        Assert.Equal(1, votes.Height);
+        Assert.Equal(0, votes.Round);
+        Assert.Equal(VoteType.PreCommit, votes.Type);
+        Assert.Equal(TestUtils.Validators, votes.Validators);
+    }
+
+    [Fact]
+    public void Add()
     {
         var random = RandomUtility.GetRandom(output);
         var blockHash = RandomUtility.BlockHash(random);
-        var votes = new VoteCollection(0, 0, VoteType.PreCommit, TestUtils.Validators);
+        var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
+        var vote = new VoteBuilder
+        {
+            Validator = TestUtils.Validators[0],
+            Height = 1,
+            Round = 0,
+            Type = VoteType.PreCommit,
+            BlockHash = blockHash,
+        }.Create(TestUtils.PrivateKeys[0]);
+        votes.Add(vote);
+        Assert.Equal(1, votes.Count);
         Assert.False(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TryGetMajority23(out var decidedBlockHash1));
-        Assert.Equal(default, decidedBlockHash1);
+        Assert.False(votes.TryGetMajority23(out var _));
+    }
 
-        votes.Add(new VoteMetadata
+    [Fact]
+    public void Add_2Votes()
+    {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
+        for (var i = 0; i < 2; i++)
         {
-            Height = 0,
-            Round = 0,
-            BlockHash = blockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = TestUtils.Validators[0].Address,
-            ValidatorPower = TestUtils.Validators[0].Power,
-            Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[0]));
-        Assert.False(votes.HasOneThirdsAny);
-        Assert.False(votes.HasTwoThirdsAny);
-        Assert.False(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TryGetMajority23(out var decidedBlockHash2));
-        Assert.Equal(default, decidedBlockHash2);
+            var vote = new VoteBuilder
+            {
+                Validator = TestUtils.Validators[i],
+                Height = 1,
+                Round = 0,
+                Type = VoteType.PreCommit,
+                BlockHash = blockHash,
+            }.Create(TestUtils.PrivateKeys[i]);
+            votes.Add(vote);
+        }
 
-        votes.Add(new VoteMetadata
-        {
-            Height = 0,
-            Round = 0,
-            BlockHash = blockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = TestUtils.Validators[1].Address,
-            ValidatorPower = TestUtils.Validators[1].Power,
-            Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[1]));
+        Assert.Equal(2, votes.Count);
         Assert.True(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TryGetMajority23(out var decidedBlockHash3));
-        Assert.Equal(default, decidedBlockHash3);
+        Assert.False(votes.TryGetMajority23(out var _));
+    }
 
-        votes.Add(new VoteMetadata
+    [Fact]
+    public void Add_3Votes()
+    {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
+        for (var i = 0; i < 3; i++)
         {
-            Height = 0,
-            Round = 0,
-            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = TestUtils.Validators[2].Address,
-            ValidatorPower = TestUtils.Validators[2].Power,
-            Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[2]));
-        Assert.True(votes.HasOneThirdsAny);
-        Assert.True(votes.HasTwoThirdsAny);
-        Assert.False(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TryGetMajority23(out var decidedBlockHash4));
-        Assert.Equal(default, decidedBlockHash4);
+            var vote = new VoteBuilder
+            {
+                Validator = TestUtils.Validators[i],
+                Height = 1,
+                Round = 0,
+                Type = VoteType.PreCommit,
+                BlockHash = blockHash,
+            }.Create(TestUtils.PrivateKeys[i]);
+            votes.Add(vote);
+        }
 
-        votes.Add(new VoteMetadata
-        {
-            Height = 0,
-            Round = 0,
-            BlockHash = blockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = TestUtils.Validators[3].Address,
-            ValidatorPower = TestUtils.Validators[3].Power,
-            Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[3]));
+        Assert.Equal(3, votes.Count);
         Assert.True(votes.HasOneThirdsAny);
         Assert.True(votes.HasTwoThirdsAny);
         Assert.True(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TryGetMajority23(out var decidedBlockHash5));
-        Assert.Equal(blockHash, decidedBlockHash5);
+        Assert.True(votes.TryGetMajority23(out var majorityBlockHash));
+        Assert.Equal(blockHash, majorityBlockHash);
+    }
+
+    [Fact]
+    public void Remove()
+    {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
+        var vote = new VoteBuilder
+        {
+            Validator = TestUtils.Validators[0],
+            Height = 1,
+            Round = 0,
+            Type = VoteType.PreCommit,
+            BlockHash = blockHash,
+        }.Create(TestUtils.PrivateKeys[0]);
+        votes.Add(vote);
+
+        votes.Remove(vote.Validator);
+        Assert.Equal(0, votes.Count);
+    }
+
+    [Fact]
+    public void Remove_After_Adding_2_Votes()
+    {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
+        for (var i = 0; i < 2; i++)
+        {
+            var vote = new VoteBuilder
+            {
+                Validator = TestUtils.Validators[i],
+                Height = 1,
+                Round = 0,
+                Type = VoteType.PreCommit,
+                BlockHash = blockHash,
+            }.Create(TestUtils.PrivateKeys[i]);
+            votes.Add(vote);
+        }
+
+        votes.Remove(TestUtils.Validators[0].Address);
+        Assert.Equal(1, votes.Count);
+        Assert.False(votes.HasOneThirdsAny);
+    }
+
+    [Fact]
+    public void Remove_After_Adding_3_Votes()
+    {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
+        for (var i = 0; i < 3; i++)
+        {
+            var vote = new VoteBuilder
+            {
+                Validator = TestUtils.Validators[i],
+                Height = 1,
+                Round = 0,
+                Type = VoteType.PreCommit,
+                BlockHash = blockHash,
+            }.Create(TestUtils.PrivateKeys[i]);
+            votes.Add(vote);
+        }
+
+        votes.Remove(TestUtils.Validators[0].Address);
+        Assert.Equal(2, votes.Count);
+        Assert.True(votes.HasOneThirdsAny);
+        Assert.False(votes.HasTwoThirdsAny);
+        Assert.False(votes.HasTwoThirdsMajority);
+        Assert.False(votes.TryGetMajority23(out var _));
+    }
+
+    [Fact]
+    public void Remove_After_Adding_4_Votes()
+    {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
+        for (var i = 0; i < 4; i++)
+        {
+            var vote = new VoteBuilder
+            {
+                Validator = TestUtils.Validators[i],
+                Height = 1,
+                Round = 0,
+                Type = VoteType.PreCommit,
+                BlockHash = blockHash,
+            }.Create(TestUtils.PrivateKeys[i]);
+            votes.Add(vote);
+        }
+
+        votes.Remove(TestUtils.Validators[0].Address);
+        Assert.Equal(3, votes.Count);
+        Assert.True(votes.HasOneThirdsAny);
+        Assert.True(votes.HasTwoThirdsAny);
+        Assert.True(votes.HasTwoThirdsMajority);
+        Assert.True(votes.TryGetMajority23(out var majorityBlockHash));
+        Assert.Equal(blockHash, majorityBlockHash);
     }
 }

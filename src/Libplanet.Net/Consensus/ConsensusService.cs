@@ -15,7 +15,7 @@ public sealed class ConsensusService : ServiceBase
     private readonly Subject<int> _heightChangedSubject = new();
     private readonly Subject<Round> _roundChangedSubject = new();
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
-    private readonly Subject<(Round Round, ConsensusStep Step)> _timeoutOccurredSubject = new();
+    private readonly Subject<ConsensusStep> _timeoutOccurredSubject = new();
 
     private readonly Subject<Proposal> _blockProposeSubject = new();
     private readonly ITransport _transport;
@@ -85,7 +85,7 @@ public sealed class ConsensusService : ServiceBase
 
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
-    public IObservable<(Round Round, ConsensusStep Step)> TimeoutOccurred => _timeoutOccurredSubject;
+    public IObservable<ConsensusStep> TimeoutOccurred => _timeoutOccurredSubject;
 
     public IObservable<Proposal> BlockPropose => _blockProposeSubject;
 
@@ -326,7 +326,7 @@ public sealed class ConsensusService : ServiceBase
         }
     }
 
-    public void Post(Proposal proposal)
+    public void Propose(Proposal proposal)
     {
         if (_dispatcher is null)
         {

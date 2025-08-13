@@ -52,8 +52,9 @@ public sealed class ConsensusController : IDisposable
         }
     }
 
-    private void Consensus_StepChanged((Round Round, ConsensusStep Step, BlockHash BlockHash) e)
+    private void Consensus_StepChanged((ConsensusStep Step, BlockHash BlockHash) e)
     {
+        var round = _consensus.Round;
         switch (e.Step)
         {
             case ConsensusStep.Propose:
@@ -63,7 +64,7 @@ public sealed class ConsensusController : IDisposable
                     var proposal = new ProposalBuilder
                     {
                         Block = candidateProposal?.Block ?? _blockchain.ProposeBlock(_signer),
-                        Round = e.Round.Index,
+                        Round = round.Index,
                         Timestamp = DateTimeOffset.UtcNow,
                         ValidRound = candidateProposal?.ValidRound ?? -1,
                     }.Create(_signer);
@@ -77,7 +78,7 @@ public sealed class ConsensusController : IDisposable
                 {
                     Validator = _validator,
                     Height = _consensus.Height,
-                    Round = e.Round.Index,
+                    Round = round.Index,
                     BlockHash = e.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     Type = VoteType.PreVote,
@@ -89,8 +90,8 @@ public sealed class ConsensusController : IDisposable
             case ConsensusStep.PreCommit:
                 var preCommit = new VoteMetadata
                 {
-                    Height = e.Round.Height,
-                    Round = e.Round.Index,
+                    Height = round.Height,
+                    Round = round.Index,
                     BlockHash = e.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = _signer.Address,

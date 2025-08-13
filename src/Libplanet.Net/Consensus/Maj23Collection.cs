@@ -4,13 +4,14 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Maj23Collection : IEnumerable<Maj23>
+public sealed class Maj23Collection : IMaj23Collection
 {
     private readonly int _height;
     private readonly int _round;
     private readonly VoteType _voteType;
     private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Dictionary<Address, Maj23> _maj23ByValidator = [];
+    private readonly HashSet<BlockHash> _maj23BlockHashes = [];
 
     public Maj23Collection(int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
     {
@@ -34,6 +35,8 @@ public sealed class Maj23Collection : IEnumerable<Maj23>
     }
 
     public Maj23 this[Address validator] => _maj23ByValidator[validator];
+
+    public int Count => _maj23ByValidator.Count;
 
     public void Add(Maj23 maj23)
     {
@@ -62,12 +65,16 @@ public sealed class Maj23Collection : IEnumerable<Maj23>
         }
 
         _maj23ByValidator.Add(maj23.Validator, maj23);
+        _maj23BlockHashes.Add(maj23.BlockHash);
     }
+
+    public bool HasMaj23(BlockHash blockHash)
+        => _maj23BlockHashes.Contains(blockHash);
 
     public bool TryGetValue(Address validator, [MaybeNullWhen(false)] out Maj23 value)
         => _maj23ByValidator.TryGetValue(validator, out value);
 
-    public bool ContainsKey(Address validator) => _maj23ByValidator.ContainsKey(validator);
+    public bool Contains(Address validator) => _maj23ByValidator.ContainsKey(validator);
 
     public IEnumerator<Maj23> GetEnumerator()
     {

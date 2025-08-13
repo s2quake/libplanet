@@ -1,18 +1,14 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class VoteCollection : IEnumerable<Vote>
+public sealed class VoteCollection : IVoteCollection
 {
-    private readonly int _height;
-    private readonly int _round;
-    private readonly VoteType _voteType;
-    private readonly ImmutableSortedSet<Validator> _validators;
     private readonly Dictionary<Address, Vote> _voteByValidator = [];
     private readonly Dictionary<BlockHash, ImmutableArray<Vote>> _votesByBlockHash = [];
-    private readonly Dictionary<BlockHash, Maj23> _maj23ByBlockHash = [];
     private BlockHash? _23Majority;
 
     public VoteCollection(int height, int round, VoteType voteType, ImmutableSortedSet<Validator> validators)
@@ -30,78 +26,71 @@ public sealed class VoteCollection : IEnumerable<Vote>
             throw new ArgumentException("Validators cannot be empty.", nameof(validators));
         }
 
-        _height = height;
-        _round = round;
-        _voteType = voteType;
-        _validators = validators;
+        Height = height;
+        Round = round;
+        Type = voteType;
+        Validators = validators;
     }
 
     public Vote this[Address validator] => _voteByValidator[validator];
 
+    public int Height { get; }
+
+    public int Round { get; }
+
+    public VoteType Type { get; }
+
+    public ImmutableSortedSet<Validator> Validators { get; }
+
     public int Count => _voteByValidator.Count;
 
-    public BigInteger TotalVotingPower => _validators.GetValidatorsPower([.. _voteByValidator.Values.Select(vote => vote.Validator)]);
+    public BigInteger TotalVotingPower => Validators.GetValidatorsPower([.. _voteByValidator.Values.Select(vote => vote.Validator)]);
 
     public bool HasTwoThirdsMajority => _23Majority is not null;
 
-    public bool HasOneThirdsAny => TotalVotingPower > _validators.GetOneThirdPower();
+    public bool HasOneThirdsAny => TotalVotingPower > Validators.GetOneThirdPower();
 
-    public bool HasTwoThirdsAny => TotalVotingPower > _validators.GetTwoThirdsPower();
+    public bool HasTwoThirdsAny => TotalVotingPower > Validators.GetTwoThirdsPower();
 
     public void Add(Vote vote)
     {
-        if (vote.Height != _height)
+        if (vote.Height != Height)
         {
             throw new ArgumentException(
-                $"Vote height {vote.Height} does not match expected height {_height}", nameof(vote));
+                $"Vote height {vote.Height} does not match expected height {Height}", nameof(vote));
         }
 
-        if (vote.Round != _round)
+        if (vote.Round != Round)
         {
             throw new ArgumentException(
-                $"Vote round {vote.Round} does not match expected round {_round}", nameof(vote));
+                $"Vote round {vote.Round} does not match expected round {Round}", nameof(vote));
         }
 
-        if (vote.Type != _voteType)
+        if (vote.Type != Type)
         {
             throw new ArgumentException(
-                $"Vote type {vote.Type} does not match expected type {_voteType}", nameof(vote));
+                $"Vote type {vote.Type} does not match expected type {Type}", nameof(vote));
         }
 
-        if (!_validators.Contains(vote.Validator))
+        if (!Validators.Contains(vote.Validator))
         {
             throw new ArgumentException(
-                $"Validator {vote.Validator} is not in the validators for height {_height}", nameof(vote));
+                $"Validator {vote.Validator} is not in the validators for height {Height}", nameof(vote));
         }
 
-        if (_validators.GetValidator(vote.Validator).Power != vote.ValidatorPower)
+        if (Validators.GetValidator(vote.Validator).Power != vote.ValidatorPower)
         {
             throw new ArgumentException(
                 $"Validator {vote.Validator} power {vote.ValidatorPower} does not match " +
-                $"expected power {_validators.GetValidator(vote.Validator).Power}", nameof(vote));
+                $"expected power {Validators.GetValidator(vote.Validator).Power}", nameof(vote));
         }
 
         var validator = vote.Validator;
         var blockHash = vote.BlockHash;
 
-        if (_voteByValidator.TryGetValue(validator, out var oldVote))
+        if (!_voteByValidator.TryAdd(validator, vote))
         {
-            if (oldVote.BlockHash.Equals(vote.BlockHash))
-            {
-                throw new ArgumentException($"{nameof(Add)}() does not expect duplicate votes", nameof(vote));
-            }
-            else if (_23Majority == vote.BlockHash)
-            {
-                _voteByValidator[validator] = vote;
-            }
-            else
-            {
-                throw new DuplicateVoteException("There's a conflicting vote", oldVote, vote);
-            }
-        }
-        else
-        {
-            _voteByValidator.Add(validator, vote);
+            throw new ArgumentException("Duplicate vote detected.", nameof(vote));
         }
 
         if (!_votesByBlockHash.TryGetValue(blockHash, out var votes))
@@ -116,7 +105,7 @@ public sealed class VoteCollection : IEnumerable<Vote>
         }
 
         var totalPower = BigIntegerUtility.Sum(votes.Select(v => v.ValidatorPower));
-        var quorum = _validators.GetTwoThirdsPower() + 1;
+        var quorum = Validators.GetTwoThirdsPower() + 1;
 
         if (quorum <= totalPower && _23Majority is null)
         {
@@ -124,9 +113,38 @@ public sealed class VoteCollection : IEnumerable<Vote>
         }
     }
 
-    public void Update(Vote vote)
+    public bool Remove(Address address)
     {
+        if (!_voteByValidator.TryGetValue(address, out var vote))
+        {
+            return false;
+        }
 
+        _voteByValidator.Remove(address);
+        if (!_votesByBlockHash.TryGetValue(vote.BlockHash, out var votes))
+        {
+            throw new UnreachableException("Votes for block hash not found");
+        }
+
+        votes = votes.Remove(vote);
+        if (votes.IsEmpty)
+        {
+            _votesByBlockHash.Remove(vote.BlockHash);
+        }
+        else
+        {
+            _votesByBlockHash[vote.BlockHash] = votes;
+        }
+
+        var totalPower = BigIntegerUtility.Sum(votes.Select(v => v.ValidatorPower));
+        var quorum = Validators.GetTwoThirdsPower() + 1;
+
+        if (quorum > totalPower && _23Majority is not null)
+        {
+            _23Majority = null;
+        }
+
+        return true;
     }
 
     public BlockHash GetMajority23()
@@ -152,19 +170,19 @@ public sealed class VoteCollection : IEnumerable<Vote>
 
     public bool Contains(int index)
     {
-        if (index < 0 || index >= _validators.Count)
+        if (index < 0 || index >= Validators.Count)
         {
             return false;
         }
 
-        var validator = _validators[index];
+        var validator = Validators[index];
         return _voteByValidator.ContainsKey(validator.Address);
     }
 
     public ImmutableArray<bool> GetVoteBits(BlockHash blockHash)
     {
-        var bitList = new List<bool>(_validators.Count);
-        foreach (var validator in _validators)
+        var bitList = new List<bool>(Validators.Count);
+        foreach (var validator in Validators)
         {
             if (_voteByValidator.TryGetValue(validator.Address, out var vote) && vote.BlockHash == blockHash)
             {
@@ -187,12 +205,12 @@ public sealed class VoteCollection : IEnumerable<Vote>
                 "Cannot create BlockCommit from VoteSet without a two-thirds majority.");
         }
 
-        var query = from validator in _validators
+        var query = from validator in Validators
                     let key = validator.Address
                     let vote = _voteByValidator.TryGetValue(key, out var vote) ? vote : new VoteMetadata
                     {
-                        Height = _height,
-                        Round = _round,
+                        Height = Height,
+                        Round = Round,
                         BlockHash = decidedBlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = key,
@@ -204,46 +222,16 @@ public sealed class VoteCollection : IEnumerable<Vote>
 
         return new BlockCommit
         {
-            Height = _height,
-            Round = _round,
+            Height = Height,
+            Round = Round,
             BlockHash = decidedBlockHash,
             Votes = [.. query],
         };
     }
 
-    public void SetMaj23(Maj23 maj23)
-    {
-        if (maj23.Height != _height)
-        {
-            throw new ArgumentException(
-                $"Maj23 height {maj23.Height} does not match expected height {_height}", nameof(maj23));
-        }
-
-        if (maj23.Round != _round)
-        {
-            throw new ArgumentException(
-                $"Maj23 round {maj23.Round} does not match expected round {_round}", nameof(maj23));
-        }
-
-        if (maj23.VoteType != _voteType)
-        {
-            throw new ArgumentException(
-                $"Maj23 vote type {maj23.VoteType} does not match expected type {_voteType}", nameof(maj23));
-        }
-
-        if (!_validators.Contains(maj23.Validator))
-        {
-            throw new ArgumentException(
-                $"Validator {maj23.Validator} is not in the validators for height {_height}", nameof(maj23));
-        }
-
-
-        _maj23ByBlockHash[maj23.BlockHash] = maj23;
-    }
-
     public IEnumerator<Vote> GetEnumerator()
     {
-        foreach (var validator in _validators)
+        foreach (var validator in Validators)
         {
             if (_voteByValidator.TryGetValue(validator.Address, out var vote))
             {
