@@ -66,24 +66,19 @@ public sealed class ConsensusService : ServiceBase
         _consensusSubscriptions = [.. Subscribe(_consensus)];
         _blockchainSubscriptions =
         [
-            _blockchain.TipChanged.Subscribe(OnTipChanged),
-            _blockchain.BlockExecuted.Subscribe(OnBlockExecuted),
+            _blockchain.TipChanged.Subscribe(Blockchain_TipChanged),
+            _blockchain.BlockExecuted.Subscribe(Blockchain_BlockExecuted),
         ];
-        // _handlerRegistration = _transport.MessageRouter.RegisterMany(
-        // [
-        //     // new ConsensusVoteBitsMessageHandler(this, _gossip),
-        //     // new ConsensusMaj23MessageHandler(signer, this, _gossip),
-        //     new ConsensusProposalClaimMessageHandler(this, _gossip),
-        //     // new ConsensusMessageHandler(this),
-        // ]);
         _handlerRegistrations =
         [
             _transport.MessageRouter.Register<ConsensusProposalClaimMessage>(
                 m => HandleProposalClaimMessageAsync(m, StoppingToken)),
             _transport.MessageRouter.Register<ConsensusVoteBitsMessage>(
                 m => HandleVoteBitsMessageAsync(m, StoppingToken)),
-            _transport.MessageRouter.Register<ConsensusMaj23Message>(m => HandleMaj23MessageAsync(m, StoppingToken)),
-            _transport.MessageRouter.Register<ConsensusMessage>(m => HandleMessageAsync(m, StoppingToken)),
+            _transport.MessageRouter.Register<ConsensusMaj23Message>(
+                m => HandleMaj23MessageAsync(m, StoppingToken)),
+            _transport.MessageRouter.Register<ConsensusMessage>(
+                m => HandleMessageAsync(m, StoppingToken)),
         ];
     }
 
@@ -98,6 +93,50 @@ public sealed class ConsensusService : ServiceBase
     public IObservable<Proposal> BlockPropose => _blockProposeSubject;
 
     public Address Address => _signer.Address;
+
+    public int Height { get; private set; }
+
+    public int Round { get; private set; }
+
+    public ConsensusStep Step { get; private set; }
+
+    public Consensus Consensus => _consensus;
+
+    public ImmutableArray<Peer> Validators => [.. _gossip.Peers];
+
+    private async Task NewHeightAsync(int height, CancellationToken cancellationToken)
+    {
+        if (_dispatcher is null)
+        {
+            throw new InvalidOperationException("Consensus reactor is not running.");
+        }
+
+        if (height <= Height)
+        {
+            var message = $"Given new height #{height} must be greater than the current height #{Height}.";
+            throw new ArgumentOutOfRangeException(nameof(height), message);
+        }
+
+        await _dispatcher.InvokeAsync(async cancellationToken =>
+        {
+            Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
+            Array.ForEach(_publishSubscriptions, subscription => subscription.Dispose());
+
+            _consensusController.Dispose();
+            await _consensus.StopAsync(cancellationToken);
+            await _consensus.DisposeAsync();
+            _consensus = new Consensus(height, _blockchain.GetValidators(height), _consensusOption);
+            _consensusController = new ConsensusController(_signer, _consensus, _blockchain);
+            _publishSubscriptions = [.. Subscribe(_consensusController, _gossip)];
+            _consensusSubscriptions = [.. Subscribe(_consensus)];
+            await _consensus.StartAsync(cancellationToken);
+            Height = height;
+            _peerCatchupRounds.Clear();
+            _gossip.ClearDenySet();
+            _heightChangedSubject.OnNext(Height);
+            FlushPendingMessages(height);
+        }, cancellationToken);
+    }
 
     private void ValidateMessageToReceive((Peer Peer, IMessage Message) e)
     {
@@ -211,53 +250,6 @@ public sealed class ConsensusService : ServiceBase
         });
     }
 
-    public int Height { get; private set; }
-
-    public int Round { get; private set; }
-
-    public ConsensusStep Step { get; private set; }
-
-    public Consensus Consensus => _consensus;
-
-    public ImmutableArray<Peer> Validators => [.. _gossip.Peers];
-
-    internal Dispatcher Dispatcher
-        => _dispatcher ?? throw new InvalidOperationException("Consensus reactor is not running.");
-
-    public async Task NewHeightAsync(int height, CancellationToken cancellationToken)
-    {
-        if (_dispatcher is null)
-        {
-            throw new InvalidOperationException("Consensus reactor is not running.");
-        }
-
-        if (height <= Height)
-        {
-            var message = $"Given new height #{height} must be greater than the current height #{Height}.";
-            throw new ArgumentOutOfRangeException(nameof(height), message);
-        }
-
-        await _dispatcher.InvokeAsync(async cancellationToken =>
-        {
-            Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
-            Array.ForEach(_publishSubscriptions, subscription => subscription.Dispose());
-
-            _consensusController.Dispose();
-            await _consensus.StopAsync(cancellationToken);
-            await _consensus.DisposeAsync();
-            _consensus = new Consensus(height, _blockchain.GetValidators(height), _consensusOption);
-            _consensusController = new ConsensusController(_signer, _consensus, _blockchain);
-            _publishSubscriptions = [.. Subscribe(_consensusController, _gossip)];
-            _consensusSubscriptions = [.. Subscribe(_consensus)];
-            await _consensus.StartAsync(cancellationToken);
-            Height = height;
-            _peerCatchupRounds.Clear();
-            _gossip.ClearDenySet();
-            _heightChangedSubject.OnNext(Height);
-            FlushPendingMessages(height);
-        }, cancellationToken);
-    }
-
     private void FlushPendingMessages(int height)
     {
         foreach (var message in _pendingMessages)
@@ -271,7 +263,7 @@ public sealed class ConsensusService : ServiceBase
         _pendingMessages.RemoveWhere(message => message.Height <= height);
     }
 
-    private Task HandleProposalClaimMessageAsync(
+    private async Task HandleProposalClaimMessageAsync(
         ConsensusProposalClaimMessage consensusMessage, CancellationToken cancellationToken)
     {
         if (_dispatcher is null)
@@ -279,7 +271,7 @@ public sealed class ConsensusService : ServiceBase
             throw new InvalidOperationException("Consensus reactor is not running.");
         }
 
-        return _dispatcher.InvokeAsync(_ => Action(), cancellationToken);
+        await _dispatcher.InvokeAsync(_ => Action(), cancellationToken);
 
         void Action()
         {
@@ -295,7 +287,7 @@ public sealed class ConsensusService : ServiceBase
         }
     }
 
-    private Task HandleVoteBitsMessageAsync(
+    private async Task HandleVoteBitsMessageAsync(
         ConsensusVoteBitsMessage consensusMessage, CancellationToken cancellationToken)
     {
         if (_dispatcher is null)
@@ -303,7 +295,7 @@ public sealed class ConsensusService : ServiceBase
             throw new InvalidOperationException("Consensus reactor is not running.");
         }
 
-        return _dispatcher.InvokeAsync(_ => Action(), cancellationToken);
+        await _dispatcher.InvokeAsync(_ => Action(), cancellationToken);
 
         void Action()
         {
@@ -335,14 +327,14 @@ public sealed class ConsensusService : ServiceBase
         }
     }
 
-    private Task HandleMaj23MessageAsync(ConsensusMaj23Message consensusMessage, CancellationToken cancellationToken)
+    private async Task HandleMaj23MessageAsync(ConsensusMaj23Message consensusMessage, CancellationToken cancellationToken)
     {
         if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus reactor is not running.");
         }
 
-        return _dispatcher.InvokeAsync(_ => Action(), cancellationToken);
+        await _dispatcher.InvokeAsync(_ => Action(), cancellationToken);
 
         void Action()
         {
@@ -429,32 +421,32 @@ public sealed class ConsensusService : ServiceBase
         }
     }
 
-    public Proposal? HandleProposalClaim(ProposalClaim proposalClaim)
-    {
-        int height = proposalClaim.Height;
-        int round = proposalClaim.Round;
-        if (height != Height)
-        {
-            // logging
-        }
-        else if (round != Round)
-        {
-            // logging
-        }
-        else
-        {
-            if (_consensus.Height == height)
-            {
-                // NOTE: Should check if collected messages have same BlockHash with
-                // VoteSetBit's BlockHash?
-                return _consensus.Proposal;
-            }
-        }
+    // public Proposal? HandleProposalClaim(ProposalClaim proposalClaim)
+    // {
+    //     int height = proposalClaim.Height;
+    //     int round = proposalClaim.Round;
+    //     if (height != Height)
+    //     {
+    //         // logging
+    //     }
+    //     else if (round != Round)
+    //     {
+    //         // logging
+    //     }
+    //     else
+    //     {
+    //         if (_consensus.Height == height)
+    //         {
+    //             // NOTE: Should check if collected messages have same BlockHash with
+    //             // VoteSetBit's BlockHash?
+    //             return _consensus.Proposal;
+    //         }
+    //     }
 
-        return null;
-    }
+    //     return null;
+    // }
 
-    private void OnTipChanged(TipChangedInfo e)
+    private void Blockchain_TipChanged(TipChangedInfo e)
     {
         _cancellationTokenSource?.Cancel();
         _cancellationTokenSource?.Dispose();
@@ -462,7 +454,7 @@ public sealed class ConsensusService : ServiceBase
         _tipChangedTime = DateTimeOffset.UtcNow;
     }
 
-    private async void OnBlockExecuted(BlockExecutionInfo e)
+    private async void Blockchain_BlockExecuted(BlockExecutionInfo e)
     {
         using var cancellationTokenSource = CreateCancellationTokenSource();
         var height = e.Block.Header.Height;
@@ -526,6 +518,7 @@ public sealed class ConsensusService : ServiceBase
         await _transport.DisposeAsync();
         _cancellationTokenSource?.Dispose();
         _cancellationTokenSource = null;
+        _peers.Clear();
         await base.DisposeAsyncCore();
     }
 
