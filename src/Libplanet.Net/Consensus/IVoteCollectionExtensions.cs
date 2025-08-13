@@ -24,29 +24,13 @@ public static class IVoteCollectionExtensions
 
     public static ImmutableArray<Vote> GetVotes(this IVoteCollection @this, ImmutableArray<bool> bits)
     {
-        // if (voteBits.Height != Height)
-        // {
-        //     throw new ArgumentException(
-        //         $"VoteSetBits height {voteBits.Height} does not match expected height {Height}.",
-        //         nameof(voteBits));
-        // }
-
-        // if (voteBits.VoteType is not VoteType.PreVote and not VoteType.PreCommit)
-        // {
-        //     throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(voteBits));
-        // }
         var validators = @this.Validators;
-
         if (bits.Length != validators.Count)
         {
             throw new ArgumentException(
                 $"Bits length {bits.Length} does not match validators count {validators.Count}.",
                 nameof(bits));
         }
-
-        // var round = _rounds[voteBits.Round];
-        // var bits = voteBits.Bits;
-        // var votes = voteBits.VoteType is VoteType.PreVote ? round.PreVotes : round.PreCommits;
 
         var voteList = new List<Vote>(validators.Count);
         for (var i = 0; i < bits.Length; i++)

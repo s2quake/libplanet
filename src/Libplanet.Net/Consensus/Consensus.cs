@@ -98,43 +98,6 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         return false;
     }
 
-    // public ImmutableArray<Vote> GetVotes(VoteBits voteBits)
-    // {
-    //     if (voteBits.Height != Height)
-    //     {
-    //         throw new ArgumentException(
-    //             $"VoteSetBits height {voteBits.Height} does not match expected height {Height}.",
-    //             nameof(voteBits));
-    //     }
-
-    //     if (voteBits.VoteType is not VoteType.PreVote and not VoteType.PreCommit)
-    //     {
-    //         throw new ArgumentException("VoteType should be either PreVote or PreCommit.", nameof(voteBits));
-    //     }
-
-    //     if (voteBits.Bits.Length != validators.Count)
-    //     {
-    //         throw new ArgumentException(
-    //             $"VoteBits length {voteBits.Bits.Length} does not match validators count {validators.Count}.",
-    //             nameof(voteBits));
-    //     }
-
-    //     var round = _rounds[voteBits.Round];
-    //     var bits = voteBits.Bits;
-    //     var votes = voteBits.VoteType is VoteType.PreVote ? round.PreVotes : round.PreCommits;
-
-    //     var voteList = new List<Vote>(Validators.Count);
-    //     for (var i = 0; i < bits.Length; i++)
-    //     {
-    //         if (!bits[i] && votes.TryGetValue(Validators[i].Address, out var vote))
-    //         {
-    //             voteList.Add(vote);
-    //         }
-    //     }
-
-    //     return [.. voteList];
-    // }
-
     public void Propose(Proposal proposal)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);

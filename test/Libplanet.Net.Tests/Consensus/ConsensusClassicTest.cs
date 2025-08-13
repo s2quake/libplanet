@@ -495,7 +495,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         await transport.StartAsync(default);
         await consensusService.StartAsync(default);
-        consensusService.Propose(proposal);
+        consensusService.Consensus.Propose(proposal);
 
         foreach (var i in new int[] { 1, 2, 3 })
         {
@@ -509,7 +509,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(TestUtils.PrivateKeys[i]);
-            consensusService.PreVote(preVote);
+            consensusService.Consensus.PreVote(preVote);
         }
 
         foreach (var i in new int[] { 1, 2, 3 })
@@ -523,7 +523,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 Timestamp = DateTimeOffset.UtcNow,
                 Type = VoteType.PreCommit,
             }.Create(TestUtils.PrivateKeys[i]);
-            consensusService.PreCommit(preCommit);
+            consensusService.Consensus.PreCommit(preCommit);
         }
 
         Assert.Equal(1, consensusService.Height);

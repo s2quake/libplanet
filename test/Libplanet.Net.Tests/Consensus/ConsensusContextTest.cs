@@ -440,12 +440,13 @@ public class ConsensusContextTest
                 VoteType = VoteType.PreVote,
                 Bits = [false, false, true, false],
             }.Sign(TestUtils.PrivateKeys[1]);
-        // ConsensusMessage[] votes =
-    // consensusService.HandleVoteSetBits(voteSetBits).ToArray();
-    //     Assert.True(votes.All(vote => vote is ConsensusPreVoteMessage));
-    //     Assert.Equal(2, votes.Length);
-    //     Assert.Equal(TestUtils.PrivateKeys[0].Address, votes[0].Validator);
-    //     Assert.Equal(TestUtils.PrivateKeys[1].Address, votes[1].Validator);
+        //     ConsensusMessage[] votes =
+        // consensusService.HandleVoteSetBits(voteSetBits).ToArray();
+        var votes = consensusService.Consensus.Round.PreVotes.GetVotes(voteSetBits.Bits);
+        Assert.True(votes.All(vote => vote.Type == VoteType.PreVote));
+        Assert.Equal(2, votes.Length);
+        Assert.Equal(TestUtils.PrivateKeys[0].Address, votes[0].Validator);
+        Assert.Equal(TestUtils.PrivateKeys[1].Address, votes[1].Validator);
     }
 
     [Fact(Timeout = Timeout)]
