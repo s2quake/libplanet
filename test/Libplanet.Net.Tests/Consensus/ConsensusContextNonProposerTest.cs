@@ -6,6 +6,7 @@ using Nito.AsyncEx;
 using xRetry;
 using Xunit.Abstractions;
 using Libplanet.Tests;
+using Libplanet.Extensions;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -16,8 +17,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task NewHeightWithLastCommit()
     {
-        Proposal? proposal = null;
-        var heightTwoProposalSent = new AsyncAutoResetEvent();
+        // Proposal? proposal = null;
+        // var heightTwoProposalSent = new AsyncAutoResetEvent();
         var blockchain = TestUtils.MakeBlockchain();
         await using var transportA = TestUtils.CreateTransport(TestUtils.PrivateKeys[1]);
         await using var transportB = TestUtils.CreateTransport(TestUtils.PrivateKeys[2]);
@@ -26,14 +27,15 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
             blockchain: blockchain,
             key: TestUtils.PrivateKeys[2],
             newHeightDelay: TimeSpan.FromSeconds(1));
-        using var _1 = consensusServiceB.BlockPropose.Subscribe(e =>
-        {
-            if (e.Height == 2)
-            {
-                proposal = e;
-                heightTwoProposalSent.Set();
-            }
-        });
+        var blockProposedHeight2Task = consensusServiceB.BlockProposed.WaitAsync(e => e.Height == 2);
+        // using var _1 = consensusServiceB.BlockProposed.Subscribe(e =>
+        // {
+        //     if (e.Height == 2)
+        //     {
+        //         proposal = e;
+        //         heightTwoProposalSent.Set();
+        //     }
+        // });
         // consensusService.MessagePublished += (_, eventArgs) =>
         // {
         //     if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
@@ -91,8 +93,9 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
             transportA.Post(transportB.Peer, preCommitMessage);
         }
 
-        await heightTwoProposalSent.WaitAsync();
-        Assert.NotNull(proposal);
+        // await heightTwoProposalSent.WaitAsync();
+        var proposal = await blockProposedHeight2Task.WaitAsync(TimeSpan.FromSeconds(5));
+        // Assert.NotNull(proposal);
 
         var proposedBlock = proposal.Block;
         var votes = proposedBlock.PreviousCommit.Votes;
@@ -191,7 +194,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
             }
         });
 
-        consensusService.BlockPropose.Subscribe(e =>
+        consensusService.BlockProposed.Subscribe(e =>
         {
             if (e.Height == 2)
             {
@@ -301,7 +304,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[2]);
-        consensusService.BlockPropose.Subscribe(e =>
+        consensusService.BlockProposed.Subscribe(e =>
         {
             if (e.Height == 2)
             {
@@ -371,7 +374,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
             }
         });
 
-        consensusService.BlockPropose.Subscribe(e =>
+        consensusService.BlockProposed.Subscribe(e =>
         {
             if (e.Height == 2)
             {

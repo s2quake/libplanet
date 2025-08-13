@@ -27,7 +27,7 @@ public static class ConsensusReactorExtensions
         this ConsensusService @this, int height, CancellationToken cancellationToken)
     {
         using var resetEvent = new ManualResetEvent(false);
-        using var _ = @this.BlockPropose.Subscribe(e =>
+        using var _ = @this.BlockProposed.Subscribe(e =>
         {
             if (e.Height == height)
             {

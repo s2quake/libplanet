@@ -16,7 +16,7 @@ public sealed class ConsensusService : ServiceBase
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
     private readonly Subject<ConsensusStep> _timeoutOccurredSubject = new();
 
-    private readonly Subject<Proposal> _blockProposeSubject = new();
+    private readonly Subject<Proposal> _blockProposedSubject = new();
     private readonly ITransport _transport;
     private readonly PeerCollection _peers;
     private readonly PeerExplorer _peerExplorer;
@@ -62,7 +62,7 @@ public sealed class ConsensusService : ServiceBase
         _consensus = new Consensus(Height, _blockchain.GetValidators(Height), _consensusOption);
         _consensusController = new ConsensusController(_signer, _consensus, _blockchain);
 
-        _publishSubscriptions = [.. Subscribe(_consensusController, _gossip)];
+        _publishSubscriptions = [.. Subscribe(_consensusController)];
         _consensusSubscriptions = [.. Subscribe(_consensus)];
         _blockchainSubscriptions =
         [
@@ -71,14 +71,10 @@ public sealed class ConsensusService : ServiceBase
         ];
         _handlerRegistrations =
         [
-            _transport.MessageRouter.Register<ConsensusProposalClaimMessage>(
-                m => HandleProposalClaimMessageAsync(m, StoppingToken)),
-            _transport.MessageRouter.Register<ConsensusVoteBitsMessage>(
-                m => HandleVoteBitsMessageAsync(m, StoppingToken)),
-            _transport.MessageRouter.Register<ConsensusMaj23Message>(
-                m => HandleMaj23MessageAsync(m, StoppingToken)),
-            _transport.MessageRouter.Register<ConsensusMessage>(
-                m => HandleMessageAsync(m, StoppingToken)),
+            _transport.MessageRouter.Register<ConsensusProposalClaimMessage>(HandleProposalClaimMessageAsync),
+            _transport.MessageRouter.Register<ConsensusVoteBitsMessage>(HandleVoteBitsMessageAsync),
+            _transport.MessageRouter.Register<ConsensusMaj23Message>(HandleMaj23MessageAsync),
+            _transport.MessageRouter.Register<ConsensusMessage>(HandleMessageAsync),
         ];
     }
 
@@ -90,7 +86,7 @@ public sealed class ConsensusService : ServiceBase
 
     public IObservable<ConsensusStep> TimeoutOccurred => _timeoutOccurredSubject;
 
-    public IObservable<Proposal> BlockPropose => _blockProposeSubject;
+    public IObservable<Proposal> BlockProposed => _blockProposedSubject;
 
     public Address Address => _signer.Address;
 
@@ -127,7 +123,7 @@ public sealed class ConsensusService : ServiceBase
             await _consensus.DisposeAsync();
             _consensus = new Consensus(height, _blockchain.GetValidators(height), _consensusOption);
             _consensusController = new ConsensusController(_signer, _consensus, _blockchain);
-            _publishSubscriptions = [.. Subscribe(_consensusController, _gossip)];
+            _publishSubscriptions = [.. Subscribe(_consensusController)];
             _consensusSubscriptions = [.. Subscribe(_consensus)];
             await _consensus.StartAsync(cancellationToken);
             Height = height;
@@ -194,18 +190,20 @@ public sealed class ConsensusService : ServiceBase
         }
     }
 
-    private static IEnumerable<IDisposable> Subscribe(ConsensusController consensusController, Gossip gossip)
+    private IEnumerable<IDisposable> Subscribe(ConsensusController consensusController)
     {
-        yield return consensusController.PreVoted.Subscribe(vote
-            => gossip.PublishMessage(new ConsensusPreVoteMessage { PreVote = vote }));
-        yield return consensusController.PreCommitted.Subscribe(vote
-            => gossip.PublishMessage(new ConsensusPreCommitMessage { PreCommit = vote }));
-        yield return consensusController.ProposalClaimed.Subscribe(proposalClaim
-            => gossip.PublishMessage(new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim }));
-        yield return consensusController.Proposed.Subscribe(proposal
-            => gossip.PublishMessage(new ConsensusProposalMessage { Proposal = proposal }));
-        yield return consensusController.Majority23Observed.Subscribe(maj23
-            => gossip.PublishMessage(new ConsensusMaj23Message { Maj23 = maj23 }));
+        yield return consensusController.PreVoted.Subscribe(
+            e => _gossip.PublishMessage(new ConsensusPreVoteMessage { PreVote = e }));
+        yield return consensusController.PreCommitted.Subscribe(
+            e => _gossip.PublishMessage(new ConsensusPreCommitMessage { PreCommit = e }));
+        yield return consensusController.ProposalClaimed.Subscribe(
+            e => _gossip.PublishMessage(new ConsensusProposalClaimMessage { ProposalClaim = e }));
+        yield return consensusController.Proposed.Subscribe(e =>
+        {
+            _gossip.PublishMessage(new ConsensusProposalMessage { Proposal = e });
+        });
+        yield return consensusController.Majority23Observed.Subscribe(
+            e => _gossip.PublishMessage(new ConsensusMaj23Message { Maj23 = e }));
     }
 
     private IEnumerable<IDisposable> Subscribe(Consensus consensus)
@@ -247,6 +245,10 @@ public sealed class ConsensusService : ServiceBase
             var block = e.Block;
             var blockCommit = e.BlockCommit;
             _ = Task.Run(() => _blockchain.Append(block, blockCommit));
+        });
+        yield return consensus.Proposed.Subscribe(e =>
+        {
+            _blockProposedSubject.OnNext(e);
         });
     }
 
