@@ -63,6 +63,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }
     }
 
+    public RoundCollection Rounds => _rounds;
+
     public ConsensusStep Step { get; private set; }
 
     public Proposal? Proposal { get; private set; }
@@ -115,34 +117,34 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         }.Sign(signer);
     }
 
-    public VoteSetBits GetVoteSetBits(ISigner signer, Maj23 maj23)
-    {
-        if (maj23.Height != Height)
-        {
-            throw new ArgumentException(
-                $"Maj23 height {maj23.Height} does not match expected height {Height}.", nameof(maj23));
-        }
+    // public VoteSetBits GetVoteSetBits(ISigner signer, Maj23 maj23)
+    // {
+    //     if (maj23.Height != Height)
+    //     {
+    //         throw new ArgumentException(
+    //             $"Maj23 height {maj23.Height} does not match expected height {Height}.", nameof(maj23));
+    //     }
 
-        if (maj23.Round < 0 || maj23.Round >= _rounds.Count)
-        {
-            throw new ArgumentOutOfRangeException(nameof(maj23), "Round is out of range.");
-        }
+    //     if (maj23.Round < 0 || maj23.Round >= _rounds.Count)
+    //     {
+    //         throw new ArgumentOutOfRangeException(nameof(maj23), "Round is out of range.");
+    //     }
 
-        var round = _rounds[maj23.Round];
-        var votes = maj23.VoteType == VoteType.PreVote ? round.PreVotes : round.PreCommits;
+    //     var round = _rounds[maj23.Round];
+    //     var votes = maj23.VoteType == VoteType.PreVote ? round.PreVotes : round.PreCommits;
 
-        var voteBits = votes.GetVoteBits(maj23.BlockHash);
-        return new VoteSetBitsMetadata
-        {
-            Height = Height,
-            Round = maj23.Round,
-            BlockHash = maj23.BlockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = maj23.Validator,
-            VoteType = maj23.VoteType,
-            VoteBits = [.. voteBits],
-        }.Sign(signer);
-    }
+    //     var voteBits = votes.GetVoteBits(maj23.BlockHash);
+    //     return new VoteSetBitsMetadata
+    //     {
+    //         Height = Height,
+    //         Round = maj23.Round,
+    //         BlockHash = maj23.BlockHash,
+    //         Timestamp = DateTimeOffset.UtcNow,
+    //         Validator = maj23.Validator,
+    //         VoteType = maj23.VoteType,
+    //         VoteBits = [.. voteBits],
+    //     }.Sign(signer);
+    // }
 
     public ImmutableArray<Vote> GetVotes(VoteSetBits voteSetBits)
     {

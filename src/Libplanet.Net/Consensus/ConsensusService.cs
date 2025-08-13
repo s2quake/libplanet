@@ -34,7 +34,7 @@ public sealed class ConsensusService : ServiceBase
 
     private Dispatcher? _dispatcher;
     private Consensus _consensus;
-    // private ConsensusCommunicator _communicator;
+    private ConsensusController _consensusController;
     private IDisposable[] _publishSubscriptions;
     private IDisposable[] _consensusSubscriptions;
     private CancellationTokenSource? _cancellationTokenSource;
@@ -61,8 +61,9 @@ public sealed class ConsensusService : ServiceBase
         };
         Height = _blockchain.Tip.Height + 1;
         _consensus = new Consensus(Height, _blockchain.GetValidators(Height), _consensusOption);
+        _consensusController = new ConsensusController(_signer, _consensus, _blockchain);
 
-        _publishSubscriptions = [.. Subscribe(_consensus, _gossip)];
+        _publishSubscriptions = [.. Subscribe(_consensusController, _gossip)];
         _consensusSubscriptions = [.. Subscribe(_consensus)];
         _blockchainSubscriptions =
         [
@@ -72,11 +73,10 @@ public sealed class ConsensusService : ServiceBase
         _handlerRegistration = _transport.MessageRouter.RegisterMany(
         [
             new ConsensusVoteSetBitsMessageHandler(this, _gossip),
-            new ConsensusMaj23MessageHandler(this, _gossip),
+            new ConsensusMaj23MessageHandler(signer, this, _gossip),
             new ConsensusProposalClaimMessageHandler(this, _gossip),
             new ConsensusMessageHandler(this),
         ]);
-        // _gossip.MessageHandlers.AddRange(_messageHandlers);
     }
 
     public IObservable<int> HeightChanged => _heightChangedSubject;
@@ -147,19 +147,18 @@ public sealed class ConsensusService : ServiceBase
         }
     }
 
-    private static IEnumerable<IDisposable> Subscribe(Consensus consensus, Gossip gossip)
+    private static IEnumerable<IDisposable> Subscribe(ConsensusController consensusController, Gossip gossip)
     {
-        // yield return consensus.ShouldPreVote.Subscribe(vote
-        //     => gossip.PublishMessage(new ConsensusPreVoteMessage { PreVote = vote }));
-        // yield return consensus.ShouldPreCommit.Subscribe(vote
-        //     => gossip.PublishMessage(new ConsensusPreCommitMessage { PreCommit = vote }));
-        // yield return consensus.ShouldQuorumReach.Subscribe(maj23
-        //     => gossip.PublishMessage(new ConsensusMaj23Message { Maj23 = maj23 }));
-        // yield return consensus.ShouldProposalClaim.Subscribe(proposalClaim
-        //     => gossip.PublishMessage(new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim }));
-        // yield return consensus.ShouldPropose.Subscribe(proposal
-        //     => gossip.PublishMessage(new ConsensusProposalMessage { Proposal = proposal }));
-        yield break;
+        yield return consensusController.PreVoted.Subscribe(vote
+            => gossip.PublishMessage(new ConsensusPreVoteMessage { PreVote = vote }));
+        yield return consensusController.PreCommitted.Subscribe(vote
+            => gossip.PublishMessage(new ConsensusPreCommitMessage { PreCommit = vote }));
+        yield return consensusController.ProposalClaimed.Subscribe(proposalClaim
+            => gossip.PublishMessage(new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim }));
+        yield return consensusController.Proposed.Subscribe(proposal
+            => gossip.PublishMessage(new ConsensusProposalMessage { Proposal = proposal }));
+        yield return consensusController.Majority23Observed.Subscribe(maj23
+            => gossip.PublishMessage(new ConsensusMaj23Message { Maj23 = maj23 }));
     }
 
     private IEnumerable<IDisposable> Subscribe(Consensus consensus)
@@ -189,11 +188,11 @@ public sealed class ConsensusService : ServiceBase
         });
         yield return consensus.StepChanged.Subscribe(e =>
         {
-            _dispatcher?.Post((Action)(() =>
+            _dispatcher?.Post(() =>
             {
-                this.Step = e.Step;
+                Step = e.Step;
                 _stepChangedSubject.OnNext(e.Step);
-            }));
+            });
         });
 
         yield return consensus.Finalized.Subscribe(e =>
@@ -202,13 +201,6 @@ public sealed class ConsensusService : ServiceBase
             var blockCommit = e.BlockCommit;
             _ = Task.Run(() => _blockchain.Append(block, blockCommit));
         });
-        // yield return consensus.ShouldPropose.Subscribe(proposal =>
-        // {
-        //     _dispatcher?.Post(() =>
-        //     {
-        //         _blockProposeSubject.OnNext(proposal);
-        //     });
-        // });
     }
 
     public int Height { get; private set; }
@@ -220,6 +212,9 @@ public sealed class ConsensusService : ServiceBase
     public Consensus Consensus => _consensus;
 
     public ImmutableArray<Peer> Validators => [.. _gossip.Peers];
+
+    internal Dispatcher Dispatcher
+        => _dispatcher ?? throw new InvalidOperationException("Consensus reactor is not running.");
 
     public async Task NewHeightAsync(int height, CancellationToken cancellationToken)
     {
@@ -239,10 +234,12 @@ public sealed class ConsensusService : ServiceBase
             Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
             Array.ForEach(_publishSubscriptions, subscription => subscription.Dispose());
 
+            _consensusController.Dispose();
             await _consensus.StopAsync(cancellationToken);
             await _consensus.DisposeAsync();
             _consensus = new Consensus(height, _blockchain.GetValidators(height), _consensusOption);
-            _publishSubscriptions = [.. Subscribe(_consensus, _gossip)];
+            _consensusController = new ConsensusController(_signer, _consensus, _blockchain);
+            _publishSubscriptions = [.. Subscribe(_consensusController, _gossip)];
             _consensusSubscriptions = [.. Subscribe(_consensus)];
             await _consensus.StartAsync(cancellationToken);
             Height = height;
@@ -265,7 +262,6 @@ public sealed class ConsensusService : ServiceBase
 
         _pendingMessages.RemoveWhere(message => message.Height <= height);
     }
-
 
     public Task<bool> HandleMessageAsync(ConsensusMessage consensusMessage, CancellationToken cancellationToken)
     {
@@ -356,23 +352,23 @@ public sealed class ConsensusService : ServiceBase
         _dispatcher.Post(() => _consensus.PreCommit(vote));
     }
 
-    public VoteSetBits? HandleMaj23(Maj23 maj23)
-    {
-        int height = maj23.Height;
-        if (height < Height)
-        {
-            // logging
-        }
-        else
-        {
-            if (_consensus.Height == height && _consensus.AddPreVoteMaj23(maj23))
-            {
-                return _consensus.GetVoteSetBits(_signer, maj23);
-            }
-        }
+    // public VoteSetBits? HandleMaj23(Maj23 maj23)
+    // {
+    //     int height = maj23.Height;
+    //     if (height < Height)
+    //     {
+    //         // logging
+    //     }
+    //     else
+    //     {
+    //         if (_consensus.Height == height && _consensus.AddPreVoteMaj23(maj23))
+    //         {
+    //             return _consensus.GetVoteSetBits(_signer, maj23);
+    //         }
+    //     }
 
-        return null;
-    }
+    //     return null;
+    // }
 
     public IEnumerable<ConsensusMessage> HandleVoteSetBits(VoteSetBits voteSetBits)
     {
@@ -493,6 +489,7 @@ public sealed class ConsensusService : ServiceBase
         Array.ForEach(_blockchainSubscriptions, subscription => subscription.Dispose());
         Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
         _consensusSubscriptions = [];
+        _consensusController.Dispose();
         await _consensus.DisposeAsync();
         await _transport.DisposeAsync();
         _cancellationTokenSource?.Dispose();

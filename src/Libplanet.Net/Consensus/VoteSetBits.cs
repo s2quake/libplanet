@@ -1,10 +1,19 @@
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed record class VoteSetBits : IEquatable<VoteSetBits>
+[Model(Version = 1, TypeName = "VoteSetBits")]
+public sealed partial record class VoteSetBits : IEquatable<VoteSetBits>
 {
+    [Property(0)]
+    public required VoteSetBitsMetadata Metadata { get; init; }
+
+    [Property(1)]
+    [NotDefault]
+    public required ImmutableArray<byte> Signature { get; init; }
+
     public int Height => Metadata.Height;
 
     public int Round => Metadata.Round;
@@ -18,10 +27,6 @@ public sealed record class VoteSetBits : IEquatable<VoteSetBits>
     public VoteType VoteType => Metadata.VoteType;
 
     public ImmutableArray<bool> VoteBits => Metadata.VoteBits;
-
-    public required VoteSetBitsMetadata Metadata { get; init; }
-
-    public required ImmutableArray<byte> Signature { get; init; }
 
     public bool Verify()
     {

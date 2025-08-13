@@ -94,49 +94,9 @@ public sealed class Round
         votes.Add(vote);
     }
 
-    public void PreVote(Vote vote)
-    {
-        // if (vote.Height != Height || vote.Round != Index || vote.Type != VoteType.PreVote)
-        // {
-        //     throw new ArgumentException("Invalid vote for PreVote.", nameof(vote));
-        // }
+    public void PreVote(Vote vote) => Vote(_preVotes, _preVoteMaj23s, vote);
 
-        // var validator = vote.Validator;
-        // var blockHash = vote.BlockHash;
-        // if (_preVotes.TryGetValue(validator, out var existingVote))
-        // {
-        //     if (existingVote.BlockHash == vote.BlockHash)
-        //     {
-        //         throw new ArgumentException("Vote already exists.", nameof(vote));
-        //     }
-        //     else if (_preVotes.HasTwoThirdsMajority && _preVotes.GetMajority23() == vote.BlockHash)
-        //     {
-        //         _preVotes.Remove(validator);
-        //     }
-        //     else if (!_preVoteMaj23s.HasMaj23(blockHash))
-        //     {
-        //         throw new DuplicateVoteException("Duplicate PreVote detected.", existingVote, vote);
-        //     }
-        //     else
-        //     {
-        //         _preVotes.Remove(validator);
-        //     }
-        // }
-
-        // _preVotes.Add(vote);
-        Vote(_preVotes, _preVoteMaj23s, vote);
-    }
-
-    public void PreCommit(Vote vote)
-    {
-        // if (vote.Height != Height || vote.Round != Index || vote.Type != VoteType.PreCommit)
-        // {
-        //     throw new ArgumentException("Invalid vote for PreCommit.", nameof(vote));
-        // }
-
-        // _preCommits.Add(vote);
-        Vote(_preCommits, _preCommitMaj23s, vote);
-    }
+    public void PreCommit(Vote vote) => Vote(_preCommits, _preCommitMaj23s, vote);
 
     public void PreVoteMaj23(Maj23 maj23)
     {

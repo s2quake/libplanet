@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-internal sealed class RoundCollection : IEnumerable<Round>
+public sealed class RoundCollection : IEnumerable<Round>
 {
     private readonly int _height;
     private readonly ImmutableSortedSet<Validator> _validators;

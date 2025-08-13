@@ -50,18 +50,6 @@ public sealed class Gossip : IAsyncDisposable
         }
     }
 
-
-    // public void Dispose()
-    // {
-    //     if (!_disposed)
-    //     {
-    //         _handlerRegistration.Dispose();
-    //         _messages.Clear();
-    //         _disposed = true;
-    //         GC.SuppressFinalize(this);
-    //     }
-    // }
-
     public void ClearCache()
     {
         _messages.Clear();
