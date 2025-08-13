@@ -31,9 +31,10 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.MakeBlockchain();
-        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
         await using var consensusService = TestUtils.CreateConsensusService(
-            transport,
+            transportB,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
@@ -55,48 +56,54 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[1],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[1])
-        }, default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[1],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[1])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
+                PreCommit = new VoteBuilder
+                {
                     Validator = TestUtils.Validators[2],
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-            }.Create(privateKeys[2])
-        }, default);
+                }.Create(privateKeys[2])
+            });
 
         await consensusService.WaitUntilAsync(
             height: 4,
@@ -131,9 +138,10 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.MakeBlockchain();
-        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
         await using var consensusService = TestUtils.CreateConsensusService(
-            transport: transport,
+            transport: transportB,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
@@ -152,50 +160,54 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 4,
-                BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 4,
+                    BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[1],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[1])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[1],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[1])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[2],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[2])
-        },
-        default);
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[2],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[2])
+            });
 
         await consensusService.WaitUntilAsync(
             height: 4,
@@ -209,9 +221,10 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.MakeBlockchain();
-        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
         await using var consensusService = TestUtils.CreateConsensusService(
-            transport,
+            transportB,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[3]);
@@ -230,51 +243,55 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                Round = 1,
-                BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                Type = VoteType.PreCommit
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    Round = 1,
+                    BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+                    Type = VoteType.PreCommit
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[1],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[1])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[1],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[1])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[2],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[2])
-        },
-        default);
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[2],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[2])
+            });
 
         await consensusService.WaitUntilAsync(
             height: 4,
@@ -288,9 +305,10 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.MakeBlockchain();
-        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
         await using var consensusService = TestUtils.CreateConsensusService(
-            transport: transport,
+            transport: transportB,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
@@ -309,50 +327,54 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreVoteMessage
-        {
-            PreVote = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreVoteMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                Type = VoteType.PreVote,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreVote = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+                    Type = VoteType.PreVote,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[1],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[1])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[1],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[1])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[2],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[2])
-        },
-        default);
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[2],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[2])
+            });
 
         await consensusService.WaitUntilAsync(
             height: 4,
@@ -366,9 +388,10 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.MakeBlockchain();
-        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
         await using var consensusService = TestUtils.CreateConsensusService(
-            transport,
+            transportB,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[3]);
@@ -387,50 +410,54 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[1],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[1])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[1],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[1])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[2],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[2])
-        },
-        default);
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[2],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[2])
+            });
 
         await consensusService.WaitUntilAsync(
             height: 4,
@@ -444,9 +471,10 @@ public class DuplicateVoteEvidenceTest
     {
         var privateKeys = TestUtils.PrivateKeys;
         var blockchain = TestUtils.MakeBlockchain();
-        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
         await using var consensusService = TestUtils.CreateConsensusService(
-            transport,
+            transportB,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: privateKeys[3]);
@@ -465,50 +493,54 @@ public class DuplicateVoteEvidenceTest
         var consensusProposalMsgAt3 = consensusProposalMsgAt3Task.Result;
         var blockHash = consensusProposalMsgAt3.BlockHash;
 
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[0],
-                Height = 3,
-                BlockHash = default,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[0])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[0],
+                    Height = 3,
+                    BlockHash = default,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[0])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[1],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[1])
-        },
-        default);
-        await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage
-        {
-            PreCommit = new VoteBuilder
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[1],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[1])
+            });
+        transportA.Post(
+            transportB.Peer,
+            new ConsensusPreCommitMessage
             {
-                Validator = TestUtils.Validators[2],
-                Height = 3,
-                BlockHash = blockHash,
-                Type = VoteType.PreCommit,
-            }.Create(privateKeys[2])
-        },
-        default);
+                PreCommit = new VoteBuilder
+                {
+                    Validator = TestUtils.Validators[2],
+                    Height = 3,
+                    BlockHash = blockHash,
+                    Type = VoteType.PreCommit,
+                }.Create(privateKeys[2])
+            });
 
         await consensusService.WaitUntilAsync(
             height: 4,

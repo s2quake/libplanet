@@ -82,7 +82,9 @@ public static class TestUtils
         Libplanet.Tests.TestUtils.CreateBlockCommit(blockHash, height, round);
 
     public static async Task HandleFourPeersPreCommitMessages(
-        ConsensusService consensusContext,
+        ITransport transportA,
+        ITransport transportB,
+        ConsensusService consensusService,
         PrivateKey nodePrivateKey,
         BlockHash roundBlockHash)
     {
@@ -96,21 +98,21 @@ public static class TestUtils
                 continue;
             }
 
-            await consensusContext.HandleMessageAsync(
+            transportA.Post(
+                transportB.Peer,
                 new ConsensusPreCommitMessage
                 {
                     PreCommit = new VoteMetadata
                     {
-                        Height = consensusContext.Height,
-                        Round = consensusContext.Round,
+                        Height = consensusService.Height,
+                        Round = consensusService.Round,
                         BlockHash = roundBlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = privateKey.Address,
                         ValidatorPower = power,
                         Type = VoteType.PreCommit,
                     }.Sign(privateKey)
-                },
-                default);
+                });
         }
     }
 
@@ -179,7 +181,9 @@ public static class TestUtils
     }
 
     public static async Task HandleFourPeersPreVoteMessages(
-        ConsensusService consensusContext,
+        ITransport transportA,
+        ITransport transportB,
+        ConsensusService consensusService,
         PrivateKey nodePrivateKey,
         BlockHash roundBlockHash)
     {
@@ -193,21 +197,21 @@ public static class TestUtils
                 continue;
             }
 
-            await consensusContext.HandleMessageAsync(
+            transportA.Post(
+                transportB.Peer,
                 new ConsensusPreVoteMessage
                 {
                     PreVote = new VoteMetadata
                     {
-                        Height = consensusContext.Height,
-                        Round = consensusContext.Round,
+                        Height = consensusService.Height,
+                        Round = consensusService.Round,
                         BlockHash = roundBlockHash,
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = privateKey.Address,
                         ValidatorPower = power,
                         Type = VoteType.PreVote,
                     }.Sign(privateKey)
-                },
-                default);
+                });
         }
     }
 

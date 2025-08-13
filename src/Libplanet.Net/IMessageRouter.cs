@@ -10,17 +10,5 @@ public interface IMessageRouter
 
     IDisposable Register(IMessageHandler handler);
 
-    // IDisposable Register<T>(Action<T, MessageEnvelope> action)
-    //     where T : IMessage;
-
-    // IDisposable Register<T>(Action<T> action)
-    //     where T : IMessage;
-
-    // IDisposable Register<T>(Func<T, CancellationToken> func)
-    //     where T : IMessage;
-    
-    // IDisposable Register<T>(Func<T, CancellationToken> func)
-    //     where T : IMessage;
-
     IDisposable RegisterMany(ImmutableArray<IMessageHandler> handlers);
 }

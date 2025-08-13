@@ -52,23 +52,6 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
         return new Unregister(this, [handler]);
     }
 
-    // public IDisposable Register<T>(Action<T, MessageEnvelope> action)
-    //     where T : IMessage
-    // {
-    //     var handler = new RelayMessageHandler<T>(action);
-    //     AddInternal(handler);
-    //     return new Unregister(this, [handler]);
-    // }
-
-    // public IDisposable Register<T>(Action<T> action)
-    //     where T : IMessage
-    // {
-    //     var handler = new RelayMessageHandler<T>(action);
-    //     AddInternal(handler);
-    //     return new Unregister(this, [handler]);
-    // }
-
-
     public IDisposable RegisterMany(ImmutableArray<IMessageHandler> handlers)
     {
         using var _ = _lock.WriteScope();

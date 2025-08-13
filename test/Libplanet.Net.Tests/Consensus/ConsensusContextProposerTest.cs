@@ -13,9 +13,10 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
     public async Task IncreaseRoundWhenTimeout()
     {
         var blockchain = TestUtils.MakeBlockchain();
-        await using var transport = TestUtils.CreateTransport();
+        await using var transportA = TestUtils.CreateTransport();
+        await using var transportB = TestUtils.CreateTransport();
         await using var consensusService = TestUtils.CreateConsensusService(
-            transport,
+            transportB,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
             key: TestUtils.PrivateKeys[1]);
@@ -42,7 +43,8 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
         Assert.Equal(0, consensusService.Round);
 
         // Triggers timeout +2/3 with NIL and Block
-        await consensusService.HandleMessageAsync(
+        transportA.Post(
+            transportB.Peer,
             new ConsensusPreVoteMessage
             {
                 PreVote = new VoteBuilder
@@ -51,10 +53,10 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
                     Height = 1,
                     Type = VoteType.PreVote,
                 }.Create(TestUtils.PrivateKeys[2])
-            },
-            default);
+            });
 
-        await consensusService.HandleMessageAsync(
+        transportA.Post(
+            transportB.Peer,
             new ConsensusPreVoteMessage
             {
                 PreVote = new VoteBuilder
@@ -63,12 +65,12 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
                     Height = 1,
                     Type = VoteType.PreVote,
                 }.Create(TestUtils.PrivateKeys[3])
-            },
-            default);
+            });
 
         Assert.True(timeoutProcessed.WaitOne(10000), "Timeout did not occur as expected.");
 
-        await consensusService.HandleMessageAsync(
+        transportA.Post(
+            transportB.Peer,
             new ConsensusPreCommitMessage
             {
                 PreCommit = new VoteBuilder
@@ -77,10 +79,10 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
                     Height = 1,
                     Type = VoteType.PreCommit,
                 }.Create(TestUtils.PrivateKeys[2])
-            },
-            default);
+            });
 
-        await consensusService.HandleMessageAsync(
+        transportA.Post(
+            transportB.Peer,
             new ConsensusPreCommitMessage
             {
                 PreCommit = new VoteBuilder
@@ -89,8 +91,7 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
                     Height = 1,
                     Type = VoteType.PreCommit,
                 }.Create(TestUtils.PrivateKeys[3])
-            },
-            default);
+            });
 
         Assert.True(timeoutProcessed.WaitOne(10000), "Timeout did not occur as expected.");
         Assert.Equal(1, consensusService.Height);
