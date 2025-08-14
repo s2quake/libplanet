@@ -29,6 +29,8 @@ public sealed record class MessageEnvelope
     [Property(7)]
     public TimeSpan ReplyTimeout { get; init; }
 
+    public Type MessageType => Message.GetType();
+
     public void Validate(Protocol protocol, TimeSpan lifetime)
     {
         if (lifetime < TimeSpan.Zero)

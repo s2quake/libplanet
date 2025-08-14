@@ -12,7 +12,7 @@ namespace Libplanet.Net;
 public sealed class Transport(ISigner signer, TransportOptions options) : ServiceBase, ITransport
 {
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
-    private readonly MessageRouter _messageRouter = new(options.Protocol.Hash);
+    private readonly MessageRouter _messageRouter = new();
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
     private readonly TransportPeer _peer = new(signer.Address, options.Host, options.Port);
     private Channel<MessageRequest>? _sendChannel;

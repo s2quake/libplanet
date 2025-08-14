@@ -3,6 +3,7 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Net.Components;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;
+using System.Reactive.Linq;
 
 namespace Libplanet.Net.Tests;
 
@@ -70,11 +71,22 @@ public partial class SwarmTest
         };
         await using var transportA = TestUtils.CreateTransport(options: v1);
         await using var transportB = TestUtils.CreateTransport(options: v2);
+        using var _1 = transportB.MessageRouter.RegisterReceivedMessageValidation<PingMessage>((m, e) =>
+        {
+            if (e.ProtocolHash != v2.Protocol.Hash)
+            {
+                throw new InvalidProtocolException("Received message with invalid protocol hash.")
+                {
+                    ProtocolHash = e.ProtocolHash,
+                };
+            }
+        });
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
 
-        var waitTask = transportB.MessageRouter.InvalidProtocol.WaitAsync(m => m.Message is PingMessage);
+        var waitTask = transportB.MessageRouter.ReceivedMessageValidationFailed.WaitAsync(
+            predicate: e => e.Exception is InvalidProtocolException);
         await Assert.ThrowsAsync<TimeoutException>(() => transportA.PingAsync(transportB.Peer, default));
         await waitTask.WaitAsync(TimeSpan.FromSeconds(5));
     }

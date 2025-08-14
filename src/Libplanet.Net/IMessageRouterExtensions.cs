@@ -19,4 +19,33 @@ public static class IMessageRouterExtensions
     public static IDisposable Register<T>(this IMessageRouter @this, Func<T, CancellationToken, Task> func)
         where T : IMessage
         => @this.Register(new RelayMessageAsyncHandler<T>(func));
+
+    public static IDisposable RegisterMany(this IMessageRouter @this, ImmutableArray<IMessageHandler> handlers)
+    {
+        var handlerList = new List<IDisposable>(handlers.Length);
+        foreach (var handler in handlers)
+        {
+            @this.Register(handler);
+        }
+
+        return new DisposerCollection(handlerList);
+    }
+
+    public static IDisposable RegisterSendingMessageValidation<T>(this IMessageRouter @this, Action<T> action)
+        where T : IMessage
+        => @this.Register(new RelaySendingMessageValidator<T>(action));
+
+    public static IDisposable RegisterSendingMessageValidation<T>(
+        this IMessageRouter @this, Action<T, MessageEnvelope> action)
+        where T : IMessage
+        => @this.Register(new RelaySendingMessageValidator<T>(action));
+
+    public static IDisposable RegisterReceivedMessageValidation<T>(this IMessageRouter @this, Action<T> action)
+        where T : IMessage
+        => @this.Register(new RelayReceivedMessageValidator<T>(action));
+
+    public static IDisposable RegisterReceivedMessageValidation<T>(
+        this IMessageRouter @this, Action<T, MessageEnvelope> action)
+        where T : IMessage
+        => @this.Register(new RelayReceivedMessageValidator<T>(action));
 }

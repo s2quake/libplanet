@@ -715,8 +715,8 @@ public partial class SwarmTest(ITestOutputHelper output)
         TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA, block), 100);
 
         await Task.WhenAll(
-            transportB.MessageRouter.ErrorOccurred.WaitAsync(
-                predicate: e => e.MessageHandler is BlockSummaryMessageHandler).WaitAsync(TimeSpan.FromSeconds(5)),
+            transportB.MessageRouter.MessageHandlingFailed.WaitAsync(
+                predicate: e => e.Handler is BlockSummaryMessageHandler).WaitAsync(TimeSpan.FromSeconds(5)),
             syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
 
         Assert.NotEqual(blockchainA.Genesis, blockchainB.Genesis);

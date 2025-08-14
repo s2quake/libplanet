@@ -25,7 +25,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     {
     }
 
-    public MessageRouter MessageRouter { get; } = new MessageRouter(options.Protocol.Hash);
+    public MessageRouter MessageRouter { get; } = new MessageRouter();
 
     public Peer Peer => _peer;
 
@@ -79,8 +79,8 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                var requestChannel = Channel.CreateUnbounded<MessageRequest>();
                var receiveChannel = Channel.CreateUnbounded<MessageEnvelope>();
                using var socket = new PullSocket();
-               var task1 = ProcessReceiveAsync(socket, Peer, receiveChannel, StoppingToken);
-               var task2 = ProcessSendAsync(signer, requestChannel, StoppingToken);
+               var task1 = ProcessReceiveAsync(socket, Peer, receiveChannel, MessageRouter, StoppingToken);
+               var task2 = ProcessSendAsync(signer, requestChannel, MessageRouter, StoppingToken);
                var task3 = ProcessHandleAsync(receiveChannel, MessageRouter, StoppingToken);
                tcs.SetResult((requestChannel, receiveChannel));
                runtime.Run(task1);
@@ -128,7 +128,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
     }
 
     private static async Task ProcessReceiveAsync(
-        PullSocket socket, Peer peer, Channel<MessageEnvelope> receiveChannel, CancellationToken cancellationToken)
+        PullSocket socket,
+        Peer peer,
+        Channel<MessageEnvelope> receiveChannel,
+        MessageRouter messageRouter,
+        CancellationToken cancellationToken)
     {
         var address = $"tcp://{peer.EndPoint.Host}:{peer.EndPoint.Port}";
         socket.Bind(address);
@@ -139,8 +143,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             {
                 var rawMessage = await socket.ReceiveMultipartMessageAsync(cancellationToken: cancellationToken);
                 var messageEnvelope = NetMQMessageCodec.Decode(rawMessage);
-                receiveChannel.Writer.TryWrite(messageEnvelope);
-                Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
+                if (messageRouter.VerifyReceivedMessage(messageEnvelope))
+                {
+                    receiveChannel.Writer.TryWrite(messageEnvelope);
+                    Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
+                }
             }
         }
         catch
@@ -153,7 +160,11 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         }
     }
 
-    private static async Task ProcessSendAsync(ISigner signer, Channel<MessageRequest> channel, CancellationToken cancellationToken)
+    private static async Task ProcessSendAsync(
+        ISigner signer,
+        Channel<MessageRequest> channel,
+        MessageRouter messageRouter,
+        CancellationToken cancellationToken)
     {
         var requestReader = channel.Reader;
         var _socketsByPeer = new Dictionary<Peer, PushSocket>();
@@ -163,14 +174,17 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             {
                 Trace.WriteLine("Send request: " + request.Identity);
                 var messageEnvelope = request.MessageEnvelope;
-                var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
-                var socket = GetPushSocket(request.Receiver);
-                if (!socket.TrySendMultipartMessage(rawMessage))
+                if (messageRouter.VerifySendingMessagre(messageEnvelope))
                 {
-                    throw new InvalidOperationException("Failed to send message to the dealer socket.");
-                }
+                    var rawMessage = NetMQMessageCodec.Encode(messageEnvelope, signer);
+                    var socket = GetPushSocket(request.Receiver);
+                    if (!socket.TrySendMultipartMessage(rawMessage))
+                    {
+                        throw new InvalidOperationException("Failed to send message to the dealer socket.");
+                    }
 
-                Trace.WriteLine($"Sent message: {messageEnvelope.Identity}");
+                    Trace.WriteLine($"Sent message: {messageEnvelope.Identity}");
+                }
             }
         }
         catch

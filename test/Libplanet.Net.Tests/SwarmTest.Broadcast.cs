@@ -173,8 +173,8 @@ public partial class SwarmTest
         await peerExplorerB.PingAsync(transportA.Peer, default);
 
         blockchainA.ProposeAndAppend(privateKeyA);
-        var waitTask = transportB.MessageRouter.ErrorOccurred.WaitAsync(
-            e => e.MessageHandler is BlockSummaryMessageHandler,
+        var waitTask = transportB.MessageRouter.MessageHandlingFailed.WaitAsync(
+            e => e.Handler is BlockSummaryMessageHandler,
             default);
         peerExplorerA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
         var result = await waitTask;

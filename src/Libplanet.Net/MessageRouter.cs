@@ -1,113 +1,120 @@
-using System.Collections;
-using System.Diagnostics;
 using System.Reactive.Subjects;
 using Libplanet.Net.Messages;
 using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
-public sealed class MessageRouter(ProtocolHash protocolHash)
-    : IEnumerable<IMessageHandler>, IAsyncDisposable, IMessageRouter
+public sealed class MessageRouter : IAsyncDisposable, IMessageRouter
 {
-    private readonly Subject<(IMessageHandler, Exception)> _errorOccurredSubject = new();
-    private readonly Subject<MessageEnvelope> _invalidProtocolSubject = new();
-    private readonly Dictionary<Type, List<IMessageHandler>> _handlersByType = [];
-    private readonly List<IMessageHandler> _handlerList = [];
+    private readonly Subject<(IMessageHandler, Exception)> _messageHandlingFailed = new();
+    private readonly Subject<(ISendingMessageValidator, Exception)> _sendingMessageValidationFailedSubject = new();
+    private readonly Subject<(IReceivedMessageValidator, Exception)> _receivedMessageValidationFailedSubject = new();
+    private readonly MessageHandlerCollection _handlers = [];
+    private readonly SendingMessageValidatorCollection _sendingValidators = [];
+    private readonly ReceivedMessageValidatorCollection _receivedValidators = [];
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
 
-    public IObservable<(IMessageHandler, Exception)> ErrorOccurred => _errorOccurredSubject;
+    public IObservable<(IMessageHandler, Exception)> MessageHandlingFailed => _messageHandlingFailed;
 
-    public IObservable<MessageEnvelope> InvalidProtocol => _invalidProtocolSubject;
+    public IObservable<(ISendingMessageValidator, Exception)> SendingMessageValidationFailed
+        => _sendingMessageValidationFailedSubject;
 
-    public int Count
-    {
-        get
-        {
-            using var _ = _lock.ReadScope();
-            return _handlerList.Count;
-        }
-    }
+    public IObservable<(IReceivedMessageValidator, Exception)> ReceivedMessageValidationFailed
+        => _receivedMessageValidationFailedSubject;
 
     public async ValueTask DisposeAsync()
     {
-        _errorOccurredSubject.Dispose();
-        foreach (var handler in _handlerList)
-        {
-            if (handler is IAsyncDisposable asyncDisposable)
-            {
-                await asyncDisposable.DisposeAsync();
-            }
-
-            if (handler is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-        }
+        _messageHandlingFailed.Dispose();
+        _sendingMessageValidationFailedSubject.Dispose();
+        _receivedMessageValidationFailedSubject.Dispose();
+        _lock.Dispose();
+        await ValueTask.CompletedTask;
     }
 
     public IDisposable Register(IMessageHandler handler)
     {
         using var _ = _lock.WriteScope();
-        AddInternal(handler);
-        return new Unregister(this, [handler]);
+        _handlers.Add(handler);
+        return new Unregister(() => Remove(handler));
     }
 
-    public IDisposable RegisterMany(ImmutableArray<IMessageHandler> handlers)
+    public IDisposable Register(ISendingMessageValidator validator)
     {
         using var _ = _lock.WriteScope();
-        foreach (var handler in handlers)
-        {
-            AddInternal(handler);
-        }
-
-        return new Unregister(this, handlers);
+        _sendingValidators.Add(validator);
+        return new Unregister(() => Remove(validator));
     }
 
-    public void UnregisterMany(IEnumerable<IMessageHandler> handlers)
+    public IDisposable Register(IReceivedMessageValidator validator)
     {
         using var _ = _lock.WriteScope();
-        foreach (var handler in handlers)
-        {
-            RemoveInternal(handler);
-        }
+        _receivedValidators.Add(validator);
+        return new Unregister(() => Remove(validator));
     }
 
     public bool Contains(Type messageType)
     {
         using var _ = new ReadScope(_lock);
-        return _handlersByType.ContainsKey(messageType);
+        return _handlers.Contains(messageType);
+    }
+
+    public bool VerifySendingMessagre(MessageEnvelope messageEnvelope)
+    {
+        var validators = GetValidators();
+        foreach (var validator in validators)
+        {
+            try
+            {
+                validator.Validate(messageEnvelope);
+            }
+            catch (Exception e)
+            {
+                _sendingMessageValidationFailedSubject.OnNext((validator, e));
+                return false;
+            }
+        }
+
+        return true;
+
+        ImmutableArray<ISendingMessageValidator> GetValidators()
+        {
+            using var _ = new ReadScope(_lock);
+            return _sendingValidators.GetAll(messageEnvelope.MessageType);
+        }
+    }
+
+    public bool VerifyReceivedMessage(MessageEnvelope messageEnvelope)
+    {
+        var validators = GetValidators();
+        foreach (var validator in validators)
+        {
+            try
+            {
+                validator.Validate(messageEnvelope);
+            }
+            catch (Exception e)
+            {
+                _receivedMessageValidationFailedSubject.OnNext((validator, e));
+                return false;
+            }
+        }
+
+        return true;
+
+        ImmutableArray<IReceivedMessageValidator> GetValidators()
+        {
+            using var _ = new ReadScope(_lock);
+            return _receivedValidators.GetAll(messageEnvelope.MessageType);
+        }
     }
 
     public async Task HandleAsync(MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
-        if (messageEnvelope.ProtocolHash != protocolHash)
-        {
-            _invalidProtocolSubject.OnNext(messageEnvelope);
-            return;
-        }
+        var message = messageEnvelope.Message;
+        var messageType = message.GetType();
+        var handlers = GetHandlers(messageType);
 
-        var handlerList = new List<IMessageHandler>();
-        using (new ReadScope(_lock))
-        {
-            var message = messageEnvelope.Message;
-            var messageType = message.GetType();
-            while (messageType is not null && typeof(IMessage).IsAssignableFrom(messageType))
-            {
-                if (_handlersByType.TryGetValue(messageType, out var handlers1))
-                {
-                    handlerList.AddRange(handlers1);
-                }
-
-                messageType = messageType.BaseType;
-            }
-
-            if (_handlersByType.TryGetValue(typeof(IMessage), out var handlers2))
-            {
-                handlerList.AddRange(handlers2);
-            }
-        }
-
-        await Parallel.ForEachAsync(handlerList, cancellationToken, async (handler, cancellationToken) =>
+        await Parallel.ForEachAsync(handlers, cancellationToken, async (handler, cancellationToken) =>
         {
             try
             {
@@ -115,53 +122,36 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
             }
             catch (Exception e)
             {
-                _errorOccurredSubject.OnNext((handler, e));
+                _messageHandlingFailed.OnNext((handler, e));
             }
         });
+
+        ImmutableArray<IMessageHandler> GetHandlers(Type messageType)
+        {
+            using var _ = new ReadScope(_lock);
+            return _handlers.GetAll(messageType);
+        }
     }
 
-    public IEnumerator<IMessageHandler> GetEnumerator()
+    private void Remove(IMessageHandler handler)
     {
-        foreach (var item in _handlerList.ToArray())
-        {
-            yield return item;
-        }
+        using var _ = _lock.WriteScope();
+        _handlers.Remove(handler);
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    private void AddInternal(IMessageHandler handler)
+    private void Remove(ISendingMessageValidator validator)
     {
-        if (!_handlersByType.TryGetValue(handler.MessageType, out var handlers1))
-        {
-            handlers1 = [];
-        }
-
-        handlers1.Add(handler);
-        _handlersByType[handler.MessageType] = handlers1;
-        _handlerList.Add(handler);
+        using var _ = _lock.WriteScope();
+        _sendingValidators.Remove(validator);
     }
 
-    private void RemoveInternal(IMessageHandler handler)
+    private void Remove(IReceivedMessageValidator validator)
     {
-        if (!_handlersByType.TryGetValue(handler.MessageType, out var value))
-        {
-            return;
-        }
-
-        var removed = value.Remove(handler);
-        if (removed && !_handlerList.Remove(handler))
-        {
-            throw new UnreachableException("Failed to remove handler from the list.");
-        }
-
-        if (value.Count == 0)
-        {
-            _handlersByType.Remove(handler.MessageType);
-        }
+        using var _ = _lock.WriteScope();
+        _receivedValidators.Remove(validator);
     }
 
-    private sealed class Unregister(MessageRouter router, ImmutableArray<IMessageHandler> handlers)
+    private sealed class Unregister(Action action)
         : IDisposable
     {
         private bool _disposed;
@@ -170,7 +160,7 @@ public sealed class MessageRouter(ProtocolHash protocolHash)
         {
             if (!_disposed)
             {
-                router.UnregisterMany(handlers);
+                action();
                 _disposed = true;
                 GC.SuppressFinalize(this);
             }
