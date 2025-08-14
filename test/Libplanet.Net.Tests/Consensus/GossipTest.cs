@@ -45,7 +45,7 @@ public sealed class GossipTest
         });
 
         var message = TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1);
-        gossip1.PublishMessage(message);
+        gossip1.Broadcast(message);
 
         await Task.WhenAll(tcs1.Task, tcs2.Task).WaitAsync(TimeSpan.FromSeconds(5));
         Assert.True(tcs1.Task.IsCompletedSuccessfully);
@@ -102,7 +102,7 @@ public sealed class GossipTest
         await transports.StartAsync(default);
 
 
-        Parallel.ForEach(messages, gossip1.PublishMessage);
+        Parallel.ForEach(messages, gossip1.Broadcast);
 
         await Task.WhenAll(tcs1.Task, tcs2.Task).WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(4, received1);
@@ -156,7 +156,7 @@ public sealed class GossipTest
 
         await transports.StartAsync(default);
 
-        gossipB.PublishMessage(new PingMessage());
+        gossipB.Broadcast(new PingMessage());
 
         await Assert.ThrowsAsync<TimeoutException>(() => tcs.Task.WaitAsync(TimeSpan.FromSeconds(2)));
     }

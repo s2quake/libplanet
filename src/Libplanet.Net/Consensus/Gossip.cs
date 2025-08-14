@@ -8,7 +8,6 @@ public sealed class Gossip : IAsyncDisposable
     private const int DLazy = 6;
     private readonly ITransport _transport;
     private readonly MessageCollection _messages = new();
-    private readonly HashSet<Peer> _deniedPeers = [];
     private readonly IDisposable _handlerRegistration;
     private readonly PeerMessageIdCollection _peerMessageIds = [];
     private readonly MessageRequester _messageRequester;
@@ -18,6 +17,7 @@ public sealed class Gossip : IAsyncDisposable
     {
         _transport = transport;
         Peers = peers;
+        DeniedPeers = new PeerCollection(transport.Peer.Address);
         _handlerRegistration = _transport.MessageRouter.RegisterMany(
         [
             new HaveMessageHandler(peers, _messages, _peerMessageIds),
@@ -34,7 +34,7 @@ public sealed class Gossip : IAsyncDisposable
 
     public PeerCollection Peers { get; }
 
-    public ImmutableArray<Peer> DeniedPeers => [.. _deniedPeers];
+    public PeerCollection DeniedPeers { get; }
 
     public async ValueTask DisposeAsync()
     {
@@ -48,12 +48,7 @@ public sealed class Gossip : IAsyncDisposable
         }
     }
 
-    public void ClearCache()
-    {
-        _messages.Clear();
-    }
-
-    public void PublishMessage(IMessage message)
+    public void Broadcast(IMessage message)
     {
         ImmutableArray<Peer> peers =
         [
@@ -61,10 +56,10 @@ public sealed class Gossip : IAsyncDisposable
             .. GetPeersToBroadcast(Peers, DLazy)
         ];
 
-        PublishMessage(peers, message);
+        Broadcast(peers, message);
     }
 
-    public void PublishMessage(ImmutableArray<Peer> targetPeers, params IMessage[] messages)
+    public void Broadcast(ImmutableArray<Peer> targetPeers, params IMessage[] messages)
     {
         foreach (var message in messages)
         {
@@ -73,26 +68,10 @@ public sealed class Gossip : IAsyncDisposable
         }
     }
 
-    public void DenyPeer(Peer peer)
-    {
-        _deniedPeers.Add(peer);
-    }
-
-    public void AllowPeer(Peer peer)
-    {
-        _deniedPeers.Remove(peer);
-    }
-
-    public void ClearDenySet()
-    {
-        _deniedPeers.Clear();
-    }
-
-    private ImmutableArray<Peer> GetPeersToBroadcast(IEnumerable<Peer> peers, int count)
+    private static ImmutableArray<Peer> GetPeersToBroadcast(IEnumerable<Peer> peers, int count)
     {
         var random = new Random();
         var query = from peer in peers
-                        // where !_seeds.Contains(peer)
                     orderby random.Next()
                     select peer;
 
