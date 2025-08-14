@@ -47,7 +47,7 @@ public partial class SwarmTest
         _ = Task.Run(async () =>
         {
             await Task.Delay(100);
-            consensus.PreVote(vote);
+            consensus.PostPreVote(vote);
         });
 
         await consensusService.StepChanged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));

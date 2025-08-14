@@ -98,7 +98,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         return false;
     }
 
-    public void Propose(Proposal proposal)
+    public void PostPropose(Proposal proposal)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
@@ -119,7 +119,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         });
     }
 
-    public void PreVote(Vote vote)
+    public void PostPreVote(Vote vote)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
@@ -153,7 +153,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         });
     }
 
-    public void PreCommit(Vote vote)
+    public void PostPreCommit(Vote vote)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)

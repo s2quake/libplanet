@@ -9,15 +9,15 @@ public static class ConsensusExtensions
     {
         if (consensusMessage is ConsensusPreVoteMessage preVoteMessage)
         {
-            @this.PreVote(preVoteMessage.PreVote);
+            @this.PostPreVote(preVoteMessage.PreVote);
         }
         else if (consensusMessage is ConsensusPreCommitMessage preCommitMessage)
         {
-            @this.PreCommit(preCommitMessage.PreCommit);
+            @this.PostPreCommit(preCommitMessage.PreCommit);
         }
         else if (consensusMessage is ConsensusProposalMessage proposalMessage)
         {
-            @this.Propose(proposalMessage.Proposal);
+            @this.PostPropose(proposalMessage.Proposal);
         }
     }
 

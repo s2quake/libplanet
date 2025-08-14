@@ -68,7 +68,6 @@ public sealed class ConsensusController : IDisposable
                         Timestamp = DateTimeOffset.UtcNow,
                         ValidRound = candidateProposal?.ValidRound ?? -1,
                     }.Create(_signer);
-                    _consensus.Propose(proposal);
                     _proposedSubject.OnNext(proposal);
                 }
                 break;
@@ -83,7 +82,6 @@ public sealed class ConsensusController : IDisposable
                     Timestamp = DateTimeOffset.UtcNow,
                     Type = VoteType.PreVote,
                 }.Create(_signer);
-                _consensus.PreVote(preVote);
                 _preVotedSubject.OnNext(preVote);
                 break;
 
@@ -98,7 +96,6 @@ public sealed class ConsensusController : IDisposable
                     ValidatorPower = _consensus.Validators.GetValidator(_signer.Address).Power,
                     Type = VoteType.PreCommit,
                 }.Sign(_signer);
-                _consensus.PreCommit(preCommit);
                 _preCommittedSubject.OnNext(preCommit);
                 break;
         }
@@ -116,7 +113,6 @@ public sealed class ConsensusController : IDisposable
             Validator = _signer.Address,
             VoteType = e.VoteType,
         }.Sign(_signer);
-        _consensus.AddPreVoteMaj23(maj23);
         _majority23ObservedSubject.OnNext(maj23);
     }
 

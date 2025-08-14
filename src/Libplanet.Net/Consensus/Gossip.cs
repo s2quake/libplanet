@@ -26,6 +26,8 @@ public sealed class Gossip : IAsyncDisposable
         _messageRequester = new MessageRequester(_transport, _messages, _peerMessageIds);
     }
 
+    public IMessageRouter MessageRouter => _transport.MessageRouter;
+
     public MessageCollection Messages => _messages;
 
     public PeerMessageIdCollection PeerMessageIds => _peerMessageIds;
