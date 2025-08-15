@@ -137,6 +137,7 @@ public partial class Blockchain
         blockCommit.Validate(block);
 
         _repository.Append(block, blockCommit);
+        _repository.Height = block.Height;
         _tipChangedSubject.OnNext(new(block));
         _blockExecutingSubject.OnNext(Unit.Default);
         var execution = _blockExecutor.Execute((RawBlock)block);

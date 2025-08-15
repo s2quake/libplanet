@@ -186,7 +186,6 @@ public class Repository
         CommittedTransactions.AddRange(block.Transactions);
         PendingEvidences.RemoveRange(block.Evidences);
         CommittedEvidences.AddRange(block.Evidences);
-        Height = block.Height;
     }
 
     public Block GetBlock(BlockHash blockHash)
