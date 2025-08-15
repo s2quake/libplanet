@@ -174,8 +174,7 @@ public partial class SwarmTest
 
         blockchainA.ProposeAndAppend(privateKeyA);
         var waitTask = transportB.MessageRouter.MessageHandlingFailed.WaitAsync(
-            e => e.Handler is BlockSummaryMessageHandler,
-            default);
+            predicate: e => e.Handler is BlockSummaryMessageHandler);
         peerExplorerA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
         var result = await waitTask;
         Assert.IsType<InvalidMessageException>(result.Exception);

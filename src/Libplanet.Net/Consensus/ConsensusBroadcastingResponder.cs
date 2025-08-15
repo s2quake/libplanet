@@ -17,7 +17,8 @@ public sealed class ConsensusBroadcastingResponder : IDisposable
             new ConsensusPreCommitMessageHandler(consensus, PendingMessages),
             new ConsensusProposalClaimMessageHandler(consensus, gossip),
             new ConsensusVoteBitsMessageHandler(consensus, gossip),
-            new ConsensusMaj23MessageHandler(signer, consensus, gossip),
+            new ConsensusPreVoteMaj23MessageHandler(signer, consensus, gossip),
+            new ConsensusPreCommitMaj23MessageHandler(signer, consensus, gossip),
         ]);
     }
 

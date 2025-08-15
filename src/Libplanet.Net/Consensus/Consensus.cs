@@ -13,7 +13,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     private readonly Subject<ConsensusStep> _timeoutOccurredSubject = new();
     private readonly Subject<(ConsensusStep, BlockHash BlockHash)> _stepChangedSubject = new();
     private readonly Subject<(Proposal, BlockHash)> _proposalClaimedSubject = new();
-    private readonly Subject<(Block, VoteType)> _majority23ObservedSubject = new();
+    private readonly Subject<Block> _preVoteMaj23ObservedSubject = new();
+    private readonly Subject<Block> _preCommitMaj23ObservedSubject = new();
     private readonly Subject<(Block, BlockCommit)> _finalizedSubject = new();
 
     private readonly Subject<Proposal> _proposedSubject = new();
@@ -43,7 +44,9 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
 
     public IObservable<(Proposal Proposal, BlockHash BlockHash)> ProposalClaimed => _proposalClaimedSubject;
 
-    public IObservable<(Block Block, VoteType VoteType)> Majority23Observed => _majority23ObservedSubject;
+    public IObservable<Block> PreVoteMaj23Observed => _preVoteMaj23ObservedSubject;
+
+    public IObservable<Block> PreCommitMaj23Observed => _preCommitMaj23ObservedSubject;
 
     public IObservable<(Block Block, BlockCommit BlockCommit)> Finalized => _finalizedSubject;
 
@@ -245,7 +248,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         _timeoutOccurredSubject.Dispose();
         _stepChangedSubject.Dispose();
         _proposalClaimedSubject.Dispose();
-        _majority23ObservedSubject.Dispose();
+        _preVoteMaj23ObservedSubject.Dispose();
+        _preCommitMaj23ObservedSubject.Dispose();
         _finalizedSubject.Dispose();
 
         _proposedSubject.Dispose();
@@ -543,7 +547,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
                 _preVoteProposal = proposal;
                 EnterPreCommitWait(round, proposal.BlockHash);
 
-                _majority23ObservedSubject.OnNext((proposal.Block, VoteType.PreVote));
+                _preVoteMaj23ObservedSubject.OnNext(proposal.Block);
             }
 
             ValidProposal = proposal;
@@ -584,7 +588,7 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             && IsValid(proposal.Block))
         {
             _decidedProposal = proposal;
-            _majority23ObservedSubject.OnNext((_decidedProposal.Block, VoteType.PreCommit));
+            _preCommitMaj23ObservedSubject.OnNext(_decidedProposal.Block);
             EnterEndCommitWait(Round);
             return;
         }

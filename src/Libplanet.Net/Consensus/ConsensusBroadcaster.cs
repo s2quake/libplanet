@@ -19,8 +19,10 @@ public sealed class ConsensusBroadcaster : IDisposable
                 e => gossip.Broadcast(new ConsensusProposalClaimMessage { ProposalClaim = e })),
             consensusController.ShouldPropose.Subscribe(
                 e => gossip.Broadcast(new ConsensusProposalMessage { Proposal = e })),
-            consensusController.ShouldMajority23.Subscribe(
-                e => gossip.Broadcast(new ConsensusMaj23Message { Maj23 = e })),
+            consensusController.ShouldPreVoteMaj23.Subscribe(
+                e => gossip.Broadcast(new ConsensusPreVoteMaj23Message { Maj23 = e })),
+            consensusController.ShouldPreCommitMaj23.Subscribe(
+                e => gossip.Broadcast(new ConsensusPreCommitMaj23Message { Maj23 = e })),
         ];
     }
 

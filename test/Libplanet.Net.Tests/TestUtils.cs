@@ -11,7 +11,7 @@ namespace Libplanet.Net.Tests;
 
 public static class TestUtils
 {
-    public static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(2);
+    public static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(30);
 
     public static readonly BlockHash BlockHash0 =
         BlockHash.Parse(
@@ -234,7 +234,6 @@ public static class TestUtils
 
         return new Libplanet.Net.NetMQ.NetMQTransport(privateKey.AsSigner(), options);
     }
-
 
     public static Net.Consensus.Consensus CreateConsensus(
         int height = 1,

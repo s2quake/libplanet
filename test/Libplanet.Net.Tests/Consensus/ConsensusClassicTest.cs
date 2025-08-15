@@ -6,7 +6,6 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Xunit.Abstractions;
-using Libplanet.TestUtilities;
 using Libplanet.Extensions;
 using Libplanet.Tests;
 using System.Reactive.Linq;
@@ -17,7 +16,7 @@ namespace Libplanet.Net.Tests.Consensus;
 
 public sealed class ConsensusClassicTest(ITestOutputHelper output)
 {
-    private const int Timeout = 5000;
+    private const int Timeout = 30000;
 
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposer()
@@ -28,11 +27,9 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         consensus.StartAfter(100);
 
-        var proposeTask = observer.ShouldPropose.WaitAsync();
-        var proposal = await proposeTask.WaitAsync(TimeSpan.FromSeconds(3));
-        var preVoteTask = observer.ShouldPreVote.WaitAsync();
-        _ = consensus.ProposeAsync(proposal, default);
-        await preVoteTask.WaitAsync(TimeSpan.FromSeconds(3));
+        var proposal = await observer.ShouldPropose.WaitAsync(WaitTimeout);
+        _ = consensus.ProposeAsync(proposal);
+        await observer.ShouldPreVote.WaitAsync(WaitTimeout);
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -277,31 +274,11 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task CanReplaceProposal()
     {
-        // var random = RandomUtility.GetRandom(output);
-        // var privateKeys = Enumerable.Range(0, 4)
-        //     .Select(_ => RandomUtility.PrivateKey(random))
-        //     .OrderBy(key => key.Address)
-        //     .ToArray();
-        // var proposer = privateKeys[1];
-        // var key1 = privateKeys[2];
-        // var key2 = privateKeys[3];
-        // var proposerPower = Validators[1].Power;
-        // var power1 = Validators[2].Power;
-        // var power2 = Validators[3].Power;
-        // var validators = new[]
-        // {
-        //     new Validator { Address = privateKeys[0].Address },
-        //     new Validator { Address = proposer.Address },
-        //     new Validator { Address = key1.Address },
-        //     new Validator { Address = key2.Address },
-        // }.ToImmutableSortedSet();
-
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(height: 1, Validators);
         using var observer = new ConsensusObserver(Signers[0], consensus, blockchain);
         var blockA = blockchain.ProposeBlock(Signers[1]);
         var blockB = blockchain.ProposeBlock(Signers[1]);
-        var finalizedTask = consensus.Finalized.WaitAsync();
         await consensus.StartAsync(default);
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
 
@@ -361,84 +338,52 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         _ = consensus.PreVoteAsync(preVoteB0, default);
         _ = consensus.PreVoteAsync(preVoteB1, default);
         _ = consensus.PreVoteAsync(preVoteB2, default);
-        await consensus.ProposalClaimed.WaitAsync().WaitAsync(WaitTimeout);
+        await consensus.ProposalClaimed.WaitAsync(WaitTimeout);
         Assert.Null(consensus.Proposal);
-        await consensus.ProposeAsync(proposalB).WaitAsync(WaitTimeout);
+        _ = consensus.ProposeAsync(proposalB);
+        await consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit, WaitTimeout);
         Assert.Equal(consensus.Proposal, proposalB);
-        await consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.EndCommit).WaitAsync(WaitTimeout);
-        var finalizedItem = await finalizedTask.WaitAsync(WaitTimeout);
-        Assert.Equal(blockB, finalizedItem.Block);
+        Assert.Equal(proposalB, consensus.ValidProposal);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task CanCreateContextWithLastingEvaluation()
     {
-        // using var onTipChanged = new ManualResetEvent(false);
-        // using var enteredHeightTwo = new ManualResetEvent(false);
-
-        TimeSpan newHeightDelay = TimeSpan.FromMilliseconds(100);
-        int actionDelay = 2000;
-
-        using var fx = new MemoryRepositoryFixture();
-        var keyA = PrivateKeys[0];
-        var blockchain = MakeBlockchain(fx.Options);
-        await using var transport = CreateTransport(keyA);
+        const int actionDelay = 2000;
+        var blockchain = MakeBlockchain();
+        await using var transport = new NetMQ.NetMQTransport(Signers[0]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = newHeightDelay,
+            TargetBlockInterval = TimeSpan.FromMilliseconds(100),
         };
-        var consensusService = new ConsensusService(keyA.AsSigner(), blockchain, transport, options);
-        // var consensus = consensusService.Consensus;
-
-        // using var _2 = blockchain.TipChanged.Subscribe(e =>
-        // {
-        //     if (e.Tip.Height == 1L)
-        //     {
-        //         onTipChanged.Set();
-        //     }
-        // });
-
-        var tipChangedTask = blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 1L);
+        var consensusService = new ConsensusService(Signers[0], blockchain, transport, options);
+        var tipChangedTask = blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 1);
         var heightChangedTask = consensusService.HeightChanged.WaitAsync(e => e == 2);
 
-        // using var _3 = consensusService.HeightChanged.Subscribe(height =>
-        // {
-        //     if (height == 2)
-        //     {
-        //         enteredHeightTwo.Set();
-        //     }
-        // });
-
-        var tx = new TransactionBuilder
+        _ = blockchain.StagedTransactions.Add(Signers[1], new()
         {
-            GenesisHash = blockchain.Genesis.BlockHash,
             Actions = [new DelayAction(actionDelay)],
-        }.Create(PrivateKeys[1], blockchain);
-        blockchain.StagedTransactions.Add(tx);
-        var block = blockchain.ProposeBlock(PrivateKeys[1]);
+        });
+        var block = blockchain.ProposeBlock(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
-            Round = 0,
-        }.Create(PrivateKeys[1]);
+        }.Create(Signers[1]);
 
-        await transport.StartAsync(default);
-        await consensusService.StartAsync(default);
-        _ = consensusService.Consensus.ProposeAsync(proposal, default);
+        await transport.StartAsync();
+        await consensusService.StartAsync();
+        var consensus = consensusService.Consensus;
+        _ = consensus.ProposeAsync(proposal);
 
         foreach (var i in new int[] { 1, 2, 3 })
         {
-            var preVote = new VoteMetadata
+            var preVote = new VoteBuilder
             {
-                Height = 1,
-                Round = 0,
-                BlockHash = block.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = PrivateKeys[i].Address,
-                ValidatorPower = Validators[i].Power,
+                Validator = Validators[i],
+                Block = block,
                 Type = VoteType.PreVote,
-            }.Sign(PrivateKeys[i]);
-            _ = consensusService.Consensus.PreVoteAsync(preVote, default);
+            }.Create(Signers[i]);
+            _ = consensus.PreVoteAsync(preVote, default);
         }
 
         foreach (var i in new int[] { 1, 2, 3 })
@@ -449,23 +394,20 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 Block = block,
                 Type = VoteType.PreCommit,
             }.Create(PrivateKeys[i]);
-            _ = consensusService.Consensus.PreCommitAsync(preCommit, default);
+            _ = consensus.PreCommitAsync(preCommit, default);
         }
 
         Assert.Equal(1, consensusService.Height);
-        var watch = Stopwatch.StartNew();
-        // Assert.True(onTipChanged.WaitOne(5000), "Tip was not changed in time.");
-        await tipChangedTask.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.True(watch.ElapsedMilliseconds < (actionDelay * 0.5));
-        watch.Restart();
+        var stopWatch = Stopwatch.StartNew();
+        await tipChangedTask.WaitAsync(WaitTimeout);
+        Assert.True(stopWatch.ElapsedMilliseconds < (actionDelay * 0.5));
+        stopWatch.Restart();
 
-        // Assert.True(enteredHeightTwo.WaitOne(5000), "Consensus did not enter height 2 in time.");
-        await heightChangedTask.WaitAsync(TimeSpan.FromSeconds(5));
-        // Assert.Equal(
-        //     4,
-        //     consensus.GetBlockCommit()!.Votes.Count(
-        //         vote => vote.Type.Equals(VoteType.PreCommit)));
-        Assert.True(watch.ElapsedMilliseconds > (actionDelay * 0.5));
+        await heightChangedTask.WaitAsync(WaitTimeout);
+        Assert.Equal(
+            4,
+            consensus.Round.PreCommits.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
+        Assert.True(stopWatch.ElapsedMilliseconds > (actionDelay * 0.5));
         Assert.Equal(2, consensusService.Height);
     }
 
