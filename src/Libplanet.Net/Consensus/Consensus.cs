@@ -104,27 +104,6 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         return false;
     }
 
-    // public void PostPropose(Proposal proposal)
-    // {
-    //     ObjectDisposedException.ThrowIf(IsDisposed, this);
-    //     if (_dispatcher is null)
-    //     {
-    //         throw new InvalidOperationException("Consensus is not running.");
-    //     }
-
-    //     if (proposal.Height != Height)
-    //     {
-    //         throw new ArgumentException(
-    //             $"Proposal height {proposal.Height} does not match expected height {Height}.", nameof(proposal));
-    //     }
-
-    //     _dispatcher.Post(() =>
-    //     {
-    //         SetProposal(proposal);
-    //         ProcessGenericUponRules();
-    //     });
-    // }
-
     public async Task ProposeAsync(Proposal proposal, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);

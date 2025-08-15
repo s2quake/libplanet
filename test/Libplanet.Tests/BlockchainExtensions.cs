@@ -24,6 +24,9 @@ public static class BlockchainExtensions
     }
 
     public static (Block, BlockCommit) ProposeAndAppend(this Libplanet.Blockchain @this, PrivateKey signer)
+        => ProposeAndAppend(@this, signer.AsSigner());
+
+    public static (Block, BlockCommit) ProposeAndAppend(this Libplanet.Blockchain @this, ISigner signer)
     {
         var block = @this.ProposeBlock(signer);
         var blockCommit = TestUtils.CreateBlockCommit(block);

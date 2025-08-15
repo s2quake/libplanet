@@ -73,15 +73,16 @@ public sealed class ConsensusObserver : IDisposable
                 break;
 
             case ConsensusStep.PreVote:
-                var preVote = new VoteBuilder
+                var preVote = new VoteMetadata
                 {
-                    Validator = _validator,
                     Height = _consensus.Height,
                     Round = round.Index,
                     BlockHash = e.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
+                    Validator = _signer.Address,
+                    ValidatorPower = _consensus.Validators.GetValidator(_signer.Address).Power,
                     Type = VoteType.PreVote,
-                }.Create(_signer);
+                }.Sign(_signer);
                 _shouldPreVoteSubject.OnNext(preVote);
                 break;
 

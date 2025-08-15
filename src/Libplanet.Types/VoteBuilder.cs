@@ -4,9 +4,7 @@ public sealed record class VoteBuilder
 {
     public required Validator Validator { get; init; }
 
-    public BlockHash BlockHash { get; init; }
-
-    public int Height { get; init; }
+    public required Block Block { get; init; }
 
     public int Round { get; init; }
 
@@ -19,8 +17,8 @@ public sealed record class VoteBuilder
         var metadata = new VoteMetadata
         {
             Validator = Validator.Address,
-            BlockHash = BlockHash,
-            Height = Height,
+            BlockHash = Block.BlockHash,
+            Height = Block.Height,
             Round = Round,
             Timestamp = Timestamp,
             ValidatorPower = Validator.Power,
