@@ -39,6 +39,16 @@ public sealed class MessageCollection : IEnumerable<IMessage>
         }
     }
 
+    public void Add(IMessage message)
+    {
+        using var _ = _lock.WriteScope();
+        if (!_messageById.TryAdd(message.Id, message))
+        {
+            throw new ArgumentException(
+                $"Message with ID {message.Id} already exists in the collection.", nameof(message));
+        }
+    }
+
     public bool TryAdd(IMessage message)
     {
         using var _ = _lock.WriteScope();
@@ -96,5 +106,14 @@ public sealed class MessageCollection : IEnumerable<IMessage>
     {
         using var _ = _lock.ReadScope();
         return [.. _messageById.Keys.Except(messageIds)];
+    }
+
+    internal void MoveTo(MessageCollection messages)
+    {
+        using var _ = _lock.WriteScope();
+        foreach (var message in _messageById.Values)
+        {
+            messages.TryAdd(message);
+        }
     }
 }

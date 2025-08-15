@@ -4,7 +4,7 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net;
 
-public sealed class MessageRouter : IAsyncDisposable, IMessageRouter
+public sealed class MessageRouter : IDisposable, IMessageRouter
 {
     private readonly Subject<(IMessageHandler, Exception)> _messageHandlingFailed = new();
     private readonly Subject<(ISendingMessageValidator, Exception)> _sendingMessageValidationFailedSubject = new();
@@ -13,6 +13,7 @@ public sealed class MessageRouter : IAsyncDisposable, IMessageRouter
     private readonly SendingMessageValidatorCollection _sendingValidators = [];
     private readonly ReceivedMessageValidatorCollection _receivedValidators = [];
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
+    private bool _disposed;
 
     public IObservable<(IMessageHandler, Exception)> MessageHandlingFailed => _messageHandlingFailed;
 
@@ -22,13 +23,17 @@ public sealed class MessageRouter : IAsyncDisposable, IMessageRouter
     public IObservable<(IReceivedMessageValidator, Exception)> ReceivedMessageValidationFailed
         => _receivedMessageValidationFailedSubject;
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        _messageHandlingFailed.Dispose();
-        _sendingMessageValidationFailedSubject.Dispose();
-        _receivedMessageValidationFailedSubject.Dispose();
-        _lock.Dispose();
-        await ValueTask.CompletedTask;
+        if (!_disposed)
+        {
+            _messageHandlingFailed.Dispose();
+            _sendingMessageValidationFailedSubject.Dispose();
+            _receivedMessageValidationFailedSubject.Dispose();
+            _lock.Dispose();
+            _disposed = true;
+            GC.SuppressFinalize(this);
+        }
     }
 
     public IDisposable Register(IMessageHandler handler)

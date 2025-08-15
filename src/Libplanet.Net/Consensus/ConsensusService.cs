@@ -25,7 +25,6 @@ public sealed class ConsensusService : ServiceBase
     private readonly Blockchain _blockchain;
     private readonly ISigner _signer;
     private readonly TimeSpan _newHeightDelay;
-    private readonly HashSet<ConsensusMessage> _pendingMessages = [];
     private readonly EvidenceCollector _evidenceCollector = new();
     private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
     private readonly IDisposable[] _initialiSubscriptions;
@@ -155,6 +154,7 @@ public sealed class ConsensusService : ServiceBase
 
         await _dispatcher.InvokeAsync(async cancellationToken =>
         {
+            var pendingMessage = _broadcastingResponder.PendingMessages.ToArray();
             Array.ForEach(_runningSubscriptions, subscription => subscription.Dispose());
 
             _broadcastingResponder.Dispose();
@@ -168,7 +168,6 @@ public sealed class ConsensusService : ServiceBase
             _broadcastingResponder = new ConsensusBroadcastingResponder(_signer, _consensus, _gossip);
             _runningSubscriptions =
             [
-                // .. Subscribe(_controller),
                 .. Subscribe(_consensus),
             ];
             await _consensus.StartAsync(cancellationToken);
@@ -176,7 +175,10 @@ public sealed class ConsensusService : ServiceBase
             _peerCatchupRounds.Clear();
             _gossip.DeniedPeers.Clear();
             _heightChangedSubject.OnNext(Height);
-            FlushPendingMessages(height);
+            foreach (var message in pendingMessage)
+            {
+                _transport.Post(_transport.Peer, message);
+            }
         }, cancellationToken);
     }
 
@@ -220,20 +222,6 @@ public sealed class ConsensusService : ServiceBase
                 $"Cannot send vote of round higher than context's");
         }
     }
-
-    // private IEnumerable<IDisposable> Subscribe(ConsensusController consensusController)
-    // {
-    //     yield return consensusController.PreVoted.Subscribe(
-    //         e => _gossip.Broadcast(new ConsensusPreVoteMessage { PreVote = e }));
-    //     yield return consensusController.PreCommitted.Subscribe(
-    //         e => _gossip.Broadcast(new ConsensusPreCommitMessage { PreCommit = e }));
-    //     yield return consensusController.ProposalClaimed.Subscribe(
-    //         e => _gossip.Broadcast(new ConsensusProposalClaimMessage { ProposalClaim = e }));
-    //     yield return consensusController.Proposed.Subscribe(
-    //         e => _gossip.Broadcast(new ConsensusProposalMessage { Proposal = e }));
-    //     yield return consensusController.Majority23Observed.Subscribe(
-    //         e => _gossip.Broadcast(new ConsensusMaj23Message { Maj23 = e }));
-    // }
 
     private IEnumerable<IDisposable> Subscribe(Consensus consensus)
     {
@@ -280,177 +268,6 @@ public sealed class ConsensusService : ServiceBase
             _blockProposedSubject.OnNext(e);
         });
     }
-
-    private void FlushPendingMessages(int height)
-    {
-        foreach (var message in _pendingMessages)
-        {
-            if (message.Height == height)
-            {
-                HandleMessageInternal(message);
-            }
-        }
-
-        _pendingMessages.RemoveWhere(message => message.Height <= height);
-    }
-
-    // private async Task HandleProposalClaimMessageAsync(
-    //     ConsensusProposalClaimMessage consensusMessage, CancellationToken cancellationToken)
-    // {
-    //     if (_dispatcher is null)
-    //     {
-    //         throw new InvalidOperationException("Consensus reactor is not running.");
-    //     }
-
-    //     await _dispatcher.InvokeAsync(_ => Action(), cancellationToken);
-
-    //     void Action()
-    //     {
-    //         var proposalClaim = consensusMessage.ProposalClaim;
-    //         if (_consensus.Height == proposalClaim.Height && _consensus.Proposal is not null)
-    //         {
-    //             var reply = new ConsensusProposalMessage { Proposal = _consensus.Proposal };
-    //             var sender = _gossip.Peers.First(
-    //                 peer => peer.Address.Equals(proposalClaim.Validator));
-
-    //             _gossip.Broadcast([sender], reply);
-    //         }
-    //     }
-    // }
-
-    // private async Task HandleVoteBitsMessageAsync(
-    //     ConsensusVoteBitsMessage consensusMessage, CancellationToken cancellationToken)
-    // {
-    //     if (_dispatcher is null)
-    //     {
-    //         throw new InvalidOperationException("Consensus reactor is not running.");
-    //     }
-
-    //     await _dispatcher.InvokeAsync(_ => Action(), cancellationToken);
-
-    //     void Action()
-    //     {
-    //         var voteBits = consensusMessage.VoteBits;
-    //         var consensus = _consensus;
-    //         var bits = voteBits.Bits;
-    //         if (consensus.Height == voteBits.Height)
-    //         {
-    //             var voteType = voteBits.VoteType;
-    //             var votes = voteType == VoteType.PreVote
-    //                 ? consensus.Round.PreVotes.GetVotes(bits)
-    //                 : consensus.Round.PreCommits.GetVotes(bits);
-    //             var messageList = new List<ConsensusMessage>();
-    //             foreach (var vote in votes)
-    //             {
-    //                 if (voteType == VoteType.PreVote)
-    //                 {
-    //                     messageList.Add(new ConsensusPreVoteMessage { PreVote = vote });
-    //                 }
-    //                 else
-    //                 {
-    //                     messageList.Add(new ConsensusPreCommitMessage { PreCommit = vote });
-    //                 }
-    //             }
-
-    //             var sender = _gossip.Peers.First(peer => peer.Address.Equals(consensusMessage.Validator));
-    //             _gossip.Broadcast([sender], [.. messageList]);
-    //         }
-    //     }
-    // }
-
-    // private async Task HandleMaj23MessageAsync(ConsensusMaj23Message consensusMessage, CancellationToken cancellationToken)
-    // {
-    //     if (_dispatcher is null)
-    //     {
-    //         throw new InvalidOperationException("Consensus reactor is not running.");
-    //     }
-
-    //     await _dispatcher.InvokeAsync(_ => Action(), cancellationToken);
-
-    //     void Action()
-    //     {
-    //         var maj23 = consensusMessage.Maj23;
-    //         var consensus = _consensus;
-    //         if (consensus.Height == maj23.Height && consensus.AddPreVoteMaj23(maj23))
-    //         {
-    //             var round = consensus.Rounds[maj23.Round];
-    //             var votes = maj23.VoteType == VoteType.PreVote ? round.PreVotes : round.PreCommits;
-    //             var voteBits = new VoteBitsMetadata
-    //             {
-    //                 Height = consensus.Height,
-    //                 Round = maj23.Round,
-    //                 BlockHash = maj23.BlockHash,
-    //                 Timestamp = DateTimeOffset.UtcNow,
-    //                 Validator = maj23.Validator,
-    //                 VoteType = maj23.VoteType,
-    //                 Bits = votes.GetBits(maj23.BlockHash),
-    //             }.Sign(_signer);
-
-    //             var validator = maj23.Validator;
-    //             var sender = _gossip.Peers.First(peer => peer.Address.Equals(validator));
-    //             _gossip.Broadcast([sender], new ConsensusVoteBitsMessage { VoteBits = voteBits });
-    //         }
-    //     }
-    // }
-
-    // private Task<bool> HandleMessageAsync(ConsensusMessage consensusMessage, CancellationToken cancellationToken)
-    // {
-    //     if (_dispatcher is null)
-    //     {
-    //         throw new InvalidOperationException("Consensus reactor is not running.");
-    //     }
-
-    //     return _dispatcher.InvokeAsync(_ => HandleMessage(consensusMessage), cancellationToken);
-    // }
-
-    // private bool HandleMessage(ConsensusMessage consensusMessage)
-    // {
-    //     if (_dispatcher is null)
-    //     {
-    //         throw new InvalidOperationException("Consensus reactor is not running.");
-    //     }
-
-    //     _dispatcher.VerifyAccess();
-
-    //     var height = consensusMessage.Height;
-    //     if (height < Height)
-    //     {
-    //         return false;
-    //     }
-
-    //     if (_consensus.Height == height)
-    //     {
-    //         HandleMessageInternal(consensusMessage);
-    //     }
-    //     else
-    //     {
-    //         _pendingMessages.Add(consensusMessage);
-    //     }
-
-    //     return true;
-    // }
-
-    // private void HandleMessageInternal(ConsensusMessage consensusMessage)
-    // {
-    //     if (consensusMessage.Height != Height)
-    //     {
-    //         var message = $"ConsensusMessage height {consensusMessage.Height} does not match expected height {Height}.";
-    //         throw new ArgumentException(message, nameof(consensusMessage));
-    //     }
-
-    //     if (consensusMessage is ConsensusPreVoteMessage preVoteMessage)
-    //     {
-    //         _consensus.PostPreVote(preVoteMessage.PreVote);
-    //     }
-    //     else if (consensusMessage is ConsensusPreCommitMessage preCommitMessage)
-    //     {
-    //         _consensus.PostPreCommit(preCommitMessage.PreCommit);
-    //     }
-    //     else if (consensusMessage is ConsensusProposalMessage proposalMessage)
-    //     {
-    //         _consensus.PostPropose(proposalMessage.Proposal);
-    //     }
-    // }
 
     private void Blockchain_TipChanged(TipChangedInfo e)
     {
