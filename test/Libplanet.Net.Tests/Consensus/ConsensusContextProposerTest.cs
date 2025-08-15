@@ -47,24 +47,26 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
             transportB.Peer,
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
 
         transportA.Post(
             transportB.Peer,
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         Assert.True(timeoutProcessed.WaitOne(10000), "Timeout did not occur as expected.");
@@ -73,24 +75,26 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Type = VoteType.PreCommit,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
 
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Type = VoteType.PreCommit,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         Assert.True(timeoutProcessed.WaitOne(10000), "Timeout did not occur as expected.");

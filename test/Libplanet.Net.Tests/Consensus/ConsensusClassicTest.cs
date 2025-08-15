@@ -96,7 +96,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             var vote = new VoteBuilder
             {
                 Validator = Validators[i],
-                Block = proposal.Block, 
+                Block = proposal.Block,
                 Type = VoteType.PreVote,
             }.Create(Signers[i]);
             _ = consensus.PreVoteAsync(vote, default);

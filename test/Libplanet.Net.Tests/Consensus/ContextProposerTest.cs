@@ -54,7 +54,7 @@ namespace Libplanet.Net.Tests.Consensus
             consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
-                    PreVote = new VoteBuilder
+                    PreVote = new NilVoteBuilder
                     {
                         Validator = TestUtils.Validators[0],
                         Height = 1,
@@ -64,7 +64,7 @@ namespace Libplanet.Net.Tests.Consensus
             consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
-                    PreVote = new VoteBuilder
+                    PreVote = new NilVoteBuilder
                     {
                         Validator = TestUtils.Validators[2],
                         Height = 1,
@@ -74,7 +74,7 @@ namespace Libplanet.Net.Tests.Consensus
             consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
-                    PreVote = new VoteBuilder
+                    PreVote = new NilVoteBuilder
                     {
                         Validator = TestUtils.Validators[3],
                         Height = 1,
@@ -129,35 +129,38 @@ namespace Libplanet.Net.Tests.Consensus
             consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
-                    PreVote = new VoteBuilder
+                    PreVote = new VoteMetadata
                     {
-                        Validator = TestUtils.Validators[0],
+                        Validator = TestUtils.Validators[0].Address,
+                        ValidatorPower = TestUtils.Validators[0].Power,
                         BlockHash = proposedblockHash,
                         Height = 1,
                         Type = VoteType.PreVote,
-                    }.Create(TestUtils.PrivateKeys[0])
+                    }.Sign(TestUtils.PrivateKeys[0])
                 });
             consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
-                    PreVote = new VoteBuilder
+                    PreVote = new VoteMetadata
                     {
-                        Validator = TestUtils.Validators[2],
+                        Validator = TestUtils.Validators[2].Address,
+                        ValidatorPower = TestUtils.Validators[2].Power,
                         BlockHash = proposedblockHash,
                         Height = 1,
                         Type = VoteType.PreVote,
-                    }.Create(TestUtils.PrivateKeys[2])
+                    }.Sign(TestUtils.PrivateKeys[2])
                 });
             consensus.ProduceMessage(
                 new ConsensusPreVoteMessage
                 {
-                    PreVote = new VoteBuilder
+                    PreVote = new VoteMetadata
                     {
-                        Validator = TestUtils.Validators[3],
+                        Validator = TestUtils.Validators[3].Address,
+                        ValidatorPower = TestUtils.Validators[3].Power,
                         BlockHash = proposedblockHash,
                         Height = 1,
                         Type = VoteType.PreVote,
-                    }.Create(TestUtils.PrivateKeys[3])
+                    }.Sign(TestUtils.PrivateKeys[3])
                 });
 
             await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
@@ -185,7 +188,7 @@ namespace Libplanet.Net.Tests.Consensus
             consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
-                    PreCommit = new VoteBuilder
+                    PreCommit = new NilVoteBuilder
                     {
                         Validator = TestUtils.Validators[0],
                         Height = 1,
@@ -195,7 +198,7 @@ namespace Libplanet.Net.Tests.Consensus
             consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
-                    PreCommit = new VoteBuilder
+                    PreCommit = new NilVoteBuilder
                     {
                         Validator = TestUtils.Validators[2],
                         Height = 1,
@@ -205,7 +208,7 @@ namespace Libplanet.Net.Tests.Consensus
             consensus.ProduceMessage(
                 new ConsensusPreCommitMessage
                 {
-                    PreCommit = new VoteBuilder
+                    PreCommit = new NilVoteBuilder
                     {
                         Validator = TestUtils.Validators[3],
                         Height = 1,

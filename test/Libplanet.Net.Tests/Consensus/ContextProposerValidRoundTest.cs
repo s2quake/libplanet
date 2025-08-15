@@ -72,9 +72,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[0],
-                        Height = 1,
+                        Block = proposedBlock,
                         Round = 2,
-                        BlockHash = proposedBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[0])
                 });
@@ -84,9 +83,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[2],
-                        Height = 1,
+                        Block = proposedBlock,
                         Round = 2,
-                        BlockHash = proposedBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[2])
                 });
@@ -101,9 +99,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[0],
-                        Height = 1,
+                        Block = proposedBlock,
                         Round = 1,
-                        BlockHash = proposedBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[0])
                 });
@@ -113,9 +110,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[2],
-                        Height = 1,
+                        Block = proposedBlock,
                         Round = 1,
-                        BlockHash = proposedBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[2])
                 });
@@ -125,9 +121,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[3],
-                        Height = 1,
+                        Block = proposedBlock,
                         Round = 1,
-                        BlockHash = proposedBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[3])
                 });
@@ -210,9 +205,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[0],
-                        Height = 1,
+                        Block = proposedBlock,
                         Round = 2,
-                        BlockHash = proposedBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[0])
                 });
@@ -222,9 +216,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[2],
-                        Height = 1,
+                        Block = proposedBlock,
                         Round = 2,
-                        BlockHash = proposedBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[2])
                 });
@@ -246,9 +239,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[3],
-                        Height = 1,
+                        Block = proposedBlock,
                         Round = 2,
-                        BlockHash = proposedBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[3])
                 });
@@ -261,9 +253,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[0],
-                        Height = 1,
+                        Block = differentBlock,
                         Round = 3,
-                        BlockHash = differentBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[0])
                 });
@@ -273,9 +264,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[2],
-                        Height = 1,
+                        Block = differentBlock,
                         Round = 3,
-                        BlockHash = differentBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[2])
                 });
@@ -290,9 +280,8 @@ namespace Libplanet.Net.Tests.Consensus
                     PreVote = new VoteBuilder
                     {
                         Validator = TestUtils.Validators[3],
-                        Height = 1,
+                        Block = differentBlock,
                         Round = 3,
-                        BlockHash = differentBlock.BlockHash,
                         Type = VoteType.PreVote,
                     }.Create(TestUtils.PrivateKeys[3])
                 });

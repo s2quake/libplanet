@@ -60,49 +60,53 @@ public class DuplicateVoteEvidenceTest
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[1],
+                    Validator = TestUtils.Validators[1].Address,
+                    ValidatorPower = TestUtils.Validators[1].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[1])
+                }.Sign(privateKeys[1])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[2])
+                }.Sign(privateKeys[2])
             });
 
         await consensusService.WaitUntilAsync(
@@ -164,49 +168,53 @@ public class DuplicateVoteEvidenceTest
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 4,
                     BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[1],
+                    Validator = TestUtils.Validators[1].Address,
+                    ValidatorPower = TestUtils.Validators[1].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[1])
+                }.Sign(privateKeys[1])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[2])
+                }.Sign(privateKeys[2])
             });
 
         await consensusService.WaitUntilAsync(
@@ -247,50 +255,54 @@ public class DuplicateVoteEvidenceTest
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     Round = 1,
                     BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     Type = VoteType.PreCommit
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[1],
+                    Validator = TestUtils.Validators[1].Address,
+                    ValidatorPower = TestUtils.Validators[1].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[1])
+                }.Sign(privateKeys[1])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[2])
+                }.Sign(privateKeys[2])
             });
 
         await consensusService.WaitUntilAsync(
@@ -331,49 +343,53 @@ public class DuplicateVoteEvidenceTest
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     Type = VoteType.PreVote,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[1],
+                    Validator = TestUtils.Validators[1].Address,
+                    ValidatorPower = TestUtils.Validators[1].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[1])
+                }.Sign(privateKeys[1])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[2])
+                }.Sign(privateKeys[2])
             });
 
         await consensusService.WaitUntilAsync(
@@ -414,49 +430,53 @@ public class DuplicateVoteEvidenceTest
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[1],
+                    Validator = TestUtils.Validators[1].Address,
+                    ValidatorPower = TestUtils.Validators[1].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[1])
+                }.Sign(privateKeys[1])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[2])
+                }.Sign(privateKeys[2])
             });
 
         await consensusService.WaitUntilAsync(
@@ -497,49 +517,53 @@ public class DuplicateVoteEvidenceTest
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     Height = 3,
                     BlockHash = default,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[0])
+                }.Sign(privateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[1],
+                    Validator = TestUtils.Validators[1].Address,
+                    ValidatorPower = TestUtils.Validators[1].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[1])
+                }.Sign(privateKeys[1])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 3,
                     BlockHash = blockHash,
                     Type = VoteType.PreCommit,
-                }.Create(privateKeys[2])
+                }.Sign(privateKeys[2])
             });
 
         await consensusService.WaitUntilAsync(

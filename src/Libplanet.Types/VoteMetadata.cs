@@ -13,7 +13,7 @@ public sealed partial record class VoteMetadata
     public BlockHash BlockHash { get; init; }
 
     [Property(2)]
-    [NonNegative]
+    [Positive]
     public int Height { get; init; }
 
     [Property(3)]

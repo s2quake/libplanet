@@ -38,26 +38,28 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Round = 1,
                     BlockHash = block.BlockHash,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Round = 1,
                     BlockHash = block.BlockHash,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         // Wait for round 1 prevote step.
@@ -103,38 +105,41 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[1],
+                    Validator = TestUtils.Validators[1].Address,
+                    ValidatorPower = TestUtils.Validators[1].Power,
                     Height = 1,
                     Round = 0,
                     BlockHash = block.BlockHash,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[1])
+                }.Sign(TestUtils.PrivateKeys[1])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Round = 0,
                     BlockHash = block.BlockHash,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Round = 0,
                     BlockHash = block.BlockHash,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
@@ -197,32 +202,35 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[1],
+                    Validator = TestUtils.Validators[1].Address,
+                    ValidatorPower = TestUtils.Validators[1].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[1])
+                }.Sign(TestUtils.PrivateKeys[1])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         await Task.WhenAll(preCommitSent.WaitAsync(), stepChangedToPreCommit.WaitAsync());
@@ -480,30 +488,31 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 PreVote = new VoteBuilder
                 {
                     Validator = TestUtils.Validators[1],
-                    Height = 1,
-                    BlockHash = invalidBlock.BlockHash,
+                    Block = invalidBlock,
                     Type = VoteType.PreVote,
                 }.Create(TestUtils.PrivateKeys[1])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
         await nilPreCommitSent.WaitAsync();
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
@@ -530,24 +539,26 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Round = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Round = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         await stepChangedToRoundOnePreVote.WaitAsync();
@@ -625,44 +636,48 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         // Two additional votes should be enough to trigger precommit timeout timer.
         consensus.ProduceMessage(
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Type = VoteType.PreCommit,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
         consensus.ProduceMessage(
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Type = VoteType.PreCommit,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         await consensus.StartAsync(default);
@@ -704,20 +719,20 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 PreVote = new VoteBuilder
                 {
                     Validator = TestUtils.Validators[1],
-                    Height = 1,
-                    BlockHash = block.BlockHash,
+                    Block = block,
                     Type = VoteType.PreVote,
                 }.Create(TestUtils.PrivateKeys[1])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
             {
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
         consensus.ProduceMessage(
             new ConsensusPreVoteMessage
@@ -729,12 +744,13 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 //     0,
                 //     hash: default,
                 //     flag: VoteType.PreVote)
-                PreVote = new VoteBuilder
+                PreVote = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Type = VoteType.PreVote,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         // Wait for timeout.
@@ -769,30 +785,31 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 PreCommit = new VoteBuilder
                 {
                     Validator = TestUtils.Validators[1],
-                    Height = 1,
-                    BlockHash = block.BlockHash,
+                    Block = block,
                     Type = VoteType.PreCommit,
                 }.Create(TestUtils.PrivateKeys[1])
             });
         consensus.ProduceMessage(
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     Height = 1,
                     Type = VoteType.PreCommit,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
         consensus.ProduceMessage(
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[3],
+                    Validator = TestUtils.Validators[3].Address,
+                    ValidatorPower = TestUtils.Validators[3].Power,
                     Height = 1,
                     Type = VoteType.PreCommit,
-                }.Create(TestUtils.PrivateKeys[3])
+                }.Sign(TestUtils.PrivateKeys[3])
             });
 
         // Wait for timeout.

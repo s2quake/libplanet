@@ -102,37 +102,40 @@ public class ConsensusContextTest
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[0],
+                    Validator = TestUtils.Validators[0].Address,
+                    ValidatorPower = TestUtils.Validators[0].Power,
                     BlockHash = proposedblockHash,
                     Height = 3,
                     Type = VoteType.PreCommit,
-                }.Create(TestUtils.PrivateKeys[0])
+                }.Sign(TestUtils.PrivateKeys[0])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[1],
+                    Validator = TestUtils.Validators[1].Address,
+                    ValidatorPower = TestUtils.Validators[1].Power,
                     BlockHash = proposedblockHash,
                     Height = 3,
                     Type = VoteType.PreCommit,
-                }.Create(TestUtils.PrivateKeys[1])
+                }.Sign(TestUtils.PrivateKeys[1])
             });
         transportA.Post(
             transportB.Peer,
             new ConsensusPreCommitMessage
             {
-                PreCommit = new VoteBuilder
+                PreCommit = new VoteMetadata
                 {
-                    Validator = TestUtils.Validators[2],
+                    Validator = TestUtils.Validators[2].Address,
+                    ValidatorPower = TestUtils.Validators[2].Power,
                     BlockHash = proposedblockHash,
                     Height = 3,
                     Type = VoteType.PreCommit,
-                }.Create(TestUtils.PrivateKeys[2])
+                }.Sign(TestUtils.PrivateKeys[2])
             });
 
         // Waiting for commit.
@@ -248,20 +251,22 @@ public class ConsensusContextTest
         await heightOneProposalSent.WaitAsync();
         BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
-        votes.Add(new VoteBuilder
+        votes.Add(new VoteMetadata
         {
-            Validator = TestUtils.Validators[0],
+            Validator = TestUtils.Validators[0].Address,
+            ValidatorPower = TestUtils.Validators[0].Power,
             Height = 1,
             BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Type = VoteType.PreCommit,
-        }.Create(TestUtils.PrivateKeys[0]));
-        votes.AddRange(Enumerable.Range(1, 3).Select(x => new VoteBuilder
+        }.Sign(TestUtils.PrivateKeys[0]));
+        votes.AddRange(Enumerable.Range(1, 3).Select(x => new VoteMetadata
         {
-            Validator = TestUtils.Validators[x],
+            Validator = TestUtils.Validators[x].Address,
+            ValidatorPower = TestUtils.Validators[x].Power,
             Height = 1,
             BlockHash = proposedblockHash,
             Type = VoteType.PreCommit,
-        }.Create(TestUtils.PrivateKeys[x])));
+        }.Sign(TestUtils.PrivateKeys[x])));
 
         foreach (var vote in votes)
         {
