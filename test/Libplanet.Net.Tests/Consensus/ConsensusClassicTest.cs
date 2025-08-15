@@ -32,7 +32,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         var proposeTask = observer.ShouldPropose.WaitAsync();
         var proposal = await proposeTask.WaitAsync(TimeSpan.FromSeconds(3));
         var preVoteTask = observer.ShouldPreVote.WaitAsync();
-        consensus.PostPropose(proposal);
+        _ = consensus.ProposeAsync(proposal, default);
         await preVoteTask.WaitAsync(TimeSpan.FromSeconds(3));
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
@@ -52,10 +52,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         consensus.StartAfter(100);
         var proposeTask = observer.ShouldPropose.WaitAsync();
         var proposal = await proposeTask.WaitAsync(TimeSpan.FromSeconds(3));;
-        consensus.PostPropose(proposal);
+        _ = consensus.ProposeAsync(proposal, default);
         var preVoteTask = observer.ShouldPreVote.WaitAsync();
         var preVote = await preVoteTask.WaitAsync(TimeSpan.FromSeconds(3));
-        consensus.PostPreVote(preVote);
+        _ = consensus.PreVoteAsync(preVote, default);
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(blockCommit1, proposal.Block.PreviousCommit);
@@ -64,7 +64,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task CannotStartTwice()
     {
-        await using var consensus = CreateConsensus();
+        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators);
 
         await consensus.StartAsync(default);
         await Assert.ThrowsAsync<InvalidOperationException>(() => consensus.StartAsync(default));
@@ -76,77 +76,67 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         var blockchain = MakeBlockchain();
         blockchain.ProposeAndAppend(PrivateKeys[1]);
 
-        await using var consensus = CreateConsensus(height: 2);
-        var controller = CreateConsensusController(
-            consensus,
-            PrivateKeys[2],
-            blockchain);
+        await using var consensus = new Net.Consensus.Consensus(height: 2, Validators);
+        var observer = new ConsensusObserver(Signers[2], consensus, blockchain);
 
         consensus.StartAfter(100);
         var preVoteStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
         var endCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.EndCommit);
-        var proposedTask = controller.ShouldPropose.WaitAsync();
+        var proposeTask = observer.ShouldPropose.WaitAsync();
+        var proposal = await proposeTask.WaitAsync(TimeSpan.FromSeconds(2));
 
+        _ = consensus.ProposeAsync(proposal, default);
         await preVoteStepTask.WaitAsync(TimeSpan.FromSeconds(10));
-        var proposal = await proposedTask;
 
         blockchain.AppendWithBlockCommit(proposal.Block);
 
         Assert.Equal(2, blockchain.Tip.Height);
 
         // Make PreVotes to normally move to PreCommit step.
-        foreach (var i in new int[] { 0, 1, 3 })
+        foreach (var i in new int[] { 0, 1, 2, 3 })
         {
-            var vote = new VoteMetadata
+            var vote = new VoteBuilder
             {
+                Validator = Validators[i],
                 Height = 2,
-                Round = 0,
-                BlockHash = proposal!.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = PrivateKeys[i].Address,
-                ValidatorPower = Validators[i].Power,
+                BlockHash = proposal.BlockHash,
                 Type = VoteType.PreVote,
-            }.Sign(PrivateKeys[i]);
-            consensus.PostPreVote(vote);
+            }.Create(Signers[i]);
+            _ = consensus.PreVoteAsync(vote, default);
         }
 
         // Validator 2 will automatically vote its PreCommit.
-        foreach (var i in new int[] { 0, 1 })
+        foreach (var i in new int[] { 0, 1, 2 })
         {
-            var vote = new VoteMetadata
+            var vote = new VoteBuilder
             {
+                Validator = Validators[i],
                 Height = 2,
-                Round = 0,
-                BlockHash = proposal!.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = PrivateKeys[i].Address,
-                ValidatorPower = Validators[i].Power,
+                BlockHash = proposal.BlockHash,
                 Type = VoteType.PreCommit,
-            }.Sign(PrivateKeys[i]);
-            consensus.PostPreCommit(vote);
+            }.Create(Signers[i]);
+            _ = consensus.PreCommitAsync(vote, default);
         }
 
-        await endCommitStepTask.WaitAsync(TimeSpan.FromSeconds(100));
+        await endCommitStepTask.WaitAsync(TimeSpan.FromSeconds(3));
 
         // Check consensus has only three votes.
-        var blockCommit = consensus.Round.PreCommits.GetBlockCommit();
+        var preCommits = consensus.Round.PreCommits;
+        var blockCommit = preCommits.GetBlockCommit();
         Assert.Equal(3, blockCommit.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
 
         // Context should still accept new votes.
-        var vote2 = new VoteMetadata
+        var vote3 = new VoteBuilder
         {
+            Validator = Validators[3],
             Height = 2,
-            Round = 0,
             BlockHash = proposal!.BlockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = PrivateKeys[3].Address,
-            ValidatorPower = Validators[3].Power,
             Type = VoteType.PreCommit,
-        }.Sign(PrivateKeys[3]);
-        consensus.PostPreCommit(vote2);
+        }.Create(Signers[3]);
 
-        await Task.Delay(100);  // Wait for the new message to be added to the message log.
-        blockCommit = consensus.Round.PreCommits.GetBlockCommit();
+        await consensus.PreCommitAsync(vote3, default).WaitAsync(TimeSpan.FromSeconds(3));
+
+        blockCommit = preCommits.GetBlockCommit();
         Assert.Equal(4, blockCommit.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
     }
 
@@ -167,9 +157,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         await consensus.StartAsync(default);
 
-        consensus.PostPropose(proposal);
-        var exception = await tcs.Task.WaitAsync(TimeSpan.FromSeconds(1));
-        var e = Assert.IsType<ArgumentException>(exception);
+        var e = await Assert.ThrowsAsync<ArgumentException>(() => consensus.ProposeAsync(proposal, default));
         Assert.Equal("proposal", e.ParamName);
     }
 
@@ -196,7 +184,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         }.Create(signer);
 
         await consensus.StartAsync(default);
-        Assert.Throws<ArgumentException>(() => consensus.PostPropose(proposal));
+        await Assert.ThrowsAsync<ArgumentException>(() => consensus.ProposeAsync(proposal, default));
 
         var vote = new VoteBuilder
         {
@@ -206,7 +194,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             Type = VoteType.PreVote,
         }.Create(PrivateKeys[2]);
 
-        Assert.Throws<ArgumentException>(() => consensus.PostPreVote(vote));
+        await Assert.ThrowsAsync<ArgumentException>(() => consensus.PreVoteAsync(vote, default));
     }
 
     [Fact(Timeout = Timeout)]
@@ -247,7 +235,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         }.Create(PrivateKeys[1]);
 
         await consensus.StartAsync(default);
-        consensus.PostPropose(proposal);
+        _ = consensus.ProposeAsync(proposal, default);
 
         foreach (var i in new int[] { 1, 2, 3 })
         {
@@ -258,7 +246,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 BlockHash = block.BlockHash,
                 Type = VoteType.PreVote,
             }.Create(PrivateKeys[i]);
-            consensus.PostPreVote(preVote);
+            _ = consensus.PreVoteAsync(preVote, default);
         }
 
         // Two additional votes should be enough to reach a consensus.
@@ -271,7 +259,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 BlockHash = block.BlockHash,
                 Type = VoteType.PreCommit,
             }.Create(PrivateKeys[i]);
-            consensus.PostPreCommit(preCommit);
+            _ = consensus.PreCommitAsync(preCommit, default);
         }
 
         await tipChangedTask.WaitAsync(TimeSpan.FromSeconds(100000));
@@ -292,8 +280,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             Timestamp = DateTimeOffset.UtcNow,
             Type = VoteType.PreCommit,
         }.Create(PrivateKeys[3]);
-        consensus.PostPreCommit(vote);
-        await consensus.PreCommitted.WaitAsync();
+        await consensus.PreCommitAsync(vote, default);
         Assert.Equal(4, consensus.Round.PreCommits.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));
     }
 
@@ -376,18 +363,18 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             Proposer = proposer.Address,
             ValidRound = -1,
         }.Sign(proposer, blockB);
-        consensus.PostPropose(proposalA);
+        _ = consensus.ProposeAsync(proposalA, default);
         Assert.True(proposalModified.WaitOne(1000), "Proposal was not modified in time.");
         Assert.Equal(proposalA, consensus.Proposal);
 
         // Proposal B is ignored because proposal A is received first.
-        consensus.PostPropose(proposalB);
+        _ = consensus.ProposeAsync(proposalB, default);
         var e1 = await consensus.ExceptionOccurred.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
         var e2 = Assert.IsType<InvalidOperationException>(e1);
         Assert.StartsWith("Proposal already exists", e2.Message);
 
         Assert.Equal(proposalA, consensus.Proposal);
-        consensus.PostPreVote(preVoteA2);
+        _ = consensus.PreVoteAsync(preVoteA2, default);
 
         // Validator 1 (key1) collected +2/3 pre-vote messages,
         // sends maj23 message to consensus.
@@ -432,12 +419,12 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             ValidatorPower = power2,
             Type = VoteType.PreVote,
         }.Sign(key2);
-        consensus.PostPreVote(preVoteB0);
-        consensus.PostPreVote(preVoteB1);
-        consensus.PostPreVote(preVoteB2);
+        _ = consensus.PreVoteAsync(preVoteB0, default);
+        _ = consensus.PreVoteAsync(preVoteB1, default);
+        _ = consensus.PreVoteAsync(preVoteB2, default);
         await consensus.ProposalClaimed.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
         Assert.Null(consensus.Proposal);
-        consensus.PostPropose(proposalB);
+        _ = consensus.ProposeAsync(proposalB, default);
         Assert.True(proposalModified.WaitOne(1000), "Proposal was not modified in time.");
         Assert.Equal(consensus.Proposal, proposalB);
         Assert.True(stepChanged.WaitOne(1000), "Consensus step was not changed in time.");
@@ -500,7 +487,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         await transport.StartAsync(default);
         await consensusService.StartAsync(default);
-        consensusService.Consensus.PostPropose(proposal);
+        _ = consensusService.Consensus.ProposeAsync(proposal, default);
 
         foreach (var i in new int[] { 1, 2, 3 })
         {
@@ -514,7 +501,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(PrivateKeys[i]);
-            consensusService.Consensus.PostPreVote(preVote);
+            _ = consensusService.Consensus.PreVoteAsync(preVote, default);
         }
 
         foreach (var i in new int[] { 1, 2, 3 })
@@ -528,7 +515,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 Timestamp = DateTimeOffset.UtcNow,
                 Type = VoteType.PreCommit,
             }.Create(PrivateKeys[i]);
-            consensusService.Consensus.PostPreCommit(preCommit);
+            _ = consensusService.Consensus.PreCommitAsync(preCommit, default);
         }
 
         Assert.Equal(1, consensusService.Height);
@@ -615,7 +602,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 ValidatorPower = Validators[i].Power,
                 Type = VoteType.PreVote,
             }.Sign(PrivateKeys[i]);
-            consensus.PostPreVote(preVote);
+            _ = consensus.PreVoteAsync(preVote, default);
         }
 
         // Send delayed PreVote message after sending preCommit message
@@ -635,7 +622,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                     ValidatorPower = Validators[3].Power,
                     Type = VoteType.PreVote,
                 }.Sign(PrivateKeys[3]);
-                consensus.PostPreVote(preVote);
+                _ = consensus.PreVoteAsync(preVote, default);
             },
             cancellationToken.Token);
 

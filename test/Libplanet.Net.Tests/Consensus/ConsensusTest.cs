@@ -120,7 +120,7 @@ public sealed class ConsensusTest
         {
             Block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]),
         }.Create(TestUtils.PrivateKeys[1]);
-        consensus.PostPropose(proposal);
+        _ = consensus.ProposeAsync(proposal, default);
         await consensus.StepChanged.WaitAsync().WaitAsync(options.TimeoutPropose(consensus.Round));
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(proposal, consensus.Proposal);
@@ -148,9 +148,9 @@ public sealed class ConsensusTest
             Block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]),
         }.Create(TestUtils.PrivateKeys[1]);
         var stepChangedTask = consensus.StepChanged.WaitAsync();
-        consensus.PostPropose(proposal);
+        _ = consensus.ProposeAsync(proposal, default);
 
-        TestUtils.InvokeDelay(() => consensus.PostPropose(proposal), 100);
+        TestUtils.InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
         var e1 = await consensus.ExceptionOccurred.WaitAsync().WaitAsync(TimeSpan.FromSeconds(2));
         var e2 = Assert.IsType<InvalidOperationException>(e1);
         Assert.StartsWith("Proposal already exists", e2.Message);
@@ -175,7 +175,7 @@ public sealed class ConsensusTest
         {
             Block = blockchain.ProposeBlock(TestUtils.PrivateKeys[0]),
         }.Create(TestUtils.PrivateKeys[0]);
-        TestUtils.InvokeDelay(() => consensus.PostPropose(proposal), 100);
+        TestUtils.InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
         var e1 = await consensus.ExceptionOccurred.WaitAsync().WaitAsync(TimeSpan.FromSeconds(2));
         var e2 = Assert.IsType<ArgumentException>(e1);
         Assert.StartsWith("Given proposal's proposer", e2.Message);
@@ -199,7 +199,7 @@ public sealed class ConsensusTest
             Round = 2,
             Block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]),
         }.Create(TestUtils.PrivateKeys[0]);
-        TestUtils.InvokeDelay(() => consensus.PostPropose(proposal), 100);
+        TestUtils.InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
         var e1 = await consensus.ExceptionOccurred.WaitAsync().WaitAsync(TimeSpan.FromSeconds(2));
         var e2 = Assert.IsType<ArgumentException>(e1);
         Assert.StartsWith("Given proposal's round", e2.Message);

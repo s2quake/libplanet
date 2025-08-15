@@ -18,6 +18,8 @@ public static class TestUtils
     public static readonly ImmutableList<PrivateKey> PrivateKeys =
         Libplanet.Tests.TestUtils.ValidatorPrivateKeys;
 
+    public static readonly ImmutableArray<ISigner> Signers = [.. PrivateKeys.Select(item => item.AsSigner())];
+
     public static readonly ImmutableHashSet<Peer> Peers =
     [
         new Peer { Address = PrivateKeys[0].Address, EndPoint = new DnsEndPoint("1.0.0.0", 1000)},

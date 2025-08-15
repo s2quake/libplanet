@@ -1,26 +1,29 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
+using Libplanet.Types;
 
 namespace Libplanet.Net.Tests.Consensus;
 
 public static class ConsensusExtensions
 {
+    [Obsolete("not used")]
     public static void ProduceMessage(this Net.Consensus.Consensus @this, ConsensusMessage consensusMessage)
     {
         if (consensusMessage is ConsensusPreVoteMessage preVoteMessage)
         {
-            @this.PostPreVote(preVoteMessage.PreVote);
+            _ = @this.PreVoteAsync(preVoteMessage.PreVote, default);
         }
         else if (consensusMessage is ConsensusPreCommitMessage preCommitMessage)
         {
-            @this.PostPreCommit(preCommitMessage.PreCommit);
+            _ = @this.PreCommitAsync(preCommitMessage.PreCommit, default);
         }
         else if (consensusMessage is ConsensusProposalMessage proposalMessage)
         {
-            @this.PostPropose(proposalMessage.Proposal);
+            _ = @this.ProposeAsync(proposalMessage.Proposal, default);
         }
     }
 
+    [Obsolete("not used")]
     public static async Task WaitUntilAsync(
         this Net.Consensus.Consensus @this, int round, ConsensusStep step, CancellationToken cancellationToken)
     {

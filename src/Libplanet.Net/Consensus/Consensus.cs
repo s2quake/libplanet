@@ -1,4 +1,5 @@
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Libplanet.Net.Threading;
 using Libplanet.Types;
 
@@ -103,7 +104,28 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
         return false;
     }
 
-    public void PostPropose(Proposal proposal)
+    // public void PostPropose(Proposal proposal)
+    // {
+    //     ObjectDisposedException.ThrowIf(IsDisposed, this);
+    //     if (_dispatcher is null)
+    //     {
+    //         throw new InvalidOperationException("Consensus is not running.");
+    //     }
+
+    //     if (proposal.Height != Height)
+    //     {
+    //         throw new ArgumentException(
+    //             $"Proposal height {proposal.Height} does not match expected height {Height}.", nameof(proposal));
+    //     }
+
+    //     _dispatcher.Post(() =>
+    //     {
+    //         SetProposal(proposal);
+    //         ProcessGenericUponRules();
+    //     });
+    // }
+
+    public async Task ProposeAsync(Proposal proposal, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
@@ -117,14 +139,14 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
                 $"Proposal height {proposal.Height} does not match expected height {Height}.", nameof(proposal));
         }
 
-        _dispatcher.Post(() =>
+        await _dispatcher.InvokeAsync(_ =>
         {
             SetProposal(proposal);
             ProcessGenericUponRules();
-        });
+        }, cancellationToken);
     }
 
-    public void PostPreVote(Vote vote)
+    public async Task PreVoteAsync(Vote vote, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
@@ -148,17 +170,17 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             throw new ArgumentOutOfRangeException(nameof(vote), "Round of vote must be non-negative.");
         }
 
-        _dispatcher.Post(() =>
+        await _dispatcher.PostAsync(() =>
         {
             var round = _rounds[vote.Round];
             round.PreVote(vote);
             _preVotedSubject.OnNext(vote);
             ProcessHeightOrRoundUponRules(vote);
             ProcessGenericUponRules();
-        });
+        }, cancellationToken);
     }
 
-    public void PostPreCommit(Vote vote)
+    public async Task PreCommitAsync(Vote vote, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
@@ -182,14 +204,14 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             throw new ArgumentOutOfRangeException(nameof(vote), "Round must be non-negative.");
         }
 
-        _dispatcher.Post(() =>
+        await _dispatcher.PostAsync(() =>
         {
             var round = _rounds[vote.Round];
             round.PreCommit(vote);
             _preCommittedSubject.OnNext(vote);
             ProcessHeightOrRoundUponRules(vote);
             ProcessGenericUponRules();
-        });
+        }, cancellationToken);
     }
 
     internal bool IsProposer(Address address)

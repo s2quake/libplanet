@@ -6,7 +6,8 @@ namespace Libplanet.Net.Consensus.MessageHandlers;
 internal sealed class ConsensusPreCommitMessageHandler(Consensus consensus, MessageCollection pendingMessages)
     : MessageHandlerBase<ConsensusPreCommitMessage>
 {
-    protected override async ValueTask OnHandleAsync(ConsensusPreCommitMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+    protected override async ValueTask OnHandleAsync(
+        ConsensusPreCommitMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         var preCommit = message.PreCommit;
         if (preCommit.Height < consensus.Height)
@@ -15,13 +16,11 @@ internal sealed class ConsensusPreCommitMessageHandler(Consensus consensus, Mess
         }
         else if (preCommit.Height == consensus.Height)
         {
-            consensus.PostPreCommit(preCommit);
+            await consensus.PreCommitAsync(preCommit, cancellationToken);
         }
         else
         {
             pendingMessages.Add(message);
         }
-
-        await ValueTask.CompletedTask;
     }
 }

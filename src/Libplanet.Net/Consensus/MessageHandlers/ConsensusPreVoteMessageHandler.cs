@@ -6,7 +6,8 @@ namespace Libplanet.Net.Consensus.MessageHandlers;
 internal sealed class ConsensusPreVoteMessageHandler(Consensus consensus, MessageCollection pendingMessages)
     : MessageHandlerBase<ConsensusPreVoteMessage>
 {
-    protected override async ValueTask OnHandleAsync(ConsensusPreVoteMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+    protected override async ValueTask OnHandleAsync(
+        ConsensusPreVoteMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         var preVote = message.PreVote;
         if (preVote.Height < consensus.Height)
@@ -15,13 +16,11 @@ internal sealed class ConsensusPreVoteMessageHandler(Consensus consensus, Messag
         }
         else if (preVote.Height == consensus.Height)
         {
-            consensus.PostPreVote(preVote);
+            await consensus.PreVoteAsync(preVote, cancellationToken);
         }
         else
         {
             pendingMessages.Add(message);
         }
-
-        await ValueTask.CompletedTask;
     }
 }

@@ -15,13 +15,11 @@ internal sealed class ConsensusProposalMessageHandler(Consensus consensus, Messa
         }
         else if (proposal.Height == consensus.Height)
         {
-            consensus.PostPropose(proposal);
+            await consensus.ProposeAsync(proposal, cancellationToken);
         }
         else
         {
             pendingMessages.Add(message);
         }
-
-        await ValueTask.CompletedTask;
     }
 }
