@@ -1,5 +1,4 @@
 using Libplanet.Net.Messages;
-using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
@@ -8,19 +7,19 @@ public sealed class ConsensusBroadcaster : IDisposable
     private readonly IDisposable[] _disposables;
     private bool _disposed;
 
-    public ConsensusBroadcaster(ConsensusController consensusController, Gossip gossip)
+    public ConsensusBroadcaster(ConsensusObserver consensusController, Gossip gossip)
     {
         _disposables =
         [
-            consensusController.PreVoted.Subscribe(
+            consensusController.ShouldPreVote.Subscribe(
                 e => gossip.Broadcast(new ConsensusPreVoteMessage { PreVote = e })),
-            consensusController.PreCommitted.Subscribe(
+            consensusController.ShouldPreCommit.Subscribe(
                 e => gossip.Broadcast(new ConsensusPreCommitMessage { PreCommit = e })),
-            consensusController.ProposalClaimed.Subscribe(
+            consensusController.ShouldProposalClaim.Subscribe(
                 e => gossip.Broadcast(new ConsensusProposalClaimMessage { ProposalClaim = e })),
-            consensusController.Proposed.Subscribe(
+            consensusController.ShouldPropose.Subscribe(
                 e => gossip.Broadcast(new ConsensusProposalMessage { Proposal = e })),
-            consensusController.Majority23Observed.Subscribe(
+            consensusController.ShouldMajority23.Subscribe(
                 e => gossip.Broadcast(new ConsensusMaj23Message { Maj23 = e })),
         ];
     }

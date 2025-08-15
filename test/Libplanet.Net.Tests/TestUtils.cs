@@ -245,14 +245,14 @@ public static class TestUtils
         return consensus;
     }
 
-    public static ConsensusController CreateConsensusController(
+    public static ConsensusObserver CreateConsensusController(
         Net.Consensus.Consensus consensus,
         PrivateKey? privateKey = null,
         Blockchain? blockchain = null)
     {
         blockchain ??= Libplanet.Tests.TestUtils.MakeBlockchain();
         privateKey ??= PrivateKeys[1];
-        return new ConsensusController(
+        return new ConsensusObserver(
             privateKey.AsSigner(),
             consensus,
             blockchain);

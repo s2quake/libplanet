@@ -31,7 +31,7 @@ public sealed class ConsensusService : ServiceBase
 
     private Dispatcher? _dispatcher;
     private Consensus _consensus;
-    private ConsensusController _controller;
+    private ConsensusObserver _observer;
     private ConsensusBroadcaster _broadcaster;
     private ConsensusBroadcastingResponder _broadcastingResponder;
     private IDisposable[] _runningSubscriptions;
@@ -59,8 +59,8 @@ public sealed class ConsensusService : ServiceBase
         };
         Height = _blockchain.Tip.Height + 1;
         _consensus = new Consensus(Height, _blockchain.GetValidators(Height), _consensusOption);
-        _controller = new ConsensusController(_signer, _consensus, _blockchain);
-        _broadcaster = new ConsensusBroadcaster(_controller, _gossip);
+        _observer = new ConsensusObserver(_signer, _consensus, _blockchain);
+        _broadcaster = new ConsensusBroadcaster(_observer, _gossip);
         _broadcastingResponder = new ConsensusBroadcastingResponder(_signer, _consensus, _gossip);
 
         _runningSubscriptions =
@@ -130,7 +130,7 @@ public sealed class ConsensusService : ServiceBase
         Array.ForEach(_initialiSubscriptions, subscription => subscription.Dispose());
         _broadcastingResponder.Dispose();
         _broadcaster.Dispose();
-        _controller.Dispose();
+        _observer.Dispose();
         await _consensus.DisposeAsync();
         await _transport.DisposeAsync();
         _cancellationTokenSource?.Dispose();
@@ -159,12 +159,12 @@ public sealed class ConsensusService : ServiceBase
 
             _broadcastingResponder.Dispose();
             _broadcaster.Dispose();
-            _controller.Dispose();
+            _observer.Dispose();
             await _consensus.StopAsync(cancellationToken);
             await _consensus.DisposeAsync();
             _consensus = new Consensus(height, _blockchain.GetValidators(height), _consensusOption);
-            _controller = new ConsensusController(_signer, _consensus, _blockchain);
-            _broadcaster = new ConsensusBroadcaster(_controller, _gossip);
+            _observer = new ConsensusObserver(_signer, _consensus, _blockchain);
+            _broadcaster = new ConsensusBroadcaster(_observer, _gossip);
             _broadcastingResponder = new ConsensusBroadcastingResponder(_signer, _consensus, _gossip);
             _runningSubscriptions =
             [

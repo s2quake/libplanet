@@ -34,11 +34,11 @@ public sealed class ConsensusTest
             height: 1,
             validators: TestUtils.Validators,
             options: new ConsensusOptions());
-        using var consensusController = new ConsensusController(
+        using var consensusController = new ConsensusObserver(
             TestUtils.PrivateKeys[index].AsSigner(),
             consensus,
             blockchain);
-        var proposedTask = consensusController.Proposed.WaitAsync();
+        var proposedTask = consensusController.ShouldPropose.WaitAsync();
 
         await consensus.StartAsync(default);
 

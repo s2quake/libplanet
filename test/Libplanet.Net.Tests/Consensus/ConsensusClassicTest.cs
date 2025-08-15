@@ -11,6 +11,8 @@ using Libplanet.Extensions;
 using Libplanet.Tests;
 using System.Reactive.Linq;
 
+using static Libplanet.Net.Tests.TestUtils;
+
 namespace Libplanet.Net.Tests.Consensus;
 
 public sealed class ConsensusClassicTest(ITestOutputHelper output)
@@ -20,16 +22,18 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposer()
     {
-        var privateKey = TestUtils.PrivateKeys[1];
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus();
-        var controller = TestUtils.CreateConsensusController(consensus, privateKey, blockchain);
+        var privateKey = PrivateKeys[1];
+        var blockchain = MakeBlockchain();
+        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators);
+        using var observer = new ConsensusObserver(privateKey.AsSigner(), consensus, blockchain);
 
         consensus.StartAfter(100);
-        await Task.WhenAll(
-            controller.PreVoted.WaitAsync(),
-            controller.Proposed.WaitAsync()
-        ).WaitAsync(TimeSpan.FromSeconds(20));
+
+        var proposeTask = observer.ShouldPropose.WaitAsync();
+        var proposal = await proposeTask.WaitAsync(TimeSpan.FromSeconds(3));
+        var preVoteTask = observer.ShouldPreVote.WaitAsync();
+        consensus.PostPropose(proposal);
+        await preVoteTask.WaitAsync(TimeSpan.FromSeconds(3));
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -39,27 +43,28 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposerWithLastCommit()
     {
-        var privateKey = TestUtils.PrivateKeys[2];
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(
-            height: 2);
-        var controller = TestUtils.CreateConsensusController(consensus, privateKey, blockchain);
-        var (_, blockCommit1) = blockchain.ProposeAndAppend(TestUtils.PrivateKeys[1]);
+        var privateKey = PrivateKeys[2];
+        var blockchain = MakeBlockchain();
+        await using var consensus = new Net.Consensus.Consensus(height: 2, Validators);
+        using var observer = new ConsensusObserver(privateKey.AsSigner(), consensus, blockchain);
+        var (_, blockCommit1) = blockchain.ProposeAndAppend(PrivateKeys[1]);
 
         consensus.StartAfter(100);
-        var waitPreVoted = controller.PreVoted.WaitAsync();
-        var waitProposed = controller.Proposed.WaitAsync();
-        await Task.WhenAll(waitPreVoted, waitProposed).WaitAsync(TimeSpan.FromSeconds(2));
-        var e = await waitProposed;
+        var proposeTask = observer.ShouldPropose.WaitAsync();
+        var proposal = await proposeTask.WaitAsync(TimeSpan.FromSeconds(3));;
+        consensus.PostPropose(proposal);
+        var preVoteTask = observer.ShouldPreVote.WaitAsync();
+        var preVote = await preVoteTask.WaitAsync(TimeSpan.FromSeconds(3));
+        consensus.PostPreVote(preVote);
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
-        Assert.Equal(blockCommit1, e.Block.PreviousCommit);
+        Assert.Equal(blockCommit1, proposal.Block.PreviousCommit);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task CannotStartTwice()
     {
-        await using var consensus = TestUtils.CreateConsensus();
+        await using var consensus = CreateConsensus();
 
         await consensus.StartAsync(default);
         await Assert.ThrowsAsync<InvalidOperationException>(() => consensus.StartAsync(default));
@@ -68,19 +73,19 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task CanAcceptMessagesAfterCommitFailure()
     {
-        var blockchain = TestUtils.MakeBlockchain();
-        blockchain.ProposeAndAppend(TestUtils.PrivateKeys[1]);
+        var blockchain = MakeBlockchain();
+        blockchain.ProposeAndAppend(PrivateKeys[1]);
 
-        await using var consensus = TestUtils.CreateConsensus(height: 2);
-        var controller = TestUtils.CreateConsensusController(
+        await using var consensus = CreateConsensus(height: 2);
+        var controller = CreateConsensusController(
             consensus,
-            TestUtils.PrivateKeys[2],
+            PrivateKeys[2],
             blockchain);
 
         consensus.StartAfter(100);
         var preVoteStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
         var endCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.EndCommit);
-        var proposedTask = controller.Proposed.WaitAsync();
+        var proposedTask = controller.ShouldPropose.WaitAsync();
 
         await preVoteStepTask.WaitAsync(TimeSpan.FromSeconds(10));
         var proposal = await proposedTask;
@@ -98,10 +103,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 Round = 0,
                 BlockHash = proposal!.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[i].Address,
-                ValidatorPower = TestUtils.Validators[i].Power,
+                Validator = PrivateKeys[i].Address,
+                ValidatorPower = Validators[i].Power,
                 Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Sign(PrivateKeys[i]);
             consensus.PostPreVote(vote);
         }
 
@@ -114,10 +119,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 Round = 0,
                 BlockHash = proposal!.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[i].Address,
-                ValidatorPower = TestUtils.Validators[i].Power,
+                Validator = PrivateKeys[i].Address,
+                ValidatorPower = Validators[i].Power,
                 Type = VoteType.PreCommit,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Sign(PrivateKeys[i]);
             consensus.PostPreCommit(vote);
         }
 
@@ -134,10 +139,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             Round = 0,
             BlockHash = proposal!.BlockHash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = TestUtils.PrivateKeys[3].Address,
-            ValidatorPower = TestUtils.Validators[3].Power,
+            Validator = PrivateKeys[3].Address,
+            ValidatorPower = Validators[3].Power,
             Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[3]);
+        }.Sign(PrivateKeys[3]);
         consensus.PostPreCommit(vote2);
 
         await Task.Delay(100);  // Wait for the new message to be added to the message log.
@@ -149,10 +154,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     public async Task ThrowOnInvalidProposerMessage()
     {
         var tcs = new TaskCompletionSource<Exception>();
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus();
+        var blockchain = MakeBlockchain();
+        await using var consensus = CreateConsensus();
         using var _ = consensus.ExceptionOccurred.Subscribe(tcs.SetResult);
-        var signer = TestUtils.PrivateKeys[0];
+        var signer = PrivateKeys[0];
         var block = blockchain.ProposeBlock(signer);
         var proposal = new ProposalBuilder
         {
@@ -171,13 +176,13 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task ThrowOnDifferentHeightMessage()
     {
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus();
-        using var controller = TestUtils.CreateConsensusController(
+        var blockchain = MakeBlockchain();
+        await using var consensus = CreateConsensus();
+        using var controller = CreateConsensusController(
             consensus,
-            TestUtils.PrivateKeys[1],
+            PrivateKeys[1],
             blockchain);
-        var signer = TestUtils.PrivateKeys[2].AsSigner();
+        var signer = PrivateKeys[2].AsSigner();
         var block = new BlockBuilder
         {
             Height = 2,
@@ -195,11 +200,11 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         var vote = new VoteBuilder
         {
-            Validator = TestUtils.Validators[2],
+            Validator = Validators[2],
             Height = 2,
             BlockHash = block.BlockHash,
             Type = VoteType.PreVote,
-        }.Create(TestUtils.PrivateKeys[2]);
+        }.Create(PrivateKeys[2]);
 
         Assert.Throws<ArgumentException>(() => consensus.PostPreVote(vote));
     }
@@ -218,9 +223,9 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 MaxTransactionsBytes = 50 * 1024,
             },
         };
-        var blockchain = TestUtils.MakeBlockchain(blockchainOptions);
-        await using var consensus = TestUtils.CreateConsensus();
-        using var controller = TestUtils.CreateConsensusController(consensus, TestUtils.PrivateKeys[0], blockchain);
+        var blockchain = MakeBlockchain(blockchainOptions);
+        await using var consensus = CreateConsensus();
+        using var controller = CreateConsensusController(consensus, PrivateKeys[0], blockchain);
         using var _1 = consensus.Finalized.Subscribe(e => blockchain.Append(e.Block, e.BlockCommit));
 
         var preVoteStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
@@ -230,16 +235,16 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         var tipChangedTask = blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 1);
 
         var action = new DelayAction(100);
-        _ = blockchain.StagedTransactions.Add(TestUtils.PrivateKeys[1], new()
+        _ = blockchain.StagedTransactions.Add(PrivateKeys[1], new()
         {
             Actions = [action],
         });
-        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        var block = blockchain.ProposeBlock(PrivateKeys[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
             Round = 0,
-        }.Create(TestUtils.PrivateKeys[1]);
+        }.Create(PrivateKeys[1]);
 
         await consensus.StartAsync(default);
         consensus.PostPropose(proposal);
@@ -248,11 +253,11 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         {
             var preVote = new VoteBuilder
             {
-                Validator = TestUtils.Validators[i],
+                Validator = Validators[i],
                 Height = 1,
                 BlockHash = block.BlockHash,
                 Type = VoteType.PreVote,
-            }.Create(TestUtils.PrivateKeys[i]);
+            }.Create(PrivateKeys[i]);
             consensus.PostPreVote(preVote);
         }
 
@@ -261,11 +266,11 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         {
             var preCommit = new VoteBuilder
             {
-                Validator = TestUtils.Validators[i],
+                Validator = Validators[i],
                 Height = 1,
                 BlockHash = block.BlockHash,
                 Type = VoteType.PreCommit,
-            }.Create(TestUtils.PrivateKeys[i]);
+            }.Create(PrivateKeys[i]);
             consensus.PostPreCommit(preCommit);
         }
 
@@ -281,12 +286,12 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         // Add the last vote and wait for it to be consumed.
         var vote = new VoteBuilder
         {
-            Validator = TestUtils.Validators[3],
+            Validator = Validators[3],
             Height = 1,
             BlockHash = block.BlockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Type = VoteType.PreCommit,
-        }.Create(TestUtils.PrivateKeys[3]);
+        }.Create(PrivateKeys[3]);
         consensus.PostPreCommit(vote);
         await consensus.PreCommitted.WaitAsync();
         Assert.Equal(4, consensus.Round.PreCommits.GetBlockCommit()!.Votes.Count(vote => vote.Type == VoteType.PreCommit));
@@ -303,9 +308,9 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         var proposer = privateKeys[1];
         var key1 = privateKeys[2];
         var key2 = privateKeys[3];
-        var proposerPower = TestUtils.Validators[1].Power;
-        var power1 = TestUtils.Validators[2].Power;
-        var power2 = TestUtils.Validators[3].Power;
+        var proposerPower = Validators[1].Power;
+        var power1 = Validators[2].Power;
+        var power2 = Validators[3].Power;
         using var stepChanged = new AutoResetEvent(false);
         using var proposalModified = new AutoResetEvent(false);
         Block? completedBlock = null;
@@ -318,10 +323,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             new Validator { Address = key2.Address }
         );
 
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(
+        var blockchain = MakeBlockchain();
+        await using var consensus = CreateConsensus(
             validators: validators);
-        using var controller = TestUtils.CreateConsensusController(
+        using var controller = CreateConsensusController(
             consensus,
             privateKeys[0],
             blockchain);
@@ -451,9 +456,9 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         int actionDelay = 2000;
 
         using var fx = new MemoryRepositoryFixture();
-        var keyA = TestUtils.PrivateKeys[0];
-        var blockchain = TestUtils.MakeBlockchain(fx.Options);
-        await using var transport = TestUtils.CreateTransport(keyA);
+        var keyA = PrivateKeys[0];
+        var blockchain = MakeBlockchain(fx.Options);
+        await using var transport = CreateTransport(keyA);
         var options = new ConsensusServiceOptions
         {
             TargetBlockInterval = newHeightDelay,
@@ -484,14 +489,14 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         {
             GenesisHash = blockchain.Genesis.BlockHash,
             Actions = [new DelayAction(actionDelay)],
-        }.Create(TestUtils.PrivateKeys[1], blockchain);
+        }.Create(PrivateKeys[1], blockchain);
         blockchain.StagedTransactions.Add(tx);
-        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        var block = blockchain.ProposeBlock(PrivateKeys[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
             Round = 0,
-        }.Create(TestUtils.PrivateKeys[1]);
+        }.Create(PrivateKeys[1]);
 
         await transport.StartAsync(default);
         await consensusService.StartAsync(default);
@@ -505,10 +510,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 Round = 0,
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[i].Address,
-                ValidatorPower = TestUtils.Validators[i].Power,
+                Validator = PrivateKeys[i].Address,
+                ValidatorPower = Validators[i].Power,
                 Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Sign(PrivateKeys[i]);
             consensusService.Consensus.PostPreVote(preVote);
         }
 
@@ -516,13 +521,13 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         {
             var preCommit = new VoteBuilder
             {
-                Validator = TestUtils.Validators[i],
+                Validator = Validators[i],
                 Height = 1,
                 Round = 0,
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 Type = VoteType.PreCommit,
-            }.Create(TestUtils.PrivateKeys[i]);
+            }.Create(PrivateKeys[i]);
             consensusService.Consensus.PostPreCommit(preCommit);
         }
 
@@ -557,12 +562,12 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         {
             EnterPreCommitDelay = delay,
         };
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var consensus = TestUtils.CreateConsensus(options: options);
-        var controller = TestUtils.CreateConsensusController(consensus, blockchain: blockchain);
+        var blockchain = MakeBlockchain();
+        await using var consensus = CreateConsensus(options: options);
+        var controller = CreateConsensusController(consensus, blockchain: blockchain);
         var preVoteStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit);
-        var proposedTask = controller.Proposed.WaitAsync();
+        var proposedTask = controller.ShouldPropose.WaitAsync();
         // var preVotedTask = consensus.PreVoted.WaitAsync();
 
         // using var _1 = consensus.StepChanged.Subscribe(step =>
@@ -606,10 +611,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                 Round = 0,
                 BlockHash = block.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.PrivateKeys[i].Address,
-                ValidatorPower = TestUtils.Validators[i].Power,
+                Validator = PrivateKeys[i].Address,
+                ValidatorPower = Validators[i].Power,
                 Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Sign(PrivateKeys[i]);
             consensus.PostPreVote(preVote);
         }
 
@@ -626,10 +631,10 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
                     Round = 0,
                     BlockHash = block.BlockHash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Validator = TestUtils.PrivateKeys[3].Address,
-                    ValidatorPower = TestUtils.Validators[3].Power,
+                    Validator = PrivateKeys[3].Address,
+                    ValidatorPower = Validators[3].Power,
                     Type = VoteType.PreVote,
-                }.Sign(TestUtils.PrivateKeys[3]);
+                }.Sign(PrivateKeys[3]);
                 consensus.PostPreVote(preVote);
             },
             cancellationToken.Token);

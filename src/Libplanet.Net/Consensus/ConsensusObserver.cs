@@ -3,13 +3,13 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class ConsensusController : IDisposable
+public sealed class ConsensusObserver : IDisposable
 {
-    private readonly Subject<Proposal> _proposedSubject = new();
-    private readonly Subject<Vote> _preVotedSubject = new();
-    private readonly Subject<Vote> _preCommittedSubject = new();
-    private readonly Subject<ProposalClaim> _proposalClaimedSubject = new();
-    private readonly Subject<Maj23> _majority23ObservedSubject = new();
+    private readonly Subject<Proposal> _shouldProposeSubject = new();
+    private readonly Subject<Vote> _shouldPreVoteSubject = new();
+    private readonly Subject<Vote> _shouldPreCommitSubject = new();
+    private readonly Subject<ProposalClaim> _shouldProposalClaimSubject = new();
+    private readonly Subject<Maj23> _shouldMajority23Subject = new();
 
     private readonly ISigner _signer;
     private readonly Consensus _consensus;
@@ -17,7 +17,7 @@ public sealed class ConsensusController : IDisposable
     private readonly Validator _validator;
     private bool _disposed;
 
-    internal ConsensusController(ISigner signer, Consensus consensus, Blockchain blockchain)
+    internal ConsensusObserver(ISigner signer, Consensus consensus, Blockchain blockchain)
     {
         _signer = signer;
         _consensus = consensus;
@@ -28,25 +28,25 @@ public sealed class ConsensusController : IDisposable
         _consensus.Majority23Observed.Subscribe(Consensus_Majority23Observed);
     }
 
-    public IObservable<Vote> PreVoted => _preVotedSubject;
+    public IObservable<Vote> ShouldPreVote => _shouldPreVoteSubject;
 
-    public IObservable<Vote> PreCommitted => _preCommittedSubject;
+    public IObservable<Vote> ShouldPreCommit => _shouldPreCommitSubject;
 
-    public IObservable<ProposalClaim> ProposalClaimed => _proposalClaimedSubject;
+    public IObservable<ProposalClaim> ShouldProposalClaim => _shouldProposalClaimSubject;
 
-    public IObservable<Proposal> Proposed => _proposedSubject;
+    public IObservable<Proposal> ShouldPropose => _shouldProposeSubject;
 
-    public IObservable<Maj23> Majority23Observed => _majority23ObservedSubject;
+    public IObservable<Maj23> ShouldMajority23 => _shouldMajority23Subject;
 
     public void Dispose()
     {
         if (!_disposed)
         {
-            _proposedSubject.Dispose();
-            _preVotedSubject.Dispose();
-            _preCommittedSubject.Dispose();
-            _proposalClaimedSubject.Dispose();
-            _majority23ObservedSubject.Dispose();
+            _shouldProposeSubject.Dispose();
+            _shouldPreVoteSubject.Dispose();
+            _shouldPreCommitSubject.Dispose();
+            _shouldProposalClaimSubject.Dispose();
+            _shouldMajority23Subject.Dispose();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
@@ -68,7 +68,7 @@ public sealed class ConsensusController : IDisposable
                         Timestamp = DateTimeOffset.UtcNow,
                         ValidRound = candidateProposal?.ValidRound ?? -1,
                     }.Create(_signer);
-                    _proposedSubject.OnNext(proposal);
+                    _shouldProposeSubject.OnNext(proposal);
                 }
                 break;
 
@@ -82,7 +82,7 @@ public sealed class ConsensusController : IDisposable
                     Timestamp = DateTimeOffset.UtcNow,
                     Type = VoteType.PreVote,
                 }.Create(_signer);
-                _preVotedSubject.OnNext(preVote);
+                _shouldPreVoteSubject.OnNext(preVote);
                 break;
 
             case ConsensusStep.PreCommit:
@@ -96,7 +96,7 @@ public sealed class ConsensusController : IDisposable
                     ValidatorPower = _consensus.Validators.GetValidator(_signer.Address).Power,
                     Type = VoteType.PreCommit,
                 }.Sign(_signer);
-                _preCommittedSubject.OnNext(preCommit);
+                _shouldPreCommitSubject.OnNext(preCommit);
                 break;
         }
     }
@@ -113,7 +113,7 @@ public sealed class ConsensusController : IDisposable
             Validator = _signer.Address,
             VoteType = e.VoteType,
         }.Sign(_signer);
-        _majority23ObservedSubject.OnNext(maj23);
+        _shouldMajority23Subject.OnNext(maj23);
     }
 
     private void Consensus_ProposalClaimed((Proposal Proposal, BlockHash BlockHash) e)
@@ -127,6 +127,6 @@ public sealed class ConsensusController : IDisposable
             Timestamp = DateTimeOffset.UtcNow,
             Validator = _signer.Address,
         }.Sign(_signer);
-        _proposalClaimedSubject.OnNext(proposalClaim);
+        _shouldProposalClaimSubject.OnNext(proposalClaim);
     }
 }
