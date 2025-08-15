@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Libplanet.Data.RocksDB.Tests;
 
-public class RocksDBStoreBlockChainTest : BlockChainTest
+public class RocksDBStoreBlockChainTest : BlockchainTest
 {
     public RocksDBStoreBlockChainTest(ITestOutputHelper output)
         : base(output)

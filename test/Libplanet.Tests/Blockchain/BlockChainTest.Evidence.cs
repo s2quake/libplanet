@@ -1,6 +1,6 @@
 namespace Libplanet.Tests.Blockchain;
 
-public partial class BlockChainTest
+public partial class BlockchainTest
 {
     // [Fact]
     // public void GetPendingEvidence_Test()

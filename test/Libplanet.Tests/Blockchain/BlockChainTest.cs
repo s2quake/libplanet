@@ -13,7 +13,7 @@ using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Tests.Blockchain;
 
-public partial class BlockChainTest : IDisposable
+public partial class BlockchainTest : IDisposable
 {
     private readonly ILogger _logger;
     private readonly RepositoryFixture _fx;
@@ -22,14 +22,14 @@ public partial class BlockChainTest : IDisposable
     private readonly Block _validNext;
     private readonly StagedTransactionCollection _stagePolicy;
 
-    public BlockChainTest(ITestOutputHelper output)
+    public BlockchainTest(ITestOutputHelper output)
     {
         Log.Logger = _logger = new LoggerConfiguration()
             .MinimumLevel.Verbose()
             .Enrich.WithThreadId()
             .WriteTo.TestOutput(output)
             .CreateLogger()
-            .ForContext<BlockChainTest>();
+            .ForContext<BlockchainTest>();
 
         _options = new BlockchainOptions
         {

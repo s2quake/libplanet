@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Tests.Blockchain;
 
-public partial class BlockChainTest
+public partial class BlockchainTest
 {
     [Fact]
     public void StageTransaction()
