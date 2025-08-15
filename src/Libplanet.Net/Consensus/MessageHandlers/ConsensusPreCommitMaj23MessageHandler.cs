@@ -7,10 +7,13 @@ namespace Libplanet.Net.Consensus.MessageHandlers;
 internal sealed class ConsensusPreCommitMaj23MessageHandler(ISigner signer, Consensus consensus, Gossip gossip)
     : MessageHandlerBase<ConsensusPreCommitMaj23Message>
 {
-    protected override async ValueTask OnHandleAsync(ConsensusPreCommitMaj23Message message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
+    protected override async ValueTask OnHandleAsync(
+        ConsensusPreCommitMaj23Message message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         var maj23 = message.Maj23;
-        if (consensus.Height == maj23.Height && consensus.AddPreCommitMaj23(maj23))
+        var validator = maj23.Validator;
+        var sender = gossip.Peers.FirstOrDefault(peer => peer.Address.Equals(validator));
+        if (sender is not null && consensus.Height == maj23.Height && consensus.AddPreCommitMaj23(maj23))
         {
             var round = consensus.Rounds[maj23.Round];
             var preCommits = round.PreCommits;
@@ -25,8 +28,6 @@ internal sealed class ConsensusPreCommitMaj23MessageHandler(ISigner signer, Cons
                 Bits = preCommits.GetBits(maj23.BlockHash),
             }.Sign(signer);
 
-            var validator = maj23.Validator;
-            var sender = gossip.Peers.First(peer => peer.Address.Equals(validator));
             gossip.Broadcast([sender], new ConsensusVoteBitsMessage { VoteBits = voteBits });
         }
 

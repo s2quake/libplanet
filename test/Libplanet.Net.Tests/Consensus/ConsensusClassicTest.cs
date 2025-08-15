@@ -148,7 +148,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         var e = await Assert.ThrowsAsync<ArgumentException>(() => consensus.ProposeAsync(proposal));
         Assert.Equal("proposal", e.ParamName);
-        Assert.StartsWith("Proposal height ", e.Message);
+        Assert.StartsWith("Given proposal's proposer", e.Message);
     }
 
     [Fact(Timeout = Timeout)]
@@ -373,6 +373,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         await transport.StartAsync();
         await consensusService.StartAsync();
         var consensus = consensusService.Consensus;
+        var preCommits = consensus.Round.PreCommits;
         _ = consensus.ProposeAsync(proposal);
 
         foreach (var i in new int[] { 1, 2, 3 })
@@ -406,7 +407,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         await heightChangedTask.WaitAsync(WaitTimeout);
         Assert.Equal(
             4,
-            consensus.Round.PreCommits.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
+            preCommits.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
         Assert.True(stopWatch.ElapsedMilliseconds > (actionDelay * 0.5));
         Assert.Equal(2, consensusService.Height);
     }
@@ -417,68 +418,32 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
     [InlineData(500)]
     public async Task CanCollectPreVoteAfterMajority(int delay)
     {
-        // using var preVoteStepEvent = new ManualResetEvent(false);
-        // using var preCommitStepEvent = new ManualResetEvent(false);
-        // Proposal? proposedBlock = null;
-        int numPreVotes = 0;
         var options = new ConsensusOptions
         {
             EnterPreCommitDelay = delay,
         };
         var blockchain = MakeBlockchain();
-        await using var consensus = CreateConsensus(options: options);
-        var controller = CreateConsensusController(consensus, blockchain: blockchain);
-        var preVoteStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
-        var preCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit);
-        var proposedTask = controller.ShouldPropose.WaitAsync();
-        // var preVotedTask = consensus.PreVoted.WaitAsync();
-
-        // using var _1 = consensus.StepChanged.Subscribe(step =>
-        // {
-        //     if (step == ConsensusStep.PreVote)
-        //     {
-        //         preVoteStepEvent.Set();
-        //     }
-        //     else if (step == ConsensusStep.PreCommit)
-        //     {
-        //         preCommitStepEvent.Set();
-        //     }
-        // });
-        // using var _2 = consensus.ShouldPropose.Subscribe(proposal =>
-        // {
-        //     proposedBlock = proposal.Block;
-        // });
-        using var _3 = consensus.PreVoted.Subscribe(vote =>
+        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators, options);
+        var block = blockchain.ProposeBlock(Signers[1]);
+        var proposal = new ProposalBuilder
         {
-            if (vote.Type == VoteType.PreVote)
-            {
-                numPreVotes++;
-            }
-        });
+            Block = block,
+        }.Create(Signers[1]);
+        using var preVoteCounter = consensus.PreVoted.Counter();
+
         await consensus.StartAsync(default);
-        await preVoteStepTask.WaitAsync(TimeSpan.FromSeconds(1));
-        var proposal = await proposedTask.WaitAsync(TimeSpan.FromSeconds(1));
-        var block = proposal.Block;
-        // Assert.True(preVoteStepEvent.WaitOne(1000), "Consensus did not enter PreVote step in time.");
+        await consensus.ProposeAsync(proposal);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
-        // if (proposal.Block is not { } block)
-        // {
-        //     throw new XunitException("No proposal is made");
-        // }
 
         for (var i = 0; i < 3; i++)
         {
-            var preVote = new VoteMetadata
+            var preVote = new VoteBuilder
             {
-                Height = block.Height,
-                Round = 0,
-                BlockHash = block.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = PrivateKeys[i].Address,
-                ValidatorPower = Validators[i].Power,
+                Validator = Validators[i],
+                Block = block,
                 Type = VoteType.PreVote,
-            }.Sign(PrivateKeys[i]);
-            _ = consensus.PreVoteAsync(preVote, default);
+            }.Create(PrivateKeys[i]);
+            _ = consensus.PreVoteAsync(preVote);
         }
 
         // Send delayed PreVote message after sending preCommit message
@@ -488,24 +453,19 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             async () =>
             {
                 await Task.Delay(preVoteDelay, cancellationToken.Token);
-                var preVote = new VoteMetadata
+                var preVote = new VoteBuilder
                 {
-                    Height = block.Height,
-                    Round = 0,
-                    BlockHash = block.BlockHash,
-                    Timestamp = DateTimeOffset.UtcNow,
-                    Validator = PrivateKeys[3].Address,
-                    ValidatorPower = Validators[3].Power,
+                    Validator = Validators[3],
+                    Block = block,
                     Type = VoteType.PreVote,
-                }.Sign(PrivateKeys[3]);
-                _ = consensus.PreVoteAsync(preVote, default);
+                }.Create(PrivateKeys[3]);
+                _ = consensus.PreVoteAsync(preVote);
             },
             cancellationToken.Token);
 
-        // Assert.True(preCommitStepEvent.WaitOne(1000), "Consensus did not enter PreCommit step in time.");
-        await preCommitStepTask.WaitAsync(TimeSpan.FromSeconds(1));
+        await consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit, WaitTimeout);
         await cancellationToken.CancelAsync();
 
-        Assert.Equal(delay < preVoteDelay ? 3 : 4, numPreVotes);
+        Assert.Equal(delay < preVoteDelay ? 3 : 4, preVoteCounter.Count);
     }
 }
