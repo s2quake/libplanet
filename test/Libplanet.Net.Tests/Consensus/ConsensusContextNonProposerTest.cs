@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 using Libplanet.Tests;
 using Libplanet.Extensions;
 using System.Reactive.Linq;
+using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -18,22 +19,29 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task NewHeightWithLastCommit()
     {
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var transportA = TestUtils.CreateTransport(TestUtils.PrivateKeys[1]);
-        await using var transportB = TestUtils.CreateTransport(TestUtils.PrivateKeys[2]);
-        await using var consensusServiceB = TestUtils.CreateConsensusService(
-            transportB,
-            blockchain: blockchain,
-            key: TestUtils.PrivateKeys[2],
-            newHeightDelay: TimeSpan.FromSeconds(1));
+        var blockchain = MakeBlockchain();
+        await using var transportA = new NetMQ.NetMQTransport(Signers[1]);
+        await using var transportB = new NetMQ.NetMQTransport(Signers[2]);
+        var options = new ConsensusServiceOptions
+        {
+            TargetBlockInterval = TimeSpan.FromSeconds(1),
+        };
+        await using var consensusServiceB = new ConsensusService(Signers[2], blockchain, transportB, options);
+
         var blockProposedHeight2Task = consensusServiceB.BlockProposed.WaitAsync(e => e.Height == 2);
 
         await transportA.StartAsync(default);
         await transportB.StartAsync(default);
         await consensusServiceB.StartAsync(default);
 
-        var block1 = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        var proposalMessage = TestUtils.CreateConsensusPropose(block1, TestUtils.PrivateKeys[1]);
+        var block1 = blockchain.ProposeBlock(Signers[1]);
+        var proposalMessage = new ConsensusProposalMessage
+        {
+            Proposal = new ProposalBuilder
+            {
+                Block = block1,
+            }.Create(Signers[1]),
+        };
         transportA.Post(transportB.Peer, proposalMessage);
 
         var expectedVotes = new Vote[4];
@@ -42,16 +50,12 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         // Enough votes are present to proceed even without Peer3's vote.
         for (var i = 0; i < 2; i++)
         {
-            expectedVotes[i] = new VoteMetadata
+            expectedVotes[i] = new VoteBuilder
             {
-                Height = 1,
-                Round = 0,
-                BlockHash = block1.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.Validators[i].Address,
-                ValidatorPower = TestUtils.Validators[i].Power,
+                Validator = Validators[i],
+                Block = block1,
                 Type = VoteType.PreVote,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Create(PrivateKeys[i]);
             var preVoteMessage = new ConsensusPreVoteMessage { PreVote = expectedVotes[i] };
             transportA.Post(transportB.Peer, preVoteMessage);
         }
@@ -60,16 +64,12 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         // Enough votes are present to proceed even without Peer3's vote.
         for (var i = 0; i < 2; i++)
         {
-            expectedVotes[i] = new VoteMetadata
+            expectedVotes[i] = new VoteBuilder
             {
-                Height = 1,
-                Round = 0,
-                BlockHash = block1.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = TestUtils.Validators[i].Address,
-                ValidatorPower = TestUtils.Validators[i].Power,
+                Validator = Validators[i],
+                Block = block1,
                 Type = VoteType.PreCommit,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Create(PrivateKeys[i]);
             var preCommitMessage = new ConsensusPreCommitMessage { PreCommit = expectedVotes[i] };
             transportA.Post(transportB.Peer, preCommitMessage);
         }
@@ -95,13 +95,13 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var proposalSent = new AsyncAutoResetEvent();
         var newHeightDelay = TimeSpan.FromSeconds(1);
 
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var transportA = TestUtils.CreateTransport();
-        await using var transportB = TestUtils.CreateTransport();
-        await using var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = MakeBlockchain();
+        await using var transportA = CreateTransport();
+        await using var transportB = CreateTransport();
+        await using var consensusService = CreateConsensusService(
             transportB,
             blockchain: blockchain,
-            key: TestUtils.PrivateKeys[2],
+            key: PrivateKeys[2],
             newHeightDelay: newHeightDelay);
         await consensusService.StartAsync(default);
 
@@ -184,7 +184,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
             }
         });
 
-        blockchain.ProposeAndAppend(TestUtils.PrivateKeys[1]);
+        blockchain.ProposeAndAppend(PrivateKeys[1]);
 
         // blockchain._repository.BlockCommits.Add(TestUtils.CreateBlockCommit(blockchain.Blocks[1]));
         await proposalSent.WaitAsync();
@@ -197,11 +197,11 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         }
 
         foreach ((PrivateKey privateKey, BigInteger power)
-                 in TestUtils.PrivateKeys.Zip(
-                     TestUtils.Validators.Select(v => v.Power),
+                 in PrivateKeys.Zip(
+                     Validators.Select(v => v.Power),
                      (first, second) => (first, second)))
         {
-            if (privateKey == TestUtils.PrivateKeys[2])
+            if (privateKey == PrivateKeys[2])
             {
                 // Peer2 will send a ConsensusVote by handling the ConsensusPropose message.
                 continue;
@@ -225,11 +225,11 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         }
 
         foreach ((PrivateKey privateKey, BigInteger power)
-                 in TestUtils.PrivateKeys.Zip(
-                     TestUtils.Validators.Select(v => v.Power),
+                 in PrivateKeys.Zip(
+                     Validators.Select(v => v.Power),
                      (first, second) => (first, second)))
         {
-            if (privateKey == TestUtils.PrivateKeys[2])
+            if (privateKey == PrivateKeys[2])
             {
                 // Peer2 will send a ConsensusCommit by handling the ConsensusVote message.
                 continue;
@@ -256,12 +256,12 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         await blockchain.WaitUntilHeightAsync(2, default);
 
         var blockHeightTwo = proposal.Block;
-        var blockHeightThree = blockchain.ProposeBlock(TestUtils.PrivateKeys[3]);
+        var blockHeightThree = blockchain.ProposeBlock(PrivateKeys[3]);
 
         // Message from higher height
         transportA.Post(
             transportB.Peer,
-            TestUtils.CreateConsensusPropose(blockHeightThree, TestUtils.PrivateKeys[3], 3));
+            CreateConsensusPropose(blockHeightThree, PrivateKeys[3], 3));
 
         // New height started.
         await heightThreeStepChangedToPropose.WaitAsync();
@@ -277,13 +277,13 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var heightTwoProposalSent = new AsyncAutoResetEvent();
         Block? proposedBlock = null;
 
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var transport = TestUtils.CreateTransport();
-        await using var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = MakeBlockchain();
+        await using var transport = CreateTransport();
+        await using var consensusService = CreateConsensusService(
             transport,
             blockchain: blockchain,
             newHeightDelay: TimeSpan.FromSeconds(1),
-            key: TestUtils.PrivateKeys[2]);
+            key: PrivateKeys[2]);
         consensusService.BlockProposed.Subscribe(e =>
         {
             if (e.Height == 2)
@@ -303,8 +303,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         // };
 
         await consensusService.StartAsync(default);
-        Block block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
-        var createdLastCommit = TestUtils.CreateBlockCommit(block);
+        Block block = blockchain.ProposeBlock(PrivateKeys[1]);
+        var createdLastCommit = CreateBlockCommit(block);
         blockchain.Append(block, createdLastCommit);
 
         // Context for height #2 where node #2 is the proposer is automatically started
@@ -324,14 +324,14 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var timeError = 500;
         var heightOneEndCommit = new ManualResetEvent(false);
         var heightTwoProposalSent = new ManualResetEvent(false);
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var transportA = TestUtils.CreateTransport();
-        await using var transportB = TestUtils.CreateTransport();
-        await using var consensusService = TestUtils.CreateConsensusService(
+        var blockchain = MakeBlockchain();
+        await using var transportA = CreateTransport();
+        await using var transportB = CreateTransport();
+        await using var consensusService = CreateConsensusService(
             transportB,
             blockchain: blockchain,
             newHeightDelay: newHeightDelay,
-            key: TestUtils.PrivateKeys[2]);
+            key: PrivateKeys[2]);
         // consensusService.StateChanged += (_, eventArgs) =>
         // {
         //     if (eventArgs.Height == 1 && eventArgs.Step == ConsensusStep.EndCommit)
@@ -363,13 +363,13 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         });
 
         await consensusService.StartAsync(default);
-        var block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]);
+        var block = blockchain.ProposeBlock(PrivateKeys[1]);
         transportA.Post(
             transportB.Peer,
-            TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[1]));
+            CreateConsensusPropose(block, PrivateKeys[1]));
 
-        await TestUtils.HandleFourPeersPreCommitMessages(
-             transportA, transportB, consensusService, TestUtils.PrivateKeys[2], block.BlockHash);
+        await HandleFourPeersPreCommitMessages(
+             transportA, transportB, consensusService, PrivateKeys[2], block.BlockHash);
 
         Assert.True(heightOneEndCommit.WaitOne(5000), "EndCommit not reached in time.");
         var endCommitTime = DateTimeOffset.UtcNow;

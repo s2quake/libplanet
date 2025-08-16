@@ -3,9 +3,7 @@ using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
 using Libplanet.TestUtilities.Extensions;
-using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Xunit.Abstractions;
 using Libplanet.Extensions;
 using Libplanet.Tests;
 using System.Reactive.Linq;
@@ -14,7 +12,7 @@ using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public sealed class ConsensusClassicTest(ITestOutputHelper output)
+public sealed class ConsensusClassicTest
 {
     private const int Timeout = 30000;
 
