@@ -4,17 +4,15 @@ using Libplanet.Types;
 using Libplanet.TestUtilities.Extensions;
 using Nito.AsyncEx;
 using xRetry;
-using Xunit.Abstractions;
 using Libplanet.Tests;
 using Libplanet.Extensions;
 using System.Reactive.Linq;
 using static Libplanet.Net.Tests.TestUtils;
 using Libplanet.Types.Threading;
-using Nethereum.Util;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class ConsensusContextNonProposerTest(ITestOutputHelper output)
+public class ConsensusContextNonProposerTest
 {
     private const int Timeout = 30000;
 
