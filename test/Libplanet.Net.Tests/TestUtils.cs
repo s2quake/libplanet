@@ -85,40 +85,40 @@ public static class TestUtils
     public static BlockCommit CreateBlockCommit(BlockHash blockHash, int height, int round) =>
         Libplanet.Tests.TestUtils.CreateBlockCommit(blockHash, height, round);
 
-    public static async Task HandleFourPeersPreCommitMessages(
-        ITransport transportA,
-        ITransport transportB,
-        ConsensusService consensusService,
-        PrivateKey nodePrivateKey,
-        BlockHash roundBlockHash)
-    {
-        foreach ((PrivateKey privateKey, BigInteger power)
-                 in PrivateKeys.Zip(
-                     Validators.Select(v => v.Power),
-                     (first, second) => (first, second)))
-        {
-            if (privateKey == nodePrivateKey)
-            {
-                continue;
-            }
+    // public static async Task HandleFourPeersPreCommitMessages(
+    //     ITransport transportA,
+    //     ITransport transportB,
+    //     ConsensusService consensusService,
+    //     PrivateKey nodePrivateKey,
+    //     BlockHash roundBlockHash)
+    // {
+    //     foreach ((PrivateKey privateKey, BigInteger power)
+    //              in PrivateKeys.Zip(
+    //                  Validators.Select(v => v.Power),
+    //                  (first, second) => (first, second)))
+    //     {
+    //         if (privateKey == nodePrivateKey)
+    //         {
+    //             continue;
+    //         }
 
-            transportA.Post(
-                transportB.Peer,
-                new ConsensusPreCommitMessage
-                {
-                    PreCommit = new VoteMetadata
-                    {
-                        Height = consensusService.Height,
-                        Round = consensusService.Round,
-                        BlockHash = roundBlockHash,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Validator = privateKey.Address,
-                        ValidatorPower = power,
-                        Type = VoteType.PreCommit,
-                    }.Sign(privateKey)
-                });
-        }
-    }
+    //         transportA.Post(
+    //             transportB.Peer,
+    //             new ConsensusPreCommitMessage
+    //             {
+    //                 PreCommit = new VoteMetadata
+    //                 {
+    //                     Height = consensusService.Height,
+    //                     Round = consensusService.Round,
+    //                     BlockHash = roundBlockHash,
+    //                     Timestamp = DateTimeOffset.UtcNow,
+    //                     Validator = privateKey.Address,
+    //                     ValidatorPower = power,
+    //                     Type = VoteType.PreCommit,
+    //                 }.Sign(privateKey)
+    //             });
+    //     }
+    // }
 
     public static void HandleFourPeersPreCommitMessages(
         Net.Consensus.Consensus context,

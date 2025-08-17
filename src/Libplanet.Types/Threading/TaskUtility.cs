@@ -76,4 +76,6 @@ public static class TaskUtility
             return false;
         }
     }
+
+    public static Task WhenAll(TimeSpan timeout, params Task[] tasks) => Task.WhenAll(tasks).WaitAsync(timeout);
 }

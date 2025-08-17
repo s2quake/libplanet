@@ -58,5 +58,6 @@ public static class IObservableExtensions
 
     public static Task<T> WaitAsync<T>(
         this IObservable<T> @this, Func<T, bool> predicate, TimeSpan timeout, CancellationToken cancellationToken)
+        where T : notnull
         => WaitAsync(@this, predicate, cancellationToken).WaitAsync(timeout, cancellationToken);
 }

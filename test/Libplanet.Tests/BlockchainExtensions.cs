@@ -6,22 +6,22 @@ namespace Libplanet.Tests;
 
 public static class BlockchainExtensions
 {
-    public static async Task WaitUntilHeightAsync(this Libplanet.Blockchain @this, int height, CancellationToken cancellationToken)
-    {
-        using var resetEvent = new ManualResetEvent(false);
-        using var _ = @this.TipChanged.Subscribe(e =>
-        {
-            if (e.Tip.Height == height)
-            {
-                resetEvent.Set();
-            }
-        });
+    // public static async Task WaitUntilHeightAsync(this Libplanet.Blockchain @this, int height, CancellationToken cancellationToken)
+    // {
+    //     using var resetEvent = new ManualResetEvent(false);
+    //     using var _ = @this.TipChanged.Subscribe(e =>
+    //     {
+    //         if (e.Tip.Height == height)
+    //         {
+    //             resetEvent.Set();
+    //         }
+    //     });
 
-        while (@this.Tip.Height < height && !resetEvent.WaitOne(0))
-        {
-            await Task.Delay(100, cancellationToken);
-        }
-    }
+    //     while (@this.Tip.Height < height && !resetEvent.WaitOne(0))
+    //     {
+    //         await Task.Delay(100, cancellationToken);
+    //     }
+    // }
 
     public static (Block, BlockCommit) ProposeAndAppend(this Libplanet.Blockchain @this, PrivateKey signer)
         => ProposeAndAppend(@this, signer.AsSigner());

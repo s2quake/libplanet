@@ -9,6 +9,8 @@ using Libplanet.Tests;
 using Libplanet.Extensions;
 using System.Reactive.Linq;
 using static Libplanet.Net.Tests.TestUtils;
+using Libplanet.Types.Threading;
+using Nethereum.Util;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -86,233 +88,103 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task HandleMessageFromHigherHeight()
     {
-        Proposal? proposal = null;
-        // var heightTwoStepChangedToPreVote = new AsyncAutoResetEvent();
-        // var heightTwoStepChangedToPreCommit = new AsyncAutoResetEvent();
-        var heightTwoStepChangedToEndCommit = new AsyncAutoResetEvent();
-        var heightThreeStepChangedToPropose = new AsyncAutoResetEvent();
-        var heightThreeStepChangedToPreVote = new AsyncAutoResetEvent();
-        var proposalSent = new AsyncAutoResetEvent();
-        var newHeightDelay = TimeSpan.FromSeconds(1);
-
         var blockchain = MakeBlockchain();
-        await using var transportA = CreateTransport();
-        await using var transportB = CreateTransport();
-        await using var consensusService = CreateConsensusService(
-            transportB,
-            blockchain: blockchain,
-            key: PrivateKeys[2],
-            newHeightDelay: newHeightDelay);
-        await consensusService.StartAsync(default);
-
-        var preVoteStepHeight2Task = consensusService.StepChanged.WaitAsync(
-            e => e == ConsensusStep.PreVote && consensusService.Height == 2);
-
-        // consensusService.StateChanged += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Height == 2)
-        //     {
-        //         if (eventArgs.Step == ConsensusStep.PreVote)
-        //         {
-        //             heightTwoStepChangedToPreVote.Set();
-        //         }
-        //         else if (eventArgs.Step == ConsensusStep.PreCommit)
-        //         {
-        //             heightTwoStepChangedToPreCommit.Set();
-        //         }
-        //         else if (eventArgs.Step == ConsensusStep.EndCommit)
-        //         {
-        //             heightTwoStepChangedToEndCommit.Set();
-        //         }
-        //     }
-        //     else if (eventArgs.Height == 3)
-        //     {
-        //         if (eventArgs.Step == ConsensusStep.Propose)
-        //         {
-        //             heightThreeStepChangedToPropose.Set();
-        //         }
-        //         else if (eventArgs.Step == ConsensusStep.PreVote)
-        //         {
-        //             heightThreeStepChangedToPreVote.Set();
-        //         }
-        //     }
-        // };
-        // consensusService.MessagePublished += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Message is ConsensusProposalMessage proposalMsg)
-        //     {
-        //         proposal = proposalMsg;
-        //         proposalSent.Set();
-        //     }
-        // };
-        consensusService.StepChanged.Subscribe(step =>
+        await using var transportA = new NetMQ.NetMQTransport(Signers[1]);
+        await using var transportB = new NetMQ.NetMQTransport(Signers[2]);
+        var options = new ConsensusServiceOptions
         {
-            if (consensusService.Height == 2)
-            {
-                if (step == ConsensusStep.PreVote)
-                {
-                    // heightTwoStepChangedToPreVote.Set();
-                }
-                else if (step == ConsensusStep.PreCommit)
-                {
-                    // heightTwoStepChangedToPreCommit.Set();
-                }
-                else if (step == ConsensusStep.EndCommit)
-                {
-                    heightTwoStepChangedToEndCommit.Set();
-                }
-            }
-            else if (consensusService.Height == 3)
-            {
-                if (step == ConsensusStep.Propose)
-                {
-                    heightThreeStepChangedToPropose.Set();
-                }
-                else if (step == ConsensusStep.PreVote)
-                {
-                    heightThreeStepChangedToPreVote.Set();
-                }
-            }
-        });
+            TargetBlockInterval = TimeSpan.FromSeconds(1),
+        };
+        await using var consensusServiceB = new ConsensusService(Signers[2], blockchain, transportB, options);
+        await transportA.StartAsync();
+        await transportB.StartAsync();
+        await consensusServiceB.StartAsync();
 
-        consensusService.BlockProposed.Subscribe(e =>
+        blockchain.ProposeAndAppend(Signers[1]);
+
+        var proposal = await consensusServiceB.BlockProposed.WaitAsync(e => e.Height == 2);
+        Assert.Equal(2, consensusServiceB.Height);
+
+        for (var i = 0; i < Validators.Count; i++)
         {
-            if (e.Height == 2)
-            {
-                proposal = e;
-                proposalSent.Set();
-            }
-        });
-
-        blockchain.ProposeAndAppend(PrivateKeys[1]);
-
-        // blockchain._repository.BlockCommits.Add(TestUtils.CreateBlockCommit(blockchain.Blocks[1]));
-        await proposalSent.WaitAsync();
-
-        Assert.Equal(2, consensusService.Height);
-
-        if (proposal is null)
-        {
-            throw new Exception("Proposal is null.");
-        }
-
-        foreach ((PrivateKey privateKey, BigInteger power)
-                 in PrivateKeys.Zip(
-                     Validators.Select(v => v.Power),
-                     (first, second) => (first, second)))
-        {
-            if (privateKey == PrivateKeys[2])
+            if (i == 2)
             {
                 // Peer2 will send a ConsensusVote by handling the ConsensusPropose message.
                 continue;
             }
-
-            transportA.Post(
-                transportB.Peer,
-                new ConsensusPreVoteMessage
-                {
-                    PreVote = new VoteMetadata
-                    {
-                        Height = 2,
-                        Round = 0,
-                        BlockHash = proposal!.BlockHash,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Validator = privateKey.Address,
-                        ValidatorPower = power,
-                        Type = VoteType.PreVote,
-                    }.Sign(privateKey)
-                });
+            var vote = new VoteBuilder
+            {
+                Validator = Validators[i],
+                Block = proposal.Block,
+                Type = VoteType.PreVote,
+            }.Create(PrivateKeys[i]);
+            var message = new ConsensusPreVoteMessage { PreVote = vote };
+            transportA.Post(transportB.Peer, message);
         }
 
-        foreach ((PrivateKey privateKey, BigInteger power)
-                 in PrivateKeys.Zip(
-                     Validators.Select(v => v.Power),
-                     (first, second) => (first, second)))
+        for (var i = 0; i < Validators.Count; i++)
         {
-            if (privateKey == PrivateKeys[2])
+            if (i == 2)
             {
                 // Peer2 will send a ConsensusCommit by handling the ConsensusVote message.
                 continue;
             }
 
-            transportA.Post(
-                transportB.Peer,
-                new ConsensusPreCommitMessage
-                {
-                    PreCommit = new VoteMetadata
-                    {
-                        Height = 2,
-                        Round = 0,
-                        BlockHash = proposal!.BlockHash,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Validator = privateKey.Address,
-                        ValidatorPower = power,
-                        Type = VoteType.PreCommit,
-                    }.Sign(privateKey)
-                });
+            var vote = new VoteBuilder
+            {
+                Validator = Validators[i],
+                Block = proposal.Block,
+                Type = VoteType.PreCommit,
+            }.Create(PrivateKeys[i]);
+            var message = new ConsensusPreCommitMessage { PreCommit = vote };
+            transportA.Post(transportB.Peer, message);
         }
 
-        await heightTwoStepChangedToEndCommit.WaitAsync();
-        await blockchain.WaitUntilHeightAsync(2, default);
+        await TaskUtility.WhenAll(
+            timeout: WaitTimeout,
+            consensusServiceB.StepChanged.WaitAsync(e => e == ConsensusStep.EndCommit && consensusServiceB.Height == 2),
+            blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 2));
 
-        var blockHeightTwo = proposal.Block;
-        var blockHeightThree = blockchain.ProposeBlock(PrivateKeys[3]);
+        var block3 = blockchain.ProposeBlock(Signers[3]);
+        var proposal3 = new ProposalBuilder
+        {
+            Block = block3,
+        }.Create(Signers[3]);
+        var proposalMessage3 = new ConsensusProposalMessage { Proposal = proposal3 };
 
         // Message from higher height
-        transportA.Post(
-            transportB.Peer,
-            CreateConsensusPropose(blockHeightThree, PrivateKeys[3], 3));
+        transportA.Post(transportB.Peer, proposalMessage3);
 
-        // New height started.
-        await heightThreeStepChangedToPropose.WaitAsync();
-        // Propose -> PreVote (message consumed)
-        await heightThreeStepChangedToPreVote.WaitAsync();
-        Assert.Equal(3, consensusService.Height);
-        Assert.Equal(ConsensusStep.PreVote, consensusService.Step);
+        await TaskUtility.WhenAll(
+            timeout: WaitTimeout,
+            consensusServiceB.HeightChanged.WaitAsync(e => e == 3),
+            consensusServiceB.BlockProposed.WaitAsync(e => e.Height == 3),
+            consensusServiceB.StepChanged.WaitAsync(e => e == ConsensusStep.PreVote));
+
+        Assert.Equal(3, consensusServiceB.Height);
+        Assert.Equal(ConsensusStep.PreVote, consensusServiceB.Step);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task UseLastCommitCacheIfHeightContextIsEmpty()
     {
-        var heightTwoProposalSent = new AsyncAutoResetEvent();
-        Block? proposedBlock = null;
-
         var blockchain = MakeBlockchain();
-        await using var transport = CreateTransport();
-        await using var consensusService = CreateConsensusService(
-            transport,
-            blockchain: blockchain,
-            newHeightDelay: TimeSpan.FromSeconds(1),
-            key: PrivateKeys[2]);
-        consensusService.BlockProposed.Subscribe(e =>
+        await using var transport = new NetMQ.NetMQTransport(Signers[2]);
+        var options = new ConsensusServiceOptions
         {
-            if (e.Height == 2)
-            {
-                proposedBlock = e.Block;
-                heightTwoProposalSent.Set();
-            }
-        });
-        // consensusService.MessageConsumed += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Height == 2 &&
-        //         eventArgs.Message is ConsensusProposalMessage propose)
-        //     {
-        //         proposedBlock = propose!.Proposal.Block;
-        //         heightTwoProposalSent.Set();
-        //     }
-        // };
+            TargetBlockInterval = TimeSpan.FromSeconds(1),
+        };
+        await using var consensusService = new ConsensusService(Signers[2], blockchain, transport, options);
 
-        await consensusService.StartAsync(default);
-        Block block = blockchain.ProposeBlock(PrivateKeys[1]);
-        var createdLastCommit = CreateBlockCommit(block);
-        blockchain.Append(block, createdLastCommit);
+        await transport.StartAsync();
+        await consensusService.StartAsync();
+
+        var (_, blockCommit) = blockchain.ProposeAndAppend(Signers[2]);
+        var proposal = await consensusService.BlockProposed.WaitAsync(e => e.Height == 2, WaitTimeout);
 
         // Context for height #2 where node #2 is the proposer is automatically started
         // by watching blockchain's Tip.
-        await heightTwoProposalSent.WaitAsync();
-        Assert.NotNull(proposedBlock);
-        Assert.Equal(2, proposedBlock!.Height);
-        Assert.Equal(createdLastCommit, proposedBlock!.PreviousCommit);
+        Assert.Equal(blockCommit, proposal.Block.PreviousCommit);
     }
 
     // Retry: This calculates delta time.
@@ -322,67 +194,58 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var newHeightDelay = TimeSpan.FromSeconds(1);
         // The maximum error margin. (macos-netcore-test)
         var timeError = 500;
-        var heightOneEndCommit = new ManualResetEvent(false);
-        var heightTwoProposalSent = new ManualResetEvent(false);
         var blockchain = MakeBlockchain();
-        await using var transportA = CreateTransport();
-        await using var transportB = CreateTransport();
-        await using var consensusService = CreateConsensusService(
-            transportB,
-            blockchain: blockchain,
-            newHeightDelay: newHeightDelay,
-            key: PrivateKeys[2]);
-        // consensusService.StateChanged += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Height == 1 && eventArgs.Step == ConsensusStep.EndCommit)
-        //     {
-        //         heightOneEndCommit.Set();
-        //     }
-        // };
-        // consensusService.MessagePublished += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Height == 2 && eventArgs.Message is ConsensusProposalMessage)
-        //     {
-        //         heightTwoProposalSent.Set();
-        //     }
-        // };
-        consensusService.StepChanged.Subscribe(step =>
+        await using var transportA = new NetMQ.NetMQTransport(Signers[1]);
+        await using var transportB = new NetMQ.NetMQTransport(Signers[2]);
+        var options = new ConsensusServiceOptions
         {
-            if (consensusService.Height == 1 && step == ConsensusStep.EndCommit)
-            {
-                heightOneEndCommit.Set();
-            }
-        });
+            TargetBlockInterval = newHeightDelay,
+        };
+        await using var consensusServiceB = new ConsensusService(Signers[2], blockchain, transportB, options: options);
 
-        consensusService.BlockProposed.Subscribe(e =>
+        await transportA.StartAsync();
+        await transportB.StartAsync();
+        await consensusServiceB.StartAsync();
+        var block = blockchain.ProposeBlock(Signers[1]);
+        var proposal = new ProposalBuilder
         {
-            if (e.Height == 2)
+            Block = block,
+        }.Create(Signers[1]);
+        var proposalMessage = new ConsensusProposalMessage { Proposal = proposal };
+        transportA.Post(transportB.Peer, proposalMessage);
+
+        for (var i = 0; i < Validators.Count; i++)
+        {
+            if (i == 2)
             {
-                heightTwoProposalSent.Set();
+                continue;
             }
-        });
 
-        await consensusService.StartAsync(default);
-        var block = blockchain.ProposeBlock(PrivateKeys[1]);
-        transportA.Post(
-            transportB.Peer,
-            CreateConsensusPropose(block, PrivateKeys[1]));
+            var vote = new VoteBuilder
+            {
+                Validator = Validators[i],
+                Block = block,
+                Type = VoteType.PreCommit,
+            }.Create(PrivateKeys[i]);
+            var preCommitMessage = new ConsensusPreCommitMessage { PreCommit = vote };
+            transportA.Post(transportB.Peer, preCommitMessage);
+        }
 
-        await HandleFourPeersPreCommitMessages(
-             transportA, transportB, consensusService, PrivateKeys[2], block.BlockHash);
+        var endCommitStep1Task = consensusServiceB.StepChanged.WaitAsync(
+            e => e == ConsensusStep.EndCommit && consensusServiceB.Height == 1);
+        var proposeStep2Task = consensusServiceB.StepChanged.WaitAsync(
+            e => e == ConsensusStep.Propose && consensusServiceB.Height == 2);
 
-        Assert.True(heightOneEndCommit.WaitOne(5000), "EndCommit not reached in time.");
+        await endCommitStep1Task.WaitAsync(WaitTimeout);
         var endCommitTime = DateTimeOffset.UtcNow;
 
-        Assert.True(heightTwoProposalSent.WaitOne(5000), "Proposal not sent in time.");
+        await proposeStep2Task.WaitAsync(WaitTimeout);
         var proposeTime = DateTimeOffset.UtcNow;
-        var difference = proposeTime - endCommitTime;
 
-        // _logger.Debug("Difference: {Difference}", difference);
         // Check new height delay; slight margin of error is allowed as delay task
         // is run asynchronously from context events.
         Assert.True(
-            ((proposeTime - endCommitTime) - newHeightDelay).Duration() <
+            (proposeTime - endCommitTime - newHeightDelay).Duration() <
                 TimeSpan.FromMilliseconds(timeError));
     }
 }

@@ -44,6 +44,7 @@ public sealed class PeerCollection(
 
     public void Add(Peer peer)
     {
+        using var _ = _lock.WriteScope();
         if (peer.Address == owner)
         {
             throw new ArgumentException("Cannot add self address to the routing table.", nameof(peer));
@@ -65,6 +66,7 @@ public sealed class PeerCollection(
 
     public bool AddOrUpdate(PeerState peerState)
     {
+        using var _ = _lock.WriteScope();
         if (owner == peerState.Address)
         {
             throw new ArgumentException("Cannot add self address to the routing table.", nameof(peerState));
@@ -85,6 +87,7 @@ public sealed class PeerCollection(
 
     public bool Remove(Peer peer)
     {
+        using var _ = _lock.WriteScope();
         var address = peer.Address;
         if (address == owner)
         {
@@ -104,6 +107,7 @@ public sealed class PeerCollection(
 
     public bool Contains(Peer peer)
     {
+        using var _ = _lock.ReadScope();
         var address = peer.Address;
         if (address == owner)
         {
@@ -121,6 +125,7 @@ public sealed class PeerCollection(
 
     public bool TryGetValue(Address address, [MaybeNullWhen(false)] out Peer peer)
     {
+        using var _ = _lock.ReadScope();
         if (address == owner)
         {
             peer = default;
@@ -132,6 +137,7 @@ public sealed class PeerCollection(
 
     public bool TryGetPeerState(Peer peer, [MaybeNullWhen(false)] out PeerState peerState)
     {
+        using var _ = _lock.ReadScope();
         var address = peer.Address;
         if (address == owner)
         {
@@ -151,6 +157,7 @@ public sealed class PeerCollection(
 
     public void Clear()
     {
+        using var _ = _lock.WriteScope();
         foreach (var bucket in _buckets)
         {
             bucket.Clear();
@@ -196,6 +203,7 @@ public sealed class PeerCollection(
 
     public IEnumerator<Peer> GetEnumerator()
     {
+        using var _ = _lock.ReadScope();
         foreach (var bucket in _buckets)
         {
             foreach (var peerState in bucket)
