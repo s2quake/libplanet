@@ -1,4 +1,3 @@
-using System.Net;
 using Libplanet.Net.Consensus;
 using Libplanet.Data;
 using Libplanet.Tests.Store;

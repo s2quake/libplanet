@@ -1,5 +1,4 @@
 using Libplanet.Net.Consensus;
-using Libplanet.Net.Messages;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Nito.AsyncEx;

@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using BitFaster.Caching.Lru;
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Consensus.MessageHandlers;
@@ -10,7 +9,6 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 using Nito.AsyncEx;
-using Serilog.Events;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
