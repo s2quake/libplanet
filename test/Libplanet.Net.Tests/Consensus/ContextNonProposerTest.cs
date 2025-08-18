@@ -163,31 +163,11 @@ public class ContextNonProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task EnterPreVoteNilOnInvalidBlockHeader()
     {
-        var stepChangedToPreVote = new AsyncAutoResetEvent();
-        var timeoutProcessed = false;
-        var nilPreVoteSent = new AsyncAutoResetEvent();
-
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
-        // privateKey: TestUtils.PrivateKeys[0]);
-        // using var _1 = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.PreVote)
-        //     {
-        //         stepChangedToPreVote.Set();
-        //     }
-        // });
-        // consensus.TimeoutProcessed += (_, __) =>
-        // {
-        //     timeoutProcessed = true;
-        // };
-        // using var _2 = consensus.MessagePublished.Subscribe(message =>
-        // {
-        //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
-        //     {
-        //         nilPreVoteSent.Set();
-        //     }
-        // });
+        var preVoteStepTask = consensus.StepChanged.WaitAsync(
+            e => e.Step == ConsensusStep.PreVote && e.BlockHash == default && consensus.Round.Index == 0);
+        var proposeTimeoutTask = consensus.TimeoutOccurred.WaitAsync(e => e == ConsensusStep.Propose);
 
         // 1. ProtocolVersion should be matched.
         // 2. Index should be increased monotonically.
@@ -206,12 +186,16 @@ public class ContextNonProposerTest
         }.Sign(PrivateKeys[1]);
 
         await consensus.StartAsync();
-        consensus.ProduceMessage(
-            CreateConsensusPropose(
-                invalidBlock, PrivateKeys[1]));
 
-        await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
-        Assert.False(timeoutProcessed); // Check step transition isn't by timeout.
+        _ = consensus.ProposeAsync(
+            new ProposalBuilder
+            {
+                Block = invalidBlock,
+            }.Create(Signers[1]));
+
+        await proposeTimeoutTask.WaitAsync(WaitTimeout);
+        await preVoteStepTask.WaitAsync(WaitTimeout);
+
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
@@ -221,11 +205,8 @@ public class ContextNonProposerTest
     public async Task EnterPreVoteNilOnInvalidBlockContent()
     {
         // NOTE: This test does not check tx nonces, different state root hash.
-        var stepChangedToPreVote = new AsyncAutoResetEvent();
-        var timeoutProcessed = false;
-        var nilPreVoteSent = new AsyncAutoResetEvent();
         var invalidKey = new PrivateKey();
-        var policy = new BlockchainOptions
+        var blockchainOptions = new BlockchainOptions
         {
             SystemActions = new SystemActions
             {
@@ -253,47 +234,38 @@ public class ContextNonProposerTest
             }
         }
 
-        var blockchain = MakeBlockchain(policy);
-        await using var consensus = new Net.Consensus.Consensus(Validators);
-        // privateKey: TestUtils.PrivateKeys[0]);
-        // using var _1 = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.PreVote)
-        //     {
-        //         stepChangedToPreVote.Set();
-        //     }
-        // });
-        // consensus.TimeoutProcessed += (_, __) =>
-        // {
-        //     timeoutProcessed = true;
-        // };
-        // using var _2 = consensus.MessagePublished.Subscribe(message =>
-        // {
-        //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
-        //     {
-        //         nilPreVoteSent.Set();
-        //     }
-        // });
+        var blockchain = MakeBlockchain(blockchainOptions);
+        var options = new ConsensusOptions
+        {
+            BlockValidators =
+            [
+                new RelayObjectValidator<Block>(blockchain.Validate),
+            ],
+        };
+        await using var consensus = new Net.Consensus.Consensus(Validators, options);
+        var preVoteStepTask = consensus.StepChanged.WaitAsync(
+            e => e.Step == ConsensusStep.PreVote && e.BlockHash == default && consensus.Round.Index == 0);
+        var proposeTimeoutTask = consensus.TimeoutOccurred.WaitAsync(e => e == ConsensusStep.Propose);
 
-        var diffPolicyBlockChain = MakeBlockchain(policy, genesisBlock: blockchain.Genesis);
-
-        var invalidTx = diffPolicyBlockChain.StagedTransactions.Add(invalidKey);
-
-        Block invalidBlock = Libplanet.Tests.TestUtils.ProposeNext(
-            blockchain.Genesis,
-            previousStateRootHash: default,
-            transactions: [invalidTx],
-            proposer: PrivateKeys[1],
-            blockInterval: TimeSpan.FromSeconds(10)).Sign(PrivateKeys[1]);
+        var invalidTx = new TransactionBuilder
+        {
+        }.Create(invalidKey.AsSigner());
+        var invalidBlock = new BlockBuilder
+        {
+            Transactions = [invalidTx],
+            Timestamp = blockchain.Tip.Timestamp.AddSeconds(15),
+        }.Create(Signers[1], blockchain);
 
         await consensus.StartAsync();
-        consensus.ProduceMessage(
-            CreateConsensusPropose(
-                invalidBlock,
-                PrivateKeys[1]));
 
-        await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
-        Assert.False(timeoutProcessed); // Check step transition isn't by timeout.
+        _ = consensus.ProposeAsync(
+            new ProposalBuilder
+            {
+                Block = invalidBlock,
+            }.Create(Signers[1]));
+
+        await preVoteStepTask.WaitAsync(WaitTimeout);
+        await Assert.ThrowsAsync<TimeoutException>(() => proposeTimeoutTask.WaitAsync(WaitTimeout));
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);

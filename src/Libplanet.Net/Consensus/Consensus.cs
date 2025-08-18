@@ -38,6 +38,11 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
     {
     }
 
+    public Consensus(ImmutableSortedSet<Validator> validators, ConsensusOptions options)
+        : this(validators, height: 1, options)
+    {
+    }
+
     public IObservable<Round> RoundChanged => _roundChangedSubject;
 
     public IObservable<Exception> ExceptionOccurred => _exceptionOccurredSubject;
