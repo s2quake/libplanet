@@ -2,10 +2,11 @@ using System.Collections;
 
 namespace Libplanet.Net;
 
-public sealed class ServiceCollection(IEnumerable<IService> services)
-    : ServiceBase, IEnumerable<IService>
+public class ServiceCollection<T>(IEnumerable<T> services)
+    : ServiceBase, IEnumerable<T>
+    where T : IService
 {
-    private readonly List<IService> serviceList = [.. services];
+    private readonly List<T> serviceList = [.. services];
 
     public ServiceCollection()
         : this([])
@@ -16,9 +17,9 @@ public sealed class ServiceCollection(IEnumerable<IService> services)
 
     public bool SequentialExecution { get; init; }
 
-    public IService this[int index] => serviceList[index];
+    public T this[int index] => serviceList[index];
 
-    public void Add(IService service)
+    public void Add(T service)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
@@ -31,7 +32,7 @@ public sealed class ServiceCollection(IEnumerable<IService> services)
         serviceList.Add(service);
     }
 
-    public void AddRange(IEnumerable<IService> services)
+    public void AddRange(IEnumerable<T> services)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
 
@@ -44,7 +45,7 @@ public sealed class ServiceCollection(IEnumerable<IService> services)
         serviceList.AddRange(services);
     }
 
-    public IEnumerator<IService> GetEnumerator()
+    public IEnumerator<T> GetEnumerator()
     {
         foreach (var service in serviceList)
         {
@@ -110,5 +111,18 @@ public sealed class ServiceCollection(IEnumerable<IService> services)
         }
 
         await base.DisposeAsyncCore();
+    }
+}
+
+public sealed class ServiceCollection : ServiceCollection<IService>
+{
+    public ServiceCollection(IEnumerable<IService> services)
+        : base(services)
+    {
+    }
+
+    public ServiceCollection()
+         : base()
+    {
     }
 }

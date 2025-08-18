@@ -283,9 +283,20 @@ public sealed class ConsensusService : ServiceBase
         var dateTime = DateTimeOffset.UtcNow;
         var delay = EnsureNonNegative(_newHeightDelay - (dateTime - _tipChangedTime));
         _cancellationTokenSource = CreateCancellationTokenSource();
-        await Task.Delay(delay, StoppingToken);
-        AddEvidenceToBlockChain(height);
-        await NewHeightAsync(height + 1, StoppingToken);
+        try
+        {
+            await Task.Delay(delay, StoppingToken);
+            AddEvidenceToBlockChain(height);
+            await NewHeightAsync(height + 1, StoppingToken);
+        }
+        catch (TaskCanceledException)
+        {
+            // Ignore cancellation.
+        }
+        catch (Exception ex)
+        {
+            _exceptionOccurredSubject.OnNext(ex);
+        }
 
         static TimeSpan EnsureNonNegative(TimeSpan timeSpan) => timeSpan < TimeSpan.Zero ? TimeSpan.Zero : timeSpan;
     }

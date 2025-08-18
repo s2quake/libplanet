@@ -2,29 +2,29 @@ using System.Net;
 using Libplanet.Net.Consensus;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
+using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
 public class ConsensusServiceTest
 {
     private const int PropagationDelay = 25_000;
-    private const int Timeout = 60 * 1000;
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task StartAsync()
     {
-        var count = TestUtils.PrivateKeys.Count;
-        var transports = new ITransport[count];
-        var consensusServices = new ConsensusService[count];
+        var count = Signers.Length;
         var blockchains = new Blockchain[count];
         using var fx = new MemoryRepositoryFixture();
         var validatorPeers = new List<Peer>();
-        await using var _1 = new AsyncDisposerCollection(consensusServices);
+        await using ServiceCollection<ITransport> transports = [];
+        await using ServiceCollection<ConsensusService> consensusServices = [];
 
         for (var i = 0; i < count; i++)
         {
-            transports[i] = TestUtils.CreateTransport(TestUtils.PrivateKeys[i]);
-            validatorPeers.Add(transports[i].Peer);
+            var transport = CreateTransport(Signers[i]);
+            transports.Add(transport);
+            validatorPeers.Add(transport.Peer);
         }
 
         for (var i = 0; i < count; i++)
@@ -38,22 +38,20 @@ public class ConsensusServiceTest
 
         for (var i = 0; i < count; i++)
         {
-            consensusServices[i] = TestUtils.CreateConsensusService(
-                transport: transports[i],
-                blockchain: blockchains[i],
-                key: TestUtils.PrivateKeys[i],
-                validatorPeers: [.. validatorPeers],
-                newHeightDelay: TimeSpan.FromMilliseconds(PropagationDelay * 2));
+            var options = new ConsensusServiceOptions
+            {
+                Validators = [.. validatorPeers.Except([transports[i].Peer])],
+                TargetBlockInterval = TimeSpan.FromMilliseconds(PropagationDelay * 2),
+            };
+
+            consensusServices.Add(new ConsensusService(Signers[i], blockchains[i], transports[i], options));
         }
 
-        consensusServices.AsParallel().ForAll(
-            reactor => _ = reactor.StartAsync(default));
+        await transports.StartAsync();
+        await consensusServices.StartAsync();
 
         await Task.Delay(PropagationDelay, default);
-        await Parallel.ForEachAsync(
-            consensusServices,
-            cancellationToken: default,
-            async (consensusService, cancellationToken) => await consensusService.StopAsync(cancellationToken));
+        await consensusServices.StopAsync();
 
         var isPolka = new bool[4];
         for (var i = 0; i < 4; ++i)
