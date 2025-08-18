@@ -24,7 +24,7 @@ public sealed record class ProposalBuilder
             Height = Block.Height,
             Round = Round,
             Timestamp = Timestamp == default ? DateTimeOffset.UtcNow : Timestamp,
-            Proposer = Block.Proposer,
+            Proposer = signer.Address,
             ValidRound = ValidRound,
         };
         return metadata.Sign(signer, Block);

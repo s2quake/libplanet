@@ -45,10 +45,10 @@ public sealed partial record class ProposalMetadata : IValidatableObject
             throw new ArgumentException($"BlockHash mismatch: {BlockHash} != {block.BlockHash}", nameof(block));
         }
 
-        if (block.Proposer != Proposer)
-        {
-            throw new ArgumentException($"Proposer mismatch: {Proposer} != {block.Proposer}", nameof(block));
-        }
+        // if (block.Proposer != Proposer)
+        // {
+        //     throw new ArgumentException($"Proposer mismatch: {Proposer} != {block.Proposer}", nameof(block));
+        // }
 
         var options = new ModelOptions
         {

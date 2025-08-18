@@ -13,7 +13,7 @@ public static class TestUtils
 {
     public const int Timeout = 30000;
 
-    public static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(30);
+    public static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(5);
 
     public static readonly BlockHash BlockHash0 =
         BlockHash.Parse(
