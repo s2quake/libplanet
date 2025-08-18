@@ -20,8 +20,8 @@ public class ConsensusContextNonProposerTest
     public async Task NewHeightWithLastCommit()
     {
         var blockchain = MakeBlockchain();
-        await using var transportA = new NetMQ.NetMQTransport(Signers[1]);
-        await using var transportB = new NetMQ.NetMQTransport(Signers[2]);
+        await using var transportA = CreateTransport(Signers[1]);
+        await using var transportB = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
         {
             TargetBlockInterval = TimeSpan.FromSeconds(1),
@@ -87,8 +87,8 @@ public class ConsensusContextNonProposerTest
     public async Task HandleMessageFromHigherHeight()
     {
         var blockchain = MakeBlockchain();
-        await using var transportA = new NetMQ.NetMQTransport(Signers[1]);
-        await using var transportB = new NetMQ.NetMQTransport(Signers[2]);
+        await using var transportA = CreateTransport(Signers[1]);
+        await using var transportB = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
         {
             TargetBlockInterval = TimeSpan.FromSeconds(1),
@@ -167,7 +167,7 @@ public class ConsensusContextNonProposerTest
     public async Task UseLastCommitCacheIfHeightContextIsEmpty()
     {
         var blockchain = MakeBlockchain();
-        await using var transport = new NetMQ.NetMQTransport(Signers[2]);
+        await using var transport = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
         {
             TargetBlockInterval = TimeSpan.FromSeconds(1),
@@ -193,8 +193,8 @@ public class ConsensusContextNonProposerTest
         // The maximum error margin. (macos-netcore-test)
         var timeError = 500;
         var blockchain = MakeBlockchain();
-        await using var transportA = new NetMQ.NetMQTransport(Signers[1]);
-        await using var transportB = new NetMQ.NetMQTransport(Signers[2]);
+        await using var transportA = CreateTransport(Signers[1]);
+        await using var transportB = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
         {
             TargetBlockInterval = newHeightDelay,

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 
@@ -9,12 +10,15 @@ internal sealed class ConsensusProposalMessageHandler(Consensus consensus, Messa
     protected override async ValueTask OnHandleAsync(ConsensusProposalMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         var proposal = message.Proposal;
-        if (proposal.Height < consensus.Height)
+        var height = consensus.Height;
+        if (proposal.Height < height)
         {
+            Trace.WriteLine($"{this.GetHashCode()} 1");
             throw new InvalidMessageException("Proposal height is lower than current consensus height");
         }
-        else if (proposal.Height == consensus.Height)
+        else if (proposal.Height == height)
         {
+            Trace.WriteLine($"{this.GetHashCode()} 2");
             await consensus.ProposeAsync(proposal, cancellationToken);
         }
         else

@@ -1,103 +1,89 @@
 using Libplanet.Net.Messages;
 using Libplanet.Types;
-using Xunit.Abstractions;
-using Libplanet.TestUtilities.Extensions;
+using static Libplanet.Net.Tests.TestUtils;
+using Libplanet.Net.Consensus;
+using Libplanet.Extensions;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class ConsensusContextProposerTest(ITestOutputHelper output)
+public class ConsensusContextProposerTest
 {
-    private const int Timeout = 30000;
-
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task IncreaseRoundWhenTimeout()
     {
-        var blockchain = TestUtils.MakeBlockchain();
-        await using var transportA = TestUtils.CreateTransport();
-        await using var transportB = TestUtils.CreateTransport();
-        await using var consensusService = TestUtils.CreateConsensusService(
-            transportB,
-            blockchain: blockchain,
-            newHeightDelay: TimeSpan.FromSeconds(1),
-            key: TestUtils.PrivateKeys[1]);
-        var timeoutProcessed = new AutoResetEvent(false);
-        using var _1 = consensusService.TimeoutOccurred.Subscribe(e =>
+        var blockchain = MakeBlockchain();
+        await using var transportA = CreateTransport(Signers[0]);
+        await using var transportB = CreateTransport(Signers[1]);
+        var options = new ConsensusServiceOptions
         {
-            if (consensusService.Height == 1)
-            {
-                timeoutProcessed.Set();
-            }
-        });
-        // consensusService.TimeoutProcessed += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Height == 1)
-        //     {
-        //         timeoutProcessed.Set();
-        //     }
-        // };
+            TargetBlockInterval = TimeSpan.FromSeconds(1),
+        };
+        await using var consensusService = new ConsensusService(Signers[1], blockchain, transportB, options);
+        var preVoteTimeoutTask = consensusService.TimeoutOccurred.WaitAsync(
+            e => consensusService.Height == 1 && e == ConsensusStep.PreVote);
+        var preCommitTimeoutTask = consensusService.TimeoutOccurred.WaitAsync(
+            e => consensusService.Height == 1 && e == ConsensusStep.PreCommit);
 
-        await consensusService.StartAsync(default);
+        await transportA.StartAsync();
+        await transportB.StartAsync();
+        await consensusService.StartAsync();
 
         // Wait for block to be proposed.
         Assert.Equal(1, consensusService.Height);
         Assert.Equal(0, consensusService.Round);
 
         // Triggers timeout +2/3 with NIL and Block
-        transportA.Post(
-            transportB.Peer,
-            new ConsensusPreVoteMessage
-            {
-                PreVote = new VoteMetadata
-                {
-                    Validator = TestUtils.Validators[2].Address,
-                    ValidatorPower = TestUtils.Validators[2].Power,
-                    Height = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(TestUtils.PrivateKeys[2])
-            });
+        var preVote2 = new NilVoteBuilder
+        {
+            Validator = Validators[2],
+            Height = 1,
+            Type = VoteType.PreVote,
+        }.Create(Signers[2]);
+        var preVoteMessage2 = new ConsensusPreVoteMessage
+        {
+            PreVote = preVote2
+        };
+        transportA.Post(transportB.Peer, preVoteMessage2);
 
-        transportA.Post(
-            transportB.Peer,
-            new ConsensusPreVoteMessage
-            {
-                PreVote = new VoteMetadata
-                {
-                    Validator = TestUtils.Validators[3].Address,
-                    ValidatorPower = TestUtils.Validators[3].Power,
-                    Height = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(TestUtils.PrivateKeys[3])
-            });
+        var preVote3 = new NilVoteBuilder
+        {
+            Validator = Validators[3],
+            Height = 1,
+            Type = VoteType.PreVote,
+        }.Create(Signers[3]);
+        var preVoteMessage3 = new ConsensusPreVoteMessage
+        {
+            PreVote = preVote3
+        };
+        transportA.Post(transportB.Peer, preVoteMessage3);
 
-        Assert.True(timeoutProcessed.WaitOne(10000), "Timeout did not occur as expected.");
+        await preVoteTimeoutTask.WaitAsync(WaitTimeout);
 
-        transportA.Post(
-            transportB.Peer,
-            new ConsensusPreCommitMessage
-            {
-                PreCommit = new VoteMetadata
-                {
-                    Validator = TestUtils.Validators[2].Address,
-                    ValidatorPower = TestUtils.Validators[2].Power,
-                    Height = 1,
-                    Type = VoteType.PreCommit,
-                }.Sign(TestUtils.PrivateKeys[2])
-            });
+        var preCommit2 = new NilVoteBuilder
+        {
+            Validator = Validators[2],
+            Height = 1,
+            Type = VoteType.PreCommit,
+        }.Create(Signers[2]);
+        var preCommitMessage2 = new ConsensusPreCommitMessage
+        {
+            PreCommit = preCommit2
+        };
+        transportA.Post(transportB.Peer, preCommitMessage2);
 
-        transportA.Post(
-            transportB.Peer,
-            new ConsensusPreCommitMessage
-            {
-                PreCommit = new VoteMetadata
-                {
-                    Validator = TestUtils.Validators[3].Address,
-                    ValidatorPower = TestUtils.Validators[3].Power,
-                    Height = 1,
-                    Type = VoteType.PreCommit,
-                }.Sign(TestUtils.PrivateKeys[3])
-            });
+        var preCommit3 = new NilVoteBuilder
+        {
+            Validator = Validators[3],
+            Height = 1,
+            Type = VoteType.PreCommit,
+        }.Create(Signers[3]);
+        var preCommitMessage3 = new ConsensusPreCommitMessage
+        {
+            PreCommit = preCommit3
+        };
+        transportA.Post(transportB.Peer, preCommitMessage3);
 
-        Assert.True(timeoutProcessed.WaitOne(10000), "Timeout did not occur as expected.");
+        await preCommitTimeoutTask.WaitAsync(WaitTimeout);
         Assert.Equal(1, consensusService.Height);
         Assert.Equal(1, consensusService.Round);
     }

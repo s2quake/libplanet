@@ -22,13 +22,13 @@ public static class IMessageRouterExtensions
 
     public static IDisposable RegisterMany(this IMessageRouter @this, ImmutableArray<IMessageHandler> handlers)
     {
-        var handlerList = new List<IDisposable>(handlers.Length);
+        var disposerList = new List<IDisposable>(handlers.Length);
         foreach (var handler in handlers)
         {
-            @this.Register(handler);
+            disposerList.Add(@this.Register(handler));
         }
 
-        return new DisposerCollection(handlerList);
+        return new DisposerCollection(disposerList);
     }
 
     public static IDisposable RegisterSendingMessageValidation<T>(this IMessageRouter @this, Action<T> action)

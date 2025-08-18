@@ -15,6 +15,7 @@ public sealed class ConsensusService : ServiceBase
     private readonly Subject<Round> _roundChangedSubject = new();
     private readonly Subject<ConsensusStep> _stepChangedSubject = new();
     private readonly Subject<ConsensusStep> _timeoutOccurredSubject = new();
+    private readonly Subject<Exception> _exceptionOccurredSubject = new();
 
     private readonly Subject<Proposal> _blockProposedSubject = new();
     private readonly ITransport _transport;
@@ -65,17 +66,12 @@ public sealed class ConsensusService : ServiceBase
 
         _runningSubscriptions =
         [
-            // .. Subscribe(_controller),
             .. Subscribe(_consensus),
         ];
         _initialiSubscriptions =
         [
             _blockchain.TipChanged.Subscribe(Blockchain_TipChanged),
             _blockchain.BlockExecuted.Subscribe(Blockchain_BlockExecuted),
-            // _transport.MessageRouter.Register<ConsensusProposalClaimMessage>(HandleProposalClaimMessageAsync),
-            // _transport.MessageRouter.Register<ConsensusVoteBitsMessage>(HandleVoteBitsMessageAsync),
-            // _transport.MessageRouter.Register<ConsensusMaj23Message>(HandleMaj23MessageAsync),
-            // _transport.MessageRouter.Register<ConsensusMessage>(HandleMessageAsync),
             _transport.MessageRouter.RegisterSendingMessageValidation<ConsensusVoteMessage>(ValidateMessageToSend),
             _transport.MessageRouter.RegisterReceivedMessageValidation<ConsensusVoteMessage>(ValidateMessageToReceive),
         ];
@@ -88,6 +84,8 @@ public sealed class ConsensusService : ServiceBase
     public IObservable<ConsensusStep> StepChanged => _stepChangedSubject;
 
     public IObservable<ConsensusStep> TimeoutOccurred => _timeoutOccurredSubject;
+
+    public IObservable<Exception> ExceptionOccurred => _exceptionOccurredSubject;
 
     public IObservable<Proposal> BlockProposed => _blockProposedSubject;
 
@@ -231,6 +229,8 @@ public sealed class ConsensusService : ServiceBase
             {
                 _evidenceCollector.Add(evidenceException);
             }
+
+            _exceptionOccurredSubject.OnNext(exception);
         });
         yield return consensus.TimeoutOccurred.Subscribe(e =>
         {

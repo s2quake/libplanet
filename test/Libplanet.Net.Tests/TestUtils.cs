@@ -11,6 +11,8 @@ namespace Libplanet.Net.Tests;
 
 public static class TestUtils
 {
+    public const int Timeout = 30000;
+
     public static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(30);
 
     public static readonly BlockHash BlockHash0 =
@@ -220,19 +222,20 @@ public static class TestUtils
     }
 
     public static ITransport CreateTransport(
-        PrivateKey? privateKey = null,
-        int? port = null,
+        PrivateKey privateKey,
         TransportOptions? options = null)
     {
-        options ??= new TransportOptions
-        {
-            Host = "127.0.0.1",
-            Port = port ?? 0,
-        };
-
-        privateKey ??= new PrivateKey();
-
+        options ??= new TransportOptions();
         return new Libplanet.Net.NetMQ.NetMQTransport(privateKey.AsSigner(), options);
+    }
+
+    public static ITransport CreateTransport(
+        ISigner? signer = null,
+        TransportOptions? options = null)
+    {
+        options ??= new TransportOptions();
+        signer ??= new PrivateKey().AsSigner();
+        return new Libplanet.Net.NetMQ.NetMQTransport(signer, options);
     }
 
     public static Net.Consensus.Consensus CreateConsensus(
@@ -261,6 +264,7 @@ public static class TestUtils
             blockchain);
     }
 
+    [Obsolete]
     public static ConsensusService CreateConsensusService(
         ITransport transport,
         Blockchain? blockchain = null,
