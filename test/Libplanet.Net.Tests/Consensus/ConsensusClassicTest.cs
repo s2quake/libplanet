@@ -20,7 +20,7 @@ public sealed class ConsensusClassicTest
     public async Task StartAsProposer()
     {
         var blockchain = MakeBlockchain();
-        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators);
+        await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[1], consensus, blockchain);
 
         consensus.StartAfter(100);
@@ -38,7 +38,7 @@ public sealed class ConsensusClassicTest
     public async Task StartAsProposerWithLastCommit()
     {
         var blockchain = MakeBlockchain();
-        await using var consensus = new Net.Consensus.Consensus(height: 2, Validators);
+        await using var consensus = new Net.Consensus.Consensus(Validators, height: 2);
         using var observer = new ConsensusObserver(Signers[2], consensus, blockchain);
         var (_, blockCommit1) = blockchain.ProposeAndAppend(Signers[1]);
 
@@ -57,7 +57,7 @@ public sealed class ConsensusClassicTest
     [Fact(Timeout = Timeout)]
     public async Task CannotStartTwice()
     {
-        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators);
+        await using var consensus = new Net.Consensus.Consensus(Validators);
 
         await consensus.StartAsync();
         await Assert.ThrowsAsync<InvalidOperationException>(consensus.StartAsync);
@@ -69,7 +69,7 @@ public sealed class ConsensusClassicTest
         var blockchain = MakeBlockchain();
         blockchain.ProposeAndAppend(Signers[1]);
 
-        await using var consensus = new Net.Consensus.Consensus(height: 2, Validators);
+        await using var consensus = new Net.Consensus.Consensus(Validators, height: 2);
         var observer = new ConsensusObserver(Signers[2], consensus, blockchain);
 
         consensus.StartAfter(100);
@@ -134,7 +134,7 @@ public sealed class ConsensusClassicTest
     public async Task ThrowOnInvalidProposerMessage()
     {
         var blockchain = MakeBlockchain();
-        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators);
+        await using var consensus = new Net.Consensus.Consensus(Validators);
         var block = blockchain.ProposeBlock(Signers[0]);
         var proposal = new ProposalBuilder
         {
@@ -153,7 +153,7 @@ public sealed class ConsensusClassicTest
     public async Task ThrowOnDifferentHeightMessage()
     {
         var blockchain = MakeBlockchain();
-        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators);
+        await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[1], consensus, blockchain);
         var proposeTask = observer.ShouldPropose.WaitAsync();
         var signer = Signers[2];
@@ -199,7 +199,7 @@ public sealed class ConsensusClassicTest
             },
         };
         var blockchain = MakeBlockchain(blockchainOptions);
-        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators);
+        await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[0], consensus, blockchain);
         using var _1 = consensus.Finalized.Subscribe(e => blockchain.Append(e.Block, e.BlockCommit));
 
@@ -273,7 +273,7 @@ public sealed class ConsensusClassicTest
     public async Task CanReplaceProposal()
     {
         var blockchain = MakeBlockchain();
-        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators);
+        await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[0], consensus, blockchain);
         var blockA = blockchain.ProposeBlock(Signers[1]);
         var blockB = blockchain.ProposeBlock(Signers[1]);
@@ -421,7 +421,7 @@ public sealed class ConsensusClassicTest
             EnterPreCommitDelay = delay,
         };
         var blockchain = MakeBlockchain();
-        await using var consensus = new Net.Consensus.Consensus(height: 1, Validators, options);
+        await using var consensus = new Net.Consensus.Consensus(Validators, height: 1, options);
         var block = blockchain.ProposeBlock(Signers[1]);
         var proposal = new ProposalBuilder
         {

@@ -59,7 +59,7 @@ public sealed class ConsensusService : ServiceBase
             BlockValidators = options.ConsensusOptions.BlockValidators.Add(new RelayObjectValidator<Block>(b => _blockchain.Validate(b)))
         };
         Height = _blockchain.Tip.Height + 1;
-        _consensus = new Consensus(Height, _blockchain.GetValidators(Height), _consensusOption);
+        _consensus = new Consensus(_blockchain.GetValidators(Height), Height, _consensusOption);
         _observer = new ConsensusObserver(_signer, _consensus, _blockchain);
         _broadcaster = new ConsensusBroadcaster(_observer, _gossip);
         _broadcastingResponder = new ConsensusBroadcastingResponder(_signer, _consensus, _gossip);
@@ -160,7 +160,7 @@ public sealed class ConsensusService : ServiceBase
             _observer.Dispose();
             await _consensus.StopAsync(cancellationToken);
             await _consensus.DisposeAsync();
-            _consensus = new Consensus(height, _blockchain.GetValidators(height), _consensusOption);
+            _consensus = new Consensus(_blockchain.GetValidators(height), height, _consensusOption);
             _observer = new ConsensusObserver(_signer, _consensus, _blockchain);
             _broadcaster = new ConsensusBroadcaster(_observer, _gossip);
             _broadcastingResponder = new ConsensusBroadcastingResponder(_signer, _consensus, _gossip);

@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Consensus(int height, ImmutableSortedSet<Validator> validators, ConsensusOptions options)
+public sealed class Consensus(ImmutableSortedSet<Validator> validators, int height, ConsensusOptions options)
     : ServiceBase
 {
     private readonly Subject<Round> _roundChangedSubject = new();
@@ -28,8 +28,13 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
     private Proposal? _decidedProposal;
     private Round? _round;
 
-    public Consensus(int height, ImmutableSortedSet<Validator> validators)
-        : this(height, validators, new ConsensusOptions())
+    public Consensus(ImmutableSortedSet<Validator> validators, int height)
+        : this(validators, height, new ConsensusOptions())
+    {
+    }
+
+    public Consensus(ImmutableSortedSet<Validator> validators)
+        : this(validators, height: 1, new ConsensusOptions())
     {
     }
 
