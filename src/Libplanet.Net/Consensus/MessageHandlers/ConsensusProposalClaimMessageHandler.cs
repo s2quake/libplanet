@@ -16,7 +16,7 @@ internal sealed class ConsensusProposalClaimMessageHandler(Consensus consensus, 
             var sender = gossip.Peers.First(
                 peer => peer.Address.Equals(proposalClaim.Validator));
 
-            gossip.Broadcast([sender], reply);
+            gossip.Broadcast([sender], [reply], messageEnvelope.Identity);
         }
 
         await ValueTask.CompletedTask;

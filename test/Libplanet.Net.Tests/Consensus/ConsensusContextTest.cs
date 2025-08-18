@@ -7,7 +7,9 @@ using Libplanet.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
+using Libplanet.Types.Threading;
 using Nito.AsyncEx;
+using Serilog.Events;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
@@ -191,74 +193,51 @@ public class ConsensusContextTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task VoteSetGetOnlyProposeCommitHash()
     {
-        ConsensusProposalMessage? proposal = null;
-        var heightOneProposalSent = new AsyncAutoResetEvent();
-        var heightOneEndCommit = new AsyncAutoResetEvent();
-        var votes = new List<Vote>();
-
+        var preCommitList = new List<Vote>();
         var blockchain = MakeBlockchain();
-        await using var transportA = CreateTransport();
-        await using var transportB = CreateTransport();
-        await using var consensusService = CreateConsensusService(
-            transportB,
-            blockchain: blockchain,
-            newHeightDelay: TimeSpan.FromSeconds(1),
-            key: PrivateKeys[1]);
-        // consensusService.StateChanged += (sender, tuple) =>
-        // {
-        //     if (tuple.Height == 1 && tuple.Step == ConsensusStep.EndCommit)
-        //     {
-        //         heightOneEndCommit.Set();
-        //     }
-        // };
-        // consensusService.MessagePublished += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Height == 1 && eventArgs.Message is ConsensusProposalMessage proposalMsg)
-        //     {
-        //         proposal = proposalMsg;
-        //         heightOneProposalSent.Set();
-        //     }
-        // };
+        await using var transportA = CreateTransport(Signers[0]);
+        await using var transportB = CreateTransport(Signers[1]);
+        var options = new ConsensusServiceOptions
+        {
+            TargetBlockInterval = TimeSpan.FromSeconds(1),
+        };
+        await using var consensusService = new ConsensusService(Signers[1], blockchain, transportB, options);
+        var proposedTask1 = consensusService.BlockProposed.WaitAsync(_ => consensusService.Height == 1);
+        var endCommitStepTask1 = consensusService.StepChanged.WaitAsync(
+            e => consensusService.Height == 1 && e == ConsensusStep.EndCommit);
 
+        await transportA.StartAsync();
+        await transportB.StartAsync();
         await consensusService.StartAsync(default);
-        await heightOneProposalSent.WaitAsync();
-        BlockHash proposedblockHash = Assert.IsType<BlockHash>(proposal?.BlockHash);
 
-        votes.Add(new VoteMetadata
+        var proposal = await proposedTask1.WaitAsync(WaitTimeout);
+        preCommitList.Add(new VoteMetadata
         {
             Validator = Validators[0].Address,
             ValidatorPower = Validators[0].Power,
             Height = 1,
             BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Type = VoteType.PreCommit,
-        }.Sign(PrivateKeys[0]));
-        votes.AddRange(Enumerable.Range(1, 3).Select(x => new VoteMetadata
+        }.Sign(Signers[0]));
+        preCommitList.AddRange(Enumerable.Range(1, 3).Select(i => new VoteBuilder
         {
-            Validator = Validators[x].Address,
-            ValidatorPower = Validators[x].Power,
-            Height = 1,
-            BlockHash = proposedblockHash,
+            Validator = Validators[i],
+            Block = proposal.Block,
             Type = VoteType.PreCommit,
-        }.Sign(PrivateKeys[x])));
+        }.Create(Signers[i])));
 
-        foreach (var vote in votes)
+        foreach (var preCommit in preCommitList)
         {
-            // await consensusService.HandleMessageAsync(new ConsensusPreCommitMessage { PreCommit = vote }, default);
-            transportA.Post(transportB.Peer, new ConsensusPreCommitMessage { PreCommit = vote });
+            transportA.Post(transportB.Peer, new ConsensusPreCommitMessage { PreCommit = preCommit });
         }
 
-        await heightOneEndCommit.WaitAsync();
+        await endCommitStepTask1.WaitAsync(WaitTimeout);
 
         var blockCommit = consensusService.Consensus.Round.PreCommits.GetBlockCommit();
-        Assert.NotNull(blockCommit);
-        Assert.NotEqual(votes[0], blockCommit!.Votes.First(x =>
-            x.Validator.Equals(PrivateKeys[0].PublicKey)));
+        Assert.NotEqual(preCommitList[0], blockCommit.Votes.First(i => i.Validator == Signers[0].Address));
 
-        var actualVotesWithoutInvalid
-            = blockCommit.Votes.Where(x => !x.Validator.Equals(PrivateKeys[0].PublicKey)).ToHashSet();
-
-        var expectedVotes
-            = votes.Where(x => !x.Validator.Equals(PrivateKeys[0].PublicKey)).ToHashSet();
+        var actualVotesWithoutInvalid = blockCommit.Votes.Where(i => i.Validator != Signers[0].Address).ToHashSet();
+        var expectedVotes = preCommitList.Where(i => i.Validator != Signers[0].Address).ToHashSet();
 
         Assert.Equal(expectedVotes, actualVotesWithoutInvalid);
     }
@@ -266,167 +245,129 @@ public class ConsensusContextTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task GetVoteSetBits()
     {
-        PrivateKey proposer = PrivateKeys[1];
-        BigInteger proposerPower = Validators[1].Power;
-        AsyncAutoResetEvent stepChanged = new AsyncAutoResetEvent();
-        AsyncAutoResetEvent committed = new AsyncAutoResetEvent();
         var blockchain = MakeBlockchain();
-        await using var transportA = CreateTransport();
-        await using var transportB = CreateTransport();
-        await using var consensusService = CreateConsensusService(
-            transportB,
-            blockchain: blockchain,
-            newHeightDelay: TimeSpan.FromSeconds(1),
-            key: PrivateKeys[0]);
-        await consensusService.StartAsync(default);
-        var block = blockchain.ProposeBlock(proposer);
-        var proposal = new ProposalMetadata
+        await using var transportA = CreateTransport(Signers[3]);
+        await using var transportB = CreateTransport(Signers[0]);
+        var options = new ConsensusServiceOptions
         {
-            BlockHash = block.BlockHash,
-            Height = 1,
-            Round = 0,
-            Timestamp = DateTimeOffset.UtcNow,
-            Proposer = proposer.Address,
-            ValidRound = -1,
-        }.Sign(proposer, block);
-        var preVote1 = new VoteMetadata
+            TargetBlockInterval = TimeSpan.FromSeconds(1),
+        };
+        await using var consensusService = new ConsensusService(Signers[0], blockchain, transportB, options);
+        var preCommitStepChangedTask = consensusService.StepChanged.WaitAsync(
+            e => consensusService.Height == 1 && e == ConsensusStep.PreCommit);
+        var preCommittedTask = consensusService.Consensus.PreCommitted.WaitAsync(
+            e => e.Height == 1);
+
+        await transportA.StartAsync();
+        await transportB.StartAsync();
+        await consensusService.StartAsync();
+
+        var block = blockchain.ProposeBlock(Signers[1]);
+        var proposal = new ProposalBuilder
         {
-            Height = 1,
-            Round = 0,
-            BlockHash = block.BlockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = proposer.Address,
-            ValidatorPower = proposerPower,
+            Block = block,
+        }.Create(Signers[1]);
+        var preVote1 = new VoteBuilder
+        {
+            Validator = Validators[1],
+            Block = block,
             Type = VoteType.PreVote,
-        }.Sign(proposer);
-        var preVote2 = new VoteMetadata
+        }.Create(Signers[1]);
+        var preVote3 = new VoteBuilder
         {
-            Height = 1,
-            Round = 0,
-            BlockHash = block.BlockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = PrivateKeys[2].Address,
-            ValidatorPower = Validators[2].Power,
+            Validator = Validators[3],
+            Block = block,
             Type = VoteType.PreVote,
-        }.Sign(PrivateKeys[2]);
-        var preVote3 = new VoteMetadata
-        {
-            Height = 1,
-            Round = 0,
-            BlockHash = block.BlockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = PrivateKeys[3].Address,
-            ValidatorPower = Validators[3].Power,
-            Type = VoteType.PreVote,
-        }.Sign(PrivateKeys[3]);
-        // consensusService.StateChanged += (_, eventArgs) =>
-        // {
-        //     if (eventArgs is { Height: 1, Step: ConsensusStep.PreCommit })
-        //     {
-        //         stepChanged.Set();
-        //     }
-        // };
-        // consensusService.CurrentContext.VoteSetModified += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Flag == VoteType.PreCommit)
-        //     {
-        //         committed.Set();
-        //     }
-        // };
+        }.Create(Signers[3]);
 
         transportA.Post(transportB.Peer, new ConsensusProposalMessage { Proposal = proposal });
         transportA.Post(transportB.Peer, new ConsensusPreVoteMessage { PreVote = preVote1 });
         transportA.Post(transportB.Peer, new ConsensusPreVoteMessage { PreVote = preVote3 });
-        await stepChanged.WaitAsync();
-        await committed.WaitAsync();
+
+        await TaskUtility.WhenAll(
+            WaitTimeout,
+            preCommitStepChangedTask,
+            preCommittedTask);
 
         // VoteSetBits expects missing votes
-        var bits = consensusService.Consensus.Round.PreVotes.GetBits(block.BlockHash);
-        Assert.True(bits.SequenceEqual(new[] { true, true, false, true }));
-        bits = consensusService.Consensus.Round.PreCommits.GetBits(block.BlockHash);
-        Assert.True(
-        bits.SequenceEqual(new[] { true, false, false, false }));
+        var bits1 = consensusService.Consensus.Round.PreVotes.GetBits(block.BlockHash);
+        Assert.Equal([true, true, false, true], bits1.ToArray());
+        var bits2 = consensusService.Consensus.Round.PreCommits.GetBits(block.BlockHash);
+        Assert.Equal([true, false, false, false], bits2.ToArray());
     }
 
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task HandleVoteSetBits()
     {
-        PrivateKey proposer = PrivateKeys[1];
-        BigInteger proposerPower = Validators[1].Power;
-        ConsensusStep step = ConsensusStep.Default;
-        var stepChanged = new AsyncAutoResetEvent();
         var blockchain = MakeBlockchain();
-        await using var transportA = CreateTransport();
-        await using var transportB = CreateTransport();
-        await using var consensusService = CreateConsensusService(
-            transportB,
-            blockchain: blockchain,
-            newHeightDelay: TimeSpan.FromSeconds(1),
-            key: PrivateKeys[0]);
-        // consensusService.StateChanged += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Step != step)
-        //     {
-        //         step = eventArgs.Step;
-        //         stepChanged.Set();
-        //     }
-        // };
+        await using var transportA = CreateTransport(Signers[3]);
+        await using var transportB = CreateTransport(Signers[0]);
+        var options = new ConsensusServiceOptions
+        {
+            Validators = [transportA.Peer],
+            TargetBlockInterval = TimeSpan.FromSeconds(1),
+        };
+        await using var consensusService = new ConsensusService(Signers[0], blockchain, transportB, options);
+        var preCommitStepChangedTask = consensusService.StepChanged.WaitAsync(
+            e => consensusService.Height == 1 && e == ConsensusStep.PreCommit);
 
-        await consensusService.StartAsync(default);
-        var block = blockchain.ProposeBlock(proposer);
-        var proposal = new ProposalMetadata
+        await transportA.StartAsync();
+        await transportB.StartAsync();
+        await consensusService.StartAsync();
+
+        var block = blockchain.ProposeBlock(Signers[1]);
+        var proposal = new ProposalBuilder
         {
-            BlockHash = block.BlockHash,
-            Height = 1,
-            Round = 0,
-            Timestamp = DateTimeOffset.UtcNow,
-            Proposer = proposer.Address,
-            ValidRound = -1,
-        }.Sign(proposer, block);
-        var preVote1 = new VoteMetadata
+            Block = block,
+        }.Create(Signers[1]);
+        var preVote1 = new VoteBuilder
         {
-            Height = 1,
-            Round = 0,
-            BlockHash = block.BlockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = proposer.Address,
-            ValidatorPower = proposerPower,
+            Validator = Validators[1],
+            Block = block,
             Type = VoteType.PreVote,
-        }.Sign(proposer);
-        var preVote2 = new VoteMetadata
+        }.Create(Signers[1]);
+        var preVote2 = new VoteBuilder
         {
-            Height = 1,
-            Round = 0,
-            BlockHash = block.BlockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = PrivateKeys[2].Address,
-            ValidatorPower = Validators[2].Power,
+            Validator = Validators[2],
+            Block = block,
             Type = VoteType.PreVote,
-        }.Sign(PrivateKeys[2]);
+        }.Create(Signers[2]);
         transportA.Post(transportB.Peer, new ConsensusProposalMessage { Proposal = proposal });
         transportA.Post(transportB.Peer, new ConsensusPreVoteMessage { PreVote = preVote1 });
         transportA.Post(transportB.Peer, new ConsensusPreVoteMessage { PreVote = preVote2 });
-        do
-        {
-            await stepChanged.WaitAsync();
-        }
-        while (step != ConsensusStep.PreCommit);
+
+        await preCommitStepChangedTask.WaitAsync(WaitTimeout);
 
         // VoteSetBits expects missing votes
-        var voteSetBits =
-            new VoteBitsMetadata
+        var voteBits = new VoteBitsBuilder
+        {
+            Validator = Validators[3],
+            Block = block,
+            Bits = [false, false, true, false],
+            VoteType = VoteType.PreVote,
+        }.Create(Signers[3]);
+        var voteBitsMessage = new ConsensusVoteBitsMessage
+        {
+            VoteBits = voteBits,
+        };
+        var messageList = new List<ConsensusPreVoteMessage>();
+        try
+        {
+            await foreach (var item in transportA.SendAsync<ConsensusPreVoteMessage>(
+                peer: transportB.Peer,
+                message: voteBitsMessage,
+                isLast: _ => false,
+                cancellationToken: default))
             {
-                Height = 1,
-                Round = 0,
-                BlockHash = block.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = PrivateKeys[1].Address,
-                VoteType = VoteType.PreVote,
-                Bits = [false, false, true, false],
-            }.Sign(PrivateKeys[1]);
-        //     ConsensusMessage[] votes =
-        // consensusService.HandleVoteSetBits(voteSetBits).ToArray();
-        var votes = consensusService.Consensus.Round.PreVotes.GetVotes(voteSetBits.Bits);
+                messageList.Add(item);
+            }
+        }
+        catch (TimeoutException)
+        {
+            // do nothing
+        }
+
+        var votes = messageList.Select(item => item.PreVote).ToArray();
         Assert.True(votes.All(vote => vote.Type == VoteType.PreVote));
         Assert.Equal(2, votes.Length);
         Assert.Equal(PrivateKeys[0].Address, votes[0].Validator);

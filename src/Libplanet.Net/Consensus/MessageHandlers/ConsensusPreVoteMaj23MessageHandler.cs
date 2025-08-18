@@ -27,8 +27,9 @@ internal sealed class ConsensusPreVoteMaj23MessageHandler(ISigner signer, Consen
                 VoteType = maj23.VoteType,
                 Bits = preVotes.GetBits(maj23.BlockHash),
             }.Sign(signer);
+            var reply = new ConsensusVoteBitsMessage { VoteBits = voteBits };
 
-            gossip.Broadcast([sender], new ConsensusVoteBitsMessage { VoteBits = voteBits });
+            gossip.Broadcast([sender], [reply], messageEnvelope.Identity);
         }
 
         await ValueTask.CompletedTask;

@@ -31,6 +31,8 @@ public sealed partial record class VoteBitsMetadata
     [AllowedValues(VoteType.PreVote, VoteType.PreCommit)]
     public VoteType VoteType { get; init; }
 
+    [Property(6)]
+    [NotDefault]
     public ImmutableArray<bool> Bits { get; init; }
 
     public VoteBits Sign(ISigner signer)

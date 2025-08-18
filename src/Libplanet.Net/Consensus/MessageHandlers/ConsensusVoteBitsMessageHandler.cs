@@ -4,15 +4,15 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus.MessageHandlers;
 
-internal sealed class ConsensusVoteBitsMessageHandler(Consensus _consensus, Gossip _gossip)
+internal sealed class ConsensusVoteBitsMessageHandler(Consensus consensus, Gossip gossip)
     : MessageHandlerBase<ConsensusVoteBitsMessage>
 {
     protected override async ValueTask OnHandleAsync(ConsensusVoteBitsMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         var voteBits = message.VoteBits;
-        var consensus = _consensus;
         var bits = voteBits.Bits;
-        if (consensus.Height == voteBits.Height)
+        var sender = gossip.Peers.FirstOrDefault(peer => peer.Address.Equals(voteBits.Validator));
+        if (sender is not null && consensus.Height == voteBits.Height)
         {
             var voteType = voteBits.VoteType;
             var votes = voteType == VoteType.PreVote
@@ -31,8 +31,7 @@ internal sealed class ConsensusVoteBitsMessageHandler(Consensus _consensus, Goss
                 }
             }
 
-            var sender = _gossip.Peers.First(peer => peer.Address.Equals(voteBits.Validator));
-            _gossip.Broadcast([sender], [.. messageList]);
+            gossip.Broadcast([sender], [.. messageList], messageEnvelope.Identity);
         }
 
         await ValueTask.CompletedTask;

@@ -12,7 +12,10 @@ public static class ITransportExtensions
         => @this.Post(receiver, message, replyTo: null);
 
     public static void Post(this ITransport @this, ImmutableArray<Peer> receivers, IMessage message)
-        => Parallel.ForEach(receivers, peer => @this.Post(peer, message, replyTo: null));
+        => Post(@this, receivers, message, replyTo: null);
+
+    public static void Post(this ITransport @this, ImmutableArray<Peer> receivers, IMessage message, Guid? replyTo)
+        => Parallel.ForEach(receivers, peer => @this.Post(peer, message, replyTo));
 
     public static async Task<T> SendAsync<T>(
         this ITransport @this, Peer peer, IMessage message, CancellationToken cancellationToken)

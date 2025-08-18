@@ -58,15 +58,18 @@ public sealed class Gossip : IAsyncDisposable
             .. GetPeersToBroadcast(Peers, DLazy)
         ];
 
-        Broadcast(peers, message);
+        Broadcast(peers, [message]);
     }
 
-    public void Broadcast(ImmutableArray<Peer> targetPeers, params IMessage[] messages)
+    public void Broadcast(ImmutableArray<Peer> targetPeers, ImmutableArray<IMessage> messages)
+        => Broadcast(targetPeers, messages, replyTo: null);
+
+    public void Broadcast(ImmutableArray<Peer> targetPeers, ImmutableArray<IMessage> messages, Guid? replyTo)
     {
         foreach (var message in messages)
         {
             _messages.TryAdd(message);
-            _transport.Post(targetPeers, message);
+            _transport.Post(targetPeers, message, replyTo);
         }
     }
 

@@ -49,16 +49,18 @@ public static class IVoteCollectionExtensions
         var decidedBlockHash = @this.GetMajority23();
         var query = from validator in @this.Validators
                     let key = validator.Address
-                    let vote = @this.TryGetValue(key, out var vote) ? vote : new VoteMetadata
-                    {
-                        Height = @this.Height,
-                        Round = @this.Round,
-                        BlockHash = decidedBlockHash,
-                        Timestamp = DateTimeOffset.UtcNow,
-                        Validator = key,
-                        ValidatorPower = validator.Power,
-                        Type = VoteType.Null,
-                    }.WithoutSignature()
+                    let vote = @this.TryGetValue(key, out var vote) && vote.BlockHash == decidedBlockHash
+                        ? vote
+                        : new VoteMetadata
+                        {
+                            Height = @this.Height,
+                            Round = @this.Round,
+                            BlockHash = decidedBlockHash,
+                            Timestamp = DateTimeOffset.UtcNow,
+                            Validator = key,
+                            ValidatorPower = validator.Power,
+                            Type = VoteType.Null,
+                        }.WithoutSignature()
                     where vote.BlockHash == decidedBlockHash
                     select vote;
 
