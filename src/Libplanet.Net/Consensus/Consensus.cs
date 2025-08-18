@@ -357,15 +357,8 @@ public sealed class Consensus(int height, ImmutableSortedSet<Validator> validato
             if (round == _round && Step == ConsensusStep.Propose)
             {
                 _timeoutOccurredSubject.OnNext(ConsensusStep.Propose);
-                if (Proposal is null)
-                {
-                    StartRound(round.Index + 1);
-                }
-                else
-                {
-                    EnterPreVoteStep(round, default);
-                    ProcessGenericUponRules();
-                }
+                EnterPreVoteStep(round, default);
+                ProcessGenericUponRules();
             }
         }
     }

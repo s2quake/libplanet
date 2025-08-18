@@ -2,40 +2,39 @@ using System.Reactive.Linq;
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
 using Libplanet.TestUtilities.Extensions;
+using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
 public sealed class ConsensusTest
 {
-    private const int Timeout = 30000;
-
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task BaseTest()
     {
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: new ConsensusOptions());
 
         Assert.Equal(1, consensus.Height);
         Assert.Throws<InvalidOperationException>(() => consensus.Round);
         Assert.Equal(ConsensusStep.Default, consensus.Step);
         Assert.Null(consensus.Proposal);
-        Assert.Equal(TestUtils.Validators, consensus.Validators);
+        Assert.Equal(Validators, consensus.Validators);
     }
 
-    [Theory(Timeout = Timeout)]
+    [Theory(Timeout = TestUtils.Timeout)]
     [InlineData(0, false)]
     [InlineData(1, true)]
     public async Task StartAsync(int index, bool isProposer)
     {
-        var blockchain = TestUtils.MakeBlockchain();
+        var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: new ConsensusOptions());
         using var consensusController = new ConsensusObserver(
-            TestUtils.PrivateKeys[index].AsSigner(),
+            PrivateKeys[index].AsSigner(),
             consensus,
             blockchain);
         var proposedTask = consensusController.ShouldPropose.WaitAsync();
@@ -56,33 +55,33 @@ public sealed class ConsensusTest
         }
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task StopAsync()
     {
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: new ConsensusOptions());
 
         await consensus.StartAsync(default);
         await consensus.StopAsync(default);
 
         Assert.Equal(1, consensus.Height);
-        Assert.Equal(0, consensus.Round.Index);
+        Assert.Throws<InvalidOperationException>(() => consensus.Round.Index);
         Assert.Equal(ConsensusStep.Default, consensus.Step);
         Assert.Null(consensus.Proposal);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task DisposeAsync()
     {
         var consensus1 = new Net.Consensus.Consensus(
             height: 1,
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: new ConsensusOptions());
         var consensus2 = new Net.Consensus.Consensus(
             height: 1,
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: new ConsensusOptions());
 
         await consensus1.StartAsync(default);
@@ -96,10 +95,10 @@ public sealed class ConsensusTest
         await consensus2.DisposeAsync();
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Propose()
     {
-        var blockchain = TestUtils.MakeBlockchain();
+        var blockchain = MakeBlockchain();
         var options = new ConsensusOptions
         {
             ProposeTimeoutBase = TimeSpan.FromSeconds(1),
@@ -108,7 +107,7 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: options);
 
         Assert.Equal(ConsensusStep.Default, consensus.Step);
@@ -118,18 +117,18 @@ public sealed class ConsensusTest
 
         var proposal = new ProposalBuilder
         {
-            Block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]),
-        }.Create(TestUtils.PrivateKeys[1]);
+            Block = blockchain.ProposeBlock(PrivateKeys[1]),
+        }.Create(PrivateKeys[1]);
         _ = consensus.ProposeAsync(proposal, default);
         await consensus.StepChanged.WaitAsync().WaitAsync(options.TimeoutPropose(consensus.Round));
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(proposal, consensus.Proposal);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Propose_Throw_Double_Proposal()
     {
-        var blockchain = TestUtils.MakeBlockchain();
+        var blockchain = MakeBlockchain();
         var options = new ConsensusOptions
         {
             ProposeTimeoutBase = TimeSpan.FromSeconds(2),
@@ -138,19 +137,19 @@ public sealed class ConsensusTest
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: options);
 
         await consensus.StartAsync(default);
 
         var proposal = new ProposalBuilder
         {
-            Block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]),
-        }.Create(TestUtils.PrivateKeys[1]);
+            Block = blockchain.ProposeBlock(PrivateKeys[1]),
+        }.Create(PrivateKeys[1]);
         var stepChangedTask = consensus.StepChanged.WaitAsync();
         _ = consensus.ProposeAsync(proposal, default);
 
-        TestUtils.InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
+        InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
         var e1 = await consensus.ExceptionOccurred.WaitAsync().WaitAsync(TimeSpan.FromSeconds(2));
         var e2 = Assert.IsType<InvalidOperationException>(e1);
         Assert.StartsWith("Proposal already exists", e2.Message);
@@ -159,37 +158,37 @@ public sealed class ConsensusTest
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Propose_Throw_With_InvalidProposer()
     {
-        var blockchain = TestUtils.MakeBlockchain();
+        var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: new());
 
         await consensus.StartAsync(default);
 
         var proposal = new ProposalBuilder
         {
-            Block = blockchain.ProposeBlock(TestUtils.PrivateKeys[0]),
-        }.Create(TestUtils.PrivateKeys[0]);
-        TestUtils.InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
+            Block = blockchain.ProposeBlock(PrivateKeys[0]),
+        }.Create(PrivateKeys[0]);
+        InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
         var e1 = await consensus.ExceptionOccurred.WaitAsync().WaitAsync(TimeSpan.FromSeconds(2));
         var e2 = Assert.IsType<ArgumentException>(e1);
         Assert.StartsWith("Given proposal's proposer", e2.Message);
         Assert.Equal("proposal", e2.ParamName);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Propose_Throw_With_InvalidRound()
     {
-        var blockchain = TestUtils.MakeBlockchain();
+        var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: new());
 
         await consensus.StartAsync(default);
@@ -197,21 +196,22 @@ public sealed class ConsensusTest
         var proposal = new ProposalBuilder
         {
             Round = 2,
-            Block = blockchain.ProposeBlock(TestUtils.PrivateKeys[1]),
-        }.Create(TestUtils.PrivateKeys[0]);
-        TestUtils.InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
+            Block = blockchain.ProposeBlock(PrivateKeys[1]),
+        }.Create(PrivateKeys[0]);
+        InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
         var e1 = await consensus.ExceptionOccurred.WaitAsync().WaitAsync(TimeSpan.FromSeconds(2));
         var e2 = Assert.IsType<ArgumentException>(e1);
         Assert.StartsWith("Given proposal's round", e2.Message);
         Assert.Equal("proposal", e2.ParamName);
     }
 
-    [Theory(Timeout = Timeout)]
+    [Theory(Timeout = TestUtils.Timeout)]
     [InlineData(0)]
     [InlineData(1)]
+    // proposal 이 늦게 올 수도 있다는 전제가 있어서 PreVote 단계에서 Timeout 를 검출해야 함
     public async Task TimeoutOccured_Propose_Without_Proposal(int index)
     {
-        var blockchain = TestUtils.MakeBlockchain();
+        var blockchain = MakeBlockchain();
         var options = new ConsensusOptions
         {
             ProposeTimeoutBase = TimeSpan.FromSeconds(1),
@@ -219,15 +219,14 @@ public sealed class ConsensusTest
         };
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
-            // signer: TestUtils.PrivateKeys[index].AsSigner(),
-            validators: TestUtils.Validators,
+            validators: Validators,
             options: options);
 
         var timeoutOccurredTask = consensus.TimeoutOccurred.WaitAsync();
         var stepChangedTask = consensus.StepChanged.WaitAsync();
         await consensus.StartAsync(default);
-        await timeoutOccurredTask.WaitAsync(options.TimeoutPropose(consensus.Round));
-        await stepChangedTask.WaitAsync(options.TimeoutPropose(consensus.Round));
+        await timeoutOccurredTask.WaitAsync(options.TimeoutPropose(consensus.Round) + TimeSpan.FromMilliseconds(200));
+        await stepChangedTask.WaitAsync(options.TimeoutPropose(consensus.Round) + TimeSpan.FromMilliseconds(200));
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
         Assert.Equal(1, consensus.Round.Index);
     }
