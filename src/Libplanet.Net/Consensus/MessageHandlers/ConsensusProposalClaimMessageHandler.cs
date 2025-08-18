@@ -10,12 +10,10 @@ internal sealed class ConsensusProposalClaimMessageHandler(Consensus consensus, 
         ConsensusProposalClaimMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
         var proposalClaim = message.ProposalClaim;
-        if (consensus.Height == proposalClaim.Height && consensus.Proposal is not null)
+        var sender = gossip.Peers.First(peer => peer.Address.Equals(proposalClaim.Validator));
+        if (sender is not null && consensus.Height == proposalClaim.Height && consensus.Proposal is not null)
         {
             var reply = new ConsensusProposalMessage { Proposal = consensus.Proposal };
-            var sender = gossip.Peers.First(
-                peer => peer.Address.Equals(proposalClaim.Validator));
-
             gossip.Broadcast([sender], [reply], messageEnvelope.Identity);
         }
 

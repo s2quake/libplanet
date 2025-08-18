@@ -1,4 +1,5 @@
 using System.Reactive.Linq;
+using BitFaster.Caching.Lru;
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Consensus.MessageHandlers;
@@ -367,7 +368,7 @@ public class ConsensusContextTest
             // do nothing
         }
 
-        var votes = messageList.Select(item => item.PreVote).ToArray();
+        var votes = messageList.OrderBy(item => item.PreVote.Validator).Select(item => item.PreVote).ToArray();
         Assert.True(votes.All(vote => vote.Type == VoteType.PreVote));
         Assert.Equal(2, votes.Length);
         Assert.Equal(PrivateKeys[0].Address, votes[0].Validator);
@@ -377,53 +378,41 @@ public class ConsensusContextTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task HandleProposalClaim()
     {
-        PrivateKey proposer = PrivateKeys[1];
-        ConsensusStep step = ConsensusStep.Default;
-        var stepChanged = new AsyncAutoResetEvent();
         var blockchain = MakeBlockchain();
-        await using var transportA = CreateTransport();
-        await using var transportB = CreateTransport();
-        await using var consensusService = CreateConsensusService(
-            transportB,
-            blockchain: blockchain,
-            newHeightDelay: TimeSpan.FromSeconds(1),
-            key: PrivateKeys[0]);
-        // consensusService.StateChanged += (_, eventArgs) =>
-        // {
-        //     if (eventArgs.Step != step)
-        //     {
-        //         step = eventArgs.Step;
-        //         stepChanged.Set();
-        //     }
-        // };
-        await consensusService.StartAsync(default);
-        var block = blockchain.ProposeBlock(proposer);
-        var proposal = new ProposalMetadata
+        await using var transportA = CreateTransport(Signers[1]);
+        await using var transportB = CreateTransport(Signers[0]);
+        var options = new ConsensusServiceOptions
         {
-            BlockHash = block.BlockHash,
-            Height = 1,
-            Round = 0,
-            Timestamp = DateTimeOffset.UtcNow,
-            Proposer = proposer.Address,
-            ValidRound = -1,
-        }.Sign(proposer, block);
+            Validators = [transportA.Peer],
+            TargetBlockInterval = TimeSpan.FromSeconds(1),
+        };
+        await using var consensusServiceB = new ConsensusService(Signers[0], blockchain, transportB, options);
+        var preVoteStepTask = consensusServiceB.StepChanged.WaitAsync(
+            e => consensusServiceB.Height == 1 && e == ConsensusStep.PreVote);
+
+        await transportA.StartAsync();
+        await transportB.StartAsync();
+        await consensusServiceB.StartAsync();
+
+        var block = blockchain.ProposeBlock(Signers[1]);
+        var proposal = new ProposalBuilder
+        {
+            Block = block,
+        }.Create(Signers[1]);
         transportA.Post(transportB.Peer, new ConsensusProposalMessage { Proposal = proposal });
-        // await consensusService.HandleMessageAsync(new ConsensusProposalMessage { Proposal = proposal }, default);
-        await stepChanged.WaitAsync();
+        await preVoteStepTask.WaitAsync(WaitTimeout);
 
         // ProposalClaim expects corresponding proposal if exists
-        var proposalClaim =
-        new ProposalClaimMetadata
+        var proposalClaim = new ProposalClaimBuilder
         {
-            Height = 1,
-            Round = 0,
-            BlockHash = block.BlockHash,
-            Timestamp = DateTimeOffset.UtcNow,
-            Validator = PrivateKeys[1].Address,
-        }.Sign(PrivateKeys[1]);
-        // Proposal? reply =
-        //     consensusService.HandleProposalClaim(proposalClaim);
-        // Assert.NotNull(reply);
-        // Assert.Equal(proposal, reply);
+            Validator = Validators[1],
+            Block = block,
+        }.Create(Signers[1]);
+
+        var reply = await transportA.SendAsync<ConsensusProposalMessage>(
+            peer: transportB.Peer,
+            message: new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim },
+            cancellationToken: default);
+        Assert.Equal(proposal, reply.Proposal);
     }
 }

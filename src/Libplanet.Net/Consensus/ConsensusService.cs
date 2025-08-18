@@ -93,7 +93,7 @@ public sealed class ConsensusService : ServiceBase
 
     public int Height { get; private set; }
 
-    public int Round { get; private set; }
+    public int Round { get; private set; } = -1;
 
     public ConsensusStep Step { get; private set; }
 
