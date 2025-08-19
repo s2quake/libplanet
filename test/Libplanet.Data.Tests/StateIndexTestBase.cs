@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using Libplanet.Data.Structures;
 using Libplanet.Data.Structures.Nodes;
 using Libplanet.TestUtilities;
-using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 

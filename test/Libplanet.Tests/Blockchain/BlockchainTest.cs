@@ -6,7 +6,6 @@ using Libplanet.Data;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Serilog;
-using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
@@ -27,7 +26,7 @@ public partial class BlockchainTest : IDisposable
         Log.Logger = _logger = new LoggerConfiguration()
             .MinimumLevel.Verbose()
             .Enrich.WithThreadId()
-            .WriteTo.TestOutput(output)
+            // .WriteTo.TestOutput(output)
             .CreateLogger()
             .ForContext<BlockchainTest>();
 

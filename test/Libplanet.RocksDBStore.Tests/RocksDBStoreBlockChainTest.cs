@@ -1,6 +1,5 @@
 using Libplanet.Tests.Blockchain;
 using Libplanet.Tests.Store;
-using Xunit.Abstractions;
 
 namespace Libplanet.Data.RocksDB.Tests;
 
@@ -19,7 +18,7 @@ public class RocksDBStoreBlockChainTest : BlockchainTest
         }
         catch (TypeInitializationException)
         {
-            throw new SkipException("RocksDB is not available.");
+            throw new InvalidOperationException("RocksDB is not available.");
         }
     }
 }

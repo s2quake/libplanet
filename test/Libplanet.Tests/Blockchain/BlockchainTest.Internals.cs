@@ -10,9 +10,9 @@ public partial class BlockchainTest
     [Fact]
     public void ListStagedTransactions()
     {
-        Skip.IfNot(
-            Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
-            "This test causes timeout");
+        // Skip.IfNot(
+        //     Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
+        //     "This test causes timeout");
 
         Transaction MkTx(PrivateKey key, long nonce, DateTimeOffset? ts = null) =>
             new TransactionMetadata

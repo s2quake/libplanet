@@ -4,13 +4,14 @@ using BenchmarkDotNet.Running;
 
 namespace Libplanet.Benchmarks
 {
-    public class Program
+    public static class Program
     {
-        public static void Main(string[] args)
-        {
-            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-            CombineBenchmarkResults();
-        }
+        // public static void Main(string[] args)
+        // {
+        //     BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+        //     CombineBenchmarkResults();
+        // }
+
         private static void CombineBenchmarkResults(
             string resultsDir = "./BenchmarkDotNet.Artifacts/results",
             string resultsFile = "Combined.Benchmarks",

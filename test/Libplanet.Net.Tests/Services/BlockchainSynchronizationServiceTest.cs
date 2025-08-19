@@ -3,7 +3,6 @@ using Libplanet.Net.Services;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.TestUtilities;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Services;
 

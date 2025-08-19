@@ -5,7 +5,6 @@ using Libplanet.Data.Structures.Nodes;
 using Libplanet.Types;
 using static System.Linq.Enumerable;
 using System.Collections;
-using Xunit.Abstractions;
 using Libplanet.TestUtilities;
 
 namespace Libplanet.Data.Tests.Structures;

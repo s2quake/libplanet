@@ -3,7 +3,6 @@ using Libplanet.Net.Messages;
 using Libplanet.Types;
 using Libplanet.TestUtilities.Extensions;
 using Nito.AsyncEx;
-using xRetry;
 using Libplanet.Tests;
 using Libplanet.Extensions;
 using System.Reactive.Linq;
@@ -186,7 +185,7 @@ public class ConsensusContextNonProposerTest
     }
 
     // Retry: This calculates delta time.
-    [RetryFact(10, Timeout = Timeout)]
+    [Fact(Timeout = Timeout)]
     public async Task NewHeightDelay()
     {
         var newHeightDelay = TimeSpan.FromSeconds(1);

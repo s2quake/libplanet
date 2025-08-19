@@ -4,7 +4,6 @@ using Libplanet.Net.Messages;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using xRetry;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
 using Libplanet.Tests;
@@ -412,7 +411,7 @@ public partial class SwarmTest
         Assert.Equal(tx, blockchainC.StagedTransactions[tx.Id]);
     }
 
-    [RetryFact(Timeout = Timeout)]
+    [Fact(Timeout = Timeout)]
     public async Task BroadcastTxAsyncMany()
     {
         const int size = 5;

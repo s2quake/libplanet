@@ -21,7 +21,7 @@ public sealed class StatsCommandTest : IDisposable
         }
         catch (TypeInitializationException)
         {
-            throw new SkipException("RocksDB is not available.");
+            throw new InvalidOperationException("RocksDB is not available.");
         }
 
         foreach (var storeFixture in _storeFixtures)

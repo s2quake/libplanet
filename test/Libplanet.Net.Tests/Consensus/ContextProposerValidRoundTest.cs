@@ -4,7 +4,6 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Nito.AsyncEx;
 using Serilog;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Consensus
 {
@@ -19,7 +18,7 @@ namespace Libplanet.Net.Tests.Consensus
                 "{Timestamp:HH:mm:ss:ffffffZ} - {Message} {Exception}";
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .WriteTo.TestOutput(output, outputTemplate: outputTemplate)
+                // .WriteTo.TestOutput(output, outputTemplate: outputTemplate)
                 .CreateLogger()
                 .ForContext<ContextProposerValidRoundTest>();
 

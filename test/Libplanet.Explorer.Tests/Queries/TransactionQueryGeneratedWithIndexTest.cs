@@ -11,6 +11,6 @@ public class TransactionQueryGeneratedWithIndexTest : TransactionQueryGeneratedT
         QueryGraph = new TransactionQuery(Source);
     }
 
-    [SkippableFact(Skip = "transactionQuery.transactions does not support indexing.")]
+    // [SkippableFact(Skip = "transactionQuery.transactions does not support indexing.")]
     public override Task Transactions() => Task.CompletedTask;
 }

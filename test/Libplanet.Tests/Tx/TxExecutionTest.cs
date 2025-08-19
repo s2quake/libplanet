@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
-using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Tx
 {

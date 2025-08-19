@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
-using Xunit.Abstractions;
 
 namespace Libplanet.Types.Tests;
 

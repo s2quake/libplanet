@@ -6,7 +6,6 @@ using Libplanet.Net.Tests.Protocols;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Nethereum.Util;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Transports;
 

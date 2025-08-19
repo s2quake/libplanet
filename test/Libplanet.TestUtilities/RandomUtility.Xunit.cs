@@ -1,5 +1,3 @@
-using Xunit.Abstractions;
-
 namespace Libplanet.TestUtilities;
 
 public static partial class RandomUtility

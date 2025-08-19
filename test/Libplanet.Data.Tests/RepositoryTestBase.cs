@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
-using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 

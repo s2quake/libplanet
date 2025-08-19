@@ -1,7 +1,6 @@
 using Libplanet.Net.Messages;
 using Libplanet.Net.NetMQ;
 using Libplanet.TestUtilities;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Messages;
 

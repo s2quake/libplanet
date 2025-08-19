@@ -2,7 +2,6 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Xunit.Abstractions;
 using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests;

@@ -4,7 +4,6 @@ using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using NetMQ;
-using Xunit.Abstractions;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Messages;

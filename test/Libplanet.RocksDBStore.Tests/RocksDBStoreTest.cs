@@ -15,7 +15,7 @@ public class RocksDBStoreTest : RepositoryTest, IDisposable
         }
         catch (TypeInitializationException)
         {
-            throw new SkipException("RocksDB is not available.");
+            throw new InvalidOperationException("RocksDB is not available.");
         }
     }
 

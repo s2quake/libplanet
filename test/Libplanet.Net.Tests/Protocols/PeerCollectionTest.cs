@@ -1,7 +1,6 @@
 using System.Net;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Protocols;
 

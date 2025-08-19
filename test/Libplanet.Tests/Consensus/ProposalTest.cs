@@ -3,8 +3,7 @@
 // using Libplanet.Tests.Store;
 // using Libplanet.Types;
 // using Serilog;
-// using Xunit.Abstractions;
-
+// 
 // namespace Libplanet.Tests.Consensus
 // {
 //     public class ProposalTest

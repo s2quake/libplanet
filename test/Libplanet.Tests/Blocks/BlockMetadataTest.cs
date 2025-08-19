@@ -6,8 +6,7 @@
 // using Libplanet.Types;
 // using Libplanet.Types;
 // using Xunit;
-// using Xunit.Abstractions;
-// using static Libplanet.Types.ByteUtil;
+// // using static Libplanet.Types.ByteUtil;
 // using static Libplanet.Tests.TestUtils;
 
 // namespace Libplanet.Tests.Blocks

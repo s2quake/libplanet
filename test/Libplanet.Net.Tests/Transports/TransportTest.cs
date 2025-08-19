@@ -1,5 +1,4 @@
 using Libplanet.Types;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Transports;
 

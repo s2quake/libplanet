@@ -277,7 +277,7 @@ public partial class SwarmTest
     //     }
     // }
 
-    // [RetryFact(Timeout = Timeout)]
+    // [Fact(Timeout = Timeout)]
     // public async Task NoRenderInPreload()
     // {
     //     var policy = new BlockchainOptions

@@ -1,7 +1,6 @@
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Libplanet.TestUtilities.Extensions;
-using Xunit.Abstractions;
 
 namespace Libplanet.Data.Tests;
 

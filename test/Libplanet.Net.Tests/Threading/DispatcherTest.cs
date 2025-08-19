@@ -5,7 +5,6 @@
 using System.Diagnostics;
 using Libplanet.Net.Threading;
 using Libplanet.TestUtilities;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Threading;
 

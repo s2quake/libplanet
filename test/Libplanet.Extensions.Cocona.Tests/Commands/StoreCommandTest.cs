@@ -7,7 +7,6 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Xunit.Abstractions;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;
 
@@ -43,7 +42,7 @@ public sealed class StoreCommandTest : IDisposable
         }
         catch (TypeInitializationException)
         {
-            throw new SkipException("RocksDB is not available.");
+            throw new InvalidOperationException("RocksDB is not available.");
         }
 
         _genesisBlock =

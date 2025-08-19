@@ -4,8 +4,7 @@
 // using Libplanet.Types;
 // using Serilog;
 // using Xunit;
-// using Xunit.Abstractions;
-
+// 
 // namespace Libplanet.Tests.Consensus
 // {
 //     public class ProposalMetadataTest

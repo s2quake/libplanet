@@ -1,5 +1,4 @@
 using Libplanet.TestUtilities;
-using Xunit.Abstractions;
 
 namespace Libplanet.Data.LiteDB.Tests;
 

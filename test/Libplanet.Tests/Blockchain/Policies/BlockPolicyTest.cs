@@ -4,7 +4,6 @@ using Libplanet.Data;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Blockchain.Policies;
 

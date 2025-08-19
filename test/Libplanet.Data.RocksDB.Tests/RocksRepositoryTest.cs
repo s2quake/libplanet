@@ -1,6 +1,5 @@
 using System.IO;
 using Libplanet.Data.Tests;
-using Xunit.Abstractions;
 
 namespace Libplanet.Data.RocksDB.Tests;
 

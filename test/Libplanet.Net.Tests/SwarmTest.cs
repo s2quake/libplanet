@@ -6,8 +6,6 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Nito.AsyncEx;
-using xRetry;
-using Xunit.Abstractions;
 using Libplanet.Extensions;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.Types.Threading;
@@ -613,7 +611,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         Assert.DoesNotContain(invalidTx.Id, blockchainB.StagedTransactions.Keys);
     }
 
-    [RetryFact(Timeout = Timeout)]
+    [Fact(Timeout = Timeout)]
     public async Task IgnoreTransactionFromDifferentGenesis()
     {
         var validKey = new PrivateKey();
@@ -979,7 +977,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         Assert.Equal(7, blockchainA.Blocks.Count);
     }
 
-    [RetryFact(10, Timeout = Timeout)]
+    [Fact(Timeout = Timeout)]
     public async Task GetPeerChainStateAsync()
     {
         var key2 = new PrivateKey();
@@ -1042,7 +1040,7 @@ public partial class SwarmTest(ITestOutputHelper output)
             blockchainStates4.ToHashSet());
     }
 
-    [RetryFact(10, Timeout = Timeout)]
+    [Fact(Timeout = Timeout)]
     public async Task RegulateGetBlocksMsg()
     {
         const int MaxConcurrentResponses = 3;
@@ -1084,7 +1082,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         });
     }
 
-    [RetryFact(10, Timeout = Timeout)]
+    [Fact(Timeout = Timeout)]
     public async Task RegulateGetTxsMsg()
     {
         const int MaxConcurrentResponses = 3;

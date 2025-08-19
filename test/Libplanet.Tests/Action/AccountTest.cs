@@ -1,6 +1,5 @@
 using Libplanet.State;
 using Libplanet.Types;
-using Xunit.Abstractions;
 
 namespace Libplanet.Tests.Action;
 

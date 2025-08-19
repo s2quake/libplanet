@@ -3,7 +3,6 @@ using Libplanet.Net.Components;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
-using Xunit.Abstractions;
 
 namespace Libplanet.Net.Tests.Protocols;
 

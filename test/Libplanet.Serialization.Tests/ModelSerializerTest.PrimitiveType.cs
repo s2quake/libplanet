@@ -4,34 +4,34 @@ public sealed partial class ModelSerializerTest
 {
     public static TheoryData<object> PrimitiveValues =>
     [
-        (BigInteger)0,
-        (BigInteger)1,
-        true,
-        false,
-        Array.Empty<byte>(),
-        new byte[] { 0, 1, 2, 3 },
-        DateTimeOffset.MinValue,
-        DateTimeOffset.MaxValue,
-        ImmutableArray<byte>.Empty,
-        ImmutableArray.Create<byte>(0, 1, 2, 3),
-        0,
-        1,
-        0L,
-        1L,
-        string.Empty,
-        "Hello, World!",
-        TimeSpan.Zero,
-        TimeSpan.FromSeconds(1),
+        (object)(BigInteger)0,
+        (object)(BigInteger)1,
+        (object)true,
+        (object)false,
+        (object)Array.Empty<byte>(),
+        (object)new byte[] { 0, 1, 2, 3 },
+        (object)DateTimeOffset.MinValue,
+        (object)DateTimeOffset.MaxValue,
+        (object)ImmutableArray<byte>.Empty,
+        (object)ImmutableArray.Create<byte>(0, 1, 2, 3),
+        (object)0,
+        (object)1,
+        (object)0L,
+        (object)1L,
+        (object)string.Empty,
+        (object)"Hello, World!",
+        (object)TimeSpan.Zero,
+        (object)TimeSpan.FromSeconds(1),
     ];
 
     public static TheoryData<object> PrimitiveDefaultValues =>
     [
-        default(BigInteger),
-        default(bool),
-        default(DateTimeOffset),
-        default(int),
-        default(long),
-        default(TimeSpan),
+        (object)default(BigInteger),
+        (object)default(bool),
+        (object)default(DateTimeOffset),
+        (object)default(int),
+        (object)default(long),
+        (object)default(TimeSpan),
     ];
 
     [Theory]
