@@ -1,25 +1,21 @@
 using System.Security.Cryptography;
-using System.Text.Json;
+using Libplanet.Extensions;
+using Libplanet.Net.Consensus;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
-using Libplanet.Net.Consensus;
-using Libplanet.Net.Messages;
-using Libplanet.Tests.Store;
-using Libplanet.Types;
-using Nito.AsyncEx;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
+using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
-using Libplanet.Extensions;
-using System.Reactive.Linq;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class ContextNonProposerTest
+public class ContextNonProposerTest(ITestOutputHelper output)
 {
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task EnterPreVoteBlockOneThird()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         var options = new ConsensusOptions
         {
@@ -49,7 +45,7 @@ public class ContextNonProposerTest
             }.Create(Signers[3]));
 
         // Wait for round 1 prevote step.
-        await preVoteStepRound1Task.WaitAsync(WaitTimeout);
+        await preVoteStepRound1Task.WaitAsync(WaitTimeout, cancellationToken);
 
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -59,6 +55,7 @@ public class ContextNonProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task EnterPreCommitBlockTwoThird()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(s => s.Step == ConsensusStep.PreCommit);
@@ -94,13 +91,13 @@ public class ContextNonProposerTest
                 Type = VoteType.PreVote,
             }.Create(Signers[3]));
 
-        var (_, preCommitBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout);
+        var (_, preCommitBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(block.BlockHash, preCommitBlockHash);
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
 
-        var preVoteMaj23 = await preVoteMaj23Task.WaitAsync(WaitTimeout);
+        var preVoteMaj23 = await preVoteMaj23Task.WaitAsync(WaitTimeout, cancellationToken);
         Assert.NotNull(consensus.ValidProposal);
         Assert.Equal(block.BlockHash, consensus.ValidProposal.BlockHash);
         Assert.Equal(block.BlockHash, preVoteMaj23.BlockHash);
@@ -109,6 +106,7 @@ public class ContextNonProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task EnterPreCommitNilTwoThird()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(s => s.Step == ConsensusStep.PreCommit);
@@ -153,7 +151,7 @@ public class ContextNonProposerTest
                 Type = VoteType.PreVote,
             }.Create(Signers[3]));
 
-        var (_, preCommitBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout);
+        var (_, preCommitBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(default, preCommitBlockHash);
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -163,6 +161,7 @@ public class ContextNonProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task EnterPreVoteNilOnInvalidBlockHeader()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preVoteStepTask = consensus.StepChanged.WaitAsync(
@@ -180,10 +179,10 @@ public class ContextNonProposerTest
                 BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = blockchain.Tip.Height + 2,
                 Timestamp = blockchain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
-                Proposer = PrivateKeys[1].Address,
+                Proposer = Signers[1].Address,
                 PreviousHash = blockchain.Tip.BlockHash,
             },
-        }.Sign(PrivateKeys[1]);
+        }.Sign(Signers[1]);
 
         await consensus.StartAsync();
 
@@ -193,8 +192,8 @@ public class ContextNonProposerTest
                 Block = invalidBlock,
             }.Create(Signers[1]));
 
-        await proposeTimeoutTask.WaitAsync(WaitTimeout);
-        await preVoteStepTask.WaitAsync(WaitTimeout);
+        await proposeTimeoutTask.WaitAsync(cancellationToken);
+        await preVoteStepTask.WaitAsync(cancellationToken);
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -204,6 +203,7 @@ public class ContextNonProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task EnterPreVoteNilOnInvalidBlockContent()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         // NOTE: This test does not check tx nonces, different state root hash.
         var invalidKey = new PrivateKey();
         var blockchainOptions = new BlockchainOptions
@@ -227,7 +227,7 @@ public class ContextNonProposerTest
 
         static void IsSignerValid(Transaction tx)
         {
-            var validAddress = PrivateKeys[1].Address;
+            var validAddress = Signers[1].Address;
             if (!tx.Signer.Equals(validAddress))
             {
                 throw new InvalidOperationException("invalid signer");
@@ -264,8 +264,9 @@ public class ContextNonProposerTest
                 Block = invalidBlock,
             }.Create(Signers[1]));
 
-        await preVoteStepTask.WaitAsync(WaitTimeout);
-        await Assert.ThrowsAsync<TimeoutException>(() => proposeTimeoutTask.WaitAsync(WaitTimeout));
+        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await Assert.ThrowsAsync<TimeoutException>(
+            () => proposeTimeoutTask.WaitAsync(WaitTimeout, cancellationToken));
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
@@ -275,12 +276,10 @@ public class ContextNonProposerTest
     public async Task EnterPreVoteNilOnInvalidAction()
     {
         // NOTE: This test does not check tx nonces, different state root hash.
-        var stepChangedToPreVote = new AsyncAutoResetEvent();
-        var timeoutProcessed = false;
-        var nilPreVoteSent = new AsyncAutoResetEvent();
-        var nilPreCommitSent = new AsyncAutoResetEvent();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
         var txSigner = new PrivateKey();
-        var policy = new BlockchainOptions
+        var blockchainOptions = new BlockchainOptions
         {
             SystemActions = new SystemActions
             {
@@ -292,49 +291,21 @@ public class ContextNonProposerTest
             },
         };
 
-        var blockchain = MakeBlockchain(policy);
-        await using var consensus = new Net.Consensus.Consensus(Validators);
-        // privateKey: TestUtils.PrivateKeys[0]);
-        // using var _1 = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.PreVote)
-        //     {
-        //         stepChangedToPreVote.Set();
-        //     }
-        // });
-        // consensus.TimeoutProcessed += (_, __) =>
-        // {
-        //     timeoutProcessed = true;
-        // };
-        // using var _2 = consensus.MessagePublished.Subscribe(message =>
-        // {
-        //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
-        //     {
-        //         nilPreVoteSent.Set();
-        //     }
-        //     else if (
-        //         message is ConsensusPreCommitMessage commit &&
-        //         commit.PreCommit.BlockHash.Equals(default))
-        //     {
-        //         nilPreCommitSent.Set();
-        //     }
-        // });
+        var blockchain = MakeBlockchain(blockchainOptions);
+        var options = new ConsensusOptions
+        {
+            BlockValidators =
+            [
+                new RelayObjectValidator<Block>(blockchain.Validate),
+            ],
+        };
+        await using var consensus = new Net.Consensus.Consensus(Validators, options);
+        var preVoteStepTask = consensus.StepChanged.WaitAsync(
+            e => e.Step == ConsensusStep.PreVote && e.BlockHash == default && consensus.Round.Index == 0);
+        var proposeTimeoutTask = consensus.TimeoutOccurred.WaitAsync(e => e == ConsensusStep.Propose);
+        var preCommitStepTask = consensus.StepChanged.WaitAsync(
+            e => e.Step == ConsensusStep.PreCommit && e.BlockHash == default && consensus.Round.Index == 0);
 
-        using var fx = new MemoryRepositoryFixture();
-
-        // var unsignedInvalidTx = new UnsignedTx
-        // {
-        //     Invoice = new TxInvoice
-        //     {
-        //         GenesisHash = blockchain.Genesis.BlockHash,
-        //         Timestamp = DateTimeOffset.UtcNow,
-        //         Actions = [new ActionBytecode([0x01])], // Invalid action
-        //     },
-        //     SigningMetadata = new TxSigningMetadata
-        //     {
-        //         Signer = txSigner.Address,
-        //     },
-        // };
         var invalidTx = new TransactionMetadata
         {
             GenesisHash = blockchain.Genesis.BlockHash,
@@ -342,119 +313,102 @@ public class ContextNonProposerTest
             Actions = [new ActionBytecode([0x01])], // Invalid action
             Signer = txSigner.Address,
         }.Sign(txSigner);
-        var txs = new[] { invalidTx };
-        var evs = Array.Empty<EvidenceBase>();
-
-        var header = new BlockHeader
+        var invalidBlock = new RawBlock
         {
-            Height = 1,
-            Timestamp = DateTimeOffset.UtcNow,
-            Proposer = PrivateKeys[1].Address,
-            PreviousHash = blockchain.Genesis.BlockHash,
-            PreviousStateRootHash = HashDigest<SHA256>.HashData(RandomUtility.Bytes(1024)),
-        };
-        var preEval = new RawBlock
-        {
-            Header = header,
+            Header = new BlockHeader
+            {
+                Height = 1,
+                Timestamp = DateTimeOffset.UtcNow,
+                Proposer = Signers[1].Address,
+                PreviousHash = blockchain.Genesis.BlockHash,
+                PreviousStateRootHash = RandomUtility.HashDigest<SHA256>(random),
+            },
             Content = new BlockContent
             {
-                Transactions = [.. txs],
-                Evidences = [.. evs],
+                Transactions = [invalidTx],
+                Evidences = [],
             },
-        };
-        var invalidBlock = preEval.Sign(PrivateKeys[1]);
+        }.Sign(Signers[1]);
 
         await consensus.StartAsync();
-        consensus.ProduceMessage(
-            CreateConsensusPropose(
-                invalidBlock,
-                PrivateKeys[1]));
-        await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
-        Assert.False(timeoutProcessed); // Check step transition isn't by timeout.
+
+        _ = consensus.ProposeAsync(
+            new ProposalBuilder
+            {
+                Block = invalidBlock,
+            }.Create(Signers[1]),
+            cancellationToken);
+
+        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await Assert.ThrowsAsync<TimeoutException>(
+            () => proposeTimeoutTask.WaitAsync(WaitTimeout, cancellationToken));
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
 
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+        _ = consensus.PreVoteAsync(
+            new NilVoteBuilder
             {
-                PreVote = new VoteBuilder
-                {
-                    Validator = Validators[1],
-                    Block = invalidBlock,
-                    Type = VoteType.PreVote,
-                }.Create(PrivateKeys[1])
-            });
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+                Validator = Validators[0],
+                Height = 1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[0]));
+        _ = consensus.PreVoteAsync(
+            new VoteBuilder
             {
-                PreVote = new VoteMetadata
-                {
-                    Validator = Validators[2].Address,
-                    ValidatorPower = Validators[2].Power,
-                    Height = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(PrivateKeys[2])
-            });
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+                Validator = Validators[1],
+                Block = invalidBlock,
+                Type = VoteType.PreVote,
+            }.Create(Signers[1]));
+        _ = consensus.PreVoteAsync(
+            new NilVoteBuilder
             {
-                PreVote = new VoteMetadata
-                {
-                    Validator = Validators[3].Address,
-                    ValidatorPower = Validators[3].Power,
-                    Height = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(PrivateKeys[3])
-            });
-        await nilPreCommitSent.WaitAsync();
+                Validator = Validators[2],
+                Height = 1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[2]));
+        _ = consensus.PreVoteAsync(
+            new NilVoteBuilder
+            {
+                Validator = Validators[3],
+                Height = 1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[3]));
+
+        await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
     }
 
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task EnterPreVoteNilOneThird()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
-        // privateKey: TestUtils.PrivateKeys[0]);
+        var preVoteStepRound1Task = consensus.StepChanged.WaitAsync(
+            s => s.Step == ConsensusStep.PreVote && consensus.Round.Index == 1);
 
-        var block = blockchain.ProposeBlock(PrivateKeys[1]);
-        var stepChangedToRoundOnePreVote = new AsyncAutoResetEvent();
-        // using var _ = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
-        //     {
-        //         stepChangedToRoundOnePreVote.Set();
-        //     }
-        // });
+        _ = blockchain.ProposeBlock(Signers[1]);
         await consensus.StartAsync();
 
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+        _ = consensus.PreVoteAsync(
+            new NilVoteBuilder
             {
-                PreVote = new VoteMetadata
-                {
-                    Validator = Validators[2].Address,
-                    ValidatorPower = Validators[2].Power,
-                    Height = 1,
-                    Round = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(PrivateKeys[2])
-            });
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+                Validator = Validators[2],
+                Height = 1,
+                Round = 1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[2]));
+        _ = consensus.PreVoteAsync(
+            new NilVoteBuilder
             {
-                PreVote = new VoteMetadata
-                {
-                    Validator = Validators[3].Address,
-                    ValidatorPower = Validators[3].Power,
-                    Height = 1,
-                    Round = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(PrivateKeys[3])
-            });
+                Validator = Validators[3],
+                Height = 1,
+                Round = 1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[3]));
 
-        await stepChangedToRoundOnePreVote.WaitAsync();
+        await preVoteStepRound1Task.WaitAsync(cancellationToken);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(1, consensus.Round.Index);
@@ -463,33 +417,19 @@ public class ContextNonProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task TimeoutPropose()
     {
-        var stepChangedToPreVote = new AsyncAutoResetEvent();
-        var preVoteSent = new AsyncAutoResetEvent();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var options = new ConsensusOptions
+        {
+            ProposeTimeoutBase = TimeSpan.FromSeconds(1),
+        };
+        await using var consensus = new Net.Consensus.Consensus(Validators, options);
+        var preVoteStepTask = consensus.StepChanged.WaitAsync(
+            s => s.Step == ConsensusStep.PreVote && consensus.Round.Index == 0);
 
-        await using var consensus = CreateConsensus(
-            // privateKey: TestUtils.PrivateKeys[0],
-            options: new ConsensusOptions
-            {
-                ProposeTimeoutBase = TimeSpan.FromSeconds(1),
-            });
-
-        // using var _1 = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.PreVote)
-        //     {
-        //         stepChangedToPreVote.Set();
-        //     }
-        // });
-        // using var _2 = consensus.MessagePublished.Subscribe(message =>
-        // {
-        //     if (message is ConsensusPreVoteMessage)
-        //     {
-        //         preVoteSent.Set();
-        //     }
-        // });
 
         await consensus.StartAsync();
-        await Task.WhenAll(preVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
+
+        await preVoteStepTask.WaitAsync(cancellationToken);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
@@ -498,82 +438,81 @@ public class ContextNonProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task UponRulesCheckAfterTimeout()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
-        await using var consensus = CreateConsensus(
-            options: new ConsensusOptions
-            {
-                PreVoteTimeoutBase = 1_000,
-                PreCommitTimeoutBase = 1_000,
-            });
+        var options = new ConsensusOptions
+        {
+            PreVoteTimeoutBase = 1_000,
+            PreCommitTimeoutBase = 1_000,
+        };
+        await using var consensus = new Net.Consensus.Consensus(Validators, options);
+        var preVoteStepTask = consensus.StepChanged.WaitAsync(
+            s => s.Step == ConsensusStep.PreVote && consensus.Round.Index == 1);
 
-        var block1 = blockchain.ProposeBlock(PrivateKeys[1]);
-        var block2 = blockchain.ProposeBlock(PrivateKeys[2]);
-        var roundOneStepChangedToPreVote = new AsyncAutoResetEvent();
-        // using var _ =consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Round == 1 && state.Step == ConsensusStep.PreVote)
-        //     {
-        //         roundOneStepChangedToPreVote.Set();
-        //     }
-        // });
+        var block1 = blockchain.ProposeBlock(Signers[1]);
+        var block2 = blockchain.ProposeBlock(Signers[2]);
+
+        await consensus.StartAsync(cancellationToken);
 
         // Push round 0 and round 1 proposes.
-        consensus.ProduceMessage(
-            CreateConsensusPropose(
-                block1, PrivateKeys[1], round: 0));
-        consensus.ProduceMessage(
-            CreateConsensusPropose(
-                block2, PrivateKeys[2], round: 1));
+        _ = consensus.ProposeAsync(
+            new ProposalBuilder
+            {
+                Block = block1,
+                Round = 0,
+            }.Create(Signers[1]));
+        _ = consensus.ProposeAsync(
+        new ProposalBuilder
+        {
+            Block = block2,
+            Round = 1,
+        }.Create(Signers[2]));
 
         // Two additional votes should be enough to trigger prevote timeout timer.
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+        _ = consensus.PreVoteAsync(
+            new VoteBuilder
             {
-                PreVote = new VoteMetadata
-                {
-                    Validator = Validators[2].Address,
-                    ValidatorPower = Validators[2].Power,
-                    Height = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(PrivateKeys[2])
-            });
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+                Validator = Validators[0],
+                Block = block1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[0]));
+        _ = consensus.PreVoteAsync(
+            new NilVoteBuilder
             {
-                PreVote = new VoteMetadata
-                {
-                    Validator = Validators[3].Address,
-                    ValidatorPower = Validators[3].Power,
-                    Height = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(PrivateKeys[3])
-            });
+                Validator = Validators[2],
+                Height = 1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[2]));
+        _ = consensus.PreVoteAsync(
+            new NilVoteBuilder
+            {
+                Validator = Validators[3],
+                Height = 1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[3]));
 
         // Two additional votes should be enough to trigger precommit timeout timer.
-        consensus.ProduceMessage(
-            new ConsensusPreCommitMessage
+        _ = consensus.PreCommitAsync(
+            new NilVoteBuilder
             {
-                PreCommit = new VoteMetadata
-                {
-                    Validator = Validators[2].Address,
-                    ValidatorPower = Validators[2].Power,
-                    Height = 1,
-                    Type = VoteType.PreCommit,
-                }.Sign(PrivateKeys[2])
-            });
-        consensus.ProduceMessage(
-            new ConsensusPreCommitMessage
+                Validator = Validators[0],
+                Height = 1,
+                Type = VoteType.PreCommit,
+            }.Create(Signers[0]));
+        _ = consensus.PreCommitAsync(
+            new NilVoteBuilder
             {
-                PreCommit = new VoteMetadata
-                {
-                    Validator = Validators[3].Address,
-                    ValidatorPower = Validators[3].Power,
-                    Height = 1,
-                    Type = VoteType.PreCommit,
-                }.Sign(PrivateKeys[3])
-            });
-
-        await consensus.StartAsync();
+                Validator = Validators[2],
+                Height = 1,
+                Type = VoteType.PreCommit,
+            }.Create(Signers[2]));
+        _ = consensus.PreCommitAsync(
+            new NilVoteBuilder
+            {
+                Validator = Validators[3],
+                Height = 1,
+                Type = VoteType.PreCommit,
+            }.Create(Signers[3]));
 
         // Round 0 Propose -> Round 0 PreVote (due to Round 0 Propose message) ->
         // PreVote timeout start (due to PreVote messages) ->
@@ -581,7 +520,7 @@ public class ContextNonProposerTest
         // PreCommit timeout start (due to state mutation check and PreCommit messages) ->
         // PreCommit timeout end -> Round 1 Propose ->
         // Round 1 PreVote (due to state mutation check and Round 1 Propose message)
-        await roundOneStepChangedToPreVote.WaitAsync();
+        await preVoteStepTask.WaitAsync(cancellationToken);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(1, consensus.Round.Index);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
@@ -590,64 +529,57 @@ public class ContextNonProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task TimeoutPreVote()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
-        await using var consensus = CreateConsensus(
-            options: new ConsensusOptions
-            {
-                PreVoteTimeoutBase = 1_000,
-            });
+        var options = new ConsensusOptions
+        {
+            PreVoteTimeoutBase = 1_000,
+        };
+        await using var consensus = new Net.Consensus.Consensus(Validators, options);
+        var timeoutTask = consensus.TimeoutOccurred.WaitAsync(
+            e => e == ConsensusStep.PreVote && consensus.Height == 1 && consensus.Round.Index == 0);
 
-        var block = blockchain.ProposeBlock(PrivateKeys[1]);
-        var timeoutProcessed = new AsyncAutoResetEvent();
-        // consensus.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
+        var block = blockchain.ProposeBlock(Signers[1]);
+
         await consensus.StartAsync();
 
-        consensus.ProduceMessage(
-            CreateConsensusPropose(
-                block, PrivateKeys[1], round: 0));
+        _ = consensus.ProposeAsync(
+            new ProposalBuilder
+            {
+                Block = block,
+            }.Create(Signers[1]));
 
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+        _ = consensus.PreVoteAsync(
+            new VoteBuilder
             {
-                PreVote = new VoteBuilder
-                {
-                    Validator = Validators[1],
-                    Block = block,
-                    Type = VoteType.PreVote,
-                }.Create(PrivateKeys[1])
-            });
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+                Validator = Validators[0],
+                Block = block,
+                Type = VoteType.PreVote,
+            }.Create(Signers[0]));
+        _ = consensus.PreVoteAsync(
+            new VoteBuilder
             {
-                PreVote = new VoteMetadata
-                {
-                    Validator = Validators[2].Address,
-                    ValidatorPower = Validators[2].Power,
-                    Height = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(PrivateKeys[2])
-            });
-        consensus.ProduceMessage(
-            new ConsensusPreVoteMessage
+                Validator = Validators[1],
+                Block = block,
+                Type = VoteType.PreVote,
+            }.Create(Signers[1]));
+        _ = consensus.PreVoteAsync(
+            new NilVoteBuilder
             {
-                // PreVote = TestUtils.CreateVote(
-                //     TestUtils.PrivateKeys[3],
-                //     TestUtils.Validators[3].Power,
-                //     1,
-                //     0,
-                //     hash: default,
-                //     flag: VoteType.PreVote)
-                PreVote = new VoteMetadata
-                {
-                    Validator = Validators[3].Address,
-                    ValidatorPower = Validators[3].Power,
-                    Height = 1,
-                    Type = VoteType.PreVote,
-                }.Sign(PrivateKeys[3])
-            });
+                Validator = Validators[2],
+                Height = 1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[2]));
+        _ = consensus.PreVoteAsync(
+            new NilVoteBuilder
+            {
+                Validator = Validators[3],
+                Height = 1,
+                Type = VoteType.PreVote,
+            }.Create(Signers[3]));
 
         // Wait for timeout.
-        await timeoutProcessed.WaitAsync();
+        await timeoutTask.WaitAsync(cancellationToken);
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
@@ -656,57 +588,63 @@ public class ContextNonProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task TimeoutPreCommit()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
-        await using var consensus = CreateConsensus(
-            options: new ConsensusOptions
-            {
-                PreCommitTimeoutBase = 1_000,
-            });
+        var options = new ConsensusOptions
+        {
+            PreCommitTimeoutBase = 1_000,
+        };
+        await using var consensus = new Net.Consensus.Consensus(Validators, options);
+        var timeoutTask = consensus.TimeoutOccurred.WaitAsync(
+            e => e == ConsensusStep.PreCommit && consensus.Height == 1 && consensus.Round.Index == 0);
+        var proposeStep1Task = consensus.StepChanged.WaitAsync(
+            e => e.Step == ConsensusStep.Propose && consensus.Round.Index == 1);
 
-        var block = blockchain.ProposeBlock(PrivateKeys[1]);
-        var timeoutProcessed = new AsyncAutoResetEvent();
-        // consensus.TimeoutProcessed += (_, __) => timeoutProcessed.Set();
+        var block = blockchain.ProposeBlock(Signers[1]);
+
         await consensus.StartAsync();
 
-        consensus.ProduceMessage(
-            CreateConsensusPropose(
-                block, PrivateKeys[1], round: 0));
+        _ = consensus.ProposeAsync(
+            new ProposalBuilder
+            {
+                Block = block,
+            }.Create(Signers[1]));
 
-        consensus.ProduceMessage(
-            new ConsensusPreCommitMessage
+        _ = consensus.PreCommitAsync(
+            new VoteBuilder
             {
-                PreCommit = new VoteBuilder
-                {
-                    Validator = Validators[1],
-                    Block = block,
-                    Type = VoteType.PreCommit,
-                }.Create(PrivateKeys[1])
-            });
-        consensus.ProduceMessage(
-            new ConsensusPreCommitMessage
+                Validator = Validators[0],
+                Block = block,
+                Type = VoteType.PreCommit,
+            }.Create(Signers[0]));
+        _ = consensus.PreCommitAsync(
+            new VoteBuilder
             {
-                PreCommit = new VoteMetadata
-                {
-                    Validator = Validators[2].Address,
-                    ValidatorPower = Validators[2].Power,
-                    Height = 1,
-                    Type = VoteType.PreCommit,
-                }.Sign(PrivateKeys[2])
-            });
-        consensus.ProduceMessage(
-            new ConsensusPreCommitMessage
+                Validator = Validators[1],
+                Block = block,
+                Type = VoteType.PreCommit,
+            }.Create(Signers[1]));
+        
+        _ = consensus.PreCommitAsync(
+            new NilVoteBuilder
             {
-                PreCommit = new VoteMetadata
-                {
-                    Validator = Validators[3].Address,
-                    ValidatorPower = Validators[3].Power,
-                    Height = 1,
-                    Type = VoteType.PreCommit,
-                }.Sign(PrivateKeys[3])
-            });
+                Validator = Validators[2],
+                Height = 1,
+                Type = VoteType.PreCommit,
+            }.Create(Signers[2]));
+        
+        _ = consensus.PreCommitAsync(
+            new NilVoteBuilder
+            {
+                Validator = Validators[3],
+                Height = 1,
+                Type = VoteType.PreCommit,
+            }.Create(Signers[3]));
+        
 
         // Wait for timeout.
-        await timeoutProcessed.WaitAsync();
+        await timeoutTask.WaitAsync(cancellationToken);
+        await proposeStep1Task.WaitAsync(cancellationToken);
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(1, consensus.Round.Index);

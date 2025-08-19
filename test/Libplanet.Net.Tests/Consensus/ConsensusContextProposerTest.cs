@@ -11,6 +11,7 @@ public class ConsensusContextProposerTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task IncreaseRoundWhenTimeout()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var transportA = CreateTransport(Signers[0]);
         await using var transportB = CreateTransport(Signers[1]);
@@ -57,7 +58,7 @@ public class ConsensusContextProposerTest
         };
         transportA.Post(transportB.Peer, preVoteMessage3);
 
-        await preVoteTimeoutTask.WaitAsync(WaitTimeout);
+        await preVoteTimeoutTask.WaitAsync(WaitTimeout, cancellationToken);
 
         var preCommit2 = new NilVoteBuilder
         {
@@ -83,7 +84,7 @@ public class ConsensusContextProposerTest
         };
         transportA.Post(transportB.Peer, preCommitMessage3);
 
-        await preCommitTimeoutTask.WaitAsync(WaitTimeout);
+        await preCommitTimeoutTask.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(1, consensusService.Height);
         Assert.Equal(1, consensusService.Round);
     }

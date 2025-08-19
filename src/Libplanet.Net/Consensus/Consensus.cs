@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reactive.Subjects;
 using Libplanet.Net.Threading;
 using Libplanet.Types;
@@ -392,8 +393,8 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         {
             if (round == _round && Step == ConsensusStep.PreVote)
             {
-                EnterPreCommitStep(round, default);
                 _timeoutOccurredSubject.OnNext(ConsensusStep.PreVote);
+                EnterPreCommitStep(round, default);
                 ProcessGenericUponRules();
             }
         }
@@ -416,8 +417,8 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         {
             if (round == _round && Step is ConsensusStep.PreVote or ConsensusStep.PreCommit)
             {
-                EnterEndCommitStep(round);
                 _timeoutOccurredSubject.OnNext(ConsensusStep.PreCommit);
+                EnterEndCommitStep(round);
                 ProcessGenericUponRules();
             }
         }
@@ -444,11 +445,6 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
     private void SetProposal(Proposal proposal)
     {
-        if (Proposal is not null)
-        {
-            throw new InvalidOperationException($"Proposal already exists for height {Height} and round {Round}");
-        }
-
         var round = Round;
         var roundIndex = Round.Index;
 
@@ -479,6 +475,11 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
             var message = $"Given proposal's block hash {proposal.BlockHash} does not match " +
                           $"with the collected +2/3 preCommits' block hash {blockHash2}.";
             throw new ArgumentException(message, nameof(proposal));
+        }
+
+        if (Proposal is not null)
+        {
+            throw new InvalidOperationException($"Proposal already exists for height {Height} and round {Round}");
         }
 
         Proposal = proposal;
@@ -611,6 +612,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
         Step = ConsensusStep.PreVote;
         _stepChangedSubject.OnNext((Step, blockHash));
+        Trace.WriteLine("EnterPreVoteStep");
     }
 
     private void EnterPreCommitStep(Round round, BlockHash blockHash)
@@ -622,6 +624,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
         Step = ConsensusStep.PreCommit;
         _stepChangedSubject.OnNext((Step, blockHash));
+        Trace.WriteLine("EnterPreCommitStep");
     }
 
     private void EnterEndCommitStep(Round round)

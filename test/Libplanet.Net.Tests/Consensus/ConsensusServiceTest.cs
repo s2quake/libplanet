@@ -12,6 +12,7 @@ public class ConsensusServiceTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task StartAsync()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var count = Signers.Length;
         var blockchains = new Blockchain[count];
         using var fx = new MemoryRepositoryFixture();
@@ -49,7 +50,7 @@ public class ConsensusServiceTest
         await transports.StartAsync();
         await consensusServices.StartAsync();
 
-        await Task.Delay(PropagationDelay, default);
+        await Task.Delay(PropagationDelay, cancellationToken);
         await consensusServices.StopAsync();
 
         var isPolka = new bool[4];

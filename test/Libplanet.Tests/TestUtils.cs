@@ -21,6 +21,10 @@ public static class TestUtils
         PrivateKey.Parse("91602d7091c5c7837ac8e71a8d6b1ed1355cfe311914d9a76107899add0ad56a"),
     ];
 
+    // [0]: 0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d
+    // [1]: 0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7
+    // [2]: 0x28D6C49FaAE09d58473D98c15DD1095C04232267
+    // [3]: 0x66Bff9Ff1Ad108f26A829c1090bE517C0155801A
     public static readonly ImmutableSortedSet<Validator> Validators =
     [
         .. ValidatorPrivateKeys.Select(privateKey => new Validator { Address = privateKey.Address })

@@ -37,6 +37,7 @@ public sealed class ConsensusClassicTest
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposerWithLastCommit()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 2);
         using var observer = new ConsensusObserver(Signers[2], consensus, blockchain);
@@ -44,11 +45,11 @@ public sealed class ConsensusClassicTest
 
         consensus.StartAfter(100);
         var proposeTask = observer.ShouldPropose.WaitAsync();
-        var proposal = await proposeTask.WaitAsync(WaitTimeout);
-        _ = consensus.ProposeAsync(proposal, default);
+        var proposal = await proposeTask.WaitAsync(WaitTimeout, cancellationToken);
+        _ = consensus.ProposeAsync(proposal, cancellationToken);
         var preVoteTask = observer.ShouldPreVote.WaitAsync();
-        var preVote = await preVoteTask.WaitAsync(WaitTimeout);
-        _ = consensus.PreVoteAsync(preVote, default);
+        var preVote = await preVoteTask.WaitAsync(WaitTimeout, cancellationToken);
+        _ = consensus.PreVoteAsync(preVote, cancellationToken);
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(blockCommit1, proposal.Block.PreviousCommit);
@@ -66,6 +67,7 @@ public sealed class ConsensusClassicTest
     [Fact(Timeout = Timeout)]
     public async Task CanAcceptMessagesAfterCommitFailure()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         blockchain.ProposeAndAppend(Signers[1]);
 
@@ -76,10 +78,10 @@ public sealed class ConsensusClassicTest
         var preVoteStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
         var endCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.EndCommit);
         var proposeTask = observer.ShouldPropose.WaitAsync();
-        var proposal = await proposeTask.WaitAsync(WaitTimeout);
+        var proposal = await proposeTask.WaitAsync(WaitTimeout, cancellationToken);
 
-        _ = consensus.ProposeAsync(proposal, default);
-        await preVoteStepTask.WaitAsync(WaitTimeout);
+        _ = consensus.ProposeAsync(proposal, cancellationToken);
+        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
 
         blockchain.AppendWithBlockCommit(proposal.Block);
 
@@ -94,7 +96,7 @@ public sealed class ConsensusClassicTest
                 Block = proposal.Block,
                 Type = VoteType.PreVote,
             }.Create(Signers[i]);
-            _ = consensus.PreVoteAsync(vote, default);
+            _ = consensus.PreVoteAsync(vote, cancellationToken);
         }
 
         // Validator 2 will automatically vote its PreCommit.
@@ -106,10 +108,10 @@ public sealed class ConsensusClassicTest
                 Block = proposal.Block,
                 Type = VoteType.PreCommit,
             }.Create(Signers[i]);
-            _ = consensus.PreCommitAsync(vote, default);
+            _ = consensus.PreCommitAsync(vote, cancellationToken);
         }
 
-        await endCommitStepTask.WaitAsync(TimeSpan.FromSeconds(3));
+        await endCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
 
         // Check consensus has only three votes.
         var preCommits = consensus.Round.PreCommits;
@@ -124,7 +126,7 @@ public sealed class ConsensusClassicTest
             Type = VoteType.PreCommit,
         }.Create(Signers[3]);
 
-        await consensus.PreCommitAsync(vote3, default).WaitAsync(TimeSpan.FromSeconds(3));
+        await consensus.PreCommitAsync(vote3).WaitAsync(WaitTimeout, cancellationToken);
 
         blockCommit = preCommits.GetBlockCommit();
         Assert.Equal(4, blockCommit.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
@@ -152,6 +154,7 @@ public sealed class ConsensusClassicTest
     [Fact(Timeout = Timeout)]
     public async Task ThrowOnDifferentHeightMessage()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[1], consensus, blockchain);
@@ -177,8 +180,8 @@ public sealed class ConsensusClassicTest
         var e1 = await Assert.ThrowsAsync<ArgumentException>(() => consensus.ProposeAsync(invalidProposal));
         Assert.StartsWith("Proposal height", e1.Message);
 
-        var proposal = await proposeTask.WaitAsync(WaitTimeout);
-        await consensus.ProposeAsync(proposal).WaitAsync(WaitTimeout);
+        var proposal = await proposeTask.WaitAsync(WaitTimeout, cancellationToken);
+        await consensus.ProposeAsync(proposal).WaitAsync(WaitTimeout, cancellationToken);
 
         var e2 = await Assert.ThrowsAsync<ArgumentException>(() => consensus.PreVoteAsync(invalidVote));
         Assert.StartsWith("Height of vote", e2.Message);
@@ -187,6 +190,7 @@ public sealed class ConsensusClassicTest
     [Fact(Timeout = Timeout)]
     public async Task CanPreCommitOnEndCommit()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchainOptions = new BlockchainOptions
         {
             SystemActions = new SystemActions
@@ -221,9 +225,9 @@ public sealed class ConsensusClassicTest
             Round = 0,
         }.Create(Signers[1]);
 
-        await consensus.StartAsync(default);
+        await consensus.StartAsync(cancellationToken);
         var preCommits = consensus.Round.PreCommits;
-        _ = consensus.ProposeAsync(proposal, default);
+        _ = consensus.ProposeAsync(proposal, cancellationToken);
 
         foreach (var i in new int[] { 0, 1, 2, 3 })
         {
@@ -233,7 +237,7 @@ public sealed class ConsensusClassicTest
                 Block = block,
                 Type = VoteType.PreVote,
             }.Create(Signers[i]);
-            _ = consensus.PreVoteAsync(preVote, default);
+            _ = consensus.PreVoteAsync(preVote, cancellationToken);
         }
 
         // Two additional votes should be enough to reach a consensus.
@@ -245,17 +249,17 @@ public sealed class ConsensusClassicTest
                 Block = block,
                 Type = VoteType.PreCommit,
             }.Create(Signers[i]);
-            _ = consensus.PreCommitAsync(preCommit, default);
+            _ = consensus.PreCommitAsync(preCommit, cancellationToken);
         }
 
-        await tipChangedTask.WaitAsync(WaitTimeout);
+        await tipChangedTask.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(
             3,
             preCommits.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
 
-        await preVoteStepTask.WaitAsync(WaitTimeout);
-        await preCommitStepTask.WaitAsync(WaitTimeout);
-        await endCommitStepTask.WaitAsync(WaitTimeout);
+        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await endCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
 
         // Add the last vote and wait for it to be consumed.
         var vote = new VoteBuilder
@@ -265,19 +269,20 @@ public sealed class ConsensusClassicTest
             Timestamp = DateTimeOffset.UtcNow,
             Type = VoteType.PreCommit,
         }.Create(Signers[3]);
-        await consensus.PreCommitAsync(vote, default);
+        await consensus.PreCommitAsync(vote, cancellationToken);
         Assert.Equal(4, preCommits.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
     }
 
     [Fact(Timeout = Timeout)]
     public async Task CanReplaceProposal()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[0], consensus, blockchain);
         var blockA = blockchain.ProposeBlock(Signers[1]);
         var blockB = blockchain.ProposeBlock(Signers[1]);
-        await consensus.StartAsync(default);
+        await consensus.StartAsync(cancellationToken);
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
 
         var proposalA = new ProposalBuilder
@@ -294,7 +299,7 @@ public sealed class ConsensusClassicTest
         {
             Block = blockB,
         }.Create(Signers[1]);
-        await consensus.ProposeAsync(proposalA).WaitAsync(WaitTimeout);
+        await consensus.ProposeAsync(proposalA).WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(proposalA, consensus.Proposal);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
 
@@ -303,7 +308,7 @@ public sealed class ConsensusClassicTest
         Assert.StartsWith("Proposal already exists", e1.Message);
 
         Assert.Equal(proposalA, consensus.Proposal);
-        _ = consensus.PreVoteAsync(preVoteA2, default);
+        _ = consensus.PreVoteAsync(preVoteA2, cancellationToken);
 
         // Validator 1 (key1) collected +2/3 pre-vote messages,
         // sends maj23 message to consensus.
@@ -333,9 +338,9 @@ public sealed class ConsensusClassicTest
             Block = blockB,
             Type = VoteType.PreVote,
         }.Create(Signers[3]);
-        _ = consensus.PreVoteAsync(preVoteB0, default);
-        _ = consensus.PreVoteAsync(preVoteB1, default);
-        _ = consensus.PreVoteAsync(preVoteB2, default);
+        _ = consensus.PreVoteAsync(preVoteB0, cancellationToken);
+        _ = consensus.PreVoteAsync(preVoteB1, cancellationToken);
+        _ = consensus.PreVoteAsync(preVoteB2, cancellationToken);
         await consensus.ProposalClaimed.WaitAsync(WaitTimeout);
         Assert.Null(consensus.Proposal);
         _ = consensus.ProposeAsync(proposalB);
@@ -348,6 +353,7 @@ public sealed class ConsensusClassicTest
     public async Task CanCreateContextWithLastingEvaluation()
     {
         const int actionDelay = 2000;
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var transport = new NetMQ.NetMQTransport(Signers[0]);
         var options = new ConsensusServiceOptions
@@ -382,7 +388,7 @@ public sealed class ConsensusClassicTest
                 Block = block,
                 Type = VoteType.PreVote,
             }.Create(Signers[i]);
-            _ = consensus.PreVoteAsync(preVote, default);
+            _ = consensus.PreVoteAsync(preVote);
         }
 
         foreach (var i in new int[] { 1, 2, 3 })
@@ -393,16 +399,16 @@ public sealed class ConsensusClassicTest
                 Block = block,
                 Type = VoteType.PreCommit,
             }.Create(PrivateKeys[i]);
-            _ = consensus.PreCommitAsync(preCommit, default);
+            _ = consensus.PreCommitAsync(preCommit);
         }
 
         Assert.Equal(1, consensusService.Height);
         var stopWatch = Stopwatch.StartNew();
-        await tipChangedTask.WaitAsync(WaitTimeout);
+        await tipChangedTask.WaitAsync(WaitTimeout, cancellationToken);
         Assert.True(stopWatch.ElapsedMilliseconds < (actionDelay * 0.5));
         stopWatch.Restart();
 
-        await heightChangedTask.WaitAsync(WaitTimeout);
+        await heightChangedTask.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(
             4,
             preCommits.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
@@ -416,6 +422,7 @@ public sealed class ConsensusClassicTest
     [InlineData(500)]
     public async Task CanCollectPreVoteAfterMajority(int delay)
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var options = new ConsensusOptions
         {
             EnterPreCommitDelay = delay,
@@ -429,8 +436,8 @@ public sealed class ConsensusClassicTest
         }.Create(Signers[1]);
         using var preVoteCounter = consensus.PreVoted.Counter();
 
-        await consensus.StartAsync(default);
-        await consensus.ProposeAsync(proposal);
+        await consensus.StartAsync(cancellationToken);
+        await consensus.ProposeAsync(proposal, cancellationToken);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
 
         for (var i = 0; i < 3; i++)
@@ -441,16 +448,16 @@ public sealed class ConsensusClassicTest
                 Block = block,
                 Type = VoteType.PreVote,
             }.Create(PrivateKeys[i]);
-            _ = consensus.PreVoteAsync(preVote);
+            _ = consensus.PreVoteAsync(preVote, cancellationToken);
         }
 
         // Send delayed PreVote message after sending preCommit message
-        using var cancellationToken = new CancellationTokenSource();
+        using var cancellationTokenSource = new CancellationTokenSource();
         const int preVoteDelay = 300;
         _ = Task.Run(
             async () =>
             {
-                await Task.Delay(preVoteDelay, cancellationToken.Token);
+                await Task.Delay(preVoteDelay, cancellationTokenSource.Token);
                 var preVote = new VoteBuilder
                 {
                     Validator = Validators[3],
@@ -459,10 +466,10 @@ public sealed class ConsensusClassicTest
                 }.Create(PrivateKeys[3]);
                 _ = consensus.PreVoteAsync(preVote);
             },
-            cancellationToken.Token);
+            cancellationTokenSource.Token);
 
         await consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit, WaitTimeout);
-        await cancellationToken.CancelAsync();
+        await cancellationTokenSource.CancelAsync();
 
         Assert.Equal(delay < preVoteDelay ? 3 : 4, preVoteCounter.Count);
     }

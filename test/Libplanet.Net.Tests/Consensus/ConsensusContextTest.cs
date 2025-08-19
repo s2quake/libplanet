@@ -18,6 +18,7 @@ public class ConsensusContextTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task NewHeightIncreasing()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var transportA = CreateTransport(Signers[2]);
         await using var transportB = CreateTransport(Signers[3]);
@@ -46,10 +47,10 @@ public class ConsensusContextTest
         Assert.Equal(2, blockchain.Tip.Height);
 
         // Wait for context of height 3 to start.
-        await proposeStepChangedTask3.WaitAsync(WaitTimeout);
+        await proposeStepChangedTask3.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(3, consensusService.Height);
 
-        var proposal3 = await proposedTask3.WaitAsync(WaitTimeout);
+        var proposal3 = await proposedTask3.WaitAsync(WaitTimeout, cancellationToken);
         var preCommit = new VoteBuilder
         {
             Validator = Validators[0],
@@ -87,12 +88,12 @@ public class ConsensusContextTest
         transportA.Post(transportB.Peer, preCommitMessage2);
 
         // Waiting for commit.
-        await endCommitStepChangedTask3.WaitAsync(WaitTimeout);
-        await tipChangedTask3.WaitAsync(WaitTimeout);
+        await endCommitStepChangedTask3.WaitAsync(WaitTimeout, cancellationToken);
+        await tipChangedTask3.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(3, blockchain.Tip.Height);
 
         // Next height starts normally.
-        await proposeStepChangedTask4.WaitAsync(WaitTimeout);
+        await proposeStepChangedTask4.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(4, consensusService.Height);
         Assert.Equal(0, consensusService.Round);
     }
@@ -131,6 +132,7 @@ public class ConsensusContextTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task NewHeightWhenTipChanged()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var newHeightDelay = TimeSpan.FromSeconds(1);
         var blockchain = MakeBlockchain();
         await using var transport = CreateTransport(Signers[1]);
@@ -147,13 +149,14 @@ public class ConsensusContextTest
 
         blockchain.ProposeAndAppend(new PrivateKey());
         Assert.Equal(1, consensusService.Height);
-        await Task.Delay(newHeightDelay + TimeSpan.FromSeconds(1));
+        await Task.Delay(newHeightDelay + TimeSpan.FromSeconds(1), cancellationToken);
         Assert.Equal(2, consensusService.Height);
     }
 
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task IgnoreMessagesFromLowerHeight()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var transportA = CreateTransport(Signers[0]);
         await using var transportB = CreateTransport(Signers[1]);
@@ -172,7 +175,7 @@ public class ConsensusContextTest
         Assert.Equal(1, consensusService.Height);
 
         blockchain.ProposeAndAppend(Signers[0]);
-        await heightChangedTask2.WaitAsync(WaitTimeout);
+        await heightChangedTask2.WaitAsync(WaitTimeout, cancellationToken);
 
         var proposal = new ProposalBuilder
         {
@@ -183,7 +186,7 @@ public class ConsensusContextTest
             Proposal = proposal,
         };
         transportA.Post(transportB.Peer, proposalMessage);
-        var (h, e) = await messageHandlingFailedTask.WaitAsync(WaitTimeout);
+        var (h, e) = await messageHandlingFailedTask.WaitAsync(WaitTimeout, cancellationToken);
         Assert.IsType<ConsensusProposalMessageHandler>(h);
         Assert.IsType<InvalidMessageException>(e);
         Assert.StartsWith("Proposal height is lower", e.Message);
@@ -192,6 +195,7 @@ public class ConsensusContextTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task VoteSetGetOnlyProposeCommitHash()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var preCommitList = new List<Vote>();
         var blockchain = MakeBlockchain();
         await using var transportA = CreateTransport(Signers[0]);
@@ -207,9 +211,9 @@ public class ConsensusContextTest
 
         await transportA.StartAsync();
         await transportB.StartAsync();
-        await consensusService.StartAsync(default);
+        await consensusService.StartAsync(cancellationToken);
 
-        var proposal = await proposedTask1.WaitAsync(WaitTimeout);
+        var proposal = await proposedTask1.WaitAsync(WaitTimeout, cancellationToken);
         preCommitList.Add(new VoteMetadata
         {
             Validator = Validators[0].Address,
@@ -230,7 +234,7 @@ public class ConsensusContextTest
             transportA.Post(transportB.Peer, new ConsensusPreCommitMessage { PreCommit = preCommit });
         }
 
-        await endCommitStepTask1.WaitAsync(WaitTimeout);
+        await endCommitStepTask1.WaitAsync(WaitTimeout, cancellationToken);
 
         var blockCommit = consensusService.Consensus.Round.PreCommits.GetBlockCommit();
         Assert.NotEqual(preCommitList[0], blockCommit.Votes.First(i => i.Validator == Signers[0].Address));
@@ -298,6 +302,7 @@ public class ConsensusContextTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task HandleVoteSetBits()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var transportA = CreateTransport(Signers[3]);
         await using var transportB = CreateTransport(Signers[0]);
@@ -335,7 +340,7 @@ public class ConsensusContextTest
         transportA.Post(transportB.Peer, new ConsensusPreVoteMessage { PreVote = preVote1 });
         transportA.Post(transportB.Peer, new ConsensusPreVoteMessage { PreVote = preVote2 });
 
-        await preCommitStepChangedTask.WaitAsync(WaitTimeout);
+        await preCommitStepChangedTask.WaitAsync(WaitTimeout, cancellationToken);
 
         // VoteSetBits expects missing votes
         var voteBits = new VoteBitsBuilder
@@ -356,7 +361,7 @@ public class ConsensusContextTest
                 peer: transportB.Peer,
                 message: voteBitsMessage,
                 isLast: _ => false,
-                cancellationToken: default))
+                cancellationToken: cancellationToken))
             {
                 messageList.Add(item);
             }
@@ -376,6 +381,7 @@ public class ConsensusContextTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task HandleProposalClaim()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
         await using var transportA = CreateTransport(Signers[1]);
         await using var transportB = CreateTransport(Signers[0]);
@@ -398,7 +404,7 @@ public class ConsensusContextTest
             Block = block,
         }.Create(Signers[1]);
         transportA.Post(transportB.Peer, new ConsensusProposalMessage { Proposal = proposal });
-        await preVoteStepTask.WaitAsync(WaitTimeout);
+        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
 
         // ProposalClaim expects corresponding proposal if exists
         var proposalClaim = new ProposalClaimBuilder
@@ -410,7 +416,7 @@ public class ConsensusContextTest
         var reply = await transportA.SendAsync<ConsensusProposalMessage>(
             peer: transportB.Peer,
             message: new ConsensusProposalClaimMessage { ProposalClaim = proposalClaim },
-            cancellationToken: default);
+            cancellationToken: cancellationToken);
         Assert.Equal(proposal, reply.Proposal);
     }
 }

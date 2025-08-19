@@ -161,6 +161,14 @@ public partial class Blockchain
         {
             Options.TransactionOptions.Validate(tx);
         }
+
+        var previousBlock = Blocks[block.PreviousHash];
+        var previousStateRootHash = _repository.StateRootHashes[previousBlock.BlockHash];
+        if (previousStateRootHash != block.PreviousStateRootHash)
+        {
+            throw new InvalidOperationException(
+                $"Block {block.BlockHash} has an invalid previous state root hash.");
+        }
     }
 
     public World GetWorld() => GetWorld(Tip.BlockHash);
