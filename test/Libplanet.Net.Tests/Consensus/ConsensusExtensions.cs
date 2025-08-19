@@ -8,7 +8,7 @@ public static class ConsensusExtensions
 {
     public static async Task<Proposal> ProposeAsync(
         this Net.Consensus.Consensus @this,
-        int index,
+        int validator,
         Block block,
         int round = 0,
         int validRound = -1,
@@ -19,25 +19,44 @@ public static class ConsensusExtensions
             Block = block,
             Round = round,
             ValidRound = validRound,
-        }.Create(Signers[index]);
+        }.Create(Signers[validator]);
         await @this.ProposeAsync(proposal, cancellationToken);
         return proposal;
     }
 
-    public static Task PreVoteAsync(
+    public static async Task<Vote> PreVoteAsync(
         this Net.Consensus.Consensus @this,
-        int index,
+        int validator,
         Block block,
         int round = 0,
         CancellationToken cancellationToken = default)
     {
         var preVote = new VoteBuilder
         {
-            Validator = Validators[index],
+            Validator = Validators[validator],
             Block = block,
             Round = round,
             Type = VoteType.PreVote,
-        }.Create(Signers[index]);
-        return @this.PreVoteAsync(preVote, cancellationToken);
+        }.Create(Signers[validator]);
+        await @this.PreVoteAsync(preVote, cancellationToken);
+        return preVote;
+    }
+
+    public static async Task<Vote> NilPreVoteAsync(
+        this Net.Consensus.Consensus @this,
+        int validator,
+        int height,
+        int round = 0,
+        CancellationToken cancellationToken = default)
+    {
+        var preVote = new NilVoteBuilder
+        {
+            Validator = Validators[validator],
+            Height = height,
+            Round = round,
+            Type = VoteType.PreVote,
+        }.Create(Signers[validator]);
+        await @this.PreVoteAsync(preVote, cancellationToken);
+        return preVote;
     }
 }

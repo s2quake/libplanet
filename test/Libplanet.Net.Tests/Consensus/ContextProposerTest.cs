@@ -23,29 +23,12 @@ public sealed class ContextProposerTest
 
         await consensus.StartAsync(cancellationToken);
 
-        _ = consensus.ProposeAsync(
-            new ProposalBuilder
-            {
-                Block = block,
-            }.Create(Signers[1]));
-
-        _ = consensus.PreVoteAsync(
-            new NilVoteBuilder
-            {
-                Validator = Validators[1],
-                Height = 1,
-                Type = VoteType.PreVote,
-            }.Create(Signers[1]), cancellationToken);
+        _ = consensus.ProposeAsync(validator: 1, block, cancellationToken: cancellationToken);
+        _ = consensus.NilPreVoteAsync(validator: 1, height: 1, cancellationToken: cancellationToken);
 
         foreach (var i in new int[] { 0, 2, 3 })
         {
-            _ = consensus.PreVoteAsync(
-                new NilVoteBuilder
-                {
-                    Validator = Validators[i],
-                    Height = 1,
-                    Type = VoteType.PreVote,
-                }.Create(Signers[i]), cancellationToken);
+            _ = consensus.NilPreVoteAsync(validator: i, height: 1, cancellationToken: cancellationToken);
         }
 
         var (_, actualBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
