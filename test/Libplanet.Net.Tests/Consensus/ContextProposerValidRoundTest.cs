@@ -33,38 +33,17 @@ public class ContextProposerValidRoundTest
         // Force round change.
         foreach (var i in new int[] { 0, 2 })
         {
-            _ = consensus.PreVoteAsync(
-                new VoteBuilder
-                {
-                    Validator = Validators[i],
-                    Block = block,
-                    Round = 2,
-                    Type = VoteType.PreVote,
-                }.Create(Signers[i]), cancellationToken);
+            _ = consensus.PreVoteAsync(i, block, round: 2, cancellationToken);
         }
 
         await proposeStep2Task.WaitAsync(cancellationToken);
         Assert.Equal(2, consensus.Round.Index);
 
-        var proposal2 = new ProposalBuilder
-        {
-            Block = block,
-            Round = 2,
-            ValidRound = 1,
-        }.Create(Signers[3]);
-
-        _ = consensus.ProposeAsync(proposal2, cancellationToken);
+        _ = consensus.ProposeAsync(3, block, round: 2, validRound: 1, cancellationToken);
 
         foreach (var i in new int[] { 0, 1, 2, 3 })
         {
-            _ = consensus.PreVoteAsync(
-                new VoteBuilder
-                {
-                    Validator = Validators[i],
-                    Block = block,
-                    Round = 1,
-                    Type = VoteType.PreVote,
-                }.Create(Signers[i]), cancellationToken);
+            _ = consensus.PreVoteAsync(i, block, round: 1, cancellationToken);
         }
 
         await proposeStep2Task.WaitAsync(cancellationToken);
@@ -218,18 +197,18 @@ public class ContextProposerValidRoundTest
         }
 
         // consensus.ProduceMessage(
-            //     new ConsensusPreVoteMessage
-            //     {
-            //         PreVote = new VoteBuilder
-            //         {
-            //             Validator = Validators[3],
-            //             Block = proposedBlock,
-            //             Round = 2,
-            //             Type = VoteType.PreVote,
-            //         }.Create(Signers[3])
-            //     });
-            // await stateChangedToRoundTwoPreCommit.WaitAsync();
-            await preCommitStep2Task.WaitAsync(cancellationToken);
+        //     new ConsensusPreVoteMessage
+        //     {
+        //         PreVote = new VoteBuilder
+        //         {
+        //             Validator = Validators[3],
+        //             Block = proposedBlock,
+        //             Round = 2,
+        //             Type = VoteType.PreVote,
+        //         }.Create(Signers[3])
+        //     });
+        // await stateChangedToRoundTwoPreCommit.WaitAsync();
+        await preCommitStep2Task.WaitAsync(cancellationToken);
 
         // Force round change to 3.
         foreach (var i in new int[] { 0, 2 })

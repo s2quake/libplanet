@@ -1,43 +1,43 @@
 using Libplanet.Net.Consensus;
-using Libplanet.Net.Messages;
+using Libplanet.Types;
+using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
 public static class ConsensusExtensions
 {
-    [Obsolete("not used")]
-    public static void ProduceMessage(this Net.Consensus.Consensus @this, ConsensusMessage consensusMessage)
+    public static async Task<Proposal> ProposeAsync(
+        this Net.Consensus.Consensus @this,
+        int index,
+        Block block,
+        int round = 0,
+        int validRound = -1,
+        CancellationToken cancellationToken = default)
     {
-        if (consensusMessage is ConsensusPreVoteMessage preVoteMessage)
+        var proposal = new ProposalBuilder
         {
-            _ = @this.PreVoteAsync(preVoteMessage.PreVote, default);
-        }
-        else if (consensusMessage is ConsensusPreCommitMessage preCommitMessage)
-        {
-            _ = @this.PreCommitAsync(preCommitMessage.PreCommit, default);
-        }
-        else if (consensusMessage is ConsensusProposalMessage proposalMessage)
-        {
-            _ = @this.ProposeAsync(proposalMessage.Proposal, default);
-        }
+            Block = block,
+            Round = round,
+            ValidRound = validRound,
+        }.Create(Signers[index]);
+        await @this.ProposeAsync(proposal, cancellationToken);
+        return proposal;
     }
 
-    [Obsolete("not used")]
-    public static async Task WaitUntilAsync(
-        this Net.Consensus.Consensus @this, int round, ConsensusStep step, CancellationToken cancellationToken)
+    public static Task PreVoteAsync(
+        this Net.Consensus.Consensus @this,
+        int index,
+        Block block,
+        int round = 0,
+        CancellationToken cancellationToken = default)
     {
-        using var resetEvent = new ManualResetEvent(false);
-        using var _ = @this.StepChanged.Subscribe(e =>
+        var preVote = new VoteBuilder
         {
-            if (@this.Round.Index == round && @this.Step == step)
-            {
-                resetEvent.Set();
-            }
-        });
-
-        while (!resetEvent.WaitOne(0))
-        {
-            await Task.Delay(100, cancellationToken);
-        }
+            Validator = Validators[index],
+            Block = block,
+            Round = round,
+            Type = VoteType.PreVote,
+        }.Create(Signers[index]);
+        return @this.PreVoteAsync(preVote, cancellationToken);
     }
 }

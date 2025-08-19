@@ -11,10 +11,7 @@ public sealed class ConsensusTest
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task BaseTest()
     {
-        await using var consensus = new Net.Consensus.Consensus(
-            height: 1,
-            validators: Validators,
-            options: new ConsensusOptions());
+        await using var consensus = new Net.Consensus.Consensus(Validators);
 
         Assert.Equal(1, consensus.Height);
         Assert.Throws<InvalidOperationException>(() => consensus.Round);
@@ -30,10 +27,7 @@ public sealed class ConsensusTest
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var blockchain = MakeBlockchain();
-        await using var consensus = new Net.Consensus.Consensus(
-            height: 1,
-            validators: Validators,
-            options: new ConsensusOptions());
+        await using var consensus = new Net.Consensus.Consensus(Validators);
         using var consensusController = new ConsensusObserver(
             PrivateKeys[index].AsSigner(),
             consensus,
