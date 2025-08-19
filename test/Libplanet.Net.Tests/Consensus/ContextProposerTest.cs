@@ -190,10 +190,7 @@ public sealed class ContextProposerTest
     public async Task EnterPreVoteNil()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        // var stepChangedToPreVote = new AsyncAutoResetEvent();
-        // var nilPreVoteSent = new AsyncAutoResetEvent();
         var blockchain = MakeBlockchain();
-        // _ = blockchain.ProposeAndAppendMany(4);
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 5); // Peer1 should be a proposer
         var preVoteStepTask = consensus.StepChanged.WaitAsync(
             e => e.Step == ConsensusStep.PreVote && consensus.Round.Index == 0);
@@ -203,25 +200,9 @@ public sealed class ContextProposerTest
             Block = block,
         }.Create(Signers[1]);
 
-
-        // using var _1 = consensus.StateChanged.Subscribe(state =>
-        // {
-        //     if (state.Step == ConsensusStep.PreVote)
-        //     {
-        //         stepChangedToPreVote.Set();
-        //     }
-        // });
-        // using var _2 = consensus.MessagePublished.Subscribe(message =>
-        // {
-        //     if (message is ConsensusPreVoteMessage vote && vote.PreVote.BlockHash.Equals(default))
-        //     {
-        //         nilPreVoteSent.Set();
-        //     }
-        // });
-
         await consensus.StartAsync(cancellationToken);
         await consensus.ProposeAsync(proposal, cancellationToken);
-        // await Task.WhenAll(nilPreVoteSent.WaitAsync(), stepChangedToPreVote.WaitAsync());
+
         var (_, actualBlockHash) = await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
         Assert.Equal(default, actualBlockHash);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
