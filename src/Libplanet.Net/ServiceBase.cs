@@ -1,8 +1,10 @@
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Libplanet.Net;
 
-public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
+public abstract partial class ServiceBase(ILogger logger) : IAsyncDisposable, IService, IRecoverable
 {
     private static readonly object _lock = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -10,11 +12,18 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
     private CancellationTokenSource? _cancellationTokenSource;
     private CancellationToken _cancellationToken;
 
+    protected ServiceBase()
+        : this(NullLogger<ServiceBase>.Instance)
+    {
+    }
+
     public ServiceState State => _state;
+
+    public virtual string Name => $"{GetType().Name} {GetHashCode()}";
 
     public bool IsRunning => _state == ServiceState.Started;
 
-    public bool IsFaulted => _state == ServiceState.Faluted;
+    public bool IsFaulted => _state == ServiceState.Faulted;
 
     public bool IsDisposed => _state == ServiceState.Disposed;
 
@@ -34,10 +43,12 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
             await OnStartAsync(cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             SetState(ServiceState.Started);
+            LogStarted(logger, Name);
         }
-        catch
+        catch (Exception e)
         {
-            SetState(ServiceState.Faluted);
+            SetState(ServiceState.Faulted);
+            LogStartFailed(logger, Name, e);
             throw;
         }
         finally
@@ -63,10 +74,12 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
             _cancellationTokenSource = null;
             cancellationToken.ThrowIfCancellationRequested();
             SetState(ServiceState.None);
+            LogStopped(logger, Name);
         }
-        catch
+        catch (Exception e)
         {
-            SetState(ServiceState.Faluted);
+            SetState(ServiceState.Faulted);
+            LogStopFailed(logger, Name, e);
             throw;
         }
         finally
@@ -77,7 +90,7 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
 
     public async Task RecoverAsync()
     {
-        SetState([ServiceState.Faluted], ServiceState.Transitioning);
+        SetState([ServiceState.Faulted], ServiceState.Transitioning);
 
         await _semaphore.WaitAsync();
         try
@@ -91,10 +104,12 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
             SetState(ServiceState.None);
+            LogRecovered(logger, Name);
         }
-        catch
+        catch (Exception e)
         {
-            SetState(ServiceState.Faluted);
+            SetState(ServiceState.Faulted);
+            LogRecoverFailed(logger, Name, e);
             throw;
         }
         finally
@@ -120,6 +135,7 @@ public abstract class ServiceBase : IAsyncDisposable, IService, IRecoverable
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
                 SetState(ServiceState.Disposed);
+                LogDisposed(logger, Name);
                 GC.SuppressFinalize(this);
             }
         }

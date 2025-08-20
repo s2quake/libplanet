@@ -6,11 +6,12 @@ using Libplanet.State;
 using Libplanet.Types;
 using Libplanet.Net.Components;
 using Libplanet.Extensions;
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class ConsensusService : ServiceBase
+public sealed partial class ConsensusService : ServiceBase
 {
     private readonly Subject<int> _heightChangedSubject = new();
     private readonly Subject<Round> _roundChangedSubject = new();
@@ -27,6 +28,7 @@ public sealed class ConsensusService : ServiceBase
     private readonly Blockchain _blockchain;
     private readonly ISigner _signer;
     private readonly TimeSpan _newHeightDelay;
+    private readonly ILogger<ConsensusService> _logger;
     private readonly EvidenceCollector _evidenceCollector = new();
     private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
 
@@ -60,8 +62,10 @@ public sealed class ConsensusService : ServiceBase
         _newHeightDelay = options.TargetBlockInterval;
         _consensusOption = options.ConsensusOptions with
         {
-            BlockValidators = options.ConsensusOptions.BlockValidators.Add(new RelayObjectValidator<Block>(b => _blockchain.Validate(b)))
+            BlockValidators = options.ConsensusOptions.BlockValidators.Add(
+                new RelayObjectValidator<Block>(b => _blockchain.Validate(b)))
         };
+        _logger = options.Logger;
     }
 
     public IObservable<int> HeightChanged => _heightChangedSubject;
@@ -178,8 +182,8 @@ public sealed class ConsensusService : ServiceBase
 
         await _dispatcher.InvokeAsync(async cancellationToken =>
         {
-            Trace.WriteLine($"New height: {height}");
             var pendingMessage = _broadcastingResponder?.PendingMessages.ToArray() ?? [];
+            LogNewHeightBegin(_logger, height);
             Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
             _consensusSubscriptions = [];
             _broadcastingResponder?.Dispose();
@@ -207,11 +211,11 @@ public sealed class ConsensusService : ServiceBase
             _peerCatchupRounds.Clear();
             _gossip.DeniedPeers.Clear();
             _heightChangedSubject.OnNext(Height);
+            LogNewHeightEnd(_logger, height);
             foreach (var message in pendingMessage)
             {
                 _transport.Post(_transport.Peer, message);
             }
-            Trace.WriteLine($"New height end: {height}");
         }, cancellationToken);
     }
 
@@ -332,11 +336,6 @@ public sealed class ConsensusService : ServiceBase
         static TimeSpan EnsureNonNegative(TimeSpan timeSpan) => timeSpan < TimeSpan.Zero ? TimeSpan.Zero : timeSpan;
     }
 
-    // private void Blockchain_Appended((Block Block, BlockCommit BlockCommit) e)
-    // {
-    //     _ = Task.Run(() => AddEvidenceToBlockChain(e.Block.Height), StoppingToken);
-    // }
-
     private void AddEvidenceToBlockChain(int height)
     {
         var evidenceExceptions = _evidenceCollector.Flush().Where(item => item.Height <= height).ToArray();
@@ -355,4 +354,5 @@ public sealed class ConsensusService : ServiceBase
             }
         }
     }
+
 }

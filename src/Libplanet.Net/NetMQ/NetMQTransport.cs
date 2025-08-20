@@ -1,21 +1,22 @@
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Channels;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
+using Microsoft.Extensions.Logging;
 using NetMQ;
 using NetMQ.Sockets;
 
 namespace Libplanet.Net.NetMQ;
 
-public sealed class NetMQTransport(ISigner signer, TransportOptions options)
+public sealed partial class NetMQTransport(ISigner signer, TransportOptions options)
     : ServiceBase, ITransport
 {
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
     private readonly TransportPeer _peer = new(signer.Address, options.Host, options.Port);
+    private readonly ILogger<ITransport> _logger = options.Logger;
     private Task _processTask = Task.CompletedTask;
     private Channel<MessageRequest>? _sendChannel;
     private Channel<MessageEnvelope>? _receiveChannel;
@@ -78,9 +79,10 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                using var runtime = new NetMQRuntime();
                var requestChannel = Channel.CreateUnbounded<MessageRequest>();
                var receiveChannel = Channel.CreateUnbounded<MessageEnvelope>();
+               var logger = options.Logger;
                using var socket = new PullSocket();
-               var task1 = ProcessReceiveAsync(socket, Peer, receiveChannel, MessageRouter, StoppingToken);
-               var task2 = ProcessSendAsync(signer, requestChannel, MessageRouter, StoppingToken);
+               var task1 = ProcessReceiveAsync(socket, Peer, receiveChannel, MessageRouter, logger, StoppingToken);
+               var task2 = ProcessSendAsync(signer, requestChannel, MessageRouter, logger, StoppingToken);
                var task3 = ProcessHandleAsync(receiveChannel, MessageRouter, StoppingToken);
                tcs.SetResult((requestChannel, receiveChannel));
                runtime.Run(task1);
@@ -92,6 +94,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
         await Task.CompletedTask;
         (_sendChannel, _receiveChannel) = await tcs.Task;
+        LogStarted(_logger, signer.Address, _peer.Host, _peer.Port);
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
@@ -102,6 +105,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         _receiveChannel = null;
         await TaskUtility.TryWait(_processTask);
         _processTask = Task.CompletedTask;
+        LogStopped(_logger);
     }
 
     protected override async ValueTask DisposeAsyncCore()
@@ -132,6 +136,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         Peer peer,
         Channel<MessageEnvelope> receiveChannel,
         MessageRouter messageRouter,
+        ILogger<ITransport> logger,
         CancellationToken cancellationToken)
     {
         var address = $"tcp://{peer.EndPoint.Host}:{peer.EndPoint.Port}";
@@ -146,7 +151,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                 if (messageRouter.VerifyReceivedMessage(messageEnvelope))
                 {
                     receiveChannel.Writer.TryWrite(messageEnvelope);
-                    // Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
+                    LogMessageReceived(logger, messageEnvelope.Identity, peer, messageEnvelope.Message.Id);
                 }
             }
         }
@@ -164,6 +169,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         ISigner signer,
         Channel<MessageRequest> channel,
         MessageRouter messageRouter,
+        ILogger<ITransport> logger,
         CancellationToken cancellationToken)
     {
         var requestReader = channel.Reader;
@@ -172,7 +178,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         {
             await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
             {
-                // Trace.WriteLine("Send request: " + request.Identity);
                 var messageEnvelope = request.MessageEnvelope;
                 if (messageRouter.VerifySendingMessagre(messageEnvelope))
                 {
@@ -183,7 +188,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                         throw new InvalidOperationException("Failed to send message to the dealer socket.");
                     }
 
-                    // Trace.WriteLine($"Sent message: {messageEnvelope.Identity}");
+                    LogMessageSent(logger, messageEnvelope.Identity, request.Receiver, messageEnvelope.Message.Id);
                 }
             }
         }
@@ -226,7 +231,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             await foreach (var messageEnvelope in reader.ReadAllAsync(cancellationToken))
             {
                 _ = messageRouter.HandleAsync(messageEnvelope, cancellationToken);
-                // Trace.WriteLine($"Handled <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
             }
         }
         catch
@@ -240,7 +244,5 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         public required MessageEnvelope MessageEnvelope { get; init; }
 
         public required Peer Receiver { get; init; }
-
-        // public Guid Identity => MessageEnvelope.Identity;
     }
 }

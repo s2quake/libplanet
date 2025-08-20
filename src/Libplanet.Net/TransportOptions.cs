@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using Libplanet.Serialization.DataAnnotations;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Libplanet.Net;
 
@@ -17,4 +19,6 @@ public sealed record class TransportOptions
     public TimeSpan MessageLifetime { get; init; } = TimeSpan.MaxValue;
 
     public TimeSpan ReplyTimeout { get; init; } = TimeSpan.FromSeconds(5);
+
+    public ILogger<ITransport> Logger { get; init; } = NullLogger<ITransport>.Instance;
 }

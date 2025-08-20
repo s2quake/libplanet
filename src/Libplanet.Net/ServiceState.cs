@@ -6,7 +6,7 @@ public enum ServiceState
 
     Started,
 
-    Faluted,
+    Faulted,
 
     Disposed,
 

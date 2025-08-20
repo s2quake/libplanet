@@ -26,6 +26,10 @@ internal sealed class TransportPeer : IDisposable
         };
     }
 
+    public string Host => _peer.EndPoint.Host;
+
+    public int Port => _peer.EndPoint.Port;
+
     public static implicit operator Peer(TransportPeer transportPeer) => transportPeer._peer;
 
     private static int GetPort()
