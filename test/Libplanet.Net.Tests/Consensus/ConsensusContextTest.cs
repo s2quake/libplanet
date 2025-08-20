@@ -47,10 +47,10 @@ public class ConsensusContextTest
         Assert.Equal(2, blockchain.Tip.Height);
 
         // Wait for context of height 3 to start.
-        await proposeStepChangedTask3.WaitAsync(WaitTimeout, cancellationToken);
+        await proposeStepChangedTask3.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(3, consensusService.Height);
 
-        var proposal3 = await proposedTask3.WaitAsync(WaitTimeout, cancellationToken);
+        var proposal3 = await proposedTask3.WaitAsync(WaitTimeout5, cancellationToken);
         var preCommit = new VoteBuilder
         {
             Validator = Validators[0],
@@ -88,12 +88,12 @@ public class ConsensusContextTest
         transportA.Post(transportB.Peer, preCommitMessage2);
 
         // Waiting for commit.
-        await endCommitStepChangedTask3.WaitAsync(WaitTimeout, cancellationToken);
-        await tipChangedTask3.WaitAsync(WaitTimeout, cancellationToken);
+        await endCommitStepChangedTask3.WaitAsync(WaitTimeout5, cancellationToken);
+        await tipChangedTask3.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(3, blockchain.Tip.Height);
 
         // Next height starts normally.
-        await proposeStepChangedTask4.WaitAsync(WaitTimeout, cancellationToken);
+        await proposeStepChangedTask4.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(4, consensusService.Height);
         Assert.Equal(0, consensusService.Round);
     }
@@ -175,7 +175,7 @@ public class ConsensusContextTest
         Assert.Equal(1, consensusService.Height);
 
         blockchain.ProposeAndAppend(Signers[0]);
-        await heightChangedTask2.WaitAsync(WaitTimeout, cancellationToken);
+        await heightChangedTask2.WaitAsync(WaitTimeout5, cancellationToken);
 
         var proposal = new ProposalBuilder
         {
@@ -186,7 +186,7 @@ public class ConsensusContextTest
             Proposal = proposal,
         };
         transportA.Post(transportB.Peer, proposalMessage);
-        var (h, e) = await messageHandlingFailedTask.WaitAsync(WaitTimeout, cancellationToken);
+        var (h, e) = await messageHandlingFailedTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.IsType<ConsensusProposalMessageHandler>(h);
         Assert.IsType<InvalidMessageException>(e);
         Assert.StartsWith("Proposal height is lower", e.Message);
@@ -213,7 +213,7 @@ public class ConsensusContextTest
         await transportB.StartAsync();
         await consensusService.StartAsync(cancellationToken);
 
-        var proposal = await proposedTask1.WaitAsync(WaitTimeout, cancellationToken);
+        var proposal = await proposedTask1.WaitAsync(WaitTimeout5, cancellationToken);
         preCommitList.Add(new VoteMetadata
         {
             Validator = Validators[0].Address,
@@ -234,7 +234,7 @@ public class ConsensusContextTest
             transportA.Post(transportB.Peer, new ConsensusPreCommitMessage { PreCommit = preCommit });
         }
 
-        await endCommitStepTask1.WaitAsync(WaitTimeout, cancellationToken);
+        await endCommitStepTask1.WaitAsync(WaitTimeout5, cancellationToken);
 
         var blockCommit = consensusService.Consensus.Round.PreCommits.GetBlockCommit();
         Assert.NotEqual(preCommitList[0], blockCommit.Votes.First(i => i.Validator == Signers[0].Address));
@@ -288,7 +288,7 @@ public class ConsensusContextTest
         transportA.Post(transportB.Peer, new ConsensusPreVoteMessage { PreVote = preVote3 });
 
         await TaskUtility.WhenAll(
-            WaitTimeout,
+            WaitTimeout5,
             preCommitStepChangedTask,
             preCommittedTask);
 
@@ -340,7 +340,7 @@ public class ConsensusContextTest
         transportA.Post(transportB.Peer, new ConsensusPreVoteMessage { PreVote = preVote1 });
         transportA.Post(transportB.Peer, new ConsensusPreVoteMessage { PreVote = preVote2 });
 
-        await preCommitStepChangedTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preCommitStepChangedTask.WaitAsync(WaitTimeout5, cancellationToken);
 
         // VoteSetBits expects missing votes
         var voteBits = new VoteBitsBuilder
@@ -404,7 +404,7 @@ public class ConsensusContextTest
             Block = block,
         }.Create(Signers[1]);
         transportA.Post(transportB.Peer, new ConsensusProposalMessage { Proposal = proposal });
-        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preVoteStepTask.WaitAsync(WaitTimeout5, cancellationToken);
 
         // ProposalClaim expects corresponding proposal if exists
         var proposalClaim = new ProposalClaimBuilder

@@ -85,7 +85,7 @@ public abstract class RepositoryFixture : IDisposable
         Options = options;
         Repository = repository;
         BlockExecutor = new BlockExecutor(repository.States, Options.SystemActions);
-        Proposer = TestUtils.GenesisProposer;
+        ProposerKey = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
         GenesisBlock = new BlockBuilder
         {
@@ -94,33 +94,33 @@ public abstract class RepositoryFixture : IDisposable
                 new TransactionBuilder
                 {
                     Actions = [new Initialize { Validators = TestUtils.Validators }]
-                }.Create(Proposer),
+                }.Create(ProposerKey),
             ],
             Timestamp = new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
-        }.Create(Proposer);
+        }.Create(ProposerKey);
         GenesisBlockExecutionInfo = BlockExecutor.Execute((RawBlock)GenesisBlock);
         GenesisStateRootHash = GenesisBlockExecutionInfo.StateRootHash;
         Block1 = TestUtils.ProposeNextBlock(
             GenesisBlock,
-            proposer: Proposer,
+            proposer: ProposerKey,
             previousStateRootHash: GenesisStateRootHash,
             lastCommit: null);
         Block2 = TestUtils.ProposeNextBlock(
             Block1,
-            proposer: Proposer,
+            proposer: ProposerKey,
             previousStateRootHash: GenesisStateRootHash,
             lastCommit: TestUtils.CreateBlockCommit(Block1));
         Block3 = TestUtils.ProposeNextBlock(
             Block2,
-            proposer: Proposer,
+            proposer: ProposerKey,
             previousStateRootHash: GenesisStateRootHash,
             lastCommit: TestUtils.CreateBlockCommit(Block2));
         Block3Alt = TestUtils.ProposeNextBlock(
-            Block2, proposer: Proposer, previousStateRootHash: GenesisStateRootHash);
+            Block2, proposer: ProposerKey, previousStateRootHash: GenesisStateRootHash);
         Block4 = TestUtils.ProposeNextBlock(
-            Block3, proposer: Proposer, previousStateRootHash: GenesisStateRootHash);
+            Block3, proposer: ProposerKey, previousStateRootHash: GenesisStateRootHash);
         Block5 = TestUtils.ProposeNextBlock(
-            Block4, proposer: Proposer, previousStateRootHash: GenesisStateRootHash);
+            Block4, proposer: ProposerKey, previousStateRootHash: GenesisStateRootHash);
 
         Transaction1 = MakeTransaction();
         Transaction2 = MakeTransaction();
@@ -155,7 +155,9 @@ public abstract class RepositoryFixture : IDisposable
 
     public BlockHash Hash3 { get; }
 
-    public PrivateKey Proposer { get; }
+    public PrivateKey ProposerKey { get; }
+
+    public ISigner Proposer => ProposerKey.AsSigner();
 
     public BigInteger ProposerPower { get; }
 

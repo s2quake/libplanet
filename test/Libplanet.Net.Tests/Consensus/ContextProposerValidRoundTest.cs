@@ -42,7 +42,7 @@ public class ContextProposerValidRoundTest
 
         await proposeStep2Task.WaitAsync(cancellationToken);
         // Assert no transition is due to timeout.
-        await Assert.ThrowsAsync<TimeoutException>(() => timeoutTask.WaitAsync(WaitTimeout, cancellationToken));
+        await Assert.ThrowsAsync<TimeoutException>(() => timeoutTask.WaitAsync(WaitTimeout5, cancellationToken));
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
     }
 

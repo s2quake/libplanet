@@ -53,10 +53,10 @@ public partial class BlockchainTest : IDisposable
                 BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
     }
 
     public void Dispose()
@@ -463,10 +463,10 @@ public partial class BlockchainTest : IDisposable
             _fx.MakeTransaction(actions, privateKey: privateKey),
         ];
 
-        Block b1 = _blockChain.ProposeBlock(_fx.Proposer);
+        Block b1 = _blockChain.ProposeBlock(_fx.ProposerKey);
         _blockChain.Append(b1, TestUtils.CreateBlockCommit(b1));
 
-        Block b2 = _blockChain.ProposeBlock(_fx.Proposer);
+        Block b2 = _blockChain.ProposeBlock(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(b2, CreateBlockCommit(b2)));
 
@@ -477,7 +477,7 @@ public partial class BlockchainTest : IDisposable
                 nonce: 1,
                 privateKey: privateKey),
         ];
-        b2 = _blockChain.ProposeBlock(_fx.Proposer);
+        b2 = _blockChain.ProposeBlock(_fx.ProposerKey);
         _blockChain.Append(b2, CreateBlockCommit(b2));
     }
 
@@ -605,7 +605,7 @@ public partial class BlockchainTest : IDisposable
                     Actions = actions.ToBytecodes(),
                 }.Sign(privateKey),
             ];
-            b = chain.ProposeBlock(_fx.Proposer);
+            b = chain.ProposeBlock(_fx.ProposerKey);
             chain.Append(b, CreateBlockCommit(b));
         }
 
@@ -639,7 +639,7 @@ public partial class BlockchainTest : IDisposable
         Block b = chain.Genesis;
         for (int i = 0; i < 20; ++i)
         {
-            b = chain.ProposeBlock(_fx.Proposer);
+            b = chain.ProposeBlock(_fx.ProposerKey);
             chain.Append(b, CreateBlockCommit(b));
         }
 
@@ -796,7 +796,7 @@ public partial class BlockchainTest : IDisposable
         ];
 
         _blockChain.StagedTransactions.AddRange(txsA);
-        var block = _blockChain.ProposeBlock(_fx.Proposer);
+        var block = _blockChain.ProposeBlock(_fx.ProposerKey);
         var blockCommit = CreateBlockCommit(block);
         _blockChain.Append(block, blockCommit);
 
@@ -904,8 +904,8 @@ public partial class BlockchainTest : IDisposable
                 _blockChain.GetStateRootHash(block.BlockHash),
                 transactions: txs,
                 blockInterval: TimeSpan.FromSeconds(10),
-                proposer: _fx.Proposer,
-                previousCommit: CreateBlockCommit(block)).Sign(_fx.Proposer);
+                proposer: _fx.ProposerKey,
+                previousCommit: CreateBlockCommit(block)).Sign(_fx.ProposerKey);
         }
 
         var txsA = ImmutableSortedSet.Create(

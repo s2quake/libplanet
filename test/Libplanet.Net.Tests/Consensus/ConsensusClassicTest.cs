@@ -25,9 +25,9 @@ public sealed class ConsensusClassicTest
 
         consensus.StartAfter(100);
 
-        var proposal = await observer.ShouldPropose.WaitAsync(WaitTimeout);
+        var proposal = await observer.ShouldPropose.WaitAsync(WaitTimeout5);
         _ = consensus.ProposeAsync(proposal);
-        await observer.ShouldPreVote.WaitAsync(WaitTimeout);
+        await observer.ShouldPreVote.WaitAsync(WaitTimeout5);
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -45,10 +45,10 @@ public sealed class ConsensusClassicTest
 
         consensus.StartAfter(100);
         var proposeTask = observer.ShouldPropose.WaitAsync();
-        var proposal = await proposeTask.WaitAsync(WaitTimeout, cancellationToken);
+        var proposal = await proposeTask.WaitAsync(WaitTimeout5, cancellationToken);
         _ = consensus.ProposeAsync(proposal, cancellationToken);
         var preVoteTask = observer.ShouldPreVote.WaitAsync();
-        var preVote = await preVoteTask.WaitAsync(WaitTimeout, cancellationToken);
+        var preVote = await preVoteTask.WaitAsync(WaitTimeout5, cancellationToken);
         _ = consensus.PreVoteAsync(preVote, cancellationToken);
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
@@ -78,10 +78,10 @@ public sealed class ConsensusClassicTest
         var preVoteStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreVote);
         var endCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.EndCommit);
         var proposeTask = observer.ShouldPropose.WaitAsync();
-        var proposal = await proposeTask.WaitAsync(WaitTimeout, cancellationToken);
+        var proposal = await proposeTask.WaitAsync(WaitTimeout5, cancellationToken);
 
         _ = consensus.ProposeAsync(proposal, cancellationToken);
-        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preVoteStepTask.WaitAsync(WaitTimeout5, cancellationToken);
 
         blockchain.AppendWithBlockCommit(proposal.Block);
 
@@ -111,7 +111,7 @@ public sealed class ConsensusClassicTest
             _ = consensus.PreCommitAsync(vote, cancellationToken);
         }
 
-        await endCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await endCommitStepTask.WaitAsync(WaitTimeout5, cancellationToken);
 
         // Check consensus has only three votes.
         var preCommits = consensus.Round.PreCommits;
@@ -126,7 +126,7 @@ public sealed class ConsensusClassicTest
             Type = VoteType.PreCommit,
         }.Create(Signers[3]);
 
-        await consensus.PreCommitAsync(vote3).WaitAsync(WaitTimeout, cancellationToken);
+        await consensus.PreCommitAsync(vote3).WaitAsync(WaitTimeout5, cancellationToken);
 
         blockCommit = preCommits.GetBlockCommit();
         Assert.Equal(4, blockCommit.Votes.Where(vote => vote.Type == VoteType.PreCommit).Count());
@@ -180,8 +180,8 @@ public sealed class ConsensusClassicTest
         var e1 = await Assert.ThrowsAsync<ArgumentException>(() => consensus.ProposeAsync(invalidProposal));
         Assert.StartsWith("Proposal height", e1.Message);
 
-        var proposal = await proposeTask.WaitAsync(WaitTimeout, cancellationToken);
-        await consensus.ProposeAsync(proposal).WaitAsync(WaitTimeout, cancellationToken);
+        var proposal = await proposeTask.WaitAsync(WaitTimeout5, cancellationToken);
+        await consensus.ProposeAsync(proposal).WaitAsync(WaitTimeout5, cancellationToken);
 
         var e2 = await Assert.ThrowsAsync<ArgumentException>(() => consensus.PreVoteAsync(invalidVote));
         Assert.StartsWith("Height of vote", e2.Message);
@@ -252,14 +252,14 @@ public sealed class ConsensusClassicTest
             _ = consensus.PreCommitAsync(preCommit, cancellationToken);
         }
 
-        await tipChangedTask.WaitAsync(WaitTimeout, cancellationToken);
+        await tipChangedTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(
             3,
             preCommits.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
 
-        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
-        await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
-        await endCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preVoteStepTask.WaitAsync(WaitTimeout5, cancellationToken);
+        await preCommitStepTask.WaitAsync(WaitTimeout5, cancellationToken);
+        await endCommitStepTask.WaitAsync(WaitTimeout5, cancellationToken);
 
         // Add the last vote and wait for it to be consumed.
         var vote = new VoteBuilder
@@ -299,7 +299,7 @@ public sealed class ConsensusClassicTest
         {
             Block = blockB,
         }.Create(Signers[1]);
-        await consensus.ProposeAsync(proposalA).WaitAsync(WaitTimeout, cancellationToken);
+        await consensus.ProposeAsync(proposalA).WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(proposalA, consensus.Proposal);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
 
@@ -341,10 +341,10 @@ public sealed class ConsensusClassicTest
         _ = consensus.PreVoteAsync(preVoteB0, cancellationToken);
         _ = consensus.PreVoteAsync(preVoteB1, cancellationToken);
         _ = consensus.PreVoteAsync(preVoteB2, cancellationToken);
-        await consensus.ProposalClaimed.WaitAsync(WaitTimeout);
+        await consensus.ProposalClaimed.WaitAsync(WaitTimeout5);
         Assert.Null(consensus.Proposal);
         _ = consensus.ProposeAsync(proposalB);
-        await consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit, WaitTimeout);
+        await consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit, WaitTimeout5);
         Assert.Equal(consensus.Proposal, proposalB);
         Assert.Equal(proposalB, consensus.ValidProposal);
     }
@@ -404,11 +404,11 @@ public sealed class ConsensusClassicTest
 
         Assert.Equal(1, consensusService.Height);
         var stopWatch = Stopwatch.StartNew();
-        await tipChangedTask.WaitAsync(WaitTimeout, cancellationToken);
+        await tipChangedTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.True(stopWatch.ElapsedMilliseconds < (actionDelay * 0.5));
         stopWatch.Restart();
 
-        await heightChangedTask.WaitAsync(WaitTimeout, cancellationToken);
+        await heightChangedTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(
             4,
             preCommits.GetBlockCommit().Votes.Count(vote => vote.Type == VoteType.PreCommit));
@@ -468,7 +468,7 @@ public sealed class ConsensusClassicTest
             },
             cancellationTokenSource.Token);
 
-        await consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit, WaitTimeout);
+        await consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit, WaitTimeout5);
         await cancellationTokenSource.CancelAsync();
 
         Assert.Equal(delay < preVoteDelay ? 3 : 4, preVoteCounter.Count);

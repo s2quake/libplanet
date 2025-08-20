@@ -150,7 +150,7 @@ public sealed class ConsensusTest
         _ = consensus.ProposeAsync(proposal, cancellationToken);
 
         InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
-        var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout, cancellationToken);
+        var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout5, cancellationToken);
         var e2 = Assert.IsType<InvalidOperationException>(e1);
         Assert.StartsWith("Proposal already exists", e2.Message);
 
@@ -176,7 +176,7 @@ public sealed class ConsensusTest
             Block = blockchain.ProposeBlock(PrivateKeys[0]),
         }.Create(PrivateKeys[0]);
         InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
-        var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout, cancellationToken);
+        var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout5, cancellationToken);
         var e2 = Assert.IsType<ArgumentException>(e1);
         Assert.StartsWith("Given proposal's proposer", e2.Message);
         Assert.Equal("proposal", e2.ParamName);
@@ -201,7 +201,7 @@ public sealed class ConsensusTest
             Block = blockchain.ProposeBlock(PrivateKeys[1]),
         }.Create(PrivateKeys[0]);
         InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
-        var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout, cancellationToken);
+        var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout5, cancellationToken);
         var e2 = Assert.IsType<ArgumentException>(e1);
         Assert.StartsWith("Given proposal's round", e2.Message);
         Assert.Equal("proposal", e2.ParamName);

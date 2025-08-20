@@ -350,7 +350,7 @@ public partial class BlockchainTest
         void IsSignerValid(Transaction tx)
         {
             var validAddress = validKey.Address;
-            if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(_fx.Proposer.Address))
+            if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(_fx.ProposerKey.Address))
             {
                 throw new InvalidOperationException("invalid signer");
             }

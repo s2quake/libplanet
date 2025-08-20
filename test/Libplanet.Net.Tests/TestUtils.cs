@@ -5,7 +5,6 @@ using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Libplanet.Net.Tests.Consensus;
 
 namespace Libplanet.Net.Tests;
 
@@ -13,7 +12,11 @@ public static class TestUtils
 {
     public const int Timeout = 30000;
 
-    public static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(5);
+    public static readonly TimeSpan WaitTimeout1 = TimeSpan.FromSeconds(1);
+
+    public static readonly TimeSpan WaitTimeout2 = TimeSpan.FromSeconds(2);
+
+    public static readonly TimeSpan WaitTimeout5 = TimeSpan.FromSeconds(5);
 
     public static readonly BlockHash BlockHash0 =
         BlockHash.Parse(
@@ -60,6 +63,7 @@ public static class TestUtils
         return privateKey;
     }
 
+    [Obsolete]
     public static ConsensusProposalMessage CreateConsensusPropose(
         Block block,
         PrivateKey privateKey,
@@ -102,56 +106,6 @@ public static class TestUtils
         options ??= new TransportOptions();
         signer ??= new PrivateKey().AsSigner();
         return new Libplanet.Net.NetMQ.NetMQTransport(signer, options);
-    }
-
-    public static Net.Consensus.Consensus CreateConsensus(
-        int height = 1,
-        ImmutableSortedSet<Validator>? validators = null,
-        ConsensusOptions? options = null)
-    {
-        var consensus = new Net.Consensus.Consensus(
-            height: height,
-            validators: validators ?? Validators,
-            options: options ?? new ConsensusOptions());
-
-        return consensus;
-    }
-
-    public static ConsensusObserver CreateConsensusController(
-        Net.Consensus.Consensus consensus,
-        PrivateKey? privateKey = null,
-        Blockchain? blockchain = null)
-    {
-        blockchain ??= Libplanet.Tests.TestUtils.MakeBlockchain();
-        privateKey ??= PrivateKeys[1];
-        return new ConsensusObserver(
-            privateKey.AsSigner(),
-            consensus,
-            blockchain);
-    }
-
-    [Obsolete]
-    public static ConsensusService CreateConsensusService(
-        ITransport transport,
-        Blockchain? blockchain = null,
-        PrivateKey? key = null,
-        ImmutableHashSet<Peer>? validatorPeers = null,
-        TimeSpan? newHeightDelay = null,
-        ConsensusOptions? consensusOption = null)
-    {
-        blockchain ??= Libplanet.Tests.TestUtils.MakeBlockchain();
-        key ??= PrivateKeys[1];
-        validatorPeers ??= Peers;
-
-        var signer = key.AsSigner();
-        var consensusServiceOptions = new ConsensusServiceOptions
-        {
-            Validators = [.. validatorPeers.Where(peer => peer.Address != key.Address)],
-            TargetBlockInterval = newHeightDelay ?? TimeSpan.FromMilliseconds(10_000),
-            ConsensusOptions = consensusOption ?? new ConsensusOptions(),
-        };
-
-        return new ConsensusService(signer, blockchain, transport, consensusServiceOptions);
     }
 
     public static Blockchain MakeBlockchain(

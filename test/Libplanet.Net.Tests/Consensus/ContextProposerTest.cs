@@ -31,7 +31,7 @@ public sealed class ContextProposerTest
             _ = consensus.NilPreVoteAsync(validator: i, height: 1, cancellationToken: cancellationToken);
         }
 
-        var (_, actualBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        var (_, actualBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(default, actualBlockHash);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
@@ -72,7 +72,7 @@ public sealed class ContextProposerTest
                 }.Create(Signers[i]), cancellationToken);
         }
 
-        var (_, actualBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        var (_, actualBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(proposedblockHash, actualBlockHash);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
@@ -186,7 +186,7 @@ public sealed class ContextProposerTest
         await consensus.StartAsync(cancellationToken);
         await consensus.ProposeAsync(proposal, cancellationToken);
 
-        var (_, actualBlockHash) = await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        var (_, actualBlockHash) = await preVoteStepTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(default, actualBlockHash);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(5, consensus.Height);

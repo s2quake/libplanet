@@ -19,11 +19,11 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
                 PreviousStateRootHash = _blockChain.StateRootHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         var blockCommit = TestUtils.CreateBlockCommit(block);
 
         _blockChain.Append(block, blockCommit);
@@ -41,11 +41,11 @@ public partial class BlockchainTest
                 BlockVersion = protocolVersion,
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
                 PreviousStateRootHash = _blockChain.StateRootHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         var blockCommit1 = TestUtils.CreateBlockCommit(block1);
         _blockChain.Append(block1, blockCommit1);
 
@@ -56,10 +56,10 @@ public partial class BlockchainTest
                 {
                     Height = 2,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
-                    Proposer = _fx.Proposer.Address,
+                    Proposer = _fx.ProposerKey.Address,
                     PreviousHash = block1.BlockHash,
                 },
-            }.Sign(_fx.Proposer));
+            }.Sign(_fx.ProposerKey));
 
         Assert.Throws<InvalidOperationException>(() =>
         {
@@ -70,10 +70,10 @@ public partial class BlockchainTest
                     BlockVersion = BlockHeader.CurrentProtocolVersion + 1,
                     Height = 2,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
-                    Proposer = _fx.Proposer.Address,
+                    Proposer = _fx.ProposerKey.Address,
                     PreviousHash = block1.BlockHash,
                 },
-            }.Sign(_fx.Proposer);
+            }.Sign(_fx.ProposerKey);
             _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
         });
     }
@@ -90,10 +90,10 @@ public partial class BlockchainTest
             {
                 Height = prev.Height,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = prev.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(
             () => _blockChain.Append(
                 blockWithAlreadyUsedIndex,
@@ -105,11 +105,11 @@ public partial class BlockchainTest
             {
                 Height = prev.Height + 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = prev.BlockHash,
                 PreviousCommit = TestUtils.CreateBlockCommit(prev.BlockHash, prev.Height + 1, 0),
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(
             () => _blockChain.Append(
                 blockWithIndexAfterNonexistentIndex,
@@ -127,14 +127,14 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 // Should be _validNext.Hash instead
                 PreviousHash = _validNext.PreviousHash,
                 // ReSharper disable once PossibleInvalidOperationException
                 PreviousCommit = TestUtils.CreateBlockCommit(
                         _validNext.PreviousHash, 1, 0),
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(() =>
                 _blockChain.Append(
                     invalidPreviousHashBlock,
@@ -152,11 +152,11 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = _validNext.Timestamp.AddSeconds(-1),
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _validNext.BlockHash,
                 PreviousCommit = TestUtils.CreateBlockCommit(_validNext),
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(() =>
                 _blockChain.Append(
                     invalidPreviousTimestamp,
@@ -310,10 +310,10 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         _blockChain.Append(validNextBlock, TestUtils.CreateBlockCommit(validNextBlock));
         Assert.Equal(_blockChain.Tip, validNextBlock);
     }
@@ -327,10 +327,10 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
         var blockCommit = TestUtils.CreateBlockCommit(block1);
@@ -340,11 +340,11 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = block1.BlockHash,
                 PreviousCommit = blockCommit,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
         Assert.Equal(_blockChain.Tip, block2);
     }
@@ -358,10 +358,10 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
         var invalidValidator = new PrivateKey();
@@ -393,11 +393,11 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = block1.BlockHash,
                 PreviousCommit = blockCommit,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
     }
@@ -411,10 +411,10 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
         var keysExceptPeer0 = TestUtils.ValidatorPrivateKeys.Where(
@@ -442,11 +442,11 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = block1.BlockHash,
                 PreviousCommit = blockCommit,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
     }
@@ -484,10 +484,10 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(
@@ -507,10 +507,10 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(
@@ -530,11 +530,11 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
                 PreviousStateRootHash = _blockChain.StateRootHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(
@@ -568,10 +568,10 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
             _blockChain.Append(validNextBlock, default));
@@ -598,10 +598,10 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = blockChain.Genesis.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
+                Proposer = _fx.ProposerKey.Address,
                 PreviousHash = blockChain.Genesis.BlockHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(_fx.ProposerKey);
 
         Vote GenerateVote(PrivateKey key, BigInteger power, VoteType flag)
         {

@@ -488,7 +488,7 @@ public abstract class RepositoryTest
         using var fx = FxConstructor();
         var store = fx.Repository;
         var genesisBlock = fx.GenesisBlock;
-        var expectedBlock = ProposeNextBlock(genesisBlock, fx.Proposer);
+        var expectedBlock = ProposeNextBlock(genesisBlock, fx.ProposerKey);
 
         store.BlockDigests.Add(expectedBlock);
         var actualBlock = store.GetBlock(expectedBlock.BlockHash);
@@ -543,10 +543,10 @@ public abstract class RepositoryTest
                 Round = 0,
                 BlockHash = fx.Block1.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = fx.Proposer.Address,
+                Validator = fx.ProposerKey.Address,
                 ValidatorPower = fx.ProposerPower,
                 Type = VoteType.PreCommit,
-            }.Sign(fx.Proposer));
+            }.Sign(fx.ProposerKey));
         var votesTwo = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
             {
@@ -554,10 +554,10 @@ public abstract class RepositoryTest
                 Round = 0,
                 BlockHash = fx.Block2.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = fx.Proposer.Address,
+                Validator = fx.ProposerKey.Address,
                 ValidatorPower = fx.ProposerPower,
                 Type = VoteType.PreCommit,
-            }.Sign(fx.Proposer));
+            }.Sign(fx.ProposerKey));
 
         BlockCommit[] blockCommits =
         [

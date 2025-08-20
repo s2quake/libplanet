@@ -1,20 +1,22 @@
+using Libplanet.Extensions;
+using Libplanet.Net.Components;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests.Store;
-using Libplanet.Net.Components;
+using Libplanet.TestUtilities.Extensions;
+using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
 public sealed class GossipTest
 {
-    private const int Timeout = 60 * 1000;
-
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task PublishMessage()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var fx = new MemoryRepositoryFixture();
-        var transport1 = TestUtils.CreateTransport();
-        var transport2 = TestUtils.CreateTransport();
+        var transport1 = CreateTransport();
+        var transport2 = CreateTransport();
         var peers1 = new PeerCollection(transport1.Peer.Address)
         {
             transport2.Peer,
@@ -30,45 +32,40 @@ public sealed class GossipTest
             transport1,
             transport2,
         };
+        var waitTask1 = transport1.WaitAsync<ConsensusProposalMessage>(cancellationToken);
+        var waitTask2 = transport2.WaitAsync<ConsensusProposalMessage>(cancellationToken);
 
-        await transports.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
 
-        var tcs1 = new TaskCompletionSource();
-        var tcs2 = new TaskCompletionSource();
-        using var _1 = transport1.MessageRouter.Register<ConsensusProposalMessage>(_ =>
+        var proposal = new ProposalBuilder
         {
-            tcs1.SetResult();
-        });
-        using var _2 = transport2.MessageRouter.Register<ConsensusProposalMessage>(_ =>
-        {
-            tcs2.SetResult();
-        });
+            Block = fx.Block1,
+        }.Create(fx.Proposer);
+        var proposalMessage = new ConsensusProposalMessage { Proposal = proposal };
 
-        var message = TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1);
-        gossip1.Broadcast(message);
+        gossip1.Broadcast(proposalMessage);
 
-        await Task.WhenAll(tcs1.Task, tcs2.Task).WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.True(tcs1.Task.IsCompletedSuccessfully);
-        Assert.True(tcs2.Task.IsCompletedSuccessfully);
+        var reply1 = await waitTask1.WaitAsync(cancellationToken);
+        var reply2 = await waitTask2.WaitAsync(cancellationToken);
+
+        Assert.Equal(proposalMessage, reply1.Message);
+        Assert.Equal(proposalMessage, reply2.Message);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task AddMessages()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var fx = new MemoryRepositoryFixture();
-        var received1 = 0;
-        var received2 = 0;
-        IMessage[] messages =
+        ConsensusProposalMessage[] messages =
         [
-            TestUtils.CreateConsensusPropose(fx.Block1, fx.Proposer, 1),
-            TestUtils.CreateConsensusPropose(fx.Block2, fx.Proposer, 2),
-            TestUtils.CreateConsensusPropose(fx.Block3, fx.Proposer, 3),
-            TestUtils.CreateConsensusPropose(fx.Block4, fx.Proposer, 4),
+            new () { Proposal = new ProposalBuilder { Block = fx.Block1, }.Create(fx.Proposer) },
+            new () { Proposal = new ProposalBuilder { Block = fx.Block2, }.Create(fx.Proposer) },
+            new () { Proposal = new ProposalBuilder { Block = fx.Block3, }.Create(fx.Proposer) },
+            new () { Proposal = new ProposalBuilder { Block = fx.Block4, }.Create(fx.Proposer) },
         ];
-        var tcs1 = new TaskCompletionSource();
-        var tcs2 = new TaskCompletionSource();
-        var transport1 = TestUtils.CreateTransport();
-        var transport2 = TestUtils.CreateTransport();
+        var transport1 = CreateTransport();
+        var transport2 = CreateTransport();
         var peers1 = new PeerCollection(transport1.Peer.Address)
         {
             transport2.Peer,
@@ -84,36 +81,29 @@ public sealed class GossipTest
             transport1,
             transport2,
         };
-        using var _1 = transport1.MessageRouter.Register<ConsensusProposalMessage>(_ =>
-        {
-            if (Interlocked.Increment(ref received1) == messages.Length)
-            {
-                tcs1.SetResult();
-            }
-        });
-        using var _2 = transport2.MessageRouter.Register<ConsensusProposalMessage>(_ =>
-        {
-            if (Interlocked.Increment(ref received2) == messages.Length)
-            {
-                tcs2.SetResult();
-            }
-        });
 
-        await transports.StartAsync(default);
+        var counter1 = transport1.Counter<ConsensusProposalMessage>();
+        var counter2 = transport2.Counter<ConsensusProposalMessage>();
+        var waitTask1 = counter1.CountChanged.WaitAsync(e => e == 4);
+        var waitTask2 = counter2.CountChanged.WaitAsync(e => e == 4);
 
+        await transports.StartAsync(cancellationToken);
 
         Parallel.ForEach(messages, gossip1.Broadcast);
 
-        await Task.WhenAll(tcs1.Task, tcs2.Task).WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.Equal(4, received1);
-        Assert.Equal(4, received2);
+        var count1 = await waitTask1.WaitAsync(cancellationToken);
+        var count2 = await waitTask2.WaitAsync(cancellationToken);
+
+        Assert.Equal(4, count1);
+        Assert.Equal(4, count2);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task AddPeerWithHaveMessage()
     {
-        var transportA = TestUtils.CreateTransport();
-        var transportB = TestUtils.CreateTransport();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var transportA = CreateTransport();
+        var transportB = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         await using var gossipA = new Gossip(transportA, peersA);
         await using var transports = new ServiceCollection
@@ -122,54 +112,49 @@ public sealed class GossipTest
             transportB,
         };
 
-        await transports.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
 
-        TestUtils.InvokeDelay(() => transportB.Post(gossipA.Peer, new HaveMessage()), 100);
-        await transportA.WaitAsync<HaveMessage>().WaitAsync(TimeSpan.FromSeconds(5));
+        transportB.PostAfter(gossipA.Peer, new HaveMessage(), 100);
+        await transportA.WaitAsync<HaveMessage>(cancellationToken);
+
         Assert.Contains(transportB.Peer, gossipA.Peers);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task DoNotBroadcastToSeedPeers()
     {
-        var tcs = new TaskCompletionSource();
-        var transportA = TestUtils.CreateTransport();
-        var transportB = TestUtils.CreateTransport();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var transportA = CreateTransport();
+        var transportB = CreateTransport();
         var peersB = new PeerCollection(transportB.Peer.Address);
-
         var peerExplorerB = new PeerExplorer(transportB, peersB)
         {
             SeedPeers = [transportA.Peer]
         };
         await using var gossipB = new Gossip(transportB, peerExplorerB.Peers);
-
         await using var transports = new ServiceCollection
         {
             transportA,
             transportB,
         };
+        var waitTask = transportA.WaitAsync<HaveMessage>(cancellationToken);
 
-        using var _1 = transportA.MessageRouter.Register<HaveMessage>(_ =>
-        {
-            tcs.SetResult();
-        });
-
-        await transports.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
 
         gossipB.Broadcast(new PingMessage());
 
-        await Assert.ThrowsAsync<TimeoutException>(() => tcs.Task.WaitAsync(TimeSpan.FromSeconds(2)));
+        await Assert.ThrowsAsync<TimeoutException>(() => waitTask.WaitAsync(WaitTimeout2, cancellationToken));
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task DoNotSendDuplicateMessageRequest()
     {
-        var transport = TestUtils.CreateTransport();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var transport = CreateTransport();
         var peers = new PeerCollection(transport.Peer);
         await using var gossip = new Gossip(transport, peers);
-        await using var transportA = TestUtils.CreateTransport();
-        await using var transportB = TestUtils.CreateTransport();
-
+        var transportA = CreateTransport();
+        var transportB = CreateTransport();
         await using var transports = new ServiceCollection
         {
             transport,
@@ -177,7 +162,7 @@ public sealed class GossipTest
             transportB,
         };
 
-        await transports.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
 
         var handled = 0;
         var tcs1 = new TaskCompletionSource();
@@ -199,7 +184,7 @@ public sealed class GossipTest
         transportB.Post(gossip.Peer, new HaveMessage { Ids = [message1.Id, message2.Id] });
 
         await Assert.ThrowsAsync<TimeoutException>(
-            () => Task.WhenAll(tcs1.Task, tcs2.Task).WaitAsync(TimeSpan.FromSeconds(2)));
+            () => Task.WhenAll(tcs1.Task, tcs2.Task).WaitAsync(WaitTimeout2, cancellationToken));
         Assert.Equal(1, handled);
     }
 }

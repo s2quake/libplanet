@@ -58,7 +58,7 @@ public class ConsensusContextProposerTest
         };
         transportA.Post(transportB.Peer, preVoteMessage3);
 
-        await preVoteTimeoutTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preVoteTimeoutTask.WaitAsync(WaitTimeout5, cancellationToken);
 
         var preCommit2 = new NilVoteBuilder
         {
@@ -84,7 +84,7 @@ public class ConsensusContextProposerTest
         };
         transportA.Post(transportB.Peer, preCommitMessage3);
 
-        await preCommitTimeoutTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preCommitTimeoutTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(1, consensusService.Height);
         Assert.Equal(1, consensusService.Round);
     }

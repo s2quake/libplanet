@@ -129,7 +129,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transportA.StartAsync(cancellationToken);
         await transportB.StartAsync(cancellationToken);
         var request1 = transportA.Post(transportB.Peer, new PingMessage());
-        var response1 = await transportB.WaitAsync<PingMessage>(WaitTimeout, cancellationToken);
+        var response1 = await transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
         Assert.IsType<PingMessage>(response1.Message);
         Assert.Equal(request1.Identity, response1.Identity);
 
@@ -139,7 +139,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transportB.StartAsync(cancellationToken);
 
         var request2 = transportA.Post(transportB.Peer, new PingMessage());
-        var response2 = await transportB.WaitAsync<PingMessage>(WaitTimeout, cancellationToken);
+        var response2 = await transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
 
         Assert.IsType<PingMessage>(response2.Message);
         Assert.Equal(request2.Identity, response2.Identity);
@@ -148,7 +148,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transportB.StartAsync(cancellationToken);
 
         var request3 = transportA.Post(transportB.Peer, new PingMessage());
-        var response3 = await transportB.WaitAsync<PingMessage>(WaitTimeout, cancellationToken);
+        var response3 = await transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
 
         Assert.IsType<PingMessage>(response3.Message);
         Assert.Equal(request3.Identity, response3.Identity);
@@ -157,7 +157,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transportA.StartAsync(cancellationToken);
 
         var request4 = transportA.Post(transportB.Peer, new PingMessage());
-        var response4 = await transportB.WaitAsync<PingMessage>(WaitTimeout, cancellationToken);
+        var response4 = await transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
 
         Assert.IsType<PingMessage>(response4.Message);
         Assert.Equal(request4.Identity, response4.Identity);

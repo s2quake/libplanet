@@ -74,7 +74,7 @@ public class ConsensusContextNonProposerTest
             transportA.Post(transportB.Peer, preCommitMessage);
         }
 
-        var proposal = await blockProposedHeight2Task.WaitAsync(WaitTimeout, cancellationToken);
+        var proposal = await blockProposedHeight2Task.WaitAsync(WaitTimeout5, cancellationToken);
         var proposedBlock = proposal.Block;
         var votes = proposedBlock.PreviousCommit.Votes;
         Assert.Equal(VoteType.PreCommit, votes[0].Type);
@@ -139,7 +139,7 @@ public class ConsensusContextNonProposerTest
         }
 
         await TaskUtility.WhenAll(
-            timeout: WaitTimeout,
+            timeout: WaitTimeout5,
             consensusServiceB.StepChanged.WaitAsync(e => e == ConsensusStep.EndCommit && consensusServiceB.Height == 2),
             blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 2));
 
@@ -154,7 +154,7 @@ public class ConsensusContextNonProposerTest
         transportA.Post(transportB.Peer, proposalMessage3);
 
         await TaskUtility.WhenAll(
-            timeout: WaitTimeout,
+            timeout: WaitTimeout5,
             consensusServiceB.HeightChanged.WaitAsync(e => e == 3),
             consensusServiceB.BlockProposed.WaitAsync(e => e.Height == 3),
             consensusServiceB.StepChanged.WaitAsync(e => e == ConsensusStep.PreVote));
@@ -178,7 +178,7 @@ public class ConsensusContextNonProposerTest
         await consensusService.StartAsync();
 
         var (_, blockCommit) = blockchain.ProposeAndAppend(Signers[2]);
-        var proposal = await consensusService.BlockProposed.WaitAsync(e => e.Height == 2, WaitTimeout);
+        var proposal = await consensusService.BlockProposed.WaitAsync(e => e.Height == 2, WaitTimeout5);
 
         // Context for height #2 where node #2 is the proposer is automatically started
         // by watching blockchain's Tip.
@@ -235,10 +235,10 @@ public class ConsensusContextNonProposerTest
         var proposeStep2Task = consensusServiceB.StepChanged.WaitAsync(
             e => e == ConsensusStep.Propose && consensusServiceB.Height == 2);
 
-        await endCommitStep1Task.WaitAsync(WaitTimeout, cancellationToken);
+        await endCommitStep1Task.WaitAsync(WaitTimeout5, cancellationToken);
         var endCommitTime = DateTimeOffset.UtcNow;
 
-        await proposeStep2Task.WaitAsync(WaitTimeout, cancellationToken);
+        await proposeStep2Task.WaitAsync(WaitTimeout5, cancellationToken);
         var proposeTime = DateTimeOffset.UtcNow;
 
         // Check new height delay; slight margin of error is allowed as delay task

@@ -45,7 +45,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             }.Create(Signers[3]));
 
         // Wait for round 1 prevote step.
-        await preVoteStepRound1Task.WaitAsync(WaitTimeout, cancellationToken);
+        await preVoteStepRound1Task.WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -91,13 +91,13 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Type = VoteType.PreVote,
             }.Create(Signers[3]));
 
-        var (_, preCommitBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        var (_, preCommitBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(block.BlockHash, preCommitBlockHash);
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
 
-        var preVoteMaj23 = await preVoteMaj23Task.WaitAsync(WaitTimeout, cancellationToken);
+        var preVoteMaj23 = await preVoteMaj23Task.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.NotNull(consensus.ValidProposal);
         Assert.Equal(block.BlockHash, consensus.ValidProposal.BlockHash);
         Assert.Equal(block.BlockHash, preVoteMaj23.BlockHash);
@@ -151,7 +151,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Type = VoteType.PreVote,
             }.Create(Signers[3]));
 
-        var (_, preCommitBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        var (_, preCommitBlockHash) = await preCommitStepTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(default, preCommitBlockHash);
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
         Assert.Equal(1, consensus.Height);
@@ -264,9 +264,9 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Block = invalidBlock,
             }.Create(Signers[1]));
 
-        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preVoteStepTask.WaitAsync(WaitTimeout5, cancellationToken);
         await Assert.ThrowsAsync<TimeoutException>(
-            () => proposeTimeoutTask.WaitAsync(WaitTimeout, cancellationToken));
+            () => proposeTimeoutTask.WaitAsync(WaitTimeout5, cancellationToken));
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
@@ -339,9 +339,9 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             }.Create(Signers[1]),
             cancellationToken);
 
-        await preVoteStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preVoteStepTask.WaitAsync(WaitTimeout5, cancellationToken);
         await Assert.ThrowsAsync<TimeoutException>(
-            () => proposeTimeoutTask.WaitAsync(WaitTimeout, cancellationToken));
+            () => proposeTimeoutTask.WaitAsync(WaitTimeout5, cancellationToken));
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(1, consensus.Height);
         Assert.Equal(0, consensus.Round.Index);
@@ -375,7 +375,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Type = VoteType.PreVote,
             }.Create(Signers[3]));
 
-        await preCommitStepTask.WaitAsync(WaitTimeout, cancellationToken);
+        await preCommitStepTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(ConsensusStep.PreCommit, consensus.Step);
     }
 
