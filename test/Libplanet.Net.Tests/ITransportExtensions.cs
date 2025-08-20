@@ -27,10 +27,30 @@ public static class ITransportExtensions
         where T : IMessage
         => WaitAsync<T>(@this, (_, _) => true, cancellationToken);
 
+    public static Task<MessageEnvelope> WaitAsync<T>(
+        this ITransport @this, TimeSpan timeout)
+        where T : IMessage
+        => WaitAsync<T>(@this).WaitAsync(timeout);
+
+    public static Task<MessageEnvelope> WaitAsync<T>(
+        this ITransport @this, TimeSpan timeout, CancellationToken cancellationToken)
+        where T : IMessage
+        => WaitAsync<T>(@this, cancellationToken).WaitAsync(timeout, cancellationToken);
+
+    public static Task<MessageEnvelope> WaitAsync<T>(
+        this ITransport @this, Func<T, bool> predicate)
+        where T : IMessage
+        => WaitAsync<T>(@this, predicate, cancellationToken: default);
+
     public static async Task<MessageEnvelope> WaitAsync<T>(
         this ITransport @this, Func<T, bool> predicate, CancellationToken cancellationToken)
         where T : IMessage
         => await WaitAsync<T>(@this, (m, _) => predicate(m), cancellationToken);
+
+    public static Task<MessageEnvelope> WaitAsync<T>(
+        this ITransport @this, Func<T, MessageEnvelope, bool> predicate)
+        where T : IMessage
+        => WaitAsync(@this, predicate, cancellationToken: default);
 
     public static async Task<MessageEnvelope> WaitAsync<T>(
         this ITransport @this, Func<T, MessageEnvelope, bool> predicate, CancellationToken cancellationToken)
@@ -48,4 +68,17 @@ public static class ITransportExtensions
 
         return await tcs.Task;
     }
+
+    public static Task<MessageEnvelope> WaitAsync<T>(
+        this ITransport @this, Func<T, MessageEnvelope, bool> predicate, TimeSpan timeout)
+        where T : IMessage
+        => WaitAsync(@this, predicate).WaitAsync(timeout);
+
+    public static Task<MessageEnvelope> WaitAsync<T>(
+        this ITransport @this,
+        Func<T, MessageEnvelope, bool> predicate,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+        where T : IMessage
+        => WaitAsync(@this, predicate, cancellationToken).WaitAsync(timeout, cancellationToken);
 }

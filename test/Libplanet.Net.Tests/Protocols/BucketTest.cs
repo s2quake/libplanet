@@ -8,6 +8,7 @@ public class BucketTest(ITestOutputHelper output)
     [Fact]
     public async Task BaseTest()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var bucket = new Bucket(4);
         var peer1 = new Peer
@@ -58,15 +59,15 @@ public class BucketTest(ITestOutputHelper output)
         Assert.Equal(peer1, bucket.Oldest.Peer);
 
         // Sleep statement is used to distinguish updated times.
-        await Task.Delay(100);
+        await Task.Delay(100, cancellationToken);
         bucket.AddOrUpdate(new() { Peer = peer2, LastUpdated = DateTimeOffset.UtcNow });
         Assert.Contains(bucket.GetRandomPeer(default), new[] { peer1, peer2 });
         Assert.Contains(bucket.GetRandomPeer(peer1.Address), new[] { peer2 });
 
         // Checks for a full bucket.
-        await Task.Delay(100);
+        await Task.Delay(100, cancellationToken);
         bucket.AddOrUpdate(new() { Peer = peer3, LastUpdated = DateTimeOffset.UtcNow });
-        await Task.Delay(100);
+        await Task.Delay(100, cancellationToken);
         bucket.AddOrUpdate(new() { Peer = peer4, LastUpdated = DateTimeOffset.UtcNow });
         Assert.True(bucket.IsFull);
         Assert.Equal(
@@ -75,7 +76,7 @@ public class BucketTest(ITestOutputHelper output)
         Assert.Contains(
             bucket.GetRandomPeer(default),
             new[] { peer1, peer2, peer3, peer4 });
-        await Task.Delay(100);
+        await Task.Delay(100, cancellationToken);
         bucket.AddOrUpdate(new() { Peer = peer5, LastUpdated = DateTimeOffset.UtcNow });
         Assert.Equal(
             [.. bucket.Select(item => item.Peer)],
@@ -85,7 +86,7 @@ public class BucketTest(ITestOutputHelper output)
         Assert.Equal(peer1, bucket.Oldest.Peer);
 
         // Check order has changed.
-        await Task.Delay(100);
+        await Task.Delay(100, cancellationToken);
         bucket.AddOrUpdate(new() { Peer = peer1, LastUpdated = DateTimeOffset.UtcNow });
         Assert.Equal(peer1, bucket.Newest?.Peer);
         Assert.Equal(peer2, bucket.Oldest?.Peer);

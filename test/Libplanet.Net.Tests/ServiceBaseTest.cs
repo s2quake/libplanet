@@ -2,7 +2,7 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Tests;
 
-public sealed class LifecycleServiceBaseTest
+public sealed class ServiceBaseTest
 {
     [Fact]
     public async Task Base_Test()

@@ -1,4 +1,3 @@
-#pragma warning disable S1751 // Loops with at most one iteration should be refactored
 using System.Diagnostics;
 using System.Net;
 using Libplanet.Net.Messages;
@@ -6,6 +5,7 @@ using Libplanet.Net.Tests.Protocols;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Nethereum.Util;
+using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Transports;
 
@@ -26,41 +26,44 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task StartAsync()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transport = CreateTransport(random);
-        await transport.StartAsync(default);
+        await transport.StartAsync(cancellationToken);
         Assert.True(transport.IsRunning);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task Restart()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transport = CreateTransport(random);
 
-        await transport.StartAsync(default);
+        await transport.StartAsync(cancellationToken);
         Assert.True(transport.IsRunning);
-        await transport.StopAsync(default);
+        await transport.StopAsync(cancellationToken);
         Assert.False(transport.IsRunning);
         Trace.WriteLine("--------------------------------");
-        await transport.StartAsync(default);
+        await transport.StartAsync(cancellationToken);
         Assert.True(transport.IsRunning);
     }
 
     [Fact(Timeout = Timeout)]
     public async Task DisposeAsync_Test()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transport = CreateTransport(random);
 
-        await transport.StartAsync(default);
-        await transport.StopAsync(default);
+        await transport.StartAsync(cancellationToken);
+        await transport.StopAsync(cancellationToken);
         await transport.DisposeAsync();
 
         var peer = RandomUtility.LocalPeer(random);
         var message = new PingMessage();
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await transport.StartAsync(default));
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await transport.StopAsync(default));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => transport.StartAsync(cancellationToken));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => transport.StopAsync(cancellationToken));
         Assert.Throws<ObjectDisposedException>(() => transport.Post(peer, message));
 
         await transport.DisposeAsync();
@@ -69,6 +72,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task Peer()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var privateKey = new PrivateKey();
         var host = IPAddress.Loopback.ToString();
@@ -78,7 +82,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.Equal(privateKey.Address, peer1.Address);
         Assert.Equal(host, peer1.EndPoint.Host);
         Assert.NotEqual(0, peer1.EndPoint.Port);
-        await transport.StartAsync(default);
+        await transport.StartAsync(cancellationToken);
 
         var peer2 = transport.Peer;
         Assert.Equal(privateKey.Address, peer2.Address);
@@ -86,7 +90,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.NotEqual(0, peer2.EndPoint.Port);
         Assert.Equal(peer1, peer2);
 
-        await transport.StopAsync(default);
+        await transport.StopAsync(cancellationToken);
 
         var peer3 = transport.Peer;
         Assert.Equal(privateKey.Address, peer3.Address);
@@ -98,15 +102,17 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task Post()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
         var request = transportA.Post(transportB.Peer, new PingMessage());
-        var response = await transportB.WaitAsync<PingMessage>(default).WaitAsync(TimeSpan.FromSeconds(2));
+        var response = await transportB.WaitAsync<PingMessage>(cancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(2), cancellationToken);
 
         Assert.IsType<PingMessage>(response.Message);
         Assert.Equal(request.Identity, response.Identity);
@@ -115,42 +121,43 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task Post_AfterRestart()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
         var request1 = transportA.Post(transportB.Peer, new PingMessage());
-        var response1 = await transportB.WaitAsync<PingMessage>(default).WaitAsync(TimeSpan.FromSeconds(2));
+        var response1 = await transportB.WaitAsync<PingMessage>(WaitTimeout, cancellationToken);
         Assert.IsType<PingMessage>(response1.Message);
         Assert.Equal(request1.Identity, response1.Identity);
 
-        await transportA.StopAsync(default);
-        await transportB.StopAsync(default);
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StopAsync(cancellationToken);
+        await transportB.StopAsync(cancellationToken);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
         var request2 = transportA.Post(transportB.Peer, new PingMessage());
-        var response2 = await transportB.WaitAsync<PingMessage>(default).WaitAsync(TimeSpan.FromSeconds(2));
+        var response2 = await transportB.WaitAsync<PingMessage>(WaitTimeout, cancellationToken);
 
         Assert.IsType<PingMessage>(response2.Message);
         Assert.Equal(request2.Identity, response2.Identity);
 
-        await transportB.StopAsync(default);
-        await transportB.StartAsync(default);
+        await transportB.StopAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
         var request3 = transportA.Post(transportB.Peer, new PingMessage());
-        var response3 = await transportB.WaitAsync<PingMessage>(default).WaitAsync(TimeSpan.FromSeconds(2));
+        var response3 = await transportB.WaitAsync<PingMessage>(WaitTimeout, cancellationToken);
 
         Assert.IsType<PingMessage>(response3.Message);
         Assert.Equal(request3.Identity, response3.Identity);
 
-        await transportA.StopAsync(default);
-        await transportA.StartAsync(default);
+        await transportA.StopAsync(cancellationToken);
+        await transportA.StartAsync(cancellationToken);
 
         var request4 = transportA.Post(transportB.Peer, new PingMessage());
-        var response4 = await transportB.WaitAsync<PingMessage>(default).WaitAsync(TimeSpan.FromSeconds(2));
+        var response4 = await transportB.WaitAsync<PingMessage>(WaitTimeout, cancellationToken);
 
         Assert.IsType<PingMessage>(response4.Message);
         Assert.Equal(request4.Identity, response4.Identity);
@@ -159,10 +166,11 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task Post_Throw_AfterDisposed()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transport = CreateTransport(random);
 
-        await transport.StartAsync(default);
+        await transport.StartAsync(cancellationToken);
         await transport.DisposeAsync();
 
         var peer = RandomUtility.LocalPeer(random);
@@ -182,6 +190,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task SendAsync2_MultipleReplies()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
@@ -195,11 +204,12 @@ public abstract class TransportTestBase(ITestOutputHelper output)
 
         static bool Predicate(IMessage message) => message is TestMessage m && m.Data == "1";
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
-        var messages = await transportA.SendAsync<IMessage>(transportB.Peer, new PingMessage(), Predicate, default)
-            .ToArrayAsync();
+        var messages = await transportA.SendAsync<IMessage>(
+            transportB.Peer, new PingMessage(), Predicate, cancellationToken)
+            .ToArrayAsync(cancellationToken);
 
         Assert.IsType<PingMessage>(messages[0]);
         Assert.IsType<PongMessage>(messages[1]);
@@ -210,12 +220,13 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task SendAsync1_Throw_AfterCancel()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
         using var cancellationTokenSource = new CancellationTokenSource(100);
 
@@ -229,6 +240,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task SendAsync1_Throw_NoReply()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var transportAOptions = new TransportOptions
         {
@@ -237,27 +249,26 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await using var transportA = CreateTransport(random, options: transportAOptions);
         await using var transportB = CreateTransport(random);
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
-        await Assert.ThrowsAsync<TimeoutException>(async () =>
-        {
-            await transportA.SendAsync<IMessage>(transportB.Peer, new PingMessage(), default);
-        });
+        await Assert.ThrowsAsync<TimeoutException>(
+            () => transportA.SendAsync<IMessage>(transportB.Peer, new PingMessage(), cancellationToken));
     }
 
     [Fact(Timeout = Timeout)]
     public async Task SendAsync1_Throw_AfterStop()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
-        var task = transportA.SendAsync<IMessage>(transportB.Peer, new PingMessage(), default);
-        await transportA.StopAsync(default);
+        var task = transportA.SendAsync<IMessage>(transportB.Peer, new PingMessage(), cancellationToken);
+        await transportA.StopAsync(cancellationToken);
         Assert.False(transportA.IsRunning);
 
         var e = await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
@@ -267,12 +278,13 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task SendAsync2_Throw_AfterCancel()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
         using var cancellationTokenSource = new CancellationTokenSource(100);
 
@@ -281,32 +293,36 @@ public abstract class TransportTestBase(ITestOutputHelper output)
             var message = new PingMessage();
             var predicate = new Func<IMessage, bool>(m => true);
             await transportA.SendAsync(
-                transportB.Peer, message, predicate, cancellationTokenSource.Token).ToArrayAsync();
+                transportB.Peer, message, predicate, cancellationTokenSource.Token)
+                .ToArrayAsync(cancellationToken);
         });
     }
 
     [Fact(Timeout = Timeout)]
     public async Task SendAsync2_Throw_NoReply()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
         await Assert.ThrowsAsync<TimeoutException>(async () =>
         {
             var message = new PingMessage();
             var predicate = new Func<IMessage, bool>(m => true);
             await transportA.SendAsync(
-                transportB.Peer, message, predicate, default).ToArrayAsync();
+                transportB.Peer, message, predicate, cancellationToken)
+                .ToArrayAsync(cancellationToken);
         });
     }
 
     [Fact(Timeout = Timeout)]
     public async Task SendAsync2_Throw_AfterStop()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
@@ -315,26 +331,26 @@ public abstract class TransportTestBase(ITestOutputHelper output)
             while (transportB.IsRunning)
             {
                 transportB.Post(e.Sender, new PingMessage(), e.Identity);
-                await Task.Delay(100, default);
+                await Task.Delay(100, cancellationToken);
             }
         });
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
         var task = Task.Run(async () =>
         {
             var peer = transportB.Peer;
             var message = new PingMessage();
             var predicate = new Func<IMessage, bool>(m => false);
-            await foreach (var _ in transportA.SendAsync(peer, message, predicate, default))
+            await foreach (var _ in transportA.SendAsync(peer, message, predicate, cancellationToken))
             {
                 // do nothing
             }
-        });
+        }, cancellationToken);
 
-        await Task.Delay(100);
-        await transportA.StopAsync(default);
+        await Task.Delay(100, cancellationToken);
+        await transportA.StopAsync(cancellationToken);
         Assert.False(transportA.IsRunning);
         var e = await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
         Assert.Equal(transportA.StoppingToken, e.CancellationToken);
@@ -343,6 +359,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task SendToMany()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var count = 10;
         var transports = new ITransport[count];
@@ -351,14 +368,14 @@ public abstract class TransportTestBase(ITestOutputHelper output)
             transports[i] = CreateTransport(random);
         }
 
-        await transports.AsParallel().ForEachAsync(async transport => await transport.StartAsync(default));
+        await transports.AsParallel().ForEachAsync(transport => transport.StartAsync(cancellationToken));
 
         var sender = RandomUtility.Random(transports);
         var receivers = transports.Where(t => t != sender).ToImmutableArray();
 
         var peers = receivers.Select(t => t.Peer).ToImmutableArray();
 
-        var waitTasks = receivers.Select(item => item.WaitAsync<TestMessage>(default)).ToArray();
+        var waitTasks = receivers.Select(item => item.WaitAsync<TestMessage>(cancellationToken)).ToArray();
         sender.Post(peers, new TestMessage { Data = "Hello, World!" });
         await Task.WhenAll(waitTasks);
 
@@ -374,10 +391,11 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task SendToMany_Throw_AfterDisposed()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         await using var transport = CreateTransport(random);
 
-        await transport.StartAsync(default);
+        await transport.StartAsync(cancellationToken);
         await transport.DisposeAsync();
         var peers = RandomUtility.Array(random, RandomUtility.LocalPeer).ToImmutableArray();
         var e = Assert.Throws<AggregateException>(() => transport.Post(peers, new PingMessage()));

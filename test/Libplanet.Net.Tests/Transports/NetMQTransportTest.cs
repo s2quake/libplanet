@@ -1,4 +1,3 @@
-#pragma warning disable S1751 // Loops with at most one iteration should be refactored
 using Libplanet.Net.Messages;
 using Libplanet.Net.NetMQ;
 using Libplanet.TestUtilities;
@@ -6,7 +5,6 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Tests.Transports;
 
-[Collection("NetMQConfiguration")]
 public sealed class NetMQTransportTest(ITestOutputHelper output)
     : TransportTestBase(output)
 {
@@ -15,6 +13,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output)
     [Fact]
     public async Task SendAndWaitAsync2_AsStream()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(_output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
@@ -23,18 +22,18 @@ public sealed class NetMQTransportTest(ITestOutputHelper output)
             for (var i = 0; i < 10; i++)
             {
                 transportB.Post(e.Sender, new PingMessage(), e.Identity);
-                await Task.Delay(100, default);
+                await Task.Delay(100, cancellationToken);
             }
             transportB.Post(e.Sender, new PongMessage(), e.Identity);
         });
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
         var peer = transportB.Peer;
         var message = new PingMessage();
         var isLast = new Func<IMessage, bool>(m => m is PongMessage);
-        var query = transportA.SendAsync(peer, message, isLast, default);
+        var query = transportA.SendAsync(peer, message, isLast, cancellationToken);
         var messageList = new List<IMessage>();
         await foreach (var item in query)
         {
