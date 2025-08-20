@@ -59,4 +59,40 @@ public static class ConsensusExtensions
         await @this.PreVoteAsync(preVote, cancellationToken);
         return preVote;
     }
+
+    public static async Task<Vote> PreCommitAsync(
+        this Net.Consensus.Consensus @this,
+        int validator,
+        Block block,
+        int round = 0,
+        CancellationToken cancellationToken = default)
+    {
+        var preCommit = new VoteBuilder
+        {
+            Validator = Validators[validator],
+            Block = block,
+            Round = round,
+            Type = VoteType.PreCommit,
+        }.Create(Signers[validator]);
+        await @this.PreCommitAsync(preCommit, cancellationToken);
+        return preCommit;
+    }
+
+    public static async Task<Vote> NilPreCommitAsync(
+        this Net.Consensus.Consensus @this,
+        int validator,
+        int height,
+        int round = 0,
+        CancellationToken cancellationToken = default)
+    {
+        var preCommit = new NilVoteBuilder
+        {
+            Validator = Validators[validator],
+            Height = height,
+            Round = round,
+            Type = VoteType.PreCommit,
+        }.Create(Signers[validator]);
+        await @this.PreCommitAsync(preCommit, cancellationToken);
+        return preCommit;
+    }
 }

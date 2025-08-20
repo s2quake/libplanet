@@ -19,6 +19,11 @@ public sealed class ConsensusObserver : IDisposable
 
     internal ConsensusObserver(ISigner signer, Consensus consensus, Blockchain blockchain)
     {
+        if (!consensus.Validators.Contains(signer.Address))
+        {
+            throw new ArgumentException("Signer is not a validator", nameof(signer));
+        }
+
         _signer = signer;
         _consensus = consensus;
         _blockchain = blockchain;

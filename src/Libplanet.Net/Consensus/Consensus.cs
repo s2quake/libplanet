@@ -158,6 +158,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
         await _dispatcher.PostAsync(() =>
         {
+            Trace.WriteLine($"PreVote [{vote.Round}]: {vote.Validator}");
             var round = _rounds[vote.Round];
             round.PreVote(vote);
             _preVotedSubject.OnNext(vote);
@@ -192,6 +193,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
         await _dispatcher.PostAsync(() =>
         {
+            Trace.WriteLine($"PreCommit [{vote.Round}]: {vote.Validator}");
             var round = _rounds[vote.Round];
             round.PreCommit(vote);
             _preCommittedSubject.OnNext(vote);
@@ -361,6 +363,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         {
             if (round == _round && Step == ConsensusStep.Propose)
             {
+                Trace.WriteLine($"TimeoutPropose [{round.Index}]");
                 _timeoutOccurredSubject.OnNext(ConsensusStep.Propose);
                 EnterPreVoteStep(round, default);
                 ProcessGenericUponRules();
@@ -387,6 +390,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         {
             if (round == _round && Step == ConsensusStep.PreVote)
             {
+                Trace.WriteLine($"TimeoutPreVote [{round.Index}]");
                 _timeoutOccurredSubject.OnNext(ConsensusStep.PreVote);
                 EnterPreCommitStep(round, default);
                 ProcessGenericUponRules();
@@ -411,6 +415,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         {
             if (round == _round && Step is ConsensusStep.PreVote or ConsensusStep.PreCommit)
             {
+                Trace.WriteLine($"TimeoutPreCommit [{round.Index}]");
                 _timeoutOccurredSubject.OnNext(ConsensusStep.PreCommit);
                 EnterEndCommitStep(round);
                 ProcessGenericUponRules();
@@ -477,6 +482,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         }
 
         Proposal = proposal;
+        Trace.WriteLine($"Propose [{proposal.Round}]: {proposal.Validator}");
         _proposedSubject.OnNext(proposal);
     }
 
@@ -605,8 +611,9 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         }
 
         Step = ConsensusStep.PreVote;
+        Trace.WriteLine($"EnterPreVote: [{round.Index}]");
         _stepChangedSubject.OnNext((Step, blockHash));
-        Trace.WriteLine("EnterPreVoteStep");
+        // Trace.WriteLine("EnterPreVoteStep");
     }
 
     private void EnterPreCommitStep(Round round, BlockHash blockHash)
@@ -618,7 +625,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
         Step = ConsensusStep.PreCommit;
         _stepChangedSubject.OnNext((Step, blockHash));
-        Trace.WriteLine("EnterPreCommitStep");
+        // Trace.WriteLine("EnterPreCommitStep");
     }
 
     private void EnterEndCommitStep(Round round)
