@@ -5,6 +5,7 @@ using Libplanet.State;
 using Libplanet.Extensions;
 using Libplanet.Data;
 using Libplanet.Types;
+using Microsoft.Extensions.Logging;
 
 namespace Libplanet;
 
@@ -15,6 +16,7 @@ public partial class Blockchain
     private readonly Subject<(Block, BlockCommit)> _appendedSubject = new();
     private readonly Repository _repository;
     private readonly BlockExecutor _blockExecutor;
+    private readonly ILogger<Blockchain> _logger;
 
     public Blockchain()
         : this(new Repository(), BlockchainOptions.Empty)
@@ -53,6 +55,7 @@ public partial class Blockchain
         _repository = repository;
         _blockExecutor = new BlockExecutor(repository.States, options.SystemActions);
         Options = options;
+        _logger = options.Logger;
         Id = _repository.Id;
         Blocks = new BlockCollection(repository);
         BlockCommits = new BlockCommitCollection(repository);
@@ -148,6 +151,7 @@ public partial class Blockchain
         _repository.StateRootHashes.Add(block.BlockHash, _repository.StateRootHash);
         _repository.TxExecutions.AddRange(execution.GetTxExecutions(block.BlockHash));
         _appendedSubject.OnNext((block, blockCommit));
+        LogAppended(_logger, block.Height, block.BlockHash);
     }
 
     public HashDigest<SHA256> GetStateRootHash(int height)
