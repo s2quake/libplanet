@@ -3,7 +3,6 @@ using Libplanet.Net.Consensus;
 using Libplanet.Tests;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Nito.AsyncEx;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;

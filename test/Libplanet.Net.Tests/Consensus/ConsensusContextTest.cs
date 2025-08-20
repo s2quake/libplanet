@@ -8,7 +8,6 @@ using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
-using Nito.AsyncEx;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;

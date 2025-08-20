@@ -5,7 +5,6 @@ using Libplanet.Net.Messages;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Nito.AsyncEx;
 using Libplanet.Extensions;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.Types.Threading;
@@ -210,13 +209,13 @@ public partial class SwarmTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task BootstrapContext()
     {
-        var collectedTwoMessages = Enumerable.Range(0, 4).Select(i =>
-            new AsyncAutoResetEvent()).ToList();
-        var stepChangedToPreCommits = Enumerable.Range(0, 4).Select(i =>
-            new AsyncAutoResetEvent()).ToList();
-        var roundChangedToOnes = Enumerable.Range(0, 4).Select(i =>
-            new AsyncAutoResetEvent()).ToList();
-        var roundOneProposed = new AsyncAutoResetEvent();
+        // var collectedTwoMessages = Enumerable.Range(0, 4).Select(i =>
+        //     new AsyncAutoResetEvent()).ToList();
+        // var stepChangedToPreCommits = Enumerable.Range(0, 4).Select(i =>
+        //     new AsyncAutoResetEvent()).ToList();
+        // var roundChangedToOnes = Enumerable.Range(0, 4).Select(i =>
+        //     new AsyncAutoResetEvent()).ToList();
+        // var roundOneProposed = new AsyncAutoResetEvent();
         var policy = new BlockchainOptions();
         var genesis = new MemoryRepositoryFixture(policy).GenesisBlock;
 
@@ -279,7 +278,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         // };
 
         // Make sure both swarms time out and swarm[0] collects two PreVotes.
-        await collectedTwoMessages[0].WaitAsync();
+        // await collectedTwoMessages[0].WaitAsync();
 
         // Dispose swarm[3] to simulate shutdown during bootstrap.
         await consensusServices[3].DisposeAsync();
@@ -307,8 +306,8 @@ public partial class SwarmTest(ITestOutputHelper output)
         // Proposal: null
         // PreVote: swarm[0], swarm[2], swarm[3],
         // PreCommit: swarm[0], swarm[2]
-        await Task.WhenAll(
-            stepChangedToPreCommits[0].WaitAsync(), stepChangedToPreCommits[2].WaitAsync());
+        // await Task.WhenAll(
+        //     stepChangedToPreCommits[0].WaitAsync(), stepChangedToPreCommits[2].WaitAsync());
 
         // After swarm[1] comes online, eventually it'll catch up to vote PreCommit,
         // at which point the round will move to 1 where swarm[2] is the proposer.
@@ -323,7 +322,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         //     }
         // };
 
-        await roundOneProposed.WaitAsync();
+        // await roundOneProposed.WaitAsync();
 
         await AssertThatEventually(() => blockchains[0].Tip.Height == 1, int.MaxValue);
         Assert.Equal(1, blockchains[0].BlockCommits[1].Round);

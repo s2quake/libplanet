@@ -1,4 +1,5 @@
-using Nito.AsyncEx.Synchronous;
+
+using Libplanet.Types.Threading;
 
 namespace Libplanet.Net.Threading;
 
@@ -188,7 +189,15 @@ public class Dispatcher : IAsyncDisposable
             () =>
             {
                 var innerTask = Task.Run(() => actionTask(taskCancellationToken), taskCancellationToken);
-                innerTask.WaitWithoutException();
+                try
+                {
+                    innerTask.Wait();
+                }
+                catch
+                {
+                    // do nothing
+                }
+
                 return innerTask;
             }, taskCancellationToken);
 
@@ -225,7 +234,15 @@ public class Dispatcher : IAsyncDisposable
             () =>
             {
                 var innerTask = Task.Run(() => funcTask(taskCancellationToken));
-                innerTask.WaitWithoutException();
+                try
+                {
+                    innerTask.Wait();
+                }
+                catch
+                {
+                    // do nothing
+                }
+
                 return innerTask;
             }, taskCancellationToken);
 

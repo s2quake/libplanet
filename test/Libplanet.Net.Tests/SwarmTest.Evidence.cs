@@ -1,7 +1,6 @@
 using Libplanet.Net.Consensus;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Nito.AsyncEx;
 using Libplanet.Extensions;
 using System.Reactive.Linq;
 
