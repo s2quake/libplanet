@@ -11,12 +11,11 @@ using NetMQ.Sockets;
 namespace Libplanet.Net.NetMQ;
 
 public sealed partial class NetMQTransport(ISigner signer, TransportOptions options)
-    : ServiceBase, ITransport
+    : ServiceBase(options.Logger), ITransport
 {
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
     private readonly TransportPeer _peer = new(signer.Address, options.Host, options.Port);
-    private readonly ILogger<ITransport> _logger = options.Logger;
     private Task _processTask = Task.CompletedTask;
     private Channel<MessageRequest>? _sendChannel;
     private Channel<MessageEnvelope>? _receiveChannel;
@@ -25,6 +24,8 @@ public sealed partial class NetMQTransport(ISigner signer, TransportOptions opti
         : this(signer, new TransportOptions())
     {
     }
+
+    public override string Name => $"[{Peer}]";
 
     public MessageRouter MessageRouter { get; } = new MessageRouter();
 
@@ -94,7 +95,6 @@ public sealed partial class NetMQTransport(ISigner signer, TransportOptions opti
 
         await Task.CompletedTask;
         (_sendChannel, _receiveChannel) = await tcs.Task;
-        LogStarted(_logger, signer.Address, _peer.Host, _peer.Port);
     }
 
     protected override async Task OnStopAsync(CancellationToken cancellationToken)
@@ -105,7 +105,6 @@ public sealed partial class NetMQTransport(ISigner signer, TransportOptions opti
         _receiveChannel = null;
         await TaskUtility.TryWait(_processTask);
         _processTask = Task.CompletedTask;
-        LogStopped(_logger);
     }
 
     protected override async ValueTask DisposeAsyncCore()

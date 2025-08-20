@@ -3,7 +3,9 @@ using System.Net;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Tests.Protocols;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Logging;
 using Libplanet.Types;
+using Microsoft.Extensions.Logging.Abstractions;
 using Nethereum.Util;
 using static Libplanet.Net.Tests.TestUtils;
 
@@ -14,14 +16,23 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     protected const int Timeout = 60 * 1000;
 
     protected ITransport CreateTransport(
-        Random random, PrivateKey? privateKey = null, TransportOptions? options = null)
+        Random random, ISigner? signer = null, TransportOptions? options = null)
     {
-        return CreateTransport(
-            privateKey ?? RandomUtility.PrivateKey(random),
-            options ?? new TransportOptions());
+
+        signer ??= RandomUtility.PrivateKey(random).AsSigner();
+        options ??= new TransportOptions();
+        if (options.Logger is NullLogger<ITransport>)
+        {
+            options = options with
+            {
+                Logger = TestLogging.CreateLogger<ITransport>(output),
+            };
+        }
+
+        return CreateTransport(signer, options);
     }
 
-    protected abstract ITransport CreateTransport(PrivateKey privateKey, TransportOptions transportOptions);
+    protected abstract ITransport CreateTransport(ISigner signer, TransportOptions transportOptions);
 
     [Fact(Timeout = Timeout)]
     public async Task StartAsync()
@@ -74,18 +85,18 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
-        var privateKey = new PrivateKey();
+        var signer = RandomUtility.Signer(random);
         var host = IPAddress.Loopback.ToString();
-        await using var transport = CreateTransport(random, privateKey: privateKey);
+        await using var transport = CreateTransport(random, signer);
 
         var peer1 = transport.Peer;
-        Assert.Equal(privateKey.Address, peer1.Address);
+        Assert.Equal(signer.Address, peer1.Address);
         Assert.Equal(host, peer1.EndPoint.Host);
         Assert.NotEqual(0, peer1.EndPoint.Port);
         await transport.StartAsync(cancellationToken);
 
         var peer2 = transport.Peer;
-        Assert.Equal(privateKey.Address, peer2.Address);
+        Assert.Equal(signer.Address, peer2.Address);
         Assert.Equal(host, peer2.EndPoint.Host);
         Assert.NotEqual(0, peer2.EndPoint.Port);
         Assert.Equal(peer1, peer2);
@@ -93,7 +104,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transport.StopAsync(cancellationToken);
 
         var peer3 = transport.Peer;
-        Assert.Equal(privateKey.Address, peer3.Address);
+        Assert.Equal(signer.Address, peer3.Address);
         Assert.Equal(host, peer3.EndPoint.Host);
         Assert.NotEqual(0, peer3.EndPoint.Port);
         Assert.Equal(peer2, peer3);

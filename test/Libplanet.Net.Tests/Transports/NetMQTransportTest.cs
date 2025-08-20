@@ -45,6 +45,6 @@ public sealed class NetMQTransportTest(ITestOutputHelper output)
         Assert.IsType<PongMessage>(messageList[^1]);
     }
 
-    protected override ITransport CreateTransport(PrivateKey privateKey, TransportOptions transportOptions)
-        => new NetMQTransport(privateKey.AsSigner(), transportOptions);
+    protected override ITransport CreateTransport(ISigner signer, TransportOptions transportOptions)
+        => new NetMQTransport(signer, transportOptions);
 }

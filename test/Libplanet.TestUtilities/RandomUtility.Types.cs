@@ -18,6 +18,10 @@ public static partial class RandomUtility
 
     public static PrivateKey PrivateKey(Random random) => new(Array(random, Byte, Types.PrivateKey.Size));
 
+    public static ISigner Signer() => PrivateKey().AsSigner();
+
+    public static ISigner Signer(Random random) => PrivateKey(random).AsSigner();
+
     public static Address Address() => Address(System.Random.Shared);
 
     public static Address Address(Random random) => new(Array(random, Byte, Types.Address.Size));

@@ -5,6 +5,6 @@ namespace Libplanet.Net.Tests.Transports;
 public sealed class TransportTest(ITestOutputHelper output)
     : TransportTestBase(output)
 {
-    protected override ITransport CreateTransport(PrivateKey privateKey, TransportOptions transportOptions)
-        => new Transport(privateKey.AsSigner(), transportOptions);
+    protected override ITransport CreateTransport(ISigner signer, TransportOptions transportOptions)
+        => new Transport(signer, transportOptions);
 }
