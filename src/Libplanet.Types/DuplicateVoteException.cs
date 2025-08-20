@@ -23,5 +23,5 @@ public sealed class DuplicateVoteException : EvidenceException<DuplicateVoteEvid
     public override int Height => VoteRef.Height;
 
     public override DuplicateVoteEvidence CreateEvidence(EvidenceContext evidenceContext)
-        => DuplicateVoteEvidence.Create(VoteRef, VoteRef, evidenceContext.Validators);
+        => DuplicateVoteEvidence.Create(VoteRef, VoteDup, evidenceContext.Validators);
 }

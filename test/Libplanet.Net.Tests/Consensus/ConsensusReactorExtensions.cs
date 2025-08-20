@@ -5,6 +5,7 @@ namespace Libplanet.Net.Tests.Consensus;
 
 public static class ConsensusReactorExtensions
 {
+    [Obsolete]
     public static async Task WaitUntilAsync(
         this ConsensusService @this, int height, CancellationToken cancellationToken)
     {
@@ -23,8 +24,9 @@ public static class ConsensusReactorExtensions
         }
     }
 
+    [Obsolete]
     public static async Task WaitUntilToProposeAsync(
-        this ConsensusService @this, int height, CancellationToken cancellationToken)
+            this ConsensusService @this, int height, CancellationToken cancellationToken)
     {
         using var resetEvent = new ManualResetEvent(false);
         using var _ = @this.BlockProposed.Subscribe(e =>
@@ -41,8 +43,9 @@ public static class ConsensusReactorExtensions
         }
     }
 
+    [Obsolete]
     public static async Task WaitUntilAsync(
-        this ConsensusService @this, int height, ConsensusStep step, CancellationToken cancellationToken)
+            this ConsensusService @this, int height, ConsensusStep step, CancellationToken cancellationToken)
     {
         using var resetvent = new ManualResetEvent(false);
 
@@ -81,11 +84,12 @@ public static class ConsensusReactorExtensions
         }
     }
 
+    [Obsolete]
     public static async Task<T> WaitUntilPublishedAsync<T>(
-        this ConsensusService @this,
-        int height,
-        CancellationToken cancellationToken)
-        where T : ConsensusMessage
+            this ConsensusService @this,
+            int height,
+            CancellationToken cancellationToken)
+            where T : ConsensusMessage
     {
         T? consensusMessage = null;
         // var asyncAutoResetEvent = new AsyncAutoResetEvent();

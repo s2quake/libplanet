@@ -58,11 +58,11 @@ public sealed partial record class DuplicateVoteEvidence : EvidenceBase, IEquata
                     $"Validator {VoteRef.Validator} is not registered");
             }
         }
-        else
-        {
-            yield return new ValidationResult(
-                $"{nameof(EvidenceContext)} is not available: {validationContext}");
-        }
+        // else
+        // {
+        //     yield return new ValidationResult(
+        //         $"{nameof(EvidenceContext)} is not available: {validationContext}");
+        // }
 
         if (VoteRef.Height != Height)
         {

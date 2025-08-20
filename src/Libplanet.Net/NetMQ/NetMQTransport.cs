@@ -146,7 +146,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                 if (messageRouter.VerifyReceivedMessage(messageEnvelope))
                 {
                     receiveChannel.Writer.TryWrite(messageEnvelope);
-                    Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
+                    // Trace.WriteLine($"Received message: {messageEnvelope.Identity}");
                 }
             }
         }
@@ -172,7 +172,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
         {
             await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
             {
-                Trace.WriteLine("Send request: " + request.Identity);
+                // Trace.WriteLine("Send request: " + request.Identity);
                 var messageEnvelope = request.MessageEnvelope;
                 if (messageRouter.VerifySendingMessagre(messageEnvelope))
                 {
@@ -183,7 +183,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
                         throw new InvalidOperationException("Failed to send message to the dealer socket.");
                     }
 
-                    Trace.WriteLine($"Sent message: {messageEnvelope.Identity}");
+                    // Trace.WriteLine($"Sent message: {messageEnvelope.Identity}");
                 }
             }
         }
@@ -226,7 +226,7 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
             await foreach (var messageEnvelope in reader.ReadAllAsync(cancellationToken))
             {
                 _ = messageRouter.HandleAsync(messageEnvelope, cancellationToken);
-                Trace.WriteLine($"Handled <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
+                // Trace.WriteLine($"Handled <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
             }
         }
         catch
@@ -241,6 +241,6 @@ public sealed class NetMQTransport(ISigner signer, TransportOptions options)
 
         public required Peer Receiver { get; init; }
 
-        public Guid Identity => MessageEnvelope.Identity;
+        // public Guid Identity => MessageEnvelope.Identity;
     }
 }

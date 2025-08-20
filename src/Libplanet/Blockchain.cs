@@ -12,6 +12,7 @@ public partial class Blockchain
 {
     private readonly Subject<Unit> _blockExecutingSubject = new();
     private readonly Subject<TipChangedInfo> _tipChangedSubject = new();
+    private readonly Subject<(Block, BlockCommit)> _appendedSubject = new();
     private readonly Repository _repository;
     private readonly BlockExecutor _blockExecutor;
 
@@ -71,6 +72,8 @@ public partial class Blockchain
     public IObservable<BlockExecutionInfo> BlockExecuted => _blockExecutor.BlockExecuted;
 
     public IObservable<TipChangedInfo> TipChanged => _tipChangedSubject;
+
+    public IObservable<(Block, BlockCommit)> Appended => _appendedSubject;
 
     public Guid Id { get; }
 
@@ -144,6 +147,7 @@ public partial class Blockchain
         _repository.StateRootHash = execution.OutputWorld.Hash;
         _repository.StateRootHashes.Add(block.BlockHash, _repository.StateRootHash);
         _repository.TxExecutions.AddRange(execution.GetTxExecutions(block.BlockHash));
+        _appendedSubject.OnNext((block, blockCommit));
     }
 
     public HashDigest<SHA256> GetStateRootHash(int height)
@@ -183,14 +187,17 @@ public partial class Blockchain
 
     public Block ProposeBlock(ISigner proposer)
     {
+        var height = _repository.Height;
+        var blockHash = _repository.BlockHashes[height];
+        var blockCommit = height == _repository.GenesisHeight ? BlockCommit.Empty : _repository.BlockCommits[blockHash];
         var blockHeader = new BlockHeader
         {
-            Height = _repository.Height + 1,
+            Height = height + 1,
             Timestamp = DateTimeOffset.UtcNow,
             Proposer = proposer.Address,
-            PreviousHash = _repository.BlockHash,
-            PreviousCommit = _repository.BlockCommit,
-            PreviousStateRootHash = _repository.StateRootHash,
+            PreviousHash = blockHash,
+            PreviousCommit = blockCommit,
+            PreviousStateRootHash = _repository.StateRootHashes[blockHash],
         };
         var blockContent = new BlockContent
         {

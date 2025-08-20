@@ -6,6 +6,7 @@ using Libplanet.State;
 using Libplanet.Types;
 using Libplanet.Net.Components;
 using Libplanet.Extensions;
+using System.Diagnostics;
 
 namespace Libplanet.Net.Consensus;
 
@@ -28,16 +29,20 @@ public sealed class ConsensusService : ServiceBase
     private readonly TimeSpan _newHeightDelay;
     private readonly EvidenceCollector _evidenceCollector = new();
     private readonly ConcurrentDictionary<Peer, ImmutableHashSet<int>> _peerCatchupRounds = new();
-    private readonly IDisposable[] _initialiSubscriptions;
 
     private Dispatcher? _dispatcher;
-    private Consensus _consensus;
-    private ConsensusObserver _observer;
-    private ConsensusBroadcaster _broadcaster;
-    private ConsensusBroadcastingResponder _broadcastingResponder;
-    private IDisposable[] _runningSubscriptions;
-    private CancellationTokenSource? _cancellationTokenSource;
+    private Consensus? _consensus;
+    private ConsensusObserver? _observer;
+    private ConsensusBroadcaster? _broadcaster;
+    private ConsensusBroadcastingResponder? _broadcastingResponder;
+    private IDisposable[] _consensusSubscriptions = [];
+    private IDisposable[] _subscriptions = [];
     private DateTimeOffset _tipChangedTime;
+
+    public ConsensusService(ISigner signer, Blockchain blockchain, ITransport transport)
+        : this(signer, blockchain, transport, new ConsensusServiceOptions())
+    {
+    }
 
     public ConsensusService(
         ISigner signer, Blockchain blockchain, ITransport transport, ConsensusServiceOptions options)
@@ -51,30 +56,12 @@ public sealed class ConsensusService : ServiceBase
             SeedPeers = options.Seeds,
         };
         _gossip = new Gossip(_transport, _peerExplorer.Peers);
-
         _blockchain = blockchain;
         _newHeightDelay = options.TargetBlockInterval;
         _consensusOption = options.ConsensusOptions with
         {
             BlockValidators = options.ConsensusOptions.BlockValidators.Add(new RelayObjectValidator<Block>(b => _blockchain.Validate(b)))
         };
-        Height = _blockchain.Tip.Height + 1;
-        _consensus = new Consensus(_blockchain.GetValidators(Height), Height, _consensusOption);
-        _observer = new ConsensusObserver(_signer, _consensus, _blockchain);
-        _broadcaster = new ConsensusBroadcaster(_observer, _gossip);
-        _broadcastingResponder = new ConsensusBroadcastingResponder(_signer, _consensus, _gossip);
-
-        _runningSubscriptions =
-        [
-            .. Subscribe(_consensus),
-        ];
-        _initialiSubscriptions =
-        [
-            _blockchain.TipChanged.Subscribe(Blockchain_TipChanged),
-            _blockchain.BlockExecuted.Subscribe(Blockchain_BlockExecuted),
-            _transport.MessageRouter.RegisterSendingMessageValidation<ConsensusVoteMessage>(ValidateMessageToSend),
-            _transport.MessageRouter.RegisterReceivedMessageValidation<ConsensusVoteMessage>(ValidateMessageToReceive),
-        ];
     }
 
     public IObservable<int> HeightChanged => _heightChangedSubject;
@@ -91,19 +78,39 @@ public sealed class ConsensusService : ServiceBase
 
     public Address Address => _signer.Address;
 
-    public int Height { get; private set; }
+    public int Height { get; private set; } = -1;
 
     public int Round { get; private set; } = -1;
 
     public ConsensusStep Step { get; private set; }
 
-    public Consensus Consensus => _consensus;
+    public Consensus Consensus => _consensus ?? throw new InvalidOperationException("Consensus is not initialized.");
 
     public ImmutableArray<Peer> Validators => [.. _gossip.Peers];
 
     protected override async Task OnStartAsync(CancellationToken cancellationToken)
     {
         _dispatcher = new Dispatcher();
+        Height = _blockchain.Tip.Height + 1;
+        Round = 0;
+        Step = ConsensusStep.Default;
+        _consensus = new Consensus(_blockchain.GetValidators(Height), Height, _consensusOption);
+        _observer = new ConsensusObserver(_signer, _consensus, _blockchain);
+        _broadcaster = new ConsensusBroadcaster(_observer, _gossip);
+        _broadcastingResponder = new ConsensusBroadcastingResponder(_signer, _consensus, _gossip);
+
+        _consensusSubscriptions =
+        [
+            .. Subscribe(_consensus),
+        ];
+        _subscriptions =
+        [
+            _blockchain.TipChanged.Subscribe(Blockchain_TipChanged),
+            // _blockchain.BlockExecuted.Subscribe(Blockchain_BlockExecuted),
+            _blockchain.Appended.Subscribe(Blockchain_Appended),
+            _transport.MessageRouter.RegisterSendingMessageValidation<ConsensusVoteMessage>(ValidateMessageToSend),
+            _transport.MessageRouter.RegisterReceivedMessageValidation<ConsensusVoteMessage>(ValidateMessageToReceive),
+        ];
         await _consensus.StartAsync(default);
     }
 
@@ -115,24 +122,43 @@ public sealed class ConsensusService : ServiceBase
             _dispatcher = null;
         }
 
-        _cancellationTokenSource?.Dispose();
-        _cancellationTokenSource = null;
+        Array.ForEach(_subscriptions, subscription => subscription.Dispose());
+        _subscriptions = [];
+        Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
+        _consensusSubscriptions = [];
+        _broadcastingResponder?.Dispose();
+        _broadcastingResponder = null;
+        _broadcaster?.Dispose();
+        _broadcaster = null;
+        _observer?.Dispose();
+        _observer = null;
+        if (_consensus is not null)
+        {
+            await _consensus.DisposeAsync();
+            _consensus = null;
+        }
     }
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        Array.ForEach(_runningSubscriptions, subscription => subscription.Dispose());
-        _runningSubscriptions = [];
+        Array.ForEach(_subscriptions, subscription => subscription.Dispose());
+        _subscriptions = [];
+        Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
+        _consensusSubscriptions = [];
+        _broadcastingResponder?.Dispose();
+        _broadcastingResponder = null;
+        _broadcaster?.Dispose();
+        _broadcaster = null;
+        _observer?.Dispose();
+        _observer = null;
+        if (_consensus is not null)
+        {
+            await _consensus.DisposeAsync();
+            _consensus = null;
+        }
+
         await _gossip.DisposeAsync();
         _peerExplorer.Dispose();
-        Array.ForEach(_initialiSubscriptions, subscription => subscription.Dispose());
-        _broadcastingResponder.Dispose();
-        _broadcaster.Dispose();
-        _observer.Dispose();
-        await _consensus.DisposeAsync();
-        await _transport.DisposeAsync();
-        _cancellationTokenSource?.Dispose();
-        _cancellationTokenSource = null;
         _peers.Clear();
         await base.DisposeAsyncCore();
     }
@@ -152,19 +178,27 @@ public sealed class ConsensusService : ServiceBase
 
         await _dispatcher.InvokeAsync(async cancellationToken =>
         {
-            var pendingMessage = _broadcastingResponder.PendingMessages.ToArray();
-            Array.ForEach(_runningSubscriptions, subscription => subscription.Dispose());
+            Trace.WriteLine($"New height: {height}");
+            var pendingMessage = _broadcastingResponder?.PendingMessages.ToArray() ?? [];
+            Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
+            _consensusSubscriptions = [];
+            _broadcastingResponder?.Dispose();
+            _broadcastingResponder = null;
+            _broadcaster?.Dispose();
+            _broadcaster = null;
+            _observer?.Dispose();
+            _observer = null;
+            if (_consensus is not null)
+            {
+                await _consensus.StopAsync(cancellationToken);
+                await _consensus.DisposeAsync();
+            }
 
-            _broadcastingResponder.Dispose();
-            _broadcaster.Dispose();
-            _observer.Dispose();
-            await _consensus.StopAsync(cancellationToken);
-            await _consensus.DisposeAsync();
             _consensus = new Consensus(_blockchain.GetValidators(height), height, _consensusOption);
             _observer = new ConsensusObserver(_signer, _consensus, _blockchain);
             _broadcaster = new ConsensusBroadcaster(_observer, _gossip);
             _broadcastingResponder = new ConsensusBroadcastingResponder(_signer, _consensus, _gossip);
-            _runningSubscriptions =
+            _consensusSubscriptions =
             [
                 .. Subscribe(_consensus),
             ];
@@ -177,6 +211,7 @@ public sealed class ConsensusService : ServiceBase
             {
                 _transport.Post(_transport.Peer, message);
             }
+            Trace.WriteLine($"New height end: {height}");
         }, cancellationToken);
     }
 
@@ -271,18 +306,14 @@ public sealed class ConsensusService : ServiceBase
 
     private void Blockchain_TipChanged(TipChangedInfo e)
     {
-        _cancellationTokenSource?.Cancel();
-        _cancellationTokenSource?.Dispose();
-        _cancellationTokenSource = null;
         _tipChangedTime = DateTimeOffset.UtcNow;
     }
 
-    private async void Blockchain_BlockExecuted(BlockExecutionInfo e)
+    private async void Blockchain_Appended((Block Block, BlockCommit BlockCommit) e)
     {
         var height = e.Block.Header.Height;
         var dateTime = DateTimeOffset.UtcNow;
         var delay = EnsureNonNegative(_newHeightDelay - (dateTime - _tipChangedTime));
-        _cancellationTokenSource = CreateCancellationTokenSource();
         try
         {
             await Task.Delay(delay, StoppingToken);
@@ -300,6 +331,11 @@ public sealed class ConsensusService : ServiceBase
 
         static TimeSpan EnsureNonNegative(TimeSpan timeSpan) => timeSpan < TimeSpan.Zero ? TimeSpan.Zero : timeSpan;
     }
+
+    // private void Blockchain_Appended((Block Block, BlockCommit BlockCommit) e)
+    // {
+    //     _ = Task.Run(() => AddEvidenceToBlockChain(e.Block.Height), StoppingToken);
+    // }
 
     private void AddEvidenceToBlockChain(int height)
     {
