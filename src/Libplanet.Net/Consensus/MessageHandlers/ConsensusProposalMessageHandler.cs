@@ -13,12 +13,10 @@ internal sealed class ConsensusProposalMessageHandler(Consensus consensus, Messa
         var height = consensus.Height;
         if (proposal.Height < height)
         {
-            Trace.WriteLine($"{this.GetHashCode()} 1");
             throw new InvalidMessageException("Proposal height is lower than current consensus height");
         }
         else if (proposal.Height == height)
         {
-            Trace.WriteLine($"{this.GetHashCode()} 2");
             await consensus.ProposeAsync(proposal, cancellationToken);
         }
         else
