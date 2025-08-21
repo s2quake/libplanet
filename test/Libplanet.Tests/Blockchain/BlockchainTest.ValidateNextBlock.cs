@@ -168,7 +168,7 @@ public partial class BlockchainTest
     {
         var options = new BlockchainOptions
         {
-            BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
+            // BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var genesisBlock = TestUtils.ProposeGenesis(TestUtils.GenesisProposerKey).Sign(TestUtils.GenesisProposerKey);
         var repository = new Repository();
@@ -184,7 +184,7 @@ public partial class BlockchainTest
             {
                 EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
             },
-            BlockInterval = options.BlockInterval,
+            // BlockInterval = options.BlockInterval,
         };
         var repository2 = new Repository();
         var chain2 = new Libplanet.Blockchain(genesisBlock, repository2, options2);
@@ -213,7 +213,7 @@ public partial class BlockchainTest
         var beforePostponeBPV = BlockHeader.CurrentProtocolVersion;
         var options1 = new BlockchainOptions
         {
-            BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
+            // BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var repository = new Repository();
         var blockExecutor = new BlockExecutor(
@@ -245,7 +245,7 @@ public partial class BlockchainTest
                 BeginBlockActions = [],
                 EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 1)],
             },
-            BlockInterval = options1.BlockInterval,
+            // BlockInterval = options1.BlockInterval,
         };
         var repository2 = new Repository();
         var chain2 = new Libplanet.Blockchain(genesisBlock, repository2, options2);
@@ -266,7 +266,7 @@ public partial class BlockchainTest
             {
                 BeginBlockActions = [new SetStatesAtBlock(default, "foo", default, 1)],
             },
-            BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
+            // BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
         var repository = new Repository();
         var blockExecutor = new BlockExecutor(

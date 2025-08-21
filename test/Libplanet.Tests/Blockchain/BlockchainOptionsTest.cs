@@ -2,50 +2,13 @@ using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Data;
 using Libplanet.TestUtilities.Extensions;
-using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Libplanet.TestUtilities;
 
 namespace Libplanet.Tests.Blockchain;
 
-public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
+public class BlockchainOptionsTest(ITestOutputHelper output)
 {
-    // private readonly ITestOutputHelper _output;
-
-    // private readonly RepositoryFixture _fx;
-    // private readonly Libplanet.Blockchain _chain;
-    // private readonly BlockchainOptions _policy;
-
-
-    public void Dispose()
-    {
-        // _fx.Dispose();
-    }
-
-    [Fact]
-    public void Constructors()
-    {
-        var second10 = new TimeSpan(0, 0, 10);
-        var optionsA = new BlockchainOptions
-        {
-            BlockInterval = second10,
-        };
-        Assert.Equal(second10, optionsA.BlockInterval);
-
-        var optionsB = new BlockchainOptions
-        {
-            BlockInterval = TimeSpan.FromMilliseconds(65000),
-        };
-        Assert.Equal(
-            new TimeSpan(0, 1, 5),
-            optionsB.BlockInterval);
-
-        var c = new BlockchainOptions();
-        Assert.Equal(
-            new TimeSpan(0, 0, 5),
-            c.BlockInterval);
-    }
-
     [Fact]
     public void ValidateNextBlockTx()
     {

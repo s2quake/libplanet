@@ -10,8 +10,6 @@ public sealed record class BlockchainOptions
 
     public SystemActions SystemActions { get; init; } = SystemActions.Empty;
 
-    public TimeSpan BlockInterval { get; init; } = TimeSpan.FromSeconds(5);
-
     public BlockOptions BlockOptions { get; init; } = new();
 
     public TransactionOptions TransactionOptions { get; init; } = new();

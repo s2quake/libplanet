@@ -14,7 +14,7 @@ public partial class BlockchainTest
         //     Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
         //     "This test causes timeout");
 
-        Transaction MkTx(PrivateKey key, long nonce, DateTimeOffset? ts = null) =>
+        Transaction MkTx(ISigner key, long nonce, DateTimeOffset? ts = null) =>
             new TransactionMetadata
             {
                 Nonce = nonce,
@@ -24,11 +24,11 @@ public partial class BlockchainTest
                 Timestamp = ts ?? DateTimeOffset.UtcNow,
             }.Sign(key);
 
-        PrivateKey a = new PrivateKey();
-        PrivateKey b = new PrivateKey();
-        PrivateKey c = new PrivateKey();
-        PrivateKey d = new PrivateKey();
-        PrivateKey e = new PrivateKey();
+        var a = new PrivateKey().AsSigner();
+        var b = new PrivateKey().AsSigner();
+        var c = new PrivateKey().AsSigner();
+        var d = new PrivateKey().AsSigner();
+        var e = new PrivateKey().AsSigner();
         List<Address> signers = new List<Address>()
         {
             a.Address, b.Address, c.Address, d.Address, e.Address,
@@ -40,17 +40,17 @@ public partial class BlockchainTest
         // C. Smaller nonces have later timestamps (2 txs: 0 (later), 1)
         // D. Some nonce numbers are missed out (3 txs: 0, 1, 3)
         // E. Reused nonces (4 txs: 0, 1, 1, 2)
-        _blockchain.StagedTransactions.Add(new TransactionBuilder
+        _blockchain.StagedTransactions.Add(a, new TransactionSubmission
         {
-        }.Create(a, _blockchain));
+        });
         DateTimeOffset currentTime = DateTimeOffset.UtcNow;
         _blockchain.StagedTransactions.Add(MkTx(b, 1, currentTime + TimeSpan.FromHours(1)));
         _blockchain.StagedTransactions.Add(MkTx(c, 0, DateTimeOffset.UtcNow + TimeSpan.FromHours(1)));
         _blockchain.StagedTransactions.Add(MkTx(d, 0, DateTimeOffset.UtcNow));
         _blockchain.StagedTransactions.Add(MkTx(e, 0, DateTimeOffset.UtcNow));
-        _blockchain.StagedTransactions.Add(new TransactionBuilder
+        _blockchain.StagedTransactions.Add(a, new TransactionSubmission
         {
-        }.Create(a, _blockchain));
+        });
         _blockchain.StagedTransactions.Add(MkTx(b, 0, currentTime));
         _blockchain.StagedTransactions.Add(MkTx(c, 1, DateTimeOffset.UtcNow));
         _blockchain.StagedTransactions.Add(MkTx(d, 1, DateTimeOffset.UtcNow));
@@ -58,9 +58,9 @@ public partial class BlockchainTest
         _blockchain.StagedTransactions.Add(MkTx(d, 3, DateTimeOffset.UtcNow));
         _blockchain.StagedTransactions.Add(MkTx(e, 1, DateTimeOffset.UtcNow));
         _blockchain.StagedTransactions.Add(MkTx(e, 2, DateTimeOffset.UtcNow));
-        _blockchain.StagedTransactions.Add(new TransactionBuilder
+        _blockchain.StagedTransactions.Add(a, new TransactionSubmission
         {
-        }.Create(a, _blockchain));
+        });
 
         var stagedTransactions = _blockchain.StagedTransactions.Collect();
 

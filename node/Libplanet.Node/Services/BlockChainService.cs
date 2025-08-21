@@ -30,7 +30,7 @@ internal sealed class BlockChainService(
         var options = new BlockchainOptions
         {
             SystemActions = actionService.PolicyActions,
-            BlockInterval = TimeSpan.FromSeconds(8),
+            // BlockInterval = TimeSpan.FromSeconds(8),
             BlockOptions = new BlockOptions
             {
                 MaxTransactionsBytes = long.MaxValue,

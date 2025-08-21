@@ -293,7 +293,7 @@ If omitted (default) explorer only the local blockchain store.")]
             return new BlockchainOptions
             {
                 SystemActions = SystemActions.Empty,
-                BlockInterval = TimeSpan.FromMilliseconds(options.BlockIntervalMilliseconds),
+                // BlockInterval = TimeSpan.FromMilliseconds(options.BlockIntervalMilliseconds),
                 BlockOptions = new BlockOptions
                 {
                     MaxTransactionsBytes = options.MaxTransactionsBytes,

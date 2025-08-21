@@ -30,8 +30,8 @@ public static class SignExtensions
     public static Transaction Create(this TransactionBuilder @this, PrivateKey privateKey)
         => @this.Create(privateKey.AsSigner());
 
-    public static Transaction Create(this TransactionBuilder @this, PrivateKey privateKey, Blockchain blockchain)
-        => @this.Create(privateKey.AsSigner(), blockchain);
+    // public static Transaction Create(this TransactionBuilder @this, PrivateKey privateKey, Blockchain blockchain)
+    //     => @this.Create(privateKey.AsSigner(), blockchain);
 
     public static Block Create(this BlockBuilder @this, PrivateKey privateKey)
         => @this.Create(privateKey.AsSigner());
