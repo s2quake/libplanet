@@ -25,12 +25,12 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
     [Fact]
     public void Constructors()
     {
-        var tenSec = new TimeSpan(0, 0, 10);
+        var second10 = new TimeSpan(0, 0, 10);
         var optionsA = new BlockchainOptions
         {
-            BlockInterval = tenSec,
+            BlockInterval = second10,
         };
-        Assert.Equal(tenSec, optionsA.BlockInterval);
+        Assert.Equal(second10, optionsA.BlockInterval);
 
         var optionsB = new BlockchainOptions
         {
@@ -95,12 +95,13 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
     [Fact]
     public void ValidateNextBlockTxWithInnerException()
     {
-        var validKey = new PrivateKey();
-        var invalidKey = new PrivateKey();
+        var random = RandomUtility.GetRandom(output);
+        var validSigner = RandomUtility.Signer(random);
+        var invalidSigner = RandomUtility.Signer(random);
 
         void IsSignerValid(Transaction tx)
         {
-            var validAddress = validKey.Address;
+            var validAddress = validSigner.Address;
             if (!tx.Signer.Equals(validAddress))
             {
                 throw new InvalidOperationException("invalid signer");
@@ -110,7 +111,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
         //Invalid Transaction with inner-exception
         void IsSignerValidWithInnerException(Transaction tx)
         {
-            var validAddress = validKey.Address;
+            var validAddress = validSigner.Address;
             if (!tx.Signer.Equals(validAddress))
             {
                 throw new InvalidOperationException(
@@ -120,7 +121,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
         }
 
         // Invalid Transaction without Inner-exception
-        var options = new BlockchainOptions
+        var optionsA = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
@@ -130,17 +131,17 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
                 ],
             },
         };
-        var blockchain = TestUtils.MakeBlockchain(options: options);
+        var blockchainA = TestUtils.MakeBlockchain(options: optionsA);
 
         var invalidTx = new TransactionBuilder
         {
-            Blockchain = blockchain,
-        }.Create(invalidKey);
-        blockchain.StagedTransactions.Add(invalidTx);
-        options.TransactionOptions.Validate(invalidTx);
+            Blockchain = blockchainA,
+        }.Create(invalidSigner);
+        blockchainA.StagedTransactions.Add(invalidTx);
+        optionsA.TransactionOptions.Validate(invalidTx);
 
         // Invalid Transaction with Inner-exception.
-        options = new BlockchainOptions
+        var optionsB = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
@@ -150,12 +151,13 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
                 ],
             },
         };
+        var blockchainB = TestUtils.MakeBlockchain(options: optionsA);
 
         invalidTx = new TransactionBuilder
         {
-            Blockchain = blockchain,
-        }.Create(invalidKey);
-        blockchain.StagedTransactions.Add(invalidTx);
+            Blockchain = blockchainA,
+        }.Create(invalidSigner);
+        blockchainA.StagedTransactions.Add(invalidTx);
     }
 
     [Fact]
