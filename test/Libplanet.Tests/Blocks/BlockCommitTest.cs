@@ -1,35 +1,35 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 
 namespace Libplanet.Tests.Blocks;
 
-public sealed class BlockCommitTest
+public sealed class BlockCommitTest(ITestOutputHelper output)
 {
     [Fact]
     public void ToHash()
     {
-        var randomHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
-        var keys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToList();
-        var votes = keys.Select((key, index) =>
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
+        var votes = signers.Select((signer, index) =>
                 new VoteMetadata
                 {
                     Height = 1,
                     Round = 0,
-                    BlockHash = randomHash,
+                    BlockHash = blockHash,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Validator = key.Address,
-                    ValidatorPower = index == 0 ? BigInteger.Zero : BigInteger.One,
+                    Validator = signer.Address,
+                    ValidatorPower = RandomUtility.PositiveBigInteger(random),
                     Type = VoteType.PreCommit,
-                }.Sign(key))
+                }.Sign(signer))
             .ToImmutableArray();
         var blockCommit = new BlockCommit
         {
             Height = 1,
             Round = 0,
-            BlockHash = randomHash,
+            BlockHash = blockHash,
             Votes = votes,
         };
 
@@ -42,27 +42,28 @@ public sealed class BlockCommitTest
     [Fact]
     public void HeightAndRoundMustNotBeNegative()
     {
-        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
-        var key = new PrivateKey();
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var signer = RandomUtility.Signer(random);
         var votes = ImmutableArray.Create(
             new VoteMetadata
             {
-                Height = 0,
+                Height = 1,
                 Round = 0,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = key.Address,
-                ValidatorPower = BigInteger.One,
+                Validator = signer.Address,
+                ValidatorPower = RandomUtility.PositiveBigInteger(random),
                 Type = VoteType.PreCommit,
-            }.Sign(key));
+            }.Sign(signer));
 
-        // Negative height is not allowed.
+        // Non positive height is not allowed.
         var exception1 = ValidationTest.Throws(
             new BlockCommit
             {
-                Height = -1,
+                Height = 0,
                 Round = 0,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Votes = votes,
             });
         Assert.Contains(nameof(BlockCommit.Height), exception1.ValidationResult.MemberNames);
@@ -71,9 +72,9 @@ public sealed class BlockCommitTest
         var exception2 = ValidationTest.Throws(
             new BlockCommit
             {
-                Height = 0,
+                Height = 1,
                 Round = -1,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Votes = votes,
             });
         Assert.Contains(nameof(BlockCommit.Round), exception2.ValidationResult.MemberNames);
@@ -82,13 +83,14 @@ public sealed class BlockCommitTest
     [Fact]
     public void VotesCannotBeEmpty()
     {
-        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
         var exception1 = ValidationTest.Throws(
             new BlockCommit
             {
-                Height = 0,
+                Height = 1,
                 Round = 0,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Votes = default,
             });
         Assert.Contains(nameof(BlockCommit.Votes), exception1.ValidationResult.MemberNames);
@@ -96,9 +98,9 @@ public sealed class BlockCommitTest
         var exception2 = ValidationTest.Throws(
             new BlockCommit
             {
-                Height = 0,
+                Height = 1,
                 Round = 0,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Votes = [],
             });
         Assert.Contains(nameof(BlockCommit.Votes), exception2.ValidationResult.MemberNames);
@@ -107,10 +109,11 @@ public sealed class BlockCommitTest
     [Fact]
     public void EveryVoteMustHaveSameHeightAndRoundAsBlockCommit()
     {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var signer = RandomUtility.Signer(random);
         var height = 2;
         var round = 3;
-        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
-        var key = new PrivateKey();
 
         // Vote with different height is not allowed.
         var votes1 = ImmutableArray.Create(
@@ -118,19 +121,19 @@ public sealed class BlockCommitTest
             {
                 Height = height + 1,
                 Round = round,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = key.Address,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Type = VoteType.PreCommit,
-            }.Sign(key));
+            }.Sign(signer));
 
         var exception1 = ValidationTest.Throws(
             new BlockCommit
             {
                 Height = height,
                 Round = round,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Votes = votes1,
             });
         Assert.Contains(nameof(BlockCommit.Votes), exception1.ValidationResult.MemberNames);
@@ -141,19 +144,19 @@ public sealed class BlockCommitTest
             {
                 Height = height,
                 Round = round + 1,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = key.Address,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Type = VoteType.PreCommit,
-            }.Sign(key));
+            }.Sign(signer));
 
         var exception2 = ValidationTest.Throws(
             new BlockCommit
             {
                 Height = height,
                 Round = round,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Votes = votes2,
             });
         Assert.Contains(nameof(BlockCommit.Votes), exception2.ValidationResult.MemberNames);
@@ -162,30 +165,31 @@ public sealed class BlockCommitTest
     [Fact]
     public void EveryVoteMustHaveSameHashAsBlockCommit()
     {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var invalidHash = RandomUtility.BlockHash(random);
+        var signer = RandomUtility.Signer(random);
         var height = 2;
         var round = 3;
-        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
-        var badHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
-        var key = new PrivateKey();
 
         var votes = ImmutableArray.Create(
             new VoteMetadata
             {
                 Height = height,
                 Round = round,
-                BlockHash = badHash,
+                BlockHash = invalidHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = key.Address,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Type = VoteType.PreCommit,
-            }.Sign(key));
+            }.Sign(signer));
 
         var exception1 = ValidationTest.Throws(
             new BlockCommit
             {
                 Height = height,
                 Round = round,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Votes = votes,
             });
         Assert.Contains(nameof(BlockCommit.Votes), exception1.ValidationResult.MemberNames);
@@ -194,16 +198,17 @@ public sealed class BlockCommitTest
     [Fact]
     public void EveryVoteTypeMustBeNullOrPreCommit()
     {
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
+        var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
         var height = 2;
         var round = 3;
-        var hash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
-        var keys = Enumerable.Range(0, 4).Select(_ => new PrivateKey()).ToList();
-        var preCommitVotes = keys.Select(
+        var preCommitVotes = signers.Select(
                 key => new VoteMetadata
                 {
                     Height = height,
                     Round = round,
-                    BlockHash = hash,
+                    BlockHash = blockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,
@@ -216,78 +221,88 @@ public sealed class BlockCommitTest
             {
                 Height = height,
                 Round = round,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = keys[0].Address,
+                Validator = signers[0].Address,
                 ValidatorPower = BigInteger.One,
                 Type = VoteType.Null,
-            }.Sign(null))
+            }.WithoutSignature())
             .AddRange(preCommitVotes.Skip(1));
         _ = new BlockCommit
         {
             Height = height,
             Round = round,
-            BlockHash = hash,
+            BlockHash = blockHash,
             Votes = votes,
         };
 
-        votes = ImmutableArray<Vote>.Empty
-            .Add(new VoteMetadata
+        votes =
+        [
+            new VoteMetadata
             {
                 Height = height,
                 Round = round,
-                BlockHash = hash,
+                BlockHash = blockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = keys[0].Address,
+                Validator = signers[0].Address,
                 ValidatorPower = BigInteger.One,
                 Type = VoteType.Unknown,
-            }.Sign(null))
-            .AddRange(preCommitVotes.Skip(1));
-        Assert.Throws<ArgumentException>(() => new BlockCommit
-        {
-            Height = height,
-            Round = round,
-            BlockHash = hash,
-            Votes = votes,
-        });
-
-        votes = ImmutableArray<Vote>.Empty
-            .Add(new VoteMetadata
+            }.WithoutSignature(),
+            .. preCommitVotes.Skip(1),
+        ];
+        ValidationTest.Throws(
+            new BlockCommit
             {
                 Height = height,
                 Round = round,
-                BlockHash = hash,
+                BlockHash = blockHash,
+                Votes = votes,
+            },
+            nameof(BlockCommit.Votes));
+
+        votes =
+        [
+            new VoteMetadata
+            {
+                Height = height,
+                Round = round,
+                BlockHash = blockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = keys[0].Address,
+                Validator = signers[0].Address,
                 ValidatorPower = BigInteger.One,
                 Type = VoteType.PreVote,
-            }.Sign(keys[0]))
-            .AddRange(preCommitVotes.Skip(1));
-        Assert.Throws<ArgumentException>(() => new BlockCommit
-        {
-            Height = height,
-            Round = round,
-            BlockHash = hash,
-            Votes = votes,
-        });
-
-        votes = ImmutableArray<Vote>.Empty
-            .Add(new VoteMetadata
+            }.Sign(signers[0]),
+            .. preCommitVotes.Skip(1),
+        ];
+        ValidationTest.Throws(
+            new BlockCommit
             {
                 Height = height,
                 Round = round,
-                BlockHash = hash,
+                BlockHash = blockHash,
+                Votes = votes,
+            },
+            nameof(BlockCommit.Votes));
+
+        votes =
+        [
+            new VoteMetadata
+            {
+                Height = height,
+                Round = round,
+                BlockHash = blockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = keys[0].Address,
+                Validator = signers[0].Address,
                 ValidatorPower = BigInteger.One,
                 Type = VoteType.PreCommit,
-            }.Sign(keys[0]))
-            .AddRange(preCommitVotes.Skip(1));
+            }.Sign(signers[0]),
+            .. preCommitVotes.Skip(1),
+        ];
         _ = new BlockCommit
         {
             Height = height,
             Round = round,
-            BlockHash = hash,
+            BlockHash = blockHash,
             Votes = votes,
         };
     }

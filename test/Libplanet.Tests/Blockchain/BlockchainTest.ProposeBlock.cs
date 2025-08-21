@@ -80,12 +80,12 @@ public partial class BlockchainTest
 
         Block block4 = _blockchain.ProposeBlock(proposer: new PrivateKey().AsSigner());
         Assert.False(_blockchain.Blocks.ContainsKey(block4.BlockHash));
-        _logger.Debug(
-            $"{nameof(block4)}: {0} bytes",
-            ModelSerializer.SerializeToBytes(block4).Length);
-        _logger.Debug(
-            $"{nameof(maxTransactionsBytes)}({nameof(block4)}.{nameof(block4.Height)}) = {0}",
-            maxTransactionsBytes);
+        // _logger.Debug(
+        //     $"{nameof(block4)}: {0} bytes",
+        //     ModelSerializer.SerializeToBytes(block4).Length);
+        // _logger.Debug(
+        //     $"{nameof(maxTransactionsBytes)}({nameof(block4)}.{nameof(block4.Height)}) = {0}",
+        //     maxTransactionsBytes);
         Assert.True(
             ModelSerializer.SerializeToBytes(block4).Length <= maxTransactionsBytes);
         Assert.Equal(3, block4.Transactions.Count);

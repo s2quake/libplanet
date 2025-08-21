@@ -5,7 +5,6 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Data;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
-using Serilog;
 using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
@@ -14,7 +13,6 @@ namespace Libplanet.Tests.Blockchain;
 
 public partial class BlockchainTest : IDisposable
 {
-    private readonly ILogger _logger;
     private readonly RepositoryFixture _fx;
     private readonly BlockchainOptions _options;
     private readonly Libplanet.Blockchain _blockchain;
@@ -23,13 +21,6 @@ public partial class BlockchainTest : IDisposable
 
     public BlockchainTest(ITestOutputHelper output)
     {
-        Log.Logger = _logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-            .Enrich.WithThreadId()
-            // .WriteTo.TestOutput(output)
-            .CreateLogger()
-            .ForContext<BlockchainTest>();
-
         _options = new BlockchainOptions
         {
             SystemActions = new SystemActions
@@ -839,12 +830,12 @@ public partial class BlockchainTest : IDisposable
 
         foreach (var tx in _blockchain.StagedTransactions.Values)
         {
-            _logger.Fatal(
-                "{Id}; {Signer}; {Nonce}; {Timestamp}",
-                tx.Id,
-                tx.Signer,
-                tx.Nonce,
-                tx.Timestamp);
+            // _logger.Fatal(
+            //     "{Id}; {Signer}; {Nonce}; {Timestamp}",
+            //     tx.Id,
+            //     tx.Signer,
+            //     tx.Nonce,
+            //     tx.Timestamp);
         }
 
         Assert.Equal(6, _blockchain.GetNextTxNonce(address));
