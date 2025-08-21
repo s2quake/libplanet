@@ -4,51 +4,41 @@ using Libplanet.Data;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
+using Libplanet.TestUtilities;
 
-namespace Libplanet.Tests.Blockchain.Policies;
+namespace Libplanet.Tests.Blockchain;
 
-public class BlockPolicyTest : IDisposable
+public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
 {
-    private readonly ITestOutputHelper _output;
+    // private readonly ITestOutputHelper _output;
 
-    private readonly RepositoryFixture _fx;
-    private readonly Libplanet.Blockchain _chain;
-    private readonly BlockchainOptions _policy;
+    // private readonly RepositoryFixture _fx;
+    // private readonly Libplanet.Blockchain _chain;
+    // private readonly BlockchainOptions _policy;
 
-    public BlockPolicyTest(ITestOutputHelper output)
-    {
-        _fx = new MemoryRepositoryFixture();
-        _output = output;
-        _policy = new BlockchainOptions
-        {
-            BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
-        };
-        var repository = new Repository();
-        _chain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, _policy);
-    }
 
     public void Dispose()
     {
-        _fx.Dispose();
+        // _fx.Dispose();
     }
 
     [Fact]
     public void Constructors()
     {
         var tenSec = new TimeSpan(0, 0, 10);
-        var a = new BlockchainOptions
+        var optionsA = new BlockchainOptions
         {
             BlockInterval = tenSec,
         };
-        Assert.Equal(tenSec, a.BlockInterval);
+        Assert.Equal(tenSec, optionsA.BlockInterval);
 
-        var b = new BlockchainOptions
+        var optionsB = new BlockchainOptions
         {
             BlockInterval = TimeSpan.FromMilliseconds(65000),
         };
         Assert.Equal(
             new TimeSpan(0, 1, 5),
-            b.BlockInterval);
+            optionsB.BlockInterval);
 
         var c = new BlockchainOptions();
         Assert.Equal(
@@ -59,11 +49,13 @@ public class BlockPolicyTest : IDisposable
     [Fact]
     public void ValidateNextBlockTx()
     {
-        var validKey = new PrivateKey();
+        var random = RandomUtility.GetRandom(output);
+        var validSigner = RandomUtility.Signer(random);
+        var invalidSigner = RandomUtility.Signer(random);
 
         void IsSignerValid(Transaction tx)
         {
-            var validAddress = validKey.Address;
+            var validAddress = validSigner.Address;
             if (!tx.Signer.Equals(validAddress))
             {
                 throw new InvalidOperationException("invalid signer");
@@ -80,21 +72,21 @@ public class BlockPolicyTest : IDisposable
                 ],
             },
         };
+        var blockchain = TestUtils.MakeBlockchain(options: options);
 
         // Valid Transaction
 
         var validTx = new TransactionBuilder
         {
-        }.Create(validKey, _chain);
-        _chain.StagedTransactions.Add(validTx);
+        }.Create(validSigner, blockchain);
+        blockchain.StagedTransactions.Add(validTx);
         options.TransactionOptions.Validate(validTx);
 
         // Invalid Transaction
-        var invalidKey = new PrivateKey();
         var invalidTx = new TransactionBuilder
         {
-        }.Create(invalidKey, _chain);
-        _chain.StagedTransactions.Add(invalidTx);
+        }.Create(invalidSigner, blockchain);
+        blockchain.StagedTransactions.Add(invalidTx);
         options.TransactionOptions.Validate(invalidTx);
     }
 
@@ -136,11 +128,12 @@ public class BlockPolicyTest : IDisposable
                 ],
             },
         };
+        var blockchain = TestUtils.MakeBlockchain(options: options);
 
         var invalidTx = new TransactionBuilder
         {
-        }.Create(invalidKey, _chain);
-        _chain.StagedTransactions.Add(invalidTx);
+        }.Create(invalidKey, blockchain);
+        blockchain.StagedTransactions.Add(invalidTx);
         options.TransactionOptions.Validate(invalidTx);
 
         // Invalid Transaction with Inner-exception.
@@ -157,8 +150,8 @@ public class BlockPolicyTest : IDisposable
 
         invalidTx = new TransactionBuilder
         {
-        }.Create(invalidKey, _chain);
-        _chain.StagedTransactions.Add(invalidTx);
+        }.Create(invalidKey, blockchain);
+        blockchain.StagedTransactions.Add(invalidTx);
     }
 
     [Fact]

@@ -35,9 +35,7 @@ public readonly partial record struct EvidenceId(in ImmutableArray<byte> Bytes)
         }
         catch (ArgumentOutOfRangeException)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(hex),
-                $"Expected {Size * 2} characters, but {hex.Length} characters given.");
+            throw new FormatException($"Expected {Size * 2} characters, but {hex.Length} characters given.");
         }
     }
 

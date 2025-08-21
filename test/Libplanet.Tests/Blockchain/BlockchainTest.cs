@@ -44,10 +44,10 @@ public partial class BlockchainTest : IDisposable
                 BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
-        }.Sign(_fx.ProposerKey);
+        }.Sign(_fx.Proposer);
     }
 
     public void Dispose()
@@ -192,13 +192,13 @@ public partial class BlockchainTest : IDisposable
         Block b2 = _blockchain.ProposeBlock(proposer);
         _blockchain.Append(b2, CreateBlockCommit(b2));
         Assert.Equal(
-            new[] { genesisBlock.BlockHash, block1.BlockHash, b2.BlockHash },
+            [genesisBlock.BlockHash, block1.BlockHash, b2.BlockHash],
             _blockchain.Blocks.Keys);
 
         Block b3 = _blockchain.ProposeBlock(proposer);
         _blockchain.Append(b3, CreateBlockCommit(b3));
         Assert.Equal(
-            new[] { genesisBlock.BlockHash, block1.BlockHash, b2.BlockHash, b3.BlockHash },
+            [genesisBlock.BlockHash, block1.BlockHash, b2.BlockHash, b3.BlockHash],
             _blockchain.Blocks.Keys);
     }
 
