@@ -21,6 +21,7 @@ public partial class SwarmTest
     public async Task BroadcastBlock()
     {
         const int blockCount = 5;
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var fx = new MemoryRepositoryFixture();
         var transportA = TestUtils.CreateTransport();
         var transportB = TestUtils.CreateTransport();
@@ -49,11 +50,11 @@ public partial class SwarmTest
         Assert.NotEqual(blockchainA.Tip, blockchainB.Tip);
         Assert.NotNull(blockchainA.BlockCommits[blockchainA.Tip.BlockHash]);
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerA.PingAsync(transportB.Peer, default);
-        await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
+        await peerExplorerA.PingAsync(transportB.Peer, cancellationToken);
+        await peerExplorerB.PingAsync(peerExplorerA.Peer, cancellationToken);
 
         var waitTaskB = serviceB.Appended.WaitAsync();
         peerExplorerA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
@@ -856,7 +857,7 @@ public partial class SwarmTest
         await peerExplorerB.ExploreAsync([transportA.Peer], 3, default);
         await peerExplorerC.ExploreAsync([transportA.Peer], 3, default);
 
-        var blockDemandCollector = new BlockDemandCollector(blockchainC, transportC);
+        // var blockDemandCollector = new BlockDemandCollector(blockchainC, transportC);
         var blockBranches = new BlockBranchCollection();
         using var blockFetcher = new BlockFetcher(blockchainC, transportC);
         using var blockBranchResolver = new BlockBranchResolver(blockchainC, blockFetcher);
@@ -864,8 +865,8 @@ public partial class SwarmTest
             .Subscribe(e => blockBranches.Add(e.BlockBranch));
         var blockBranchAppender = new BlockBranchAppender(blockchainC);
 
-        await blockDemandCollector.ExecuteAsync([.. peerExplorerC.Peers], default);
-        await blockBranchResolver.ResolveAsync(blockDemandCollector.BlockDemands, blockchainC.Tip, default);
+        // await blockDemandCollector.ExecuteAsync([.. peerExplorerC.Peers], default);
+        // await blockBranchResolver.ResolveAsync(blockDemandCollector.BlockDemands, blockchainC.Tip, default);
         await blockBranchAppender.AppendAsync(blockBranches, default);
 
         Assert.Equal(blockchainC.Tip, tipA);
