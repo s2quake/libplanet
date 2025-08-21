@@ -1,5 +1,7 @@
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Libplanet.Net.Consensus;
 
@@ -35,6 +37,8 @@ public sealed record class ConsensusOptions
     public int EnterEndCommitDelay { get; init; }
 
     public ImmutableArray<IObjectValidator<Block>> BlockValidators { get; init; } = [];
+
+    public ILogger<Consensus> Logger { get; init; } = NullLogger<Consensus>.Instance;
 
     internal TimeSpan TimeoutPropose(Round round) => ProposeTimeoutBase + (ProposeTimeoutDelta * round.Index);
 

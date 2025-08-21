@@ -50,19 +50,12 @@ public sealed partial record class DuplicateVoteEvidence : EvidenceBase, IEquata
         }
 
         if (validationContext.Items.TryGetValue(typeof(EvidenceContext), out var value)
-            && value is EvidenceContext evidenceContext)
+            && value is EvidenceContext evidenceContext
+            && !evidenceContext.Validators.Contains(VoteRef.Validator))
         {
-            if (!evidenceContext.Validators.Contains(VoteRef.Validator))
-            {
-                yield return new ValidationResult(
-                    $"Validator {VoteRef.Validator} is not registered");
-            }
+            yield return new ValidationResult(
+                $"Validator {VoteRef.Validator} is not registered");
         }
-        // else
-        // {
-        //     yield return new ValidationResult(
-        //         $"{nameof(EvidenceContext)} is not available: {validationContext}");
-        // }
 
         if (VoteRef.Height != Height)
         {

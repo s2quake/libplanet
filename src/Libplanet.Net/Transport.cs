@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading.Channels;
 using Libplanet.Net.Messages;
@@ -106,12 +105,10 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
         {
             await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
             {
-                // Trace.WriteLine("Send request: " + request.Identity);
                 var messageEnvelope = request.MessageEnvelope;
                 var receiver = request.Receiver;
                 var bytes = ModelSerializer.SerializeToBytes(messageEnvelope);
-                var r = await client.SendAsync(bytes, bytes.Length, receiver.EndPoint.Host, receiver.EndPoint.Port);
-                Trace.WriteLine($"Sent <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}, {receiver.EndPoint.Port}, {r}/{bytes.Length}");
+                await client.SendAsync(bytes, bytes.Length, receiver.EndPoint.Host, receiver.EndPoint.Port);
             }
         }
         catch
@@ -129,9 +126,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
             {
                 var result = await client.ReceiveAsync(cancellationToken);
                 var messageEnvelope = ModelSerializer.DeserializeFromBytes<MessageEnvelope>(result.Buffer);
-                Trace.WriteLine($"Received <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
                 receiveChannel.Writer.TryWrite(messageEnvelope);
-                // messageRouter.Handle(messageEnvelope);
                 await Task.Yield();
             }
         }
@@ -150,7 +145,6 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
             await foreach (var messageEnvelope in reader.ReadAllAsync(cancellationToken))
             {
                 await messageRouter.HandleAsync(messageEnvelope, cancellationToken);
-                Trace.WriteLine($"Handled <{messageEnvelope.Message.GetType().Name}>: {messageEnvelope.Identity}");
             }
         }
         catch

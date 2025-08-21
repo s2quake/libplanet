@@ -1,11 +1,11 @@
-using System.Diagnostics;
 using System.Reactive.Subjects;
 using Libplanet.Net.Threading;
 using Libplanet.Types;
+using Microsoft.Extensions.Logging;
 
 namespace Libplanet.Net.Consensus;
 
-public sealed class Consensus(ImmutableSortedSet<Validator> validators, int height, ConsensusOptions options)
+public sealed partial class Consensus(ImmutableSortedSet<Validator> validators, int height, ConsensusOptions options)
     : ServiceBase
 {
     private readonly Subject<Round> _roundChangedSubject = new();
@@ -23,6 +23,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
     private readonly Dictionary<BlockHash, bool> _blockValidationCache = [];
     private readonly RoundCollection _rounds = new(height, validators);
+    private readonly ILogger<Consensus> _logger = options.Logger;
 
     private Dispatcher? _dispatcher;
     private Proposal? _preVoteProposal;
@@ -128,6 +129,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         await _dispatcher.InvokeAsync(_ =>
         {
             SetProposal(proposal);
+            LogProposed(_logger, proposal.Height, proposal.Round, proposal.Validator);
             ProcessGenericUponRules();
         }, cancellationToken);
     }
@@ -158,10 +160,10 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
         await _dispatcher.PostAsync(() =>
         {
-            Trace.WriteLine($"PreVote [{vote.Height},{vote.Round}]: {vote.Validator}");
             var round = _rounds[vote.Round];
             round.PreVote(vote);
             _preVotedSubject.OnNext(vote);
+            LogPreVoted(_logger, vote.Height, vote.Round, vote.Validator);
             ProcessHeightOrRoundUponRules(vote);
             ProcessGenericUponRules();
         }, cancellationToken);
@@ -193,10 +195,10 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
         await _dispatcher.PostAsync(() =>
         {
-            Trace.WriteLine($"PreCommit [{vote.Height},{vote.Round}]: {vote.Validator}");
             var round = _rounds[vote.Round];
             round.PreCommit(vote);
             _preCommittedSubject.OnNext(vote);
+            LogPreCommitted(_logger, vote.Height, vote.Round, vote.Validator);
             ProcessHeightOrRoundUponRules(vote);
             ProcessGenericUponRules();
         }, cancellationToken);
@@ -363,8 +365,8 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         {
             if (round == _round && Step == ConsensusStep.Propose)
             {
-                Trace.WriteLine($"TimeoutPropose [{round.Index}]");
                 _timeoutOccurredSubject.OnNext(ConsensusStep.Propose);
+                LogTimeoutOccurred(_logger, Height, round.Index, ConsensusStep.Propose);
                 EnterPreVoteStep(round, default);
                 ProcessGenericUponRules();
             }
@@ -390,8 +392,8 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         {
             if (round == _round && Step == ConsensusStep.PreVote)
             {
-                Trace.WriteLine($"TimeoutPreVote [{round.Index}]");
                 _timeoutOccurredSubject.OnNext(ConsensusStep.PreVote);
+                LogTimeoutOccurred(_logger, Height, round.Index, ConsensusStep.PreVote);
                 EnterPreCommitStep(round, default);
                 ProcessGenericUponRules();
             }
@@ -415,8 +417,8 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         {
             if (round == _round && Step is ConsensusStep.PreVote or ConsensusStep.PreCommit)
             {
-                Trace.WriteLine($"TimeoutPreCommit [{Height},{round.Index}]");
                 _timeoutOccurredSubject.OnNext(ConsensusStep.PreCommit);
+                LogTimeoutOccurred(_logger, Height, round.Index, ConsensusStep.PreCommit);
                 EnterEndCommitStep(round);
                 ProcessGenericUponRules();
             }
@@ -438,7 +440,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
         _roundChangedSubject.OnNext(Round);
         _stepChangedSubject.OnNext((Step, default));
-
+        LogRoundStarted(_logger, Height, Round.Index);
         PostProposeTimeout(Round);
     }
 
@@ -482,7 +484,6 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         }
 
         Proposal = proposal;
-        Trace.WriteLine($"Propose [{proposal.Height},{proposal.Round}]: {proposal.Validator}");
         _proposedSubject.OnNext(proposal);
     }
 
@@ -611,9 +612,8 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
         }
 
         Step = ConsensusStep.PreVote;
-        Trace.WriteLine($"EnterPreVote: [{Height},{round.Index}]");
         _stepChangedSubject.OnNext((Step, blockHash));
-        // Trace.WriteLine("EnterPreVoteStep");
+        LogStepChanged(_logger, Height, round.Index, Step, blockHash);
     }
 
     private void EnterPreCommitStep(Round round, BlockHash blockHash)
@@ -625,7 +625,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
 
         Step = ConsensusStep.PreCommit;
         _stepChangedSubject.OnNext((Step, blockHash));
-        Trace.WriteLine($"EnterPreCommit: [{Height},{round.Index}]");
+        LogStepChanged(_logger, Height, round.Index, Step, blockHash);
     }
 
     private void EnterEndCommitStep(Round round)
@@ -644,7 +644,7 @@ public sealed class Consensus(ImmutableSortedSet<Validator> validators, int heig
             Step = ConsensusStep.EndCommit;
             _stepChangedSubject.OnNext((Step, decidedProposal.BlockHash));
             _finalizedSubject.OnNext((decidedProposal.Block, round.PreCommits.GetBlockCommit()));
-            Trace.WriteLine($"EnterEndCommit: [{Height},{round.Index}]");
+            LogStepChanged(_logger, Height, round.Index, Step, decidedProposal.BlockHash);
         }
     }
 
