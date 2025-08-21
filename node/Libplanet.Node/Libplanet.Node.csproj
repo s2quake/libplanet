@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
     <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Net\Libplanet.Net.csproj" />
+    <ProjectReference Include="..\..\src\Libplanet.Net.NetMQ\Libplanet.Net.NetMQ.csproj" />
   </ItemGroup>
 
 </Project>

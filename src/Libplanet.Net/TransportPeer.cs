@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-internal sealed class TransportPeer : IDisposable
+public sealed class TransportPeer : IDisposable
 {
     private static readonly object _lock = new();
     private static readonly HashSet<int> _usedPorts = [];

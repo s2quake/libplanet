@@ -224,6 +224,8 @@ public abstract class TransportTestBase(ITestOutputHelper output)
             transportB.Peer, new PingMessage(), Predicate, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
+        Assert.Equal(3, messages.Length);
+
         var message0 = messages.OfType<PingMessage>().First();
         var message1 = messages.OfType<PongMessage>().First();
         var message2 = messages.OfType<TestMessage>().First();
