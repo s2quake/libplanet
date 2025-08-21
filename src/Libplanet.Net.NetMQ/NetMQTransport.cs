@@ -150,7 +150,7 @@ public sealed partial class NetMQTransport(ISigner signer, TransportOptions opti
                 if (messageRouter.VerifyReceivedMessage(messageEnvelope))
                 {
                     receiveChannel.Writer.TryWrite(messageEnvelope);
-                    LogMessageReceived(logger, messageEnvelope);
+                    DebugMessageReceived(logger, messageEnvelope);
                 }
             }
         }
@@ -187,7 +187,7 @@ public sealed partial class NetMQTransport(ISigner signer, TransportOptions opti
                         throw new InvalidOperationException("Failed to send message to the dealer socket.");
                     }
 
-                    LogMessageSent(logger, messageEnvelope, request.Receiver);
+                    DebugMessageSent(logger, messageEnvelope, request.Receiver);
                 }
             }
         }

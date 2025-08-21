@@ -118,9 +118,9 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transportA.StartAsync(cancellationToken);
         await transportB.StartAsync(cancellationToken);
 
+        var responseTask = transportB.WaitAsync<PingMessage>(cancellationToken);
         var request = transportA.Post(transportB.Peer, new PingMessage());
-        var response = await transportB.WaitAsync<PingMessage>(cancellationToken)
-            .WaitAsync(TimeSpan.FromSeconds(2), cancellationToken);
+        var response = await responseTask.WaitAsync(WaitTimeout2, cancellationToken);
 
         Assert.IsType<PingMessage>(response.Message);
         Assert.Equal(request.Identity, response.Identity);

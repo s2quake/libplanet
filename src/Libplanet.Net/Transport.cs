@@ -1,21 +1,22 @@
-using System.Drawing;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading.Channels;
 using Libplanet.Net.Messages;
 using Libplanet.Serialization;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace Libplanet.Net;
 
-[Obsolete("Incomplete")]
-public sealed class Transport(ISigner signer, TransportOptions options) : ServiceBase, ITransport
+public sealed partial class Transport(ISigner signer, TransportOptions options) : ServiceBase, ITransport
 {
     private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
     private readonly MessageRouter _messageRouter = new();
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
     private readonly TransportPeer _peer = new(signer.Address, options.Host, options.Port);
+    private readonly ILogger<ITransport> _logger = options.Logger;
     private Channel<MessageRequest>? _sendChannel;
     private Channel<MessageEnvelope>? _receiveChannel;
     private TcpListener? _listener;
@@ -62,12 +63,12 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     {
         _sendChannel = Channel.CreateUnbounded<MessageRequest>();
         _receiveChannel = Channel.CreateUnbounded<MessageEnvelope>();
-        _listener = new TcpListener(Peer.EndPoint.Port);
+        _listener = new TcpListener(IPAddress.Loopback, Peer.EndPoint.Port);
         _listener.Start();
         _processTasks =
         [
-            ProcessReceiveAsync(_listener, _receiveChannel, StoppingToken),
-            ProcessSendAsync(_sendChannel, StoppingToken),
+            ProcessReceiveAsync(_listener,_logger, _receiveChannel, StoppingToken),
+            ProcessSendAsync(_logger,_sendChannel, StoppingToken),
             ProcessHandleAsync(_receiveChannel, _messageRouter, StoppingToken),
         ];
         return Task.CompletedTask;
@@ -102,7 +103,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     }
 
     private static async Task ProcessSendAsync(
-        Channel<MessageRequest> channel, CancellationToken cancellationToken)
+        ILogger<ITransport> logger, Channel<MessageRequest> channel, CancellationToken cancellationToken)
     {
         var requestReader = channel.Reader;
         try
@@ -117,11 +118,12 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
                 using var client = new TcpClient();
                 try
                 {
-                    await client.ConnectAsync(receiver.EndPoint.Host, receiver.EndPoint.Port);
+                    await client.ConnectAsync(receiver.EndPoint.Host, receiver.EndPoint.Port, cancellationToken);
                     using var stream = client.GetStream();
                     await stream.WriteAsync(lengthBytes, cancellationToken);
                     await stream.WriteAsync(bytes, cancellationToken);
                     await stream.FlushAsync(cancellationToken);
+                    LogMessageSent(logger, messageEnvelope, receiver);
                 }
                 catch (SocketException)
                 {
@@ -136,14 +138,17 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     }
 
     private static async Task ProcessReceiveAsync(
-        TcpListener listener, Channel<MessageEnvelope> receiveChannel, CancellationToken cancellationToken)
+        TcpListener listener,
+        ILogger<ITransport> logger,
+        Channel<MessageEnvelope> receiveChannel,
+        CancellationToken cancellationToken)
     {
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                using var client = await listener.AcceptTcpClientAsync(cancellationToken);
-                _ = ReadMessageAsync(client, receiveChannel, cancellationToken);
+                var client = await listener.AcceptTcpClientAsync(cancellationToken);
+                _ = ReadMessageAsync(client, logger, receiveChannel, cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -172,12 +177,15 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     }
 
     private static async Task ReadMessageAsync(
-        TcpClient client, Channel<MessageEnvelope> receiveChannel, CancellationToken cancellationToken)
+        TcpClient client,
+        ILogger<ITransport> logger,
+        Channel<MessageEnvelope> receiveChannel,
+        CancellationToken cancellationToken)
     {
         using var _ = client;
-        using var strema = client.GetStream();
+        using var stream = client.GetStream();
         var lengthBuffer = new byte[sizeof(int)];
-        var readLength = await ReadExactAsync(strema, lengthBuffer, sizeof(int), cancellationToken);
+        var readLength = await ReadExactAsync(stream, lengthBuffer, sizeof(int), cancellationToken);
         if (readLength == 0)
         {
             return;
@@ -185,7 +193,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
 
         var messageLength = BitConverter.ToInt32(lengthBuffer, 0);
         var messageBuffer = new byte[messageLength];
-        readLength = await ReadExactAsync(strema, messageBuffer, messageLength, cancellationToken);
+        readLength = await ReadExactAsync(stream, messageBuffer, messageLength, cancellationToken);
         if (readLength == 0)
         {
             return;
@@ -193,6 +201,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
 
         var messageEnvelope = ModelSerializer.DeserializeFromBytes<MessageEnvelope>(messageBuffer);
         receiveChannel.Writer.TryWrite(messageEnvelope);
+        LogMessageReceived(logger, messageEnvelope);
     }
 
     private static async Task<int> ReadExactAsync(

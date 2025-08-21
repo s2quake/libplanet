@@ -1,13 +1,13 @@
 using Libplanet.Net.Messages;
 using Microsoft.Extensions.Logging;
 
-namespace Libplanet.Net.NetMQ;
+namespace Libplanet.Net;
 
-public sealed partial class NetMQTransport
+public sealed partial class Transport
 {
-    private static void DebugMessageReceived(ILogger logger, MessageEnvelope messageEnvelope)
+    private static void LogMessageReceived(ILogger logger, MessageEnvelope messageEnvelope)
     {
-        DebugMessageReceived(
+        LogMessageReceived(
             logger,
             messageEnvelope.Identity,
             messageEnvelope.Sender,
@@ -16,12 +16,12 @@ public sealed partial class NetMQTransport
     }
 
     [LoggerMessage(EventId = 1002, Level = LogLevel.Debug, Message = "Message received: {Identity}, {Sender}, {MessageId}, {ReplyTo}")]
-    private static partial void DebugMessageReceived(ILogger logger, Guid identity, Peer sender, MessageId messageId, Guid? replyTo);
+    private static partial void LogMessageReceived(ILogger logger, Guid identity, Peer sender, MessageId messageId, Guid? replyTo);
 
-    private static void DebugMessageSent(
+    private static void LogMessageSent(
         ILogger logger, MessageEnvelope messageEnvelope, Peer receiver)
     {
-        DebugMessageSent(
+        LogMessageSent(
             logger,
             messageEnvelope.Identity,
             receiver,
@@ -29,5 +29,5 @@ public sealed partial class NetMQTransport
     }
 
     [LoggerMessage(EventId = 1003, Level = LogLevel.Debug, Message = "Message sent: {Identity}, {Receiver}, {MessageId}")]
-    private static partial void DebugMessageSent(ILogger logger, Guid identity, Peer receiver, MessageId messageId);
+    private static partial void LogMessageSent(ILogger logger, Guid identity, Peer receiver, MessageId messageId);
 }
