@@ -57,27 +57,27 @@ public class CurrencyTest
     public void Hash()
     {
         var currency = Currency.Create("GOLD", 2, [AddressA]);
-        var expected = HashDigest<SHA1>.Parse("bc392fe514f5bce051a25229a2d5404d24ffe002");
+        var expected = HashDigest<SHA1>.Parse("c20c7a9bf9f39ba5b6dbf7f798bb4b6562e51e5e");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("NCG", 8, [AddressA, AddressB]);
-        expected = HashDigest<SHA1>.Parse("3a7151e1d9ea503b19b6e48c206f35b53a029e9a");
+        expected = HashDigest<SHA1>.Parse("976d50cc499205ad9e55085ecb93e7809f340814");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("FOO", 0);
-        expected = HashDigest<SHA1>.Parse("6f98bda5dd03c801b331603dfd004c1b1cca818b");
+        expected = HashDigest<SHA1>.Parse("9a6f39c23125e7b64ef3d16cfaac7243cf77f8f7");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("BAR", 1);
-        expected = HashDigest<SHA1>.Parse("a10d99ab4936f60f506f95a50d660ef6b2abb4f1");
+        expected = HashDigest<SHA1>.Parse("c10347fb5d6abc3ab92aa4f3d8d026bb50d5c6bc");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("BAZ", 1);
-        expected = HashDigest<SHA1>.Parse("fb0b364837999b1eb88a397d2c42900e0cbae26c");
+        expected = HashDigest<SHA1>.Parse("c5fda09873901efeb6d73104ac06bd7126141a53");
         Assert.Equal(expected, currency.Hash);
 
         currency = Currency.Create("BAZ", 1, 100);
-        expected = HashDigest<SHA1>.Parse("98d5d0dfb130e8ba45109e480e4556fc56173e1f");
+        expected = HashDigest<SHA1>.Parse("92417bc9b80a82cf043c9752c7b37de3b9889372");
         Assert.Equal(expected, currency.Hash);
     }
 
@@ -110,16 +110,16 @@ public class CurrencyTest
     public void String()
     {
         var currency = Currency.Create("GOLD", 0, [AddressA]);
-        Assert.Equal("GOLD (c6803ba4c2f582e5038f3698a00299b5cea63441)", currency.ToString());
+        Assert.Equal("GOLD (a563cb2ebd932576a033dbd6e0871064ee211ad2)", currency.ToString());
 
         currency = Currency.Create("GOLD", 0, []);
-        Assert.Equal("GOLD (dbd5a3f3f0c7b6dfa008854ae3e910494aca28d6)", currency.ToString());
+        Assert.Equal("GOLD (b392f57c9ec82c6f3c63fa504b2dc06196609c21)", currency.ToString());
 
         currency = Currency.Create("GOLD", 0);
-        Assert.Equal("GOLD (dbd5a3f3f0c7b6dfa008854ae3e910494aca28d6)", currency.ToString());
+        Assert.Equal("GOLD (b392f57c9ec82c6f3c63fa504b2dc06196609c21)", currency.ToString());
 
         currency = Currency.Create("GOLD", 0, 100, [AddressA]);
-        Assert.Equal("GOLD (f747f97271791fac1ea068befeff80b7e0727b19)", currency.ToString());
+        Assert.Equal("GOLD (9cff87ba928f3f3c72aaa05cc24e1dc603ae18fd)", currency.ToString());
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class CurrencyTest
         var foo = Currency.Create("FOO", 2);
         var expectedFooJson = @"
             {
-                ""hash"": ""8079efca64fc19121f21f5e04d5d9a303c96adc5"",
+                ""hash"": ""b48e64cd4355c04a1a07a921c2dc4e070ae274ff"",
                 ""ticker"": ""FOO"",
                 ""decimalPlaces"": 2,
                 ""maximumSupply"": ""0"",
@@ -184,7 +184,7 @@ public class CurrencyTest
         var bar = Currency.Create("BAR", 0, 100, [AddressA, AddressB]);
         var expectedBarJson = @"
             {
-                ""hash"": ""9bc0d04176336a20eef24cc975f2e4524f303ec1"",
+                ""hash"": ""6b187ae301440743c76edb7286a17d8982cac4eb"",
                 ""ticker"": ""BAR"",
                 ""decimalPlaces"": 0,
                 ""maximumSupply"": ""100"",

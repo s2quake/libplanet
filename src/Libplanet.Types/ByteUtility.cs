@@ -68,9 +68,16 @@ public static class ByteUtility
 
     public static int GetHashCode(ReadOnlySpan<byte> bytes)
     {
-        HashCode code = new();
-        code.AddBytes(bytes);
-        return code.ToHashCode();
+        var hashCode = 0;
+        unchecked
+        {
+            foreach (var @byte in bytes)
+            {
+                hashCode = (hashCode * 397) ^ @byte.GetHashCode();
+            }
+        }
+
+        return hashCode;
     }
 
     public static bool TimingSafelyCompare(IReadOnlyList<byte> left, IReadOnlyList<byte> right)

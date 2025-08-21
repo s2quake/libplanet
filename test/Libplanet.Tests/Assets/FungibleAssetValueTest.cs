@@ -468,7 +468,7 @@ public class FungibleAssetValueTest
             {
                 ""quantity"": ""123.45"",
                 ""currency"": {
-                    ""hash"": ""8079efca64fc19121f21f5e04d5d9a303c96adc5"",
+                    ""hash"": ""b48e64cd4355c04a1a07a921c2dc4e070ae274ff"",
                     ""ticker"": ""FOO"",
                     ""decimalPlaces"": 2,
                     ""minters"": [],
@@ -482,7 +482,7 @@ public class FungibleAssetValueTest
             {
                 ""quantity"": ""-456"",
                 ""currency"": {
-                    ""hash"": ""8079efca64fc19121f21f5e04d5d9a303c96adc5"",
+                    ""hash"": ""b48e64cd4355c04a1a07a921c2dc4e070ae274ff"",
                     ""ticker"": ""FOO"",
                     ""decimalPlaces"": 2,
                     ""minters"": [],

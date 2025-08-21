@@ -19,7 +19,7 @@ public partial class BlockchainTest
             {
                 Nonce = nonce,
                 Signer = key.Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
                 Timestamp = ts ?? DateTimeOffset.UtcNow,
             }.Sign(key);
@@ -40,29 +40,29 @@ public partial class BlockchainTest
         // C. Smaller nonces have later timestamps (2 txs: 0 (later), 1)
         // D. Some nonce numbers are missed out (3 txs: 0, 1, 3)
         // E. Reused nonces (4 txs: 0, 1, 1, 2)
-        _blockChain.StagedTransactions.Add(new TransactionBuilder
+        _blockchain.StagedTransactions.Add(new TransactionBuilder
         {
-        }.Create(a, _blockChain));
+        }.Create(a, _blockchain));
         DateTimeOffset currentTime = DateTimeOffset.UtcNow;
-        _blockChain.StagedTransactions.Add(MkTx(b, 1, currentTime + TimeSpan.FromHours(1)));
-        _blockChain.StagedTransactions.Add(MkTx(c, 0, DateTimeOffset.UtcNow + TimeSpan.FromHours(1)));
-        _blockChain.StagedTransactions.Add(MkTx(d, 0, DateTimeOffset.UtcNow));
-        _blockChain.StagedTransactions.Add(MkTx(e, 0, DateTimeOffset.UtcNow));
-        _blockChain.StagedTransactions.Add(new TransactionBuilder
+        _blockchain.StagedTransactions.Add(MkTx(b, 1, currentTime + TimeSpan.FromHours(1)));
+        _blockchain.StagedTransactions.Add(MkTx(c, 0, DateTimeOffset.UtcNow + TimeSpan.FromHours(1)));
+        _blockchain.StagedTransactions.Add(MkTx(d, 0, DateTimeOffset.UtcNow));
+        _blockchain.StagedTransactions.Add(MkTx(e, 0, DateTimeOffset.UtcNow));
+        _blockchain.StagedTransactions.Add(new TransactionBuilder
         {
-        }.Create(a, _blockChain));
-        _blockChain.StagedTransactions.Add(MkTx(b, 0, currentTime));
-        _blockChain.StagedTransactions.Add(MkTx(c, 1, DateTimeOffset.UtcNow));
-        _blockChain.StagedTransactions.Add(MkTx(d, 1, DateTimeOffset.UtcNow));
-        _blockChain.StagedTransactions.Add(MkTx(e, 1, DateTimeOffset.UtcNow));
-        _blockChain.StagedTransactions.Add(MkTx(d, 3, DateTimeOffset.UtcNow));
-        _blockChain.StagedTransactions.Add(MkTx(e, 1, DateTimeOffset.UtcNow));
-        _blockChain.StagedTransactions.Add(MkTx(e, 2, DateTimeOffset.UtcNow));
-        _blockChain.StagedTransactions.Add(new TransactionBuilder
+        }.Create(a, _blockchain));
+        _blockchain.StagedTransactions.Add(MkTx(b, 0, currentTime));
+        _blockchain.StagedTransactions.Add(MkTx(c, 1, DateTimeOffset.UtcNow));
+        _blockchain.StagedTransactions.Add(MkTx(d, 1, DateTimeOffset.UtcNow));
+        _blockchain.StagedTransactions.Add(MkTx(e, 1, DateTimeOffset.UtcNow));
+        _blockchain.StagedTransactions.Add(MkTx(d, 3, DateTimeOffset.UtcNow));
+        _blockchain.StagedTransactions.Add(MkTx(e, 1, DateTimeOffset.UtcNow));
+        _blockchain.StagedTransactions.Add(MkTx(e, 2, DateTimeOffset.UtcNow));
+        _blockchain.StagedTransactions.Add(new TransactionBuilder
         {
-        }.Create(a, _blockChain));
+        }.Create(a, _blockchain));
 
-        var stagedTransactions = _blockChain.StagedTransactions.Collect();
+        var stagedTransactions = _blockchain.StagedTransactions.Collect();
 
         // List is ordered by nonce.
         foreach (var signer in signers)
@@ -76,7 +76,7 @@ public partial class BlockchainTest
         // A is prioritized over B, C, D, E:
         IComparer<Transaction> priority = Comparer<Transaction>.Create(
             (tx1, tx2) => tx1.Signer.Equals(a.Address) ? -1 : 1);
-        stagedTransactions = _blockChain.StagedTransactions.Collect();
+        stagedTransactions = _blockchain.StagedTransactions.Collect();
 
         foreach (var tx in stagedTransactions.Take(3))
         {

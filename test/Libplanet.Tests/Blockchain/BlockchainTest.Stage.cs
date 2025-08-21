@@ -14,10 +14,10 @@ public partial class BlockchainTest
             _fx.Transaction1,
             _fx.Transaction2,
         };
-        Assert.Empty(_blockChain.StagedTransactions);
+        Assert.Empty(_blockchain.StagedTransactions);
 
-        _blockChain.StagedTransactions.AddRange(txs);
-        Assert.Equal(txs, _blockChain.StagedTransactions.Values.ToHashSet());
+        _blockchain.StagedTransactions.AddRange(txs);
+        Assert.Equal(txs, _blockchain.StagedTransactions.Values.ToHashSet());
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public partial class BlockchainTest
         {
             Nonce = 0,
             Signer = tx1Key.Address,
-            GenesisHash = _blockChain.Genesis.BlockHash,
+            GenesisHash = _blockchain.Genesis.BlockHash,
             Actions = [],
         }.Sign(tx1Key);
         var tx2Key = new PrivateKey();
@@ -46,12 +46,12 @@ public partial class BlockchainTest
             Actions = [],
         }.Sign(tx3Key);
 
-        _blockChain.StagedTransactions.Add(tx1);
-        Assert.Single(_blockChain.StagedTransactions.Keys);
-        Assert.Throws<InvalidOperationException>(() => _blockChain.StagedTransactions.Add(tx2));
-        Assert.Single(_blockChain.StagedTransactions.Keys);
-        Assert.Throws<InvalidOperationException>(() => _blockChain.StagedTransactions.Add(tx3));
-        Assert.Single(_blockChain.StagedTransactions.Keys);
+        _blockchain.StagedTransactions.Add(tx1);
+        Assert.Single(_blockchain.StagedTransactions.Keys);
+        Assert.Throws<InvalidOperationException>(() => _blockchain.StagedTransactions.Add(tx2));
+        Assert.Single(_blockchain.StagedTransactions.Keys);
+        Assert.Throws<InvalidOperationException>(() => _blockchain.StagedTransactions.Add(tx3));
+        Assert.Single(_blockchain.StagedTransactions.Keys);
     }
 
     [Fact]
@@ -77,51 +77,51 @@ public partial class BlockchainTest
             privateKey: key);
 
         // stage tx_0_0 -> mine tx_0_0 -> stage tx_0_1
-        _blockChain.StagedTransactions.Add(tx_0_0);
-        var block = _blockChain.ProposeBlock(key);
-        _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
-        Assert.Empty(_blockChain.StagedTransactions.Keys);
+        _blockchain.StagedTransactions.Add(tx_0_0);
+        var block = _blockchain.ProposeBlock(key);
+        _blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+        Assert.Empty(_blockchain.StagedTransactions.Keys);
         // Assert.Empty(_blockChain.StagedTransactions.Iterate(filtered: true));
-        Assert.Empty(_blockChain.StagedTransactions.Values);
+        Assert.Empty(_blockchain.StagedTransactions.Values);
         // should still able to stage a low nonce tx
-        _blockChain.StagedTransactions.Add(tx_0_1);
+        _blockchain.StagedTransactions.Add(tx_0_1);
         // tx_0_1 is still staged, just filtered.
-        Assert.Empty(_blockChain.StagedTransactions.Keys);
+        Assert.Empty(_blockchain.StagedTransactions.Keys);
         // Assert.Empty(_blockChain.StagedTransactions.Iterate(filtered: true));
-        Assert.NotEmpty(_blockChain.StagedTransactions.Values);
+        Assert.NotEmpty(_blockchain.StagedTransactions.Values);
 
         // stage tx_1_0 -> stage tx_1_1 -> mine tx_1_0 or tx_1_1
-        _blockChain.StagedTransactions.Add(tx_1_0);
-        _blockChain.StagedTransactions.Add(tx_1_1);
+        _blockchain.StagedTransactions.Add(tx_1_0);
+        _blockchain.StagedTransactions.Add(tx_1_1);
         var txIds = new List<TxId>() { tx_1_0.Id, tx_1_1.Id };
-        Assert.Equal(2, _blockChain.StagedTransactions.Keys.Count());
+        Assert.Equal(2, _blockchain.StagedTransactions.Keys.Count());
         Assert.Equal(
             txIds.OrderBy(id => id),
-            _blockChain.StagedTransactions.Keys.OrderBy(id => id));
-        block = _blockChain.ProposeBlock(key);
-        _blockChain.Append(block, TestUtils.CreateBlockCommit(block));
+            _blockchain.StagedTransactions.Keys.OrderBy(id => id));
+        block = _blockchain.ProposeBlock(key);
+        _blockchain.Append(block, TestUtils.CreateBlockCommit(block));
         // tx_0_1 and tx_1_x should be still staged, just filtered
-        Assert.Empty(_blockChain.StagedTransactions.Keys);
+        Assert.Empty(_blockchain.StagedTransactions.Keys);
         // Assert.Empty(_blockChain.StagedTransactions.Iterate(filtered: true));
-        Assert.Equal(2, _blockChain.StagedTransactions.Count);
+        Assert.Equal(2, _blockchain.StagedTransactions.Count);
     }
 
     [Fact]
     public void UnstageTransaction()
     {
         Transaction[] txs = { _fx.Transaction1, _fx.Transaction2 };
-        Assert.Empty(_blockChain.StagedTransactions.Keys);
+        Assert.Empty(_blockchain.StagedTransactions.Keys);
 
-        _blockChain.StagedTransactions.AddRange(txs);
+        _blockchain.StagedTransactions.AddRange(txs);
 
         HashSet<TxId> txIds = txs.Select(tx => tx.Id).ToHashSet();
-        HashSet<TxId> stagedTxIds = _blockChain.StagedTransactions.Keys.ToHashSet();
+        HashSet<TxId> stagedTxIds = _blockchain.StagedTransactions.Keys.ToHashSet();
 
         Assert.Equal(txIds, stagedTxIds);
 
-        Assert.True(_blockChain.StagedTransactions.Remove(_fx.Transaction1.Id));
-        Assert.True(_blockChain.StagedTransactions.Remove(_fx.Transaction2.Id));
+        Assert.True(_blockchain.StagedTransactions.Remove(_fx.Transaction1.Id));
+        Assert.True(_blockchain.StagedTransactions.Remove(_fx.Transaction2.Id));
 
-        Assert.Empty(_blockChain.StagedTransactions.Keys);
+        Assert.Empty(_blockchain.StagedTransactions.Keys);
     }
 }

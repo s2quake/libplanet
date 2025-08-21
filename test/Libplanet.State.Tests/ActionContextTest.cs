@@ -22,6 +22,7 @@ public class ActionContextTest(ITestOutputHelper output)
                 new VoteMetadata
                 {
                     BlockHash = hash,
+                    Height = 1,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,
@@ -66,6 +67,7 @@ public class ActionContextTest(ITestOutputHelper output)
                 new VoteMetadata
                 {
                     BlockHash = hash,
+                    Height = 1,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,
@@ -138,6 +140,7 @@ public class ActionContextTest(ITestOutputHelper output)
                 new VoteMetadata
                 {
                     BlockHash = hash,
+                    Height = 1,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,

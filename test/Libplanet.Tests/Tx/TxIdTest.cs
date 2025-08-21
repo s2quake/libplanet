@@ -146,7 +146,7 @@ public class TxIdTest
                 (left as IComparable).CompareTo(right));
         }
 
-        Assert.Throws<ArgumentException>(() => txIds[0].CompareTo(null));
+        Assert.Equal(1, txIds[0].CompareTo(null));
         Assert.Throws<ArgumentException>(() => txIds[0].CompareTo("invalid"));
     }
 

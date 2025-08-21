@@ -21,19 +21,19 @@ public partial class BlockchainTest
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                 Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
-                PreviousStateRootHash = _blockChain.StateRootHash,
+                PreviousStateRootHash = _blockchain.StateRootHash,
             },
         }.Sign(_fx.ProposerKey);
         var blockCommit = TestUtils.CreateBlockCommit(block);
 
-        _blockChain.Append(block, blockCommit);
-        Assert.Equal(_blockChain.Tip, block);
+        _blockchain.Append(block, blockCommit);
+        Assert.Equal(_blockchain.Tip, block);
     }
 
     [Fact]
     public void ValidateNextBlockProtocolVersion()
     {
-        var protocolVersion = _blockChain.Tip.Version;
+        var protocolVersion = _blockchain.Tip.Version;
         var block1 = new RawBlock
         {
             Header = new BlockHeader
@@ -43,11 +43,11 @@ public partial class BlockchainTest
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                 Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
-                PreviousStateRootHash = _blockChain.StateRootHash,
+                PreviousStateRootHash = _blockchain.StateRootHash,
             },
         }.Sign(_fx.ProposerKey);
         var blockCommit1 = TestUtils.CreateBlockCommit(block1);
-        _blockChain.Append(block1, blockCommit1);
+        _blockchain.Append(block1, blockCommit1);
 
         Assert.Throws<ApplicationException>(() =>
             new RawBlock
@@ -74,16 +74,16 @@ public partial class BlockchainTest
                     PreviousHash = block1.BlockHash,
                 },
             }.Sign(_fx.ProposerKey);
-            _blockChain.Append(block3, TestUtils.CreateBlockCommit(block3));
+            _blockchain.Append(block3, TestUtils.CreateBlockCommit(block3));
         });
     }
 
     [Fact]
     public void ValidateNextBlockInvalidIndex()
     {
-        _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
+        _blockchain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
 
-        Block prev = _blockChain.Tip;
+        Block prev = _blockchain.Tip;
         Block blockWithAlreadyUsedIndex = new RawBlock
         {
             Header = new BlockHeader
@@ -95,7 +95,7 @@ public partial class BlockchainTest
             },
         }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(
-            () => _blockChain.Append(
+            () => _blockchain.Append(
                 blockWithAlreadyUsedIndex,
                 TestUtils.CreateBlockCommit(blockWithAlreadyUsedIndex)));
 
@@ -111,7 +111,7 @@ public partial class BlockchainTest
             },
         }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(
-            () => _blockChain.Append(
+            () => _blockchain.Append(
                 blockWithIndexAfterNonexistentIndex,
                 TestUtils.CreateBlockCommit(blockWithIndexAfterNonexistentIndex)));
     }
@@ -119,7 +119,7 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockInvalidPreviousHash()
     {
-        _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
+        _blockchain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
 
         Block invalidPreviousHashBlock = new RawBlock
         {
@@ -136,7 +136,7 @@ public partial class BlockchainTest
             },
         }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(() =>
-                _blockChain.Append(
+                _blockchain.Append(
                     invalidPreviousHashBlock,
                     TestUtils.CreateBlockCommit(invalidPreviousHashBlock)));
     }
@@ -144,7 +144,7 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockInvalidTimestamp()
     {
-        _blockChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
+        _blockchain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
 
         Block invalidPreviousTimestamp = new RawBlock
         {
@@ -158,7 +158,7 @@ public partial class BlockchainTest
             },
         }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(() =>
-                _blockChain.Append(
+                _blockchain.Append(
                     invalidPreviousTimestamp,
                     TestUtils.CreateBlockCommit(invalidPreviousTimestamp)));
     }
@@ -314,8 +314,8 @@ public partial class BlockchainTest
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.ProposerKey);
-        _blockChain.Append(validNextBlock, TestUtils.CreateBlockCommit(validNextBlock));
-        Assert.Equal(_blockChain.Tip, validNextBlock);
+        _blockchain.Append(validNextBlock, TestUtils.CreateBlockCommit(validNextBlock));
+        Assert.Equal(_blockchain.Tip, validNextBlock);
     }
 
     [Fact]
@@ -331,7 +331,7 @@ public partial class BlockchainTest
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.ProposerKey);
-        _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
+        _blockchain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
         var blockCommit = TestUtils.CreateBlockCommit(block1);
         Block block2 = new RawBlock
@@ -345,8 +345,8 @@ public partial class BlockchainTest
                 PreviousCommit = blockCommit,
             },
         }.Sign(_fx.ProposerKey);
-        _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2));
-        Assert.Equal(_blockChain.Tip, block2);
+        _blockchain.Append(block2, TestUtils.CreateBlockCommit(block2));
+        Assert.Equal(_blockchain.Tip, block2);
     }
 
     [Fact]
@@ -362,7 +362,7 @@ public partial class BlockchainTest
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.ProposerKey);
-        _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
+        _blockchain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
         var invalidValidator = new PrivateKey();
         var validators = TestUtils.ValidatorPrivateKeys.Append(invalidValidator).ToList();
@@ -399,7 +399,7 @@ public partial class BlockchainTest
             },
         }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(() =>
-            _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
+            _blockchain.Append(block2, TestUtils.CreateBlockCommit(block2)));
     }
 
     [Fact]
@@ -415,7 +415,7 @@ public partial class BlockchainTest
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.ProposerKey);
-        _blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
+        _blockchain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
         var keysExceptPeer0 = TestUtils.ValidatorPrivateKeys.Where(
             key => key != TestUtils.ValidatorPrivateKeys[0]).ToList();
@@ -448,7 +448,7 @@ public partial class BlockchainTest
             },
         }.Sign(_fx.ProposerKey);
         Assert.Throws<InvalidOperationException>(() =>
-            _blockChain.Append(block2, TestUtils.CreateBlockCommit(block2)));
+            _blockchain.Append(block2, TestUtils.CreateBlockCommit(block2)));
     }
 
     [Fact]
@@ -490,7 +490,7 @@ public partial class BlockchainTest
         }.Sign(_fx.ProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
-            _blockChain.Append(
+            _blockchain.Append(
                 validNextBlock,
                 TestUtils.CreateBlockCommit(
                     new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
@@ -513,7 +513,7 @@ public partial class BlockchainTest
         }.Sign(_fx.ProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
-            _blockChain.Append(
+            _blockchain.Append(
                 validNextBlock,
                 TestUtils.CreateBlockCommit(
                     validNextBlock.BlockHash,
@@ -532,12 +532,12 @@ public partial class BlockchainTest
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
                 Proposer = _fx.ProposerKey.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
-                PreviousStateRootHash = _blockChain.StateRootHash,
+                PreviousStateRootHash = _blockchain.StateRootHash,
             },
         }.Sign(_fx.ProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
-            _blockChain.Append(
+            _blockchain.Append(
                 validNextBlock,
                 new BlockCommit
                 {
@@ -574,7 +574,7 @@ public partial class BlockchainTest
         }.Sign(_fx.ProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
-            _blockChain.Append(validNextBlock, default));
+            _blockchain.Append(validNextBlock, default));
     }
 
     [Fact]
@@ -681,7 +681,7 @@ public partial class BlockchainTest
     public void ValidateNextBlockOnChainRestart()
     {
         var repository = new Repository();
-        var newChain = new Libplanet.Blockchain(_blockChain.Genesis, repository, _options);
+        var newChain = new Libplanet.Blockchain(_blockchain.Genesis, repository, _options);
         newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
         Assert.Equal(newChain.Tip, _validNext);
     }
@@ -701,7 +701,7 @@ public partial class BlockchainTest
         };
 
         var repository = new Repository();
-        var newChain = new Libplanet.Blockchain(_blockChain.Genesis, repository, policyWithBlockAction);
+        var newChain = new Libplanet.Blockchain(_blockchain.Genesis, repository, policyWithBlockAction);
 
         Block newValidNext = new RawBlock
         {

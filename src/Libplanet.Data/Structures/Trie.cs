@@ -27,7 +27,7 @@ public sealed partial record class Trie(INode Node) : IEnumerable<KeyValuePair<s
 
     public object this[string key]
         => NodeResolver.ResolveToValue(Node, new(key))
-              ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
+            ?? throw new KeyNotFoundException($"Key {key} not found in the trie.");
 
     public static Trie Create(params (string Key, object Value)[] keyValues)
     {

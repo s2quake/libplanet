@@ -249,7 +249,7 @@ public class PublicKeyTest(ITestOutputHelper output)
             "08711ec97af6e341f110a326da1bdb81f5ae3badf76a90b22c8c491aed3aaa296");
         Assert.Equal(expected, key);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => PublicKey.Parse("abc"));
+        Assert.Throws<FormatException>(() => PublicKey.Parse("abc"));
         Assert.Throws<FormatException>(() => PublicKey.Parse("zz"));
     }
 
@@ -305,7 +305,7 @@ public class PublicKeyTest(ITestOutputHelper output)
             converter.ConvertFrom(
                 "0446115b0131baccf94a5856ede871295f6f3d352e6847cda9c03e89fe09f7328" +
                 "08711ec97af6e341f110a326da1bdb81f5ae3badf76a90b22c8c491aed3aaa296"));
-        Assert.Throws<ArgumentException>(() => converter.ConvertFrom("INVALID"));
+        Assert.Throws<FormatException>(() => converter.ConvertFrom("INVALID"));
 
         Assert.True(converter.CanConvertTo(typeof(string)));
         Assert.Equal(

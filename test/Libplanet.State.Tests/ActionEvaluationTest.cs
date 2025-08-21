@@ -24,6 +24,7 @@ public class ActionEvaluationTest(ITestOutputHelper output)
                 new VoteMetadata
                 {
                     BlockHash = hash,
+                    Height = 1,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = key.Address,
                     ValidatorPower = BigInteger.One,

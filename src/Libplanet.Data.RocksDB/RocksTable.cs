@@ -16,7 +16,7 @@ public sealed class RocksTable : TableBase, IDisposable
 
     public RocksTable(
         string path, RocksDBInstanceType type = RocksDBInstanceType.Primary, DbOptions? options = null)
-        : base(path)
+        : base(System.IO.Path.GetFileName(path))
     {
         _path = path;
         _type = type;

@@ -31,7 +31,7 @@ namespace Libplanet.Tests
                 },
                 ByteUtility.ParseHex(hex));
 
-            Assert.Throws<ArgumentOutOfRangeException>(
+            Assert.Throws<FormatException>(
                 () => ByteUtility.ParseHex("abc"));
             Assert.Throws<FormatException>(
                 () => ByteUtility.ParseHex("abcdefgh"));
@@ -49,7 +49,7 @@ namespace Libplanet.Tests
                 },
                 ByteUtility.ParseHexToImmutable(hex));
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => ByteUtility.ParseHexToImmutable("abc"));
+            Assert.Throws<FormatException>(() => ByteUtility.ParseHexToImmutable("abc"));
             Assert.Throws<FormatException>(() => ByteUtility.ParseHexToImmutable("abcdefgh"));
         }
 

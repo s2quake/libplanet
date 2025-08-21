@@ -7,7 +7,7 @@ public sealed class LiteRepositoryWithPath(ITestOutputHelper output) : Repositor
 {
     protected override LiteRepository CreateRepository()
     {
-        var path = Path.Combine(Path.GetTempPath(), $"{nameof(LiteRepositoryWithPath)}");
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), $"{nameof(LiteRepositoryWithPath)}");
         return new LiteRepository(path);
     }
 }

@@ -121,16 +121,16 @@ public static partial class RandomUtility
         => NullableObject(random, random => Dictionary(random, keyGenerator, valueGenerator, length));
 
     public static ImmutableArray<T>? NullableImmutableArray<T>(Func<T> generator)
-        => NullableObject(() => ImmutableArray(generator));
+        => Nullable(() => ImmutableArray(generator));
 
     public static ImmutableArray<T>? NullableImmutableArray<T>(Func<T> generator, int length)
-        => NullableObject(() => ImmutableArray(generator, length));
+        => Nullable(() => ImmutableArray(generator, length));
 
     public static ImmutableArray<T>? NullableImmutableArray<T>(Random random, Func<Random, T> generator)
-        => NullableObject(random, random => ImmutableArray(random, generator));
+        => Nullable(random, random => ImmutableArray(random, generator));
 
     public static ImmutableArray<T>? NullableImmutableArray<T>(Random random, Func<Random, T> generator, int length)
-        => NullableObject(random, random => ImmutableArray(random, generator, length));
+        => Nullable(random, random => ImmutableArray(random, generator, length));
 
     public static ImmutableList<T>? NullableImmutableList<T>(Func<T> generator)
         => NullableObject(() => ImmutableList(generator));

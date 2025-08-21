@@ -18,44 +18,44 @@ public partial class BlockchainTest
     public void ProposeBlock()
     {
         var maxTransactionsBytes = _options.BlockOptions.MaxTransactionsBytes;
-        Assert.Single(_blockChain.Blocks);
+        Assert.Single(_blockchain.Blocks);
         Assert.Equal(
             $"{GenesisProposer.Address}",
-            (string)_blockChain.GetWorld().GetValue(SystemAccount, default));
+            (string)_blockchain.GetWorld().GetValue(SystemAccount, default));
 
         var proposerA = new PrivateKey();
-        Block block = _blockChain.ProposeBlock(proposerA);
-        _blockChain.Append(block, CreateBlockCommit(block));
-        Assert.True(_blockChain.Blocks.ContainsKey(block.BlockHash));
-        Assert.Equal(2, _blockChain.Blocks.Count);
+        Block block = _blockchain.ProposeBlock(proposerA);
+        _blockchain.Append(block, CreateBlockCommit(block));
+        Assert.True(_blockchain.Blocks.ContainsKey(block.BlockHash));
+        Assert.Equal(2, _blockchain.Blocks.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(block).Length <= maxTransactionsBytes);
         Assert.Equal(
             $"{GenesisProposer.Address},{proposerA.Address}",
-            (string)_blockChain.GetWorld().GetValue(SystemAccount, default));
+            (string)_blockchain.GetWorld().GetValue(SystemAccount, default));
 
         var proposerB = new PrivateKey();
-        Block anotherBlock = _blockChain.ProposeBlock(proposerB);
-        _blockChain.Append(anotherBlock, CreateBlockCommit(anotherBlock));
-        Assert.True(_blockChain.Blocks.ContainsKey(anotherBlock.BlockHash));
-        Assert.Equal(3, _blockChain.Blocks.Count);
+        Block anotherBlock = _blockchain.ProposeBlock(proposerB);
+        _blockchain.Append(anotherBlock, CreateBlockCommit(anotherBlock));
+        Assert.True(_blockchain.Blocks.ContainsKey(anotherBlock.BlockHash));
+        Assert.Equal(3, _blockchain.Blocks.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(anotherBlock).Length <=
                 maxTransactionsBytes);
         var expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
-            (string)_blockChain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
+            (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
 
-        Block block3 = _blockChain.ProposeBlock(new PrivateKey());
-        Assert.False(_blockChain.Blocks.ContainsKey(block3.BlockHash));
-        Assert.Equal(3, _blockChain.Blocks.Count);
+        Block block3 = _blockchain.ProposeBlock(new PrivateKey());
+        Assert.False(_blockchain.Blocks.ContainsKey(block3.BlockHash));
+        Assert.Equal(3, _blockchain.Blocks.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(block3).Length <= maxTransactionsBytes);
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
-            (string)_blockChain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
+            (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
 
         // Tests if ProposeBlock() method automatically fits the number of transactions
         // according to the right size.
@@ -75,11 +75,11 @@ public partial class BlockchainTest
                 manyActions,
                 nonce: nonce,
                 privateKey: signer);
-            _blockChain.StagedTransactions.Add(heavyTx);
+            _blockchain.StagedTransactions.Add(heavyTx);
         }
 
-        Block block4 = _blockChain.ProposeBlock(proposer: new PrivateKey().AsSigner());
-        Assert.False(_blockChain.Blocks.ContainsKey(block4.BlockHash));
+        Block block4 = _blockchain.ProposeBlock(proposer: new PrivateKey().AsSigner());
+        Assert.False(_blockchain.Blocks.ContainsKey(block4.BlockHash));
         _logger.Debug(
             $"{nameof(block4)}: {0} bytes",
             ModelSerializer.SerializeToBytes(block4).Length);
@@ -92,7 +92,7 @@ public partial class BlockchainTest
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
-            (string)_blockChain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
+            (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
     }
 
     [Fact]
@@ -145,23 +145,23 @@ public partial class BlockchainTest
         using var fx = new MemoryRepositoryFixture();
         var options = fx.Options;
         var repository = new Repository();
-        var blockChain = new Libplanet.Blockchain(fx.GenesisBlock, repository, options);
+        var blockchain = new Libplanet.Blockchain(fx.GenesisBlock, repository, options);
         var txKey = new PrivateKey();
         var tx = new TransactionMetadata
         {
             Nonce = 5,  // Invalid nonce
             Signer = txKey.Address,
-            GenesisHash = _blockChain.Genesis.BlockHash,
+            GenesisHash = blockchain.Genesis.BlockHash,
             Actions = new[]
             {
                 DumbAction.Create((new PrivateKey().Address, "foo")),
             }.ToBytecodes(),
         }.Sign(txKey);
 
-        blockChain.StagedTransactions.Add(tx);
-        var block = blockChain.ProposeBlock(new PrivateKey());
+        blockchain.StagedTransactions.Add(tx);
+        var block = blockchain.ProposeBlock(new PrivateKey());
         var blockCommit = CreateBlockCommit(block);
-        Assert.Throws<InvalidOperationException>(() => blockCommit);
+        Assert.Throws<InvalidOperationException>(() => blockchain.Append(block, blockCommit));
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public partial class BlockchainTest
             {
                 Nonce = 0,
                 Signer = keys[0].Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrA, "1a")),
@@ -196,7 +196,7 @@ public partial class BlockchainTest
             {
                 Nonce = 1,
                 Signer = keys[0].Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrC, "2a")),
@@ -209,7 +209,7 @@ public partial class BlockchainTest
             {
                 Nonce = 1,
                 Signer = keys[1].Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrE, "3a")),
@@ -220,7 +220,7 @@ public partial class BlockchainTest
             {
                 Nonce = 2,
                 Signer = keys[1].Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrB, "4a")),
@@ -233,7 +233,7 @@ public partial class BlockchainTest
             {
                 Nonce = 0,
                 Signer = keys[2].Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrD, "5a")),
@@ -244,7 +244,7 @@ public partial class BlockchainTest
             {
                 Nonce = 2,
                 Signer = keys[2].Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrA, "6a")),
@@ -253,91 +253,91 @@ public partial class BlockchainTest
             }.Sign(keys[2]),
         };
 
-        _blockChain.StagedTransactions.AddRange(txs);
+        _blockchain.StagedTransactions.AddRange(txs);
 
-        Assert.Null(_blockChain
+        Assert.Null(_blockchain
             .GetWorld()
             .GetAccount(SystemAccount)
             .GetValue(addrA));
-        Assert.Null(_blockChain
+        Assert.Null(_blockchain
             .GetWorld()
             .GetAccount(SystemAccount)
             .GetValue(addrB));
-        Assert.Null(_blockChain
+        Assert.Null(_blockchain
             .GetWorld()
             .GetAccount(SystemAccount)
             .GetValue(addrC));
-        Assert.Null(_blockChain
+        Assert.Null(_blockchain
             .GetWorld()
             .GetAccount(SystemAccount)
             .GetValue(addrD));
-        Assert.Null(_blockChain
+        Assert.Null(_blockchain
             .GetWorld()
             .GetAccount(SystemAccount)
             .GetValue(addrE));
 
         foreach (Transaction tx in txs)
         {
-            // Assert.Null(_blockChain.TxExecutions[tx.Id, _blockChain.Genesis.BlockHash]);
+            // Assert.Null(_blockchain.TxExecutions[tx.Id, _blockchain.Genesis.BlockHash]);
         }
 
-        Block block = _blockChain.ProposeBlock(keyA);
-        _blockChain.Append(block, CreateBlockCommit(block));
+        Block block = _blockchain.ProposeBlock(keyA);
+        _blockchain.Append(block, CreateBlockCommit(block));
 
-        Assert.True(_blockChain.Blocks.ContainsKey(block.BlockHash));
+        Assert.True(_blockchain.Blocks.ContainsKey(block.BlockHash));
         Assert.Contains(txs[0], block.Transactions);
         Assert.Contains(txs[1], block.Transactions);
         Assert.DoesNotContain(txs[2], block.Transactions);
         Assert.DoesNotContain(txs[3], block.Transactions);
         Assert.Contains(txs[4], block.Transactions);
         Assert.DoesNotContain(txs[5], block.Transactions);
-        var txIds = _blockChain.StagedTransactions.Keys.ToImmutableSortedSet();
+        var txIds = _blockchain.StagedTransactions.Keys.ToImmutableSortedSet();
         Assert.Contains(txs[2].Id, txIds);
         Assert.Contains(txs[3].Id, txIds);
 
         Assert.Equal(
             1,
-            _blockChain
+            _blockchain
                 .GetWorld()
                 .GetAccount(SystemAccount)
                 .GetValue(addrA));
         Assert.Equal(
             "1b",
-            _blockChain
+            _blockchain
                 .GetWorld()
                 .GetAccount(SystemAccount)
                 .GetValue(addrB));
         Assert.Equal(
             "2a",
-            _blockChain
+            _blockchain
                 .GetWorld()
                 .GetAccount(SystemAccount)
                 .GetValue(addrC));
         Assert.IsType<string>(
-            _blockChain
+            _blockchain
                 .GetWorld()
                 .GetAccount(SystemAccount)
                 .GetValue(addrD));
         Assert.Equal(
             new HashSet<string> { "2b", "5a" },
-            ((string)_blockChain
+            ((string)_blockchain
                 .GetWorld()
                 .GetAccount(SystemAccount)
                 .GetValue(addrD)).Split(new[] { ',' }).ToHashSet());
         Assert.Equal(
             "5b",
-            _blockChain
+            _blockchain
                 .GetWorld()
                 .GetAccount(SystemAccount)
                 .GetValue(addrE));
 
         foreach (Transaction tx in new[] { txs[0], txs[1], txs[4] })
         {
-            TxExecution txx = _blockChain.TxExecutions[tx.Id];
+            TxExecution txx = _blockchain.TxExecutions[tx.Id];
             Assert.False(txx.Fail);
             Assert.Equal(block.BlockHash, txx.BlockHash);
             Assert.Equal(tx.Id, txx.TxId);
-            // Assert.Null(_blockChain.TxExecutions[tx.Id, _blockChain.Genesis.BlockHash]);
+            // Assert.Null(_blockchain.TxExecutions[tx.Id, _blockchain.Genesis.BlockHash]);
         }
     }
 
@@ -368,27 +368,27 @@ public partial class BlockchainTest
             },
         };
         var repository = new Repository();
-        var blockChain = new Libplanet.Blockchain(fx.GenesisBlock, repository, options);
+        var blockchain = new Libplanet.Blockchain(fx.GenesisBlock, repository, options);
 
         var validTx = new TransactionBuilder
         {
-        }.Create(validKey, _blockChain);
-        _blockChain.StagedTransactions.Add(validTx);
+        }.Create(validKey, _blockchain);
+        _blockchain.StagedTransactions.Add(validTx);
         var invalidTx = new TransactionBuilder
         {
-        }.Create(invalidKey, _blockChain);
-        _blockChain.StagedTransactions.Add(invalidTx);
+        }.Create(invalidKey, _blockchain);
+        _blockchain.StagedTransactions.Add(invalidTx);
 
         var proposer = new PrivateKey();
-        var block = blockChain.ProposeBlock(proposer);
-        blockChain.Append(block, CreateBlockCommit(block));
+        var block = blockchain.ProposeBlock(proposer);
+        blockchain.Append(block, CreateBlockCommit(block));
 
         var txs = block.Transactions.ToHashSet();
 
         Assert.Contains(validTx, txs);
         Assert.DoesNotContain(invalidTx, txs);
 
-        Assert.Empty(blockChain.StagedTransactions.Keys);
+        Assert.Empty(blockchain.StagedTransactions.Keys);
     }
 
     [Fact]
@@ -401,26 +401,26 @@ public partial class BlockchainTest
             {
                 Nonce = 2,
                 Signer = key.Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
             }.Sign(key),
             new TransactionMetadata
             {
                 Nonce = 1,
                 Signer = key.Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
             }.Sign(key),
             new TransactionMetadata
             {
                 Nonce = 0,
                 Signer = key.Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
             }.Sign(key),
         };
-        _blockChain.StagedTransactions.AddRange(txs);
-        Block block = _blockChain.ProposeBlock(new PrivateKey());
+        _blockchain.StagedTransactions.AddRange(txs);
+        Block block = _blockchain.ProposeBlock(new PrivateKey());
         Assert.Equal(txs.Length, block.Transactions.Count());
     }
 
@@ -428,38 +428,38 @@ public partial class BlockchainTest
     public void ProposeBlockWithLowerNonces()
     {
         var key = new PrivateKey();
-        _blockChain.StagedTransactions.AddRange(
+        _blockchain.StagedTransactions.AddRange(
             [
                 new TransactionMetadata
                 {
                     Nonce = 0,
                     Signer = key.Address,
-                    GenesisHash = _blockChain.Genesis.BlockHash,
+                    GenesisHash = _blockchain.Genesis.BlockHash,
                     Actions = [],
                 }.Sign(key),
             ]);
-        Block block1 = _blockChain.ProposeBlock(new PrivateKey());
-        _blockChain.Append(block1, CreateBlockCommit(block1));
+        Block block1 = _blockchain.ProposeBlock(new PrivateKey());
+        _blockchain.Append(block1, CreateBlockCommit(block1));
 
         // Trying to propose with lower nonce (0) than expected.
-        _blockChain.StagedTransactions.AddRange(
+        _blockchain.StagedTransactions.AddRange(
             new[]
             {
                 new TransactionMetadata
                 {
                     Nonce = 0,
                     Signer = key.Address,
-                    GenesisHash = _blockChain.Genesis.BlockHash,
+                    GenesisHash = _blockchain.Genesis.BlockHash,
                     Actions = [],
                 }.Sign(key),
             });
-        Block block2 = _blockChain.ProposeBlock(new PrivateKey());
-        _blockChain.Append(block2, CreateBlockCommit(block2));
+        Block block2 = _blockchain.ProposeBlock(new PrivateKey());
+        _blockchain.Append(block2, CreateBlockCommit(block2));
 
         Assert.Empty(block2.Transactions);
-        Assert.Empty(_blockChain.StagedTransactions.Collect());
-        // Assert.Empty(_blockChain.StagedTransactions.Iterate(filtered: true));
-        Assert.Single(_blockChain.StagedTransactions);
+        Assert.Empty(_blockchain.StagedTransactions.Collect());
+        // Assert.Empty(_blockchain.StagedTransactions.Iterate(filtered: true));
+        Assert.Single(_blockchain.StagedTransactions);
     }
 
     [Fact]
@@ -480,48 +480,48 @@ public partial class BlockchainTest
             },
         };
         var repository = new Repository();
-        var blockChain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, options);
+        var blockchain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, options);
 
         var tx = new TransactionBuilder
         {
             Actions = [DumbAction.Create((address2, "baz"))],
-        }.Create(privateKey2, blockChain);
-        blockChain.StagedTransactions.Add(tx);
-        var block = blockChain.ProposeBlock(privateKey1);
-        blockChain.Append(block, CreateBlockCommit(block));
+        }.Create(privateKey2, blockchain);
+        blockchain.StagedTransactions.Add(tx);
+        var block = blockchain.ProposeBlock(privateKey1);
+        blockchain.Append(block, CreateBlockCommit(block));
 
-        var state1 = blockChain
+        var state1 = blockchain
             .GetWorld()
             .GetAccount(SystemAccount)
             .GetValue(address1);
-        var state2 = blockChain
+        var state2 = blockchain
             .GetWorld()
             .GetAccount(SystemAccount)
             .GetValue(address2);
 
-        Assert.Equal(0, blockChain.GetNextTxNonce(address1));
-        Assert.Equal(1, blockChain.GetNextTxNonce(address2));
+        Assert.Equal(0, blockchain.GetNextTxNonce(address1));
+        Assert.Equal(1, blockchain.GetNextTxNonce(address2));
         Assert.Equal("foo,foo", state1);
         Assert.Equal("baz", state2);
 
-        blockChain.StagedTransactions.Add(privateKey1, submission: new()
+        blockchain.StagedTransactions.Add(privateKey1, submission: new()
         {
             Actions = [DumbAction.Create((address1, "bar"))],
         });
-        block = blockChain.ProposeBlock(privateKey1);
-        blockChain.Append(block, CreateBlockCommit(block));
+        block = blockchain.ProposeBlock(privateKey1);
+        blockchain.Append(block, CreateBlockCommit(block));
 
-        state1 = blockChain
+        state1 = blockchain
             .GetWorld()
             .GetAccount(SystemAccount)
             .GetValue(address1);
-        state2 = blockChain
+        state2 = blockchain
             .GetWorld()
             .GetAccount(SystemAccount)
             .GetValue(address2);
 
-        Assert.Equal(1, blockChain.GetNextTxNonce(address1));
-        Assert.Equal(1, blockChain.GetNextTxNonce(address2));
+        Assert.Equal(1, blockchain.GetNextTxNonce(address1));
+        Assert.Equal(1, blockchain.GetNextTxNonce(address2));
         Assert.Equal("foo,foo,bar,foo", state1);
         Assert.Equal("baz", state2);
     }
@@ -548,13 +548,13 @@ public partial class BlockchainTest
 
         var random = new Random();
         Transaction[] txs = [.. RandomUtility.Shuffle(random, txsA.Concat(txsB).Concat(txsC))];
-        _blockChain.StagedTransactions.AddRange(txs);
-        Assert.Equal(txs.Length, _blockChain.StagedTransactions.Collect().Count);
+        _blockchain.StagedTransactions.AddRange(txs);
+        Assert.Equal(txs.Length, _blockchain.StagedTransactions.Collect().Count);
 
         IComparer<Transaction> txPriority =
             Comparer<Transaction>.Create((tx1, tx2) =>
                 Rank(tx1.Signer).CompareTo(Rank(tx2.Signer)));
-        Block block = _blockChain.ProposeBlock(new PrivateKey());
+        Block block = _blockchain.ProposeBlock(new PrivateKey());
         Assert.Equal(100, block.Transactions.Count);
         Assert.Equal(
             txsA.Concat(txsB.Take(50)).Select(tx => tx.Id).ToHashSet(),
@@ -567,9 +567,9 @@ public partial class BlockchainTest
         var keys = Enumerable.Range(0, 3).Select(_ => new PrivateKey()).ToList();
         var votes = keys.Select(key => new VoteMetadata
         {
-            Height = _blockChain.Tip.Height,
+            Height = _blockchain.Tip.Height,
             Round = 0,
-            BlockHash = _blockChain.Tip.BlockHash,
+            BlockHash = _blockchain.Tip.BlockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Validator = key.Address,
             ValidatorPower = BigInteger.One,
@@ -577,12 +577,12 @@ public partial class BlockchainTest
         }.Sign(key)).ToImmutableArray();
         var blockCommit = new BlockCommit
         {
-            Height = _blockChain.Tip.Height,
+            Height = _blockchain.Tip.Height,
             Round = 0,
-            BlockHash = _blockChain.Tip.BlockHash,
+            BlockHash = _blockchain.Tip.BlockHash,
             Votes = votes,
         };
-        Block block = _blockChain.ProposeBlock(new PrivateKey());
+        Block block = _blockchain.ProposeBlock(new PrivateKey());
 
         Assert.NotNull(block.PreviousCommit);
         Assert.Equal(block.PreviousCommit, blockCommit);
@@ -597,19 +597,19 @@ public partial class BlockchainTest
             .Select(nonce => _fx.MakeTransaction(
                 nonce: nonce, privateKey: privateKey, timestamp: DateTimeOffset.Now))
             .ToArray();
-        _blockChain.StagedTransactions.AddRange(txsA);
-        Block b1 = _blockChain.ProposeBlock(new PrivateKey());
-        _blockChain.Append(b1, CreateBlockCommit(b1));
+        _blockchain.StagedTransactions.AddRange(txsA);
+        Block b1 = _blockchain.ProposeBlock(new PrivateKey());
+        _blockchain.Append(b1, CreateBlockCommit(b1));
         Assert.Equal(txsA, b1.Transactions);
 
         var txsB = Enumerable.Range(0, 4)
             .Select(nonce => _fx.MakeTransaction(
                 nonce: nonce, privateKey: privateKey, timestamp: DateTimeOffset.Now))
             .ToArray();
-        _blockChain.StagedTransactions.AddRange(txsB);
+        _blockchain.StagedTransactions.AddRange(txsB);
 
         // Propose only txs having higher or equal with nonce than expected nonce.
-        Block b2 = _blockChain.ProposeBlock(new PrivateKey());
+        Block b2 = _blockchain.ProposeBlock(new PrivateKey());
         Assert.Single(b2.Transactions);
         Assert.Contains(txsB[3], b2.Transactions);
     }
@@ -624,9 +624,9 @@ public partial class BlockchainTest
                 privateKey: privateKey,
                 timestamp: DateTimeOffset.Now))
             .ToArray();
-        _blockChain.StagedTransactions.AddRange(txs);
-        Block b = _blockChain.ProposeBlock(privateKey);
-        _blockChain.Append(b, CreateBlockCommit(b));
+        _blockchain.StagedTransactions.AddRange(txs);
+        Block b = _blockchain.ProposeBlock(privateKey);
+        _blockchain.Append(b, CreateBlockCommit(b));
 
         Assert.Single(b.Transactions);
         Assert.Contains(b.Transactions.Single(), txs);
@@ -662,11 +662,11 @@ public partial class BlockchainTest
     //     var random = new Random();
     //     Transaction[] txs =
     //         txsA.Concat(txsB).Concat(txsC).Shuffle(random).ToArray();
-    //     Assert.Empty(_blockChain.StagedTransactions.Collect(_blockChain.Options.BlockOptions));
-    //     _blockChain.StagedTransactions.AddRange(txs);
+    //     Assert.Empty(_blockchain.StagedTransactions.Collect(_blockchain.Options.BlockOptions));
+    //     _blockchain.StagedTransactions.AddRange(txs);
 
     //     // Test if minTransactions and minTransactionsPerSigner work:
-    //     var gathered = _blockChain.GatherTransactionsToPropose(1024 * 1024, 5, 3, 0);
+    //     var gathered = _blockchain.GatherTransactionsToPropose(1024 * 1024, 5, 3, 0);
     //     Assert.Equal(5, gathered.Length);
     //     var expectedNonces = new Dictionary<Address, long> { [a] = 0, [b] = 0, [c] = 0 };
     //     foreach (Transaction tx in gathered)
@@ -685,7 +685,7 @@ public partial class BlockchainTest
     //             int rank2 = tx2.Signer.Equals(a) ? 0 : (tx2.Signer.Equals(b) ? 1 : 2);
     //             return rank1.CompareTo(rank2);
     //         });
-    //     gathered = _blockChain.GatherTransactionsToPropose(1024 * 1024, 8, 3, 0, txPriority);
+    //     gathered = _blockchain.GatherTransactionsToPropose(1024 * 1024, 8, 3, 0, txPriority);
     //     Assert.Equal(
     //         txsA.Concat(txsB.Take(3)).Concat(txsC).Select(tx => tx.Id).ToArray(),
     //         gathered.Select(tx => tx.Id).ToArray());
@@ -700,7 +700,7 @@ public partial class BlockchainTest
         {
             Nonce = 1,
             Signer = keyB.Address,
-            GenesisHash = _blockChain.Genesis.BlockHash,
+            GenesisHash = _blockchain.Genesis.BlockHash,
             Actions = [new ActionBytecode([0x11])], // Invalid action
             Timestamp = DateTimeOffset.UtcNow,
         }.Sign(keyB);
@@ -708,7 +708,7 @@ public partial class BlockchainTest
         {
             Nonce = 2,
             Signer = keyB.Address,
-            GenesisHash = _blockChain.Genesis.BlockHash,
+            GenesisHash = _blockchain.Genesis.BlockHash,
             Actions = [],
         }.Sign(keyB);
         var txs = new[]
@@ -717,28 +717,28 @@ public partial class BlockchainTest
             {
                 Nonce = 0,
                 Signer = keyA.Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = [],
             }.Sign(keyA),
             new TransactionMetadata
             {
                 Nonce = 1,
                 Signer = keyA.Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = [],
             }.Sign(keyA),
             new TransactionMetadata
             {
                 Nonce = 2,
                 Signer = keyA.Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = [],
             }.Sign(keyA),
             new TransactionMetadata
             {
                 Nonce = 0,
                 Signer = keyB.Address,
-                GenesisHash = _blockChain.Genesis.BlockHash,
+                GenesisHash = _blockchain.Genesis.BlockHash,
                 Actions = [],
             }.Sign(keyB),
             txWithInvalidAction,
@@ -746,16 +746,16 @@ public partial class BlockchainTest
         };
 
         // Invalid txs can be staged.
-        _blockChain.StagedTransactions.AddRange(txs);
-        Assert.Equal(txs.Length, _blockChain.StagedTransactions.Collect().Count);
+        _blockchain.StagedTransactions.AddRange(txs);
+        Assert.Equal(txs.Length, _blockchain.StagedTransactions.Collect().Count);
 
-        var block = _blockChain.ProposeBlock(new PrivateKey());
+        var block = _blockchain.ProposeBlock(new PrivateKey());
 
         Assert.DoesNotContain(txWithInvalidNonce, block.Transactions);
         Assert.DoesNotContain(txWithInvalidAction, block.Transactions);
 
         // txWithInvalidAction is marked ignored and removed
-        Assert.Equal(txs.Length - 1, _blockChain.StagedTransactions.Collect().Count);
-        Assert.DoesNotContain(txWithInvalidAction.Id, _blockChain.StagedTransactions.Keys);
+        Assert.Equal(txs.Length - 1, _blockchain.StagedTransactions.Collect().Count);
+        Assert.DoesNotContain(txWithInvalidAction.Id, _blockchain.StagedTransactions.Keys);
     }
 }

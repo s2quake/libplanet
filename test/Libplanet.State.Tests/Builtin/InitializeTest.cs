@@ -82,7 +82,7 @@ public sealed class InitializeTest(ITestOutputHelper output)
                 new VoteMetadata
                 {
                     Validator = key.Address,
-                    Height = 0,
+                    Height = 1,
                     Round = 0,
                     BlockHash = hash,
                     Timestamp = DateTimeOffset.UtcNow,

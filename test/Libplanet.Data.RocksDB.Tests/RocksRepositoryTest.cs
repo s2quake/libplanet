@@ -7,7 +7,7 @@ public sealed class RocksRepositoryTest(ITestOutputHelper output) : RepositoryTe
 {
     protected override RocksRepository CreateRepository()
     {
-        var path = Path.Combine(Path.GetTempPath(), $"{nameof(RocksRepositoryTest)}_{Guid.NewGuid()}");
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), $"{nameof(RocksRepositoryTest)}_{Guid.NewGuid()}");
         return new RocksRepository(path);
     }
 }
