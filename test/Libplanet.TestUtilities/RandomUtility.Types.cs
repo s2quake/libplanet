@@ -126,7 +126,7 @@ public static partial class RandomUtility
     {
         Nonce = Int64(random),
         Signer = Address(random),
-        GenesisHash = BlockHash(random),
+        GenesisBlockHash = BlockHash(random),
         Actions = ImmutableArray(random, ActionBytecode),
         Timestamp = DateTimeOffset(random),
         MaxGasPrice = Nullable(random, FungibleAssetValue),

@@ -20,7 +20,7 @@ public class Store
     {
         var blocks = new List<Block>();
         var txs = new List<Transaction>();
-        Block genesis = TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposer);
+        Block genesis = TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposerKey);
         blocks.Add(genesis);
         Block block = genesis;
         var key = new PrivateKey();
@@ -34,12 +34,12 @@ public class Store
                 {
                     Nonce = nonce++,
                     Signer = key.Address,
-                    GenesisHash = genesis.BlockHash,
+                    GenesisBlockHash = genesis.BlockHash,
                     Actions = [],
                 }.Sign(key));
             }
             block = TestUtils.ProposeNextBlock(
-                block, TestUtils.GenesisProposer, [.. blockTxs]);
+                block, TestUtils.GenesisProposerKey, [.. blockTxs]);
             blocks.Add(block);
             txs.AddRange(blockTxs);
         }

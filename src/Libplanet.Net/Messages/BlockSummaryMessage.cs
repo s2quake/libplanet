@@ -7,7 +7,7 @@ namespace Libplanet.Net.Messages;
 internal sealed record class BlockSummaryMessage : MessageBase
 {
     [Property(0)]
-    public required BlockHash GenesisHash { get; init; }
+    public required BlockHash GenesisBlockHash { get; init; }
 
     [Property(1)]
     public required BlockSummary BlockSummary { get; init; }

@@ -107,10 +107,10 @@ public partial class BlockchainTest : IDisposable
         {
             Transactions =
             [
-                new TransactionBuilder
+                new InitialTransactionBuilder
                 {
                     Actions = [action],
-                }.Create(proposer),
+                }.Create(proposer.AsSigner()),
             ],
         }.Create(proposer);
         var blockChain = new Libplanet.Blockchain(genesisBlock);
@@ -214,12 +214,12 @@ public partial class BlockchainTest : IDisposable
         {
             Transactions =
             [
-                new TransactionBuilder
+                new InitialTransactionBuilder
                 {
                     Actions = actions,
                 }.Create(GenesisProposer),
             ],
-        }.Create(GenesisProposer);
+        }.Create(GenesisProposerKey);
 
         var chain = new Libplanet.Blockchain(genesis);
         Block genesisBlock = chain.Genesis;
@@ -249,7 +249,7 @@ public partial class BlockchainTest : IDisposable
         var tx1 = new TransactionMetadata
         {
             Signer = tx1Key.Address,
-            GenesisHash = genesisBlock.BlockHash,
+            GenesisBlockHash = genesisBlock.BlockHash,
             Actions = actions1.ToBytecodes(),
         }.Sign(tx1Key);
 
@@ -280,7 +280,7 @@ public partial class BlockchainTest : IDisposable
         var tx2 = new TransactionMetadata
         {
             Signer = tx2Key.Address,
-            GenesisHash = genesisBlock.BlockHash,
+            GenesisBlockHash = genesisBlock.BlockHash,
             Actions = actions2.ToBytecodes(),
         }.Sign(tx2Key);
 
@@ -299,7 +299,7 @@ public partial class BlockchainTest : IDisposable
         var tx3 = new TransactionMetadata
         {
             Signer = tx3Key.Address,
-            GenesisHash = genesisBlock.BlockHash,
+            GenesisBlockHash = genesisBlock.BlockHash,
             Actions = new[]
             {
                 new Attack
@@ -552,7 +552,7 @@ public partial class BlockchainTest : IDisposable
         var repository = new Repository();
         var txKey = new PrivateKey();
         var genesisRawBlock = ProposeGenesis(
-            proposer: GenesisProposer,
+            proposer: GenesisProposerKey,
             transactions:
             [
                 new TransactionMetadata
@@ -561,7 +561,7 @@ public partial class BlockchainTest : IDisposable
                     Actions = [],
                 }.Sign(txKey),
             ]);
-        Block genesisWithTx = genesisRawBlock.Sign(GenesisProposer);
+        Block genesisWithTx = genesisRawBlock.Sign(GenesisProposerKey);
         var chain = new Libplanet.Blockchain(genesisWithTx, repository, options);
         Assert.False(invoked);
     }
@@ -592,7 +592,7 @@ public partial class BlockchainTest : IDisposable
                 new TransactionMetadata
                 {
                     Signer = privateKey.Address,
-                    GenesisHash = chain.Genesis.BlockHash,
+                    GenesisBlockHash = chain.Genesis.BlockHash,
                     Actions = actions.ToBytecodes(),
                 }.Sign(privateKey),
             ];
@@ -1174,7 +1174,7 @@ public partial class BlockchainTest : IDisposable
             {
                 Nonce = i,
                 Signer = proposerKey.Address,
-                GenesisHash = default,
+                GenesisBlockHash = default,
                 Actions = new[] { systemAction }.ToBytecodes(),
             }.Sign(proposerKey))
             .ToArray();
@@ -1270,7 +1270,7 @@ public partial class BlockchainTest : IDisposable
             Signer = genesisTxKey.Address,
             Actions = [],
         }.Sign(genesisTxKey);
-        var genesisWithTx = ProposeGenesis(GenesisProposer, transactions: [genesisTx]).Sign(GenesisProposer);
+        var genesisWithTx = ProposeGenesis(GenesisProposerKey, transactions: [genesisTx]).Sign(GenesisProposerKey);
 
         var chain = new Libplanet.Blockchain(genesisWithTx, repository, options);
 
@@ -1283,7 +1283,7 @@ public partial class BlockchainTest : IDisposable
         var nextStateRootHash = chain.GetStateRootHash(genesisWithTx.BlockHash);
         var block = ProposeNextBlock(
             previousBlock: chain.Genesis,
-            proposer: GenesisProposer,
+            proposer: GenesisProposerKey,
             txs: [blockTx],
             previousStateRootHash: (HashDigest<SHA256>)nextStateRootHash);
 
@@ -1324,7 +1324,7 @@ public partial class BlockchainTest : IDisposable
             {
                 Nonce = i,
                 Signer = privateKey.Address,
-                GenesisHash = default,
+                GenesisBlockHash = default,
                 Actions = new IAction[] { systemAction }.ToBytecodes(),
             }.Sign(privateKey))
             .ToImmutableList();

@@ -13,7 +13,7 @@ public class VolatileStagePolicyTest : StagePolicyTest
         {
             Nonce = 0,
             Signer = _key.Address,
-            GenesisHash = _fx.GenesisBlock.BlockHash,
+            GenesisBlockHash = _fx.GenesisBlock.BlockHash,
             Actions = [],
             Timestamp = DateTimeOffset.UtcNow - StageTransactions.Lifetime + timeBuffer,
         }.Sign(_key);
@@ -49,7 +49,7 @@ public class VolatileStagePolicyTest : StagePolicyTest
         {
             Nonce = 0,
             Signer = _key.Address,
-            GenesisHash = _fx.GenesisBlock.BlockHash,
+            GenesisBlockHash = _fx.GenesisBlock.BlockHash,
             Actions = [],
             Timestamp = DateTimeOffset.UtcNow - StageTransactions.Lifetime + timeBuffer,
         }.Sign(_key);
@@ -57,7 +57,7 @@ public class VolatileStagePolicyTest : StagePolicyTest
         {
             Nonce = 0,
             Signer = _key.Address,
-            GenesisHash = _fx.GenesisBlock.BlockHash,
+            GenesisBlockHash = _fx.GenesisBlock.BlockHash,
             Actions = [],
             Timestamp = DateTimeOffset.UtcNow - StageTransactions.Lifetime - timeBuffer,
         }.Sign(_key);

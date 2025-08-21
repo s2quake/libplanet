@@ -24,14 +24,14 @@ public static class TransactionExtensions
                     throw new InvalidOperationException(msg);
                 }
 
-                if (genesisHash is { } g && !tx.GenesisHash.Equals(g))
+                if (genesisHash is { } g && !tx.GenesisBlockHash.Equals(g))
                 {
                     throw new InvalidOperationException(
                         $"Transactions in the block #{blockHeight} are inconsistent.");
                 }
 
                 lastNonce = nonce;
-                genesisHash = tx.GenesisHash;
+                genesisHash = tx.GenesisBlockHash;
             }
         }
     }

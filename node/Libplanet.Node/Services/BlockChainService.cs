@@ -92,7 +92,7 @@ internal sealed class BlockChainService(
             {
                 Transactions =
                 [
-                    new TransactionBuilder
+                    new InitialTransactionBuilder
                     {
                         Actions = actions,
                     }.Create(genesisSigner),

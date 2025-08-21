@@ -28,7 +28,7 @@ public partial class BlockchainTest
         {
             Nonce = 0,
             Signer = tx1Key.Address,
-            GenesisHash = _blockchain.Genesis.BlockHash,
+            GenesisBlockHash = _blockchain.Genesis.BlockHash,
             Actions = [],
         }.Sign(tx1Key);
         var tx2Key = new PrivateKey();

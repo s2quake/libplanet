@@ -55,7 +55,7 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
                 $"Transaction {transaction.Id} already exists in the committed transactions.", nameof(transaction));
         }
 
-        if (repository.GenesisBlockHash != transaction.GenesisHash)
+        if (repository.GenesisBlockHash != transaction.GenesisBlockHash)
         {
             throw new ArgumentException(
                 $"Transaction {transaction.Id} has a different genesis hash than the repository's genesis block.",
@@ -80,7 +80,7 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
         {
             Nonce = GetNextTxNonce(signer.Address),
             Signer = signer.Address,
-            GenesisHash = repository.GenesisBlockHash,
+            GenesisBlockHash = repository.GenesisBlockHash,
             Actions = submission.Actions.ToBytecodes(),
             Timestamp = submission.Timestamp,
             MaxGasPrice = submission.MaxGasPrice,

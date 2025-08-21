@@ -20,7 +20,7 @@ public sealed class BlockBroadcaster : IDisposable
             var tip = e.Tip;
             var message = new BlockSummaryMessage
             {
-                GenesisHash = blockchain.Genesis.BlockHash,
+                GenesisBlockHash = blockchain.Genesis.BlockHash,
                 BlockSummary = tip,
             };
             var peers = peerDiscovery.Broadcast(message);

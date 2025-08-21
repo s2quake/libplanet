@@ -29,7 +29,7 @@ public sealed partial record class Transaction
 
     public DateTimeOffset Timestamp => Metadata.Timestamp;
 
-    public BlockHash GenesisHash => Metadata.GenesisHash;
+    public BlockHash GenesisBlockHash => Metadata.GenesisBlockHash;
 
     TxId IHasKey<TxId>.Key => Id;
 

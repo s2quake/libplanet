@@ -416,7 +416,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var txKey = new PrivateKey();
         var tx = new TransactionBuilder
         {
-            GenesisHash = blockchainB.Genesis.BlockHash,
+            Blockchain = blockchainB,
         }.Create(txKey);
 
         await using var transports = new ServiceCollection
@@ -554,7 +554,7 @@ public partial class SwarmTest(ITestOutputHelper output)
                     new RelayObjectValidator<Transaction>(tx =>
                     {
                         var validAddress = validKey.Address;
-                        if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
+                        if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposerKey.Address))
                         {
                             throw new InvalidOperationException("invalid signer");
                         }
@@ -590,7 +590,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var validTx = blockchainA.StagedTransactions.Add(validKey);
         var invalidTx = new TransactionBuilder
         {
-            GenesisHash = blockchainB.Genesis.BlockHash,
+            Blockchain = blockchainB,
         }.Create(invalidKey);
         Assert.Throws<InvalidOperationException>(() => blockchainA.StagedTransactions.Add(invalidKey));
 
@@ -623,7 +623,7 @@ public partial class SwarmTest(ITestOutputHelper output)
                     new RelayObjectValidator<Transaction>(tx =>
                     {
                         var validAddress = validKey.Address;
-                        if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposer.Address))
+                        if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(GenesisProposerKey.Address))
                         {
                             throw new InvalidOperationException("invalid signer");
                         }
@@ -888,7 +888,7 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await services.StartAsync(default);
 
-        blockchainB.ProposeAndAppendMany(GenesisProposer, 6);
+        blockchainB.ProposeAndAppendMany(GenesisProposerKey, 6);
 
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
         TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
@@ -924,7 +924,7 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await services.StartAsync(default);
 
-        blockchainB.ProposeAndAppendMany(GenesisProposer, 6);
+        blockchainB.ProposeAndAppendMany(GenesisProposerKey, 6);
 
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
         TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
@@ -960,7 +960,7 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await services.StartAsync(default);
 
-        blockchainB.ProposeAndAppendMany(GenesisProposer, 6);
+        blockchainB.ProposeAndAppendMany(GenesisProposerKey, 6);
         await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
 
         TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);

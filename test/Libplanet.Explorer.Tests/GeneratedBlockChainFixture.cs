@@ -73,7 +73,7 @@ public class GeneratedBlockChainFixture
                     {
                         Nonce = i,
                         Signer = privateKey.Address,
-                        GenesisHash = default,
+                        GenesisBlockHash = default,
                         Actions = new[]
                         {
                             new Initialize
@@ -106,7 +106,7 @@ public class GeneratedBlockChainFixture
                         {
                             Nonce = Chain.GetNextTxNonce(pk.Address),
                             Signer = pk.Address,
-                            GenesisHash = Chain.Genesis.BlockHash,
+                            GenesisBlockHash = Chain.Genesis.BlockHash,
                             Actions = actions.ToBytecodes(),
                         }.Sign(pk))
                     .ToImmutableArray());
@@ -141,7 +141,7 @@ public class GeneratedBlockChainFixture
         {
             Nonce = nonce,
             Signer = pk.Address,
-            GenesisHash = Chain.Genesis.BlockHash,
+            GenesisBlockHash = Chain.Genesis.BlockHash,
             Actions = Random.Next() % 2 == 0
                 ? GetRandomActions().ToBytecodes()
                 : ImmutableHashSet<SimpleAction>.Empty.ToBytecodes(),

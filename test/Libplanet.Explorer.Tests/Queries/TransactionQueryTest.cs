@@ -34,7 +34,7 @@ public class TransactionQueryTest
         {
             Nonce = 0L,
             Signer = privateKey.Address,
-            GenesisHash = Source.BlockChain.Genesis.BlockHash,
+            GenesisBlockHash = Source.BlockChain.Genesis.BlockHash,
             Actions = Array.Empty<NullAction>().ToBytecodes(),
         }.Sign(privateKey);
         // tx.UnsignedTx.MarshalUnsignedTx();
@@ -68,7 +68,7 @@ public class TransactionQueryTest
         {
             Nonce = 0L,
             Signer = txKey.Address,
-            GenesisHash = Source.BlockChain.Genesis.BlockHash,
+            GenesisBlockHash = Source.BlockChain.Genesis.BlockHash,
             Actions = new IAction[] { action }.ToBytecodes(),
         }.Sign(txKey);
         ExecutionResult result = await ExecuteQueryAsync(@$"

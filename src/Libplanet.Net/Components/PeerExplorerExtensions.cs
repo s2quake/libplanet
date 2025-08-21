@@ -21,7 +21,7 @@ public static class PeerExplorerExtensions
     {
         var message = new BlockSummaryMessage
         {
-            GenesisHash = blockchain.Genesis.BlockHash,
+            GenesisBlockHash = blockchain.Genesis.BlockHash,
             BlockSummary = block,
         };
         return (@this.Broadcast(message, except), message);
@@ -31,7 +31,7 @@ public static class PeerExplorerExtensions
     {
         var message = new BlockSummaryMessage
         {
-            GenesisHash = genesisHash,
+            GenesisBlockHash = genesisHash,
             BlockSummary = block,
         };
         return (@this.Broadcast(message), message);

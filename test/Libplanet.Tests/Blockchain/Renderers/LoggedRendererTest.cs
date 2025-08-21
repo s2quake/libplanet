@@ -11,10 +11,10 @@ namespace Libplanet.Tests.Blockchain.Renderers
     public class LoggedRendererTest : IDisposable
     {
         private static readonly DumbBlock _genesis =
-            TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposer);
+            TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposerKey);
 
         private static readonly DumbBlock _blockA =
-            TestUtils.ProposeNextBlock(_genesis, TestUtils.GenesisProposer);
+            TestUtils.ProposeNextBlock(_genesis, TestUtils.GenesisProposerKey);
 
         private readonly ILogger _logger;
 

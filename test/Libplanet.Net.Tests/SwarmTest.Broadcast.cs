@@ -276,7 +276,7 @@ public partial class SwarmTest
         var txKey = new PrivateKey();
         var tx = new TransactionBuilder
         {
-            GenesisHash = blockchainA.Genesis.BlockHash,
+            Blockchain = blockchainA,
         }.Create(txKey);
 
         blockchainA.StagedTransactions.Add(tx);
@@ -389,7 +389,7 @@ public partial class SwarmTest
         var txKey = new PrivateKey();
         var tx = new TransactionBuilder
         {
-            GenesisHash = blockchainA.Genesis.BlockHash,
+            Blockchain = blockchainA,
             Actions = [],
         }.Create(txKey);
 
@@ -446,7 +446,7 @@ public partial class SwarmTest
         var txKey = new PrivateKey();
         var tx = new TransactionBuilder
         {
-            GenesisHash = blockchains[size - 1].Genesis.BlockHash,
+            Blockchain = blockchains[size - 1],
             Actions = [],
         }.Create(txKey);
         blockchains[size - 1].StagedTransactions.Add(tx);
@@ -682,7 +682,7 @@ public partial class SwarmTest
                 DumbAction.Create((fx.Address2, "bar"))
             ],
         });
-        blockchainA.ProposeAndAppend(GenesisProposer);
+        blockchainA.ProposeAndAppend(GenesisProposerKey);
         blockchainA.StagedTransactions.Add(privateKey, new TransactionSubmission
         {
             Actions =
@@ -691,7 +691,7 @@ public partial class SwarmTest
                 DumbAction.Create((fx.Address2, "qux"))
             ],
         });
-        blockchainA.ProposeAndAppend(GenesisProposer);
+        blockchainA.ProposeAndAppend(GenesisProposerKey);
 
         await transports.StartAsync(default);
         await services.StartAsync(default);
@@ -915,10 +915,13 @@ public partial class SwarmTest
 
         var tx4 = new TransactionBuilder
         {
-            Nonce = 4,
-            GenesisHash = blockchainA.Genesis.BlockHash,
+            // Nonce = 4,
+            // GenesisHash = blockchainA.Genesis.BlockHash,
+            Blockchain = blockchainA,
             Actions = [DumbAction.Create((address, "qux"))],
         }.Create(privateKey);
+
+        Assert.Equal(4, tx4.Nonce);
 
         await transports.StartAsync(default);
         await services.StartAsync(default);
@@ -974,7 +977,7 @@ public partial class SwarmTest
 
         var message1 = new BlockSummaryMessage
         {
-            GenesisHash = blockchainB.Genesis.BlockHash,
+            GenesisBlockHash = blockchainB.Genesis.BlockHash,
             BlockSummary = block1
         };
 
@@ -988,7 +991,7 @@ public partial class SwarmTest
 
         var message2 = new BlockSummaryMessage
         {
-            GenesisHash = blockchainB.Genesis.BlockHash,
+            GenesisBlockHash = blockchainB.Genesis.BlockHash,
             BlockSummary = block2
         };
 

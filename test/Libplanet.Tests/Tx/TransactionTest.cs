@@ -61,7 +61,7 @@ public class TransactionTest
         {
             Nonce = 0,
             Signer = privateKey.Address,
-            GenesisHash = default,
+            GenesisBlockHash = default,
             Actions = new[] { action }.ToBytecodes(),
             Timestamp = timestamp,
         }.Sign(privateKey);
@@ -100,7 +100,7 @@ public class TransactionTest
         {
             Nonce = 0,
             Signer = privateKey.Address,
-            GenesisHash = default,
+            GenesisBlockHash = default,
             Actions = new[]
             {
                 DumbAction.Create((stateStore, "F")),
@@ -132,7 +132,7 @@ public class TransactionTest
         {
             Nonce = 0,
             Signer = _fx.PrivateKey1.Address,
-            GenesisHash = default,
+            GenesisBlockHash = default,
             Actions = Array.Empty<DumbAction>().ToBytecodes(),
         }.Sign(_fx.PrivateKey1);
         DateTimeOffset rightAfter = DateTimeOffset.UtcNow;

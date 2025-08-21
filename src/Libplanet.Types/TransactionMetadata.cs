@@ -15,7 +15,7 @@ public sealed partial record class TransactionMetadata
     public required Address Signer { get; init; }
 
     [Property(2)]
-    public BlockHash GenesisHash { get; init; }
+    public BlockHash GenesisBlockHash { get; init; }
 
     [Property(3)]
     public ImmutableArray<ActionBytecode> Actions { get; init; } = [];

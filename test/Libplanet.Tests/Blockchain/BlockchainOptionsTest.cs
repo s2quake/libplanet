@@ -78,14 +78,16 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
 
         var validTx = new TransactionBuilder
         {
-        }.Create(validSigner, blockchain);
+            Blockchain = blockchain,
+        }.Create(validSigner);
         blockchain.StagedTransactions.Add(validTx);
         options.TransactionOptions.Validate(validTx);
 
         // Invalid Transaction
         var invalidTx = new TransactionBuilder
         {
-        }.Create(invalidSigner, blockchain);
+            Blockchain = blockchain,
+        }.Create(invalidSigner);
         blockchain.StagedTransactions.Add(invalidTx);
         options.TransactionOptions.Validate(invalidTx);
     }
@@ -132,7 +134,8 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
 
         var invalidTx = new TransactionBuilder
         {
-        }.Create(invalidKey, blockchain);
+            Blockchain = blockchain,
+        }.Create(invalidKey);
         blockchain.StagedTransactions.Add(invalidTx);
         options.TransactionOptions.Validate(invalidTx);
 
@@ -150,7 +153,8 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
 
         invalidTx = new TransactionBuilder
         {
-        }.Create(invalidKey, blockchain);
+            Blockchain = blockchain,
+        }.Create(invalidKey);
         blockchain.StagedTransactions.Add(invalidTx);
     }
 
@@ -175,7 +179,8 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
 
         var tx = new TransactionBuilder
         {
-        }.Create(privateKey, chain);
+            Blockchain = chain,
+        }.Create(privateKey);
         chain.StagedTransactions.Add(tx);
         Assert.Single(chain.StagedTransactions.Collect());
 
@@ -209,7 +214,8 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
                 {
                     var tx = new TransactionBuilder
                     {
-                    }.Create(privateKey, chain);
+                        Blockchain = chain,
+                    }.Create(privateKey);
                     chain.StagedTransactions.Add(tx);
                     return tx;
                 })
@@ -245,7 +251,8 @@ public class BlockchainOptionsTest(ITestOutputHelper output) : IDisposable
                 {
                     var tx = new TransactionBuilder
                     {
-                    }.Create(key, chain);
+                        Blockchain = chain,
+                    }.Create(key);
                     chain.StagedTransactions.Add(tx);
                     return tx;
                 })

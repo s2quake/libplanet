@@ -170,7 +170,7 @@ public partial class BlockchainTest
         {
             BlockInterval = TimeSpan.FromMilliseconds(3 * 60 * 60 * 1000),
         };
-        var genesisBlock = TestUtils.ProposeGenesis(TestUtils.GenesisProposer).Sign(TestUtils.GenesisProposer);
+        var genesisBlock = TestUtils.ProposeGenesis(TestUtils.GenesisProposerKey).Sign(TestUtils.GenesisProposerKey);
         var repository = new Repository();
 
         var chain1 = new Libplanet.Blockchain(genesisBlock, repository, options);
@@ -196,10 +196,10 @@ public partial class BlockchainTest
                 BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = 1,
                 Timestamp = genesisBlock.Timestamp.AddSeconds(1),
-                Proposer = TestUtils.GenesisProposer.Address,
+                Proposer = TestUtils.GenesisProposerKey.Address,
                 PreviousHash = genesisBlock.BlockHash,
             },
-        }.Sign(TestUtils.GenesisProposer);
+        }.Sign(TestUtils.GenesisProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
             chain2.Append(block1, TestUtils.CreateBlockCommit(block1)));
@@ -220,10 +220,10 @@ public partial class BlockchainTest
             repository.States,
             options1.SystemActions);
         var preGenesis = TestUtils.ProposeGenesis(
-            proposer: TestUtils.GenesisProposer,
+            proposer: TestUtils.GenesisProposerKey,
             protocolVersion: beforePostponeBPV);
         var preExecution = blockExecutor.Execute(preGenesis);
-        var genesisBlock = preGenesis.Sign(TestUtils.GenesisProposer);
+        var genesisBlock = preGenesis.Sign(TestUtils.GenesisProposerKey);
         var chain1 = new Libplanet.Blockchain(genesisBlock, repository, options1);
 
         Block block1 = new RawBlock
@@ -233,10 +233,10 @@ public partial class BlockchainTest
                 BlockVersion = beforePostponeBPV,
                 Height = 1,
                 Timestamp = genesisBlock.Timestamp.AddSeconds(1),
-                Proposer = TestUtils.GenesisProposer.Address,
+                Proposer = TestUtils.GenesisProposerKey.Address,
                 PreviousHash = genesisBlock.BlockHash,
             },
-        }.Sign(TestUtils.GenesisProposer);
+        }.Sign(TestUtils.GenesisProposerKey);
 
         var options2 = new BlockchainOptions
         {
@@ -273,10 +273,10 @@ public partial class BlockchainTest
             repository.States,
             options.SystemActions);
         var rawGenesis = TestUtils.ProposeGenesis(
-            proposer: TestUtils.GenesisProposer,
+            proposer: TestUtils.GenesisProposerKey,
             protocolVersion: beforePostponeBPV);
         var rawEvaluation = blockExecutor.Execute(rawGenesis);
-        var genesisBlock = rawGenesis.Sign(TestUtils.GenesisProposer);
+        var genesisBlock = rawGenesis.Sign(TestUtils.GenesisProposerKey);
         var chain = new Libplanet.Blockchain(genesisBlock, repository, options);
 
         RawBlock preBlock1 = new RawBlock
@@ -285,15 +285,15 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = genesisBlock.Timestamp.AddSeconds(1),
-                Proposer = TestUtils.GenesisProposer.Address,
+                Proposer = TestUtils.GenesisProposerKey.Address,
                 PreviousHash = genesisBlock.BlockHash,
             },
         };
-        Block block1 = preBlock1.Sign(TestUtils.GenesisProposer);
+        Block block1 = preBlock1.Sign(TestUtils.GenesisProposerKey);
         Assert.Equal(genesisBlock.PreviousStateRootHash, block1.PreviousStateRootHash);
 
         Block block2 = preBlock1.Sign(
-            TestUtils.GenesisProposer);
+            TestUtils.GenesisProposerKey);
 
         Assert.Throws<InvalidOperationException>(() =>
             chain.Append(block2, TestUtils.CreateBlockCommit(block2)));
@@ -710,10 +710,10 @@ public partial class BlockchainTest
                 BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = newChain.Tip.Height + 1,
                 Timestamp = newChain.Tip.Timestamp.AddSeconds(1),
-                Proposer = TestUtils.GenesisProposer.Address,
+                Proposer = TestUtils.GenesisProposerKey.Address,
                 PreviousHash = newChain.Tip.BlockHash,
             },
-        }.Sign(TestUtils.GenesisProposer);
+        }.Sign(TestUtils.GenesisProposerKey);
 
         Assert.NotEqual(_validNext, newValidNext);
 

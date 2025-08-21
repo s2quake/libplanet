@@ -20,7 +20,7 @@ public partial class BlockchainTest
         var maxTransactionsBytes = _options.BlockOptions.MaxTransactionsBytes;
         Assert.Single(_blockchain.Blocks);
         Assert.Equal(
-            $"{GenesisProposer.Address}",
+            $"{GenesisProposerKey.Address}",
             (string)_blockchain.GetWorld().GetValue(SystemAccount, default));
 
         var proposerA = new PrivateKey();
@@ -31,7 +31,7 @@ public partial class BlockchainTest
         Assert.True(
             ModelSerializer.SerializeToBytes(block).Length <= maxTransactionsBytes);
         Assert.Equal(
-            $"{GenesisProposer.Address},{proposerA.Address}",
+            $"{GenesisProposerKey.Address},{proposerA.Address}",
             (string)_blockchain.GetWorld().GetValue(SystemAccount, default));
 
         var proposerB = new PrivateKey();
@@ -42,7 +42,7 @@ public partial class BlockchainTest
         Assert.True(
             ModelSerializer.SerializeToBytes(anotherBlock).Length <=
                 maxTransactionsBytes);
-        var expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
+        var expected = $"{GenesisProposerKey.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
             (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
@@ -52,7 +52,7 @@ public partial class BlockchainTest
         Assert.Equal(3, _blockchain.Blocks.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(block3).Length <= maxTransactionsBytes);
-        expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
+        expected = $"{GenesisProposerKey.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
             (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
@@ -89,7 +89,7 @@ public partial class BlockchainTest
         Assert.True(
             ModelSerializer.SerializeToBytes(block4).Length <= maxTransactionsBytes);
         Assert.Equal(3, block4.Transactions.Count);
-        expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
+        expected = $"{GenesisProposerKey.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
             (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
@@ -151,7 +151,7 @@ public partial class BlockchainTest
         {
             Nonce = 5,  // Invalid nonce
             Signer = txKey.Address,
-            GenesisHash = blockchain.Genesis.BlockHash,
+            GenesisBlockHash = blockchain.Genesis.BlockHash,
             Actions = new[]
             {
                 DumbAction.Create((new PrivateKey().Address, "foo")),
@@ -185,7 +185,7 @@ public partial class BlockchainTest
             {
                 Nonce = 0,
                 Signer = keys[0].Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrA, "1a")),
@@ -196,7 +196,7 @@ public partial class BlockchainTest
             {
                 Nonce = 1,
                 Signer = keys[0].Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrC, "2a")),
@@ -209,7 +209,7 @@ public partial class BlockchainTest
             {
                 Nonce = 1,
                 Signer = keys[1].Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrE, "3a")),
@@ -220,7 +220,7 @@ public partial class BlockchainTest
             {
                 Nonce = 2,
                 Signer = keys[1].Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrB, "4a")),
@@ -233,7 +233,7 @@ public partial class BlockchainTest
             {
                 Nonce = 0,
                 Signer = keys[2].Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrD, "5a")),
@@ -244,7 +244,7 @@ public partial class BlockchainTest
             {
                 Nonce = 2,
                 Signer = keys[2].Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = new[]
                 {
                     DumbAction.Create((addrA, "6a")),
@@ -401,21 +401,21 @@ public partial class BlockchainTest
             {
                 Nonce = 2,
                 Signer = key.Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
             }.Sign(key),
             new TransactionMetadata
             {
                 Nonce = 1,
                 Signer = key.Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
             }.Sign(key),
             new TransactionMetadata
             {
                 Nonce = 0,
                 Signer = key.Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
             }.Sign(key),
         };
@@ -434,7 +434,7 @@ public partial class BlockchainTest
                 {
                     Nonce = 0,
                     Signer = key.Address,
-                    GenesisHash = _blockchain.Genesis.BlockHash,
+                    GenesisBlockHash = _blockchain.Genesis.BlockHash,
                     Actions = [],
                 }.Sign(key),
             ]);
@@ -449,7 +449,7 @@ public partial class BlockchainTest
                 {
                     Nonce = 0,
                     Signer = key.Address,
-                    GenesisHash = _blockchain.Genesis.BlockHash,
+                    GenesisBlockHash = _blockchain.Genesis.BlockHash,
                     Actions = [],
                 }.Sign(key),
             });
@@ -700,7 +700,7 @@ public partial class BlockchainTest
         {
             Nonce = 1,
             Signer = keyB.Address,
-            GenesisHash = _blockchain.Genesis.BlockHash,
+            GenesisBlockHash = _blockchain.Genesis.BlockHash,
             Actions = [new ActionBytecode([0x11])], // Invalid action
             Timestamp = DateTimeOffset.UtcNow,
         }.Sign(keyB);
@@ -708,7 +708,7 @@ public partial class BlockchainTest
         {
             Nonce = 2,
             Signer = keyB.Address,
-            GenesisHash = _blockchain.Genesis.BlockHash,
+            GenesisBlockHash = _blockchain.Genesis.BlockHash,
             Actions = [],
         }.Sign(keyB);
         var txs = new[]
@@ -717,28 +717,28 @@ public partial class BlockchainTest
             {
                 Nonce = 0,
                 Signer = keyA.Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = [],
             }.Sign(keyA),
             new TransactionMetadata
             {
                 Nonce = 1,
                 Signer = keyA.Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = [],
             }.Sign(keyA),
             new TransactionMetadata
             {
                 Nonce = 2,
                 Signer = keyA.Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = [],
             }.Sign(keyA),
             new TransactionMetadata
             {
                 Nonce = 0,
                 Signer = keyB.Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = [],
             }.Sign(keyB),
             txWithInvalidAction,

@@ -73,7 +73,7 @@ public sealed class IntegerSet
         {
             Nonce = nonce,
             Signer = signerKey.Address,
-            GenesisHash = Genesis.BlockHash,
+            GenesisBlockHash = Genesis.BlockHash,
             Actions = actions.ToBytecodes(),
         }.Sign(signerKey);
         BigInteger prevState = Chain.GetWorld().GetValueOrDefault(SystemAccount, signer, BigInteger.Zero);

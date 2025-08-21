@@ -19,7 +19,7 @@ public partial class BlockchainTest
             {
                 Nonce = nonce,
                 Signer = key.Address,
-                GenesisHash = _blockchain.Genesis.BlockHash,
+                GenesisBlockHash = _blockchain.Genesis.BlockHash,
                 Actions = Array.Empty<DumbAction>().ToBytecodes(),
                 Timestamp = ts ?? DateTimeOffset.UtcNow,
             }.Sign(key);

@@ -25,7 +25,7 @@ public abstract class StagePolicyTest
             {
                 Nonce = i,
                 Signer = _key.Address,
-                GenesisHash = _fx.GenesisBlock.BlockHash,
+                GenesisBlockHash = _fx.GenesisBlock.BlockHash,
                 Actions = [],
             }.Sign(_key))
         .ToArray();
@@ -47,7 +47,7 @@ public abstract class StagePolicyTest
         {
             Nonce = 2,
             Signer = _key.Address,
-            GenesisHash = _fx.GenesisBlock.BlockHash,
+            GenesisBlockHash = _fx.GenesisBlock.BlockHash,
             Actions = [],
         }.Sign(_key);
 

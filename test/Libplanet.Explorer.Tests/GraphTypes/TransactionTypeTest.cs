@@ -24,7 +24,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
             {
                 Nonce = 0,
                 Signer = privateKey.Address,
-                GenesisHash = new BlockHash(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
+                GenesisBlockHash = new BlockHash(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
                 Actions = new[] { new NullAction() }.ToBytecodes(),
             }.Sign(privateKey);
             var query =

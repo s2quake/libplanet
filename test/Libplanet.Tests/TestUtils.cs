@@ -106,7 +106,9 @@ public static class TestUtils
         ]),
     ];
 
-    public static PrivateKey GenesisProposer => ValidatorPrivateKeys[0];
+    public static PrivateKey GenesisProposerKey => ValidatorPrivateKeys[0];
+
+    public static ISigner GenesisProposer => GenesisProposerKey.AsSigner();
 
     public static BlockCommit CreateBlockCommit(
         Block block,
@@ -161,13 +163,13 @@ public static class TestUtils
         int protocolVersion = BlockHeader.CurrentProtocolVersion)
     {
         var txs = transactions ?? [];
-        long nonce = txs.Count(tx => tx.Signer.Equals(GenesisProposer.Address));
+        long nonce = txs.Count(tx => tx.Signer.Equals(GenesisProposerKey.Address));
         validators ??= Validators;
         txs = txs.Add(
             new TransactionMetadata
             {
                 Nonce = nonce,
-                Signer = GenesisProposer.Address,
+                Signer = GenesisProposerKey.Address,
                 Actions = new[]
                 {
                     new Initialize
@@ -176,7 +178,7 @@ public static class TestUtils
                     },
                 }.ToBytecodes(),
                 Timestamp = DateTimeOffset.MinValue,
-            }.Sign(GenesisProposer));
+            }.Sign(GenesisProposerKey));
 
         var metadata = new BlockHeader
         {
@@ -302,7 +304,7 @@ public static class TestUtils
     {
         options ??= new BlockchainOptions();
         actions ??= ImmutableArray<IAction>.Empty;
-        privateKey ??= GenesisProposer;
+        privateKey ??= GenesisProposerKey;
 
         var txs = new[]
         {
@@ -310,7 +312,7 @@ public static class TestUtils
             {
                 Nonce = 0,
                 Signer = privateKey.Address,
-                GenesisHash = default,
+                GenesisBlockHash = default,
                 Actions = actions.ToBytecodes(),
                 Timestamp = timestamp ?? DateTimeOffset.MinValue,
             }.Sign(privateKey),

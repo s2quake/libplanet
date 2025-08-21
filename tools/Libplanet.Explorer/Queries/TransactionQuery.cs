@@ -129,7 +129,7 @@ namespace Libplanet.Explorer.Queries
                     {
                         Nonce = nonce,
                         Signer = publicKey.Address,
-                        GenesisHash = chain.Genesis.BlockHash,
+                        GenesisBlockHash = chain.Genesis.BlockHash,
                         Actions = [new ActionBytecode([.. plainBytes])],
                     };
                     return ModelSerializer.SerializeToBytes(metadata);

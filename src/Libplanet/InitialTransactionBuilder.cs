@@ -4,9 +4,9 @@ using Libplanet.Types;
 
 namespace Libplanet;
 
-public sealed record class TransactionBuilder
+public sealed record class InitialTransactionBuilder
 {
-    public required Blockchain Blockchain { get; init; }
+    public long Nonce { get; init; }
 
     public IAction[] Actions { get; init; } = [];
 
@@ -24,9 +24,9 @@ public sealed record class TransactionBuilder
         };
         var metadata = new TransactionMetadata
         {
-            Nonce = Blockchain.GetNextTxNonce(signer.Address),
+            Nonce = Nonce,
             Signer = signer.Address,
-            GenesisBlockHash = Blockchain.Genesis.BlockHash,
+            GenesisBlockHash = default,
             Actions = Actions.ToBytecodes(),
             Timestamp = Timestamp,
             MaxGasPrice = MaxGasPrice,

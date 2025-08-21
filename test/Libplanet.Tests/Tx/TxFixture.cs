@@ -56,7 +56,7 @@ public class TxFixture
         {
             Nonce = 0,
             Signer = PrivateKey1.Address,
-            GenesisHash = genesisHash,
+            GenesisBlockHash = genesisHash,
             Actions = [],
             Timestamp = timestamp,
         }.Sign(PrivateKey1);
@@ -75,7 +75,7 @@ public class TxFixture
         ];
         TxWithActions = new TransactionMetadata
         {
-            GenesisHash = genesisHash,
+            GenesisBlockHash = genesisHash,
             Timestamp = timestamp,
             Signer = PrivateKey1.Address,
             Actions = actions.ToBytecodes(),

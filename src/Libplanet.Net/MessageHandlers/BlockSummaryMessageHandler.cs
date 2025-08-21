@@ -14,7 +14,7 @@ internal sealed class BlockSummaryMessageHandler(
     protected override ValueTask OnHandleAsync(
         BlockSummaryMessage message, MessageEnvelope messageEnvelope, CancellationToken cancellationToken)
     {
-        if (message.GenesisHash != _genesisHash)
+        if (message.GenesisBlockHash != _genesisHash)
         {
             throw new InvalidMessageException("Invalid block header message.");
         }

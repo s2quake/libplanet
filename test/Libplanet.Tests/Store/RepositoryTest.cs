@@ -394,7 +394,7 @@ public abstract class RepositoryTest
             {
                 Nonce = txNonce,
                 Signer = key.Address,
-                GenesisHash = default,
+                GenesisBlockHash = default,
                 Actions = new[] { action }.ToBytecodes(),
                 Timestamp = DateTimeOffset.UtcNow,
             }.Sign(key);

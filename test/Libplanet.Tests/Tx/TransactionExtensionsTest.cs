@@ -28,7 +28,7 @@ public class TransactionExtensionsTest
             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
         Transaction tx = new TransactionMetadata
         {
-            GenesisHash = genesisHash,
+            GenesisBlockHash = genesisHash,
             Signer = privateKey.Address,
             Timestamp = timestamp,
             Actions = actions.ToBytecodes(),

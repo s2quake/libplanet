@@ -49,7 +49,7 @@ public static class ITransportExtensions
         }
         catch (TaskCanceledException e)
         {
-            throw new OperationCanceledException(e.Message, e, e.CancellationToken); 
+            throw new OperationCanceledException(e.Message, e, e.CancellationToken);
         }
     }
 
@@ -188,7 +188,7 @@ public static class ITransportExtensions
         var message = new BlockSummaryMessage
         {
             BlockSummary = block,
-            GenesisHash = blockchain.Genesis.BlockHash,
+            GenesisBlockHash = blockchain.Genesis.BlockHash,
         };
         @this.Post(peer, message);
     }

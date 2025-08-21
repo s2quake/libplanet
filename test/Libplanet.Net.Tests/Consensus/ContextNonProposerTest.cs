@@ -247,7 +247,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             e => e.Step == ConsensusStep.PreVote && e.BlockHash == default && consensus.Round.Index == 0);
         var proposeTimeoutTask = consensus.TimeoutOccurred.WaitAsync(e => e == ConsensusStep.Propose);
 
-        var invalidTx = new TransactionBuilder
+        var invalidTx = new InitialTransactionBuilder
         {
         }.Create(invalidKey.AsSigner());
         var invalidBlock = new BlockBuilder
@@ -308,7 +308,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
 
         var invalidTx = new TransactionMetadata
         {
-            GenesisHash = blockchain.Genesis.BlockHash,
+            GenesisBlockHash = blockchain.Genesis.BlockHash,
             Timestamp = DateTimeOffset.UtcNow,
             Actions = [new ActionBytecode([0x01])], // Invalid action
             Signer = txSigner.Address,
@@ -624,7 +624,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Block = block,
                 Type = VoteType.PreCommit,
             }.Create(Signers[1]));
-        
+
         _ = consensus.PreCommitAsync(
             new NilVoteBuilder
             {
@@ -632,7 +632,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Height = 1,
                 Type = VoteType.PreCommit,
             }.Create(Signers[2]));
-        
+
         _ = consensus.PreCommitAsync(
             new NilVoteBuilder
             {
@@ -640,7 +640,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Height = 1,
                 Type = VoteType.PreCommit,
             }.Create(Signers[3]));
-        
+
 
         // Wait for timeout.
         await timeoutTask.WaitAsync(cancellationToken);

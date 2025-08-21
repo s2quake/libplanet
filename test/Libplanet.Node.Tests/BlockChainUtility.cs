@@ -52,7 +52,7 @@ internal static class BlockChainUtility
         {
             Nonce = nonce,
             Signer = privateKey.Address,
-            GenesisHash = genesisBlock.BlockHash,
+            GenesisBlockHash = genesisBlock.BlockHash,
             Actions = values,
         }.Sign(privateKey.AsSigner());
     }

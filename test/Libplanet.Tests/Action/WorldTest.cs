@@ -123,7 +123,7 @@ public sealed class WorldTest
         var tx = new TransactionMetadata
         {
             Signer = _keys[0].Address,
-            GenesisHash = blockChain.Genesis.BlockHash,
+            GenesisBlockHash = blockChain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_keys[0]);
         var rawBlock1 = TestUtils.ProposeNext(
@@ -152,7 +152,7 @@ public sealed class WorldTest
         {
             Nonce = 1,
             Signer = _keys[0].Address,
-            GenesisHash = blockChain.Genesis.BlockHash,
+            GenesisBlockHash = blockChain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_keys[0]);
         var rawBlock2 = TestUtils.ProposeNext(
@@ -182,7 +182,7 @@ public sealed class WorldTest
         {
             Nonce = blockChain.GetNextTxNonce(_addr[0]),
             Signer = _keys[0].Address,
-            GenesisHash = blockChain.Genesis.BlockHash,
+            GenesisBlockHash = blockChain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_keys[0]);
         var rawBlock3 = TestUtils.ProposeNext(

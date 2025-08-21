@@ -51,7 +51,7 @@ public class TransactionQueryGeneratedTest
         {
             Nonce = Fx.Chain.GetNextTxNonce(pk.Address),
             Signer = pk.Address,
-            GenesisHash = Fx.Chain.Genesis.BlockHash,
+            GenesisBlockHash = Fx.Chain.Genesis.BlockHash,
             Actions = new[] { new SimpleAction1() }.ToBytecodes(),
         }.Sign(pk);
         Fx.Chain.StagedTransactions.Add(stagingTx);

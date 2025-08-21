@@ -46,7 +46,7 @@ public sealed class StoreCommandTest : IDisposable
         }
 
         _genesisBlock =
-                TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposer);
+                TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposerKey);
         _transaction1 = DummyTransaction();
         _transaction2 = DummyTransaction();
         _transaction3 = DummyTransaction();
@@ -54,27 +54,27 @@ public sealed class StoreCommandTest : IDisposable
 
         _block1 = TestUtils.ProposeNextBlock(
                 _genesisBlock,
-                TestUtils.GenesisProposer,
+                TestUtils.GenesisProposerKey,
                 [_transaction1],
                 lastCommit: null);
         _block2 = TestUtils.ProposeNextBlock(
                 _block1,
-                TestUtils.GenesisProposer,
+                TestUtils.GenesisProposerKey,
                 [_transaction2],
                 lastCommit: TestUtils.CreateBlockCommit(_block1));
         _block3 = TestUtils.ProposeNextBlock(
                 _block2,
-                TestUtils.GenesisProposer,
+                TestUtils.GenesisProposerKey,
                 [_transaction3],
                 lastCommit: TestUtils.CreateBlockCommit(_block2));
         _block4 = TestUtils.ProposeNextBlock(
                 _block3,
-                TestUtils.GenesisProposer,
+                TestUtils.GenesisProposerKey,
                 [_transaction3],
                 lastCommit: TestUtils.CreateBlockCommit(_block3));
         _block5 = TestUtils.ProposeNextBlock(
                 _block4,
-                TestUtils.GenesisProposer,
+                TestUtils.GenesisProposerKey,
                 lastCommit: TestUtils.CreateBlockCommit(_block4));
 
         var guid = Guid.NewGuid();
@@ -349,7 +349,7 @@ public sealed class StoreCommandTest : IDisposable
         {
             Nonce = 0,
             Signer = privateKey.Address,
-            GenesisHash = _genesisBlock.BlockHash,
+            GenesisBlockHash = _genesisBlock.BlockHash,
             Actions = new[] { new Utils.DummyAction() }.ToBytecodes(),
         }.Sign(privateKey);
     }

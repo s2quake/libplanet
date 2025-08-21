@@ -11,7 +11,7 @@ public class BlockFixture
 
     public BlockFixture()
     {
-        Miner = TestUtils.GenesisProposer;
+        Miner = TestUtils.GenesisProposerKey;
         Genesis = TestUtils.ProposeGenesisBlock(
             protocolVersion: ProtocolVersion,
             proposer: Miner,
