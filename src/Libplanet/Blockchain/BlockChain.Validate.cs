@@ -19,6 +19,8 @@ namespace Libplanet.Blockchain
 {
     public partial class BlockChain
     {
+        public string Name { get; set; } = string.Empty;
+
         internal static Dictionary<Address, long> ValidateGenesisNonces(
             Block block)
         {

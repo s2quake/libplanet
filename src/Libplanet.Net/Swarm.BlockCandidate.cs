@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -188,6 +189,7 @@ namespace Libplanet.Net
 
             try
             {
+                Trace.WriteLine("TryAdd: " + peer);
                 _processBlockDemandSessions.TryAdd(peer, sessionId);
                 var result = await BlockCandidateDownload(
                     peer: peer,
@@ -240,6 +242,7 @@ namespace Libplanet.Net
             {
                 // Maybe demand table can be cleaned up here, but it will be eventually
                 // cleaned up in FillBlocksAsync()
+                Trace.WriteLine("TryRemove: " + peer);
                 _processBlockDemandSessions.TryRemove(peer, out _);
             }
         }

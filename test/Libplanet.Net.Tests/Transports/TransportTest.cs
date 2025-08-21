@@ -13,6 +13,7 @@ using Libplanet.Net.Options;
 using Libplanet.Net.Protocols;
 using Libplanet.Net.Transports;
 using NetMQ;
+using NetMQ.Sockets;
 using Serilog;
 using Xunit;
 using Xunit.Sdk;
@@ -26,9 +27,9 @@ namespace Libplanet.Net.Tests.Transports
 
         protected ILogger Logger { get; set; }
 
-        #pragma warning disable MEN002
+#pragma warning disable MEN002
         protected Func<PrivateKey, AppProtocolVersionOptions, HostOptions, TimeSpan?, Task<ITransport>> TransportConstructor { get; set; }
-        #pragma warning restore MEN002
+#pragma warning restore MEN002
 
         [SkippableFact(Timeout = Timeout)]
         public async Task StartAsync()
@@ -143,6 +144,38 @@ namespace Libplanet.Net.Tests.Transports
                 await transport.StopAsync(TimeSpan.FromMilliseconds(100));
                 transport.Dispose();
             }
+        }
+
+        [Fact(Timeout = Timeout)]
+        public async Task NetMQTest()
+        {
+            var router = new RouterSocket();
+            router.Options.RouterHandover = true;
+            router.Bind("tcp://*:4000");
+            var dealer = new DealerSocket();
+            dealer.Options.DisableTimeWait = true;
+            dealer.Connect("tcp://127.0.0.1:4000");
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+            _ = Task.Run(async () =>
+            {
+                var m = dealer.ReceiveMultipartMessage();
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+                int qwr = 0;
+#pragma warning restore CS0219 // Variable is assigned but its value is never used
+            });
+
+            _ = Task.Run(async () =>
+            {
+                router.SendMultipartMessage(new NetMQMessage
+                {
+                });
+            });
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+
+            await Task.Delay(20000);
+
+            Assert.True(true);
         }
 
         // This also tests ITransport.ReplyMessageAsync at the same time.

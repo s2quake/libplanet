@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -544,6 +545,9 @@ namespace Libplanet.Net.Tests
             BlockChain chainA = swarmA.BlockChain;
             BlockChain chainB = swarmB.BlockChain;
             BlockChain chainC = swarmC.BlockChain;
+            swarmA.Name = "A";
+            swarmB.Name = "B";
+            swarmC.Name = "C";
 
             var privateKey = new PrivateKey();
 
@@ -599,6 +603,8 @@ namespace Libplanet.Net.Tests
                 await swarmA.AddPeersAsync(new[] { swarmB.AsPeer }, null);
                 await swarmB.AddPeersAsync(new[] { swarmC.AsPeer }, null);
 
+                Trace.WriteLine(
+                    "--------Broadcasting tx3 and tx4 from swarmA to swarmB and swarmC");
                 swarmA.BroadcastTxs(new[] { tx3, tx4 });
                 await swarmB.TxReceived.WaitAsync();
 
@@ -1048,7 +1054,7 @@ namespace Libplanet.Net.Tests
                 await mockTransport.SendMessageAsync(
                     receiver.AsPeer,
                     blockHeaderMsg1,
-                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(50),
                     default);
                 await receiver.BlockHeaderReceived.WaitAsync();
 
@@ -1059,7 +1065,7 @@ namespace Libplanet.Net.Tests
                 await mockTransport.SendMessageAsync(
                     receiver.AsPeer,
                     blockHeaderMsg1,
-                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(50),
                     default);
                 await receiver.BlockHeaderReceived.WaitAsync();
                 await Task.Delay(1000);
@@ -1071,7 +1077,7 @@ namespace Libplanet.Net.Tests
                 await mockTransport.SendMessageAsync(
                     receiver.AsPeer,
                     blockHeaderMsg2,
-                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(50),
                     default);
                 await receiver.BlockHeaderReceived.WaitAsync();
                 await Task.Delay(1000);

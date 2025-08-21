@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -79,6 +80,14 @@ namespace Libplanet.Blockchain.Policies
         {
             if (Expired(transaction))
             {
+                _logger.Information(
+                    "--[{Name}] Transaction {TxId} by {Signer} with timestamp {TxTimestamp} is expired",
+                    blockChain.Name,
+                    transaction.Id,
+                    transaction.Signer,
+                    transaction.Timestamp);
+                Trace.WriteLine(
+                    $"--[{blockChain.Name}] Transaction {transaction.Id} by {transaction.Signer} with timestamp {transaction.Timestamp} is expired");
                 return false;
             }
 
@@ -88,6 +97,13 @@ namespace Libplanet.Blockchain.Policies
             {
                 if (_ignored.Contains(transaction.Id))
                 {
+                    _logger.Information(
+                        "--[{Name}] Transaction {TxId} by {Signer} is ignored",
+                        blockChain.Name,
+                        transaction.Id,
+                        transaction.Signer);
+                    Trace.WriteLine(
+                            $"--[{blockChain.Name}] Transaction {transaction.Id} by {transaction.Signer} is ignored");
                     return false;
                 }
                 else
@@ -166,7 +182,8 @@ namespace Libplanet.Blockchain.Policies
                 {
                     _ignored.Add(id);
                     _logger.Information(
-                        "Transaction {TxId} is marked as ignored",
+                        "--[{Name}] Transaction {TxId} is marked as ignored",
+                        blockChain.Name,
                         id);
                 }
                 finally
@@ -274,9 +291,14 @@ namespace Libplanet.Blockchain.Policies
                 }
                 else if (filtered)
                 {
-                    return blockChain.Store.GetTxNonce(blockChain.Id, tx.Signer) <= tx.Nonce
-                        ? tx
-                        : null;
+                    if (blockChain.Store.GetTxNonce(blockChain.Id, tx.Signer) <= tx.Nonce)
+                    {
+                        return (Transaction?)tx;
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
                 else
                 {

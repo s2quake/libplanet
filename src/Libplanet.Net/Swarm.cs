@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -30,6 +31,8 @@ namespace Libplanet.Net
 {
     public partial class Swarm : IDisposable
     {
+        public static readonly Dictionary<int, string> nameByPort =
+            new Dictionary<int, string>();
         private const int InitialBlockDownloadWindow = 100;
         private static readonly Codec Codec = new Codec();
 
@@ -71,6 +74,7 @@ namespace Libplanet.Net
             ConsensusReactorOption? consensusOption = null)
         {
             BlockChain = blockChain ?? throw new ArgumentNullException(nameof(blockChain));
+
             _store = BlockChain.Store;
             _privateKey = privateKey ?? throw new ArgumentNullException(nameof(privateKey));
             LastSeenTimestamps =
@@ -136,6 +140,16 @@ namespace Libplanet.Net
                 _logger.Warning(
                     "Swarm is scheduled to destruct, but Transport progress is still running"
                 );
+            }
+        }
+
+        public string Name
+        {
+            get => BlockChain.Name;
+            set
+            {
+                BlockChain.Name = value;
+                nameByPort[Transport.AsPeer.EndPoint.Port] = BlockChain.Name;
             }
         }
 
@@ -210,6 +224,21 @@ namespace Libplanet.Net
 
         // FIXME: This should be exposed in a better way.
         internal ConsensusReactor ConsensusReactor => _consensusReactor;
+
+        public static string GetName(BoundPeer peer)
+        {
+            if (peer is null)
+            {
+                throw new ArgumentNullException(nameof(peer));
+            }
+
+            if (nameByPort.TryGetValue(peer.EndPoint.Port, out string name))
+            {
+                return name;
+            }
+
+            return peer.EndPoint.ToString();
+        }
 
         /// <summary>
         /// Waits until this <see cref="Swarm"/> instance gets started to run.
@@ -344,8 +373,8 @@ namespace Libplanet.Net
                 var tasks = new List<Func<Task>>
                 {
                     () => Transport.StartAsync(_cancellationToken),
-                    () => BroadcastBlockAsync(broadcastBlockInterval, _cancellationToken),
-                    () => BroadcastTxAsync(broadcastTxInterval, _cancellationToken),
+                    // () => BroadcastBlockAsync(broadcastBlockInterval, _cancellationToken),
+                    // () => BroadcastTxAsync(broadcastTxInterval, _cancellationToken),
                     () => FillBlocksAsync(_cancellationToken),
                     () => PollBlocksAsync(
                         dialTimeout,
@@ -478,6 +507,17 @@ namespace Libplanet.Net
 
         public void BroadcastTxs(IEnumerable<Transaction> txs)
         {
+            _logger.Debug(
+                "-------------[{Name}] Broadcasting {TxCount} transactions-------",
+                BlockChain.Name,
+                txs.Count()
+            );
+            _logger.Error(
+                "sda;lkfjas;lkdfjd;alskjf;lasdkjf;alsdkjf;as[{Name}] Broadcasting {TxCount} transactions-------",
+                BlockChain.Name,
+                txs.Count()
+            );
+
             BroadcastTxs(null, txs);
         }
 
@@ -942,6 +982,8 @@ namespace Libplanet.Net
             int txCount = txIdsAsArray.Count();
 
             _logger.Debug("Required tx count: {Count}", txCount);
+            Trace.WriteLine(
+                $"[{BlockChain.Name}] Required tx count: {txCount}");
 
             var txRecvTimeout = Options.TimeoutOptions.GetTxsBaseTimeout
                 + Options.TimeoutOptions.GetTxsPerTxIdTimeout.Multiply(txCount);
@@ -1131,6 +1173,8 @@ namespace Libplanet.Net
         {
             List<TxId> txIds = txs.Select(tx => tx.Id).ToList();
             _logger.Information("Broadcasting {Count} txIds...", txIds.Count);
+            var s = string.Join(", ", txs.Select(tx => tx.Id.ToString()[..3]));
+            Trace.WriteLine($"[{BlockChain.Name}] Broadcasting {s} transactions");
             BroadcastTxIds(except?.Address, txIds);
         }
 

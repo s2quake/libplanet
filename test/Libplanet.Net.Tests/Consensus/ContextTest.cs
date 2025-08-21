@@ -273,7 +273,7 @@ namespace Libplanet.Net.Tests.Consensus
             context.ProduceMessage(
                 TestUtils.CreateConsensusPropose(block, TestUtils.PrivateKeys[0]));
             await exceptionOccurred.WaitAsync();
-            Assert.IsType<InvalidConsensusMessageException>(exceptionThrown);
+            var e = Assert.IsType<InvalidConsensusMessageException>(exceptionThrown);
         }
 
         [Fact(Timeout = Timeout)]

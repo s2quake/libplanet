@@ -348,146 +348,146 @@ namespace Libplanet.Net.Transports
             Channel<NetMQMessage> channel = Channel.CreateUnbounded<NetMQMessage>();
 
             try
-            {
-                var req = new MessageRequest(
-                    reqId,
-                    new Message(
-                        content,
-                        _appProtocolVersionOptions.AppProtocolVersion,
-                        AsPeer,
-                        DateTimeOffset.UtcNow,
-                        null),
-                    peer,
-                    expectedResponses,
-                    channel,
-                    linkedCt);
-                Interlocked.Increment(ref _requestCount);
-                await _requests.Writer.WriteAsync(
-                    req,
-                    linkedCt).ConfigureAwait(false);
-                _logger.Verbose(
-                    "Enqueued a request {RequestId} to the peer {Peer}: {@Message}; " +
-                    "{LeftRequests} left",
-                    reqId,
-                    peer,
-                    content,
-                    Interlocked.Read(ref _requestCount)
-                );
-
-                foreach (var i in Enumerable.Range(0, expectedResponses))
                 {
-                    NetMQMessage raw = await channel.Reader
-                        .ReadAsync(linkedCt)
-                        .ConfigureAwait(false);
-                    Message reply = _messageCodec.Decode(raw, true);
+                    var req = new MessageRequest(
+                        reqId,
+                        new Message(
+                            content,
+                            _appProtocolVersionOptions.AppProtocolVersion,
+                            AsPeer,
+                            DateTimeOffset.UtcNow,
+                            null),
+                        peer,
+                        expectedResponses,
+                        channel,
+                        linkedCt);
+                    Interlocked.Increment(ref _requestCount);
+                    await _requests.Writer.WriteAsync(
+                        req,
+                        linkedCt).ConfigureAwait(false);
+                    _logger.Verbose(
+                        "Enqueued a request {RequestId} to the peer {Peer}: {@Message}; " +
+                        "{LeftRequests} left",
+                        reqId,
+                        peer,
+                        content,
+                        Interlocked.Read(ref _requestCount)
+                    );
+
+                    foreach (var i in Enumerable.Range(0, expectedResponses))
+                    {
+                        NetMQMessage raw = await channel.Reader
+                            .ReadAsync(linkedCt)
+                            .ConfigureAwait(false);
+                        Message reply = _messageCodec.Decode(raw, true);
+
+                        _logger.Information(
+                            "Received {Reply} as a reply to request {Request} {RequestId} from {Peer}",
+                            reply.Content.Type,
+                            content.Type,
+                            req.Id,
+                            reply.Remote);
+                        try
+                        {
+                            _messageValidator.ValidateTimestamp(reply);
+                            _messageValidator.ValidateAppProtocolVersion(reply);
+                        }
+                        catch (InvalidMessageTimestampException imte)
+                        {
+                            const string imteMsge =
+                                "Received reply {Reply} from {Peer} to request {Request} " +
+                                "{RequestId} has an invalid timestamp";
+                            _logger.Warning(
+                                imte,
+                                imteMsge,
+                                reply.Content.Type,
+                                reply.Remote,
+                                content.Type,
+                                req.Id);
+                            channel.Writer.Complete(imte);
+                        }
+                        catch (DifferentAppProtocolVersionException dapve)
+                        {
+                            const string dapveMsg =
+                                "Received reply {Reply} from {Peer} to request {Request} " +
+                                "{RequestId} has an invalid APV";
+                            _logger.Warning(
+                                dapve,
+                                dapveMsg,
+                                reply.Content.Type,
+                                reply.Remote,
+                                content.Type,
+                                req.Id);
+                            channel.Writer.Complete(dapve);
+                        }
+
+                        replies.Add(reply);
+                    }
 
                     _logger.Information(
-                        "Received {Reply} as a reply to request {Request} {RequestId} from {Peer}",
-                        reply.Content.Type,
+                        "Received {ReplyMessageCount} reply messages to {Message} {RequestId}" +
+                        "from {Peer}: {ReplyMessages}",
+                        replies.Count,
                         content.Type,
-                        req.Id,
-                        reply.Remote);
-                    try
-                    {
-                        _messageValidator.ValidateTimestamp(reply);
-                        _messageValidator.ValidateAppProtocolVersion(reply);
-                    }
-                    catch (InvalidMessageTimestampException imte)
-                    {
-                        const string imteMsge =
-                            "Received reply {Reply} from {Peer} to request {Request} " +
-                            "{RequestId} has an invalid timestamp";
-                        _logger.Warning(
-                            imte,
-                            imteMsge,
-                            reply.Content.Type,
-                            reply.Remote,
-                            content.Type,
-                            req.Id);
-                        channel.Writer.Complete(imte);
-                    }
-                    catch (DifferentAppProtocolVersionException dapve)
-                    {
-                        const string dapveMsg =
-                            "Received reply {Reply} from {Peer} to request {Request} " +
-                            "{RequestId} has an invalid APV";
-                        _logger.Warning(
-                            dapve,
-                            dapveMsg,
-                            reply.Content.Type,
-                            reply.Remote,
-                            content.Type,
-                            req.Id);
-                        channel.Writer.Complete(dapve);
-                    }
-
-                    replies.Add(reply);
-                }
-
-                _logger.Information(
-                    "Received {ReplyMessageCount} reply messages to {Message} {RequestId}" +
-                    "from {Peer}: {ReplyMessages}",
-                    replies.Count,
-                    content.Type,
-                    reqId,
-                    peer,
-                    replies.Select(reply => reply.Content.Type));
-                a?.SetStatus(ActivityStatusCode.Ok);
-                return replies;
-            }
-            catch (OperationCanceledException oce) when (timerCts.IsCancellationRequested)
-            {
-                if (returnWhenTimeout)
-                {
+                        reqId,
+                        peer,
+                        replies.Select(reply => reply.Content.Type));
+                    a?.SetStatus(ActivityStatusCode.Ok);
                     return replies;
                 }
+                catch (OperationCanceledException oce) when (timerCts.IsCancellationRequested)
+                {
+                    if (returnWhenTimeout)
+                    {
+                        return replies;
+                    }
 
-                a?.SetStatus(ActivityStatusCode.Error);
-                a?.AddTag("Exception", nameof(TimeoutException));
-                throw WrapCommunicationFailException(
-                    new TimeoutException(
-                        $"The operation was canceled due to timeout {timeout!.ToString()}.",
-                        oce
-                    ),
-                    peer,
-                    content
-                );
-            }
-            catch (OperationCanceledException oce2)
-            {
-                const string dbgMsg =
-                    "{MethodName}() was cancelled while waiting for a reply to " +
-                    "{Content} {RequestId} from {Peer}";
-                _logger.Debug(
-                    oce2, dbgMsg, nameof(SendMessageAsync), content, reqId, peer);
+                    a?.SetStatus(ActivityStatusCode.Error);
+                    a?.AddTag("Exception", nameof(TimeoutException));
+                    throw WrapCommunicationFailException(
+                        new TimeoutException(
+                            $"The operation was canceled due to timeout {timeout!.ToString()}.",
+                            oce
+                        ),
+                        peer,
+                        content
+                    );
+                }
+                catch (OperationCanceledException oce2)
+                {
+                    const string dbgMsg =
+                        "{MethodName}() was cancelled while waiting for a reply to " +
+                        "{Content} {RequestId} from {Peer}";
+                    _logger.Debug(
+                        oce2, dbgMsg, nameof(SendMessageAsync), content, reqId, peer);
 
-                a?.SetStatus(ActivityStatusCode.Error);
-                a?.AddTag("Exception", nameof(TaskCanceledException));
+                    a?.SetStatus(ActivityStatusCode.Error);
+                    a?.AddTag("Exception", nameof(TaskCanceledException));
 
-                // Wrapping to match the previous behavior of `SendMessageAsync()`.
-                throw new TaskCanceledException(dbgMsg, oce2);
-            }
-            catch (ChannelClosedException ce)
-            {
-                a?.SetStatus(ActivityStatusCode.Error);
-                a?.AddTag("Exception", nameof(ChannelClosedException));
-                throw WrapCommunicationFailException(ce.InnerException ?? ce, peer, content);
-            }
-            catch (Exception e)
-            {
-                const string errMsg =
-                    "{MethodName}() encountered an unexpected exception while waiting for " +
-                    "a reply to {Content} {RequestId} from {Peer}";
-                _logger.Error(
-                    e, errMsg, nameof(SendMessageAsync), content, reqId, peer.Address);
-                a?.SetStatus(ActivityStatusCode.Error);
-                a?.AddTag("Exception", e.GetType().ToString());
-                throw;
-            }
-            finally
-            {
-                channel.Writer.TryComplete();
-            }
+                    // Wrapping to match the previous behavior of `SendMessageAsync()`.
+                    throw new TaskCanceledException(dbgMsg, oce2);
+                }
+                catch (ChannelClosedException ce)
+                {
+                    a?.SetStatus(ActivityStatusCode.Error);
+                    a?.AddTag("Exception", nameof(ChannelClosedException));
+                    throw WrapCommunicationFailException(ce.InnerException ?? ce, peer, content);
+                }
+                catch (Exception e)
+                {
+                    const string errMsg =
+                        "{MethodName}() encountered an unexpected exception while waiting for " +
+                        "a reply to {Content} {RequestId} from {Peer}";
+                    _logger.Error(
+                        e, errMsg, nameof(SendMessageAsync), content, reqId, peer.Address);
+                    a?.SetStatus(ActivityStatusCode.Error);
+                    a?.AddTag("Exception", e.GetType().ToString());
+                    throw;
+                }
+                finally
+                {
+                    channel.Writer.TryComplete();
+                }
         }
 
         /// <inheritdoc/>

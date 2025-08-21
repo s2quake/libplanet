@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Libplanet.Blockchain;
 using Libplanet.Types.Tx;
 using Nito.AsyncEx;
+using Org.BouncyCastle.Asn1.X509;
 using Serilog;
 
 namespace Libplanet.Net
@@ -73,9 +74,16 @@ namespace Libplanet.Net
             HashSet<TxId> required = GetRequiredTxIds(txIds);
 
             _logger.Information(
-                "There are {RequiredCount} unaware transactions to receive out of {Count} TxIds",
+                "--[{Name}] There are {RequiredCount} unaware transactions to receive out of {Count} TxIds",
+                _blockChain.Name,
                 required.Count,
                 txIds.Count());
+            if (_blockChain.Name == "B" && txIds.Count() != required.Count)
+            {
+                int qwer = 0;
+            }
+            Trace.WriteLine(
+                $"--[{_blockChain.Name}] There are {required.Count} unaware transactions to receive out of {txIds.Count()} TxIds");
 
             if (!required.Any())
             {
@@ -121,6 +129,8 @@ namespace Libplanet.Net
         {
             try
             {
+                _logger.Debug("--[{Name}] ProcessFetchingTxIds", _blockChain.Name);
+                Trace.WriteLine($"--[{_blockChain.Name}] ProcessFetchingTxIds: {txs.Count}");
                 var policyCompatTxs = new HashSet<Transaction>(
                     txs.Where(
                         tx =>
@@ -130,14 +140,17 @@ namespace Libplanet.Net
                                     tx) is { } tpve)
                             {
                                 const string message =
-                                    "Received transaction {TxId} from {Peer} will not be " +
+                                    "--[{Name}] Received transaction {TxId} from {Peer} will not be " +
                                     "staged since it does not follow policy";
                                 _logger.Debug(
                                     tpve,
                                     message,
+                                    _blockChain.Name,
                                     tx.Id,
                                     peer);
                                 _blockChain.StagePolicy.Ignore(_blockChain, tx.Id);
+                                Trace.WriteLine(
+                                    $"--[{_blockChain.Name}] Received transaction {tx.Id} from {peer} will not be staged since it does not follow policy");
                                 return false;
                             }
                             else
@@ -146,6 +159,9 @@ namespace Libplanet.Net
                             }
                         }));
 
+                _logger.Debug("--[{Name}] ProcessFetchedTxIds: {d}", _blockChain.Name, policyCompatTxs.Count());
+                Trace.WriteLine(
+                    $"--[{_blockChain.Name}] ProcessFetchedTxIds: {policyCompatTxs.Count()}");
                 var stagedTxs = new List<Transaction>();
                 foreach (var tx in policyCompatTxs)
                 {
@@ -153,6 +169,8 @@ namespace Libplanet.Net
                     {
                         if (_blockChain.StageTransaction(tx))
                         {
+                            Trace.WriteLine(
+                                $"--[{_blockChain.Name}] Staged transaction {tx.Id} from {peer}");
                             stagedTxs.Add(tx);
                         }
                     }
@@ -161,6 +179,8 @@ namespace Libplanet.Net
                         const string msg = "Received transaction from {Peer} with id {TxId} " +
                                   "will not be staged since it is invalid";
                         _logger.Error(ite, msg, peer, tx.Id);
+                        Trace.WriteLine(
+                            $"--[{_blockChain.Name}] Received transaction from {peer} with id {tx.Id} will not be staged since it is invalid");
                     }
                 }
 
@@ -173,7 +193,8 @@ namespace Libplanet.Net
                 if (stagedTxs.Any())
                 {
                     _logger.Information(
-                        "Staged {StagedTxCount} out of {TxCount} txs from {Peer}",
+                        "--[{Name}] Staged {StagedTxCount} out of {TxCount} txs from {Peer}",
+                        _blockChain.Name,
                         stagedTxs.Count,
                         txs.Count,
                         peer);

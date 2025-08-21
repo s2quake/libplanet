@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Libplanet.Net.Messages;
@@ -206,6 +207,8 @@ namespace Libplanet.Net
             try
             {
                 var getTxsMsg = (GetTxsMsg)message.Content;
+                Trace.WriteLine(
+                    $"--[{BlockChain.Name}] TransferTxsAsync: {getTxsMsg.TxIds.Count()}");
                 foreach (TxId txid in getTxsMsg.TxIds)
                 {
                     try
@@ -214,14 +217,20 @@ namespace Libplanet.Net
 
                         if (tx is null)
                         {
+                            Trace.WriteLine(
+                                $"--[{BlockChain.Name}] Requested TxId {txid} does not exist");
                             continue;
                         }
 
                         MessageContent response = new TxMsg(tx.Serialize());
+                        Trace.WriteLine(
+                            $"--[{BlockChain.Name}] Replying TxId '{txid.ToString()[..3]}' to {GetName(message.Remote)}");
                         await Transport.ReplyMessageAsync(response, message.Identity, default);
                     }
                     catch (KeyNotFoundException)
                     {
+                        Trace.WriteLine(
+                            $"--[{BlockChain.Name}] Requested TxId '{txid.ToString()[..3]}' does not exist");
                         _logger.Warning("Requested TxId {TxId} does not exist", txid);
                     }
                 }
@@ -244,10 +253,12 @@ namespace Libplanet.Net
         {
             var txIdsMsg = (TxIdsMsg)message.Content;
             _logger.Information(
-                "Received a {MessageType} message with {TxIdCount} txIds",
+                "--[{Name}] Received a {MessageType} message with {TxIdCount} txIds",
+                BlockChain.Name,
                 nameof(TxIdsMsg),
                 txIdsMsg.Ids.Count()
             );
+            Trace.WriteLine($"[{BlockChain.Name}] Received a {nameof(TxIdsMsg)} message with {txIdsMsg.Ids.Count()} txIds-------");
 
             TxCompletion.Demand(message.Remote, txIdsMsg.Ids);
         }
