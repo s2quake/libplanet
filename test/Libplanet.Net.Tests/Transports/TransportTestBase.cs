@@ -13,12 +13,9 @@ namespace Libplanet.Net.Tests.Transports;
 
 public abstract class TransportTestBase(ITestOutputHelper output)
 {
-    protected const int Timeout = 60 * 1000;
-
     protected ITransport CreateTransport(
         Random random, ISigner? signer = null, TransportOptions? options = null)
     {
-
         signer ??= RandomUtility.PrivateKey(random).AsSigner();
         options ??= new TransportOptions();
         if (options.Logger is NullLogger<ITransport>)
@@ -27,14 +24,14 @@ public abstract class TransportTestBase(ITestOutputHelper output)
             {
                 Logger = TestLogging.CreateLogger<ITransport>(output),
             };
-        }
+    }
 
         return CreateTransport(signer, options);
     }
 
     protected abstract ITransport CreateTransport(ISigner signer, TransportOptions transportOptions);
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task StartAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -44,7 +41,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.True(transport.IsRunning);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Restart()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -60,7 +57,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.True(transport.IsRunning);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task DisposeAsync_Test()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -80,7 +77,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transport.DisposeAsync();
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Peer()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -110,7 +107,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.Equal(peer2, peer3);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Post()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -129,7 +126,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.Equal(request.Identity, response.Identity);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Post_AfterRestart()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -139,8 +136,10 @@ public abstract class TransportTestBase(ITestOutputHelper output)
 
         await transportA.StartAsync(cancellationToken);
         await transportB.StartAsync(cancellationToken);
+        var response1Task = transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
         var request1 = transportA.Post(transportB.Peer, new PingMessage());
-        var response1 = await transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
+        var response1 = await response1Task;
+
         Assert.IsType<PingMessage>(response1.Message);
         Assert.Equal(request1.Identity, response1.Identity);
 
@@ -149,8 +148,9 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transportA.StartAsync(cancellationToken);
         await transportB.StartAsync(cancellationToken);
 
+        var response2Task = transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
         var request2 = transportA.Post(transportB.Peer, new PingMessage());
-        var response2 = await transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
+        var response2 = await response2Task;
 
         Assert.IsType<PingMessage>(response2.Message);
         Assert.Equal(request2.Identity, response2.Identity);
@@ -158,8 +158,9 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transportB.StopAsync(cancellationToken);
         await transportB.StartAsync(cancellationToken);
 
+        var response3Task = transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
         var request3 = transportA.Post(transportB.Peer, new PingMessage());
-        var response3 = await transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
+        var response3 = await response3Task;
 
         Assert.IsType<PingMessage>(response3.Message);
         Assert.Equal(request3.Identity, response3.Identity);
@@ -167,14 +168,15 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         await transportA.StopAsync(cancellationToken);
         await transportA.StartAsync(cancellationToken);
 
+        var response4Task = transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
         var request4 = transportA.Post(transportB.Peer, new PingMessage());
-        var response4 = await transportB.WaitAsync<PingMessage>(WaitTimeout5, cancellationToken);
+        var response4 = await response4Task;
 
         Assert.IsType<PingMessage>(response4.Message);
         Assert.Equal(request4.Identity, response4.Identity);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Post_Throw_AfterDisposed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -188,7 +190,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.Throws<ObjectDisposedException>(() => transport.Post(peer, new PingMessage()));
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task Post_Throw_NotRunning()
     {
         var random = RandomUtility.GetRandom(output);
@@ -198,7 +200,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.Throws<InvalidOperationException>(() => transport.Post(peer, new PingMessage()));
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendAsync2_MultipleReplies()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -222,13 +224,17 @@ public abstract class TransportTestBase(ITestOutputHelper output)
             transportB.Peer, new PingMessage(), Predicate, cancellationToken)
             .ToArrayAsync(cancellationToken);
 
-        Assert.IsType<PingMessage>(messages[0]);
-        Assert.IsType<PongMessage>(messages[1]);
-        var m2 = Assert.IsType<TestMessage>(messages[2]);
+        var message0 = messages.OfType<PingMessage>().First();
+        var message1 = messages.OfType<PongMessage>().First();
+        var message2 = messages.OfType<TestMessage>().First();
+
+        Assert.IsType<PingMessage>(message0);
+        Assert.IsType<PongMessage>(message1);
+        var m2 = Assert.IsType<TestMessage>(message2);
         Assert.Equal("1", m2.Data);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendAsync1_Throw_AfterCancel()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -248,7 +254,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         });
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendAsync1_Throw_NoReply()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -267,7 +273,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
             () => transportA.SendAsync<IMessage>(transportB.Peer, new PingMessage(), cancellationToken));
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendAsync1_Throw_AfterStop()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -286,7 +292,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.Equal(transportA.StoppingToken, e.CancellationToken);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendAsync2_Throw_AfterCancel()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -309,7 +315,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         });
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendAsync2_Throw_NoReply()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -330,7 +336,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         });
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendAsync2_Throw_AfterStop()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -367,7 +373,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.Equal(transportA.StoppingToken, e.CancellationToken);
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendToMany()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -399,7 +405,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         }
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendToMany_Throw_AfterDisposed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -413,7 +419,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         Assert.All(e.InnerExceptions, e => Assert.IsType<ObjectDisposedException>(e));
     }
 
-    [Fact(Timeout = Timeout)]
+    [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendToMany_Throw_NotRunning()
     {
         var random = RandomUtility.GetRandom(output);

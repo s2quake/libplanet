@@ -1,3 +1,5 @@
+using System.Drawing;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading.Channels;
 using Libplanet.Net.Messages;
@@ -16,7 +18,7 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     private readonly TransportPeer _peer = new(signer.Address, options.Host, options.Port);
     private Channel<MessageRequest>? _sendChannel;
     private Channel<MessageEnvelope>? _receiveChannel;
-    private UdpClient? _client;
+    private TcpListener? _listener;
     private Task[] _processTasks = [];
 
     IMessageRouter ITransport.MessageRouter => _messageRouter;
@@ -60,11 +62,12 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     {
         _sendChannel = Channel.CreateUnbounded<MessageRequest>();
         _receiveChannel = Channel.CreateUnbounded<MessageEnvelope>();
-        _client = new UdpClient(Peer.EndPoint.Port);
+        _listener = new TcpListener(Peer.EndPoint.Port);
+        _listener.Start();
         _processTasks =
         [
-            ProcessReceiveAsync(_client, _receiveChannel, StoppingToken),
-            ProcessSendAsync(_client, _sendChannel, StoppingToken),
+            ProcessReceiveAsync(_listener, _receiveChannel, StoppingToken),
+            ProcessSendAsync(_sendChannel, StoppingToken),
             ProcessHandleAsync(_receiveChannel, _messageRouter, StoppingToken),
         ];
         return Task.CompletedTask;
@@ -78,8 +81,9 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
         _receiveChannel = null;
         await TaskUtility.TryWhenAll(_processTasks);
         _processTasks = [];
-        _client?.Dispose();
-        _client = null;
+        _listener?.Stop();
+        _listener?.Dispose();
+        _listener = null;
         await Task.CompletedTask;
     }
 
@@ -91,14 +95,14 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
         _receiveChannel = null;
         await TaskUtility.TryWhenAll(_processTasks);
         _processTasks = [];
-        _client?.Dispose();
-        _client = null;
+        _listener?.Dispose();
+        _listener = null;
         _peer.Dispose();
         await base.DisposeAsyncCore();
     }
 
     private static async Task ProcessSendAsync(
-        UdpClient client, Channel<MessageRequest> channel, CancellationToken cancellationToken)
+        Channel<MessageRequest> channel, CancellationToken cancellationToken)
     {
         var requestReader = channel.Reader;
         try
@@ -108,7 +112,21 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
                 var messageEnvelope = request.MessageEnvelope;
                 var receiver = request.Receiver;
                 var bytes = ModelSerializer.SerializeToBytes(messageEnvelope);
-                await client.SendAsync(bytes, bytes.Length, receiver.EndPoint.Host, receiver.EndPoint.Port);
+                var lengthBytes = BitConverter.GetBytes(bytes.Length);
+
+                using var client = new TcpClient();
+                try
+                {
+                    await client.ConnectAsync(receiver.EndPoint.Host, receiver.EndPoint.Port);
+                    using var stream = client.GetStream();
+                    await stream.WriteAsync(lengthBytes, cancellationToken);
+                    await stream.WriteAsync(bytes, cancellationToken);
+                    await stream.FlushAsync(cancellationToken);
+                }
+                catch (SocketException)
+                {
+                    // do nothing
+                }
             }
         }
         catch
@@ -118,17 +136,17 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
     }
 
     private static async Task ProcessReceiveAsync(
-        UdpClient client, Channel<MessageEnvelope> receiveChannel, CancellationToken cancellationToken)
+        TcpListener listener, Channel<MessageEnvelope> receiveChannel, CancellationToken cancellationToken)
     {
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var result = await client.ReceiveAsync(cancellationToken);
-                var messageEnvelope = ModelSerializer.DeserializeFromBytes<MessageEnvelope>(result.Buffer);
-                receiveChannel.Writer.TryWrite(messageEnvelope);
-                await Task.Yield();
+                using var client = await listener.AcceptTcpClientAsync(cancellationToken);
+                _ = ReadMessageAsync(client, receiveChannel, cancellationToken);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
         }
         catch
         {
@@ -151,6 +169,48 @@ public sealed class Transport(ISigner signer, TransportOptions options) : Servic
         {
             // do nothing
         }
+    }
+
+    private static async Task ReadMessageAsync(
+        TcpClient client, Channel<MessageEnvelope> receiveChannel, CancellationToken cancellationToken)
+    {
+        using var _ = client;
+        using var strema = client.GetStream();
+        var lengthBuffer = new byte[sizeof(int)];
+        var readLength = await ReadExactAsync(strema, lengthBuffer, sizeof(int), cancellationToken);
+        if (readLength == 0)
+        {
+            return;
+        }
+
+        var messageLength = BitConverter.ToInt32(lengthBuffer, 0);
+        var messageBuffer = new byte[messageLength];
+        readLength = await ReadExactAsync(strema, messageBuffer, messageLength, cancellationToken);
+        if (readLength == 0)
+        {
+            return;
+        }
+
+        var messageEnvelope = ModelSerializer.DeserializeFromBytes<MessageEnvelope>(messageBuffer);
+        receiveChannel.Writer.TryWrite(messageEnvelope);
+    }
+
+    private static async Task<int> ReadExactAsync(
+        Stream stream, byte[] buffer, int size, CancellationToken cancellationToken)
+    {
+        var offset = 0;
+        while (offset < size)
+        {
+            var read = await stream.ReadAsync(buffer.AsMemory(offset, size - offset), cancellationToken);
+            if (read is 0)
+            {
+                return 0;
+            }
+
+            offset += read;
+        }
+
+        return offset;
     }
 
     private sealed record class MessageRequest

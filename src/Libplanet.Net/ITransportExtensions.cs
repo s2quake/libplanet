@@ -47,6 +47,10 @@ public static class ITransportExtensions
         {
             throw new OperationCanceledException($"{@this} has been stopped.", e, @this.StoppingToken);
         }
+        catch (TaskCanceledException e)
+        {
+            throw new OperationCanceledException(e.Message, e, e.CancellationToken); 
+        }
     }
 
     public static async IAsyncEnumerable<T> SendAsync<T>(
