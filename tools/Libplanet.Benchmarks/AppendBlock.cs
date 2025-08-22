@@ -11,7 +11,7 @@ namespace Libplanet.Benchmarks
     public class AppendBlock
     {
         private readonly Libplanet.Blockchain _blockChain;
-        private readonly PrivateKey _privateKey;
+        private readonly ISigner _signer;
         private BlockCommit _lastCommit;
         private Block _block;
         private BlockCommit _commit;
@@ -21,13 +21,13 @@ namespace Libplanet.Benchmarks
             var fx = new MemoryRepositoryFixture();
             var repository = new Repository();
             _blockChain = new Libplanet.Blockchain(fx.GenesisBlock, repository, fx.Options);
-            _privateKey = new PrivateKey();
+            _signer = new PrivateKey().AsSigner();
         }
 
         [IterationSetup(Target = nameof(AppendBlockOneTransactionNoAction))]
         public void PrepareAppendMakeOneTransactionNoAction()
         {
-            _blockChain.StagedTransactions.Add(_privateKey);
+            _blockChain.StagedTransactions.Add(_signer);
             PrepareAppend();
         }
 
@@ -36,7 +36,7 @@ namespace Libplanet.Benchmarks
         {
             for (var i = 0; i < 10; i++)
             {
-                _blockChain.StagedTransactions.Add(new PrivateKey());
+                _blockChain.StagedTransactions.Add(new PrivateKey().AsSigner());
             }
             PrepareAppend();
         }
@@ -44,8 +44,8 @@ namespace Libplanet.Benchmarks
         [IterationSetup(Target = nameof(AppendBlockOneTransactionWithActions))]
         public void PrepareAppendMakeOneTransactionWithActions()
         {
-            var privateKey = new PrivateKey();
-            var address = privateKey.Address;
+            var signer = new PrivateKey().AsSigner();
+            var address = signer.Address;
             var actions = new[]
             {
                 DumbAction.Create((address, "foo")),
@@ -53,7 +53,7 @@ namespace Libplanet.Benchmarks
                 DumbAction.Create((address, "baz")),
                 DumbAction.Create((address, "qux")),
             };
-            _blockChain.StagedTransactions.Add(privateKey, submission: new()
+            _blockChain.StagedTransactions.Add(signer, @params: new()
             {
                 Actions = actions,
             });
@@ -65,8 +65,8 @@ namespace Libplanet.Benchmarks
         {
             for (var i = 0; i < 10; i++)
             {
-                var privateKey = new PrivateKey();
-                var address = privateKey.Address;
+                var signer = new PrivateKey().AsSigner();
+                var address = signer.Address;
                 var actions = new[]
                 {
                     DumbAction.Create((address, "foo")),
@@ -74,7 +74,7 @@ namespace Libplanet.Benchmarks
                     DumbAction.Create((address, "baz")),
                     DumbAction.Create((address, "qux")),
                 };
-                _blockChain.StagedTransactions.Add(privateKey, submission: new()
+                _blockChain.StagedTransactions.Add(signer, @params: new()
                 {
                     Actions = actions,
                 });
@@ -109,7 +109,7 @@ namespace Libplanet.Benchmarks
         private void PrepareAppend()
         {
             _lastCommit = TestUtils.CreateBlockCommit(_blockChain.Tip);
-            _block = _blockChain.ProposeBlock(_privateKey);
+            _block = _blockChain.ProposeBlock(_signer);
             _commit = TestUtils.CreateBlockCommit(_block);
         }
     }

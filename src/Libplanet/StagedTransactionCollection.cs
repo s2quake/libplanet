@@ -74,17 +74,17 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
         _addedSubject.OnNext(transaction);
     }
 
-    public Transaction Add(ISigner signer, TransactionSubmission submission)
+    public Transaction Add(ISigner signer, TransactionParams @params)
     {
         var tx = new TransactionMetadata
         {
             Nonce = GetNextTxNonce(signer.Address),
             Signer = signer.Address,
             GenesisBlockHash = repository.GenesisBlockHash,
-            Actions = submission.Actions.ToBytecodes(),
-            Timestamp = submission.Timestamp,
-            MaxGasPrice = submission.MaxGasPrice,
-            GasLimit = submission.GasLimit,
+            Actions = @params.Actions.ToBytecodes(),
+            Timestamp = @params.Timestamp == default ? DateTimeOffset.UtcNow : @params.Timestamp,
+            MaxGasPrice = @params.MaxGasPrice,
+            GasLimit = @params.GasLimit,
         }.Sign(signer);
 
         Add(tx);

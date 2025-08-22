@@ -21,7 +21,8 @@ public sealed partial record class TransactionMetadata
     public ImmutableArray<ActionBytecode> Actions { get; init; } = [];
 
     [Property(4)]
-    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
+    [NotDefault]
+    public DateTimeOffset Timestamp { get; init; }
 
     [Property(5)]
     public FungibleAssetValue? MaxGasPrice { get; init; }

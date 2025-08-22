@@ -13,23 +13,23 @@ public class ActionEvaluationTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var txid = RandomUtility.TxId(random);
-        var address = new PrivateKey().Address;
-        var key = new PrivateKey();
-        var hash = RandomUtility.BlockHash(random);
+        var address = RandomUtility.Address(random);
+        var signer = RandomUtility.Signer(random);
+        var blockHash = RandomUtility.BlockHash(random);
         var lastCommit = new BlockCommit
         {
-            BlockHash = hash,
+            BlockHash = blockHash,
             Votes =
             [
                 new VoteMetadata
                 {
-                    BlockHash = hash,
+                    BlockHash = blockHash,
                     Height = 1,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Validator = key.Address,
+                    Validator = signer.Address,
                     ValidatorPower = BigInteger.One,
                     Type = VoteType.PreCommit,
-                }.Sign(key),
+                }.Sign(signer),
             ],
         };
         var world = new World();

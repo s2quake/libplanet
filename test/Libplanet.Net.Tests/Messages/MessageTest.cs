@@ -14,15 +14,15 @@ public sealed class MessageTest(ITestOutputHelper output)
     public void BlockHeaderMsg()
     {
         var random = RandomUtility.GetRandom(output);
-        var privateKey = RandomUtility.PrivateKey(random);
+        var signer = RandomUtility.Signer(random);
         var peer = new Peer
         {
-            Address = privateKey.Address,
+            Address = signer.Address,
             EndPoint = RandomUtility.DnsEndPoint(random),
         };
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(new PrivateKey());
+        var protocol = new ProtocolBuilder { Version = 1 }.Create(RandomUtility.Signer(random));
         var dateTimeOffset = DateTimeOffset.UtcNow;
-        var genesis = ProposeGenesisBlock(GenesisProposerKey);
+        var genesis = ProposeGenesisBlock(GenesisProposer);
         var expected = new BlockSummaryMessage { GenesisBlockHash = genesis.BlockHash, BlockSummary = genesis };
         var rawMessage = NetMQMessageCodec.Encode(
             new MessageEnvelope
@@ -32,7 +32,7 @@ public sealed class MessageTest(ITestOutputHelper output)
                 ProtocolHash = protocol.Hash,
                 Sender = peer,
                 Timestamp = dateTimeOffset,
-            }, privateKey.AsSigner());
+            }, signer);
         var actual = NetMQMessageCodec.Decode(rawMessage);
         Assert.Equal(peer, actual.Sender);
     }
@@ -42,11 +42,11 @@ public sealed class MessageTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var message = new PingMessage();
-        var privateKey = RandomUtility.PrivateKey(random);
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(new PrivateKey());
+        var signer = RandomUtility.Signer(random);
+        var protocol = new ProtocolBuilder { Version = 1 }.Create(RandomUtility.Signer(random));
         var peer = new Peer
         {
-            Address = privateKey.Address,
+            Address = signer.Address,
             EndPoint = RandomUtility.DnsEndPoint(random),
         };
         var timestamp = DateTimeOffset.UtcNow;
@@ -68,14 +68,14 @@ public sealed class MessageTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         // Victim
-        var privateKey = RandomUtility.PrivateKey(random);
+        var signer = RandomUtility.Signer(random);
         var peer = new Peer
         {
-            Address = privateKey.Address,
+            Address = signer.Address,
             EndPoint = RandomUtility.DnsEndPoint(random),
         };
         var timestamp = DateTimeOffset.UtcNow;
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(new PrivateKey());
+        var protocol = new ProtocolBuilder { Version = 1 }.Create(RandomUtility.Signer(random));
         var ping = new PingMessage();
         var rawMessage = NetMQMessageCodec.Encode(
             new MessageEnvelope
@@ -85,12 +85,12 @@ public sealed class MessageTest(ITestOutputHelper output)
                 ProtocolHash = protocol.Hash,
                 Sender = peer,
                 Timestamp = timestamp
-            }, privateKey.AsSigner()).ToArray();
+            }, signer).ToArray();
 
         // Attacker
         var fakePeer = new Peer
         {
-            Address = privateKey.Address,
+            Address = signer.Address,
             EndPoint = RandomUtility.DnsEndPoint(random),
         };
         var fakeMessage = NetMQMessageCodec.Encode(
@@ -101,7 +101,7 @@ public sealed class MessageTest(ITestOutputHelper output)
                 ProtocolHash = protocol.Hash,
                 Sender = fakePeer,
                 Timestamp = timestamp,
-            }, privateKey.AsSigner()).ToArray();
+            }, signer).ToArray();
 
         var frames = new NetMQMessage();
         frames.Push(rawMessage[4]);
@@ -122,7 +122,7 @@ public sealed class MessageTest(ITestOutputHelper output)
     [Fact]
     public void GetId()
     {
-        var genesis = ProposeGenesisBlock(GenesisProposerKey);
+        var genesis = ProposeGenesisBlock(GenesisProposer);
         var message = new BlockSummaryMessage { GenesisBlockHash = genesis.BlockHash, BlockSummary = genesis };
         Assert.Equal(
             new MessageId(ByteUtility.ParseHex(
@@ -142,7 +142,7 @@ public sealed class MessageTest(ITestOutputHelper output)
             Height = 1,
             BlockHash = blockHash,
             Type = VoteType.PreVote,
-        }.Sign(TestUtils.PrivateKeys[0]);
+        }.Sign(TestUtils.Signers[0]);
 
         var preCommit = new VoteMetadata
         {
@@ -151,7 +151,7 @@ public sealed class MessageTest(ITestOutputHelper output)
             Height = 1,
             BlockHash = blockHash,
             Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[0]);
+        }.Sign(TestUtils.Signers[0]);
 
         // Valid message cases
         ValidationUtility.Validate(() => new ConsensusPreVoteMessage { PreVote = preVote });

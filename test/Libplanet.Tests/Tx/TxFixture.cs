@@ -59,7 +59,7 @@ public class TxFixture
             GenesisBlockHash = genesisHash,
             Actions = [],
             Timestamp = timestamp,
-        }.Sign(PrivateKey1);
+        }.Sign(Signer1);
         IAction[] actions =
         [
             new Attack
@@ -79,7 +79,7 @@ public class TxFixture
             Timestamp = timestamp,
             Signer = PrivateKey1.Address,
             Actions = actions.ToBytecodes(),
-        }.Sign(PrivateKey1);
+        }.Sign(Signer1);
     }
 
     public PrivateKey PrivateKey1 { get; }
@@ -91,6 +91,16 @@ public class TxFixture
     public PrivateKey PrivateKey4 { get; }
 
     public PrivateKey PrivateKey5 { get; }
+
+    public ISigner Signer1 => PrivateKey1.AsSigner();
+
+    public ISigner Signer2 => PrivateKey2.AsSigner();
+
+    public ISigner Signer3 => PrivateKey3.AsSigner();
+
+    public ISigner Signer4 => PrivateKey4.AsSigner();
+
+    public ISigner Signer5 => PrivateKey5.AsSigner();
 
     public PublicKey PublicKey1 => PrivateKey1.PublicKey;
 

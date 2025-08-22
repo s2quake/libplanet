@@ -398,7 +398,7 @@ public sealed class ConsensusClassicTest
                 Validator = Validators[i],
                 Block = block,
                 Type = VoteType.PreCommit,
-            }.Create(PrivateKeys[i]);
+            }.Create(Signers[i]);
             _ = consensus.PreCommitAsync(preCommit);
         }
 
@@ -447,7 +447,7 @@ public sealed class ConsensusClassicTest
                 Validator = Validators[i],
                 Block = block,
                 Type = VoteType.PreVote,
-            }.Create(PrivateKeys[i]);
+            }.Create(Signers[i]);
             _ = consensus.PreVoteAsync(preVote, cancellationToken);
         }
 
@@ -463,7 +463,7 @@ public sealed class ConsensusClassicTest
                     Validator = Validators[3],
                     Block = block,
                     Type = VoteType.PreVote,
-                }.Create(PrivateKeys[3]);
+                }.Create(Signers[3]);
                 _ = consensus.PreVoteAsync(preVote);
             },
             cancellationTokenSource.Token);

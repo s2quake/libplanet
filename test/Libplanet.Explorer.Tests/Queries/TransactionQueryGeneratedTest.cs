@@ -46,14 +46,14 @@ public class TransactionQueryGeneratedTest
         var failTx = failBlock.Transactions[0];
         var successBlock = Fx.Chain.Blocks[failBlock.PreviousHash]!;
         var successTx = successBlock.Transactions[0];
-        var pk = Fx.PrivateKeys[0];
+        var signer = Fx.Signers[0];
         var stagingTx = new TransactionMetadata
         {
-            Nonce = Fx.Chain.GetNextTxNonce(pk.Address),
-            Signer = pk.Address,
+            Nonce = Fx.Chain.GetNextTxNonce(signer.Address),
+            Signer = signer.Address,
             GenesisBlockHash = Fx.Chain.Genesis.BlockHash,
             Actions = new[] { new SimpleAction1() }.ToBytecodes(),
-        }.Sign(pk);
+        }.Sign(signer);
         Fx.Chain.StagedTransactions.Add(stagingTx);
 
         var queryResult = await ExecuteTransactionResultQueryAsync(successTx.Id);

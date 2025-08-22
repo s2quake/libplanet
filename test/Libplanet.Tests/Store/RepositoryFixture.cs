@@ -94,33 +94,33 @@ public abstract class RepositoryFixture : IDisposable
                 new TransactionBuilder
                 {
                     Actions = [new Initialize { Validators = TestUtils.Validators }]
-                }.Create(ProposerKey),
+                }.Create(Proposer),
             ],
             Timestamp = new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
-        }.Create(ProposerKey);
+        }.Create(Proposer);
         GenesisBlockExecutionInfo = BlockExecutor.Execute((RawBlock)GenesisBlock);
         GenesisStateRootHash = GenesisBlockExecutionInfo.StateRootHash;
         Block1 = TestUtils.ProposeNextBlock(
             GenesisBlock,
-            proposer: ProposerKey,
+            proposer: Proposer,
             previousStateRootHash: GenesisStateRootHash,
             lastCommit: null);
         Block2 = TestUtils.ProposeNextBlock(
             Block1,
-            proposer: ProposerKey,
+            proposer: Proposer,
             previousStateRootHash: GenesisStateRootHash,
             lastCommit: TestUtils.CreateBlockCommit(Block1));
         Block3 = TestUtils.ProposeNextBlock(
             Block2,
-            proposer: ProposerKey,
+            proposer: Proposer,
             previousStateRootHash: GenesisStateRootHash,
             lastCommit: TestUtils.CreateBlockCommit(Block2));
         Block3Alt = TestUtils.ProposeNextBlock(
-            Block2, proposer: ProposerKey, previousStateRootHash: GenesisStateRootHash);
+            Block2, proposer: Proposer, previousStateRootHash: GenesisStateRootHash);
         Block4 = TestUtils.ProposeNextBlock(
-            Block3, proposer: ProposerKey, previousStateRootHash: GenesisStateRootHash);
+            Block3, proposer: Proposer, previousStateRootHash: GenesisStateRootHash);
         Block5 = TestUtils.ProposeNextBlock(
-            Block4, proposer: ProposerKey, previousStateRootHash: GenesisStateRootHash);
+            Block4, proposer: Proposer, previousStateRootHash: GenesisStateRootHash);
 
         Transaction1 = MakeTransaction();
         Transaction2 = MakeTransaction();
@@ -194,20 +194,20 @@ public abstract class RepositoryFixture : IDisposable
     public Transaction MakeTransaction(
         IEnumerable<DumbAction>? actions = null,
         long nonce = 0,
-        PrivateKey? privateKey = null,
+        ISigner? signer = null,
         DateTimeOffset? timestamp = null)
     {
-        privateKey ??= new PrivateKey();
+        signer ??= new PrivateKey().AsSigner();
         actions ??= [];
 
         return new TransactionMetadata
         {
             Nonce = nonce,
-            Signer = privateKey.Address,
+            Signer = signer.Address,
             GenesisBlockHash = GenesisBlock.BlockHash,
             Actions = actions.ToBytecodes(),
             Timestamp = timestamp ?? DateTimeOffset.UtcNow,
-        }.Sign(privateKey);
+        }.Sign(signer);
     }
 
     public void Dispose()

@@ -18,7 +18,7 @@ public class BlockTypeTest
     [Fact]
     public async Task Query()
     {
-        var privateKey = new PrivateKey();
+        var signer = RandomUtility.Signer();
         var lastBlockHash = new BlockHash(RandomUtility.Bytes(HashDigest<SHA256>.Size));
         var lastVotes = ImmutableArray.Create(
             new VoteMetadata
@@ -27,10 +27,10 @@ public class BlockTypeTest
                 Round = 0,
                 BlockHash = lastBlockHash,
                 Timestamp = DateTimeOffset.Now,
-                Validator = privateKey.Address,
+                Validator = signer.Address,
                 ValidatorPower = BigInteger.One,
                 Type = Types.VoteType.PreCommit,
-            }.Sign(privateKey));
+            }.Sign(signer));
         var lastBlockCommit = new BlockCommit
         {
             Height = 1,
@@ -44,7 +44,7 @@ public class BlockTypeTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = privateKey.Address,
+                Proposer = signer.Address,
                 PreviousHash = lastBlockHash,
                 PreviousCommit = lastBlockCommit,
             },
@@ -54,7 +54,7 @@ public class BlockTypeTest
         // var signature = RawBlock.MakeSignature(privateKey, stateRootHash);
         // var hash = preEval.Header.DeriveBlockHash(stateRootHash, signature);
         // var block = new Block { Header = new BlockHeader(), Content = new BlockContent() };
-        var block = preEval.Sign(privateKey);
+        var block = preEval.Sign(signer);
 
         // FIXME We need to test for `previousBlock` field too.
         var query =

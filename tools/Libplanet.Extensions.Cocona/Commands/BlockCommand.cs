@@ -122,7 +122,7 @@ public class BlockCommand
         {
             Transactions =
             [
-                new InitialTransactionBuilder
+                new TransactionBuilder
                 {
                     Actions = [action],
                 }.Create(signer),

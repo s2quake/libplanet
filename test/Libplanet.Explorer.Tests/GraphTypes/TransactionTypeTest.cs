@@ -19,14 +19,14 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         [Fact]
         public async Task Query()
         {
-            var privateKey = new PrivateKey();
+            var signer = RandomUtility.Signer();
             var transaction = new TransactionMetadata
             {
                 Nonce = 0,
-                Signer = privateKey.Address,
+                Signer = signer.Address,
                 GenesisBlockHash = new BlockHash(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
                 Actions = new[] { new NullAction() }.ToBytecodes(),
-            }.Sign(privateKey);
+            }.Sign(signer);
             var query =
                 @"{
                     id

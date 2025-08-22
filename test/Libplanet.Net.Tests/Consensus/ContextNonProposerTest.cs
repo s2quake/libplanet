@@ -107,20 +107,21 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task EnterPreCommitNilTwoThird()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(s => s.Step == ConsensusStep.PreCommit);
-        var key = new PrivateKey();
+        var signer = RandomUtility.Signer(random);
         var invalidBlock = new RawBlock
         {
             Header = new BlockHeader
             {
                 Height = blockchain.Tip.Height + 1,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = key.Address,
+                Proposer = signer.Address,
                 PreviousHash = blockchain.Tip.BlockHash,
             },
-        }.Sign(key);
+        }.Sign(signer);
 
         await consensus.StartAsync();
 
@@ -247,7 +248,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             e => e.Step == ConsensusStep.PreVote && e.BlockHash == default && consensus.Round.Index == 0);
         var proposeTimeoutTask = consensus.TimeoutOccurred.WaitAsync(e => e == ConsensusStep.Propose);
 
-        var invalidTx = new InitialTransactionBuilder
+        var invalidTx = new TransactionBuilder
         {
         }.Create(invalidKey.AsSigner());
         var invalidBlock = new BlockBuilder
@@ -278,7 +279,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         // NOTE: This test does not check tx nonces, different state root hash.
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
-        var txSigner = new PrivateKey();
+        var txSigner = RandomUtility.Signer(random);
         var blockchainOptions = new BlockchainOptions
         {
             SystemActions = new SystemActions

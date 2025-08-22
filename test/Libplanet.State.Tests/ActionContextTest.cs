@@ -12,22 +12,22 @@ public class ActionContextTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var address = RandomUtility.Address(random);
         var txId = RandomUtility.TxId(random);
-        var key = RandomUtility.PrivateKey(random);
-        var hash = RandomUtility.BlockHash(random);
+        var signer = RandomUtility.Signer(random);
+        var blockHash = RandomUtility.BlockHash(random);
         var lastCommit = new BlockCommit
         {
-            BlockHash = hash,
+            BlockHash = blockHash,
             Votes =
             [
                 new VoteMetadata
                 {
-                    BlockHash = hash,
+                    BlockHash = blockHash,
                     Height = 1,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Validator = key.Address,
+                    Validator = signer.Address,
                     ValidatorPower = BigInteger.One,
                     Type = VoteType.PreCommit,
-                }.Sign(key),
+                }.Sign(signer),
             ],
         };
         (int Seed, int Expected)[] testCases =
@@ -57,22 +57,22 @@ public class ActionContextTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var address = RandomUtility.Address(random);
         var txId = RandomUtility.TxId(random);
-        var key = RandomUtility.PrivateKey(random);
-        var hash = RandomUtility.BlockHash(random);
+        var signer = RandomUtility.Signer(random);
+        var blockHash = RandomUtility.BlockHash(random);
         var lastCommit = new BlockCommit
         {
-            BlockHash = hash,
+            BlockHash = blockHash,
             Votes =
             [
                 new VoteMetadata
                 {
-                    BlockHash = hash,
+                    BlockHash = blockHash,
                     Height = 1,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Validator = key.Address,
+                    Validator = signer.Address,
                     ValidatorPower = BigInteger.One,
                     Type = VoteType.PreCommit,
-                }.Sign(key),
+                }.Sign(signer),
             ],
         };
         var actionContext1 = new ActionContext
@@ -130,22 +130,22 @@ public class ActionContextTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var address = RandomUtility.Address(random);
         var txId = RandomUtility.TxId(random);
-        var key = RandomUtility.PrivateKey(random);
-        var hash = RandomUtility.BlockHash(random);
+        var signer = RandomUtility.Signer(random);
+        var blockHash = RandomUtility.BlockHash(random);
         var lastCommit = new BlockCommit
         {
-            BlockHash = hash,
+            BlockHash = blockHash,
             Votes =
             [
                 new VoteMetadata
                 {
-                    BlockHash = hash,
+                    BlockHash = blockHash,
                     Height = 1,
                     Timestamp = DateTimeOffset.UtcNow,
-                    Validator = key.Address,
+                    Validator = signer.Address,
                     ValidatorPower = BigInteger.One,
                     Type = VoteType.PreCommit,
-                }.Sign(key),
+                }.Sign(signer),
             ],
         };
         for (var i = 0; i < 100; i++)

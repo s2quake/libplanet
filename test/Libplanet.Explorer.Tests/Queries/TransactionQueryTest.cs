@@ -7,6 +7,7 @@ using Libplanet.Serialization;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Explorer.Tests.Queries;
 
@@ -20,7 +21,7 @@ public class TransactionQueryTest
     {
         Chain = Libplanet.Tests.TestUtils.MakeBlockchain(
             new BlockchainOptions(),
-            privateKey: new PrivateKey(),
+            signer: new PrivateKey().AsSigner(),
             timestamp: DateTimeOffset.UtcNow);
         Source = new MockBlockChainContext(Chain);
         QueryGraph = new TransactionQuery(Source);
@@ -29,14 +30,14 @@ public class TransactionQueryTest
     [Fact]
     public async Task BindSignatureWithCustomActions()
     {
-        var privateKey = new PrivateKey();
+        var signer = RandomUtility.Signer();
         var tx = new TransactionMetadata
         {
             Nonce = 0L,
-            Signer = privateKey.Address,
+            Signer = signer.Address,
             GenesisBlockHash = Source.BlockChain.Genesis.BlockHash,
             Actions = Array.Empty<NullAction>().ToBytecodes(),
-        }.Sign(privateKey);
+        }.Sign(signer);
         // tx.UnsignedTx.MarshalUnsignedTx();
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
@@ -63,14 +64,14 @@ public class TransactionQueryTest
         {
             Validators = [new Validator { Address = new PrivateKey().Address }],
         };
-        var txKey = new PrivateKey();
+        var txSigner = RandomUtility.Signer();
         var tx = new TransactionMetadata
         {
             Nonce = 0L,
-            Signer = txKey.Address,
+            Signer = txSigner.Address,
             GenesisBlockHash = Source.BlockChain.Genesis.BlockHash,
             Actions = new IAction[] { action }.ToBytecodes(),
-        }.Sign(txKey);
+        }.Sign(txSigner);
         ExecutionResult result = await ExecuteQueryAsync(@$"
         {{
             bindSignature(
@@ -109,49 +110,49 @@ public class TransactionQueryTest
             Assert.Equal(expected, (long)resultDict["nextNonce"]);
         }
 
-        var key1 = new PrivateKey();
+        var signer1 = RandomUtility.Signer();
         // account nonce is 0 in the beginning
-        await AssertNextNonce(0, key1.Address);
+        await AssertNextNonce(0, signer1.Address);
 
         // staged txs increase next nonce
 
-        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        Source.BlockChain.StagedTransactions.Add(signer1, new ()
         {
-        }.Create(key1, Source.BlockChain));
-        await AssertNextNonce(1, key1.Address);
-        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        });
+        await AssertNextNonce(1, signer1.Address);
+        Source.BlockChain.StagedTransactions.Add(signer1, new ()
         {
-        }.Create(key1, Source.BlockChain));
-        await AssertNextNonce(2, key1.Address);
-        var block = Source.BlockChain.ProposeBlock(new PrivateKey());
+        });
+        await AssertNextNonce(2, signer1.Address);
+        var block = Source.BlockChain.ProposeBlock(RandomUtility.Signer());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
-        await AssertNextNonce(2, key1.Address);
+        await AssertNextNonce(2, signer1.Address);
 
-        var key2 = new PrivateKey();
-        await AssertNextNonce(0, key2.Address);
+        var signer2 = RandomUtility.Signer();
+        await AssertNextNonce(0, signer2.Address);
 
         // staging txs of key2 does not increase nonce of key1
-        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        Source.BlockChain.StagedTransactions.Add(signer2, new ()
         {
-        }.Create(key2, Source.BlockChain));
-        block = Source.BlockChain.ProposeBlock(new PrivateKey());
+        });
+        block = Source.BlockChain.ProposeBlock(RandomUtility.Signer());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
-        await AssertNextNonce(1, key2.Address);
-        await AssertNextNonce(2, key1.Address);
+        await AssertNextNonce(1, signer2.Address);
+        await AssertNextNonce(2, signer1.Address);
 
         // unstaging txs decrease nonce
-        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        Source.BlockChain.StagedTransactions.Add(signer1, new ()
         {
-        }.Create(key1, Source.BlockChain));
-        await AssertNextNonce(3, key1.Address);
-        Source.BlockChain.StagedTransactions.Add(new TransactionBuilder
+        });
+        await AssertNextNonce(3, signer1.Address);
+        Source.BlockChain.StagedTransactions.Add(signer1, new ()
         {
-        }.Create(key1, Source.BlockChain));
-        await AssertNextNonce(4, key1.Address);
+        });
+        await AssertNextNonce(4, signer1.Address);
         Source.BlockChain.StagedTransactions.Keys
             .Select(item => Source.BlockChain.Transactions[item])
             .Select(item => Source.BlockChain.StagedTransactions.Remove(item.Id))
             .ToImmutableList();
-        await AssertNextNonce(2, key1.Address);
+        await AssertNextNonce(2, signer1.Address);
     }
 }

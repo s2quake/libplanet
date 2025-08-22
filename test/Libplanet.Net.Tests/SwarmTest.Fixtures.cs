@@ -31,7 +31,7 @@ public partial class SwarmTest
     //             {
     //                 for (int j = 0; j < 5; j++)
     //                 {
-    //                     chain.StagedTransactions.Add(signer, submission: new()
+    //                     chain.StagedTransactions.Add(signer, @params: new()
     //                     {
     //                         Actions = [DumbAction.Create((address, $"Item{i}.{j}"))],
     //                     });

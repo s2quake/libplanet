@@ -19,7 +19,7 @@ public sealed class LiteBlockHashIndexTest(ITestOutputHelper output)
     {
         var random = GetRandom();
         var index = CreateIndex(nameof(AddBlock), useCache: true);
-        var signer = RandomUtility.PrivateKey(random);
+        var signer = RandomUtility.Signer(random);
         var block0 = new BlockBuilder
         {
             Height = 0,

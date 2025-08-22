@@ -1,17 +1,17 @@
+using System.Reactive.Linq;
+using Libplanet.Extensions;
+using Libplanet.Net.Components;
+using Libplanet.Net.MessageHandlers;
+using Libplanet.Net.Messages;
+using Libplanet.Net.Services;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
-using Libplanet.Net.Messages;
-using Libplanet.TestUtilities.Extensions;
-using Libplanet.Tests.Store;
-using Libplanet.Types;
-using static Libplanet.Tests.TestUtils;
-using Libplanet.TestUtilities;
 using Libplanet.Tests;
-using Libplanet.Net.MessageHandlers;
-using Libplanet.Net.Components;
-using Libplanet.Net.Services;
-using Libplanet.Extensions;
-using System.Reactive.Linq;
+using Libplanet.Tests.Store;
+using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Extensions;
+using Libplanet.Types;
+using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests;
 
@@ -23,8 +23,8 @@ public partial class SwarmTest
         const int blockCount = 5;
         var cancellationToken = TestContext.Current.CancellationToken;
         using var fx = new MemoryRepositoryFixture();
-        var transportA = TestUtils.CreateTransport();
-        var transportB = TestUtils.CreateTransport();
+        var transportA = CreateTransport();
+        var transportB = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         await using var transports = new ServiceCollection
@@ -70,18 +70,20 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastBlockToReconnectedPeer()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
         using var fx = new MemoryRepositoryFixture();
-        var minerKey = new PrivateKey();
-        var privateKey = new PrivateKey();
+        var miner = RandomUtility.Signer(random);
+        var signer = RandomUtility.Signer(random);
         var blockchainOptions = fx.Options;
         var blockchain = MakeBlockchain(blockchainOptions);
         var seedBlockchain = MakeBlockchain(options: blockchainOptions, genesisBlock: blockchain.Genesis);
         var blockchainA = MakeBlockchain(options: blockchainOptions, genesisBlock: blockchain.Genesis);
         var blockchainB = MakeBlockchain(options: blockchainOptions, genesisBlock: blockchain.Genesis);
 
-        var transport = TestUtils.CreateTransport();
-        var transportA = TestUtils.CreateTransport(privateKey);
-        var transportB = TestUtils.CreateTransport(privateKey);
+        var transport = CreateTransport();
+        var transportA = CreateTransport(signer);
+        var transportB = CreateTransport(signer);
         var peers = new PeerCollection(transport.Peer.Address);
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
@@ -110,21 +112,21 @@ public partial class SwarmTest
             serviceB,
         };
 
-        blockchain.ProposeAndAppendMany(minerKey, 10);
+        blockchain.ProposeAndAppendMany(miner, 10);
         blockchain.AppendTo(seedBlockchain, 1..5);
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerA.PingAsync(transport.Peer, default);
-        await transportA.StopAsync(default);
-        await peerExplorer.RefreshAsync(TimeSpan.Zero, default);
+        await peerExplorerA.PingAsync(transport.Peer, cancellationToken);
+        await transportA.StopAsync(cancellationToken);
+        await peerExplorer.RefreshAsync(TimeSpan.Zero, cancellationToken);
 
         Assert.DoesNotContain(transportA.Peer, peerExplorer.Peers);
 
         blockchain.AppendTo(seedBlockchain, 5..);
 
-        await peerExplorerB.PingAsync(transport.Peer, default);
+        await peerExplorerB.PingAsync(transport.Peer, cancellationToken);
 
         Assert.Contains(transportB.Peer, peerExplorer.Peers);
         Assert.Contains(transport.Peer, peerExplorerB.Peers);
@@ -139,12 +141,13 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastIgnoreFromDifferentGenesisHash()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         using var fx = new MemoryRepositoryFixture();
-        var privateKeyA = RandomUtility.PrivateKey(random);
+        var signerA = RandomUtility.Signer(random);
 
-        var transportA = TestUtils.CreateTransport(privateKeyA);
-        var transportB = TestUtils.CreateTransport();
+        var transportA = CreateTransport(signerA);
+        var transportB = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
 
@@ -167,12 +170,12 @@ public partial class SwarmTest
             servicesB,
         };
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerB.PingAsync(transportA.Peer, default);
+        await peerExplorerB.PingAsync(transportA.Peer, cancellationToken);
 
-        blockchainA.ProposeAndAppend(privateKeyA);
+        blockchainA.ProposeAndAppend(signerA);
         var waitTask = transportB.MessageRouter.MessageHandlingFailed.WaitAsync(
             predicate: e => e.Handler is BlockSummaryMessageHandler);
         peerExplorerA.Broadcast(blockchainA.Genesis.BlockHash, blockchainA.Tip);
@@ -184,10 +187,12 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastWhileMining()
     {
-        var minerA = new PrivateKey();
-        var minerB = new PrivateKey();
-        var transportA = TestUtils.CreateTransport(minerA);
-        var transportB = TestUtils.CreateTransport(minerB);
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var minerA = RandomUtility.Signer(random);
+        var minerB = RandomUtility.Signer(random);
+        var transportA = CreateTransport(minerA);
+        var transportB = CreateTransport(minerB);
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         using var peerExplorerA = new PeerExplorer(transportA, peersA);
@@ -209,10 +214,10 @@ public partial class SwarmTest
             syncServiceB,
         };
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerA.PingAsync(transportB.Peer, default);
+        await peerExplorerA.PingAsync(transportB.Peer, cancellationToken);
 
         await Task.Run(async () =>
         {
@@ -222,7 +227,7 @@ public partial class SwarmTest
                 await Task.Delay(interval);
                 blockchainA.ProposeAndAppend(minerA);
             }
-        });
+        }, cancellationToken);
 
         using var cancellationSource = new CancellationTokenSource(2000);
         await syncServiceB.Appended.WaitAsync(e => e.Blocks[^1].Height == 10, cancellationSource.Token);
@@ -233,11 +238,13 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastTx()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
         using var fx = new MemoryRepositoryFixture();
-        var privateKeyA = new PrivateKey();
-        var transportA = TestUtils.CreateTransport(privateKeyA);
-        var transportB = TestUtils.CreateTransport();
-        var transportC = TestUtils.CreateTransport();
+        var signerA = RandomUtility.Signer(random);
+        var transportA = CreateTransport(signerA);
+        var transportB = CreateTransport();
+        var transportC = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         var peersC = new PeerCollection(transportC.Peer.Address);
@@ -266,28 +273,25 @@ public partial class SwarmTest
             serviceC
         };
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerA.PingAsync(transportB.Peer, default);
-        await peerExplorerB.PingAsync(transportC.Peer, default);
-        await peerExplorerC.PingAsync(transportA.Peer, default);
+        await peerExplorerA.PingAsync(transportB.Peer, cancellationToken);
+        await peerExplorerB.PingAsync(transportC.Peer, cancellationToken);
+        await peerExplorerC.PingAsync(transportA.Peer, cancellationToken);
 
-        var txKey = new PrivateKey();
-        var tx = new TransactionBuilder
-        {
-            Blockchain = blockchainA,
-        }.Create(txKey);
+        var txSigner = new PrivateKey().AsSigner();
+        var tx = blockchainA.CreateTransaction(txSigner);
 
         blockchainA.StagedTransactions.Add(tx);
-        blockchainA.ProposeAndAppend(privateKeyA);
+        blockchainA.ProposeAndAppend(signerA);
 
         var waitTaskB = serviceB.Staged.WaitAsync();
         var waitTaskC = serviceC.Staged.WaitAsync();
         peerExplorerA.BroadcastTransaction([tx.Id]);
 
-        await waitTaskB.WaitAsync(TimeSpan.FromSeconds(3));
-        await waitTaskC.WaitAsync(TimeSpan.FromSeconds(3));
+        await waitTaskB.WaitAsync(WaitTimeout3, cancellationToken);
+        await waitTaskC.WaitAsync(WaitTimeout3, cancellationToken);
 
         Assert.Equal(tx, blockchainB.StagedTransactions[tx.Id]);
         Assert.Equal(tx, blockchainC.StagedTransactions[tx.Id]);
@@ -296,10 +300,12 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastTxWhileMining()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
         using var fx = new MemoryRepositoryFixture();
-        var privateKeyC = new PrivateKey();
-        var transportA = TestUtils.CreateTransport();
-        var transportC = TestUtils.CreateTransport(privateKeyC);
+        var signerC = RandomUtility.Signer(random);
+        var transportA = CreateTransport();
+        var transportC = CreateTransport(signerC);
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersC = new PeerCollection(transportC.Peer.Address);
         var peerExplorerA = new PeerExplorer(transportA, peersA);
@@ -316,19 +322,19 @@ public partial class SwarmTest
             serviceC
         };
 
-        var privateKey = new PrivateKey();
-        var address = privateKey.Address;
+        var signer = RandomUtility.Signer();
+        var address = signer.Address;
         var txCount = 10;
         var txs = Enumerable.Range(0, txCount).Select(_ =>
-                blockchainA.StagedTransactions.Add(new PrivateKey(), new TransactionSubmission
+                blockchainA.StagedTransactions.Add(RandomUtility.Signer(), new TransactionParams
                 {
                     Actions = [DumbAction.Create((address, "foo"))],
                 }))
             .ToImmutableArray();
 
-        await services.StartAsync(default);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerC.PingAsync(transportA.Peer, default);
+        await peerExplorerC.PingAsync(transportA.Peer, cancellationToken);
         Assert.Contains(transportC.Peer, peerExplorerA.Peers);
         Assert.Contains(transportA.Peer, peerExplorerC.Peers);
 
@@ -336,10 +342,10 @@ public partial class SwarmTest
         {
             for (var i = 0; i < 10; i++)
             {
-                blockchainC.ProposeAndAppend(privateKeyC);
+                blockchainC.ProposeAndAppend(signerC);
                 await Task.Delay(100);
             }
-        });
+        }, cancellationToken);
 
         for (var i = 0; i < 100; i++)
         {
@@ -349,7 +355,7 @@ public partial class SwarmTest
         var waitTaskC = serviceC.Staged.WaitAsync(
             _ => blockchainC.StagedTransactions.Count == txCount);
         await miningTask;
-        await waitTaskC.WaitAsync(TimeSpan.FromSeconds(5));
+        await waitTaskC.WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.All(txs, tx => Assert.Contains(tx.Id, blockchainC.Transactions.Keys));
     }
@@ -357,10 +363,11 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastTxAsync()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var fx = new MemoryRepositoryFixture();
-        var transportA = TestUtils.CreateTransport();
-        var transportB = TestUtils.CreateTransport();
-        var transportC = TestUtils.CreateTransport();
+        var transportA = CreateTransport();
+        var transportB = CreateTransport();
+        var transportC = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         var peersC = new PeerCollection(transportC.Peer.Address);
@@ -386,29 +393,25 @@ public partial class SwarmTest
             syncServiceC,
         };
 
-        var txKey = new PrivateKey();
-        var tx = new TransactionBuilder
-        {
-            Blockchain = blockchainA,
-            Actions = [],
-        }.Create(txKey);
+        var txSigner = new PrivateKey().AsSigner();
+        var tx = blockchainA.CreateTransaction(txSigner);
 
         blockchainA.StagedTransactions.Add(tx);
 
-        await services.StartAsync(default);
+        await services.StartAsync(cancellationToken);
 
         var waitTaskB = syncServiceB.Staged.WaitAsync();
-        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, cancellationToken);
 
-        await waitTaskB.WaitAsync(TimeSpan.FromSeconds(5));
+        await waitTaskB.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(tx, blockchainB.StagedTransactions[tx.Id]);
 
         await transportA.DisposeAsync();
 
         var waitTaskC = syncServiceC.Staged.WaitAsync();
-        await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
+        await peerExplorerB.PingAsync(peerExplorerC.Peer, cancellationToken);
 
-        await waitTaskC.WaitAsync(TimeSpan.FromSeconds(5));
+        await waitTaskC.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(tx, blockchainC.StagedTransactions[tx.Id]);
     }
 
@@ -417,6 +420,7 @@ public partial class SwarmTest
     {
         const int size = 5;
 
+        var cancellationToken = TestContext.Current.CancellationToken;
         using var fx = new MemoryRepositoryFixture();
         var transports = new ITransport[size];
         var peerses = new PeerCollection[size];
@@ -429,7 +433,7 @@ public partial class SwarmTest
         await using var services = new ServiceCollection();
         for (var i = 0; i < size; i++)
         {
-            transports[i] = TestUtils.CreateTransport();
+            transports[i] = CreateTransport();
             peerses[i] = new PeerCollection(transports[i].Peer.Address);
             peerExplorers[i] = new PeerExplorer(transports[i], peerses[i]);
             blockchains[i] = MakeBlockchain(genesisBlock: fx.GenesisBlock);
@@ -443,15 +447,11 @@ public partial class SwarmTest
             services.Add(syncServices[i]);
         }
 
-        var txKey = new PrivateKey();
-        var tx = new TransactionBuilder
-        {
-            Blockchain = blockchains[size - 1],
-            Actions = [],
-        }.Create(txKey);
+        var txSigner = new PrivateKey().AsSigner();
+        var tx = blockchains[size - 1].CreateTransaction(txSigner);
         blockchains[size - 1].StagedTransactions.Add(tx);
 
-        await services.StartAsync(default);
+        await services.StartAsync(cancellationToken);
 
         var waitTaskList = new List<Task>();
         for (var i = 0; i < size - 1; i++)
@@ -461,7 +461,7 @@ public partial class SwarmTest
 
         for (var i = 1; i < size; i++)
         {
-            await peerExplorers[i].PingAsync(peerExplorers[0].Peer, default);
+            await peerExplorers[i].PingAsync(peerExplorers[0].Peer, cancellationToken);
         }
 
         await Task.WhenAll(waitTaskList);
@@ -477,13 +477,14 @@ public partial class SwarmTest
     {
         // If the bucket stored peers are the same, the block may not propagate,
         // so specify private keys to make the buckets different.
-        var keyA = PrivateKey.Parse("8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
-        var keyB = PrivateKey.Parse("c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
-        var keyC = PrivateKey.Parse("941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var signerA = PrivateKey.Parse("8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20").AsSigner();
+        var signerB = PrivateKey.Parse("c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c").AsSigner();
+        var signerC = PrivateKey.Parse("941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3").AsSigner();
         using var fx = new MemoryRepositoryFixture();
-        await using var transportA = TestUtils.CreateTransport(keyA);
-        await using var transportB = TestUtils.CreateTransport(keyB);
-        await using var transportC = TestUtils.CreateTransport(keyC);
+        await using var transportA = CreateTransport(signerA);
+        await using var transportB = CreateTransport(signerB);
+        await using var transportC = CreateTransport(signerC);
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         var peersC = new PeerCollection(transportC.Peer.Address);
@@ -507,54 +508,54 @@ public partial class SwarmTest
             broadcastServiceB,
         };
 
-        var privateKey = new PrivateKey();
-        var tx1 = blockchainA.StagedTransactions.Add(privateKey);
-        var tx2 = blockchainA.StagedTransactions.Add(privateKey);
+        var signer = RandomUtility.Signer();
+        var tx1 = blockchainA.StagedTransactions.Add(signer);
+        var tx2 = blockchainA.StagedTransactions.Add(signer);
         Assert.Equal(0, tx1.Nonce);
         Assert.Equal(1, tx2.Nonce);
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
-        await services.StartAsync(default);
-        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
-        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastTransaction([tx1, tx2]), 100);
-        await syncServiceB.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, cancellationToken);
+        InvokeDelay(() => peerExplorerA.BroadcastTransaction([tx1, tx2]), 100);
+        await syncServiceB.Staged.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(
             new HashSet<TxId> { tx1.Id, tx2.Id },
             [.. blockchainB.StagedTransactions.Keys]);
         peerExplorerA.Peers.Remove(peerExplorerB.Peer);
         peerExplorerB.Peers.Remove(peerExplorerA.Peer);
 
-        Assert.Equal(2, blockchainA.GetNextTxNonce(privateKey.Address));
+        Assert.Equal(2, blockchainA.GetNextTxNonce(signer.Address));
         blockchainA.StagedTransactions.Remove(tx2.Id);
-        Assert.Equal(1, blockchainA.GetNextTxNonce(privateKey.Address));
+        Assert.Equal(1, blockchainA.GetNextTxNonce(signer.Address));
 
-        await transportA.StopAsync(default);
-        await transportB.StopAsync(default);
+        await transportA.StopAsync(cancellationToken);
+        await transportB.StopAsync(cancellationToken);
 
         peerExplorerA.Peers.Remove(peerExplorerB.Peer);
         peerExplorerB.Peers.Remove(peerExplorerA.Peer);
         Assert.Empty(peerExplorerA.Peers);
         Assert.Empty(peerExplorerB.Peers);
 
-        await transportA.StartAsync(default);
-        await transportB.StartAsync(default);
+        await transportA.StartAsync(cancellationToken);
+        await transportB.StartAsync(cancellationToken);
 
-        blockchainB.ProposeAndAppend(keyB);
+        blockchainB.ProposeAndAppend(signerB);
 
-        var tx3 = blockchainA.StagedTransactions.Add(privateKey);
-        var tx4 = blockchainA.StagedTransactions.Add(privateKey);
+        var tx3 = blockchainA.StagedTransactions.Add(signer);
+        var tx4 = blockchainA.StagedTransactions.Add(signer);
         Assert.Equal(1, tx3.Nonce);
         Assert.Equal(2, tx4.Nonce);
 
-        await transportC.StartAsync(default);
-        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
-        await peerExplorerB.PingAsync(peerExplorerA.Peer, default);
-        await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
+        await transportC.StartAsync(cancellationToken);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, cancellationToken);
+        await peerExplorerB.PingAsync(peerExplorerA.Peer, cancellationToken);
+        await peerExplorerB.PingAsync(peerExplorerC.Peer, cancellationToken);
 
-        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastTransaction([tx3, tx4]), 100);
-        await syncServiceB.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
-        await syncServiceC.Staged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        InvokeDelay(() => peerExplorerA.BroadcastTransaction([tx3, tx4]), 100);
+        await syncServiceB.Staged.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
+        await syncServiceC.Staged.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
 
         // SwarmB receives tx3 and is staged, but policy filters it.
         Assert.Contains(tx3.Id, blockchainB.StagedTransactions.Keys);
@@ -568,14 +569,15 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task CanBroadcastBlock()
     {
-        var keyA = PrivateKey.Parse("8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20");
-        var keyB = PrivateKey.Parse("c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c");
-        var keyC = PrivateKey.Parse("941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3");
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var signerA = PrivateKey.Parse("8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20").AsSigner();
+        var signerB = PrivateKey.Parse("c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c").AsSigner();
+        var signerC = PrivateKey.Parse("941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3").AsSigner();
         using var fx = new MemoryRepositoryFixture();
 
-        var transportA = TestUtils.CreateTransport(keyA);
-        var transportB = TestUtils.CreateTransport(keyB);
-        var transportC = TestUtils.CreateTransport(keyC);
+        var transportA = CreateTransport(signerA);
+        var transportB = CreateTransport(signerB);
+        var transportC = CreateTransport(signerC);
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         var peersC = new PeerCollection(transportC.Peer.Address);
@@ -606,27 +608,27 @@ public partial class SwarmTest
             syncServiceC,
         };
 
-        blockchainA.ProposeAndAppendMany(keyA, 10);
+        blockchainA.ProposeAndAppendMany(signerA, 10);
         blockchainA.AppendTo(blockchainB, 1..5);
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
         await Task.WhenAll(
-            peerExplorerB.ExploreAsync([peerExplorerA.Peer], 3, default),
-            peerExplorerC.ExploreAsync([peerExplorerA.Peer], 3, default));
+            peerExplorerB.ExploreAsync([peerExplorerA.Peer], 3, cancellationToken),
+            peerExplorerC.ExploreAsync([peerExplorerA.Peer], 3, cancellationToken));
 
-        TestUtils.InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
+        InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
         await Task.WhenAll(
-            syncServiceA.BlockDemands.Added.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)),
-            syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
+            syncServiceA.BlockDemands.Added.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken),
+            syncServiceC.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken));
 
         Assert.NotEqual(blockchainB.Tip, blockchainA.Tip);
 
-        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
+        InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
         await Task.WhenAll(
-            syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)),
-            syncServiceC.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
+            syncServiceB.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken),
+            syncServiceC.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken));
 
         Assert.Equal(blockchainA.Blocks.Keys, blockchainB.Blocks.Keys);
         Assert.Equal(blockchainA.Blocks.Keys, blockchainC.Blocks.Keys);
@@ -635,6 +637,8 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastBlockWithSkip()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
         var blockchainOptions = new BlockchainOptions
         {
             SystemActions = new SystemActions
@@ -643,9 +647,9 @@ public partial class SwarmTest
             },
         };
         using var fx = new MemoryRepositoryFixture();
-        var privateKey = new PrivateKey();
-        var transportA = TestUtils.CreateTransport(privateKey);
-        var transportB = TestUtils.CreateTransport();
+        var signer = RandomUtility.Signer(random);
+        var transportA = CreateTransport(signer);
+        var transportB = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         var blockchainA = MakeBlockchain(blockchainOptions);
@@ -674,7 +678,7 @@ public partial class SwarmTest
             }
         });
 
-        blockchainA.StagedTransactions.Add(privateKey, new TransactionSubmission
+        blockchainA.StagedTransactions.Add(signer, new TransactionParams
         {
             Actions =
             [
@@ -682,8 +686,8 @@ public partial class SwarmTest
                 DumbAction.Create((fx.Address2, "bar"))
             ],
         });
-        blockchainA.ProposeAndAppend(GenesisProposerKey);
-        blockchainA.StagedTransactions.Add(privateKey, new TransactionSubmission
+        blockchainA.ProposeAndAppend(Libplanet.Tests.TestUtils.GenesisProposer);
+        blockchainA.StagedTransactions.Add(signer, new TransactionParams
         {
             Actions =
             [
@@ -691,15 +695,15 @@ public partial class SwarmTest
                 DumbAction.Create((fx.Address2, "qux"))
             ],
         });
-        blockchainA.ProposeAndAppend(GenesisProposerKey);
+        blockchainA.ProposeAndAppend(Libplanet.Tests.TestUtils.GenesisProposer);
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerB.PingAsync(transportA.Peer, default);
+        await peerExplorerB.PingAsync(transportA.Peer, cancellationToken);
 
-        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
-        await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(50));
+        InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
+        await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(50), cancellationToken);
 
         Assert.Equal(3, blockchainB.Blocks.Count);
         Assert.Equal(4, renderCount);
@@ -708,11 +712,13 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastBlockWithoutGenesis()
     {
-        var keyA = new PrivateKey();
-        var keyB = new PrivateKey();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var signerA = RandomUtility.Signer(random);
+        var signerB = RandomUtility.Signer(random);
 
-        var transportA = TestUtils.CreateTransport(keyA);
-        var transportB = TestUtils.CreateTransport(keyB);
+        var transportA = CreateTransport(signerA);
+        var transportB = CreateTransport(signerB);
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         var peerExplorerA = new PeerExplorer(transportA, peersA);
@@ -732,20 +738,20 @@ public partial class SwarmTest
             syncServiceB,
         };
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerB.PingAsync(transportA.Peer, default);
+        await peerExplorerB.PingAsync(transportA.Peer, cancellationToken);
 
-        blockchainA.ProposeAndAppend(keyA);
-        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
-        await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        blockchainA.ProposeAndAppend(signerA);
+        InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
+        await syncServiceB.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.Equal(blockchainB.Blocks.Keys, blockchainA.Blocks.Keys);
 
-        blockchainA.ProposeAndAppend(keyB);
-        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
-        await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        blockchainA.ProposeAndAppend(signerB);
+        InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
+        await syncServiceB.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.Equal(blockchainB.Blocks.Keys, blockchainA.Blocks.Keys);
     }
@@ -753,10 +759,12 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task IgnoreExistingBlocks()
     {
-        var keyA = new PrivateKey();
-        var keyB = new PrivateKey();
-        var transportA = TestUtils.CreateTransport(keyA);
-        var transportB = TestUtils.CreateTransport(keyB);
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var signerA = RandomUtility.Signer(random);
+        var signerB = RandomUtility.Signer(random);
+        var transportA = CreateTransport(signerA);
+        var transportB = CreateTransport(signerB);
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         using var peerExplorerA = new PeerExplorer(transportA, peersA);
@@ -777,37 +785,39 @@ public partial class SwarmTest
             syncServiceB,
         };
 
-        blockchainA.ProposeAndAppend(keyA);
+        blockchainA.ProposeAndAppend(signerA);
         blockchainA.AppendTo(blockchainB, 1..);
 
-        blockchainA.ProposeAndAppendMany(keyA, 3);
+        blockchainA.ProposeAndAppendMany(signerA, 3);
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerB.PingAsync(transportA.Peer, default);
+        await peerExplorerB.PingAsync(transportA.Peer, cancellationToken);
 
-        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
-        await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
+        await syncServiceB.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.Equal(blockchainA.Blocks.Keys, blockchainB.Blocks.Keys);
 
-        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
+        InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA), 100);
         await Assert.ThrowsAsync<TimeoutException>(
-            async () => await syncServiceB.Appended.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
+            () => syncServiceB.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken));
     }
 
     [Fact(Timeout = Timeout)]
     public async Task PullBlocks()
     {
-        var keyA = new PrivateKey();
-        var keyB = new PrivateKey();
-        var keyC = new PrivateKey();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var signerA = RandomUtility.Signer(random);
+        var signerB = RandomUtility.Signer(random);
+        var signerC = RandomUtility.Signer(random);
         using var fx = new MemoryRepositoryFixture();
 
-        var transportA = TestUtils.CreateTransport(keyA);
-        var transportB = TestUtils.CreateTransport(keyB);
-        var transportC = TestUtils.CreateTransport(keyC);
+        var transportA = CreateTransport(signerA);
+        var transportB = CreateTransport(signerB);
+        var transportC = CreateTransport(signerC);
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         var peersC = new PeerCollection(transportC.Peer.Address);
@@ -839,23 +849,23 @@ public partial class SwarmTest
 
         transportC.MessageRouter.Register(new PingMessageHandler(transportC));
 
-        blockchainA.ProposeAndAppendMany(keyA, 5);
+        blockchainA.ProposeAndAppendMany(signerA, 5);
         blockchainA.AppendTo(blockchainB, new Range(1, 3));
 
         var tipA = blockchainA.Tip;
 
         for (var i = 0; i < 10; i++)
         {
-            var block = blockchainB.ProposeBlock(keyB);
-            blockchainB.Append(block, TestUtils.CreateBlockCommit(block));
+            var block = blockchainB.ProposeBlock(signerB);
+            blockchainB.Append(block, CreateBlockCommit(block));
         }
 
-        await transports.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
 
-        await peerExplorerB.PingAsync(transportA.Peer, default);
-        await peerExplorerC.PingAsync(transportA.Peer, default);
-        await peerExplorerB.ExploreAsync([transportA.Peer], 3, default);
-        await peerExplorerC.ExploreAsync([transportA.Peer], 3, default);
+        await peerExplorerB.PingAsync(transportA.Peer, cancellationToken);
+        await peerExplorerC.PingAsync(transportA.Peer, cancellationToken);
+        await peerExplorerB.ExploreAsync([transportA.Peer], 3, cancellationToken);
+        await peerExplorerC.ExploreAsync([transportA.Peer], 3, cancellationToken);
 
         // var blockDemandCollector = new BlockDemandCollector(blockchainC, transportC);
         var blockBranches = new BlockBranchCollection();
@@ -867,7 +877,7 @@ public partial class SwarmTest
 
         // await blockDemandCollector.ExecuteAsync([.. peerExplorerC.Peers], default);
         // await blockBranchResolver.ResolveAsync(blockDemandCollector.BlockDemands, blockchainC.Tip, default);
-        await blockBranchAppender.AppendAsync(blockBranches, default);
+        await blockBranchAppender.AppendAsync(blockBranches, cancellationToken);
 
         Assert.Equal(blockchainC.Tip, tipA);
     }
@@ -875,11 +885,13 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task CanFillWithInvalidTransaction()
     {
-        var privateKey = new PrivateKey();
-        var address = privateKey.Address;
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var signer = RandomUtility.Signer(random);
+        var address = signer.Address;
 
-        var transportA = TestUtils.CreateTransport();
-        var transportB = TestUtils.CreateTransport();
+        var transportA = CreateTransport();
+        var transportB = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         var peerExplorerA = new PeerExplorer(transportA, peersA);
@@ -898,38 +910,38 @@ public partial class SwarmTest
             transactionResponderServiceB,
         };
 
-        var tx1 = blockchainB.StagedTransactions.Add(privateKey, submission: new()
+        var tx1 = blockchainB.StagedTransactions.Add(signer, @params: new()
         {
             Actions = [DumbAction.Create((address, "foo"))],
         });
 
-        var tx2 = blockchainB.StagedTransactions.Add(privateKey, submission: new()
+        var tx2 = blockchainB.StagedTransactions.Add(signer, @params: new()
         {
             Actions = [DumbAction.Create((address, "bar"))],
         });
 
-        var tx3 = blockchainB.StagedTransactions.Add(privateKey, submission: new()
+        var tx3 = blockchainB.StagedTransactions.Add(signer, @params: new()
         {
             Actions = [DumbAction.Create((address, "quz"))],
         });
 
         var tx4 = new TransactionBuilder
         {
-            // Nonce = 4,
-            // GenesisHash = blockchainA.Genesis.BlockHash,
-            Blockchain = blockchainA,
+            Nonce = 4,
+            GenesisBlockHash = blockchainA.Genesis.BlockHash,
             Actions = [DumbAction.Create((address, "qux"))],
-        }.Create(privateKey);
+        }.Create(signer);
 
         Assert.Equal(4, tx4.Nonce);
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, cancellationToken);
 
         var request = new TransactionRequestMessage { TxIds = [tx1.Id, tx2.Id, tx3.Id, tx4.Id] };
-        var response = await transportA.SendAsync<TransactionResponseMessage>(transportB.Peer, request, default);
+        var response = await transportA.SendAsync<TransactionResponseMessage>(
+            transportB.Peer, request, cancellationToken);
 
         Assert.Equal(
             new[] { tx1, tx2, tx3 }.ToHashSet(),
@@ -939,10 +951,12 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task DoNotSpawnMultipleTaskForSinglePeer()
     {
-        var key = new PrivateKey();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var signer = RandomUtility.Signer(random);
 
-        var transportB = TestUtils.CreateTransport();
-        var transportA = TestUtils.CreateTransport();
+        var transportB = CreateTransport();
+        var transportA = CreateTransport();
 
         var blockchainB = MakeBlockchain();
         var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
@@ -969,11 +983,11 @@ public partial class SwarmTest
         using var messageWaiterB = new MessageWaiter();
         using var _3 = transportB.MessageRouter.Register(messageWaiterB);
 
-        var block1 = ProposeNextBlock(blockchainB.Genesis, key);
-        var block2 = ProposeNextBlock(block1, key);
+        var block1 = Libplanet.Tests.TestUtils.ProposeNextBlock(blockchainB.Genesis, signer);
+        var block2 = Libplanet.Tests.TestUtils.ProposeNextBlock(block1, signer);
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
         var message1 = new BlockSummaryMessage
         {
@@ -983,11 +997,13 @@ public partial class SwarmTest
 
         InvokeAfter(() => transportA.Post(transportB.Peer, message1), TimeSpan.FromMilliseconds(100));
 
-        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage).WaitAsync(TimeSpan.FromSeconds(5));
+        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage)
+            .WaitAsync(WaitTimeout5, cancellationToken);
 
         InvokeAfter(() => transportA.Post(transportB.Peer, message1), TimeSpan.FromMilliseconds(100));
 
-        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage).WaitAsync(TimeSpan.FromSeconds(5));
+        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage)
+            .WaitAsync(WaitTimeout5, cancellationToken);
 
         var message2 = new BlockSummaryMessage
         {
@@ -996,7 +1012,8 @@ public partial class SwarmTest
         };
 
         InvokeAfter(() => transportA.Post(transportB.Peer, message2), TimeSpan.FromMilliseconds(100));
-        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage).WaitAsync(TimeSpan.FromSeconds(5));
+        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage)
+            .WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.Equal(1, requestCount);
 
@@ -1013,11 +1030,13 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task BroadcastEvidence()
     {
-        var minerA = new PrivateKey();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var minerA = RandomUtility.Signer(random);
         var validatorAddress = new PrivateKey().Address;
-        var transportA = TestUtils.CreateTransport(minerA);
-        var transportB = TestUtils.CreateTransport();
-        var transportC = TestUtils.CreateTransport();
+        var transportA = CreateTransport(minerA);
+        var transportB = CreateTransport();
+        var transportC = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
         var peersB = new PeerCollection(transportB.Peer.Address);
         var peersC = new PeerCollection(transportC.Peer.Address);
@@ -1048,17 +1067,18 @@ public partial class SwarmTest
         var evidence = TestEvidence.Create(0, validatorAddress, DateTimeOffset.UtcNow);
         blockchainA.PendingEvidence.Add(evidence);
 
-        await transports.StartAsync(default);
-        await services.StartAsync(default);
+        await transports.StartAsync(cancellationToken);
+        await services.StartAsync(cancellationToken);
 
-        await peerExplorerA.PingAsync(peerExplorerB.Peer, default);
-        await peerExplorerB.PingAsync(peerExplorerC.Peer, default);
-        await peerExplorerC.PingAsync(peerExplorerA.Peer, default);
+        await peerExplorerA.PingAsync(peerExplorerB.Peer, cancellationToken);
+        await peerExplorerB.PingAsync(peerExplorerC.Peer, cancellationToken);
+        await peerExplorerC.PingAsync(peerExplorerA.Peer, cancellationToken);
 
-        TestUtils.InvokeDelay(() => peerExplorerA.BroadcastEvidence([evidence]), 100);
+        InvokeDelay(() => peerExplorerA.BroadcastEvidence([evidence]), 100);
         await Task.WhenAll(
-            syncServiceB.EvidenceAdded.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)),
-            syncServiceC.EvidenceAdded.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5)));
+            syncServiceB.EvidenceAdded.WaitAsync(),
+            syncServiceC.EvidenceAdded.WaitAsync())
+            .WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.Equal(evidence, blockchainB.PendingEvidence[evidence.Id]);
         Assert.Equal(evidence, blockchainC.PendingEvidence[evidence.Id]);

@@ -42,21 +42,21 @@ public partial class SwarmTest
     //         (address1, "foo"),
     //         transfer: (null, address2, 10));
 
-    //     minerChain.StagedTransactions.Add(key, submission: new()
+    //     minerChain.StagedTransactions.Add(key, @params: new()
     //     {
     //         Actions = [action],
     //     });
     //     var block = minerChain.ProposeBlock(minerKey);
     //     minerChain.Append(block, TestUtils.CreateBlockCommit(block));
 
-    //     minerChain.StagedTransactions.Add(key, submission: new()
+    //     minerChain.StagedTransactions.Add(key, @params: new()
     //     {
     //         Actions = [DumbAction.Create((address1, "bar"))],
     //     });
     //     block = minerChain.ProposeBlock(minerKey);
     //     minerChain.Append(block, TestUtils.CreateBlockCommit(block));
 
-    //     minerChain.StagedTransactions.Add(key, submission: new()
+    //     minerChain.StagedTransactions.Add(key, @params: new()
     //     {
     //         Actions = [DumbAction.Create((address1, "baz"))],
     //     });
@@ -307,7 +307,7 @@ public partial class SwarmTest
     //     const int iteration = 3;
     //     for (var i = 0; i < iteration; i++)
     //     {
-    //         sender.Blockchain.StagedTransactions.Add(submission: new()
+    //         sender.Blockchain.StagedTransactions.Add(@params: new()
     //         {
     //             Signer = privKey,
     //             Actions = [DumbAction.Create((addr, item))],
@@ -799,7 +799,7 @@ public partial class SwarmTest
     //     List<Transaction> transactions = new List<Transaction>();
     //     for (int i = 0; i < 10; i++)
     //     {
-    //         var transaction = seedChain.StagedTransactions.Add(submission: new()
+    //         var transaction = seedChain.StagedTransactions.Add(@params: new()
     //         {
     //             Signer = new PrivateKey(),
     //             Actions = [DumbAction.Create((default, $"Item{i}")),],

@@ -3,11 +3,11 @@ using Libplanet.Types;
 
 namespace Libplanet;
 
-public sealed record class TransactionSubmission
+public sealed record class TransactionParams
 {
     public IAction[] Actions { get; init; } = [];
 
-    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset Timestamp { get; init; }
 
     public FungibleAssetValue? MaxGasPrice { get; init; }
 

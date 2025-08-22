@@ -4,6 +4,7 @@ using Libplanet.Serialization;
 using Libplanet.Types;
 using Libplanet.TestUtilities.Extensions;
 using static Libplanet.Tests.TestUtils;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Tests.Store;
 
@@ -379,7 +380,7 @@ public abstract class RepositoryTest
         Transaction MakeTx(
             System.Random random,
             MD5 md5,
-            PrivateKey key,
+            ISigner key,
             int txNonce)
         {
             byte[] arbitraryBytes = new byte[20];
@@ -407,14 +408,14 @@ public abstract class RepositoryTest
         Transaction commonTx = MakeTx(
             new System.Random(),
             md5Hasher,
-            new PrivateKey(),
+            RandomUtility.Signer(),
             0);
         Task[] tasks = new Task[taskCount];
         for (int i = 0; i < taskCount; i++)
         {
             var task = new Task(() =>
             {
-                var key = new PrivateKey();
+                var key = RandomUtility.Signer();
                 var random = new System.Random();
                 var md5 = MD5.Create();
                 Transaction tx;
@@ -488,7 +489,7 @@ public abstract class RepositoryTest
         using var fx = FxConstructor();
         var store = fx.Repository;
         var genesisBlock = fx.GenesisBlock;
-        var expectedBlock = ProposeNextBlock(genesisBlock, fx.ProposerKey);
+        var expectedBlock = ProposeNextBlock(genesisBlock, fx.Proposer);
 
         store.BlockDigests.Add(expectedBlock);
         var actualBlock = store.GetBlock(expectedBlock.BlockHash);
@@ -505,7 +506,7 @@ public abstract class RepositoryTest
         var round = 0;
         var hash = fx.Block2.BlockHash;
         var validators = Enumerable.Range(0, 4)
-            .Select(x => new PrivateKey())
+            .Select(x => RandomUtility.Signer())
             .ToArray();
         var votes = validators.Select(validator => new VoteMetadata
         {
@@ -546,7 +547,7 @@ public abstract class RepositoryTest
                 Validator = fx.ProposerKey.Address,
                 ValidatorPower = fx.ProposerPower,
                 Type = VoteType.PreCommit,
-            }.Sign(fx.ProposerKey));
+            }.Sign(fx.Proposer));
         var votesTwo = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
             {
@@ -557,7 +558,7 @@ public abstract class RepositoryTest
                 Validator = fx.ProposerKey.Address,
                 ValidatorPower = fx.ProposerPower,
                 Type = VoteType.PreCommit,
-            }.Sign(fx.ProposerKey));
+            }.Sign(fx.Proposer));
 
         BlockCommit[] blockCommits =
         [
@@ -589,7 +590,7 @@ public abstract class RepositoryTest
     {
         using var fx = FxConstructor();
         var store = fx.Repository;
-        var validatorPrivateKey = new PrivateKey();
+        var validatorPrivateKey = RandomUtility.Signer();
         var blockCommit = new BlockCommit
         {
             BlockHash = Fx.GenesisBlock.BlockHash,
@@ -618,7 +619,7 @@ public abstract class RepositoryTest
     {
         using var fx = FxConstructor();
         var store = fx.Repository;
-        var signer = TestUtils.ValidatorPrivateKeys[0];
+        var signer = TestUtils.Signers[0];
         var duplicateVoteOne = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
             {
@@ -679,7 +680,7 @@ public abstract class RepositoryTest
     public void ManipulatePendingEvidence()
     {
         var store = Fx.Repository;
-        var signer = TestUtils.ValidatorPrivateKeys[0];
+        var signer = TestUtils.Signers[0];
         var duplicateVote = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
             {
@@ -720,7 +721,7 @@ public abstract class RepositoryTest
     {
         using var fx = FxConstructor();
         var store = fx.Repository;
-        var signer = TestUtils.ValidatorPrivateKeys[0];
+        var signer = TestUtils.Signers[0];
         var duplicateVote = ImmutableArray<Vote>.Empty
             .Add(new VoteMetadata
             {

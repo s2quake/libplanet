@@ -68,32 +68,31 @@ public sealed class InitializeTest(ITestOutputHelper output)
     public void ExecuteInNonGenesis()
     {
         var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Address(random);
         var world = new World();
-        var key = RandomUtility.PrivateKey(random);
-        var hash = RandomUtility.BlockHash(random);
+        var signer = RandomUtility.Signer(random);
+        var blockHash = RandomUtility.BlockHash(random);
         var lastCommit = new BlockCommit
         {
             Height = 0,
             Round = 0,
-            BlockHash = hash,
+            BlockHash = blockHash,
             Votes =
             [
                 new VoteMetadata
                 {
-                    Validator = key.Address,
+                    Validator = signer.Address,
                     Height = 1,
                     Round = 0,
-                    BlockHash = hash,
+                    BlockHash = blockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     ValidatorPower = BigInteger.One,
                     Type = VoteType.PreCommit,
-                }.Sign(key),
+                }.Sign(signer),
             ],
         };
         var context = new ActionContext
         {
-            Signer = signer,
+            Signer = signer.Address,
             TxId = RandomUtility.TxId(random),
             Proposer = RandomUtility.Address(random),
             BlockHeight = 10,

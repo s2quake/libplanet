@@ -7,6 +7,7 @@ using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;
 
@@ -46,7 +47,7 @@ public sealed class StoreCommandTest : IDisposable
         }
 
         _genesisBlock =
-                TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposerKey);
+                TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposer);
         _transaction1 = DummyTransaction();
         _transaction2 = DummyTransaction();
         _transaction3 = DummyTransaction();
@@ -54,27 +55,27 @@ public sealed class StoreCommandTest : IDisposable
 
         _block1 = TestUtils.ProposeNextBlock(
                 _genesisBlock,
-                TestUtils.GenesisProposerKey,
+                TestUtils.GenesisProposer,
                 [_transaction1],
                 lastCommit: null);
         _block2 = TestUtils.ProposeNextBlock(
                 _block1,
-                TestUtils.GenesisProposerKey,
+                TestUtils.GenesisProposer,
                 [_transaction2],
                 lastCommit: TestUtils.CreateBlockCommit(_block1));
         _block3 = TestUtils.ProposeNextBlock(
                 _block2,
-                TestUtils.GenesisProposerKey,
+                TestUtils.GenesisProposer,
                 [_transaction3],
                 lastCommit: TestUtils.CreateBlockCommit(_block2));
         _block4 = TestUtils.ProposeNextBlock(
                 _block3,
-                TestUtils.GenesisProposerKey,
+                TestUtils.GenesisProposer,
                 [_transaction3],
                 lastCommit: TestUtils.CreateBlockCommit(_block3));
         _block5 = TestUtils.ProposeNextBlock(
                 _block4,
-                TestUtils.GenesisProposerKey,
+                TestUtils.GenesisProposer,
                 lastCommit: TestUtils.CreateBlockCommit(_block4));
 
         var guid = Guid.NewGuid();
@@ -344,13 +345,13 @@ public sealed class StoreCommandTest : IDisposable
 
     private Transaction DummyTransaction()
     {
-        var privateKey = new PrivateKey();
+        var signer = RandomUtility.Signer();
         return new TransactionMetadata
         {
             Nonce = 0,
-            Signer = privateKey.Address,
+            Signer = signer.Address,
             GenesisBlockHash = _genesisBlock.BlockHash,
             Actions = new[] { new Utils.DummyAction() }.ToBytecodes(),
-        }.Sign(privateKey);
+        }.Sign(signer);
     }
 }

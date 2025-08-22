@@ -1,6 +1,7 @@
 using GraphQL;
 using GraphQL.Execution;
 using GraphQL.Types;
+using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
@@ -12,8 +13,7 @@ public class VoteTypeTest
     [Fact]
     public async Task Query()
     {
-
-        var privateKey = new PrivateKey();
+        var signer = RandomUtility.Signer();
         var blockHash = new BlockHash(new byte[32]);
         var vote = new VoteMetadata
         {
@@ -21,10 +21,10 @@ public class VoteTypeTest
             Round = 0,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.Now,
-            Validator = privateKey.Address,
+            Validator = signer.Address,
             ValidatorPower = 123,
             Type = Types.VoteType.PreCommit,
-        }.Sign(privateKey);
+        }.Sign(signer);
 
         var query =
             @"{

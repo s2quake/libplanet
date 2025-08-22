@@ -40,7 +40,7 @@ public partial class BlockchainTest
         // C. Smaller nonces have later timestamps (2 txs: 0 (later), 1)
         // D. Some nonce numbers are missed out (3 txs: 0, 1, 3)
         // E. Reused nonces (4 txs: 0, 1, 1, 2)
-        _blockchain.StagedTransactions.Add(a, new TransactionSubmission
+        _blockchain.StagedTransactions.Add(a, new TransactionParams
         {
         });
         DateTimeOffset currentTime = DateTimeOffset.UtcNow;
@@ -48,7 +48,7 @@ public partial class BlockchainTest
         _blockchain.StagedTransactions.Add(MkTx(c, 0, DateTimeOffset.UtcNow + TimeSpan.FromHours(1)));
         _blockchain.StagedTransactions.Add(MkTx(d, 0, DateTimeOffset.UtcNow));
         _blockchain.StagedTransactions.Add(MkTx(e, 0, DateTimeOffset.UtcNow));
-        _blockchain.StagedTransactions.Add(a, new TransactionSubmission
+        _blockchain.StagedTransactions.Add(a, new TransactionParams
         {
         });
         _blockchain.StagedTransactions.Add(MkTx(b, 0, currentTime));
@@ -58,7 +58,7 @@ public partial class BlockchainTest
         _blockchain.StagedTransactions.Add(MkTx(d, 3, DateTimeOffset.UtcNow));
         _blockchain.StagedTransactions.Add(MkTx(e, 1, DateTimeOffset.UtcNow));
         _blockchain.StagedTransactions.Add(MkTx(e, 2, DateTimeOffset.UtcNow));
-        _blockchain.StagedTransactions.Add(a, new TransactionSubmission
+        _blockchain.StagedTransactions.Add(a, new TransactionParams
         {
         });
 

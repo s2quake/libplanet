@@ -28,7 +28,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
             Validator = TestUtils.Validators[0].Address,
             ValidatorPower = TestUtils.Validators[0].Power,
             Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[0]));
+        }.Sign(TestUtils.Signers[0]));
         Assert.False(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
@@ -44,7 +44,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
             Validator = TestUtils.Validators[1].Address,
             ValidatorPower = TestUtils.Validators[1].Power,
             Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[1]));
+        }.Sign(TestUtils.Signers[1]));
         Assert.True(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
@@ -60,7 +60,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
             Validator = TestUtils.Validators[2].Address,
             ValidatorPower = TestUtils.Validators[2].Power,
             Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[2]));
+        }.Sign(TestUtils.Signers[2]));
         Assert.True(votes.HasOneThirdsAny);
         Assert.True(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
@@ -76,7 +76,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
             Validator = TestUtils.Validators[3].Address,
             ValidatorPower = TestUtils.Validators[3].Power,
             Type = VoteType.PreCommit,
-        }.Sign(TestUtils.PrivateKeys[3]));
+        }.Sign(TestUtils.Signers[3]));
         Assert.True(votes.HasOneThirdsAny);
         Assert.True(votes.HasTwoThirdsAny);
         Assert.True(votes.HasTwoThirdsMajority);

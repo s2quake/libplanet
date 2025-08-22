@@ -5,26 +5,6 @@ namespace Libplanet.Tests;
 
 public static class BlockchainExtensions
 {
-    // public static async Task WaitUntilHeightAsync(this Libplanet.Blockchain @this, int height, CancellationToken cancellationToken)
-    // {
-    //     using var resetEvent = new ManualResetEvent(false);
-    //     using var _ = @this.TipChanged.Subscribe(e =>
-    //     {
-    //         if (e.Tip.Height == height)
-    //         {
-    //             resetEvent.Set();
-    //         }
-    //     });
-
-    //     while (@this.Tip.Height < height && !resetEvent.WaitOne(0))
-    //     {
-    //         await Task.Delay(100, cancellationToken);
-    //     }
-    // }
-
-    public static (Block, BlockCommit) ProposeAndAppend(this Libplanet.Blockchain @this, PrivateKey signer)
-        => ProposeAndAppend(@this, signer.AsSigner());
-
     public static (Block, BlockCommit) ProposeAndAppend(this Libplanet.Blockchain @this, ISigner signer)
     {
         var block = @this.ProposeBlock(signer);
@@ -34,7 +14,7 @@ public static class BlockchainExtensions
     }
 
     public static (Block, BlockCommit)[] ProposeAndAppendMany(
-        this Libplanet.Blockchain @this, PrivateKey signer, int count)
+        this Libplanet.Blockchain @this, ISigner signer, int count)
     {
         var blocks = new (Block, BlockCommit)[count];
         for (var i = 0; i < count; i++)
@@ -54,7 +34,7 @@ public static class BlockchainExtensions
         var blocks = new (Block, BlockCommit)[count];
         for (var i = 0; i < count; i++)
         {
-            var signer = RandomUtility.PrivateKey(random);
+            var signer = RandomUtility.Signer(random);
             blocks[i] = @this.ProposeAndAppend(signer);
         }
 
@@ -79,4 +59,7 @@ public static class BlockchainExtensions
             other.Append(block, blockCommit);
         }
     }
+
+    public static Transaction CreateTransaction(this Libplanet.Blockchain @this, ISigner signer)
+        => @this.CreateTransaction(signer, new TransactionParams());
 }

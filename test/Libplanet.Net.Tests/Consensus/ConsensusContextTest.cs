@@ -12,7 +12,7 @@ using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class ConsensusContextTest
+public sealed class ConsensusContextTest(ITestOutputHelper output)
 {
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task NewHeightIncreasing()
@@ -132,6 +132,7 @@ public class ConsensusContextTest
     public async Task NewHeightWhenTipChanged()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
         var newHeightDelay = TimeSpan.FromSeconds(1);
         var blockchain = MakeBlockchain();
         await using var transport = CreateTransport(Signers[1]);
@@ -146,7 +147,7 @@ public class ConsensusContextTest
 
         Assert.Equal(1, consensusService.Height);
 
-        blockchain.ProposeAndAppend(new PrivateKey());
+        blockchain.ProposeAndAppend(RandomUtility.Signer(random));
         Assert.Equal(1, consensusService.Height);
         await Task.Delay(newHeightDelay + TimeSpan.FromSeconds(1), cancellationToken);
         Assert.Equal(2, consensusService.Height);

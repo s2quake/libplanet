@@ -32,7 +32,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
             Round = 0,
             Type = VoteType.PreCommit,
             BlockHash = blockHash,
-        }.Sign(TestUtils.PrivateKeys[0]);
+        }.Sign(TestUtils.Signers[0]);
         votes.Add(vote);
         Assert.Equal(1, votes.Count);
         Assert.False(votes.HasOneThirdsAny);
@@ -57,7 +57,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 Round = 0,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Sign(TestUtils.Signers[i]);
             votes.Add(vote);
         }
 
@@ -84,7 +84,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 Round = 0,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Sign(TestUtils.Signers[i]);
             votes.Add(vote);
         }
 
@@ -110,7 +110,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
             Round = 0,
             Type = VoteType.PreCommit,
             BlockHash = blockHash,
-        }.Sign(TestUtils.PrivateKeys[0]);
+        }.Sign(TestUtils.Signers[0]);
         votes.Add(vote);
 
         votes.Remove(vote.Validator);
@@ -133,7 +133,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 Round = 0,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Sign(TestUtils.Signers[i]);
             votes.Add(vote);
         }
 
@@ -158,7 +158,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 Round = 0,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Sign(TestUtils.Signers[i]);
             votes.Add(vote);
         }
 
@@ -186,7 +186,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 Round = 0,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
-            }.Sign(TestUtils.PrivateKeys[i]);
+            }.Sign(TestUtils.Signers[i]);
             votes.Add(vote);
         }
 

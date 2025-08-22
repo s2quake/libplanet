@@ -11,7 +11,7 @@ namespace Libplanet.Benchmarks
         private const int MaxValidatorSize = 100;
 
         private Vote[] _votes;
-        private PrivateKey[] _privateKeys;
+        private ISigner[] _signers;
         private BlockHash _blockHash;
         private BlockCommit _blockCommit;
         private byte[] _encodedBlockCommit;
@@ -51,10 +51,10 @@ namespace Libplanet.Benchmarks
 
         private void SetupKeys()
         {
-            _privateKeys = new PrivateKey[MaxValidatorSize];
+            _signers = new ISigner[MaxValidatorSize];
             for (int i = 0; i < MaxValidatorSize; i++)
             {
-                _privateKeys[i] = new PrivateKey();
+                _signers[i] = new PrivateKey().AsSigner();
             }
         }
 
@@ -68,10 +68,10 @@ namespace Libplanet.Benchmarks
                         Round = 0,
                         BlockHash = _blockHash,
                         Timestamp = DateTimeOffset.UtcNow,
-                        Validator = _privateKeys[x].Address,
+                        Validator = _signers[x].Address,
                         ValidatorPower = BigInteger.One,
                         Type = VoteType.PreCommit,
-                    }.Sign(_privateKeys[x]))];
+                    }.Sign(_signers[x]))];
         }
     }
 }

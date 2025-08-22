@@ -1,4 +1,5 @@
 using Libplanet.State.Tests.Actions;
+using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 
@@ -23,28 +24,29 @@ public partial class BlockchainTest
     [Fact]
     public void StageTransactionWithDifferentGenesis()
     {
-        var tx1Key = new PrivateKey();
+        var random = RandomUtility.GetRandom(_output);
+        var tx1Signer = RandomUtility.Signer(random);
         var tx1 = new TransactionMetadata
         {
             Nonce = 0,
-            Signer = tx1Key.Address,
+            Signer = tx1Signer.Address,
             GenesisBlockHash = _blockchain.Genesis.BlockHash,
             Actions = [],
-        }.Sign(tx1Key);
-        var tx2Key = new PrivateKey();
+        }.Sign(tx1Signer);
+        var tx2Signer = RandomUtility.Signer(random);
         var tx2 = new TransactionMetadata
         {
             Nonce = 0,
-            Signer = tx2Key.Address,
+            Signer = tx2Signer.Address,
             Actions = [],
-        }.Sign(tx2Key);
-        var tx3Key = new PrivateKey();
+        }.Sign(tx2Signer);
+        var tx3Signer = RandomUtility.Signer(random);
         var tx3 = new TransactionMetadata
         {
             Nonce = 0,
-            Signer = tx3Key.Address,
+            Signer = tx3Signer.Address,
             Actions = [],
-        }.Sign(tx3Key);
+        }.Sign(tx3Signer);
 
         _blockchain.StagedTransactions.Add(tx1);
         Assert.Single(_blockchain.StagedTransactions.Keys);
@@ -57,28 +59,29 @@ public partial class BlockchainTest
     [Fact]
     public void TransactionsWithDuplicatedNonce()
     {
-        var key = new PrivateKey();
+        var random = RandomUtility.GetRandom(_output);
+        var signer = RandomUtility.Signer(random);
 
         Transaction tx_0_0 = _fx.MakeTransaction(
             Array.Empty<DumbAction>(),
             nonce: 0,
-            privateKey: key);
+            signer: signer);
         Transaction tx_0_1 = _fx.MakeTransaction(
             Array.Empty<DumbAction>(),
             nonce: 0,
-            privateKey: key);
+            signer: signer);
         Transaction tx_1_0 = _fx.MakeTransaction(
             Array.Empty<DumbAction>(),
             nonce: 1,
-            privateKey: key);
+            signer: signer);
         Transaction tx_1_1 = _fx.MakeTransaction(
             Array.Empty<DumbAction>(),
             nonce: 1,
-            privateKey: key);
+            signer: signer);
 
         // stage tx_0_0 -> mine tx_0_0 -> stage tx_0_1
         _blockchain.StagedTransactions.Add(tx_0_0);
-        var block = _blockchain.ProposeBlock(key);
+        var block = _blockchain.ProposeBlock(signer);
         _blockchain.Append(block, TestUtils.CreateBlockCommit(block));
         Assert.Empty(_blockchain.StagedTransactions.Keys);
         // Assert.Empty(_blockChain.StagedTransactions.Iterate(filtered: true));
@@ -98,7 +101,7 @@ public partial class BlockchainTest
         Assert.Equal(
             txIds.OrderBy(id => id),
             _blockchain.StagedTransactions.Keys.OrderBy(id => id));
-        block = _blockchain.ProposeBlock(key);
+        block = _blockchain.ProposeBlock(signer);
         _blockchain.Append(block, TestUtils.CreateBlockCommit(block));
         // tx_0_1 and tx_1_x should be still staged, just filtered
         Assert.Empty(_blockchain.StagedTransactions.Keys);

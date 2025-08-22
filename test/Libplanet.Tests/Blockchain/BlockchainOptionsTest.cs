@@ -39,18 +39,12 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
 
         // Valid Transaction
 
-        var validTx = new TransactionBuilder
-        {
-            Blockchain = blockchain,
-        }.Create(validSigner);
+        var validTx = blockchain.CreateTransaction(validSigner);
         blockchain.StagedTransactions.Add(validTx);
         options.TransactionOptions.Validate(validTx);
 
         // Invalid Transaction
-        var invalidTx = new TransactionBuilder
-        {
-            Blockchain = blockchain,
-        }.Create(invalidSigner);
+        var invalidTx = blockchain.CreateTransaction(invalidSigner);
         blockchain.StagedTransactions.Add(invalidTx);
         options.TransactionOptions.Validate(invalidTx);
     }
@@ -96,10 +90,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
         };
         var blockchainA = TestUtils.MakeBlockchain(options: optionsA);
 
-        var invalidTx = new TransactionBuilder
-        {
-            Blockchain = blockchainA,
-        }.Create(invalidSigner);
+        var invalidTx = blockchainA.CreateTransaction(invalidSigner);
         blockchainA.StagedTransactions.Add(invalidTx);
         optionsA.TransactionOptions.Validate(invalidTx);
 
@@ -116,10 +107,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
         };
         var blockchainB = TestUtils.MakeBlockchain(options: optionsA);
 
-        invalidTx = new TransactionBuilder
-        {
-            Blockchain = blockchainA,
-        }.Create(invalidSigner);
+        invalidTx = blockchainA.CreateTransaction(invalidSigner);
         blockchainA.StagedTransactions.Add(invalidTx);
     }
 
@@ -139,20 +127,17 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
                 MinTransactionsPerBlock = policyLimit,
             },
         };
-        var privateKey = new PrivateKey();
+        var signer = new PrivateKey().AsSigner();
         var chain = TestUtils.MakeBlockchain(options);
 
-        var tx = new TransactionBuilder
-        {
-            Blockchain = chain,
-        }.Create(privateKey);
+        var tx = chain.CreateTransaction(signer);
         chain.StagedTransactions.Add(tx);
         Assert.Single(chain.StagedTransactions.Collect());
 
         // Tests if MineBlock() method will throw an exception if less than the minimum
         // transactions are present
         Assert.Throws<OperationCanceledException>(
-            () => chain.ProposeBlock(new PrivateKey()));
+            () => chain.ProposeBlock(RandomUtility.Signer()));
     }
 
     [Fact]
@@ -170,24 +155,21 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
                 MaxTransactionsPerBlock = policyLimit,
             },
         };
-        var privateKey = new PrivateKey();
+        var signer = new PrivateKey().AsSigner();
         var chain = TestUtils.MakeBlockchain(policy);
 
         _ = Enumerable
                 .Range(0, generatedTxCount)
                 .Select(_ =>
                 {
-                    var tx = new TransactionBuilder
-                    {
-                        Blockchain = chain,
-                    }.Create(privateKey);
+                    var tx = chain.CreateTransaction(signer);
                     chain.StagedTransactions.Add(tx);
                     return tx;
                 })
                 .ToList();
         Assert.Equal(generatedTxCount, chain.StagedTransactions.Collect().Count);
 
-        var block = chain.ProposeBlock(privateKey);
+        var block = chain.ProposeBlock(signer);
         Assert.Equal(policyLimit, block.Transactions.Count);
     }
 
@@ -198,6 +180,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
         const int generatedTxCount = 10;
         const int policyLimit = 4;
 
+        var random = RandomUtility.GetRandom(output);
         var options = new BlockchainOptions
         {
             BlockOptions = new BlockOptions
@@ -205,30 +188,29 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
                 MaxTransactionsPerSignerPerBlock = policyLimit,
             },
         };
-        var privateKeys = Enumerable.Range(0, keyCount).Select(_ => new PrivateKey()).ToList();
-        var minerKey = privateKeys.First();
-        var chain = TestUtils.MakeBlockchain(options);
+        var signers = RandomUtility.Array(random, RandomUtility.Signer, keyCount);
+        var minerSigner = signers[0];
+        var blockchain = TestUtils.MakeBlockchain(options);
 
-        privateKeys.ForEach(
-            key => _ = Enumerable
-                .Range(0, generatedTxCount)
-                .Select(_ =>
-                {
-                    var tx = new TransactionBuilder
-                    {
-                        Blockchain = chain,
-                    }.Create(key);
-                    chain.StagedTransactions.Add(tx);
-                    return tx;
-                })
-                .ToList());
-        Assert.Equal(generatedTxCount * keyCount, chain.StagedTransactions.Collect().Count);
+        foreach (var signer in signers)
+        {
+            for (var i = 0; i < generatedTxCount; i++)
+            {
+                var tx = blockchain.CreateTransaction(signer);
+                blockchain.StagedTransactions.Add(tx);
+            }
+        }
 
-        var block = chain.ProposeBlock(minerKey);
+        Assert.Equal(generatedTxCount * keyCount, blockchain.StagedTransactions.Collect().Count);
+
+        var block = blockchain.ProposeBlock(minerSigner);
         Assert.Equal(policyLimit * keyCount, block.Transactions.Count);
-        privateKeys.ForEach(
-            key => Assert.Equal(
+
+        foreach (var signer in signers)
+        {
+            Assert.Equal(
                 policyLimit,
-                block.Transactions.Count(tx => tx.Signer.Equals(key.Address))));
+                block.Transactions.Count(tx => tx.Signer.Equals(signer.Address)));
+        }
     }
 }

@@ -1,13 +1,14 @@
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
 using Libplanet.Tests;
+using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public sealed class ContextProposerTest
+public sealed class ContextProposerTest(ITestOutputHelper output)
 {
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task EnterPreCommitNil()
@@ -219,10 +220,11 @@ public sealed class ContextProposerTest
     public async Task VoteNilOnSelfProposedInvalidBlock()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var privateKey = new PrivateKey();
+        var random = RandomUtility.GetRandom(output);
+        var signer = RandomUtility.Signer(random);
         var blockchain = MakeBlockchain();
         _ = blockchain.ProposeAndAppendMany(2);
-        var block = blockchain.ProposeBlock(privateKey);
+        var block = blockchain.ProposeBlock(signer);
         var proposal = new ProposalBuilder
         {
             Block = block,

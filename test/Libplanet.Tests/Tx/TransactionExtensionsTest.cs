@@ -24,16 +24,16 @@ public class TransactionExtensionsTest
             DumbAction.Create((AddressA, "foo")),
             DumbAction.Create((AddressB, "bar")),
         ]).ToImmutableArray();
-        var privateKey =
-            PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
+        var signer =
+            PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2").AsSigner();
         Transaction tx = new TransactionMetadata
         {
             GenesisBlockHash = genesisHash,
-            Signer = privateKey.Address,
+            Signer = signer.Address,
             Timestamp = timestamp,
             Actions = actions.ToBytecodes(),
             Nonce = 123L,
-        }.Sign(privateKey);
+        }.Sign(signer);
         // Assert.Equal(invoice, tx.UnsignedTx.Invoice);
         // Assert.Equal(
         //     TxSigningMetadata.Create(privateKey.PublicKey, 123L), tx.UnsignedTx.SigningMetadata);

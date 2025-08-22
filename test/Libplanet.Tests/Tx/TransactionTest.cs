@@ -33,41 +33,41 @@ public class TransactionTest
     [Fact]
     public void ConstructorWithSigning()
     {
-        PrivateKey validKey = _fx.PrivateKey1;
-        var tx = _fx.Tx.Metadata.Sign(validKey);
+        var validSigner = _fx.Signer1;
+        var tx = _fx.Tx.Metadata.Sign(validSigner);
         Assert.Equal(_fx.Tx, tx);
 
-        var wrongKey = new PrivateKey();
-        ValidationTest.Throws(_fx.Tx.Metadata.Sign(wrongKey), nameof(Transaction.Signature));
+        var wrongSigner = RandomUtility.Signer();
+        ValidationTest.Throws(_fx.Tx.Metadata.Sign(wrongSigner), nameof(Transaction.Signature));
     }
 
     [Fact]
     public void CreateWithSystemAction()
     {
-        var privateKey = new PrivateKey(
+        var signer = new PrivateKey(
         [
             0xcf, 0x36, 0xec, 0xf9, 0xe4, 0x7c, 0x87, 0x9a, 0x0d, 0xbf,
             0x46, 0xb2, 0xec, 0xd8, 0x3f, 0xd2, 0x76, 0x18, 0x2a, 0xde,
             0x02, 0x65, 0x82, 0x5e, 0x3b, 0x8c, 0x6b, 0xa2, 0x14, 0x46,
             0x7b, 0x76,
-        ]);
+        ]).AsSigner();
         var timestamp =
             new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
         var action = new Initialize
         {
-            Validators = [new Validator { Address = privateKey.Address }],
+            Validators = [new Validator { Address = signer.Address }],
         };
         var tx = new TransactionMetadata
         {
             Nonce = 0,
-            Signer = privateKey.Address,
+            Signer = signer.Address,
             GenesisBlockHash = default,
             Actions = new[] { action }.ToBytecodes(),
             Timestamp = timestamp,
-        }.Sign(privateKey);
+        }.Sign(signer);
 
-        Assert.Equal(privateKey.Address, tx.Signer);
-        Assert.Equal(privateKey.Address, tx.Signer);
+        Assert.Equal(signer.Address, tx.Signer);
+        Assert.Equal(signer.Address, tx.Signer);
         Assert.Equal(timestamp, tx.Timestamp);
         Assert.Equal(
             new byte[]
@@ -87,8 +87,8 @@ public class TransactionTest
     [Fact]
     public void CreateWithCustomActions()
     {
-        var privateKey = new PrivateKey(ByteUtility.ParseHex(
-            "cf36ecf9e47c879a0dbf46b2ecd83fd276182ade0265825e3b8c6ba214467b76"));
+        var signer = new PrivateKey(ByteUtility.ParseHex(
+            "cf36ecf9e47c879a0dbf46b2ecd83fd276182ade0265825e3b8c6ba214467b76")).AsSigner();
         var timestamp =
             new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
         Address stateStore = new Address(
@@ -99,19 +99,19 @@ public class TransactionTest
         Transaction tx = new TransactionMetadata
         {
             Nonce = 0,
-            Signer = privateKey.Address,
+            Signer = signer.Address,
             GenesisBlockHash = default,
             Actions = new[]
             {
                 DumbAction.Create((stateStore, "F")),
             }.ToBytecodes(),
             Timestamp = timestamp,
-        }.Sign(privateKey);
+        }.Sign(signer);
 
         Assert.Equal(
-            new Address(privateKey.PublicKey),
+            signer.Address,
             tx.Signer);
-        Assert.Equal(privateKey.Address, tx.Signer);
+        Assert.Equal(signer.Address, tx.Signer);
         Assert.Equal(timestamp, tx.Timestamp);
         Assert.Equal(
             ByteUtility.ParseHex(
@@ -134,7 +134,7 @@ public class TransactionTest
             Signer = _fx.PrivateKey1.Address,
             GenesisBlockHash = default,
             Actions = Array.Empty<DumbAction>().ToBytecodes(),
-        }.Sign(_fx.PrivateKey1);
+        }.Sign(_fx.Signer1);
         DateTimeOffset rightAfter = DateTimeOffset.UtcNow;
 
         Assert.InRange(tx.Timestamp, rightBefore, rightAfter);

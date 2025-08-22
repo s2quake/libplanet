@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Libplanet.Net.Components;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
 
@@ -482,12 +483,13 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task RefreshPeers()
     {
-        var cancellationToken = TestContext.Current.CancellationToken;
         const int peersCount = 10;
-        var privateKey = new PrivateKey();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var signer = RandomUtility.Signer(random);
         var privateKeys = Enumerable.Range(0, peersCount).Select(
-            i => GeneratePrivateKeyOfBucketIndex(privateKey.Address, i / 2));
-        await using var transport = CreateTransport(privateKey);
+            i => GeneratePrivateKeyOfBucketIndex(signer.Address, i / 2));
+        await using var transport = CreateTransport(signer);
         var peers = new PeerCollection(transport.Peer.Address);
         var transports = privateKeys.Select(key => CreateTransport(key)).ToArray();
         var peerses = transports.Select(t => new PeerCollection(t.Peer.Address)).ToArray();

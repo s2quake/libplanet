@@ -215,4 +215,20 @@ public partial class Blockchain
         };
         return rawBlock.Sign(proposer);
     }
+
+    public Transaction CreateTransaction(ISigner signer, TransactionParams @params)
+    {
+        var tx = new TransactionMetadata
+        {
+            Nonce = GetNextTxNonce(signer.Address),
+            Signer = signer.Address,
+            GenesisBlockHash = Genesis.BlockHash,
+            Actions = @params.Actions.ToBytecodes(),
+            Timestamp = @params.Timestamp == default ? DateTimeOffset.UtcNow : @params.Timestamp,
+            MaxGasPrice = @params.MaxGasPrice,
+            GasLimit = @params.GasLimit,
+        }.Sign(signer);
+
+        return tx;
+    }
 }

@@ -1,12 +1,13 @@
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
+using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class ContextProposerValidRoundTest
+public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
 {
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task EnterValidRoundPreVoteBlock()
@@ -50,6 +51,7 @@ public class ContextProposerValidRoundTest
     public async Task EnterValidRoundPreVoteNil()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var timeoutTask = consensus.TimeoutOccurred.WaitAsync();
@@ -61,7 +63,7 @@ public class ContextProposerValidRoundTest
             e => e.Step == ConsensusStep.PreCommit && consensus.Round.Index == 2);
 
         var block = blockchain.ProposeBlock(Signers[1]);
-        var key = new PrivateKey();
+        var signer = RandomUtility.Signer(random);
         var differentBlock = new RawBlock
         {
             Header = new BlockHeader
@@ -69,10 +71,10 @@ public class ContextProposerValidRoundTest
                 BlockVersion = BlockHeader.CurrentProtocolVersion,
                 Height = blockchain.Tip.Height + 1,
                 Timestamp = blockchain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
-                Proposer = key.Address,
+                Proposer = signer.Address,
                 PreviousHash = blockchain.Tip.BlockHash,
             },
-        }.Sign(key);
+        }.Sign(signer);
 
         await consensus.StartAsync(cancellationToken);
         await consensus.ProposeAsync(1, block, cancellationToken: cancellationToken);

@@ -14,9 +14,10 @@ public partial class BlockchainSynchronizationServiceTest(ITestOutputHelper outp
     public async Task SynchronizeAsync()
     {
         // Given
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         using var fx = new MemoryRepositoryFixture();
-        var keyA = RandomUtility.PrivateKey(random);
+        var signerA = RandomUtility.Signer(random);
         var transportA = TestUtils.CreateTransport();
         var transportB = TestUtils.CreateTransport();
         var blockchainA = Libplanet.Tests.TestUtils.MakeBlockchain(genesisBlock: fx.GenesisBlock);
@@ -31,8 +32,8 @@ public partial class BlockchainSynchronizationServiceTest(ITestOutputHelper outp
             serviceB,
         };
 
-        blockchainA.ProposeAndAppendMany(keyA, 10);
-        await services.StartAsync(default);
+        blockchainA.ProposeAndAppendMany(signerA, 10);
+        await services.StartAsync(cancellationToken);
 
         // When
         transportA.PostBlock(transportB.Peer, blockchainA, blockchainA.Tip);

@@ -21,6 +21,9 @@ public static class TestUtils
         PrivateKey.Parse("91602d7091c5c7837ac8e71a8d6b1ed1355cfe311914d9a76107899add0ad56a"),
     ];
 
+    public static readonly ImmutableArray<ISigner> Signers
+        = [.. ValidatorPrivateKeys.Select(privateKey => privateKey.AsSigner())];
+
     // [0]: 0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d
     // [1]: 0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7
     // [2]: 0x28D6C49FaAE09d58473D98c15DD1095C04232267
@@ -134,7 +137,7 @@ public static class TestUtils
 
         // Using the unix epoch time as the timestamp of the vote if deterministicTimestamp is
         // flagged for getting a deterministic random value from RawHash.
-        var votes = ValidatorPrivateKeys.Select(key => new VoteMetadata
+        var votes = Signers.Select(key => new VoteMetadata
         {
             Height = height,
             Round = round,
@@ -155,7 +158,7 @@ public static class TestUtils
     }
 
     public static RawBlock ProposeGenesis(
-        PrivateKey proposer,
+        ISigner proposer,
         HashDigest<SHA256> previousStateRootHash = default,
         ImmutableSortedSet<Transaction>? transactions = null,
         ImmutableSortedSet<Validator>? validators = null,
@@ -178,7 +181,7 @@ public static class TestUtils
                     },
                 }.ToBytecodes(),
                 Timestamp = DateTimeOffset.MinValue,
-            }.Sign(GenesisProposerKey));
+            }.Sign(GenesisProposer));
 
         var metadata = new BlockHeader
         {
@@ -197,7 +200,7 @@ public static class TestUtils
     }
 
     public static Block ProposeGenesisBlock(
-        PrivateKey proposer,
+        ISigner proposer,
         HashDigest<SHA256> previousStateRootHash = default,
         ImmutableSortedSet<Transaction>? transactions = null,
         DateTimeOffset? timestamp = null,
@@ -217,7 +220,7 @@ public static class TestUtils
         Block previousBlock,
         HashDigest<SHA256> previousStateRootHash,
         ImmutableSortedSet<Transaction>? transactions = null,
-        PrivateKey? proposer = null,
+        ISigner? proposer = null,
         TimeSpan? blockInterval = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion,
         BlockCommit? previousCommit = null,
@@ -248,7 +251,7 @@ public static class TestUtils
 
     public static Block ProposeNextBlock(
         Block previousBlock,
-        PrivateKey proposer,
+        ISigner proposer,
         ImmutableSortedSet<Transaction>? txs = null,
         TimeSpan? blockInterval = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion,
@@ -276,7 +279,7 @@ public static class TestUtils
         BlockchainOptions? options = null,
         IEnumerable<IAction>? actions = null,
         ImmutableSortedSet<Validator>? validatorSet = null,
-        PrivateKey? privateKey = null,
+        ISigner? signer = null,
         DateTimeOffset? timestamp = null,
         Block? genesisBlock = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion)
@@ -285,7 +288,7 @@ public static class TestUtils
             options,
             actions,
             validatorSet,
-            privateKey,
+            signer,
             timestamp,
             genesisBlock,
             protocolVersion)
@@ -297,25 +300,25 @@ public static class TestUtils
         BlockchainOptions? options,
         IEnumerable<IAction>? actions = null,
         ImmutableSortedSet<Validator>? validatorSet = null,
-        PrivateKey? privateKey = null,
+        ISigner? signer = null,
         DateTimeOffset? timestamp = null,
         Block? genesisBlock = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion)
     {
         options ??= new BlockchainOptions();
         actions ??= ImmutableArray<IAction>.Empty;
-        privateKey ??= GenesisProposerKey;
+        signer ??= GenesisProposer;
 
         var txs = new[]
         {
             new TransactionMetadata
             {
                 Nonce = 0,
-                Signer = privateKey.Address,
+                Signer = signer.Address,
                 GenesisBlockHash = default,
                 Actions = actions.ToBytecodes(),
                 Timestamp = timestamp ?? DateTimeOffset.MinValue,
-            }.Sign(privateKey),
+            }.Sign(signer),
         }.ToImmutableSortedSet();
 
         var repository = new Repository();
@@ -326,13 +329,13 @@ public static class TestUtils
         if (genesisBlock is null)
         {
             var preEval = ProposeGenesis(
-                proposer: privateKey,
+                proposer: signer,
                 transactions: txs,
                 validators: validatorSet,
                 timestamp: timestamp,
                 protocolVersion: protocolVersion);
             var evaluation = blockExecutor.Execute(preEval);
-            genesisBlock = preEval.Sign(privateKey);
+            genesisBlock = preEval.Sign(signer);
         }
 
         var chain = new Libplanet.Blockchain(genesisBlock, repository, options);

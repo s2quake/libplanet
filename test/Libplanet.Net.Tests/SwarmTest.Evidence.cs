@@ -1,8 +1,8 @@
 using Libplanet.Net.Consensus;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Libplanet.Extensions;
 using System.Reactive.Linq;
+using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests;
 
@@ -11,9 +11,10 @@ public partial class SwarmTest
     [Fact(Timeout = Timeout)]
     public async Task DuplicateVote_Test()
     {
-        var privateKeys = Libplanet.Tests.TestUtils.ValidatorPrivateKeys.ToArray();
-        var count = privateKeys.Length;
-        var transports = privateKeys.Select(item => TestUtils.CreateTransport(item)).ToArray();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var signers = Libplanet.Tests.TestUtils.Signers.ToArray();
+        var count = signers.Length;
+        var transports = signers.Select(item => TestUtils.CreateTransport(item)).ToArray();
         var blockchains = transports.Select(item => Libplanet.Tests.TestUtils.MakeBlockchain()).ToArray();
 
         var consensusPeers = transports.Select(item => item.Peer);
@@ -27,28 +28,28 @@ public partial class SwarmTest
             }).ToList();
         var consensusServices = consensusServiceOptions.Select((options, i) =>
         {
-            return new ConsensusService(privateKeys[i].AsSigner(), blockchains[i], transports[i], options);
+            return new ConsensusService(signers[i], blockchains[i], transports[i], options);
         }).ToArray();
 
         await using var services = new ServiceCollection();
         services.AddRange(consensusServices);
         services.AddRange(transports);
 
-        await services.StartAsync(default);
+        await services.StartAsync(cancellationToken);
 
         var consensusService = consensusServices[0];
         var round = 0;
         var height = 1;
         var consensus = consensusService.Consensus;
 
-        var vote = MakeRandomVote(privateKeys[0], height, round, VoteType.PreVote);
+        var vote = MakeRandomVote(signers[0], height, round, VoteType.PreVote);
         _ = Task.Run(async () =>
         {
             await Task.Delay(100);
             _ = consensus.PreVoteAsync(vote, default);
-        });
+        }, cancellationToken);
 
-        await consensusService.StepChanged.WaitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        await consensusService.StepChanged.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
 
         var i = 2;
         for (; i < 10; i++)
@@ -73,7 +74,7 @@ public partial class SwarmTest
     }
 
     private static Vote MakeRandomVote(
-        PrivateKey privateKey, int height, int round, VoteType flag)
+        ISigner signer, int height, int round, VoteType flag)
     {
         if (flag == VoteType.Null || flag == VoteType.Unknown)
         {
@@ -89,12 +90,12 @@ public partial class SwarmTest
             Round = round,
             BlockHash = hash,
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = privateKey.Address,
+            Validator = signer.Address,
             ValidatorPower = BigInteger.One,
             Type = flag,
         };
 
-        return voteMetadata.Sign(privateKey);
+        return voteMetadata.Sign(signer);
 
         static byte[] GetRandomBytes(int size)
         {

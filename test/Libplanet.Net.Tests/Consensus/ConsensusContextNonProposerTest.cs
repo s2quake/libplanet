@@ -54,7 +54,7 @@ public class ConsensusContextNonProposerTest
                 Validator = Validators[i],
                 Block = block1,
                 Type = VoteType.PreVote,
-            }.Create(PrivateKeys[i]);
+            }.Create(Signers[i]);
             var preVoteMessage = new ConsensusPreVoteMessage { PreVote = expectedVotes[i] };
             transportA.Post(transportB.Peer, preVoteMessage);
         }
@@ -68,7 +68,7 @@ public class ConsensusContextNonProposerTest
                 Validator = Validators[i],
                 Block = block1,
                 Type = VoteType.PreCommit,
-            }.Create(PrivateKeys[i]);
+            }.Create(Signers[i]);
             var preCommitMessage = new ConsensusPreCommitMessage { PreCommit = expectedVotes[i] };
             transportA.Post(transportB.Peer, preCommitMessage);
         }
@@ -114,7 +114,7 @@ public class ConsensusContextNonProposerTest
                 Validator = Validators[i],
                 Block = proposal.Block,
                 Type = VoteType.PreVote,
-            }.Create(PrivateKeys[i]);
+            }.Create(Signers[i]);
             var message = new ConsensusPreVoteMessage { PreVote = vote };
             transportA.Post(transportB.Peer, message);
         }
@@ -132,7 +132,7 @@ public class ConsensusContextNonProposerTest
                 Validator = Validators[i],
                 Block = proposal.Block,
                 Type = VoteType.PreCommit,
-            }.Create(PrivateKeys[i]);
+            }.Create(Signers[i]);
             var message = new ConsensusPreCommitMessage { PreCommit = vote };
             transportA.Post(transportB.Peer, message);
         }
@@ -224,7 +224,7 @@ public class ConsensusContextNonProposerTest
                 Validator = Validators[i],
                 Block = block,
                 Type = VoteType.PreCommit,
-            }.Create(PrivateKeys[i]);
+            }.Create(Signers[i]);
             var preCommitMessage = new ConsensusPreCommitMessage { PreCommit = vote };
             transportA.Post(transportB.Peer, preCommitMessage);
         }

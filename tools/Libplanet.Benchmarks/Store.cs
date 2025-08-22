@@ -20,10 +20,10 @@ public class Store
     {
         var blocks = new List<Block>();
         var txs = new List<Transaction>();
-        Block genesis = TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposerKey);
+        Block genesis = TestUtils.ProposeGenesisBlock(TestUtils.GenesisProposer);
         blocks.Add(genesis);
         Block block = genesis;
-        var key = new PrivateKey();
+        var signer = new PrivateKey().AsSigner();
         long nonce = 0;
         for (int i = 0; i < 500; i++)
         {
@@ -33,13 +33,13 @@ public class Store
                 blockTxs.Add(new TransactionMetadata
                 {
                     Nonce = nonce++,
-                    Signer = key.Address,
+                    Signer = signer.Address,
                     GenesisBlockHash = genesis.BlockHash,
                     Actions = [],
-                }.Sign(key));
+                }.Sign(signer));
             }
             block = TestUtils.ProposeNextBlock(
-                block, TestUtils.GenesisProposerKey, [.. blockTxs]);
+                block, TestUtils.GenesisProposer, [.. blockTxs]);
             blocks.Add(block);
             txs.AddRange(blockTxs);
         }

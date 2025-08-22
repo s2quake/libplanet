@@ -16,7 +16,11 @@ public static class TestUtils
 
     public static readonly TimeSpan WaitTimeout2 = TimeSpan.FromSeconds(2);
 
+    public static readonly TimeSpan WaitTimeout3 = TimeSpan.FromSeconds(3);
+
     public static readonly TimeSpan WaitTimeout5 = TimeSpan.FromSeconds(5);
+
+    public static readonly TimeSpan WaitTimeout10 = TimeSpan.FromSeconds(10);
 
     public static readonly BlockHash BlockHash0 =
         BlockHash.Parse(
@@ -49,7 +53,7 @@ public static class TestUtils
         },
     };
 
-    public static PrivateKey GeneratePrivateKeyOfBucketIndex(Address tableAddress, int target)
+    public static ISigner GeneratePrivateKeyOfBucketIndex(Address tableAddress, int target)
     {
         var table = new PeerCollection(tableAddress);
         var targetBucket = table.Buckets[target];
@@ -60,13 +64,13 @@ public static class TestUtils
         }
         while (table.Buckets[privateKey.Address] != targetBucket);
 
-        return privateKey;
+        return privateKey.AsSigner();
     }
 
     [Obsolete]
     public static ConsensusProposalMessage CreateConsensusPropose(
         Block block,
-        PrivateKey privateKey,
+        ISigner signer,
         int height = 1,
         int round = 0,
         int validRound = -1)
@@ -79,9 +83,9 @@ public static class TestUtils
                 Height = height,
                 Round = round,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = privateKey.Address,
+                Proposer = signer.Address,
                 ValidRound = validRound,
-            }.Sign(privateKey, block)
+            }.Sign(signer, block)
         };
     }
 
@@ -90,14 +94,6 @@ public static class TestUtils
 
     public static BlockCommit CreateBlockCommit(BlockHash blockHash, int height, int round) =>
         Libplanet.Tests.TestUtils.CreateBlockCommit(blockHash, height, round);
-
-    public static ITransport CreateTransport(
-        PrivateKey privateKey,
-        TransportOptions? options = null)
-    {
-        options ??= new TransportOptions();
-        return new Libplanet.Net.NetMQ.NetMQTransport(privateKey.AsSigner(), options);
-    }
 
     public static ITransport CreateTransport(
         ISigner? signer = null,
@@ -112,7 +108,7 @@ public static class TestUtils
         BlockchainOptions? options = null,
         IEnumerable<IAction>? actions = null,
         ImmutableSortedSet<Validator>? validatorSet = null,
-        PrivateKey? privateKey = null,
+        ISigner? signer = null,
         DateTimeOffset? timestamp = null,
         Block? genesisBlock = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion)
@@ -120,7 +116,7 @@ public static class TestUtils
             options: options ?? BlockchainOptions,
             actions: actions,
             validatorSet: validatorSet ?? Validators,
-            privateKey: privateKey ?? PrivateKeys[0],
+            signer: signer ?? Signers[0],
             timestamp: timestamp,
             genesisBlock: genesisBlock,
             protocolVersion: protocolVersion);

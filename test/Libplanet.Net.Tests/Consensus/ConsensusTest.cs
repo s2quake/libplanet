@@ -116,8 +116,8 @@ public sealed class ConsensusTest
 
         var proposal = new ProposalBuilder
         {
-            Block = blockchain.ProposeBlock(PrivateKeys[1]),
-        }.Create(PrivateKeys[1]);
+            Block = blockchain.ProposeBlock(Signers[1]),
+        }.Create(Signers[1]);
         _ = consensus.ProposeAsync(proposal, cancellationToken);
         await consensus.StepChanged.WaitAsync(options.TimeoutPropose(consensus.Round), cancellationToken);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
@@ -144,8 +144,8 @@ public sealed class ConsensusTest
 
         var proposal = new ProposalBuilder
         {
-            Block = blockchain.ProposeBlock(PrivateKeys[1]),
-        }.Create(PrivateKeys[1]);
+            Block = blockchain.ProposeBlock(Signers[1]),
+        }.Create(Signers[1]);
         var stepChangedTask = consensus.StepChanged.WaitAsync();
         _ = consensus.ProposeAsync(proposal, cancellationToken);
 
@@ -173,8 +173,8 @@ public sealed class ConsensusTest
 
         var proposal = new ProposalBuilder
         {
-            Block = blockchain.ProposeBlock(PrivateKeys[0]),
-        }.Create(PrivateKeys[0]);
+            Block = blockchain.ProposeBlock(Signers[0]),
+        }.Create(Signers[0]);
         InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
         var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout5, cancellationToken);
         var e2 = Assert.IsType<ArgumentException>(e1);
@@ -198,8 +198,8 @@ public sealed class ConsensusTest
         var proposal = new ProposalBuilder
         {
             Round = 2,
-            Block = blockchain.ProposeBlock(PrivateKeys[1]),
-        }.Create(PrivateKeys[0]);
+            Block = blockchain.ProposeBlock(Signers[1]),
+        }.Create(Signers[0]);
         InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
         var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout5, cancellationToken);
         var e2 = Assert.IsType<ArgumentException>(e1);

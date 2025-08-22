@@ -11,7 +11,7 @@ public class BlockFixture
 
     public BlockFixture()
     {
-        Miner = TestUtils.GenesisProposerKey;
+        Miner = TestUtils.GenesisProposer;
         Genesis = TestUtils.ProposeGenesisBlock(
             protocolVersion: ProtocolVersion,
             proposer: Miner,
@@ -56,7 +56,7 @@ public class BlockFixture
 
     internal TxFixture TxFixture { get; }
 
-    internal PrivateKey Miner { get; }
+    internal ISigner Miner { get; }
 
     internal Block Genesis { get; }
 
