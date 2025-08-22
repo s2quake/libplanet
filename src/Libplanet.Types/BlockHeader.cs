@@ -30,7 +30,7 @@ public sealed partial record class BlockHeader : IValidatableObject
     public BlockHash PreviousHash { get; init; }
 
     [Property(5)]
-    public BlockCommit PreviousCommit { get; init; } = BlockCommit.Empty;
+    public BlockCommit PreviousCommit { get; init; }
 
     [Property(6)]
     public HashDigest<SHA256> PreviousStateRootHash { get; init; }

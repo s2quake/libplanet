@@ -47,7 +47,7 @@ public partial class Blockchain
         : this(repository, options)
     {
         repository.GenesisHeight = genesisBlock.Height;
-        Append(genesisBlock, BlockCommit.Empty);
+        Append(genesisBlock, default);
     }
 
     public Blockchain(Repository repository, BlockchainOptions options)
@@ -193,7 +193,7 @@ public partial class Blockchain
     {
         var height = _repository.Height;
         var blockHash = _repository.BlockHashes[height];
-        var blockCommit = height == _repository.GenesisHeight ? BlockCommit.Empty : _repository.BlockCommits[blockHash];
+        var blockCommit = height == _repository.GenesisHeight ? default : _repository.BlockCommits[blockHash];
         var blockHeader = new BlockHeader
         {
             Height = height + 1,

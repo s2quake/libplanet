@@ -64,7 +64,15 @@ public static class ByteUtility
 #endif
     }
 
-    public static int GetHashCode(in ImmutableArray<byte> bytes) => GetHashCode(bytes.AsSpan());
+    public static int GetHashCode(in ImmutableArray<byte> bytes)
+    {
+        if (bytes == default)
+        {
+            return bytes.GetHashCode();
+        }
+
+        return GetHashCode(bytes.AsSpan());
+    }
 
     public static int GetHashCode(ReadOnlySpan<byte> bytes)
     {

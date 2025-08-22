@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Libplanet.Types;
 
-public sealed partial record class BlockCommit : IValidatableObject
+public readonly partial record struct BlockCommit : IValidatableObject
 {
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {

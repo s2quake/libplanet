@@ -34,7 +34,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         Assert.Equal(default, repository.StateRootHash);
         Assert.Equal(default, repository.GenesisBlockHash);
         Assert.Equal(default, repository.BlockHash);
-        Assert.Equal(BlockCommit.Empty, repository.BlockCommit);
+        Assert.Equal(default, repository.BlockCommit);
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         Assert.Equal(default, repository.StateRootHash);
         Assert.Equal(default, repository.GenesisBlockHash);
         Assert.Equal(default, repository.BlockHash);
-        Assert.Equal(BlockCommit.Empty, repository.BlockCommit);
+        Assert.Equal(default, repository.BlockCommit);
 
         Assert.Contains(block1.BlockHash, repository.BlockDigests.Keys);
         Assert.Contains(block1.BlockHash, repository.BlockCommits.Keys);
@@ -163,7 +163,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
             Assert.Contains(item.Id, repository.CommittedEvidences.Keys);
         }
 
-        repository.Append(block2, BlockCommit.Empty);
+        repository.Append(block2, default);
         Assert.DoesNotContain(block2.BlockHash, repository.BlockCommits.Keys);
     }
 
@@ -196,7 +196,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         var repository = CreateRepository();
         var block = RandomUtility.Block(random);
 
-        repository.Append(block, BlockCommit.Empty);
+        repository.Append(block, default);
 
         var actualBlock1 = repository.GetBlock(block.BlockHash);
         Assert.Equal(block, actualBlock1);
@@ -218,7 +218,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         var repository = CreateRepository();
         var block = RandomUtility.Block(random);
 
-        repository.Append(block, BlockCommit.Empty);
+        repository.Append(block, default);
 
         var actualBlock1 = repository.GetBlock(block.Height);
         Assert.Equal(block, actualBlock1);

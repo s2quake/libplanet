@@ -13,5 +13,5 @@ public sealed record class BlockInfo
 
     public HashDigest<SHA256> StateRootHash { get; init; }
 
-    public BlockCommit BlockCommit { get; init; } = BlockCommit.Empty;
+    public BlockCommit BlockCommit { get; init; }
 }

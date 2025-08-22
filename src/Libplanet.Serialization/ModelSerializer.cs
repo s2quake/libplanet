@@ -11,6 +11,8 @@ public static class ModelSerializer
     {
         Null,
 
+        Default,
+
         Enum,
 
         Converter,
@@ -44,6 +46,10 @@ public static class ModelSerializer
         if (obj is null)
         {
             stream.WriteByte((byte)DataType.Null);
+        }
+        else if (TypeUtility.IsDefault(obj, obj.GetType()))
+        {
+            stream.WriteByte((byte)DataType.Default);
         }
         else
         {
@@ -147,6 +153,10 @@ public static class ModelSerializer
             {
                 stream.WriteByte((byte)DataType.Null);
             }
+            else if (TypeUtility.IsDefault(obj, nullableType))
+            {
+                stream.WriteByte((byte)DataType.Default);
+            }
             else
             {
                 stream.WriteByte((byte)DataType.Value);
@@ -158,6 +168,10 @@ public static class ModelSerializer
             if (obj is null)
             {
                 stream.WriteByte((byte)DataType.Null);
+            }
+            else if (TypeUtility.IsDefault(obj, type))
+            {
+                stream.WriteByte((byte)DataType.Default);
             }
             else if (type.IsEnum)
             {
@@ -222,6 +236,10 @@ public static class ModelSerializer
             {
                 return null;
             }
+            else if (dataType == DataType.Default)
+            {
+                return TypeUtility.GetDefault(nullableType);
+            }
             else if (dataType == DataType.Value)
             {
                 return DeserializeRawValue(stream, nullableType, options);
@@ -237,6 +255,14 @@ public static class ModelSerializer
             if (dataType == DataType.Null)
             {
                 return null;
+            }
+            else if (dataType == DataType.Default)
+            {
+                return TypeUtility.GetDefault(type);
+            }
+            else if (dataType == DataType.Value)
+            {
+                return DeserializeRawValue(stream, type, options);
             }
             else if (type.IsEnum)
             {

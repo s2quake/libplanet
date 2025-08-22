@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
@@ -5,10 +6,8 @@ using Libplanet.Serialization.DataAnnotations;
 namespace Libplanet.Types;
 
 [Model(Version = 1, TypeName = "BlockCommit")]
-public sealed partial record class BlockCommit : IHasKey<BlockHash>
+public readonly partial record struct BlockCommit : IHasKey<BlockHash>
 {
-    public static BlockCommit Empty { get; } = new();
-
     [Property(0)]
     public BlockHash BlockHash { get; init; }
 
@@ -23,7 +22,7 @@ public sealed partial record class BlockCommit : IHasKey<BlockHash>
     [Property(3)]
     [NotDefault]
     [NotEmpty]
-    public ImmutableArray<Vote> Votes { get; init; } = [];
+    public ImmutableArray<Vote> Votes { get; init; }
 
     BlockHash IHasKey<BlockHash>.Key => BlockHash;
 

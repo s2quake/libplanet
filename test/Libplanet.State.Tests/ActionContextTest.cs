@@ -44,7 +44,7 @@ public class ActionContextTest(ITestOutputHelper output)
                 Proposer = address,
                 BlockHeight = 1,
                 BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-                LastCommit = lastCommit,
+                PreviousCommit = lastCommit,
                 RandomSeed = seed,
             };
             Assert.Equal(expected, context.GetRandom().Next());
@@ -82,7 +82,7 @@ public class ActionContextTest(ITestOutputHelper output)
             Proposer = address,
             BlockHeight = 1,
             BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-            LastCommit = lastCommit,
+            PreviousCommit = lastCommit,
             RandomSeed = 0,
         };
 
@@ -93,7 +93,7 @@ public class ActionContextTest(ITestOutputHelper output)
             Proposer = address,
             BlockHeight = 1,
             BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-            LastCommit = lastCommit,
+            PreviousCommit = lastCommit,
         };
 
         var actionContext3 = new ActionContext
@@ -103,7 +103,7 @@ public class ActionContextTest(ITestOutputHelper output)
             Proposer = address,
             BlockHeight = 1,
             BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-            LastCommit = lastCommit,
+            PreviousCommit = lastCommit,
             RandomSeed = 1,
         };
 
@@ -157,7 +157,7 @@ public class ActionContextTest(ITestOutputHelper output)
                 Proposer = address,
                 BlockHeight = 1,
                 BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-                LastCommit = lastCommit,
+                PreviousCommit = lastCommit,
                 RandomSeed = i,
             };
             var guid = context.GetRandom().NextGuid().ToString();

@@ -97,7 +97,7 @@ public sealed class InitializeTest(ITestOutputHelper output)
             Proposer = RandomUtility.Address(random),
             BlockHeight = 10,
             BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-            LastCommit = lastCommit,
+            PreviousCommit = lastCommit,
             RandomSeed = 123,
         };
         var initialize = new Initialize

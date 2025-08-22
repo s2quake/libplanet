@@ -10,7 +10,7 @@ public sealed record class BlockBuilder
 
     public BlockHash PreviousHash { get; init; }
 
-    public BlockCommit PreviousCommit { get; init; } = BlockCommit.Empty;
+    public BlockCommit PreviousCommit { get; init; }
 
     public HashDigest<SHA256> PreviousStateRootHash { get; init; }
 

@@ -29,7 +29,7 @@ internal sealed partial record class BlockResponseMessage : MessageBase, IValida
         {
             var block = Blocks[i];
             var blockCommit = BlockCommits[i];
-            if (blockCommit == BlockCommit.Empty)
+            if (blockCommit == default)
             {
                 continue;
             }

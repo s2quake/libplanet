@@ -151,13 +151,13 @@ public class Repository
 
     public BlockHash BlockHash => _height == -1 ? default : BlockHashes[_height];
 
-    public BlockCommit BlockCommit => BlockCommits.GetValueOrDefault(BlockHash, BlockCommit.Empty);
+    public BlockCommit BlockCommit => BlockCommits.GetValueOrDefault(BlockHash, default);
 
     protected IDatabase Database { get; }
 
     public void Append(Block block, BlockCommit blockCommit)
     {
-        if (blockCommit != BlockCommit.Empty)
+        if (blockCommit != default)
         {
             if (blockCommit.BlockHash != block.BlockHash)
             {
@@ -175,7 +175,7 @@ public class Repository
         }
 
         BlockDigests.Add(block);
-        if (blockCommit != BlockCommit.Empty)
+        if (blockCommit != default)
         {
             BlockCommits.Add(blockCommit);
         }

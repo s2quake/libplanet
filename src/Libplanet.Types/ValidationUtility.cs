@@ -1,14 +1,27 @@
 using System.ComponentModel.DataAnnotations;
+using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
 public static class ValidationUtility
 {
     public static void Validate(object obj)
-        => System.ComponentModel.DataAnnotations.Validator.ValidateObject(instance: obj, new(obj), true);
+    {
+        var type = obj.GetType();
+        if (!type.IsValueType || !TypeUtility.IsDefault(obj, type))
+        {
+            System.ComponentModel.DataAnnotations.Validator.ValidateObject(instance: obj, new(obj), true);
+        }
+    }
 
     public static void Validate(object obj, IDictionary<object, object?> items)
-        => System.ComponentModel.DataAnnotations.Validator.ValidateObject(instance: obj, new(obj, items), true);
+    {
+        var type = obj.GetType();
+        if (!type.IsValueType || !TypeUtility.IsDefault(obj, type))
+        {
+            System.ComponentModel.DataAnnotations.Validator.ValidateObject(instance: obj, new(obj, items), true);
+        }
+    }
 
     public static T ValidateAndReturn<T>(T obj)
         where T : notnull

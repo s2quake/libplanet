@@ -37,7 +37,7 @@ public static class BlockExtensions
                 $"but its value is {@this.PreviousHash}.");
         }
 
-        if (@this.PreviousCommit != BlockCommit.Empty)
+        if (@this.PreviousCommit != default)
         {
             throw new InvalidOperationException(
                 "A genesis block should not have last commit, " +

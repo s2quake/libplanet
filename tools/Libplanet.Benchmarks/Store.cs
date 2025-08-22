@@ -66,13 +66,13 @@ public class Store
     [Benchmark]
     public void PutFirstEmptyBlock()
     {
-        _store.Append(_blocks[0], BlockCommit.Empty);
+        _store.Append(_blocks[0], default);
     }
 
     [Benchmark]
     public void PutFirstBlockWithTxs()
     {
-        _store.Append(_blocks[5], BlockCommit.Empty);
+        _store.Append(_blocks[5], default);
     }
 
     [IterationSetup(
@@ -88,7 +88,7 @@ public class Store
         int i = 0;
         foreach (Block block in _blocks)
         {
-            _store.Append(block, BlockCommit.Empty);
+            _store.Append(block, default);
             i++;
             if (i >= _blocks.Length - 1)
             {
@@ -100,7 +100,7 @@ public class Store
     [Benchmark]
     public void PutBlockOnManyBlocks()
     {
-        _store.Append(_blocks[BlocksCount - 1], BlockCommit.Empty);
+        _store.Append(_blocks[BlocksCount - 1], default);
     }
 
     [Benchmark]

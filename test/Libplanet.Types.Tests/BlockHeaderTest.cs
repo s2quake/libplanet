@@ -47,7 +47,7 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         Assert.Equal(default, blockHeader.Timestamp);
         Assert.Equal(default, blockHeader.Proposer);
         Assert.Equal(default, blockHeader.PreviousHash);
-        Assert.Equal(BlockCommit.Empty, blockHeader.PreviousCommit);
+        Assert.Equal(default, blockHeader.PreviousCommit);
         Assert.Equal(default, blockHeader.PreviousStateRootHash);
     }
 

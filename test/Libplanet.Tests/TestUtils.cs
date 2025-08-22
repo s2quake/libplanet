@@ -126,7 +126,7 @@ public static class TestUtils
         // Index #1 block cannot have lastCommit: There was no consensus of genesis block.
         if (height == 0)
         {
-            return BlockCommit.Empty;
+            return default;
         }
 
         // Using the unix epoch time as the timestamp of the vote if deterministicTimestamp is
@@ -230,7 +230,7 @@ public static class TestUtils
                     blockInterval ?? TimeSpan.FromSeconds(15)),
             Proposer = proposer?.Address ?? previousBlock.Proposer,
             PreviousHash = previousBlock.BlockHash,
-            PreviousCommit = previousCommit ?? BlockCommit.Empty,
+            PreviousCommit = previousCommit ?? default,
             PreviousStateRootHash = previousStateRootHash,
         };
         var content = new BlockContent

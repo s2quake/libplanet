@@ -167,30 +167,27 @@ public static class TypeUtility
             $"Type '{type.FullName}' is not supported or not registered in known types.");
     }
 
-    public static bool IsDefault(object? value, Type type)
+    public static bool IsDefault(object value, Type type)
     {
         if (type.IsValueType)
         {
-            if (value is null)
-            {
-                throw new UnreachableException("ValueType cannot be null");
-            }
-
             var defaultValue = _defaultByType.GetOrAdd(type, CreateDefault);
-            return ReferenceEquals(value, defaultValue);
+            return ReferenceEquals(value, defaultValue) || Equals(value, defaultValue);
         }
 
-        return value is null;
+        return false;
     }
 
-    public static object? GetDefault(Type type)
+    public static object GetDefault(Type type)
     {
         if (type.IsValueType)
         {
             return _defaultByType.GetOrAdd(type, CreateDefault);
         }
 
-        return null;
+        throw new ArgumentException(
+            $"Type '{type.FullName}' is not a value type and does not have a default value.",
+            nameof(type));
     }
 
     public static object CreateInstance(Type type, params object?[] args)

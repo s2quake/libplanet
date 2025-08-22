@@ -35,7 +35,7 @@ public sealed record class BlockBranch : IValidatableObject
 
         for (var i = 0; i < Blocks.Length; i++)
         {
-            if (BlockCommits[i] != BlockCommit.Empty && Blocks[i].BlockHash != BlockCommits[i].BlockHash)
+            if (BlockCommits[i] != default && Blocks[i].BlockHash != BlockCommits[i].BlockHash)
             {
                 yield return new ValidationResult(
                     $"Block at index {i} does not match its commit.",

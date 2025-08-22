@@ -14,7 +14,20 @@ public readonly record struct ActionBytecode(in ImmutableArray<byte> Bytes) : IE
     {
     }
 
-    public bool Equals(ActionBytecode other) => Bytes.SequenceEqual(other.Bytes);
+    public bool Equals(ActionBytecode other)
+    {
+        if (other.Bytes == default && Bytes == default)
+        {
+            return true;
+        }
+
+        if (other.Bytes == default || Bytes == default)
+        {
+            return false;
+        }
+
+        return Bytes.SequenceEqual(other.Bytes);
+    }
 
     public override int GetHashCode() => ByteUtility.GetHashCode(Bytes);
 }

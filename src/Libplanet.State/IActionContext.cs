@@ -14,7 +14,7 @@ public interface IActionContext
 
     int BlockProtocolVersion { get; }
 
-    BlockCommit LastCommit { get; }
+    BlockCommit PreviousCommit { get; }
 
     int RandomSeed { get; }
 

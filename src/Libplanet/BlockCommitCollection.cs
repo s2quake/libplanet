@@ -56,7 +56,7 @@ public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, Block
                     return commit;
                 }
 
-                return BlockCommit.Empty;
+                return default;
             }
 
             throw new KeyNotFoundException(
@@ -90,7 +90,7 @@ public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, Block
                 return true;
             }
 
-            value = BlockCommit.Empty;
+            value = default;
             return true;
         }
 

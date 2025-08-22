@@ -259,7 +259,7 @@ public abstract class RepositoryTest
         Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[0]);
         Assert.Throws<KeyNotFoundException>(() => repository.BlockHashes[^1]);
 
-        repository.Append(Fx.GenesisBlock, BlockCommit.Empty);
+        repository.Append(Fx.GenesisBlock, default);
         repository.GenesisHeight = Fx.GenesisBlock.Height;
         repository.Height = Fx.GenesisBlock.Height;
         Assert.Equal(0, repository.Height);

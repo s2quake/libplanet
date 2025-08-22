@@ -52,6 +52,16 @@ internal sealed class ImmutableArrayModelDescriptor : ModelDescriptor
 
     public override bool Equals(object obj1, object obj2, Type type)
     {
+        if (TypeUtility.IsDefault(obj1, type) && TypeUtility.IsDefault(obj2, type))
+        {
+            return true;
+        }
+
+        if (TypeUtility.IsDefault(obj1, type) || TypeUtility.IsDefault(obj2, type))
+        {
+            return false;
+        }
+
         var items1 = (IList)obj1;
         var items2 = (IList)obj2;
         if (items1.Count != items2.Count)

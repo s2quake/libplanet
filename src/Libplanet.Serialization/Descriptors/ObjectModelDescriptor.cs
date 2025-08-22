@@ -22,7 +22,7 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
 
     public override object?[] Serialize(object obj, Type type, ModelOptions options)
     {
-        if (options.IsValidationEnabled)
+        if (options.IsValidationEnabled && !TypeUtility.IsDefault(obj, type))
         {
             ModelResolver.Validate(obj, options);
         }

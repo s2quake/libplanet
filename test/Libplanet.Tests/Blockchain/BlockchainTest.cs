@@ -100,7 +100,7 @@ public partial class BlockchainTest : IDisposable
         Assert.Empty(blockchain.Evidence);
         Assert.Empty(blockchain.TxExecutions);
         Assert.Equal(default, blockchain.StateRootHash);
-        Assert.Equal(BlockCommit.Empty, blockchain.BlockCommit);
+        Assert.Equal(default, blockchain.BlockCommit);
         Assert.Equal(genesisBlock, blockchain.Genesis);
         Assert.Equal(genesisBlock, blockchain.Tip);
     }
@@ -134,7 +134,7 @@ public partial class BlockchainTest : IDisposable
         Assert.Empty(blockchain.Evidence);
         Assert.Single(blockchain.TxExecutions);
         Assert.NotEqual(default, blockchain.StateRootHash);
-        Assert.Equal(BlockCommit.Empty, blockchain.BlockCommit);
+        Assert.Equal(default, blockchain.BlockCommit);
         Assert.Equal(genesisBlock, blockchain.Genesis);
         Assert.Equal(genesisBlock, blockchain.Tip);
     }
@@ -158,7 +158,7 @@ public partial class BlockchainTest : IDisposable
 
         var genesis = blockchain.Genesis;
         Assert.Equal(genesis, blockchain.Blocks[0]);
-        Assert.Equal(BlockCommit.Empty, blockchain.BlockCommits[0]);
+        Assert.Equal(default, blockchain.BlockCommits[0]);
 
         var (block, blockCommit) = blockchain.ProposeAndAppend(proposer);
         Assert.Equal(block, blockchain.Blocks[1]);
@@ -489,8 +489,8 @@ public partial class BlockchainTest : IDisposable
     public void GetBlockCommit()
     {
         var random = RandomUtility.GetRandom(_output);
-        Assert.Equal(BlockCommit.Empty, _blockchain.BlockCommits[0]);
-        Assert.Equal(BlockCommit.Empty, _blockchain.BlockCommits[_blockchain.Genesis.BlockHash]);
+        Assert.Equal(default, _blockchain.BlockCommits[0]);
+        Assert.Equal(default, _blockchain.BlockCommits[_blockchain.Genesis.BlockHash]);
 
         var block1 = _blockchain.ProposeBlock(RandomUtility.Signer(random));
         var blockCommit1 = CreateBlockCommit(block1);

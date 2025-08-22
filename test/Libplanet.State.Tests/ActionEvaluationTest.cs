@@ -44,7 +44,7 @@ public class ActionEvaluationTest(ITestOutputHelper output)
                 Proposer = address,
                 BlockHeight = 1,
                 BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
-                LastCommit = lastCommit,
+                PreviousCommit = lastCommit,
                 RandomSeed = 123,
             },
             InputWorld = new World(),
@@ -60,6 +60,6 @@ public class ActionEvaluationTest(ITestOutputHelper output)
         Assert.Equal(1, evaluation.InputContext.BlockHeight);
         Assert.Null(evaluation.InputWorld.GetValueOrDefault(SystemAccount, address));
         Assert.Equal("item", evaluation.OutputWorld.GetValue(SystemAccount, address));
-        Assert.Equal(lastCommit, evaluation.InputContext.LastCommit);
+        Assert.Equal(lastCommit, evaluation.InputContext.PreviousCommit);
     }
 }

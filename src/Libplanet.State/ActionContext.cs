@@ -14,7 +14,7 @@ internal sealed record class ActionContext : IActionContext
 
     public int BlockProtocolVersion { get; init; }
 
-    public BlockCommit LastCommit { get; init; } = BlockCommit.Empty;
+    public BlockCommit PreviousCommit { get; init; }
 
     public int RandomSeed { get; init; }
 
