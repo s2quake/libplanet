@@ -174,7 +174,7 @@ public static class TestUtils
                         Validators = validators ?? [],
                     },
                 }.ToBytecodes(),
-                Timestamp = DateTimeOffset.MinValue,
+                Timestamp = DateTimeOffset.UtcNow,
             }.Sign(GenesisProposer));
 
         var metadata = new BlockHeader
@@ -307,7 +307,7 @@ public static class TestUtils
                 Signer = signer.Address,
                 GenesisBlockHash = default,
                 Actions = actions.ToBytecodes(),
-                Timestamp = timestamp ?? DateTimeOffset.MinValue,
+                Timestamp = timestamp ?? DateTimeOffset.UtcNow,
             }.Sign(signer),
         }.ToImmutableSortedSet();
 

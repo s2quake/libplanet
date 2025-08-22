@@ -174,6 +174,8 @@ public class Repository
             }
         }
 
+        Nonces.Validate(block);
+
         BlockDigests.Add(block);
         if (blockCommit != default)
         {

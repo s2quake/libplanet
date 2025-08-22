@@ -13,7 +13,7 @@ public static class BlockchainExtensions
         return (block, blockCommit);
     }
 
-    public static (Block, BlockCommit)[] ProposeAndAppendMany(
+    public static (Block Block, BlockCommit BlockCommit)[] ProposeAndAppendMany(
         this Libplanet.Blockchain @this, ISigner signer, int count)
     {
         var blocks = new (Block, BlockCommit)[count];

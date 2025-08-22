@@ -57,6 +57,7 @@ public partial class Blockchain
         Options = options;
         _logger = options.Logger;
         Id = _repository.Id;
+        BlockHashes = new BlockHashCollection(repository);
         Blocks = new BlockCollection(repository);
         BlockCommits = new BlockCommitCollection(repository);
         StagedTransactions = new StagedTransactionCollection(repository, options.TransactionOptions);
@@ -79,6 +80,8 @@ public partial class Blockchain
     public IObservable<(Block, BlockCommit)> Appended => _appendedSubject;
 
     public Guid Id { get; }
+
+    public BlockHashCollection BlockHashes { get; }
 
     public BlockCollection Blocks { get; }
 
