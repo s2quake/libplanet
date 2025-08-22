@@ -374,8 +374,8 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         var votes = messageList.OrderBy(item => item.PreVote.Validator).Select(item => item.PreVote).ToArray();
         Assert.True(votes.All(vote => vote.Type == VoteType.PreVote));
         Assert.Equal(2, votes.Length);
-        Assert.Equal(PrivateKeys[0].Address, votes[0].Validator);
-        Assert.Equal(PrivateKeys[1].Address, votes[1].Validator);
+        Assert.Equal(Signers[0].Address, votes[0].Validator);
+        Assert.Equal(Signers[1].Address, votes[1].Validator);
     }
 
     [Fact(Timeout = TestUtils.Timeout)]

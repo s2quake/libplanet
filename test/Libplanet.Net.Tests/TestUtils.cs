@@ -1,9 +1,5 @@
-using System.Net;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
-using Libplanet.Net.Consensus;
-using Libplanet.Net.Messages;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Tests;
@@ -22,22 +18,7 @@ public static class TestUtils
 
     public static readonly TimeSpan WaitTimeout10 = TimeSpan.FromSeconds(10);
 
-    public static readonly BlockHash BlockHash0 =
-        BlockHash.Parse(
-            "042b81bef7d4bca6e01f5975ce9ac7ed9f75248903d08836bed6566488c8089d");
-
-    public static readonly ImmutableList<PrivateKey> PrivateKeys =
-        Libplanet.Tests.TestUtils.ValidatorPrivateKeys;
-
-    public static readonly ImmutableArray<ISigner> Signers = [.. PrivateKeys.Select(item => item.AsSigner())];
-
-    public static readonly ImmutableHashSet<Peer> Peers =
-    [
-        new Peer { Address = PrivateKeys[0].Address, EndPoint = new DnsEndPoint("1.0.0.0", 1000)},
-        new Peer { Address = PrivateKeys[1].Address, EndPoint = new DnsEndPoint("1.0.0.1", 1001)},
-        new Peer { Address = PrivateKeys[2].Address, EndPoint = new DnsEndPoint("1.0.0.2", 1002)},
-        new Peer { Address = PrivateKeys[3].Address, EndPoint = new DnsEndPoint("1.0.0.3", 1003)},
-    ];
+    public static readonly ImmutableArray<ISigner> Signers = Libplanet.Tests.TestUtils.Signers;
 
     public static readonly ImmutableSortedSet<Validator> Validators = Libplanet.Tests.TestUtils.Validators;
 
@@ -67,33 +48,11 @@ public static class TestUtils
         return privateKey.AsSigner();
     }
 
-    [Obsolete]
-    public static ConsensusProposalMessage CreateConsensusPropose(
-        Block block,
-        ISigner signer,
-        int height = 1,
-        int round = 0,
-        int validRound = -1)
-    {
-        return new ConsensusProposalMessage
-        {
-            Proposal = new ProposalMetadata
-            {
-                BlockHash = block.BlockHash,
-                Height = height,
-                Round = round,
-                Timestamp = DateTimeOffset.UtcNow,
-                Proposer = signer.Address,
-                ValidRound = validRound,
-            }.Sign(signer, block)
-        };
-    }
+    public static BlockCommit CreateBlockCommit(Block block)
+        => Libplanet.Tests.TestUtils.CreateBlockCommit(block);
 
-    public static BlockCommit CreateBlockCommit(Block block) =>
-        Libplanet.Tests.TestUtils.CreateBlockCommit(block);
-
-    public static BlockCommit CreateBlockCommit(BlockHash blockHash, int height, int round) =>
-        Libplanet.Tests.TestUtils.CreateBlockCommit(blockHash, height, round);
+    public static BlockCommit CreateBlockCommit(BlockHash blockHash, int height, int round)
+        => Libplanet.Tests.TestUtils.CreateBlockCommit(blockHash, height, round);
 
     public static ITransport CreateTransport(
         ISigner? signer = null,
@@ -107,7 +66,7 @@ public static class TestUtils
     public static Blockchain MakeBlockchain(
         BlockchainOptions? options = null,
         IEnumerable<IAction>? actions = null,
-        ImmutableSortedSet<Validator>? validatorSet = null,
+        ImmutableSortedSet<Validator>? validators = null,
         ISigner? signer = null,
         DateTimeOffset? timestamp = null,
         Block? genesisBlock = null,
@@ -115,7 +74,7 @@ public static class TestUtils
         => Libplanet.Tests.TestUtils.MakeBlockchain(
             options: options ?? BlockchainOptions,
             actions: actions,
-            validatorSet: validatorSet ?? Validators,
+            validators: validators ?? Validators,
             signer: signer ?? Signers[0],
             timestamp: timestamp,
             genesisBlock: genesisBlock,

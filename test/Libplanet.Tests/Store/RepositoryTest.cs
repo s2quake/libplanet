@@ -544,7 +544,7 @@ public abstract class RepositoryTest
                 Round = 0,
                 BlockHash = fx.Block1.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = fx.ProposerKey.Address,
+                Validator = fx.Proposer.Address,
                 ValidatorPower = fx.ProposerPower,
                 Type = VoteType.PreCommit,
             }.Sign(fx.Proposer));
@@ -555,7 +555,7 @@ public abstract class RepositoryTest
                 Round = 0,
                 BlockHash = fx.Block2.BlockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = fx.ProposerKey.Address,
+                Validator = fx.Proposer.Address,
                 ValidatorPower = fx.ProposerPower,
                 Type = VoteType.PreCommit,
             }.Sign(fx.Proposer));

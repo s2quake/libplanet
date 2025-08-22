@@ -1337,7 +1337,7 @@ public partial class BlockchainTest : IDisposable
         var newValidatorPowers = TestUtils.Validators.Select(v => v.Power)
             .Append(BigInteger.One).ToArray();
         var initialValidatorSet =
-            ValidatorPrivateKeys.Select(
+            Signers.Select(
                 pk => new Validator { Address = pk.Address })
             .ToImmutableSortedSet();
         var systemActions = new[]
@@ -1465,7 +1465,7 @@ public partial class BlockchainTest : IDisposable
             blockChain
                 .GetWorld(0)
                 .GetValidators(),
-            [.. ValidatorPrivateKeys.Select(pk => new Validator { Address = pk.Address })]);
+            [.. Signers.Select(pk => new Validator { Address = pk.Address })]);
 
         Assert.Equal(
             blockChain

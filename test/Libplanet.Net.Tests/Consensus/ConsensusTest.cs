@@ -29,7 +29,7 @@ public sealed class ConsensusTest
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         using var consensusController = new ConsensusObserver(
-            PrivateKeys[index].AsSigner(),
+            Signers[index],
             consensus,
             blockchain);
         var proposedTask = consensusController.ShouldPropose.WaitAsync();

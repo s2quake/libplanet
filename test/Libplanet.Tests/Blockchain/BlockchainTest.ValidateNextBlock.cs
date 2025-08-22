@@ -19,7 +19,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
                 PreviousStateRootHash = _blockchain.StateRootHash,
             },
@@ -41,7 +41,7 @@ public partial class BlockchainTest
                 BlockVersion = protocolVersion,
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
                 PreviousStateRootHash = _blockchain.StateRootHash,
             },
@@ -56,7 +56,7 @@ public partial class BlockchainTest
                 {
                     Height = 2,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
-                    Proposer = _fx.ProposerKey.Address,
+                    Proposer = _fx.Proposer.Address,
                     PreviousHash = block1.BlockHash,
                 },
             }.Sign(_fx.Proposer));
@@ -70,7 +70,7 @@ public partial class BlockchainTest
                     BlockVersion = BlockHeader.CurrentProtocolVersion + 1,
                     Height = 2,
                     Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
-                    Proposer = _fx.ProposerKey.Address,
+                    Proposer = _fx.Proposer.Address,
                     PreviousHash = block1.BlockHash,
                 },
             }.Sign(_fx.Proposer);
@@ -90,7 +90,7 @@ public partial class BlockchainTest
             {
                 Height = prev.Height,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = prev.BlockHash,
             },
         }.Sign(_fx.Proposer);
@@ -105,7 +105,7 @@ public partial class BlockchainTest
             {
                 Height = prev.Height + 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = prev.BlockHash,
                 PreviousCommit = TestUtils.CreateBlockCommit(prev.BlockHash, prev.Height + 1, 0),
             },
@@ -127,7 +127,7 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 // Should be _validNext.Hash instead
                 PreviousHash = _validNext.PreviousHash,
                 // ReSharper disable once PossibleInvalidOperationException
@@ -152,7 +152,7 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = _validNext.Timestamp.AddSeconds(-1),
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _validNext.BlockHash,
                 PreviousCommit = TestUtils.CreateBlockCommit(_validNext),
             },
@@ -285,7 +285,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = genesisBlock.Timestamp.AddSeconds(1),
-                Proposer = TestUtils.GenesisProposerKey.Address,
+                Proposer = TestUtils.GenesisProposer.Address,
                 PreviousHash = genesisBlock.BlockHash,
             },
         };
@@ -310,7 +310,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.Proposer);
@@ -327,7 +327,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.Proposer);
@@ -340,7 +340,7 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = block1.BlockHash,
                 PreviousCommit = blockCommit,
             },
@@ -359,7 +359,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.Proposer);
@@ -394,7 +394,7 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = block1.BlockHash,
                 PreviousCommit = blockCommit,
             },
@@ -412,7 +412,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.Proposer);
@@ -443,7 +443,7 @@ public partial class BlockchainTest
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = block1.BlockHash,
                 PreviousCommit = blockCommit,
             },
@@ -485,7 +485,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.Proposer);
@@ -508,7 +508,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.Proposer);
@@ -532,7 +532,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
                 PreviousStateRootHash = _blockchain.StateRootHash,
             },
@@ -570,7 +570,7 @@ public partial class BlockchainTest
             {
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.Proposer);
@@ -594,14 +594,14 @@ public partial class BlockchainTest
         ImmutableSortedSet<Validator> validatorSet
             = [validator1, validator2, validator3, validator4];
         Libplanet.Blockchain blockChain = TestUtils.MakeBlockchain(
-            validatorSet: validatorSet);
+            validators: validatorSet);
         Block validNextBlock = new RawBlock
         {
             Header = new BlockHeader
             {
                 Height = 1,
                 Timestamp = blockChain.Genesis.Timestamp.AddDays(1),
-                Proposer = _fx.ProposerKey.Address,
+                Proposer = _fx.Proposer.Address,
                 PreviousHash = blockChain.Genesis.BlockHash,
             },
         }.Sign(_fx.Proposer);

@@ -85,7 +85,7 @@ public abstract class RepositoryFixture : IDisposable
         Options = options;
         Repository = repository;
         BlockExecutor = new BlockExecutor(repository.States, Options.SystemActions);
-        ProposerKey = TestUtils.GenesisProposerKey;
+        Proposer = TestUtils.GenesisProposer;
         ProposerPower = TestUtils.Validators[0].Power;
         GenesisBlock = new BlockBuilder
         {
@@ -155,9 +155,7 @@ public abstract class RepositoryFixture : IDisposable
 
     public BlockHash Hash3 { get; }
 
-    public PrivateKey ProposerKey { get; }
-
-    public ISigner Proposer => ProposerKey.AsSigner();
+    public ISigner Proposer { get; }
 
     public BigInteger ProposerPower { get; }
 

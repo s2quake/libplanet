@@ -21,7 +21,7 @@ public partial class BlockchainTest
         var maxTransactionsBytes = _options.BlockOptions.MaxTransactionsBytes;
         Assert.Single(_blockchain.Blocks);
         Assert.Equal(
-            $"{GenesisProposerKey.Address}",
+            $"{GenesisProposer.Address}",
             (string)_blockchain.GetWorld().GetValue(SystemAccount, default));
 
         var proposerA = RandomUtility.Signer(random);
@@ -32,7 +32,7 @@ public partial class BlockchainTest
         Assert.True(
             ModelSerializer.SerializeToBytes(block).Length <= maxTransactionsBytes);
         Assert.Equal(
-            $"{GenesisProposerKey.Address},{proposerA.Address}",
+            $"{GenesisProposer.Address},{proposerA.Address}",
             (string)_blockchain.GetWorld().GetValue(SystemAccount, default));
 
         var proposerB = RandomUtility.Signer(random);
@@ -43,7 +43,7 @@ public partial class BlockchainTest
         Assert.True(
             ModelSerializer.SerializeToBytes(anotherBlock).Length <=
                 maxTransactionsBytes);
-        var expected = $"{GenesisProposerKey.Address},{proposerA.Address},{proposerB.Address}";
+        var expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
             (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
@@ -53,7 +53,7 @@ public partial class BlockchainTest
         Assert.Equal(3, _blockchain.Blocks.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(block3).Length <= maxTransactionsBytes);
-        expected = $"{GenesisProposerKey.Address},{proposerA.Address},{proposerB.Address}";
+        expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
             (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
@@ -90,7 +90,7 @@ public partial class BlockchainTest
         Assert.True(
             ModelSerializer.SerializeToBytes(block4).Length <= maxTransactionsBytes);
         Assert.Equal(3, block4.Transactions.Count);
-        expected = $"{GenesisProposerKey.Address},{proposerA.Address},{proposerB.Address}";
+        expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
             (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
@@ -355,7 +355,7 @@ public partial class BlockchainTest
         void IsSignerValid(Transaction tx)
         {
             var validAddress = validSigner.Address;
-            if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(_fx.ProposerKey.Address))
+            if (!tx.Signer.Equals(validAddress) && !tx.Signer.Equals(_fx.Proposer.Address))
             {
                 throw new InvalidOperationException("invalid signer");
             }
