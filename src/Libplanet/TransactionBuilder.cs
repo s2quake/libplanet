@@ -12,7 +12,7 @@ public sealed record class TransactionBuilder
 
     public IAction[] Actions { get; init; } = [];
 
-    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset Timestamp { get; init; }
 
     public FungibleAssetValue? MaxGasPrice { get; init; }
 
@@ -30,7 +30,7 @@ public sealed record class TransactionBuilder
             Signer = signer.Address,
             GenesisBlockHash = GenesisBlockHash,
             Actions = Actions.ToBytecodes(),
-            Timestamp = Timestamp,
+            Timestamp = Timestamp == default ? DateTimeOffset.UtcNow : Timestamp,
             MaxGasPrice = MaxGasPrice,
             GasLimit = GasLimit,
         };

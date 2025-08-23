@@ -474,9 +474,6 @@ public partial class BlockchainTest : IDisposable
         Assert.Equal(default, blockchain.BlockCommits[0]);
         Assert.Equal(default, blockchain.BlockCommits[blockchain.Genesis.BlockHash]);
 
-        // var block1 = _blockchain.ProposeBlock(RandomUtility.Signer(random));
-        // var blockCommit1 = CreateBlockCommit(block1);
-        // _blockchain.Append(block1, blockCommit1);
         var (block1, blockCommit1) = blockchain.ProposeAndAppend(RandomUtility.Signer(random));
 
         Assert.Equal(blockCommit1, blockchain.BlockCommits[block1.Height]);
@@ -490,35 +487,38 @@ public partial class BlockchainTest : IDisposable
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [],
         }.Create(RandomUtility.Signer(random));
-        // var block2 = blockchain.ProposeBlock(RandomUtility.Signer(random));
         var blockCommit2 = CreateBlockCommit(block2);
         blockchain.Append(block2, blockCommit2);
-        // var (block2, _) = blockchain.ProposeAndAppend(RandomUtility.Signer(random));
 
-        Assert.NotEqual(blockCommit1, blockchain.BlockCommits[block1.Height]);
-        Assert.Equal(block2.PreviousCommit, blockchain.BlockCommits[block1.Height]);
-        Assert.Equal(block2.PreviousCommit, blockchain.BlockCommits[block1.BlockHash]);
+        Assert.Equal(blockCommit2, blockchain.BlockCommits[block2.Height]);
+        Assert.NotEqual(block2.PreviousCommit, blockchain.BlockCommits[block1.Height]);
+        Assert.NotEqual(block2.PreviousCommit, blockchain.BlockCommits[block1.BlockHash]);
     }
 
-    // [Fact]
-    // public void CleanupBlockCommitStore()
-    // {
-    //     BlockCommit blockCommit1 = CreateBlockCommit(
-    //         new BlockHash(GetRandomBytes(BlockHash.Size)), 1, 0);
-    //     BlockCommit blockCommit2 = CreateBlockCommit(
-    //         new BlockHash(GetRandomBytes(BlockHash.Size)), 2, 0);
-    //     BlockCommit blockCommit3 = CreateBlockCommit(
-    //         new BlockHash(GetRandomBytes(BlockHash.Size)), 3, 0);
+    [Fact]
+    public void CleanupBlockCommitStore()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var repository = new Repository();
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        _ = new Libplanet.Blockchain(genesisBlock, repository);
+        var blockCommit1 = CreateBlockCommit(RandomUtility.BlockHash(random), 1, 0);
+        var blockCommit2 = CreateBlockCommit(RandomUtility.BlockHash(random), 2, 0);
+        var blockCommit3 = CreateBlockCommit(RandomUtility.BlockHash(random), 3, 0);
 
-    //     _blockchain._repository.BlockCommits.Add(blockCommit1);
-    //     _blockchain._repository.BlockCommits.Add(blockCommit2);
-    //     _blockchain._repository.BlockCommits.Add(blockCommit3);
-    //     _blockchain.CleanupBlockCommitStore(blockCommit3.Height);
+        repository.BlockCommits.Add(blockCommit1);
+        repository.BlockCommits.Add(blockCommit2);
+        repository.BlockCommits.Add(blockCommit3);
+        repository.BlockCommits.Prune(blockCommit3.Height);
 
-    //     Assert.Null(_blockchain._repository.BlockCommits[blockCommit1.BlockHash]);
-    //     Assert.Null(_blockchain._repository.BlockCommits[blockCommit2.BlockHash]);
-    //     Assert.Equal(blockCommit3, _blockchain._repository.BlockCommits[blockCommit3.BlockHash]);
-    // }
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockCommits[blockCommit1.BlockHash]);
+        Assert.Throws<KeyNotFoundException>(() => repository.BlockCommits[blockCommit2.BlockHash]);
+        Assert.Equal(blockCommit3, repository.BlockCommits[blockCommit3.BlockHash]);
+    }
 
     [Fact]
     public void GetStatesOnCreatingBlockChain()

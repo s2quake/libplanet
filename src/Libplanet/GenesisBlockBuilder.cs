@@ -1,0 +1,46 @@
+using Libplanet.State;
+using Libplanet.Types;
+using System.Security.Cryptography;
+using Libplanet.State.Builtin;
+
+namespace Libplanet;
+
+public sealed record class GenesisBlockBuilder
+{
+    public required ImmutableSortedSet<Validator> Validators { get; init; }
+
+    public int Height { get; init; }
+
+    public DateTimeOffset Timestamp { get; init; }
+
+    public HashDigest<SHA256> StateRootHash { get; init; }
+
+    public ImmutableArray<AccountState> States { get; init; } = [];
+
+    public Block Create(ISigner signer)
+    {
+        if (Validators.IsEmpty)
+        {
+            throw new InvalidOperationException("Validators collection is empty.");
+        }
+
+        var initialize = new Initialize
+        {
+            Validators = Validators,
+            States = States,
+        };
+        var tx = new TransactionBuilder
+        {
+            Actions = [initialize],
+        }.Create(signer);
+        return new BlockBuilder
+        {
+            Height = Height,
+            Timestamp = Timestamp,
+            PreviousCommit = default,
+            PreviousStateRootHash = StateRootHash,
+            Transactions = [tx],
+            Evidences = [],
+        }.Create(signer);
+    }
+}

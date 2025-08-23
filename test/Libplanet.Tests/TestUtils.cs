@@ -274,29 +274,29 @@ public static class TestUtils
         Block? genesisBlock = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion)
     {
-        return MakeBlockChainAndBlockExecutor(
-            options,
-            actions,
-            validators,
-            signer,
-            timestamp,
-            genesisBlock,
-            protocolVersion)
-        .BlockChain;
-    }
+    //     return MakeBlockChainAndBlockExecutor(
+    //         options,
+    //         actions,
+    //         validators,
+    //         signer,
+    //         timestamp,
+    //         genesisBlock,
+    //         protocolVersion)
+    //     .BlockChain;
+    // }
 
-    public static (Libplanet.Blockchain BlockChain, BlockExecutor BlockExecutor)
-        MakeBlockChainAndBlockExecutor(
-        BlockchainOptions? options,
-        IEnumerable<IAction>? actions = null,
-        ImmutableSortedSet<Validator>? validatorSet = null,
-        ISigner? signer = null,
-        DateTimeOffset? timestamp = null,
-        Block? genesisBlock = null,
-        int protocolVersion = BlockHeader.CurrentProtocolVersion)
-    {
+    // public static (Libplanet.Blockchain BlockChain, BlockExecutor BlockExecutor)
+    //     MakeBlockChainAndBlockExecutor(
+    //     BlockchainOptions? options,
+    //     IEnumerable<IAction>? actions = null,
+    //     ImmutableSortedSet<Validator>? validatorSet = null,
+    //     ISigner? signer = null,
+    //     DateTimeOffset? timestamp = null,
+    //     Block? genesisBlock = null,
+    //     int protocolVersion = BlockHeader.CurrentProtocolVersion)
+    // {
         options ??= new BlockchainOptions();
-        actions ??= ImmutableArray<IAction>.Empty;
+        actions ??= [];
         signer ??= GenesisProposer;
 
         var txs = new[]
@@ -312,25 +312,23 @@ public static class TestUtils
         }.ToImmutableSortedSet();
 
         var repository = new Repository();
-        var blockExecutor = new BlockExecutor(
-            states: repository.States,
-            options.SystemActions);
+        // var blockExecutor = new BlockExecutor(
+        //     states: repository.States,
+        //     options.SystemActions);
 
         if (genesisBlock is null)
         {
             var preEval = ProposeGenesis(
                 proposer: signer,
                 transactions: txs,
-                validators: validatorSet,
+                validators: validators,
                 timestamp: timestamp,
                 protocolVersion: protocolVersion);
-            var evaluation = blockExecutor.Execute(preEval);
+            // var evaluation = blockExecutor.Execute(preEval);
             genesisBlock = preEval.Sign(signer);
         }
 
-        var chain = new Libplanet.Blockchain(genesisBlock, repository, options);
-
-        return (chain, blockExecutor);
+        return new Libplanet.Blockchain(genesisBlock, repository, options);
     }
 
     public static async Task AssertThatEventually(

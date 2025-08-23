@@ -43,6 +43,11 @@ public partial class Blockchain
     {
     }
 
+    public Blockchain(Block genesisBlock, Repository repository)
+        : this(genesisBlock, repository, new BlockchainOptions())
+    {
+    }
+
     public Blockchain(Block genesisBlock, Repository repository, BlockchainOptions options)
         : this(repository, options)
     {
