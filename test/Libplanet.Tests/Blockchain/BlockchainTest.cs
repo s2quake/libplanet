@@ -608,48 +608,44 @@ public partial class BlockchainTest : IDisposable
     {
         var random = RandomUtility.GetRandom(_output);
         var signer = RandomUtility.Signer(random);
-        Block b1 = _blockchain.ProposeBlock(signer);
-        _blockchain.Append(b1, CreateBlockCommit(b1));
-        Block b2 = _blockchain.ProposeBlock(signer);
-        _blockchain.Append(b2, CreateBlockCommit(b2));
-        Block b3 = _blockchain.ProposeBlock(signer);
-        _blockchain.Append(b3, CreateBlockCommit(b3));
-        Block b4 = _blockchain.ProposeBlock(signer);
-        _blockchain.Append(b4, CreateBlockCommit(b4));
+        var genesisProposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(genesisProposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
 
-        Assert.Equal(b1.PreviousHash, _blockchain.Genesis.BlockHash);
+        var (b1, _) = blockchain.ProposeAndAppend(signer);
+        var (b2, _) = blockchain.ProposeAndAppend(signer);
+        _ = blockchain.ProposeAndAppend(signer);
+        var (b4, _) = blockchain.ProposeAndAppend(signer);
 
-        var emptyLocator = _blockchain.Genesis.BlockHash;
-        var invalidLocator =
-            new BlockHash(RandomUtility.Bytes(BlockHash.Size));
+        Assert.Equal(b1.PreviousHash, blockchain.Genesis.BlockHash);
+
+        var emptyLocator = blockchain.Genesis.BlockHash;
+        var invalidLocator = RandomUtility.BlockHash(random);
         var locator = b4.BlockHash;
 
-        using var emptyFx = new MemoryRepositoryFixture(_options);
-        using var forkFx = new MemoryRepositoryFixture(_options);
+        var blockchainA = new Libplanet.Blockchain(genesisBlock);
+        var blockchainB = new Libplanet.Blockchain(genesisBlock);
+        blockchainB.Append(b1, CreateBlockCommit(b1));
+        blockchainB.Append(b2, CreateBlockCommit(b2));
+        _ = blockchainB.ProposeAndAppend(signer);
 
-        var emptyRepository = new Repository();
-        var emptyChain = new Libplanet.Blockchain(emptyFx.GenesisBlock, emptyRepository, _options);
-        var forkRepository = new Repository();
-        var forkChain = new Libplanet.Blockchain(forkFx.GenesisBlock, forkRepository, _options);
-        forkChain.Append(b1, CreateBlockCommit(b1));
-        forkChain.Append(b2, CreateBlockCommit(b2));
-        Block b5 = forkChain.ProposeBlock(signer);
-        forkChain.Append(b5, CreateBlockCommit(b5));
+        // Testing blockchainA
+        Assert.Contains(emptyLocator, blockchainA.Blocks.Keys);
+        Assert.DoesNotContain(invalidLocator, blockchainA.Blocks.Keys);
+        Assert.DoesNotContain(locator, blockchainA.Blocks.Keys);
 
-        // Testing emptyChain
-        Assert.Contains(emptyLocator, emptyChain.Blocks.Keys);
-        Assert.DoesNotContain(invalidLocator, emptyChain.Blocks.Keys);
-        Assert.DoesNotContain(locator, emptyChain.Blocks.Keys);
+        // Testing blockchain
+        Assert.Contains(emptyLocator, blockchain.Blocks.Keys);
+        Assert.DoesNotContain(invalidLocator, blockchain.Blocks.Keys);
+        Assert.Contains(locator, blockchain.Blocks.Keys);
 
-        // Testing _blockchain
-        Assert.Contains(emptyLocator, _blockchain.Blocks.Keys);
-        Assert.DoesNotContain(invalidLocator, _blockchain.Blocks.Keys);
-        Assert.Contains(locator, _blockchain.Blocks.Keys);
-
-        // Testing fork
-        Assert.Contains(emptyLocator, forkChain.Blocks.Keys);
-        Assert.DoesNotContain(invalidLocator, forkChain.Blocks.Keys);
-        Assert.DoesNotContain(locator, forkChain.Blocks.Keys);
+        // Testing blockchainB
+        Assert.Contains(emptyLocator, blockchainB.Blocks.Keys);
+        Assert.DoesNotContain(invalidLocator, blockchainB.Blocks.Keys);
+        Assert.DoesNotContain(locator, blockchainB.Blocks.Keys);
     }
 
     [Fact]
@@ -658,68 +654,85 @@ public partial class BlockchainTest : IDisposable
         var random = RandomUtility.GetRandom(_output);
         var signer = RandomUtility.Signer(random);
         var address = signer.Address;
-        var actions = new[] { DumbAction.Create((_fx.Address1, "foo")) };
+        var addressA = RandomUtility.Address(random);
+        var actions = new[] { DumbAction.Create((addressA, "foo")) };
 
-        Assert.Equal(0, _blockchain.GetNextTxNonce(address));
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var genesisBlockHash = genesisBlock.BlockHash;
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var txBuilder = new TransactionBuilder
+        {
+            GenesisBlockHash = genesisBlockHash,
+            Actions = actions,
+        };
+
+        Assert.Equal(0, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsA =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 0),
+            (txBuilder with { Nonce = 0 }).Create(signer),
         ];
 
-        _blockchain.StagedTransactions.AddRange(txsA);
-        var block = _blockchain.ProposeBlock(_fx.Proposer);
-        var blockCommit = CreateBlockCommit(block);
-        _blockchain.Append(block, blockCommit);
+        blockchain.StagedTransactions.AddRange(txsA);
+        var (block, blockCommit) = blockchain.ProposeAndAppend(proposer);
+        // var block = blockchain.ProposeBlock(proposer);
+        // var blockCommit = CreateBlockCommit(block);
+        // _blockchain.Append(block, blockCommit);
 
-        Assert.Equal(1, _blockchain.GetNextTxNonce(address));
+        Assert.Equal(1, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsB =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 1),
-            _fx.MakeTransaction(actions, signer: signer, nonce: 2),
+            (txBuilder with { Nonce = 1 }).Create(signer),
+            (txBuilder with { Nonce = 2 }).Create(signer),
         ];
 
-        _blockchain.StagedTransactions.AddRange(txsB);
+        blockchain.StagedTransactions.AddRange(txsB);
 
-        Assert.Equal(3, _blockchain.GetNextTxNonce(address));
+        Assert.Equal(3, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsC =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 3),
-            _fx.MakeTransaction(actions, signer: signer, nonce: 3),
+            (txBuilder with { Nonce = 3 }).Create(signer),
+            (txBuilder with { Nonce = 3 }).Create(signer),
+            // _fx.MakeTransaction(actions, signer: signer, nonce: 3),
+            // _fx.MakeTransaction(actions, signer: signer, nonce: 3),
         ];
-        _blockchain.StagedTransactions.AddRange(txsC);
+        blockchain.StagedTransactions.AddRange(txsC);
 
-        Assert.Equal(4, _blockchain.GetNextTxNonce(address));
+        Assert.Equal(4, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsD =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 5),
+            (txBuilder with { Nonce = 5 }).Create(signer),
         ];
-        _blockchain.StagedTransactions.AddRange(txsD);
+        blockchain.StagedTransactions.AddRange(txsD);
 
-        Assert.Equal(4, _blockchain.GetNextTxNonce(address));
+        Assert.Equal(4, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsE =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 4),
-            _fx.MakeTransaction(actions, signer: signer, nonce: 5),
-            _fx.MakeTransaction(actions, signer: signer, nonce: 7),
+            (txBuilder with { Nonce = 4 }).Create(signer),
+            (txBuilder with { Nonce = 5 }).Create(signer),
+            (txBuilder with { Nonce = 7 }).Create(signer),
         ];
-        _blockchain.StagedTransactions.AddRange(txsE);
+        blockchain.StagedTransactions.AddRange(txsE);
 
-        foreach (var tx in _blockchain.StagedTransactions.Values)
-        {
-            // _logger.Fatal(
-            //     "{Id}; {Signer}; {Nonce}; {Timestamp}",
-            //     tx.Id,
-            //     tx.Signer,
-            //     tx.Nonce,
-            //     tx.Timestamp);
-        }
+        // foreach (var tx in blockchain.StagedTransactions.Values)
+        // {
+        //     // _logger.Fatal(
+        //     //     "{Id}; {Signer}; {Nonce}; {Timestamp}",
+        //     //     tx.Id,
+        //     //     tx.Signer,
+        //     //     tx.Nonce,
+        //     //     tx.Timestamp);
+        // }
 
-        Assert.Equal(6, _blockchain.GetNextTxNonce(address));
+        Assert.Equal(6, blockchain.GetNextTxNonce(address));
     }
 
     [Fact]
