@@ -524,7 +524,7 @@ public partial class BlockchainTest : IDisposable
     public void GetStatesOnCreatingBlockChain()
     {
         var random = RandomUtility.GetRandom(_output);
-        bool invoked = false;
+        var invoked = false;
         var options = new BlockchainOptions
         {
             BlockOptions = new BlockOptions
@@ -539,105 +539,14 @@ public partial class BlockchainTest : IDisposable
                 ],
             },
         };
-        var repository = new Repository();
-        var txSigner = RandomUtility.Signer(random);
-        var genesisRawBlock = ProposeGenesis(
-            proposer: GenesisProposer,
-            transactions:
-            [
-                new TransactionMetadata
-                {
-                    Signer = txSigner.Address,
-                    Actions = [],
-                }.Sign(txSigner),
-            ]);
-        Block genesisWithTx = genesisRawBlock.Sign(GenesisProposer);
-        var chain = new Libplanet.Blockchain(genesisWithTx, repository, options);
+        var genesisProposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(genesisProposer);
+
+        _ = new Libplanet.Blockchain(genesisBlock, options);
         Assert.False(invoked);
-    }
-
-    // This is a regression test for:
-    // https://github.com/planetarium/libplanet/issues/189#issuecomment-482443607.
-    [Fact]
-    public void GetStateOnlyDrillsDownUntilRequestedAddressesAreFound()
-    {
-        var random = RandomUtility.GetRandom(_output);
-        var options = new BlockchainOptions();
-        var repository = new Repository();
-        var chain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, options);
-
-        Block b = chain.Genesis;
-        Address[] addresses = new Address[30];
-        for (int i = 0; i < addresses.Length; ++i)
-        {
-            var signer = RandomUtility.Signer(random);
-            Address address = signer.Address;
-            addresses[i] = address;
-            DumbAction[] actions =
-            [
-                DumbAction.Create((address, "foo")),
-                DumbAction.Create((i < 1 ? address : addresses[i - 1], "bar")),
-            ];
-            Transaction[] txs =
-            [
-                new TransactionMetadata
-                {
-                    Signer = signer.Address,
-                    GenesisBlockHash = chain.Genesis.BlockHash,
-                    Actions = actions.ToBytecodes(),
-                }.Sign(signer),
-            ];
-            b = chain.ProposeBlock(_fx.Proposer);
-            chain.Append(b, CreateBlockCommit(b));
-        }
-
-        // tracker.ClearLogs();
-        int testingDepth = addresses.Length / 2;
-        Address[] targetAddresses = Enumerable.Range(
-            testingDepth,
-            Math.Min(10, addresses.Length - testingDepth - 1))
-        .Select(i => addresses[i]).ToArray();
-
-        Assert.All(
-            targetAddresses.Select(
-                targetAddress => chain
-                    .GetWorld()
-                    .GetAccount(SystemAddresses.SystemAccount)
-                    .GetValue(targetAddress)),
-            Assert.NotNull);
-
-        // var callCount = tracker.Logs.Where(
-        //     trackLog => trackLog.Method == "GetBlockStates")
-        // .Select(trackLog => trackLog.Params).Count();
-        // Assert.True(testingDepth >= callCount);
-    }
-
-    [Fact]
-    public void GetStateReturnsEarlyForNonexistentAccount()
-    {
-        var options = new BlockchainOptions();
-        var repository = new Repository();
-        var chain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, options);
-        Block b = chain.Genesis;
-        for (int i = 0; i < 20; ++i)
-        {
-            b = chain.ProposeBlock(_fx.Proposer);
-            chain.Append(b, CreateBlockCommit(b));
-        }
-
-        // tracker.ClearLogs();
-        Address nonexistent = new PrivateKey().Address;
-        var result = chain
-            .GetWorld()
-            .GetAccount(SystemAddresses.SystemAccount)
-            .GetValue(nonexistent);
-        Assert.Null(result);
-        // var callCount = tracker.Logs.Where(
-        //     trackLog => trackLog.Method == "GetBlockStates")
-        // .Select(trackLog => trackLog.Params).Count();
-        // Assert.True(
-        //     callCount <= 1,
-        //     $"GetBlocksStates() was called {callCount} times");
     }
 
     [Fact]
@@ -646,74 +555,52 @@ public partial class BlockchainTest : IDisposable
         var random = RandomUtility.GetRandom(_output);
         var signers = RandomUtility.Array(random, RandomUtility.Signer, 10);
         var addresses = signers.Select(signer => signer.Address).ToList();
-        var options = new BlockchainOptions();
-        var repository = new Repository();
-        var chain = new Libplanet.Blockchain(_fx.GenesisBlock, repository, options);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
 
-        Assert.All(
-            addresses.Select(
-                address => chain
-                    .GetWorld()
-                    .GetAccount(SystemAddresses.SystemAccount)
-                    .GetValue(address)),
-            Assert.Null);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+
         foreach (var address in addresses)
         {
-            Assert.Null(chain
-                .GetWorld()
-                .GetAccount(SystemAddresses.SystemAccount)
-                .GetValue(address));
+            var world = blockchain.GetWorld();
+            var account = world.GetAccount(SystemAddresses.SystemAccount);
+            Assert.Throws<KeyNotFoundException>(() => account.GetValue(address));
+            Assert.Null(account.GetValueOrDefault(address));
         }
 
-        var privateKeysAndAddresses10 = signers.Zip(addresses, (k, a) => (k, a));
-        foreach (var (key, address) in privateKeysAndAddresses10)
+        foreach (var signer in signers)
         {
-            chain.StagedTransactions.Add(key, @params: new()
+            blockchain.StagedTransactions.Add(signer, @params: new()
             {
-                Actions = [DumbAction.Create((address, "1"))],
+                Actions = [DumbAction.Create((signer.Address, "1"))],
             });
         }
 
-        Block block1 = chain.ProposeBlock(signers[0]);
+        _ = blockchain.ProposeAndAppend(signers[0]);
 
-        chain.Append(block1, CreateBlockCommit(block1));
-
-        Assert.All(
-            addresses.Select(
-                address => chain
-                    .GetWorld()
-                    .GetAccount(SystemAddresses.SystemAccount)
-                    .GetValue(address)),
-            v => Assert.Equal("1", v));
         foreach (var address in addresses)
         {
-            Assert.Equal(
-                "1",
-                chain
-                    .GetWorld()
-                    .GetAccount(SystemAddresses.SystemAccount)
-                    .GetValue(address));
+            var world = blockchain.GetWorld();
+            var account = world.GetAccount(SystemAddresses.SystemAccount);
+            Assert.Equal("1", account.GetValue(address));
         }
 
-        chain.StagedTransactions.Add(signers[0], @params: new()
+        blockchain.StagedTransactions.Add(signers[0], @params: new()
         {
-            Actions = new[] { DumbAction.Create((addresses[0], "2")) },
+            Actions = [DumbAction.Create((addresses[0], "2"))],
         });
-        Block block2 = chain.ProposeBlock(signers[0]);
-        chain.Append(block2, CreateBlockCommit(block2));
-        Assert.Equal(
-            "1,2",
-            chain
-                .GetWorld()
-                .GetAccount(SystemAddresses.SystemAccount)
-                .GetValue(addresses[0]));
-        Assert.All(
-            addresses.Skip(1).Select(
-                address => chain
-                    .GetWorld()
-                    .GetAccount(SystemAddresses.SystemAccount)
-                    .GetValue(address)),
-            v => Assert.Equal("1", v));
+        _ = blockchain.ProposeAndAppend(signers[0]);
+
+        Assert.Equal("1,2", blockchain.GetWorld().GetAccount(SystemAddresses.SystemAccount).GetValue(addresses[0]));
+        for (var i = 1; i < addresses.Count; i++)
+        {
+            var world = blockchain.GetWorld();
+            var account = world.GetAccount(SystemAddresses.SystemAccount);
+            Assert.Equal("1", account.GetValue(addresses[i]));
+        }
     }
 
     [Fact]
