@@ -670,69 +670,54 @@ public partial class BlockchainTest : IDisposable
             Actions = actions,
         };
 
-        Assert.Equal(0, blockchain.GetNextTxNonce(address));
+        Assert.Equal(0L, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsA =
         [
-            (txBuilder with { Nonce = 0 }).Create(signer),
+            (txBuilder with { Nonce = 0L }).Create(signer),
         ];
 
         blockchain.StagedTransactions.AddRange(txsA);
-        var (block, blockCommit) = blockchain.ProposeAndAppend(proposer);
-        // var block = blockchain.ProposeBlock(proposer);
-        // var blockCommit = CreateBlockCommit(block);
-        // _blockchain.Append(block, blockCommit);
+        _ = blockchain.ProposeAndAppend(proposer);
 
-        Assert.Equal(1, blockchain.GetNextTxNonce(address));
+        Assert.Equal(1L, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsB =
         [
-            (txBuilder with { Nonce = 1 }).Create(signer),
-            (txBuilder with { Nonce = 2 }).Create(signer),
+            (txBuilder with { Nonce = 1L }).Create(signer),
+            (txBuilder with { Nonce = 2L }).Create(signer),
         ];
 
         blockchain.StagedTransactions.AddRange(txsB);
 
-        Assert.Equal(3, blockchain.GetNextTxNonce(address));
+        Assert.Equal(3L, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsC =
         [
-            (txBuilder with { Nonce = 3 }).Create(signer),
-            (txBuilder with { Nonce = 3 }).Create(signer),
-            // _fx.MakeTransaction(actions, signer: signer, nonce: 3),
-            // _fx.MakeTransaction(actions, signer: signer, nonce: 3),
+            (txBuilder with { Nonce = 3L }).Create(signer),
+            (txBuilder with { Nonce = 3L }).Create(signer),
         ];
         blockchain.StagedTransactions.AddRange(txsC);
 
-        Assert.Equal(4, blockchain.GetNextTxNonce(address));
+        Assert.Equal(4L, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsD =
         [
-            (txBuilder with { Nonce = 5 }).Create(signer),
+            (txBuilder with { Nonce = 5L }).Create(signer),
         ];
         blockchain.StagedTransactions.AddRange(txsD);
 
-        Assert.Equal(4, blockchain.GetNextTxNonce(address));
+        Assert.Equal(4L, blockchain.GetNextTxNonce(address));
 
         Transaction[] txsE =
         [
-            (txBuilder with { Nonce = 4 }).Create(signer),
-            (txBuilder with { Nonce = 5 }).Create(signer),
-            (txBuilder with { Nonce = 7 }).Create(signer),
+            (txBuilder with { Nonce = 4L }).Create(signer),
+            (txBuilder with { Nonce = 5L }).Create(signer),
+            (txBuilder with { Nonce = 7L }).Create(signer),
         ];
         blockchain.StagedTransactions.AddRange(txsE);
 
-        // foreach (var tx in blockchain.StagedTransactions.Values)
-        // {
-        //     // _logger.Fatal(
-        //     //     "{Id}; {Signer}; {Nonce}; {Timestamp}",
-        //     //     tx.Id,
-        //     //     tx.Signer,
-        //     //     tx.Nonce,
-        //     //     tx.Timestamp);
-        // }
-
-        Assert.Equal(6, blockchain.GetNextTxNonce(address));
+        Assert.Equal(6L, blockchain.GetNextTxNonce(address));
     }
 
     [Fact]
@@ -743,36 +728,49 @@ public partial class BlockchainTest : IDisposable
         var address = signer.Address;
         var actions = new[] { DumbAction.Create((address, "foo")) };
 
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var genesisBlockHash = genesisBlock.BlockHash;
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var txBuilder = new TransactionBuilder
+        {
+            GenesisBlockHash = genesisBlockHash,
+            Actions = actions,
+        };
+
         Transaction[] txs =
         [
-            _fx.MakeTransaction(actions, signer: signer),
-            _fx.MakeTransaction(actions, signer: signer, nonce: 1),
+            (txBuilder with { Nonce = 0L }).Create(signer),
+            (txBuilder with { Nonce = 1L }).Create(signer),
         ];
 
-        _blockchain.StagedTransactions.AddRange(txs);
-        Block block = _blockchain.ProposeBlock(signer);
-        _blockchain.Append(block, CreateBlockCommit(block));
+        blockchain.StagedTransactions.AddRange(txs);
+
+        _ = blockchain.ProposeAndAppend(proposer);
 
         Transaction[] staleTxs =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 0),
-            _fx.MakeTransaction(actions, signer: signer, nonce: 1),
+            (txBuilder with { Nonce = 0L }).Create(signer),
+            (txBuilder with { Nonce = 1L }).Create(signer),
         ];
-        _blockchain.StagedTransactions.AddRange(staleTxs);
+        blockchain.StagedTransactions.AddRange(staleTxs);
 
-        Assert.Equal(2, _blockchain.GetNextTxNonce(address));
+        Assert.Equal(2L, blockchain.GetNextTxNonce(address));
 
-        _blockchain.StagedTransactions.Add(signer, @params: new()
+        blockchain.StagedTransactions.Add(signer, @params: new()
         {
             Actions = actions,
         });
-        Assert.Equal(3, _blockchain.GetNextTxNonce(address));
+        Assert.Equal(3L, blockchain.GetNextTxNonce(address));
 
-        _blockchain.StagedTransactions.Add(signer, @params: new()
+        blockchain.StagedTransactions.Add(signer, @params: new()
         {
             Actions = actions,
         });
-        Assert.Equal(4, _blockchain.GetNextTxNonce(address));
+        Assert.Equal(4L, blockchain.GetNextTxNonce(address));
     }
 
     [Fact]
@@ -780,53 +778,67 @@ public partial class BlockchainTest : IDisposable
     {
         var random = RandomUtility.GetRandom(_output);
         var signer = RandomUtility.Signer(random);
-        var actions = new[] { DumbAction.Create((_fx.Address1, string.Empty)) };
+        var addressA = RandomUtility.Address(random);
+        var actions = new[] { DumbAction.Create((addressA, string.Empty)) };
 
-        var genesis = _blockchain.Genesis;
-
-        Block ProposeNext(Block block, ImmutableSortedSet<Transaction> txs)
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
         {
-            return TestUtils.ProposeNext(
-                block,
-                _blockchain.GetStateRootHash(block.BlockHash),
-                transactions: txs,
-                blockInterval: TimeSpan.FromSeconds(10),
-                proposer: _fx.Proposer,
-                previousCommit: CreateBlockCommit(block)).Sign(_fx.Proposer);
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var genesisBlockHash = genesisBlock.BlockHash;
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var txBuilder = new TransactionBuilder
+        {
+            GenesisBlockHash = genesisBlockHash,
+            Actions = actions,
+        };
+
+        Block ProposeNext(Block previousBlock, ImmutableSortedSet<Transaction> txs)
+        {
+            return new BlockBuilder
+            {
+                Height = previousBlock.Height + 1,
+                PreviousHash = previousBlock.BlockHash,
+                PreviousCommit = CreateBlockCommit(previousBlock),
+                PreviousStateRootHash = blockchain.GetStateRootHash(previousBlock.BlockHash),
+                Timestamp = previousBlock.Timestamp + TimeSpan.FromSeconds(10),
+                Transactions = txs,
+            }.Create(proposer);
         }
 
         ImmutableSortedSet<Transaction> txsA =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 1),
-            _fx.MakeTransaction(actions, signer: signer, nonce: 0),
+            (txBuilder with { Nonce = 1L }).Create(signer),
+            (txBuilder with { Nonce = 0L }).Create(signer),
         ];
-        Block b1 = ProposeNext(genesis, txsA);
-        _blockchain.Append(b1, CreateBlockCommit(b1));
+        var block1 = ProposeNext(genesisBlock, txsA);
+        blockchain.Append(block1, CreateBlockCommit(block1));
 
         ImmutableSortedSet<Transaction> txsB =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 2),
+            (txBuilder with { Nonce = 2L }).Create(signer),
         ];
-        Block b2 = ProposeNext(b1, txsB);
-        _blockchain.Append(b2, CreateBlockCommit(b2));
+        var block2 = ProposeNext(block1, txsB);
+        blockchain.Append(block2, CreateBlockCommit(block2));
 
         // Invalid if nonce is too low
         ImmutableSortedSet<Transaction> txsC =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 1),
+            (txBuilder with { Nonce = 1L }).Create(signer),
         ];
-        Block b3a = ProposeNext(b2, txsC);
-        Assert.Throws<InvalidOperationException>(() =>
-            _blockchain.Append(b3a, CreateBlockCommit(b3a)));
+        var block3A = ProposeNext(block2, txsC);
+        var e1 = Assert.Throws<ArgumentException>(() => blockchain.Append(block3A, CreateBlockCommit(block3A)));
+        Assert.Contains("has an invalid nonce", e1.Message);
 
         // Invalid if nonce is too high
         ImmutableSortedSet<Transaction> txsD =
         [
-            _fx.MakeTransaction(actions, signer: signer, nonce: 4),
+            (txBuilder with { Nonce = 4L }).Create(signer),
         ];
-        Block b3b = ProposeNext(b2, txsD);
-        Assert.Throws<InvalidOperationException>(() =>
-            _blockchain.Append(b3b, CreateBlockCommit(b3b)));
+        var block3B = ProposeNext(block2, txsD);
+        var e2 = Assert.Throws<ArgumentException>(() => blockchain.Append(block3B, CreateBlockCommit(block3B)));
+        Assert.Contains("has an invalid nonce", e2.Message);
     }
 
     [Fact]
