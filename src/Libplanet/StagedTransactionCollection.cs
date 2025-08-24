@@ -16,7 +16,7 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
     private readonly Subject<Transaction> _removedSubject = new();
     private readonly PendingTransactionIndex _stagedIndex = repository.PendingTransactions;
     private readonly CommittedTransactionIndex _committedIndex = repository.CommittedTransactions;
-    private readonly ConcurrentDictionary<Address, ImmutableSortedSet<long>> _noncesByAddress = new();
+    private readonly ConcurrentDictionary<Address, ImmutableArray<long>> _noncesByAddress = new();
 
     public StagedTransactionCollection(Repository repository)
         : this(repository, new TransactionOptions())
@@ -28,8 +28,7 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
             _noncesByAddress.AddOrUpdate(
                 address,
                 address => [newNonce],
-                (_, existingNonces) => existingNonces.Add(newNonce)
-            );
+                (_, existingNonces) => Insert(existingNonces, newNonce));
         }
     }
 
@@ -151,7 +150,27 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
     }
 
     public long GetNextTxNonce(Address address)
-        => _noncesByAddress.TryGetValue(address, out var nonces) ? nonces.Max + 1 : repository.GetNonce(address);
+    {
+        if (_noncesByAddress.TryGetValue(address, out var nonces) && !nonces.IsEmpty)
+        {
+            var n = nonces[0] + 1;
+            for (var i = 1; i < nonces.Length; i++)
+            {
+                if (n == nonces[i])
+                {
+                    n++;
+                }
+                else if (n > nonces[i] + 1)
+                {
+                    break;
+                }
+            }
+
+            return n;
+        }
+
+        return repository.GetNonce(address);
+    }
 
     private static bool IsExpired(Transaction transaction, TimeSpan lifetime)
     {
@@ -183,11 +202,11 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
     {
         var address = transaction.Signer;
         var nonce = transaction.Nonce;
+
         _noncesByAddress.AddOrUpdate(
             address,
             _ => [nonce],
-            (_, existingNonces) => existingNonces.Add(nonce)
-        );
+            (_, existingNonces) => Insert(existingNonces, nonce));
     }
 
     private void RemoveNonce(Transaction transaction)
@@ -199,5 +218,19 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
             _ => [],
             (_, existingNonces) => existingNonces.Remove(nonce)
         );
+    }
+
+    private static ImmutableArray<long> Insert(ImmutableArray<long> array, long item)
+    {
+        var insertPosition = array.Length;
+        for (var i = 0; i < array.Length; i++)
+        {
+            if (item < array[i])
+            {
+                insertPosition = i;
+            }
+        }
+
+        return array.Insert(insertPosition, item);
     }
 }
