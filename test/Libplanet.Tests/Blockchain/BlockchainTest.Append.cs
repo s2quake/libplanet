@@ -7,6 +7,7 @@ using Libplanet.Types;
 using Libplanet.TestUtilities;
 using Libplanet.Extensions;
 using Libplanet.Data.Structures;
+using Libplanet.State.Builtin;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -632,192 +633,157 @@ public partial class BlockchainTest
         Assert.Equal("block", e.Message);
     }
 
-    // [Fact]
-    // public void AppendWithdrawTxsWithExpiredNoncesFromStage()
-    // {
-    //     void AssertTxIdSetEqual(
-    //         IEnumerable<TxId> setOne,
-    //         IEnumerable<TxId> setTwo)
-    //     {
-    //         Assert.Equal(
-    //             setOne.OrderBy(id => id), setTwo.OrderBy(id => id));
-    //     }
+    [Fact]
+    public void AppendWithdrawTxsWithExpiredNoncesFromStage()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var signerA = RandomUtility.Signer(random);
+        var signerB = RandomUtility.Signer(random);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var txA0 = new TransactionBuilder
+        {
+            Nonce = 0,
+            GenesisBlockHash = genesisBlock.BlockHash,
+        }.Create(signerA);
+        var txA1 = new TransactionBuilder
+        {
+            Nonce = 1,
+            GenesisBlockHash = genesisBlock.BlockHash,
+            Actions = [],
+        }.Create(signerA);
+        blockchain.StagedTransactions.Add(txA0);
+        blockchain.StagedTransactions.Add(txA1);
+        var block = blockchain.Propose(signerA);
 
-    //     var signerA = new PrivateKey();
-    //     var signerB = new PrivateKey();
-    //     BlockHash genesis = blockchain.Genesis.BlockHash;
-    //     Transaction
-    //         txA0 = new TransactionMetadata
-    //         {
-    //             Nonce = 0,
-    //             Signer = signerA.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerA),
-    //         txA1 = new TransactionMetadata
-    //         {
-    //             Nonce = 1,
-    //             Signer = signerA.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerA);
-    //     blockchain.StagedTransactions.Add(txA0);
-    //     blockchain.StagedTransactions.Add(txA1);
-    //     Block block = blockchain.ProposeBlock(signerA);
+        var txA2 = new TransactionBuilder
+        {
+            Nonce = 2,
+            GenesisBlockHash = genesisBlock.BlockHash,
+            Actions = [],
+        }.Create(signerA);
+        var txA0_ = new TransactionBuilder
+        {
+            Nonce = 0,
+            GenesisBlockHash = genesisBlock.BlockHash,
+        }.Create(signerA);
+        var txA1_ = new TransactionBuilder
+        {
+            Nonce = 1,
+            GenesisBlockHash = genesisBlock.BlockHash,
+        }.Create(signerA);
+        var txB0 = new TransactionBuilder
+        {
+            Nonce = 1,
+            GenesisBlockHash = genesisBlock.BlockHash,
+        }.Create(signerB);
+        var txB1 = new TransactionBuilder
+        {
+            Nonce = 1,
+            GenesisBlockHash = genesisBlock.BlockHash,
+        }.Create(signerB);
+        var txB2 = new TransactionBuilder
+        {
+            Nonce = 2,
+            GenesisBlockHash = genesisBlock.BlockHash,
+        }.Create(signerB);
+        var txB0_ = new TransactionBuilder
+        {
+            Nonce = 1,
+            GenesisBlockHash = genesisBlock.BlockHash,
+        }.Create(signerB);
+        var txB1_ = new TransactionBuilder
+        {
+            Nonce = 1,
+            GenesisBlockHash = genesisBlock.BlockHash,
+        }.Create(signerB);
+        blockchain.StagedTransactions.Add(txA2);
+        blockchain.StagedTransactions.Add(txA0_);
+        blockchain.StagedTransactions.Add(txA1_);
+        blockchain.StagedTransactions.Add(txB0);
+        blockchain.StagedTransactions.Add(txB1);
+        blockchain.StagedTransactions.Add(txB2);
+        blockchain.StagedTransactions.Add(txB0_);
+        blockchain.StagedTransactions.Add(txB1_);
+        Assert.Equal(
+            new Transaction[]
+            {
+                txA0, txA1, txA2, txA0_, txA1_, txB0, txB1, txB2, txB0_, txB1_,
+            }.Select(tx => tx.Id).ToImmutableSortedSet(),
+            [.. blockchain.StagedTransactions.Keys]);
 
-    //     Transaction
-    //         txA2 = new TransactionMetadata
-    //         {
-    //             Nonce = 2,
-    //             Signer = signerA.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerA),
-    //         txA0_ = new TransactionMetadata
-    //         {
-    //             Nonce = 0,
-    //             Signer = signerA.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerA),
-    //         txA1_ = new TransactionMetadata
-    //         {
-    //             Nonce = 1,
-    //             Signer = signerA.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerA),
-    //         txB0 = new TransactionMetadata
-    //         {
-    //             Nonce = 1,
-    //             Signer = signerB.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerB),
-    //         txB1 = new TransactionMetadata
-    //         {
-    //             Nonce = 1,
-    //             Signer = signerB.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerB),
-    //         txB2 = new TransactionMetadata
-    //         {
-    //             Nonce = 2,
-    //             Signer = signerB.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerB),
-    //         txB0_ = new TransactionMetadata
-    //         {
-    //             Nonce = 1,
-    //             Signer = signerB.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerB),
-    //         txB1_ = new TransactionMetadata
-    //         {
-    //             Nonce = 1,
-    //             Signer = signerB.Address,
-    //             GenesisHash = genesis,
-    //             Actions = [],
-    //         }.Sign(signerB);
-    //     blockchain.StagedTransactions.Add(txA2);
-    //     blockchain.StagedTransactions.Add(txA0_);
-    //     blockchain.StagedTransactions.Add(txA1_);
-    //     blockchain.StagedTransactions.Add(txB0);
-    //     blockchain.StagedTransactions.Add(txB1);
-    //     blockchain.StagedTransactions.Add(txB2);
-    //     blockchain.StagedTransactions.Add(txB0_);
-    //     blockchain.StagedTransactions.Add(txB1_);
-    //     AssertTxIdSetEqual(
-    //         new Transaction[]
-    //         {
-    //             txA0, txA1, txA2, txA0_, txA1_, txB0, txB1, txB2, txB0_, txB1_,
-    //         }.Select(tx => tx.Id).ToImmutableHashSet(),
-    //         blockchain.StagedTransactions.Keys);
+        blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+        Assert.Equal(
+            new Transaction[]
+            {
+                txA2, txA0_, txA1_, txB0, txB1, txB2, txB0_, txB1_,
+            }.Select(tx => tx.Id).ToImmutableSortedSet(),
+            [.. blockchain.StagedTransactions.Keys]);
+        blockchain.StagedTransactions.Prune();
+        Assert.Equal(
+            new Transaction[]
+            {
+                txA2, txB0, txB1, txB2, txB0_, txB1_,
+            }.Select(tx => tx.Id).ToImmutableSortedSet(),
+            [.. blockchain.StagedTransactions.Keys]);
+    }
 
-    //     blockchain.Append(block, TestUtils.CreateBlockCommit(block));
-    //     AssertTxIdSetEqual(
-    //         new Transaction[]
-    //         {
-    //             txA2, txB0, txB1, txB2, txB0_, txB1_,
-    //         }.Select(tx => tx.Id).ToImmutableHashSet(),
-    //         blockchain.StagedTransactions.Keys);
-    //     AssertTxIdSetEqual(
-    //         new Transaction[]
-    //         {
-    //             txA2, txB0, txB1, txB2, txB0_, txB1_,
-    //         }.Select(tx => tx.Id).ToImmutableHashSet(),
-    //         blockchain.StagedTransactions.Iterate(filtered: true).Select(tx => tx.Id));
-    //     AssertTxIdSetEqual(
-    //         new Transaction[]
-    //         {
-    //             txA2, txA0_, txA1_, txB0, txB1, txB2, txB0_, txB1_,
-    //         }.Select(tx => tx.Id).ToImmutableHashSet(),
-    //         blockchain.StagedTransactions.Iterate(filtered: false).Select(tx => tx.Id));
-    // }
+    [Fact]
+    public void DoesNotMigrateStateWithoutAction()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var options = new BlockchainOptions
+        {
+            BlockOptions = new BlockOptions
+            {
+                MaxActionBytes = 50 * 1024,
+            },
+        };
 
-    // [Fact]
-    // public void DoesNotMigrateStateWithoutAction()
-    // {
-    //     var options = new BlockchainOptions
-    //     {
-    //         BlockOptions = new BlockOptions
-    //         {
-    //             MaxTransactionsBytes = 50 * 1024,
-    //         },
-    //     };
-    //     var fx = GetStoreFixture(options);
-    //     // var renderer = new ValidatingActionRenderer();
-    //     var blockExecutor = new BlockExecutor(
-    //         stateStore: options.Repository.StateStore,
-    //         options.PolicyActions);
+        var txs = new[]
+        {
+            new TransactionMetadata
+            {
+                Nonce = 0,
+                Signer = proposer.Address,
+                Timestamp = DateTimeOffset.UtcNow,
+                Actions = new[]
+                {
+                    new Initialize
+                    {
+                        Validators = TestUtils.Validators,
+                    },
+                }.ToBytecodes(),
+            }.Sign(proposer),
+        };
+        var evs = Array.Empty<EvidenceBase>();
+        var rawGenesisBlock = new RawBlock
+        {
+            Header = new BlockHeader
+            {
+                Height = 0,
+                Timestamp = DateTimeOffset.UtcNow,
 
-    //     var txs = new[]
-    //     {
-    //         new TransactionMetadata
-    //         {
-    //             Nonce = 0,
-    //             Signer = fx.Proposer.Address,
-    //             Actions = new[]
-    //             {
-    //                 new Initialize
-    //                 {
-    //                     Validators = TestUtils.Validators,
-    //                     States = ImmutableDictionary.Create<Address, object>(),
-    //                 },
-    //             }.ToBytecodes(),
-    //         }.Sign(fx.Proposer),
-    //     };
-    // var evs = Array.Empty<EvidenceBase>();
-    // RawBlock preEvalGenesis = new RawBlock
-    // {
-    //     Header = new BlockHeader
-    //     {
-    //         Height = 0,
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Proposer = fx.Proposer.Address,
-    //         PreviousHash = default,
-    //     },
-    //     Content = new BlockContent
-    //     {
-    //         Transactions = [.. txs],
-    //         Evidences = [.. evs],
-    //     },
-    // };
-    // var genesis = preEvalGenesis.Sign(
-    //     fx.Proposer,
-    //     blockExecutor.Evaluate(preEvalGenesis, default)[^1].OutputWorld.Trie.Hash);
-    // var blockchain = new Blockchain(
-    //     options: options,
-    //     genesisBlock: genesis);
-    // var emptyBlock = blockchain.ProposeBlock(fx.Proposer);
-    // blockchain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
-    //     Assert.Equal<byte>(
-    //         blockchain.GetWorld(genesis.StateRootHash).Trie.Hash.Bytes,
-    //         blockchain.GetWorldState(emptyBlock.BlockHash).Trie.Hash.Bytes);
-    // }
+                Proposer = proposer.Address,
+            },
+            Content = new BlockContent
+            {
+                Transactions = [.. txs],
+                Evidences = [.. evs],
+            },
+        };
+        var genesisBlock = rawGenesisBlock.Sign(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var (block1, _) = blockchain.ProposeAndAppend(proposer);
+        Assert.Equal<byte>(
+            blockchain.GetWorld(genesisBlock.BlockHash).Trie.Hash.Bytes,
+            blockchain.GetWorld(block1.PreviousStateRootHash).Trie.Hash.Bytes);
+    }
 
     // [Fact]
     // public void AppendSRHPostponeBPVBump()
