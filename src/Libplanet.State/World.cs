@@ -55,6 +55,11 @@ public sealed record class World(Trie Trie, StateIndex StateIndex)
 
     public World Commit()
     {
+        if (Delta.IsEmpty)
+        {
+            return this;
+        }
+
         var trie = Trie;
         foreach (var (name, account) in Delta)
         {

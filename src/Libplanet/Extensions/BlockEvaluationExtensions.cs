@@ -15,14 +15,17 @@ public static class BlockEvaluationExtensions
             BlockHash = blockHash,
             InputState = evaluation.InputWorld.Hash,
             OutputState = evaluation.OutputWorld.Hash,
-            ExceptionNames = [.. GetActionEvaluations(evaluation).Select(GetExceptionName)],
+            ExceptionNames =
+            [
+                .. GetActionEvaluations(evaluation).Select(GetExceptionName).Where(item => item != string.Empty),
+            ],
         };
 
         static IEnumerable<ActionExecutionInfo> GetActionEvaluations(TransactionExecutionInfo txEvaluation)
             => txEvaluation.BeginExecutions.Concat(txEvaluation.Executions).Concat(txEvaluation.EndExecutions);
 
         static string GetExceptionName(ActionExecutionInfo evaluation)
-            => GetActualException(evaluation.Exception)?.GetType().Name ?? string.Empty;
+            => GetActualException(evaluation.Exception)?.GetType().FullName ?? string.Empty;
 
         static Exception? GetActualException(Exception? exception) => exception?.InnerException ?? exception;
     }
