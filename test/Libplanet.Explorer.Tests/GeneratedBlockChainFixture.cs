@@ -60,8 +60,8 @@ public class GeneratedBlockChainFixture
             // BlockInterval = TimeSpan.FromMilliseconds(1),
             BlockOptions = new BlockOptions
             {
-                MaxTransactionsPerBlock = int.MaxValue,
-                MaxTransactionsBytes = long.MaxValue,
+                MaxTransactions = int.MaxValue,
+                MaxActionBytes = long.MaxValue,
             },
         };
         var genesisBlock = new BlockBuilder

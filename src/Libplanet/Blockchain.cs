@@ -155,6 +155,7 @@ public partial class Blockchain
             var validators = this.GetValidators(block.Height);
             validators.ValidateBlockCommitValidators(blockCommit);
 
+            Options.BlockOptions.Validate(block);
             foreach (var tx in block.Transactions)
             {
                 Options.TransactionOptions.Validate(tx);
@@ -224,7 +225,7 @@ public partial class Blockchain
         };
         var blockContent = new BlockContent
         {
-            Transactions = StagedTransactions.Collect(Options.BlockOptions.MaxTransactionsPerBlock),
+            Transactions = StagedTransactions.Collect(Options.BlockOptions.MaxTransactions),
             Evidences = PendingEvidence.Collect(),
         };
         var rawBlock = new RawBlock

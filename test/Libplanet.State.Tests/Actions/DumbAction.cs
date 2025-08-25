@@ -8,7 +8,7 @@ namespace Libplanet.State.Tests.Actions;
 [Model(Version = 1, TypeName = "Tests_DumbAction")]
 public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
 {
-    public static readonly DumbAction NoOp = DumbAction.Create();
+    public static readonly DumbAction NoOp = Create();
 
     public static readonly Currency DumbCurrency = Currency.Create("DUMB", 0);
 
@@ -21,6 +21,10 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
     [NotDefault]
     [Property(2)]
     public ImmutableSortedSet<Validator>? Validators { get; private set; }
+
+    [Property(3)]
+    [NotDefault]
+    public Address AccountAddress { get; init; } = SystemAccount;
 
     public static DumbAction Create(
         (Address At, string Item)? append = null,
@@ -50,8 +54,8 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
     {
         if (Append is { } append)
         {
-            var items = world.GetValueOrDefault(SystemAccount, append.At, string.Empty);
-            world[SystemAccount, append.At] = items == string.Empty ? append.Item : $"{items},{append.Item}";
+            var items = world.GetValueOrDefault(AccountAddress, append.At, string.Empty);
+            world[AccountAddress, append.At] = items == string.Empty ? append.Item : $"{items},{append.Item}";
         }
 
         if (Transfer is { } transfer)
@@ -84,7 +88,7 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
 
         if (Validators is { } validators)
         {
-            world[SystemAccount, SystemAddresses.ValidatorsKey] = validators;
+            world[AccountAddress, ValidatorsKey] = validators;
         }
     }
 }

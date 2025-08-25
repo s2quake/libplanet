@@ -30,7 +30,7 @@ public static class TestUtils
         },
         BlockOptions = new BlockOptions
         {
-            MaxTransactionsBytes = 50 * 1024,
+            MaxActionBytes = 50 * 1024,
         },
     };
 

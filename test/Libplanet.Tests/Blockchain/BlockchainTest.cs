@@ -37,7 +37,7 @@ public partial class BlockchainTest : IDisposable
             },
             BlockOptions = new BlockOptions
             {
-                MaxTransactionsBytes = 50 * 1024,
+                MaxActionBytes = 50 * 1024,
             },
         };
 
@@ -536,7 +536,10 @@ public partial class BlockchainTest : IDisposable
         {
             BlockOptions = new BlockOptions
             {
-                Validator = new RelayObjectValidator<Block>(obj => invoked = true),
+                Validators =
+                [
+                    new RelayObjectValidator<Block>(obj => invoked = true),
+                ],
             },
             TransactionOptions = new TransactionOptions
             {

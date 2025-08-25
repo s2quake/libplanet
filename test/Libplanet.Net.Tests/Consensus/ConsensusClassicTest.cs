@@ -199,7 +199,7 @@ public sealed class ConsensusClassicTest
             },
             BlockOptions = new BlockOptions
             {
-                MaxTransactionsBytes = 50 * 1024,
+                MaxActionBytes = 50 * 1024,
             },
         };
         var blockchain = MakeBlockchain(blockchainOptions);

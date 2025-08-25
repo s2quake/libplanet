@@ -215,7 +215,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             },
             BlockOptions = new BlockOptions
             {
-                MaxTransactionsBytes = 50 * 1024,
+                MaxActionBytes = 50 * 1024,
             },
             TransactionOptions = new TransactionOptions
             {
@@ -288,7 +288,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             },
             BlockOptions = new BlockOptions
             {
-                MaxTransactionsBytes = 50 * 1024,
+                MaxActionBytes = 50 * 1024,
             },
         };
 

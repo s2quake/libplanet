@@ -124,7 +124,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
             },
             BlockOptions = new BlockOptions
             {
-                MinTransactionsPerBlock = policyLimit,
+                MinTransactions = policyLimit,
             },
         };
         var signer = new PrivateKey().AsSigner();
@@ -152,7 +152,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
         {
             BlockOptions = new BlockOptions
             {
-                MaxTransactionsPerBlock = policyLimit,
+                MaxTransactions = policyLimit,
             },
         };
         var signer = new PrivateKey().AsSigner();
@@ -185,7 +185,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
         {
             BlockOptions = new BlockOptions
             {
-                MaxTransactionsPerSignerPerBlock = policyLimit,
+                MaxTransactionsPerSigner = policyLimit,
             },
         };
         var signers = RandomUtility.Array(random, RandomUtility.Signer, keyCount);

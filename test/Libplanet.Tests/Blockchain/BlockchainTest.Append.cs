@@ -9,6 +9,9 @@ using Libplanet.TestUtilities;
 using System.Security.Cryptography.Pkcs;
 using System.Collections.Generic;
 using Libplanet.Extensions;
+using Libplanet.Data.Structures;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -286,7 +289,6 @@ public partial class BlockchainTest
         Block block3 = blockchain.ProposeBlock(signers[4]);
         blockchain.Append(block3, TestUtils.CreateBlockCommit(block3));
         var txExecution1 = repository.TxExecutions[tx1Transfer.Id];
-        // _logger.Verbose(nameof(txExecution1) + " = {@TxExecution}", txExecution1);
         Assert.False(txExecution1.Fail);
         var inputAccount1 = blockchain.GetWorld(
             Assert.IsType<HashDigest<SHA256>>(txExecution1.InputState))
@@ -295,6 +297,7 @@ public partial class BlockchainTest
             Assert.IsType<HashDigest<SHA256>>(txExecution1.OutputState));
         var outputAccount1 = outputWorld1
                 .GetAccount(SystemAddresses.SystemAccount);
+
         // var accountDiff1 = AccountDiff.Create(inputAccount1, outputAccount1);
 
         // Assert.Equal(
@@ -320,7 +323,6 @@ public partial class BlockchainTest
             outputWorld1.GetBalance(addresses[2], DumbAction.DumbCurrency));
 
         var txExecution2 = repository.TxExecutions[tx2Error.Id];
-        // _logger.Verbose(nameof(txExecution2) + " = {@TxExecution}", txExecution2);
         Assert.True(txExecution2.Fail);
         Assert.Equal(block3.BlockHash, txExecution2.BlockHash);
         Assert.Equal(tx2Error.Id, txExecution2.TxId);
@@ -329,7 +331,6 @@ public partial class BlockchainTest
             txExecution2.ExceptionNames);
 
         var txExecution3 = repository.TxExecutions[tx3Transfer.Id];
-        // _logger.Verbose(nameof(txExecution3) + " = {@TxExecution}", txExecution3);
         Assert.False(txExecution3.Fail);
         var outputWorld3 = blockchain.GetWorld(
             Assert.IsType<HashDigest<SHA256>>(txExecution3.OutputState));
@@ -344,131 +345,151 @@ public partial class BlockchainTest
             outputWorld3.GetBalance(addresses[1], DumbAction.DumbCurrency));
     }
 
-    // [Fact]
-    // public void AppendModern()
-    // {
-    //     blockchain = TestUtils.MakeBlockChain();
-    //     var genesis = blockchain.Genesis;
-    //     var address1 = new Address([.. RandomUtility.Bytes(20)]);
-    //     var address2 = new Address([.. RandomUtility.Bytes(20)]);
-    //     var proposer = new PrivateKey();
-    //     var action1 = DumbModernAction.Create((address1, "foo"));
-    //     var action2 = DumbModernAction.Create((address2, "bar"));
-    //     var tx1 = new TransactionMetadata
-    //     {
-    //         Nonce = 0,
-    //         Signer = proposer.Address,
-    //         GenesisHash = genesis.BlockHash,
-    //         Actions = new[] { action1 }.ToBytecodes(),
-    //     }.Sign(proposer);
-    //     var tx2 = new TransactionMetadata
-    //     {
-    //         Nonce = 1,
-    //         Signer = proposer.Address,
-    //         GenesisHash = genesis.BlockHash,
-    //         Actions = new[] { action2 }.ToBytecodes(),
-    //     }.Sign(proposer);
-    //     var block1 = blockchain.ProposeBlock(proposer);
-    //     var commit1 = TestUtils.CreateBlockCommit(block1);
-    //     blockchain.Append(block1, commit1);
-    //     var world1 = blockchain.GetWorld();
-    //     Assert.Equal(
-    //         "foo",
-    //         world1.GetAccount(DumbModernAction.DumbModernAddress).GetValue(address1));
-    //     var block2 = blockchain.ProposeBlock(proposer);
-    //     blockchain.Append(block2, TestUtils.CreateBlockCommit(block2));
-    //     var world2 = blockchain.GetWorld();
-    //     Assert.Equal(
-    //         "bar",
-    //         world2.GetAccount(DumbModernAction.DumbModernAddress).GetValue(address2));
-    // }
+    [Fact]
+    public void AppendModern()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var accountAddress = Address.Parse("0123456789abcdef0123456789abcdef12345678");
+        var address1 = RandomUtility.Address(random);
+        var address2 = RandomUtility.Address(random);
+        var action1 = DumbAction.Create((address1, "foo")) with { AccountAddress = accountAddress };
+        var action2 = DumbAction.Create((address2, "bar")) with { AccountAddress = accountAddress };
 
-    // [Fact]
-    // public void AppendFailDueToInvalidBytesLength()
-    // {
-    //     DumbAction[] manyActions =
-    //         Enumerable.Repeat(DumbAction.Create((default, "_")), 200).ToArray();
-    //     PrivateKey signer = null;
-    //     int nonce = 0;
-    //     var heavyTxs = new List<Transaction>();
-    //     for (int i = 0; i < 100; i++)
-    //     {
-    //         if (i % 25 == 0)
-    //         {
-    //             nonce = 0;
-    //             signer = new PrivateKey();
-    //         }
+        blockchain.StagedTransactions.Add(proposer, new() { Actions = [action1] });
+        blockchain.StagedTransactions.Add(proposer, new() { Actions = [action2] });
+        blockchain.ProposeAndAppend(proposer);
 
-    //         Transaction heavyTx = _fx.MakeTransaction(
-    //             manyActions,
-    //             nonce: nonce,
-    //             privateKey: signer);
-    //         heavyTxs.Add(heavyTx);
-    //         nonce += 1;
-    //     }
+        var world1 = blockchain.GetWorld();
+        Assert.Equal(
+            "foo",
+            world1.GetAccount(accountAddress).GetValue(address1));
+        var block2 = blockchain.ProposeBlock(proposer);
+        blockchain.Append(block2, TestUtils.CreateBlockCommit(block2));
+        var world2 = blockchain.GetWorld();
+        Assert.Equal(
+            "bar",
+            world2.GetAccount(accountAddress).GetValue(address2));
+    }
 
-    //     var proposer = new PrivateKey();
-    //     var block = blockchain.ProposeBlock(proposer);
-    //     long maxBytes = blockchain.Options.BlockOptions.MaxTransactionsBytes;
-    //     Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
+    [Fact]
+    public void AppendFailDueToInvalidBytesLength()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var options = new BlockchainOptions
+        {
+        };
+        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
 
-    //     var e = Assert.Throws<InvalidOperationException>(() =>
-    //         blockchain.Append(block, TestUtils.CreateBlockCommit(block)));
-    // }
+        var manyActions = Enumerable.Repeat(DumbAction.Create((default, "_")), 200).ToArray();
+        var signer = RandomUtility.Signer(random);
+        int nonce = 0;
+        var txList = new List<Transaction>();
+        for (var i = 0; i < 100; i++)
+        {
+            if (i % 25 == 0)
+            {
+                nonce = 0;
+                signer = RandomUtility.Signer(random);
+            }
 
-    // [Fact]
-    // public void AppendFailDueToInvalidTxCount()
-    // {
-    //     int nonce = 0;
-    //     int maxTxs = blockchain.Options.BlockOptions.MaxTransactionsPerBlock;
-    //     var manyTxs = new List<Transaction>();
-    //     for (int i = 0; i <= maxTxs; i++)
-    //     {
-    //         Transaction heavyTx = _fx.MakeTransaction(
-    //             nonce: nonce,
-    //             privateKey: null);
-    //         manyTxs.Add(heavyTx);
-    //     }
+            var tx = new TransactionBuilder
+            {
+                Nonce = nonce,
+                GenesisBlockHash = genesisBlock.BlockHash,
+                Actions = manyActions,
+            }.Create(signer);
+            txList.Add(tx);
+            nonce++;
+        }
 
-    //     Assert.True(manyTxs.Count > maxTxs);
+        var block = new BlockBuilder
+        {
+            Height = 1,
+            PreviousHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Transactions = [.. txList],
+        }.Create(proposer);
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        var maxBytes = options.BlockOptions.MaxActionBytes;
+        Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
-    //     var proposer = new PrivateKey();
-    //     Block block = blockchain.ProposeBlock(proposer);
-    //     Assert.Equal(manyTxs.Count, block.Transactions.Count);
+        var e = Assert.Throws<ArgumentException>(() => blockchain.Append(block, blockCommit));
+        Assert.StartsWith("The size of block", e.Message);
+    }
 
-    //     var e = Assert.Throws<InvalidOperationException>(() =>
-    //         blockchain.Append(block, TestUtils.CreateBlockCommit(block)));
-    // }
+    [Fact]
+    public void AppendFailDueToInvalidTxCount()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var options = new BlockchainOptions
+        {
+        };
+        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
 
-    // // [Fact]
-    // // public void AppendWhenActionEvaluationFailed()
-    // // {
-    // //     var policy = BlockPolicy.Empty;
-    // //     var store = new Libplanet.Data.Store(new MemoryDatabase());
-    // //     var stateStore =
-    // //         new TrieStateStore();
-    // //     var actionLoader = new SingleActionLoader<ThrowException>();
-    // //     var renderer = new RecordingActionRenderer();
-    // //     BlockChain blockChain =
-    // //         TestUtils.MakeBlockChain(
-    // //             policy, store, stateStore, actionLoader, renderers: new[] { renderer });
-    // //     var privateKey = new PrivateKey();
+        var maxTxs = options.BlockOptions.MaxTransactions;
+        for (var i = 0; i <= maxTxs; i++)
+        {
+            blockchain.StagedTransactions.Add(proposer, new() { });
+        }
 
-    // //     var action = new ThrowException { ThrowOnExecution = true };
-    // //     blockChain.MakeTransaction(privateKey, new[] { action });
+        Assert.True(blockchain.StagedTransactions.Count > maxTxs);
 
-    // //     renderer.ResetRecords();
-    // //     Block block = blockChain.ProposeBlock(new PrivateKey());
-    // //     blockChain.Append(block, TestUtils.CreateBlockCommit(block));
+        var block = new BlockBuilder
+        {
+            Height = 1,
+            PreviousHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Transactions = [.. blockchain.StagedTransactions.Values],
+        }.Create(proposer);
+        var blockCommit = TestUtils.CreateBlockCommit(block);
+        Assert.True(block.Transactions.Count > maxTxs);
 
-    // //     Assert.Equal(2, blockChain.Count);
-    // //     Assert.Empty(renderer.ActionSuccessRecords);
-    // //     Assert.Single(renderer.ActionErrorRecords);
-    // //     RenderRecord.ActionError errorRecord = renderer.ActionErrorRecords[0];
-    // //     Assert.Equal(action.PlainValue, errorRecord.Action);
-    // //     Assert.IsType<UnexpectedlyTerminatedActionException>(errorRecord.Exception);
-    // //     Assert.IsType<ThrowException.SomeException>(errorRecord.Exception.InnerException);
-    // // }
+        var e = Assert.Throws<ArgumentException>(() => blockchain.Append(block, blockCommit));
+        Assert.Contains("should include at most", e.Message);
+    }
+
+    [Fact(Timeout = TestUtils.Timeout)]
+    public async Task AppendWhenActionEvaluationFailed()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var options = new BlockchainOptions
+        {
+        };
+        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var signer = RandomUtility.Signer(random);
+
+        var action = new ThrowException { ThrowOnExecution = true };
+        blockchain.StagedTransactions.Add(signer, @params: new() { Actions = [action] });
+
+        var blockExecutedTask = blockchain.BlockExecuted.WaitAsync();
+        blockchain.ProposeAndAppend(signer);
+        var blockExecution = await blockExecutedTask.WaitAsync(cancellationToken);
+
+        Assert.Equal(2, blockchain.Blocks.Count);
+        Assert.IsType<ThrowException.SomeException>(blockExecution.Executions.Single().Executions.Single().Exception);
+    }
 
     // [Fact]
     // public void AppendBlockWithPolicyViolationTx()
@@ -494,24 +515,24 @@ public partial class BlockchainTest
     //     };
     //     using (var fx = new MemoryStoreFixture(policy))
     //     {
-    //         var blockChain = new BlockChain(fx.GenesisBlock, policy);
+    //         var blockchain = new BlockChain(fx.GenesisBlock, policy);
 
-    //         var validTx = blockChain.StagedTransactions.Add(new TransactionSubmission
+    //         var validTx = blockchain.StagedTransactions.Add(new TransactionSubmission
     //         {
     //             Signer = validKey,
     //         });
-    //         var invalidTx = blockChain.StagedTransactions.Add(new TransactionSubmission
+    //         var invalidTx = blockchain.StagedTransactions.Add(new TransactionSubmission
     //         {
     //             Signer = invalidKey,
     //         });
 
     //         var proposer = new PrivateKey();
 
-    //         Block block1 = blockChain.ProposeBlock(proposer);
-    //         blockChain.Append(block1, TestUtils.CreateBlockCommit(block1));
+    //         Block block1 = blockchain.ProposeBlock(proposer);
+    //         blockchain.Append(block1, TestUtils.CreateBlockCommit(block1));
 
-    //         Block block2 = blockChain.ProposeBlock(proposer);
-    //         Assert.Throws<InvalidOperationException>(() => blockChain.Append(
+    //         Block block2 = blockchain.ProposeBlock(proposer);
+    //         Assert.Throws<InvalidOperationException>(() => blockchain.Append(
     //             block2, TestUtils.CreateBlockCommit(block2)));
     //     }
     // }
@@ -577,9 +598,9 @@ public partial class BlockchainTest
     //         },
     //     }
     //             ;
-    //     var blockChain = new BlockChain(_fx.GenesisBlock, options);
+    //     var blockchain = new BlockChain(_fx.GenesisBlock, options);
     //     Assert.Throws<InvalidOperationException>(
-    //         () => blockChain.Append(_fx.Block1, TestUtils.CreateBlockCommit(_fx.Block1)));
+    //         () => blockchain.Append(_fx.Block1, TestUtils.CreateBlockCommit(_fx.Block1)));
     // }
 
     // [Fact]
@@ -759,14 +780,14 @@ public partial class BlockchainTest
     // var genesis = preEvalGenesis.Sign(
     //     fx.Proposer,
     //     blockExecutor.Evaluate(preEvalGenesis, default)[^1].OutputWorld.Trie.Hash);
-    // var blockChain = new BlockChain(
+    // var blockchain = new BlockChain(
     //     options: options,
     //     genesisBlock: genesis);
-    // var emptyBlock = blockChain.ProposeBlock(fx.Proposer);
-    // blockChain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
+    // var emptyBlock = blockchain.ProposeBlock(fx.Proposer);
+    // blockchain.Append(emptyBlock, TestUtils.CreateBlockCommit(emptyBlock));
     //     Assert.Equal<byte>(
-    //         blockChain.GetWorld(genesis.StateRootHash).Trie.Hash.Bytes,
-    //         blockChain.GetWorldState(emptyBlock.BlockHash).Trie.Hash.Bytes);
+    //         blockchain.GetWorld(genesis.StateRootHash).Trie.Hash.Bytes,
+    //         blockchain.GetWorldState(emptyBlock.BlockHash).Trie.Hash.Bytes);
     // }
 
     // [Fact]
@@ -788,7 +809,7 @@ public partial class BlockchainTest
     //         blockExecutor.Evaluate(preGenesis, default)[^1].OutputWorld.Trie.Hash);
     //     Assert.Equal(beforePostponeBPV, genesis.Version);
 
-    //     var blockChain = TestUtils.MakeBlockChain(
+    //     var blockchain = TestUtils.MakeBlockChain(
     //         options,
     //         genesisBlock: genesis);
 
@@ -813,7 +834,7 @@ public partial class BlockchainTest
     //             preBlockBeforeBump, genesis.StateRootHash)[^1].OutputWorld.Trie.Hash);
     //     Assert.Equal(beforePostponeBPV, blockBeforeBump.Version);
     //     var commitBeforeBump = TestUtils.CreateBlockCommit(blockBeforeBump);
-    //     blockChain.Append(blockBeforeBump, commitBeforeBump);
+    //     blockchain.Append(blockBeforeBump, commitBeforeBump);
 
     //     // Append block after state root hash postpone - previous block is not bumped
     //     action = DumbAction.Create((new Address([.. RandomUtility.Bytes(20)]), "bar"));
@@ -824,12 +845,12 @@ public partial class BlockchainTest
     //         GenesisHash = genesis.BlockHash,
     //         Actions = new[] { action }.ToBytecodes(),
     //     }.Sign(proposer);
-    //     var blockAfterBump1 = blockChain.ProposeBlock(proposer);
+    //     var blockAfterBump1 = blockchain.ProposeBlock(proposer);
     //     Assert.Equal(
     //         BlockHeader.CurrentProtocolVersion,
     //         blockAfterBump1.Version);
     //     var commitAfterBump1 = TestUtils.CreateBlockCommit(blockAfterBump1);
-    //     blockChain.Append(blockAfterBump1, commitAfterBump1);
+    //     blockchain.Append(blockAfterBump1, commitAfterBump1);
     //     Assert.Equal(blockBeforeBump.StateRootHash, blockAfterBump1.StateRootHash);
 
     //     // Append block after state root hash postpone - previous block is bumped
@@ -841,12 +862,12 @@ public partial class BlockchainTest
     //         GenesisHash = genesis.BlockHash,
     //         Actions = new[] { action }.ToBytecodes(),
     //     }.Sign(proposer);
-    //     var blockAfterBump2 = blockChain.ProposeBlock(proposer);
+    //     var blockAfterBump2 = blockchain.ProposeBlock(proposer);
     //     Assert.Equal(
     //         BlockHeader.CurrentProtocolVersion,
     //         blockAfterBump2.Version);
     //     var commitAfterBump2 = TestUtils.CreateBlockCommit(blockAfterBump2);
-    //     blockChain.Append(blockAfterBump2, commitAfterBump2);
+    //     blockchain.Append(blockAfterBump2, commitAfterBump2);
     //     Assert.Equal(
     //         blockExecutor.Evaluate(
     //             (RawBlock)blockAfterBump1, blockAfterBump1.StateRootHash)[^1].OutputWorld.Trie.Hash,

@@ -1,11 +1,11 @@
-using Libplanet.Types;
+// using Libplanet.Types;
 
-namespace Libplanet;
+// namespace Libplanet;
 
-public sealed record class EvidenceOptions
-{
-    public long MaxEvidencePendingDuration { get; init; } = 10L;
+// public sealed record class EvidenceOptions
+// {
+//     public long MaxEvidencePendingDuration { get; init; } = 10L;
 
-    internal bool IsEvidenceExpired(EvidenceBase evidence, int height)
-        => evidence.Height + MaxEvidencePendingDuration + evidence.Height < height;
-}
+//     internal bool IsEvidenceExpired(EvidenceBase evidence, int height)
+//         => evidence.Height + MaxEvidencePendingDuration + evidence.Height < height;
+// }

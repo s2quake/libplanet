@@ -174,6 +174,13 @@ public class Repository
             }
         }
 
+        if (_height >= 0 && _height + 1 != block.Height)
+        {
+            throw new ArgumentException(
+                "Block height does not match the current height + 1.",
+                nameof(block));
+        }
+
         Nonces.Validate(block);
 
         BlockDigests.Add(block);

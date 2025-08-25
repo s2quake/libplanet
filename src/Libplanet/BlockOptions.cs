@@ -1,77 +1,78 @@
-using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet;
 
 public sealed record class BlockOptions
 {
-    public long MaxTransactionsBytes { get; init; } = 100L * 1024L;
+    public long MaxActionBytes { get; init; } = 100L * 1024L;
 
-    public int MinTransactionsPerBlock { get; init; } = 0;
+    public int MinTransactions { get; init; } = 0;
 
-    public int MaxTransactionsPerBlock { get; init; } = 100;
+    public int MaxTransactions { get; init; } = 100;
 
-    public int MaxTransactionsPerSignerPerBlock { get; init; } = 100;
+    public int MaxTransactionsPerSigner { get; init; } = 100;
 
-    public long MaxEvidencePendingDuration { get; init; } = 10L;
+    public long EvidencePendingDuration { get; init; } = 10L;
 
-    public IObjectValidator<Block> Validator { get; init; } = new RelayObjectValidator<Block>();
+    public int MaxEvidence { get; init; } = 10;
+
+    public ImmutableArray<IObjectValidator<Block>> Validators { get; init; } = [];
 
     public void Validate(Block block)
     {
-        Validator.Validate(block);
-
-        long maxTransactionsBytes = MaxTransactionsBytes;
-        int minTransactionsPerBlock = MinTransactionsPerBlock;
-        int maxTransactionsPerBlock = MaxTransactionsPerBlock;
-        int maxTransactionsPerSignerPerBlock = MaxTransactionsPerSignerPerBlock;
-        long maxEvidencePendingDuration = MaxEvidencePendingDuration;
-
-        long blockBytes = ModelSerializer.SerializeToBytes(block.Transactions).Length;
-        if (blockBytes > maxTransactionsBytes)
+        foreach (var validator in Validators)
         {
-            throw new InvalidOperationException(
-                $"The size of block #{block.Height} {block.BlockHash} is too large where " +
-                $"the maximum number of bytes allowed is {maxTransactionsBytes}: " +
-                $"{blockBytes}.");
+            validator.Validate(block);
         }
-        else if (block.Transactions.Count < minTransactionsPerBlock)
+
+        var actionBytes = block.Transactions.SelectMany(item => item.Actions)
+            .Select(item => item.Bytes.Length)
+            .Aggregate(0, (s, i) => s + i);
+
+        if (actionBytes > MaxActionBytes)
         {
-            throw new InvalidOperationException(
+            throw new ArgumentException(
+                $"The size of block #{block.Height} {block.BlockHash} " +
+                $"actions ({actionBytes} bytes) exceeds the limit of {MaxActionBytes} bytes.");
+        }
+        else if (block.Transactions.Count < MinTransactions)
+        {
+            throw new ArgumentException(
                 $"Block #{block.Height} {block.BlockHash} should include " +
-                $"at least {minTransactionsPerBlock} transaction(s): " +
+                $"at least {MinTransactions} transaction(s): " +
                 $"{block.Transactions.Count}");
         }
-        else if (block.Transactions.Count > maxTransactionsPerBlock)
+        else if (block.Transactions.Count > MaxTransactions)
         {
-            throw new InvalidOperationException(
+            throw new ArgumentException(
                 $"Block #{block.Height} {block.BlockHash} should include " +
-                $"at most {maxTransactionsPerBlock} transaction(s): " +
+                $"at most {MaxTransactions} transaction(s): " +
                 $"{block.Transactions.Count}");
         }
         else
         {
-            var groups = block.Transactions
-                .GroupBy(tx => tx.Signer)
-                .Where(group => group.Count() > maxTransactionsPerSignerPerBlock);
-            if (groups.FirstOrDefault() is { } offendingGroup)
+            var query = from tx in block.Transactions
+                        group tx by tx.Signer into @group
+                        where @group.Count() > MaxTransactionsPerSigner
+                        select new { Signer = @group.Key, Count = @group.Count() };
+            if (query.FirstOrDefault() is { } item)
             {
-                int offendingGroupCount = offendingGroup.Count();
-                throw new InvalidOperationException(
-                    $"Block #{block.Height} {block.BlockHash} includes too many " +
-                    $"transactions from signer {offendingGroup.Key} where " +
-                    $"the maximum number of transactions allowed by a single signer " +
-                    $"per block is {maxTransactionsPerSignerPerBlock}: " +
-                    $"{offendingGroupCount}");
+                throw new ArgumentException(
+                    $"Block #{block.Height} {block.BlockHash} includes " +
+                    $"{item.Count} transactions from the same signer {item.Signer}, " +
+                    $"which exceeds the limit of {MaxTransactionsPerSigner}.");
             }
         }
 
-        long evidenceExpirationHeight = block.Height - maxEvidencePendingDuration;
+        var evidenceExpirationHeight = block.Height - EvidencePendingDuration;
         if (block.Evidences.Any(evidence => evidence.Height < evidenceExpirationHeight))
         {
-            throw new InvalidOperationException(
-                $"Block #{block.Height} {block.BlockHash} includes evidence" +
-                $"that is older than expiration height {evidenceExpirationHeight}");
+            throw new ArgumentException(
+                $"Block #{block.Height} {block.BlockHash} includes " +
+                $"evidences that are expired (height < {evidenceExpirationHeight}).");
         }
     }
+
+    internal bool IsEvidenceExpired(EvidenceBase evidence, int height)
+        => evidence.Height + EvidencePendingDuration + evidence.Height < height;
 }

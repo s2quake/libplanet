@@ -12,6 +12,8 @@ namespace Libplanet.Tests;
 
 public static class TestUtils
 {
+    public const int Timeout = 30000;
+    
     public static readonly ImmutableArray<ISigner> Signers =
     [
         PrivateKey.Parse("e5792a1518d9c7f7ecc35cd352899211a05164c9dde059c9811e0654860549ef").AsSigner(),

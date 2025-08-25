@@ -33,10 +33,10 @@ internal sealed class BlockChainService(
             // BlockInterval = TimeSpan.FromSeconds(8),
             BlockOptions = new BlockOptions
             {
-                MaxTransactionsBytes = long.MaxValue,
-                MinTransactionsPerBlock = 0,
-                MaxTransactionsPerBlock = int.MaxValue,
-                MaxTransactionsPerSignerPerBlock = int.MaxValue,
+                MaxActionBytes = long.MaxValue,
+                MinTransactions = 0,
+                MaxTransactions = int.MaxValue,
+                MaxTransactionsPerSigner = int.MaxValue,
             },
         };
 

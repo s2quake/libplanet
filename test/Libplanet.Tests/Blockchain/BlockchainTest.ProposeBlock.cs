@@ -18,7 +18,7 @@ public partial class BlockchainTest
     public void ProposeBlock()
     {
         var random = RandomUtility.GetRandom(_output);
-        var maxTransactionsBytes = _options.BlockOptions.MaxTransactionsBytes;
+        var maxTransactionsBytes = _options.BlockOptions.MaxActionBytes;
         Assert.Single(_blockchain.Blocks);
         Assert.Equal(
             $"{GenesisProposer.Address}",
