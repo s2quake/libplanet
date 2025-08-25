@@ -186,4 +186,12 @@ public static partial class RandomUtility
         Content = BlockContent(random),
         Signature = ImmutableArray(random, Byte),
     };
+
+    public static Validator Validator() => Validator(System.Random.Shared);
+
+    public static Validator Validator(Random random) => new()
+    {
+        Address = Address(random),
+        Power = System.Numerics.BigInteger.One,
+    };
 }

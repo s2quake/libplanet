@@ -7,6 +7,7 @@ using Libplanet.Tests.Store;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
+using Xunit.Internal;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Blockchain;
@@ -140,8 +141,16 @@ public partial class BlockchainTest : IDisposable
     [Fact]
     public void Validators()
     {
-        var validators = _blockchain.GetWorld().GetValidators();
-        Assert.Equal(TestUtils.Validators, validators);
+        var random = RandomUtility.GetRandom(_output);
+        var validators = RandomUtility.Array(random, RandomUtility.Validator, 4);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = [..validators],
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var actualValidators = blockchain.GetWorld().GetValidators();
+        Assert.Equal(validators, actualValidators);
     }
 
     [Fact]
@@ -997,14 +1006,6 @@ public partial class BlockchainTest : IDisposable
             rewardState);
     }
 
-    /// Configures the store fixture that every test in this class depends on.
-    /// Subclasses should override this.
-    /// </summary>
-    /// <param name="policyActions">The policy block actions to use.</param>
-    /// <returns>The store fixture that every test in this class depends on.</returns>
-    protected virtual RepositoryFixture GetStoreFixture(BlockchainOptions? options = null)
-        => new MemoryRepositoryFixture(options ?? new());
-
     [Fact]
     public async Task TipChanged()
     {
@@ -1088,4 +1089,165 @@ public partial class BlockchainTest : IDisposable
             Assert.Equal(states[i], i.ToString());
         }
     }
+
+    [Fact]
+    public void FilterLowerNonceTxAfterStaging()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var signer = RandomUtility.Signer(random);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+
+        var txsA = Enumerable.Range(0, 3)
+            .Select(nonce => new TransactionBuilder
+            {
+                Nonce = nonce,
+                GenesisBlockHash = genesisBlock.BlockHash,
+            }.Create(signer))
+            .ToArray();
+        blockchain.StagedTransactions.AddRange(txsA);
+
+        var (block1, _) = blockchain.ProposeAndAppend(signer);
+        Assert.Equal(txsA, block1.Transactions);
+
+        var txsB = Enumerable.Range(0, 4)
+            .Select(nonce => new TransactionBuilder
+            {
+                Nonce = nonce,
+                GenesisBlockHash = genesisBlock.BlockHash,
+            }.Create(signer))
+            .ToArray();
+        blockchain.StagedTransactions.AddRange(txsB);
+
+        // Stage only txs having higher or equal with nonce than expected nonce.
+        Assert.Equal(4, blockchain.StagedTransactions.Count);
+
+        var block2 = blockchain.ProposeBlock(signer);
+        var tx = Assert.Single(block2.Transactions);
+        Assert.Equal(3, tx.Nonce);
+    }
+
+    [Fact]
+    public void CheckIfTxPolicyExceptionHasInnerException()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = TestUtils.Validators,
+        }.Create(proposer);
+        var options = new BlockchainOptions
+        {
+            TransactionOptions = new TransactionOptions
+            {
+                Validators =
+                [
+                    new RelayObjectValidator<Transaction>(
+                        obj => throw new InvalidOperationException("tx always throws")),
+                ],
+            },
+        };
+        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+
+        var signer = RandomUtility.Signer(random);
+        _ = blockchain.StagedTransactions.Add(signer, @params: new());
+        var block = blockchain.ProposeBlock(proposer);
+        var blockCommit = CreateBlockCommit(block);
+
+        var e = Assert.Throws<InvalidOperationException>(() => blockchain.Append(block, blockCommit));
+        Assert.Equal("tx always throws", e.Message);
+    }
+
+    [Fact]
+    public void ValidateNextBlockCommitOnValidatorSetChange()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var signersA = RandomUtility.Array(random, RandomUtility.Signer, 4).OrderBy(signer => signer.Address);
+        var newSigner = RandomUtility.Signer(random);
+        var signersB = signersA.Concat([newSigner]).OrderBy(signer => signer.Address);
+        var validatorsA = signersA.Select(signer => new Validator { Address = signer.Address });
+        var validatorsB = signersB.Select(signer => new Validator { Address = signer.Address });
+        var newValidator = validatorsB.First(item => item.Address == newSigner.Address);
+
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Validators = [.. validatorsA],
+        }.Create(proposer);
+
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+
+        blockchain.StagedTransactions.Add(RandomUtility.Signer(random), @params: new()
+        {
+            Actions = [new SetValidator { Validator = newValidator }],
+        });
+        var block1 = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var blockCommit1 = new BlockCommit
+        {
+            Height = block1.Height,
+            Round = 0,
+            BlockHash = block1.BlockHash,
+            Votes =
+            [
+                .. validatorsA.Zip(signersA, (v, s) => new VoteBuilder
+                    {
+                        Validator = v,
+                        Block = block1,
+                    }.Create(s))
+            ],
+        };
+        blockchain.Append(block1, blockCommit1);
+
+        blockchain.StagedTransactions.Add(RandomUtility.Signer(random), @params: new()
+        {
+            Actions = [new SetValidator { Validator = RandomUtility.Validator(random) }],
+        });
+        var block2 = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var blockCommit2 = new BlockCommit
+        {
+            Height = block2.Height,
+            Round = 0,
+            BlockHash = block2.BlockHash,
+            Votes =
+            [
+                .. validatorsB.Zip(signersB, (v, s) => new VoteBuilder
+                    {
+                        Validator = v,
+                        Block = block2,
+                    }.Create(s))
+            ],
+        };
+        blockchain.Append(block2, blockCommit2);
+
+        blockchain.StagedTransactions.Add(RandomUtility.Signer(random), @params: new()
+        {
+            Actions = [new SetValidator { Validator = RandomUtility.Validator(random) }],
+        });
+        var block3 = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var blockCommit3 = new BlockCommit
+        {
+            Height = block3.Height,
+            Round = 0,
+            BlockHash = block3.BlockHash,
+            Votes =
+            [
+                .. validatorsB.Zip(signersB, (v, s) => new VoteBuilder
+                    {
+                        Validator = v,
+                        Block = block3,
+                    }.Create(s))
+            ],
+        };
+
+        Assert.Throws<ArgumentException>("blockCommit", () => blockchain.Append(block3, blockCommit3));
+        Assert.Equal(blockchain.GetWorld(0).GetValidators(), [.. validatorsA]);
+        Assert.Equal(blockchain.GetWorld(1).GetValidators(), [.. validatorsB]);
+    }
+
+    protected virtual RepositoryFixture GetStoreFixture(BlockchainOptions? options = null)
+        => new MemoryRepositoryFixture(options ?? new());
 }

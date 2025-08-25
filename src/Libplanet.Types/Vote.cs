@@ -32,7 +32,7 @@ public sealed partial record class Vote : IValidatableObject
     {
         if (Signature.Length > 0 && !Metadata.Verify(Signature.AsSpan()))
         {
-            yield return new ValidationResult($"Given {nameof(Signature)} is invalid.", [nameof(Signature)]);
+            yield return new ValidationResult($"Given {nameof(Signature)} of Vote is invalid.", [nameof(Signature)]);
         }
     }
 }

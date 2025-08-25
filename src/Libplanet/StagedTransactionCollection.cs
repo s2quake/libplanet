@@ -9,18 +9,22 @@ using System.Reactive.Subjects;
 
 namespace Libplanet;
 
-public sealed class StagedTransactionCollection(Repository repository, TransactionOptions options)
-    : IReadOnlyDictionary<TxId, Transaction>
+public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Transaction>
 {
     private readonly Subject<Transaction> _addedSubject = new();
     private readonly Subject<Transaction> _removedSubject = new();
-    private readonly PendingTransactionIndex _stagedIndex = repository.PendingTransactions;
-    private readonly CommittedTransactionIndex _committedIndex = repository.CommittedTransactions;
+    private readonly Repository _repository;
+    private readonly PendingTransactionIndex _stagedIndex;
+    private readonly CommittedTransactionIndex _committedIndex;
     private readonly ConcurrentDictionary<Address, ImmutableArray<long>> _noncesByAddress = new();
 
-    public StagedTransactionCollection(Repository repository)
-        : this(repository, new TransactionOptions())
+    public StagedTransactionCollection(Repository repository, TransactionOptions options)
     {
+        _repository = repository;
+        _stagedIndex = repository.PendingTransactions;
+        _committedIndex = repository.CommittedTransactions;
+        Lifetime = options.LifeTime;
+
         foreach (var transaction in _stagedIndex.Values)
         {
             var address = transaction.Signer;
@@ -32,11 +36,16 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
         }
     }
 
+    public StagedTransactionCollection(Repository repository)
+        : this(repository, new TransactionOptions())
+    {
+    }
+
     public IObservable<Transaction> Added => _addedSubject;
 
     public IObservable<Transaction> Removed => _removedSubject;
 
-    public TimeSpan Lifetime { get; } = options.LifeTime;
+    public TimeSpan Lifetime { get; }
 
     public IEnumerable<TxId> Keys => _stagedIndex.Keys;
 
@@ -54,14 +63,14 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
                 $"Transaction {transaction.Id} already exists in the committed transactions.", nameof(transaction));
         }
 
-        if (repository.GenesisBlockHash != transaction.GenesisBlockHash)
+        if (_repository.GenesisBlockHash != transaction.GenesisBlockHash)
         {
             throw new ArgumentException(
                 $"Transaction {transaction.Id} has a different genesis hash than the repository's genesis block.",
                 nameof(transaction));
         }
 
-        options.Validate(transaction);
+        // options.Validate(transaction);
 
         if (!_stagedIndex.TryAdd(transaction))
         {
@@ -79,7 +88,7 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
         {
             Nonce = GetNextTxNonce(signer.Address),
             Signer = signer.Address,
-            GenesisBlockHash = repository.GenesisBlockHash,
+            GenesisBlockHash = _repository.GenesisBlockHash,
             Actions = @params.Actions.ToBytecodes(),
             Timestamp = @params.Timestamp == default ? DateTimeOffset.UtcNow : @params.Timestamp,
             MaxGasPrice = @params.MaxGasPrice,
@@ -127,17 +136,19 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
 
     public ImmutableSortedSet<Transaction> Collect(int maxTransactionsPerBlock)
     {
-        var items = Values.OrderBy(item => item.Nonce).ThenBy(item => item.Timestamp).ToArray();
+        var items = Values.Where(item => !IsExpired(item, Lifetime))
+            .OrderBy(item => item.Nonce)
+            .ThenBy(item => item.Timestamp).ToArray();
         var itemList = new List<Transaction>(items.Length);
+        var nonceByAddress = new Dictionary<Address, long>();
         foreach (var item in items)
         {
-            if (IsExpired(item, Lifetime))
-            {
-                Remove(item.Id);
-            }
-            else
+            var signer = item.Signer;
+            var nonce = nonceByAddress.GetValueOrDefault(signer, _repository.GetNonce(signer));
+            if (nonce == item.Nonce)
             {
                 itemList.Add(item);
+                nonceByAddress[signer] = nonce + 1;
             }
 
             if (itemList.Count >= maxTransactionsPerBlock)
@@ -169,13 +180,10 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
             return n;
         }
 
-        return repository.GetNonce(address);
+        return _repository.GetNonce(address);
     }
 
-    private static bool IsExpired(Transaction transaction, TimeSpan lifetime)
-    {
-        return transaction.Timestamp + lifetime < DateTimeOffset.UtcNow;
-    }
+
 
     public bool ContainsKey(TxId txId) => _stagedIndex.ContainsKey(txId);
 
@@ -196,6 +204,16 @@ public sealed class StagedTransactionCollection(Repository repository, Transacti
         {
             yield return kvp;
         }
+    }
+
+    private static bool IsExpired(Transaction transaction, TimeSpan lifetime)
+        => transaction.Timestamp + lifetime < DateTimeOffset.UtcNow;
+
+    private bool IsValidNonce(Transaction transaction)
+    {
+        var address = transaction.Signer;
+        var nonce = transaction.Nonce;
+        return _noncesByAddress.TryGetValue(address, out var nonces) && nonces.Contains(nonce);
     }
 
     private void AddNonce(Transaction transaction)

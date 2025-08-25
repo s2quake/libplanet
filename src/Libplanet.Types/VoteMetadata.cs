@@ -7,6 +7,7 @@ namespace Libplanet.Types;
 public sealed partial record class VoteMetadata
 {
     [Property(0)]
+    [NotDefault]
     public required Address Validator { get; init; }
 
     [Property(1)]
@@ -21,6 +22,7 @@ public sealed partial record class VoteMetadata
     public int Round { get; init; }
 
     [Property(4)]
+    [NotDefault]
     public DateTimeOffset Timestamp { get; init; }
 
     [Property(5)]
@@ -38,6 +40,12 @@ public sealed partial record class VoteMetadata
 
     public Vote Sign(ISigner signer)
     {
+        if (signer.Address != Validator)
+        {
+            throw new ArgumentException(
+                $"The given {nameof(signer)} does not match the vote validator.", nameof(signer));
+        }
+
         var options = new ModelOptions
         {
             IsValidationEnabled = true,

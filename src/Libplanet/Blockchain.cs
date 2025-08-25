@@ -147,8 +147,19 @@ public partial class Blockchain
                 $"Block {block.BlockHash} already exists in the store.");
         }
 
-        block.Validate(this);
-        blockCommit.Validate(block);
+        if (_repository.GenesisHeight != block.Height)
+        {
+            block.Validate(this);
+            blockCommit.Validate(block);
+
+            var validators = this.GetValidators(block.Height);
+            validators.ValidateBlockCommitValidators(blockCommit);
+
+            foreach (var tx in block.Transactions)
+            {
+                Options.TransactionOptions.Validate(tx);
+            }
+        }
 
         _repository.Append(block, blockCommit);
         _repository.Height = block.Height;

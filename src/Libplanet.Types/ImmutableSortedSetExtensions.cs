@@ -46,47 +46,47 @@ public static class ImmutableSortedSetExtensions
                 .SequenceEqual(
                     blockCommit.Votes.Select(vote => vote.Validator).ToList()))
         {
-            throw new InvalidOperationException(
-                $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
+            var message = $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
                 $"has different validator set with chain state's validator set: \n" +
                 $"in states | \n " +
                 @this.Aggregate(
                     string.Empty, (s, v) => s + v.Address + ", \n") +
                 $"in blockCommit | \n " +
                 blockCommit.Votes.Aggregate(
-                    string.Empty, (s, v) => s + v.Validator + ", \n"));
+                    string.Empty, (s, v) => s + v.Validator + ", \n");
+            throw new ArgumentException(message, nameof(blockCommit));
         }
 
         if (!blockCommit.Votes.All(
             v => v.ValidatorPower == GetValidator(@this, v.Validator).Power))
         {
-            throw new InvalidOperationException(
-                $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
+            var message = $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
                 $"has different validator power with chain state's validator set: \n" +
                 $"in states | \n " +
                 @this.Aggregate(
                     string.Empty, (s, v) => s + v.Power + ", \n") +
                 $"in blockCommit | \n " +
                 blockCommit.Votes.Aggregate(
-                    string.Empty, (s, v) => s + v.ValidatorPower + ", \n"));
+                    string.Empty, (s, v) => s + v.ValidatorPower + ", \n");
+            throw new ArgumentException(message, nameof(blockCommit));
         }
     }
 
-    public static void ValidateLegacyBlockCommitValidators(
-        this ImmutableSortedSet<Validator> @this, BlockCommit blockCommit)
-    {
-        if (!@this.Select(validator => validator.Address).SequenceEqual(
-            blockCommit.Votes.Select(vote => vote.Validator).ToList()))
-        {
-            throw new InvalidOperationException(
-                $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
-                $"has different validator set with chain state's validator set: \n" +
-                $"in states | \n " +
-                @this.Aggregate(
-                    string.Empty, (s, key) => s + key + ", \n") +
-                $"in blockCommit | \n " +
-                blockCommit.Votes.Aggregate(
-                    string.Empty, (s, key) => s + key.Validator + ", \n"));
-        }
-    }
+    // public static void ValidateLegacyBlockCommitValidators(
+    //     this ImmutableSortedSet<Validator> @this, BlockCommit blockCommit)
+    // {
+    //     if (!@this.Select(validator => validator.Address).SequenceEqual(
+    //         blockCommit.Votes.Select(vote => vote.Validator).ToList()))
+    //     {
+    //         throw new InvalidOperationException(
+    //             $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
+    //             $"has different validator set with chain state's validator set: \n" +
+    //             $"in states | \n " +
+    //             @this.Aggregate(
+    //                 string.Empty, (s, key) => s + key + ", \n") +
+    //             $"in blockCommit | \n " +
+    //             blockCommit.Votes.Aggregate(
+    //                 string.Empty, (s, key) => s + key.Validator + ", \n"));
+    //     }
+    // }
 }
