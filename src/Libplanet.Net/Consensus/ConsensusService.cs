@@ -308,7 +308,7 @@ public sealed partial class ConsensusService : ServiceBase
         });
     }
 
-    private void Blockchain_TipChanged(TipChangedInfo e)
+    private void Blockchain_TipChanged(Block e)
     {
         _tipChangedTime = DateTimeOffset.UtcNow;
     }

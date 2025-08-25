@@ -211,7 +211,7 @@ public sealed class ConsensusClassicTest
         var preCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit);
         var endCommitStepTask = consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.EndCommit);
 
-        var tipChangedTask = blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 1);
+        var tipChangedTask = blockchain.TipChanged.WaitAsync(e => e.Height == 1);
 
         var action = new DelayAction(100);
         _ = blockchain.StagedTransactions.Add(Signers[1], new()
@@ -361,7 +361,7 @@ public sealed class ConsensusClassicTest
             TargetBlockInterval = TimeSpan.FromMilliseconds(100),
         };
         var consensusService = new ConsensusService(Signers[0], blockchain, transport, options);
-        var tipChangedTask = blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 1);
+        var tipChangedTask = blockchain.TipChanged.WaitAsync(e => e.Height == 1);
         var heightChangedTask = consensusService.HeightChanged.WaitAsync(e => e == 2);
 
         _ = blockchain.StagedTransactions.Add(Signers[1], new()

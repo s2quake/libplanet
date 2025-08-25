@@ -12,7 +12,7 @@ namespace Libplanet;
 public partial class Blockchain
 {
     private readonly Subject<Unit> _blockExecutingSubject = new();
-    private readonly Subject<TipChangedInfo> _tipChangedSubject = new();
+    private readonly Subject<Block> _tipChangedSubject = new();
     private readonly Subject<(Block, BlockCommit)> _appendedSubject = new();
     private readonly Repository _repository;
     private readonly BlockExecutor _blockExecutor;
@@ -80,7 +80,7 @@ public partial class Blockchain
 
     public IObservable<BlockExecutionInfo> BlockExecuted => _blockExecutor.BlockExecuted;
 
-    public IObservable<TipChangedInfo> TipChanged => _tipChangedSubject;
+    public IObservable<Block> TipChanged => _tipChangedSubject;
 
     public IObservable<(Block, BlockCommit)> Appended => _appendedSubject;
 
@@ -152,7 +152,7 @@ public partial class Blockchain
 
         _repository.Append(block, blockCommit);
         _repository.Height = block.Height;
-        _tipChangedSubject.OnNext(new(block));
+        _tipChangedSubject.OnNext(block);
         _blockExecutingSubject.OnNext(Unit.Default);
         var execution = _blockExecutor.Execute((RawBlock)block);
         _repository.StateRootHash = execution.OutputWorld.Hash;

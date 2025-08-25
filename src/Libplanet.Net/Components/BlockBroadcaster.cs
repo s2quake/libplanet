@@ -17,7 +17,7 @@ public sealed class BlockBroadcaster : IDisposable
     {
         _subscription = blockchain.TipChanged.Subscribe(e =>
         {
-            var tip = e.Tip;
+            var tip = e;
             var message = new BlockSummaryMessage
             {
                 GenesisBlockHash = blockchain.Genesis.BlockHash,

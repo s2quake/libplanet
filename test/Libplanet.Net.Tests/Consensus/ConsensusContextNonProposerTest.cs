@@ -140,7 +140,7 @@ public class ConsensusContextNonProposerTest
         await TaskUtility.WhenAll(
             timeout: WaitTimeout5,
             consensusServiceB.StepChanged.WaitAsync(e => e == ConsensusStep.EndCommit && consensusServiceB.Height == 2),
-            blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 2));
+            blockchain.TipChanged.WaitAsync(e => e.Height == 2));
 
         var block3 = blockchain.ProposeBlock(Signers[3]);
         var proposal3 = new ProposalBuilder

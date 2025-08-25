@@ -39,7 +39,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
             e => consensusService.Height == 4 && e == ConsensusStep.Propose);
         var proposedTask3 = consensusService.BlockProposed.WaitAsync(
             e => e.Height == 3);
-        var tipChangedTask3 = blockchain.TipChanged.WaitAsync(e => e.Tip.Height == 3L);
+        var tipChangedTask3 = blockchain.TipChanged.WaitAsync(e => e.Height == 3L);
 
         blockchain.ProposeAndAppend(Signers[1]);
         blockchain.ProposeAndAppend(Signers[2]);
