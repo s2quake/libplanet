@@ -137,7 +137,7 @@ public sealed class ConsensusClassicTest
     {
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
-        var block = blockchain.ProposeBlock(Signers[0]);
+        var block = blockchain.Propose(Signers[0]);
         var proposal = new ProposalBuilder
         {
             Block = block,
@@ -218,7 +218,7 @@ public sealed class ConsensusClassicTest
         {
             Actions = [action],
         });
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
@@ -280,8 +280,8 @@ public sealed class ConsensusClassicTest
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[0], consensus, blockchain);
-        var blockA = blockchain.ProposeBlock(Signers[1]);
-        var blockB = blockchain.ProposeBlock(Signers[1]);
+        var blockA = blockchain.Propose(Signers[1]);
+        var blockB = blockchain.Propose(Signers[1]);
         await consensus.StartAsync(cancellationToken);
         Assert.Equal(ConsensusStep.Propose, consensus.Step);
 
@@ -368,7 +368,7 @@ public sealed class ConsensusClassicTest
         {
             Actions = [new DelayAction(actionDelay)],
         });
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
@@ -429,7 +429,7 @@ public sealed class ConsensusClassicTest
         };
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 1, options);
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,

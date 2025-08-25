@@ -137,7 +137,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
         // Tests if MineBlock() method will throw an exception if less than the minimum
         // transactions are present
         Assert.Throws<OperationCanceledException>(
-            () => chain.ProposeBlock(RandomUtility.Signer()));
+            () => chain.Propose(RandomUtility.Signer()));
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
                 .ToList();
         Assert.Equal(generatedTxCount, chain.StagedTransactions.Collect().Count);
 
-        var block = chain.ProposeBlock(signer);
+        var block = chain.Propose(signer);
         Assert.Equal(policyLimit, block.Transactions.Count);
     }
 
@@ -203,7 +203,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
 
         Assert.Equal(generatedTxCount * keyCount, blockchain.StagedTransactions.Collect().Count);
 
-        var block = blockchain.ProposeBlock(minerSigner);
+        var block = blockchain.Propose(minerSigner);
         Assert.Equal(policyLimit * keyCount, block.Transactions.Count);
 
         foreach (var signer in signers)

@@ -54,7 +54,7 @@ internal sealed class SoloProposeService : BackgroundService
     private void ProposeBlock()
     {
         var signer = _privateKey.AsSigner();
-        var block = _blockChain.ProposeBlock(signer);
+        var block = _blockChain.Propose(signer);
         var blockCommit = new BlockCommit
         {
             BlockHash = block.BlockHash,

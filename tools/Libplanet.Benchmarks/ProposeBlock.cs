@@ -113,31 +113,31 @@ namespace Libplanet.Benchmarks
         [Benchmark]
         public void ProposeBlockEmpty()
         {
-            _block = _blockChain.ProposeBlock(_signer);
+            _block = _blockChain.Propose(_signer);
         }
 
         [Benchmark]
         public void ProposeBlockOneTransactionNoAction()
         {
-            _block = _blockChain.ProposeBlock(_signer);
+            _block = _blockChain.Propose(_signer);
         }
 
         [Benchmark]
         public void ProposeBlockTenTransactionsNoAction()
         {
-            _block = _blockChain.ProposeBlock(_signer);
+            _block = _blockChain.Propose(_signer);
         }
 
         [Benchmark]
         public void ProposeBlockOneTransactionWithActions()
         {
-            _block = _blockChain.ProposeBlock(_signer);
+            _block = _blockChain.Propose(_signer);
         }
 
         [Benchmark]
         public void ProposeBlockTenTransactionsWithActions()
         {
-            _block = _blockChain.ProposeBlock(_signer);
+            _block = _blockChain.Propose(_signer);
         }
     }
 }

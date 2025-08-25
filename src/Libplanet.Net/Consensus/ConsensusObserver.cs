@@ -70,7 +70,7 @@ public sealed class ConsensusObserver : IDisposable
                     var candidateProposal = _consensus.ValidProposal;
                     var proposal = new ProposalBuilder
                     {
-                        Block = candidateProposal?.Block ?? _blockchain.ProposeBlock(_signer),
+                        Block = candidateProposal?.Block ?? _blockchain.Propose(_signer),
                         Round = round.Index,
                         Timestamp = DateTimeOffset.UtcNow,
                         ValidRound = candidateProposal?.ValidRound ?? -1,

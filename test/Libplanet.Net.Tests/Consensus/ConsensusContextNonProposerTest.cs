@@ -33,7 +33,7 @@ public class ConsensusContextNonProposerTest
         await transportB.StartAsync(cancellationToken);
         await consensusServiceB.StartAsync(cancellationToken);
 
-        var block1 = blockchain.ProposeBlock(Signers[1]);
+        var block1 = blockchain.Propose(Signers[1]);
         var proposalMessage = new ConsensusProposalMessage
         {
             Proposal = new ProposalBuilder
@@ -142,7 +142,7 @@ public class ConsensusContextNonProposerTest
             consensusServiceB.StepChanged.WaitAsync(e => e == ConsensusStep.EndCommit && consensusServiceB.Height == 2),
             blockchain.TipChanged.WaitAsync(e => e.Height == 2));
 
-        var block3 = blockchain.ProposeBlock(Signers[3]);
+        var block3 = blockchain.Propose(Signers[3]);
         var proposal3 = new ProposalBuilder
         {
             Block = block3,
@@ -204,7 +204,7 @@ public class ConsensusContextNonProposerTest
         await transportA.StartAsync();
         await transportB.StartAsync();
         await consensusServiceB.StartAsync();
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,

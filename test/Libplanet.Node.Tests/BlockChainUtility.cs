@@ -12,7 +12,7 @@ internal static class BlockChainUtility
     {
         var tip = blockChain.Tip;
         var height = tip.Height + 1;
-        var block = blockChain.ProposeBlock(proposer: privateKey.AsSigner());
+        var block = blockChain.Propose(proposer: privateKey.AsSigner());
         blockChain.Append(
             block,
             blockChain.BlockCommits[tip.BlockHash]);

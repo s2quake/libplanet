@@ -183,7 +183,17 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         return _repository.GetNonce(address);
     }
 
-
+    public void Prune()
+    {
+        var query = from tx in Values
+                    where IsExpired(tx, Lifetime) || tx.Nonce < _repository.GetNonce(tx.Signer)
+                    select tx;
+        var txs = query.ToArray();
+        foreach (var tx in txs)
+        {
+            Remove(tx.Id);
+        }
+    }
 
     public bool ContainsKey(TxId txId) => _stagedIndex.ContainsKey(txId);
 

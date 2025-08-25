@@ -304,7 +304,7 @@ public partial class BlockchainTest : IDisposable
                 },
             }.ToBytecodes(),
         }.Sign(tx3Signer);
-        var block3 = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var block3 = blockchain.Propose(RandomUtility.Signer(random));
         blockchain.StagedTransactions.Add(tx3);
         blockchain.Append(block3, CreateBlockCommit(block3));
         result = (BattleResult)blockchain
@@ -326,7 +326,7 @@ public partial class BlockchainTest : IDisposable
         {
             Actions = [DumbAction.Create((default, string.Empty))],
         });
-        var block = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var block = blockchain.Propose(RandomUtility.Signer(random));
         var blockCommit = CreateBlockCommit(block);
         var actionExecutedTask = blockchain.ActionExecuted.WaitAsync();
 
@@ -1021,7 +1021,7 @@ public partial class BlockchainTest : IDisposable
         }.Create(proposer);
         var blockchain = new Libplanet.Blockchain(genesisBlock);
 
-        var block = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var block = blockchain.Propose(RandomUtility.Signer(random));
         var blockCommit = CreateBlockCommit(block);
         var waitTask = blockchain.TipChanged.WaitAsync(e => e.Height == 1);
         blockchain.Append(block, blockCommit);
@@ -1129,7 +1129,7 @@ public partial class BlockchainTest : IDisposable
         // Stage only txs having higher or equal with nonce than expected nonce.
         Assert.Equal(4, blockchain.StagedTransactions.Count);
 
-        var block2 = blockchain.ProposeBlock(signer);
+        var block2 = blockchain.Propose(signer);
         var tx = Assert.Single(block2.Transactions);
         Assert.Equal(3, tx.Nonce);
     }
@@ -1158,7 +1158,7 @@ public partial class BlockchainTest : IDisposable
 
         var signer = RandomUtility.Signer(random);
         _ = blockchain.StagedTransactions.Add(signer, @params: new());
-        var block = blockchain.ProposeBlock(proposer);
+        var block = blockchain.Propose(proposer);
         var blockCommit = CreateBlockCommit(block);
 
         var e = Assert.Throws<InvalidOperationException>(() => blockchain.Append(block, blockCommit));
@@ -1188,7 +1188,7 @@ public partial class BlockchainTest : IDisposable
         {
             Actions = [new SetValidator { Validator = newValidator }],
         });
-        var block1 = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var block1 = blockchain.Propose(RandomUtility.Signer(random));
         var blockCommit1 = new BlockCommit
         {
             Height = block1.Height,
@@ -1209,7 +1209,7 @@ public partial class BlockchainTest : IDisposable
         {
             Actions = [new SetValidator { Validator = RandomUtility.Validator(random) }],
         });
-        var block2 = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var block2 = blockchain.Propose(RandomUtility.Signer(random));
         var blockCommit2 = new BlockCommit
         {
             Height = block2.Height,
@@ -1230,7 +1230,7 @@ public partial class BlockchainTest : IDisposable
         {
             Actions = [new SetValidator { Validator = RandomUtility.Validator(random) }],
         });
-        var block3 = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var block3 = blockchain.Propose(RandomUtility.Signer(random));
         var blockCommit3 = new BlockCommit
         {
             Height = block3.Height,

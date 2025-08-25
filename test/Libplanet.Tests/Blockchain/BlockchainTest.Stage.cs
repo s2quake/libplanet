@@ -81,7 +81,7 @@ public partial class BlockchainTest
 
         // stage tx_0_0 -> mine tx_0_0 -> stage tx_0_1
         _blockchain.StagedTransactions.Add(tx_0_0);
-        var block = _blockchain.ProposeBlock(signer);
+        var block = _blockchain.Propose(signer);
         _blockchain.Append(block, TestUtils.CreateBlockCommit(block));
         Assert.Empty(_blockchain.StagedTransactions.Keys);
         // Assert.Empty(_blockChain.StagedTransactions.Iterate(filtered: true));
@@ -101,7 +101,7 @@ public partial class BlockchainTest
         Assert.Equal(
             txIds.OrderBy(id => id),
             _blockchain.StagedTransactions.Keys.OrderBy(id => id));
-        block = _blockchain.ProposeBlock(signer);
+        block = _blockchain.Propose(signer);
         _blockchain.Append(block, TestUtils.CreateBlockCommit(block));
         // tx_0_1 and tx_1_x should be still staged, just filtered
         Assert.Empty(_blockchain.StagedTransactions.Keys);

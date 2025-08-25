@@ -1045,7 +1045,7 @@ public partial class SwarmTest(ITestOutputHelper output)
             new BlockchainState(transportB.Peer, blockchainB.Genesis, blockchainB.Genesis),
             blockchainStates2[0]);
 
-        var block = blockchainB.ProposeBlock(signerB);
+        var block = blockchainB.Propose(signerB);
         blockchainB.Append(block, CreateBlockCommit(block));
 
         var blockchainStates3 = await peerExplorerA.GetBlockchainStateAsync(cancellationToken);

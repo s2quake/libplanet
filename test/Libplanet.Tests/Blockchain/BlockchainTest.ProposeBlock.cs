@@ -25,7 +25,7 @@ public partial class BlockchainTest
             (string)_blockchain.GetWorld().GetValue(SystemAccount, default));
 
         var proposerA = RandomUtility.Signer(random);
-        Block block = _blockchain.ProposeBlock(proposerA);
+        Block block = _blockchain.Propose(proposerA);
         _blockchain.Append(block, CreateBlockCommit(block));
         Assert.True(_blockchain.Blocks.ContainsKey(block.BlockHash));
         Assert.Equal(2, _blockchain.Blocks.Count);
@@ -36,7 +36,7 @@ public partial class BlockchainTest
             (string)_blockchain.GetWorld().GetValue(SystemAccount, default));
 
         var proposerB = RandomUtility.Signer(random);
-        Block anotherBlock = _blockchain.ProposeBlock(proposerB);
+        Block anotherBlock = _blockchain.Propose(proposerB);
         _blockchain.Append(anotherBlock, CreateBlockCommit(anotherBlock));
         Assert.True(_blockchain.Blocks.ContainsKey(anotherBlock.BlockHash));
         Assert.Equal(3, _blockchain.Blocks.Count);
@@ -48,7 +48,7 @@ public partial class BlockchainTest
             expected,
             (string)_blockchain.GetWorld().GetAccount(SystemAccount).GetValue(default(Address)));
 
-        Block block3 = _blockchain.ProposeBlock(RandomUtility.Signer(random));
+        Block block3 = _blockchain.Propose(RandomUtility.Signer(random));
         Assert.False(_blockchain.Blocks.ContainsKey(block3.BlockHash));
         Assert.Equal(3, _blockchain.Blocks.Count);
         Assert.True(
@@ -79,7 +79,7 @@ public partial class BlockchainTest
             _blockchain.StagedTransactions.Add(heavyTx);
         }
 
-        Block block4 = _blockchain.ProposeBlock(proposer: RandomUtility.Signer(random));
+        Block block4 = _blockchain.Propose(proposer: RandomUtility.Signer(random));
         Assert.False(_blockchain.Blocks.ContainsKey(block4.BlockHash));
         // _logger.Debug(
         //     $"{nameof(block4)}: {0} bytes",
@@ -162,7 +162,7 @@ public partial class BlockchainTest
         }.Sign(txSigner);
 
         blockchain.StagedTransactions.Add(tx);
-        var block = blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var block = blockchain.Propose(RandomUtility.Signer(random));
         var blockCommit = CreateBlockCommit(block);
         Assert.Throws<InvalidOperationException>(() => blockchain.Append(block, blockCommit));
     }
@@ -285,7 +285,7 @@ public partial class BlockchainTest
             // Assert.Null(_blockchain.TxExecutions[tx.Id, _blockchain.Genesis.BlockHash]);
         }
 
-        Block block = _blockchain.ProposeBlock(signerA);
+        Block block = _blockchain.Propose(signerA);
         _blockchain.Append(block, CreateBlockCommit(block));
 
         Assert.True(_blockchain.Blocks.ContainsKey(block.BlockHash));
@@ -381,7 +381,7 @@ public partial class BlockchainTest
         _blockchain.StagedTransactions.Add(invalidTx);
 
         var proposer = RandomUtility.Signer(random);
-        var block = blockchain.ProposeBlock(proposer);
+        var block = blockchain.Propose(proposer);
         blockchain.Append(block, CreateBlockCommit(block));
 
         var txs = block.Transactions.ToHashSet();
@@ -422,7 +422,7 @@ public partial class BlockchainTest
             }.Sign(signer),
         };
         _blockchain.StagedTransactions.AddRange(txs);
-        Block block = _blockchain.ProposeBlock(RandomUtility.Signer(random));
+        Block block = _blockchain.Propose(RandomUtility.Signer(random));
         Assert.Equal(txs.Length, block.Transactions.Count());
     }
 
@@ -441,7 +441,7 @@ public partial class BlockchainTest
                     Actions = [],
                 }.Sign(signer),
             ]);
-        Block block1 = _blockchain.ProposeBlock(RandomUtility.Signer(random));
+        Block block1 = _blockchain.Propose(RandomUtility.Signer(random));
         _blockchain.Append(block1, CreateBlockCommit(block1));
 
         // Trying to propose with lower nonce (0) than expected.
@@ -456,7 +456,7 @@ public partial class BlockchainTest
                     Actions = [],
                 }.Sign(signer),
             });
-        Block block2 = _blockchain.ProposeBlock(RandomUtility.Signer(random));
+        Block block2 = _blockchain.Propose(RandomUtility.Signer(random));
         _blockchain.Append(block2, CreateBlockCommit(block2));
 
         Assert.Empty(block2.Transactions);
@@ -491,7 +491,7 @@ public partial class BlockchainTest
             Actions = [DumbAction.Create((address2, "baz"))],
         });
         blockchain.StagedTransactions.Add(tx);
-        var block = blockchain.ProposeBlock(signer1);
+        var block = blockchain.Propose(signer1);
         blockchain.Append(block, CreateBlockCommit(block));
 
         var state1 = blockchain
@@ -512,7 +512,7 @@ public partial class BlockchainTest
         {
             Actions = [DumbAction.Create((address1, "bar"))],
         });
-        block = blockchain.ProposeBlock(signer1);
+        block = blockchain.Propose(signer1);
         blockchain.Append(block, CreateBlockCommit(block));
 
         state1 = blockchain
@@ -558,7 +558,7 @@ public partial class BlockchainTest
         IComparer<Transaction> txPriority =
             Comparer<Transaction>.Create((tx1, tx2) =>
                 Rank(tx1.Signer).CompareTo(Rank(tx2.Signer)));
-        Block block = _blockchain.ProposeBlock(RandomUtility.Signer(random));
+        Block block = _blockchain.Propose(RandomUtility.Signer(random));
         Assert.Equal(100, block.Transactions.Count);
         Assert.Equal(
             txsA.Concat(txsB.Take(50)).Select(tx => tx.Id).ToHashSet(),
@@ -587,7 +587,7 @@ public partial class BlockchainTest
             BlockHash = _blockchain.Tip.BlockHash,
             Votes = votes,
         };
-        Block block = _blockchain.ProposeBlock(RandomUtility.Signer(random));
+        Block block = _blockchain.Propose(RandomUtility.Signer(random));
 
         Assert.NotNull(block.PreviousCommit);
         Assert.Equal(block.PreviousCommit, blockCommit);
@@ -604,7 +604,7 @@ public partial class BlockchainTest
                 nonce: nonce, signer: signer, timestamp: DateTimeOffset.Now))
             .ToArray();
         _blockchain.StagedTransactions.AddRange(txsA);
-        Block b1 = _blockchain.ProposeBlock(RandomUtility.Signer(random));
+        Block b1 = _blockchain.Propose(RandomUtility.Signer(random));
         _blockchain.Append(b1, CreateBlockCommit(b1));
         Assert.Equal(txsA, b1.Transactions);
 
@@ -615,7 +615,7 @@ public partial class BlockchainTest
         _blockchain.StagedTransactions.AddRange(txsB);
 
         // Propose only txs having higher or equal with nonce than expected nonce.
-        Block b2 = _blockchain.ProposeBlock(RandomUtility.Signer(random));
+        Block b2 = _blockchain.Propose(RandomUtility.Signer(random));
         Assert.Single(b2.Transactions);
         Assert.Contains(txsB[3], b2.Transactions);
     }
@@ -632,7 +632,7 @@ public partial class BlockchainTest
                 timestamp: DateTimeOffset.Now))
             .ToArray();
         _blockchain.StagedTransactions.AddRange(txs);
-        Block b = _blockchain.ProposeBlock(signer);
+        Block b = _blockchain.Propose(signer);
         _blockchain.Append(b, CreateBlockCommit(b));
 
         Assert.Single(b.Transactions);
@@ -757,7 +757,7 @@ public partial class BlockchainTest
         _blockchain.StagedTransactions.AddRange(txs);
         Assert.Equal(txs.Length, _blockchain.StagedTransactions.Collect().Count);
 
-        var block = _blockchain.ProposeBlock(RandomUtility.Signer(random));
+        var block = _blockchain.Propose(RandomUtility.Signer(random));
 
         Assert.DoesNotContain(txWithInvalidNonce, block.Transactions);
         Assert.DoesNotContain(txWithInvalidAction, block.Transactions);

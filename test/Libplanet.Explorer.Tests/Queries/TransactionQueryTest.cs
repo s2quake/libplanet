@@ -124,7 +124,7 @@ public class TransactionQueryTest
         {
         });
         await AssertNextNonce(2, signer1.Address);
-        var block = Source.BlockChain.ProposeBlock(RandomUtility.Signer());
+        var block = Source.BlockChain.Propose(RandomUtility.Signer());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
         await AssertNextNonce(2, signer1.Address);
 
@@ -135,7 +135,7 @@ public class TransactionQueryTest
         Source.BlockChain.StagedTransactions.Add(signer2, new ()
         {
         });
-        block = Source.BlockChain.ProposeBlock(RandomUtility.Signer());
+        block = Source.BlockChain.Propose(RandomUtility.Signer());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
         await AssertNextNonce(1, signer2.Address);
         await AssertNextNonce(2, signer1.Address);

@@ -20,7 +20,7 @@ public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
         var timeoutTask = consensus.TimeoutOccurred.WaitAsync(
             e => e == ConsensusStep.Propose && consensus.Round.Index == 2);
 
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
 
         await consensus.StartAsync(cancellationToken);
         await consensus.ProposeAsync(1, block, cancellationToken: cancellationToken);
@@ -62,7 +62,7 @@ public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
         var preCommitStep2Task = consensus.StepChanged.WaitAsync(
             e => e.Step == ConsensusStep.PreCommit && consensus.Round.Index == 2);
 
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var signer = RandomUtility.Signer(random);
         var differentBlock = new RawBlock
         {

@@ -22,7 +22,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             ProposeTimeoutBase = TimeSpan.FromSeconds(100),
         };
         await using var consensus = new Net.Consensus.Consensus(Validators, 1, options);
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var preVoteStepRound1Task = consensus.StepChanged.WaitAsync(
             s => s.Step == ConsensusStep.Propose && consensus.Round.Index == 1);
 
@@ -60,7 +60,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(s => s.Step == ConsensusStep.PreCommit);
         var preVoteMaj23Task = consensus.PreVoteMaj23Observed.WaitAsync();
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
 
         await consensus.StartAsync();
 
@@ -389,7 +389,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         var preVoteStepRound1Task = consensus.StepChanged.WaitAsync(
             s => s.Step == ConsensusStep.PreVote && consensus.Round.Index == 1);
 
-        _ = blockchain.ProposeBlock(Signers[1]);
+        _ = blockchain.Propose(Signers[1]);
         await consensus.StartAsync();
 
         _ = consensus.PreVoteAsync(
@@ -450,8 +450,8 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         var preVoteStepTask = consensus.StepChanged.WaitAsync(
             s => s.Step == ConsensusStep.PreVote && consensus.Round.Index == 1);
 
-        var block1 = blockchain.ProposeBlock(Signers[1]);
-        var block2 = blockchain.ProposeBlock(Signers[2]);
+        var block1 = blockchain.Propose(Signers[1]);
+        var block2 = blockchain.Propose(Signers[2]);
 
         await consensus.StartAsync(cancellationToken);
 
@@ -540,7 +540,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         var timeoutTask = consensus.TimeoutOccurred.WaitAsync(
             e => e == ConsensusStep.PreVote && consensus.Height == 1 && consensus.Round.Index == 0);
 
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
 
         await consensus.StartAsync();
 
@@ -601,7 +601,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         var proposeStep1Task = consensus.StepChanged.WaitAsync(
             e => e.Step == ConsensusStep.Propose && consensus.Round.Index == 1);
 
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
 
         await consensus.StartAsync();
 

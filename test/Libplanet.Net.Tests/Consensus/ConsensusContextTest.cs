@@ -265,7 +265,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await transportB.StartAsync();
         await consensusService.StartAsync();
 
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
@@ -319,7 +319,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await transportB.StartAsync();
         await consensusService.StartAsync();
 
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
@@ -398,7 +398,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await transportB.StartAsync();
         await consensusServiceB.StartAsync();
 
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,

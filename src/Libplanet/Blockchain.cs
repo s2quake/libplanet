@@ -209,7 +209,7 @@ public partial class Blockchain
     public World GetWorld(HashDigest<SHA256> stateRootHash)
         => new(_repository.States.GetTrie(stateRootHash), _repository.States);
 
-    public Block ProposeBlock(ISigner proposer)
+    public Block Propose(ISigner proposer)
     {
         var height = _repository.Height;
         var blockHash = _repository.BlockHashes[height];

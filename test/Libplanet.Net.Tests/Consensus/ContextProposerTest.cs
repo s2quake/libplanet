@@ -19,7 +19,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var preCommitStepTask = consensus.StepChanged.WaitAsync(
             e => e.Step == ConsensusStep.PreCommit);
 
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
 
         await consensus.StartAsync(cancellationToken);
 
@@ -46,7 +46,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(
             e => e.Step == ConsensusStep.PreCommit && consensus.Round.Index == 0);
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
 
         await consensus.StartAsync(cancellationToken);
 
@@ -86,7 +86,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var blockchain = MakeBlockchain();
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var roundChanged1Task = consensus.RoundChanged.WaitAsync(e => e.Index == 1);
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
@@ -128,7 +128,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
             e => e.Step == ConsensusStep.PreCommit && consensus.Round.Index == 0);
         var endCommitStepTask = consensus.StepChanged.WaitAsync(
             e => e.Step == ConsensusStep.EndCommit && consensus.Round.Index == 0);
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
@@ -177,7 +177,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 5); // Peer1 should be a proposer
         var preVoteStepTask = consensus.StepChanged.WaitAsync(
             e => e.Step == ConsensusStep.PreVote && consensus.Round.Index == 0);
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
@@ -200,7 +200,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preVoteStepTask = consensus.StepChanged.WaitAsync(
             e => e.Step == ConsensusStep.PreVote && consensus.Round.Index == 0);
-        var block = blockchain.ProposeBlock(Signers[1]);
+        var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
             Block = block,
@@ -224,7 +224,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var signer = RandomUtility.Signer(random);
         var blockchain = MakeBlockchain();
         _ = blockchain.ProposeAndAppendMany(2);
-        var block = blockchain.ProposeBlock(signer);
+        var block = blockchain.Propose(signer);
         var proposal = new ProposalBuilder
         {
             Block = block,

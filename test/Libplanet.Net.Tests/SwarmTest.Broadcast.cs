@@ -856,7 +856,7 @@ public partial class SwarmTest
 
         for (var i = 0; i < 10; i++)
         {
-            var block = blockchainB.ProposeBlock(signerB);
+            var block = blockchainB.Propose(signerB);
             blockchainB.Append(block, CreateBlockCommit(block));
         }
 
