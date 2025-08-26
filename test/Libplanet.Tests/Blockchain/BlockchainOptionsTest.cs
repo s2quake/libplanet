@@ -167,7 +167,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
                     return tx;
                 })
                 .ToList();
-        Assert.Equal(generatedTxCount, chain.StagedTransactions.Collect().Count);
+        Assert.Equal(generatedTxCount, chain.StagedTransactions.Collect().Length);
 
         var block = chain.Propose(signer);
         Assert.Equal(policyLimit, block.Transactions.Count);
@@ -201,7 +201,7 @@ public class BlockchainOptionsTest(ITestOutputHelper output)
             }
         }
 
-        Assert.Equal(generatedTxCount * keyCount, blockchain.StagedTransactions.Collect().Count);
+        Assert.Equal(generatedTxCount * keyCount, blockchain.StagedTransactions.Collect().Length);
 
         var block = blockchain.Propose(minerSigner);
         Assert.Equal(policyLimit * keyCount, block.Transactions.Count);

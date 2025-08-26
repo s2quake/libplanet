@@ -12,7 +12,7 @@ using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Blockchain;
 
-public partial class BlockchainTest : IDisposable
+public partial class BlockchainTest
 {
     [Obsolete]
     private readonly RepositoryFixture _fx;

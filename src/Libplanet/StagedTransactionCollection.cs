@@ -16,14 +16,15 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
     private readonly Repository _repository;
     private readonly PendingTransactionIndex _stagedIndex;
     private readonly CommittedTransactionIndex _committedIndex;
+    private readonly BlockchainOptions _options;
     private readonly ConcurrentDictionary<Address, ImmutableArray<long>> _noncesByAddress = new();
 
-    public StagedTransactionCollection(Repository repository, TransactionOptions options)
+    public StagedTransactionCollection(Repository repository, BlockchainOptions options)
     {
         _repository = repository;
         _stagedIndex = repository.PendingTransactions;
         _committedIndex = repository.CommittedTransactions;
-        Lifetime = options.LifeTime;
+        _options = options;
 
         foreach (var transaction in _stagedIndex.Values)
         {
@@ -37,15 +38,13 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
     }
 
     public StagedTransactionCollection(Repository repository)
-        : this(repository, new TransactionOptions())
+        : this(repository, new BlockchainOptions())
     {
     }
 
     public IObservable<Transaction> Added => _addedSubject;
 
     public IObservable<Transaction> Removed => _removedSubject;
-
-    public TimeSpan Lifetime { get; }
 
     public IEnumerable<TxId> Keys => _stagedIndex.Keys;
 
@@ -70,8 +69,6 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
                 nameof(transaction));
         }
 
-        // options.Validate(transaction);
-
         if (!_stagedIndex.TryAdd(transaction))
         {
             throw new ArgumentException(
@@ -86,7 +83,7 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
     {
         var tx = new TransactionMetadata
         {
-            Nonce = GetNextTxNonce(signer.Address),
+            Nonce = @params.Nonce == -1L ? GetNextTxNonce(signer.Address) : @params.Nonce,
             Signer = signer.Address,
             GenesisBlockHash = _repository.GenesisBlockHash,
             Actions = @params.Actions.ToBytecodes(),
@@ -132,32 +129,35 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         return false;
     }
 
-    public ImmutableSortedSet<Transaction> Collect() => Collect(maxTransactionsPerBlock: 100);
+    public ImmutableArray<Transaction> Collect() => Collect(DateTimeOffset.UtcNow);
 
-    public ImmutableSortedSet<Transaction> Collect(int maxTransactionsPerBlock)
+    public ImmutableArray<Transaction> Collect(DateTimeOffset timestamp)
     {
-        var items = Values.Where(item => !IsExpired(item, Lifetime))
-            .OrderBy(item => item.Nonce)
-            .ThenBy(item => item.Timestamp).ToArray();
-        var itemList = new List<Transaction>(items.Length);
+        var lifetime = _options.TransactionOptions.Lifetime;
+        var maxTransactions = _options.BlockOptions.MaxTransactions;
+        var sorter = _options.TransactionOptions.Sorter;
+        var items1 = Values.Where(item => !IsExpired(item, timestamp, lifetime));
+        var items2 = sorter(items1);
+
         var nonceByAddress = new Dictionary<Address, long>();
-        foreach (var item in items)
+        var txList = new List<Transaction>(items2.Count());
+        foreach (var item in items2)
         {
             var signer = item.Signer;
             var nonce = nonceByAddress.GetValueOrDefault(signer, _repository.GetNonce(signer));
             if (nonce == item.Nonce)
             {
-                itemList.Add(item);
+                txList.Add(item);
                 nonceByAddress[signer] = nonce + 1;
             }
 
-            if (itemList.Count >= maxTransactionsPerBlock)
+            if (txList.Count >= maxTransactions)
             {
                 break;
             }
         }
 
-        return [.. itemList];
+        return [.. txList];
     }
 
     public long GetNextTxNonce(Address address)
@@ -183,10 +183,13 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         return _repository.GetNonce(address);
     }
 
-    public void Prune()
+    public void Prune() => Prune(DateTimeOffset.UtcNow);
+
+    public void Prune(DateTimeOffset timestamp)
     {
+        var lifetime = _options.TransactionOptions.Lifetime;
         var query = from tx in Values
-                    where IsExpired(tx, Lifetime) || tx.Nonce < _repository.GetNonce(tx.Signer)
+                    where IsExpired(tx, timestamp, lifetime) || tx.Nonce < _repository.GetNonce(tx.Signer)
                     select tx;
         var txs = query.ToArray();
         foreach (var tx in txs)
@@ -216,15 +219,31 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         }
     }
 
-    private static bool IsExpired(Transaction transaction, TimeSpan lifetime)
-        => transaction.Timestamp + lifetime < DateTimeOffset.UtcNow;
-
-    private bool IsValidNonce(Transaction transaction)
+    internal static IEnumerable<Transaction> Sort(IEnumerable<Transaction> transactions)
     {
-        var address = transaction.Signer;
-        var nonce = transaction.Nonce;
-        return _noncesByAddress.TryGetValue(address, out var nonces) && nonces.Contains(nonce);
+        var list = transactions
+            .GroupBy(tx => tx.Signer)
+            .Select(group => group.OrderBy(item => item.Nonce).ToList())
+            .ToList();
+
+        while (list.Count > 0)
+        {
+            var first = list[0];
+            var item = first[0];
+            first.RemoveAt(0);
+            list.RemoveAt(0);
+
+            if (first.Count > 0)
+            {
+                list.Add(first);
+            }
+
+            yield return item;
+        }
     }
+
+    private static bool IsExpired(Transaction transaction, DateTimeOffset timestamp, TimeSpan lifetime)
+        => transaction.Timestamp + lifetime < timestamp;
 
     private void AddNonce(Transaction transaction)
     {

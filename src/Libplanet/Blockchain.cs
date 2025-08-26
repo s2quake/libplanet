@@ -65,7 +65,7 @@ public partial class Blockchain
         BlockHashes = new BlockHashCollection(repository);
         Blocks = new BlockCollection(repository);
         BlockCommits = new BlockCommitCollection(repository);
-        StagedTransactions = new StagedTransactionCollection(repository, options.TransactionOptions);
+        StagedTransactions = new StagedTransactionCollection(repository, options);
         Transactions = new TransactionCollection(repository);
         PendingEvidence = new PendingEvidenceCollection(repository);
         Evidence = new EvidenceCollection(repository);
@@ -214,10 +214,11 @@ public partial class Blockchain
         var height = _repository.Height;
         var blockHash = _repository.BlockHashes[height];
         var blockCommit = height == _repository.GenesisHeight ? default : _repository.BlockCommits[blockHash];
+        var timestamp = DateTimeOffset.UtcNow;
         var blockHeader = new BlockHeader
         {
             Height = height + 1,
-            Timestamp = DateTimeOffset.UtcNow,
+            Timestamp = timestamp,
             Proposer = proposer.Address,
             PreviousHash = blockHash,
             PreviousCommit = blockCommit,
@@ -225,7 +226,7 @@ public partial class Blockchain
         };
         var blockContent = new BlockContent
         {
-            Transactions = StagedTransactions.Collect(Options.BlockOptions.MaxTransactions),
+            Transactions = [.. StagedTransactions.Collect(timestamp)],
             Evidences = PendingEvidence.Collect(),
         };
         var rawBlock = new RawBlock

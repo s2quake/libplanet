@@ -14,7 +14,5 @@ public sealed record class BlockchainOptions
 
     public TransactionOptions TransactionOptions { get; init; } = new();
 
-    // public EvidenceOptions EvidenceOptions { get; init; } = new();
-
     public ILogger<Blockchain> Logger { get; init; } = NullLogger<Blockchain>.Instance;
 }

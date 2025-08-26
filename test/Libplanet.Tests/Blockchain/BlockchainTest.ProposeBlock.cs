@@ -553,7 +553,7 @@ public partial class BlockchainTest
 
         Transaction[] txs = [.. RandomUtility.Shuffle(random, txsA.Concat(txsB).Concat(txsC))];
         _blockchain.StagedTransactions.AddRange(txs);
-        Assert.Equal(txs.Length, _blockchain.StagedTransactions.Collect().Count);
+        Assert.Equal(txs.Length, _blockchain.StagedTransactions.Collect().Length);
 
         IComparer<Transaction> txPriority =
             Comparer<Transaction>.Create((tx1, tx2) =>
@@ -755,7 +755,7 @@ public partial class BlockchainTest
 
         // Invalid txs can be staged.
         _blockchain.StagedTransactions.AddRange(txs);
-        Assert.Equal(txs.Length, _blockchain.StagedTransactions.Collect().Count);
+        Assert.Equal(txs.Length, _blockchain.StagedTransactions.Collect().Length);
 
         var block = _blockchain.Propose(RandomUtility.Signer(random));
 
@@ -763,7 +763,7 @@ public partial class BlockchainTest
         Assert.DoesNotContain(txWithInvalidAction, block.Transactions);
 
         // txWithInvalidAction is marked ignored and removed
-        Assert.Equal(txs.Length - 1, _blockchain.StagedTransactions.Collect().Count);
+        Assert.Equal(txs.Length - 1, _blockchain.StagedTransactions.Collect().Length);
         Assert.DoesNotContain(txWithInvalidAction.Id, _blockchain.StagedTransactions.Keys);
     }
 }

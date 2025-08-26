@@ -6,13 +6,20 @@ public sealed record class TransactionOptions
 {
     public ImmutableArray<IObjectValidator<Transaction>> Validators { get; init; } = [];
 
-    public TimeSpan LifeTime { get; init; } = TimeSpan.FromSeconds(10);
+    public TimeSpan Lifetime { get; init; } = TimeSpan.FromSeconds(10);
 
-    public IComparer<Transaction> Comparer { get; init; } = new TransactionComparer();
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <remarks>
+    /// All transactions must be sorted by their nonce in ascending order.
+    /// </remarks>
+    public Func<IEnumerable<Transaction>, IEnumerable<Transaction>> Sorter { get; init; }
+        = StagedTransactionCollection.Sort;
 
     internal void Validate(Transaction transaction)
     {
-        if (transaction.Timestamp + LifeTime < DateTimeOffset.UtcNow)
+        if (transaction.Timestamp + Lifetime < DateTimeOffset.UtcNow)
         {
             throw new ArgumentException($"Transaction {transaction.Id} is expired.", nameof(transaction));
         }
@@ -20,29 +27,6 @@ public sealed record class TransactionOptions
         foreach (var validator in Validators)
         {
             validator.Validate(transaction);
-        }
-    }
-
-    private sealed class TransactionComparer : IComparer<Transaction>
-    {
-        public int Compare(Transaction? x, Transaction? y)
-        {
-            if (x is null && y is null)
-            {
-                return 0;
-            }
-
-            if (x is null)
-            {
-                return -1;
-            }
-
-            if (y is null)
-            {
-                return 1;
-            }
-
-            return x.Id.CompareTo(y.Id);
         }
     }
 }
