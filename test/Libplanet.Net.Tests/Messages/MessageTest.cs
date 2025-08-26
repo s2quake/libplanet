@@ -1,7 +1,6 @@
 using Libplanet.Net.Messages;
 using Libplanet.Net.NetMQ;
 using Libplanet.TestUtilities;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using NetMQ;
 using static Libplanet.Tests.TestUtils;

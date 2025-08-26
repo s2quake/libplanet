@@ -1,5 +1,3 @@
-using Libplanet.Net;
-using Libplanet.Net.Consensus;
 using Libplanet.Types;
 
 namespace Libplanet.TestUtilities.Extensions;

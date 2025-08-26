@@ -1,7 +1,6 @@
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests;
 using Libplanet.Extensions;
 using System.Reactive.Linq;

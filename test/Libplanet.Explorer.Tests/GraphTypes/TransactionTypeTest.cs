@@ -9,7 +9,6 @@ using Libplanet.Explorer.Tests.Queries;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Libplanet.TestUtilities;
-using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Explorer.Tests.GraphTypes
 {

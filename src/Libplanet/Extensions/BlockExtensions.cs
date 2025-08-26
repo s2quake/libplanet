@@ -1,4 +1,5 @@
 using Libplanet.Types;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Libplanet.Extensions;
 
@@ -13,6 +14,9 @@ public static class BlockExtensions
 
         ValidationUtility.Validate(@this, items);
     }
+
+    public static long GetActionByteLength(this Block @this)
+        => @this.Transactions.SelectMany(tx => tx.Actions).Aggregate(0L, (s, i) => s + i.Bytes.Length);
 
     internal static void ValidateAsGenesis(this Block @this)
     {

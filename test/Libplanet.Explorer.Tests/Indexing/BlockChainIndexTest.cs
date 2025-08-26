@@ -1,7 +1,6 @@
 using Libplanet.Explorer.Indexing;
 using Libplanet.Serialization;
 using Libplanet.Data;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 
 namespace Libplanet.Explorer.Tests.Indexing;

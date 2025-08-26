@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 

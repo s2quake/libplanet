@@ -7,7 +7,6 @@ using Libplanet.Types;
 using Libplanet.Net.Components;
 using Libplanet.Extensions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Libplanet.Net.Consensus;
 

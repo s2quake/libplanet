@@ -1,5 +1,4 @@
 using Libplanet.TestUtilities;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 
 namespace Libplanet.Data.LiteDB.Tests;

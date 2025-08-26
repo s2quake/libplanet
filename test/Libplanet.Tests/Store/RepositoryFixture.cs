@@ -4,7 +4,6 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.State.Builtin;
-using Libplanet.TestUtilities.Extensions;
 
 namespace Libplanet.Tests.Store;
 

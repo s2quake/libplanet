@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text.Json.Nodes;
-using BenchmarkDotNet.Running;
 
 namespace Libplanet.Benchmarks
 {

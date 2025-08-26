@@ -135,20 +135,30 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
     {
         var lifetime = _options.TransactionOptions.Lifetime;
         var maxTransactions = _options.BlockOptions.MaxTransactions;
+        var maxActionBytes = _options.BlockOptions.MaxActionBytes;
         var sorter = _options.TransactionOptions.Sorter;
         var items1 = Values.Where(item => !IsExpired(item, timestamp, lifetime));
         var items2 = sorter(items1);
 
         var nonceByAddress = new Dictionary<Address, long>();
         var txList = new List<Transaction>(items2.Count());
+        var totalActionBytes = 0L;
         foreach (var item in items2)
         {
             var signer = item.Signer;
             var nonce = nonceByAddress.GetValueOrDefault(signer, _repository.GetNonce(signer));
+            var actionBytes = item.Actions.Aggregate(0L, (s, i) => s + i.Bytes.Length);
+
             if (nonce == item.Nonce)
             {
+                if (totalActionBytes + actionBytes > maxActionBytes)
+                {
+                    break;
+                }
+
                 txList.Add(item);
                 nonceByAddress[signer] = nonce + 1;
+                totalActionBytes += actionBytes;
             }
 
             if (txList.Count >= maxTransactions)

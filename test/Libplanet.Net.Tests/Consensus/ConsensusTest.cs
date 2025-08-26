@@ -1,7 +1,6 @@
 using System.Reactive.Linq;
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
-using Libplanet.TestUtilities.Extensions;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;

@@ -1,8 +1,6 @@
 using Libplanet.Data;
 using Libplanet.TestUtilities;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
-using Xunit.Sdk;
 
 namespace Libplanet.Tests.Blockchain;
 

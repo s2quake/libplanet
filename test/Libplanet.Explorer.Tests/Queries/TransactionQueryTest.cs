@@ -4,7 +4,6 @@ using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.Explorer.Queries;
 using Libplanet.Serialization;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using static Libplanet.Explorer.Tests.GraphQLTestUtils;
 using Libplanet.TestUtilities;
