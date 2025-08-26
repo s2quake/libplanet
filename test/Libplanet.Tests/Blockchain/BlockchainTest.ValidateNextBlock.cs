@@ -12,69 +12,99 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlock()
     {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
         var block = new RawBlock
         {
             Header = new BlockHeader
             {
                 Height = 1,
-                Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
-                PreviousHash = _fx.GenesisBlock.BlockHash,
-                PreviousStateRootHash = _blockchain.StateRootHash,
+                Timestamp = genesisBlock.Timestamp.AddDays(1),
+                Proposer = proposer.Address,
+                PreviousHash = genesisBlock.BlockHash,
+                PreviousStateRootHash = blockchain.StateRootHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(proposer);
         var blockCommit = TestUtils.CreateBlockCommit(block);
 
-        _blockchain.Append(block, blockCommit);
-        Assert.Equal(_blockchain.Tip, block);
+        blockchain.Append(block, blockCommit);
+        Assert.Equal(blockchain.Tip, block);
     }
 
     [Fact]
     public void ValidateNextBlockProtocolVersion()
     {
-        var protocolVersion = _blockchain.Tip.Version;
+        var random = RandomUtility.GetRandom(_output);
+        var blockVersion = 10;
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new RawBlock
+        {
+            Header = new BlockHeader
+            {
+                BlockVersion = blockVersion,
+                Height = 0,
+                Timestamp = DateTimeOffset.UtcNow,
+                Proposer = proposer.Address,
+            },
+        }.Sign(proposer);
+        var repository = new Repository
+        {
+            BlockVersion = blockVersion,
+        };
+        var blockchain = new Libplanet.Blockchain(genesisBlock, repository);
+
         var block1 = new RawBlock
         {
             Header = new BlockHeader
             {
-                BlockVersion = protocolVersion,
+                BlockVersion = blockVersion,
                 Height = 1,
-                Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
-                PreviousHash = _fx.GenesisBlock.BlockHash,
-                PreviousStateRootHash = _blockchain.StateRootHash,
+                Timestamp = genesisBlock.Timestamp.AddDays(2),
+                Proposer = proposer.Address,
+                PreviousHash = genesisBlock.BlockHash,
+                PreviousCommit = default,
+                PreviousStateRootHash = blockchain.StateRootHash,
             },
-        }.Sign(_fx.Proposer);
+        }.Sign(proposer);
         var blockCommit1 = TestUtils.CreateBlockCommit(block1);
-        _blockchain.Append(block1, blockCommit1);
+        blockchain.Append(block1, blockCommit1);
 
-        Assert.Throws<ApplicationException>(() =>
-            new RawBlock
-            {
-                Header = new BlockHeader
-                {
-                    Height = 2,
-                    Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
-                    Proposer = _fx.Proposer.Address,
-                    PreviousHash = block1.BlockHash,
-                },
-            }.Sign(_fx.Proposer));
-
-        Assert.Throws<InvalidOperationException>(() =>
+        var block2 = new RawBlock
         {
-            Block block3 = new RawBlock
+            Header = new BlockHeader
             {
-                Header = new BlockHeader
-                {
-                    BlockVersion = BlockHeader.CurrentProtocolVersion + 1,
-                    Height = 2,
-                    Timestamp = _fx.GenesisBlock.Timestamp.AddDays(2),
-                    Proposer = _fx.Proposer.Address,
-                    PreviousHash = block1.BlockHash,
-                },
-            }.Sign(_fx.Proposer);
-            _blockchain.Append(block3, TestUtils.CreateBlockCommit(block3));
-        });
+                BlockVersion = blockVersion - 1,
+                Height = 2,
+                Timestamp = genesisBlock.Timestamp.AddDays(2),
+                Proposer = proposer.Address,
+                PreviousHash = block1.BlockHash,
+                PreviousCommit = blockCommit1,
+                PreviousStateRootHash = blockchain.StateRootHash,
+            },
+        }.Sign(proposer);
+        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
+
+        var block3 = new RawBlock
+        {
+            Header = new BlockHeader
+            {
+                BlockVersion = blockVersion + 1,
+                Height = 2,
+                Timestamp = genesisBlock.Timestamp.AddDays(2),
+                Proposer = proposer.Address,
+                PreviousHash = block1.BlockHash,
+                PreviousCommit = blockCommit1,
+                PreviousStateRootHash = blockchain.StateRootHash,
+            },
+        }.Sign(proposer);
+        var blockCommit3 = TestUtils.CreateBlockCommit(block3);
+
+        Assert.Throws<ArgumentException>(() => blockchain.Append(block3, blockCommit3));
     }
 
     [Fact]

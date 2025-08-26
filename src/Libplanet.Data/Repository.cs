@@ -153,6 +153,8 @@ public class Repository
 
     public BlockCommit BlockCommit => BlockCommits.GetValueOrDefault(BlockHash, default);
 
+    public int BlockVersion { get; set; } = BlockHeader.CurrentProtocolVersion;
+
     protected IDatabase Database { get; }
 
     public void Append(Block block, BlockCommit blockCommit)

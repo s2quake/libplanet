@@ -149,6 +149,24 @@ public partial class Blockchain
 
         if (_repository.GenesisHeight != block.Height)
         {
+            if (block.Version > _repository.BlockVersion)
+            {
+                throw new ArgumentException(
+                    $"The protocol version ({block.Version}) of the block " +
+                    $"#{block.Height} {block.BlockHash} is not supported by this node." +
+                    $"The highest supported protocol version is {BlockHeader.CurrentProtocolVersion}.",
+                    nameof(block));
+            }
+
+            if (block.Version < Tip.Version)
+            {
+                throw new ArgumentException(
+                    $"The protocol version ({block.Version}) of the block " +
+                    $"#{block.Height} {block.BlockHash} is lower than the current tip's version " +
+                    $"({Tip.Version}). Downgrade of protocol version is not supported.",
+                    nameof(block));
+            }
+
             block.Validate(this);
             blockCommit.Validate(block);
 

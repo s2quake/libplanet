@@ -37,12 +37,13 @@ public sealed partial record class BlockHeader : IValidatableObject
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
-        if (BlockVersion > CurrentProtocolVersion)
-        {
-            yield return new ValidationResult(
-                $"The version {BlockVersion} is not supported. " +
-                $"The current protocol version is {CurrentProtocolVersion}.",
-                [nameof(BlockVersion)]);
-        }
+        yield break;
+        // if (BlockVersion > CurrentProtocolVersion)
+        // {
+        //     yield return new ValidationResult(
+        //         $"The version {BlockVersion} is not supported. " +
+        //         $"The current protocol version is {CurrentProtocolVersion}.",
+        //         [nameof(BlockVersion)]);
+        // }
     }
 }
