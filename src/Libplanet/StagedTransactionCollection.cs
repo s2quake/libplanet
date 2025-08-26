@@ -6,6 +6,7 @@ using Libplanet.State;
 using Libplanet.Data;
 using Libplanet.Types;
 using System.Reactive.Subjects;
+using Libplanet.Serialization;
 
 namespace Libplanet;
 
@@ -18,6 +19,7 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
     private readonly CommittedTransactionIndex _committedIndex;
     private readonly BlockchainOptions _options;
     private readonly ConcurrentDictionary<Address, ImmutableArray<long>> _noncesByAddress = new();
+    private readonly ConcurrentDictionary<TxId, bool> _isActionValidById = new();
 
     public StagedTransactionCollection(Repository repository, BlockchainOptions options)
     {
@@ -110,6 +112,7 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         {
             _stagedIndex.Remove(txId);
             RemoveNonce(transaction);
+            _isActionValidById.TryRemove(txId, out _);
             _removedSubject.OnNext(transaction);
             return true;
         }
@@ -136,11 +139,13 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         var lifetime = _options.TransactionOptions.Lifetime;
         var maxTransactions = _options.BlockOptions.MaxTransactions;
         var maxActionBytes = _options.BlockOptions.MaxActionBytes;
+        var maxTransactionsPerSigner = _options.BlockOptions.MaxTransactionsPerSigner;
         var sorter = _options.TransactionOptions.Sorter;
-        var items1 = Values.Where(item => !IsExpired(item, timestamp, lifetime));
+        var items1 = Values.Where(item => !IsExpired(item, timestamp, lifetime) && IsValid(item));
         var items2 = sorter(items1);
 
         var nonceByAddress = new Dictionary<Address, long>();
+        var countBySigner = new Dictionary<Address, int>();
         var txList = new List<Transaction>(items2.Count());
         var totalActionBytes = 0L;
         foreach (var item in items2)
@@ -156,9 +161,16 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
                     break;
                 }
 
+                var count = countBySigner.GetValueOrDefault(signer, 0);
+                if (count >= maxTransactionsPerSigner)
+                {
+                    continue;
+                }
+
                 txList.Add(item);
                 nonceByAddress[signer] = nonce + 1;
                 totalActionBytes += actionBytes;
+                countBySigner[signer] = count + 1;
             }
 
             if (txList.Count >= maxTransactions)
@@ -199,7 +211,7 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
     {
         var lifetime = _options.TransactionOptions.Lifetime;
         var query = from tx in Values
-                    where IsExpired(tx, timestamp, lifetime) || tx.Nonce < _repository.GetNonce(tx.Signer)
+                    where IsExpired(tx, timestamp, lifetime) || !IsValid(tx)
                     select tx;
         var txs = query.ToArray();
         foreach (var tx in txs)
@@ -254,6 +266,44 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
 
     private static bool IsExpired(Transaction transaction, DateTimeOffset timestamp, TimeSpan lifetime)
         => transaction.Timestamp + lifetime < timestamp;
+
+    private bool IsValid(Transaction transaction)
+    {
+        try
+        {
+            if (transaction.Nonce >= _repository.GetNonce(transaction.Signer))
+            {
+                if (!_isActionValidById.TryGetValue(transaction.Id, out var isValid))
+                {
+                    try
+                    {
+                        Parallel.ForEach(
+                            transaction.Actions,
+                            item => _ = ModelSerializer.DeserializeFromBytes<IAction>(item.Bytes.AsSpan()));
+                        isValid = true;
+                    }
+                    catch
+                    {
+                        isValid = false;
+                    }
+
+                    _isActionValidById[transaction.Id] = isValid;
+                }
+
+                if (isValid)
+                {
+                    _options.TransactionOptions.Validate(transaction);
+                    return true;
+                }
+            }
+        }
+        catch
+        {
+            // do nothing
+        }
+
+        return false;
+    }
 
     private void AddNonce(Transaction transaction)
     {

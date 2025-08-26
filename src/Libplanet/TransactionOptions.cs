@@ -19,11 +19,6 @@ public sealed record class TransactionOptions
 
     internal void Validate(Transaction transaction)
     {
-        if (transaction.Timestamp + Lifetime < DateTimeOffset.UtcNow)
-        {
-            throw new ArgumentException($"Transaction {transaction.Id} is expired.", nameof(transaction));
-        }
-
         foreach (var validator in Validators)
         {
             validator.Validate(transaction);
