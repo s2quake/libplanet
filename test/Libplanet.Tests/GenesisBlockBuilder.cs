@@ -3,11 +3,11 @@ using Libplanet.Types;
 using System.Security.Cryptography;
 using Libplanet.State.Builtin;
 
-namespace Libplanet;
+namespace Libplanet.Tests;
 
 public sealed record class GenesisBlockBuilder
 {
-    public required ImmutableSortedSet<Validator> Validators { get; init; }
+    public ImmutableSortedSet<Validator> Validators { get; init; } = TestUtils.Validators;
 
     public int Height { get; init; }
 

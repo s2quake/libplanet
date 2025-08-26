@@ -5,6 +5,8 @@ namespace Libplanet;
 
 public sealed record class TransactionParams
 {
+    public long Nonce { get; init; } = -1L;
+
     public IAction[] Actions { get; init; } = [];
 
     public DateTimeOffset Timestamp { get; init; }

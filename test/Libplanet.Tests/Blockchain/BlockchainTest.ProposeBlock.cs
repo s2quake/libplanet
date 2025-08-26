@@ -18,7 +18,7 @@ public partial class BlockchainTest
     public void ProposeBlock()
     {
         var random = RandomUtility.GetRandom(_output);
-        var maxTransactionsBytes = _options.BlockOptions.MaxActionBytes;
+        var maxActionBytes = _options.BlockOptions.MaxActionBytes;
         Assert.Single(_blockchain.Blocks);
         Assert.Equal(
             $"{GenesisProposer.Address}",
@@ -30,7 +30,7 @@ public partial class BlockchainTest
         Assert.True(_blockchain.Blocks.ContainsKey(block.BlockHash));
         Assert.Equal(2, _blockchain.Blocks.Count);
         Assert.True(
-            ModelSerializer.SerializeToBytes(block).Length <= maxTransactionsBytes);
+            ModelSerializer.SerializeToBytes(block).Length <= maxActionBytes);
         Assert.Equal(
             $"{GenesisProposer.Address},{proposerA.Address}",
             (string)_blockchain.GetWorld().GetValue(SystemAccount, default));
@@ -42,7 +42,7 @@ public partial class BlockchainTest
         Assert.Equal(3, _blockchain.Blocks.Count);
         Assert.True(
             ModelSerializer.SerializeToBytes(anotherBlock).Length <=
-                maxTransactionsBytes);
+                maxActionBytes);
         var expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
@@ -52,7 +52,7 @@ public partial class BlockchainTest
         Assert.False(_blockchain.Blocks.ContainsKey(block3.BlockHash));
         Assert.Equal(3, _blockchain.Blocks.Count);
         Assert.True(
-            ModelSerializer.SerializeToBytes(block3).Length <= maxTransactionsBytes);
+            ModelSerializer.SerializeToBytes(block3).Length <= maxActionBytes);
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected,
@@ -88,7 +88,7 @@ public partial class BlockchainTest
         //     $"{nameof(maxTransactionsBytes)}({nameof(block4)}.{nameof(block4.Height)}) = {0}",
         //     maxTransactionsBytes);
         Assert.True(
-            ModelSerializer.SerializeToBytes(block4).Length <= maxTransactionsBytes);
+            ModelSerializer.SerializeToBytes(block4).Length <= maxActionBytes);
         Assert.Equal(3, block4.Transactions.Count);
         expected = $"{GenesisProposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
