@@ -167,6 +167,27 @@ public partial class Blockchain
                     nameof(block));
             }
 
+            if (block.Height != Tip.Height + 1)
+            {
+                throw new ArgumentException(
+                    "Block height does not match the current height + 1.",
+                    nameof(block));
+            }
+
+            if (block.PreviousHash != Tip.BlockHash)
+            {
+                throw new ArgumentException(
+                    "Block's previous hash does not match the current tip's hash.",
+                    nameof(block));
+            }
+
+            if (block.Timestamp < Tip.Timestamp)
+            {
+                throw new ArgumentException(
+                    "Block's timestamp is earlier than the current tip's timestamp.",
+                    nameof(block));
+            }
+
             block.Validate(this);
             blockCommit.Validate(block);
 

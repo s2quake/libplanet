@@ -4,6 +4,7 @@ using Libplanet.Extensions;
 using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.TestUtilities;
+using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -41,6 +42,11 @@ public partial class BlockchainTest
         var random = RandomUtility.GetRandom(_output);
         var blockVersion = 10;
         var proposer = RandomUtility.Signer(random);
+        var repository = new Repository
+        {
+            BlockVersion = blockVersion,
+        };
+        var world = new World(repository.States).SetValidators(TestUtils.Validators).Commit();
         var genesisBlock = new RawBlock
         {
             Header = new BlockHeader
@@ -49,12 +55,10 @@ public partial class BlockchainTest
                 Height = 0,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = proposer.Address,
+                PreviousStateRootHash = world.Hash,
             },
         }.Sign(proposer);
-        var repository = new Repository
-        {
-            BlockVersion = blockVersion,
-        };
+
         var blockchain = new Libplanet.Blockchain(genesisBlock, repository);
 
         var block1 = new RawBlock
@@ -110,86 +114,95 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockInvalidIndex()
     {
-        _blockchain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
 
-        Block prev = _blockchain.Tip;
-        Block blockWithAlreadyUsedIndex = new RawBlock
+        blockchain.ProposeAndAppend(proposer);
+
+        var block1 = blockchain.Tip;
+        var blockA = new RawBlock
         {
             Header = new BlockHeader
             {
-                Height = prev.Height,
+                Height = block1.Height,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
-                PreviousHash = prev.BlockHash,
+                Proposer = proposer.Address,
+                PreviousHash = block1.BlockHash,
             },
-        }.Sign(_fx.Proposer);
-        Assert.Throws<InvalidOperationException>(
-            () => _blockchain.Append(
-                blockWithAlreadyUsedIndex,
-                TestUtils.CreateBlockCommit(blockWithAlreadyUsedIndex)));
+        }.Sign(proposer);
+        var blockCommitA = TestUtils.CreateBlockCommit(blockA);
+        Assert.Throws<ArgumentException>(() => blockchain.Append(blockA, blockCommitA));
 
-        Block blockWithIndexAfterNonexistentIndex = new RawBlock
+        var blockB = new RawBlock
         {
             Header = new BlockHeader
             {
-                Height = prev.Height + 2,
+                Height = block1.Height + 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
-                PreviousHash = prev.BlockHash,
-                PreviousCommit = TestUtils.CreateBlockCommit(prev.BlockHash, prev.Height + 1, 0),
+                Proposer = proposer.Address,
+                PreviousHash = block1.BlockHash,
+                PreviousCommit = TestUtils.CreateBlockCommit(block1.BlockHash, block1.Height + 1, 0),
             },
-        }.Sign(_fx.Proposer);
-        Assert.Throws<InvalidOperationException>(
-            () => _blockchain.Append(
-                blockWithIndexAfterNonexistentIndex,
-                TestUtils.CreateBlockCommit(blockWithIndexAfterNonexistentIndex)));
+        }.Sign(proposer);
+        var blockCommitB = TestUtils.CreateBlockCommit(blockB);
+
+        Assert.Throws<ArgumentException>(() => blockchain.Append(blockB, blockCommitB));
     }
 
     [Fact]
     public void ValidateNextBlockInvalidPreviousHash()
     {
-        _blockchain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var (block1, _) = blockchain.ProposeAndAppend(proposer);
 
-        Block invalidPreviousHashBlock = new RawBlock
+        var block2 = new RawBlock
         {
             Header = new BlockHeader
             {
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
-                Proposer = _fx.Proposer.Address,
-                // Should be _validNext.Hash instead
-                PreviousHash = _validNext.PreviousHash,
-                // ReSharper disable once PossibleInvalidOperationException
-                PreviousCommit = TestUtils.CreateBlockCommit(
-                        _validNext.PreviousHash, 1, 0),
+                Proposer = proposer.Address,
+                PreviousHash = block1.PreviousHash,
+                PreviousCommit = TestUtils.CreateBlockCommit(block1.PreviousHash, 1, 0),
             },
-        }.Sign(_fx.Proposer);
-        Assert.Throws<InvalidOperationException>(() =>
-                _blockchain.Append(
-                    invalidPreviousHashBlock,
-                    TestUtils.CreateBlockCommit(invalidPreviousHashBlock)));
+        }.Sign(proposer);
+        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
     }
 
     [Fact]
     public void ValidateNextBlockInvalidTimestamp()
     {
-        _blockchain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var (block1, blockCommit1) = blockchain.ProposeAndAppend(proposer);
 
-        Block invalidPreviousTimestamp = new RawBlock
+        var block2 = new RawBlock
         {
             Header = new BlockHeader
             {
                 Height = 2,
-                Timestamp = _validNext.Timestamp.AddSeconds(-1),
-                Proposer = _fx.Proposer.Address,
-                PreviousHash = _validNext.BlockHash,
-                PreviousCommit = TestUtils.CreateBlockCommit(_validNext),
+                Timestamp = block1.Timestamp.AddSeconds(-1),
+                Proposer = proposer.Address,
+                PreviousHash = block1.BlockHash,
+                PreviousCommit = blockCommit1,
             },
-        }.Sign(_fx.Proposer);
-        Assert.Throws<InvalidOperationException>(() =>
-                _blockchain.Append(
-                    invalidPreviousTimestamp,
-                    TestUtils.CreateBlockCommit(invalidPreviousTimestamp)));
+        }.Sign(proposer);
+        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
     }
 
     [Fact]
