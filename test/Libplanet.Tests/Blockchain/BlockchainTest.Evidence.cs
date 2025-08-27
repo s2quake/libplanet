@@ -256,7 +256,7 @@ public partial class BlockchainTest
             PreviousStateRootHash = blockchain.StateRootHash,
             Evidences = [testEvidence],
         }.Create(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
 
         // Then
         Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
@@ -290,7 +290,7 @@ public partial class BlockchainTest
             PreviousStateRootHash = blockchain.StateRootHash,
             Evidences = [testEvidence],
         }.Create(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
 
         // Then
         Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
@@ -318,7 +318,7 @@ public partial class BlockchainTest
             PreviousStateRootHash = blockchain.StateRootHash,
             Evidences = [testEvidence],
         }.Create(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
 
         // When
         blockchain.Append(block2, blockCommit2);
@@ -503,7 +503,7 @@ public partial class BlockchainTest
             PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
         }.Create(proposer);
-        var blockCommit1 = TestUtils.CreateBlockCommit(block1);
+        var blockCommit1 = CreateBlockCommit(block1);
         blockchain.Append(block1, blockCommit1);
 
         Assert.Single(blockchain.PendingEvidence, evidence);
@@ -560,7 +560,7 @@ public partial class BlockchainTest
             PreviousStateRootHash = blockchain.StateRootHash,
             Evidences = [evidence]
         }.Create(proposer);
-        var blockCommit1 = TestUtils.CreateBlockCommit(block1);
+        var blockCommit1 = CreateBlockCommit(block1);
         blockchain.Append(block1, blockCommit1);
 
         Assert.Empty(blockchain.PendingEvidence);
@@ -654,7 +654,6 @@ public partial class BlockchainTest
         Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
 
         var pendingDuration = options.BlockOptions.EvidencePendingDuration;
-        var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
 
         for (var i = 0; i < pendingDuration; i++)
         {
@@ -665,7 +664,7 @@ public partial class BlockchainTest
                 PreviousBlockHash = blockchain.Tip.BlockHash,
                 PreviousStateRootHash = blockchain.StateRootHash,
             }.Create(proposer);
-            var blockCommit1 = TestUtils.CreateBlockCommit(block1);
+            var blockCommit1 = CreateBlockCommit(block1);
             blockchain.Append(block1, blockCommit1);
         }
 
@@ -676,7 +675,7 @@ public partial class BlockchainTest
             PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
         }.Create(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
         Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
 
         Assert.Single(blockchain.PendingEvidence);

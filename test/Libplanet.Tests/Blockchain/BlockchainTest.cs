@@ -12,56 +12,9 @@ using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Blockchain;
 
-public partial class BlockchainTest
+public partial class BlockchainTest(ITestOutputHelper output)
 {
-    [Obsolete]
-    private readonly RepositoryFixture _fx;
-    [Obsolete]
-    private readonly BlockchainOptions _options;
-    [Obsolete]
-    private readonly Libplanet.Blockchain _blockchain;
-    [Obsolete]
-    private readonly Block _validNext;
-    [Obsolete]
-    private readonly StagedTransactionCollection _stagePolicy;
-    private readonly ITestOutputHelper _output;
-
-    public BlockchainTest(ITestOutputHelper output)
-    {
-        _output = output;
-        _options = new BlockchainOptions
-        {
-            SystemActions = new SystemActions
-            {
-                EndBlockActions = [new MinerReward(1)],
-            },
-            BlockOptions = new BlockOptions
-            {
-                MaxActionBytes = 50 * 1024,
-            },
-        };
-
-        _fx = GetStoreFixture(_options);
-        _blockchain = new Libplanet.Blockchain(_fx.GenesisBlock, _fx.Repository, _options);
-        _stagePolicy = _blockchain.StagedTransactions;
-
-        _validNext = new RawBlock
-        {
-            Header = new BlockHeader
-            {
-                BlockVersion = BlockHeader.CurrentProtocolVersion,
-                Height = 1,
-                Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
-                Proposer = _fx.Proposer.Address,
-                PreviousBlockHash = _fx.GenesisBlock.BlockHash,
-            },
-        }.Sign(_fx.Proposer);
-    }
-
-    public void Dispose()
-    {
-        _fx.Dispose();
-    }
+    private readonly ITestOutputHelper _output = output;
 
     [Fact]
     public void BaseTest()
