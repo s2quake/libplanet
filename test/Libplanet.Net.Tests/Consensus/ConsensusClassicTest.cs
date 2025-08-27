@@ -2,10 +2,10 @@ using System.Diagnostics;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Net.Consensus;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Libplanet.Extensions;
 using Libplanet.Tests;
+using Libplanet.TestUtilities;
 using System.Reactive.Linq;
 
 using static Libplanet.Net.Tests.TestUtils;

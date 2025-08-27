@@ -8,6 +8,5 @@ public sealed record class TestAction : ActionBase
 {
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
-
     }
 }

@@ -3,7 +3,7 @@ using Libplanet.Net.Components;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
 using Libplanet.Tests.Store;
-using Libplanet.TestUtilities.Extensions;
+using Libplanet.TestUtilities;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;

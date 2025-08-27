@@ -5,7 +5,6 @@ using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Tests.Store;
 using Libplanet.TestUtilities;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Xunit.Internal;
 using static Libplanet.Tests.TestUtils;

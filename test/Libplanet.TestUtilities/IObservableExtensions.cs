@@ -1,4 +1,4 @@
-namespace Libplanet.TestUtilities.Extensions;
+namespace Libplanet.TestUtilities;
 
 public static class IObservableExtensions
 {

@@ -1,4 +1,3 @@
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Net.Components;
 using Libplanet.Extensions;
 using Libplanet.Net.Messages;

@@ -269,7 +269,7 @@ public static class TestUtils
         return preEval.Sign(proposer);
     }
 
-    public static Libplanet.Blockchain MakeBlockchain(
+    public static Blockchain MakeBlockchain(
         BlockchainOptions? options = null,
         IEnumerable<IAction>? actions = null,
         ImmutableSortedSet<Validator>? validators = null,
@@ -278,27 +278,6 @@ public static class TestUtils
         Block? genesisBlock = null,
         int protocolVersion = BlockHeader.CurrentProtocolVersion)
     {
-        //     return MakeBlockChainAndBlockExecutor(
-        //         options,
-        //         actions,
-        //         validators,
-        //         signer,
-        //         timestamp,
-        //         genesisBlock,
-        //         protocolVersion)
-        //     .BlockChain;
-        // }
-
-        // public static (Libplanet.Blockchain BlockChain, BlockExecutor BlockExecutor)
-        //     MakeBlockChainAndBlockExecutor(
-        //     BlockchainOptions? options,
-        //     IEnumerable<IAction>? actions = null,
-        //     ImmutableSortedSet<Validator>? validatorSet = null,
-        //     ISigner? signer = null,
-        //     DateTimeOffset? timestamp = null,
-        //     Block? genesisBlock = null,
-        //     int protocolVersion = BlockHeader.CurrentProtocolVersion)
-        // {
         options ??= new BlockchainOptions();
         actions ??= [];
         signer ??= GenesisProposer;
@@ -316,9 +295,6 @@ public static class TestUtils
         }.ToImmutableSortedSet();
 
         var repository = new Repository();
-        // var blockExecutor = new BlockExecutor(
-        //     states: repository.States,
-        //     options.SystemActions);
 
         if (genesisBlock is null)
         {
@@ -328,92 +304,9 @@ public static class TestUtils
                 validators: validators,
                 timestamp: timestamp,
                 protocolVersion: protocolVersion);
-            // var evaluation = blockExecutor.Execute(preEval);
             genesisBlock = preEval.Sign(signer);
         }
 
         return new Blockchain(genesisBlock, repository, options);
-    }
-
-    public static async Task AssertThatEventually(
-        Expression<Func<bool>> condition,
-        TimeSpan timeout,
-        TimeSpan delay,
-        ITestOutputHelper? output = null,
-        string? conditionLabel = null)
-    {
-        Func<bool> conditionFunc = condition.Compile();
-        DateTimeOffset started = DateTimeOffset.UtcNow;
-        DateTimeOffset until = started + timeout;
-        while (!conditionFunc() && DateTimeOffset.UtcNow <= until)
-        {
-            output?.WriteLine(
-                "[{0}/{1}] Waiting for {2}...",
-                DateTimeOffset.UtcNow - started,
-                timeout,
-                conditionLabel is string c1
-                    ? c1
-                    : $"satisfying the condition ({condition.Body})");
-            await Task.Delay(delay);
-        }
-
-        Assert.True(
-            conditionFunc(),
-            $"Waited {timeout} but the condition (" +
-                (conditionLabel is string l ? l : condition.Body.ToString()) +
-                ") has never been satisfied.");
-
-        output?.WriteLine(
-            "[{0}/{1}] Done {2}...",
-            DateTimeOffset.UtcNow - started,
-            timeout,
-            conditionLabel is string c2 ? c2 : $"satisfying the condition ({condition.Body})");
-    }
-
-    public static Task AssertThatEventually(
-        Expression<Func<bool>> condition,
-        int timeoutMilliseconds,
-        int delayMilliseconds = 100,
-        ITestOutputHelper? output = null,
-        string? conditionLabel = null) =>
-        AssertThatEventually(
-            condition,
-            TimeSpan.FromMilliseconds(timeoutMilliseconds),
-            TimeSpan.FromMilliseconds(delayMilliseconds),
-            output,
-            conditionLabel);
-
-    [Obsolete]
-    public static void AssertJsonSerializable<T>(
-        T obj,
-        string expectedJson,
-        bool testDeserializable = true)
-        where T : IEquatable<T>
-    {
-        // Skip.IfNot(
-        //     Environment.GetEnvironmentVariable("XUNIT_UNITY_RUNNER") is null,
-        //     "System.Text.Json 6.0.0+ does not work well with Unity/Mono.");
-
-        var buffer = new MemoryStream();
-        JsonSerializer.Serialize(buffer, obj);
-        buffer.Seek(0L, SeekOrigin.Begin);
-        var options = new JsonSerializerOptions
-        {
-            AllowTrailingCommas = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        };
-        JsonNode actual = JsonSerializer.SerializeToNode(obj, options);
-        JsonNode expected = JsonNode.Parse(expectedJson, null, new JsonDocumentOptions
-        {
-            AllowTrailingCommas = true,
-            CommentHandling = JsonCommentHandling.Skip,
-        });
-        // JsonAssert.Equal(expected, actual, true);
-        if (testDeserializable)
-        {
-            var deserialized = JsonSerializer.Deserialize<T>(expectedJson, options);
-            Assert.Equal(obj, deserialized);
-        }
     }
 }

@@ -9,7 +9,6 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.TestUtilities;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
 

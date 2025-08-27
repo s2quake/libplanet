@@ -1,7 +1,6 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.State.Tests.Actions;
 using Libplanet.Data;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types;

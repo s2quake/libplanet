@@ -5,7 +5,6 @@ using Libplanet.Net.Consensus.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Tests;
 using Libplanet.TestUtilities;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 using static Libplanet.Net.Tests.TestUtils;

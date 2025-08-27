@@ -2,7 +2,7 @@ using System.Reactive;
 using System.Reactive.Subjects;
 using Libplanet.Extensions;
 
-namespace Libplanet.Tests.Extensions;
+namespace Libplanet.TestUtilities;
 
 public sealed class IObservableExtensionsTest
 {

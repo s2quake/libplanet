@@ -1,6 +1,6 @@
 using Libplanet.Net;
 
-namespace Libplanet.TestUtilities.Extensions;
+namespace Libplanet.TestUtilities;
 
 public static class ITransportExtensions
 {

@@ -1,7 +1,6 @@
 // using Libplanet.Net.Consensus;
 // using Libplanet.TestUtilities;
-// using Libplanet.TestUtilities.Extensions;
-// using Libplanet.Types;
+// // using Libplanet.Types;
 // 
 // namespace Libplanet.Net.Tests.Consensus;
 

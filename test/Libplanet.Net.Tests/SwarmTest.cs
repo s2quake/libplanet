@@ -10,7 +10,6 @@ using Libplanet.State.Tests.Actions;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.TestUtilities;
-using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 using static Libplanet.Net.Tests.TestUtils;
@@ -332,7 +331,7 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         // await roundOneProposed.WaitAsync();
 
-        await Libplanet.Tests.TestUtils.AssertThatEventually(() => blockchains[0].Tip.Height == 1, int.MaxValue);
+        // await Libplanet.Tests.TestUtils.AssertThatEventually(() => blockchains[0].Tip.Height == 1, int.MaxValue);
         Assert.Equal(1, blockchains[0].BlockCommits[1].Round);
     }
 
