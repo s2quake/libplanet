@@ -3,7 +3,7 @@ using System.Text;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 
-namespace Libplanet.Tests.Crypto;
+namespace Libplanet.Types.Tests;
 
 public class PublicKeyTest(ITestOutputHelper output)
 {

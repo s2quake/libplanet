@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 
-namespace Libplanet.Tests;
+namespace Libplanet.Types.Tests;
 
 public partial class HashDigestTest
 {

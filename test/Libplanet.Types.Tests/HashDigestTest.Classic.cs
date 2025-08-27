@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using Libplanet.Types;
 // using static Libplanet.Tests.TestUtils;
 
-namespace Libplanet.Tests;
+namespace Libplanet.Types.Tests;
 
 public partial class HashDigestTest
 {

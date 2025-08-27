@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 
-namespace Libplanet.Tests.Evidence;
+namespace Libplanet.Types.Tests;
 
 public sealed class EvidenceIdTest
 {

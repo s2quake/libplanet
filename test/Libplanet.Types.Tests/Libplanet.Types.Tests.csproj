@@ -6,8 +6,4 @@
     <ProjectReference Include="..\Libplanet.TestUtilities\Libplanet.TestUtilities.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\words.txt" />
-  </ItemGroup>
-
 </Project>

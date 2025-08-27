@@ -1,7 +1,7 @@
 using System.Text;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Tests.Crypto;
+namespace Libplanet.Types.Tests.Crypto;
 
 public sealed class SymmetricKeyTest
 {

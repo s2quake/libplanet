@@ -4,7 +4,7 @@ using Libplanet.TestUtilities;
 using Libplanet.Types;
 // using static Libplanet.Tests.TestUtils;
 
-namespace Libplanet.Tests.Assets;
+namespace Libplanet.Types.Tests;
 
 public class CurrencyTest
 {

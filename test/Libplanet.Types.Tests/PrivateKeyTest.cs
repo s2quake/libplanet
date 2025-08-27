@@ -3,7 +3,7 @@ using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Libplanet.Types.Crypto;
 
-namespace Libplanet.Tests.Crypto;
+namespace Libplanet.Types.Tests;
 
 public class PrivateKeyTest(ITestOutputHelper output)
 {
