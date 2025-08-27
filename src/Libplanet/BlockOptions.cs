@@ -61,16 +61,5 @@ public sealed record class BlockOptions
                     $"which exceeds the limit of {MaxTransactionsPerSigner}.");
             }
         }
-
-        // var evidenceExpirationHeight = block.Height - EvidencePendingDuration;
-        // if (block.Evidences.Any(evidence => evidence.Height < evidenceExpirationHeight))
-        // {
-        //     throw new ArgumentException(
-        //         $"Block #{block.Height} {block.BlockHash} includes " +
-        //         $"evidences that are expired (height < {evidenceExpirationHeight}).");
-        // }
     }
-
-    // internal bool IsEvidenceExpired(EvidenceBase evidence, int height)
-    //     => evidence.Height + EvidencePendingDuration + evidence.Height < height;
 }

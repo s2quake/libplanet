@@ -71,22 +71,4 @@ public static class ImmutableSortedSetExtensions
             throw new ArgumentException(message, nameof(blockCommit));
         }
     }
-
-    // public static void ValidateLegacyBlockCommitValidators(
-    //     this ImmutableSortedSet<Validator> @this, BlockCommit blockCommit)
-    // {
-    //     if (!@this.Select(validator => validator.Address).SequenceEqual(
-    //         blockCommit.Votes.Select(vote => vote.Validator).ToList()))
-    //     {
-    //         throw new InvalidOperationException(
-    //             $"BlockCommit of BlockHash {blockCommit.BlockHash} " +
-    //             $"has different validator set with chain state's validator set: \n" +
-    //             $"in states | \n " +
-    //             @this.Aggregate(
-    //                 string.Empty, (s, key) => s + key + ", \n") +
-    //             $"in blockCommit | \n " +
-    //             blockCommit.Votes.Aggregate(
-    //                 string.Empty, (s, key) => s + key.Validator + ", \n"));
-    //     }
-    // }
 }

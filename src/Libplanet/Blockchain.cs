@@ -51,7 +51,6 @@ public partial class Blockchain
     public Blockchain(Block genesisBlock, Repository repository, BlockchainOptions options)
         : this(repository, options)
     {
-        // repository.GenesisHeight = genesisBlock.Height;
         Append(genesisBlock, default);
     }
 
@@ -263,7 +262,6 @@ public partial class Blockchain
         }
 
         _repository.Append(block, blockCommit);
-        // _repository.Height = block.Height;
         _tipChangedSubject.OnNext(block);
         _blockExecutingSubject.OnNext(Unit.Default);
         var execution = _blockExecutor.Execute((RawBlock)block);

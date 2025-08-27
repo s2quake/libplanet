@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
@@ -6,7 +5,7 @@ using Libplanet.Serialization.DataAnnotations;
 namespace Libplanet.Types;
 
 [Model(Version = 1, TypeName = "BlockHeader")]
-public sealed partial record class BlockHeader : IValidatableObject
+public sealed partial record class BlockHeader
 {
     public const int CurrentProtocolVersion = 0;
 
@@ -34,16 +33,4 @@ public sealed partial record class BlockHeader : IValidatableObject
 
     [Property(6)]
     public HashDigest<SHA256> PreviousStateRootHash { get; init; }
-
-    IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
-    {
-        yield break;
-        // if (BlockVersion > CurrentProtocolVersion)
-        // {
-        //     yield return new ValidationResult(
-        //         $"The version {BlockVersion} is not supported. " +
-        //         $"The current protocol version is {CurrentProtocolVersion}.",
-        //         [nameof(BlockVersion)]);
-        // }
-    }
 }
