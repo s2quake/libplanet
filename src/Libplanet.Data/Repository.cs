@@ -157,6 +157,23 @@ public class Repository
 
     public int BlockVersion { get; set; } = BlockHeader.CurrentProtocolVersion;
 
+    public bool IsEmpty => _genesisHeight == -1
+        && _height == -1
+        && _stateRootHash == default
+        && _metadata.IsEmpty
+        && BlockDigests.IsEmpty
+        && BlockCommits.IsEmpty
+        && StateRootHashes.IsEmpty
+        && PendingTransactions.IsEmpty
+        && CommittedTransactions.IsEmpty
+        && PendingEvidences.IsEmpty
+        && CommittedEvidences.IsEmpty
+        && TxExecutions.IsEmpty
+        && BlockExecutions.IsEmpty
+        && BlockHashes.IsEmpty
+        && Nonces.IsEmpty
+        && States.IsEmpty;
+
     protected IDatabase Database { get; }
 
     public void Append(Block block, BlockCommit blockCommit)

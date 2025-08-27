@@ -20,6 +20,8 @@ public partial class StateIndex(ITable table)
     {
     }
 
+    public bool IsEmpty => _table.Count is 0;
+
     public Trie GetTrie(HashDigest<SHA256> stateRootHash)
     {
         if (stateRootHash == default)

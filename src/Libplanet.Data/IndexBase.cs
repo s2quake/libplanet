@@ -36,6 +36,8 @@ public abstract class IndexBase<TKey, TValue>
 
     public ICollection<TValue> Values => _values;
 
+    public bool IsEmpty => _table.Count is 0;
+
     public int Count => _table.Count;
 
     public bool IsReadOnly => false;

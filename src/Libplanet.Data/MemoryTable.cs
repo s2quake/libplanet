@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Libplanet.Data;
 
-public sealed class MemoryTable(string name) : TableBase(name), IEquatable<MemoryTable>
+public sealed class MemoryTable(string name) : TableBase(name)
 {
     private readonly ConcurrentDictionary<string, byte[]> _dictionary = new();
 
@@ -36,8 +36,6 @@ public sealed class MemoryTable(string name) : TableBase(name), IEquatable<Memor
 
     public override bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value)
         => _dictionary.TryGetValue(key, out value);
-
-    bool IEquatable<MemoryTable>.Equals(MemoryTable? other) => ReferenceEquals(this, other);
 
     protected override IEnumerable<string> EnumerateKeys()
     {
