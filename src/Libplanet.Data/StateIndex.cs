@@ -65,6 +65,9 @@ public partial class StateIndex(ITable table)
         return new Trie(newNode);
     }
 
+    public bool Contains(HashDigest<SHA256> stateRootHash)
+        => stateRootHash != default && _table.ContainsKey(stateRootHash.ToString());
+
     private static INode Commit(INode node, WriteBatch writeBatch) => node switch
     {
         HashNode _ => node,

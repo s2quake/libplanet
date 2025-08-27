@@ -19,19 +19,19 @@ public class Repository
     public Repository(IDatabase database)
     {
         Database = database;
-        _metadata = new MetadataIndex(Database);
-        BlockDigests = new BlockDigestIndex(Database);
-        BlockCommits = new BlockCommitIndex(Database);
-        StateRootHashes = new StateRootHashIndex(Database);
-        PendingTransactions = new PendingTransactionIndex(Database);
-        CommittedTransactions = new CommittedTransactionIndex(Database);
-        PendingEvidences = new PendingEvidenceIndex(Database);
-        CommittedEvidences = new CommittedEvidenceIndex(Database);
-        TxExecutions = new TxExecutionIndex(Database);
-        BlockExecutions = new BlockExecutionIndex(Database);
+        _metadata = new MetadataIndex(database);
+        BlockDigests = new BlockDigestIndex(database);
+        BlockCommits = new BlockCommitIndex(database);
+        StateRootHashes = new StateRootHashIndex(database);
+        PendingTransactions = new PendingTransactionIndex(database);
+        CommittedTransactions = new CommittedTransactionIndex(database);
+        PendingEvidences = new PendingEvidenceIndex(database);
+        CommittedEvidences = new CommittedEvidenceIndex(database);
+        TxExecutions = new TxExecutionIndex(database);
+        BlockExecutions = new BlockExecutionIndex(database);
         BlockHashes = new BlockHashIndex(database);
         Nonces = new NonceIndex(database);
-        States = new StateIndex(Database);
+        States = new StateIndex(database);
         if (_metadata.TryGetValue("genesisHeight", out var genesisHeight))
         {
             _genesisHeight = int.Parse(genesisHeight);
@@ -178,11 +178,21 @@ public class Repository
 
     public void Append(Block block, BlockCommit blockCommit)
     {
-        if (_genesisHeight == -1 && blockCommit != default)
+        if (_genesisHeight == -1)
         {
-            throw new ArgumentException(
-                "Genesis block cannot have a block commit.",
-                nameof(blockCommit));
+            if (blockCommit != default)
+            {
+                throw new ArgumentException(
+                    "Genesis block cannot have a block commit.",
+                    nameof(blockCommit));
+            }
+
+            if (block.PreviousStateRootHash != default && !States.Contains(block.PreviousStateRootHash))
+            {
+                throw new ArgumentException(
+                    $"Cannot find previous state root hash: {block.PreviousStateRootHash}.",
+                    nameof(block));
+            }
         }
 
         if (blockCommit != default)

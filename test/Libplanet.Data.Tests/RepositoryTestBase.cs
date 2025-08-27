@@ -127,16 +127,30 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     public void Append()
     {
         var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
         var repository = CreateRepository();
-        var block1 = RandomUtility.Block(random);
-        var block2 = RandomUtility.Block(random);
-        var blockCommit1 = new BlockCommit
-        {
-            BlockHash = block1.BlockHash,
-            Height = block1.Height,
-        };
 
-        repository.Append(block1, blockCommit1);
+        var block1 = new BlockBuilder
+        {
+            Height = RandomUtility.NonNegative(random),
+            Transactions =
+            [
+                new TransactionBuilder
+                {
+                    Nonce = 0L,
+                }.Create(proposer),
+                new TransactionBuilder
+                {
+                    Nonce = 1L,
+                    Actions = [new TestAction()],
+                }.Create(proposer),
+            ],
+            Evidences =
+            [
+                TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
+                TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
+            ],
+        }.Create(proposer);
 
         Assert.Equal(-1, repository.GenesisHeight);
         Assert.Equal(-1, repository.Height);
@@ -145,8 +159,17 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         Assert.Equal(default, repository.BlockHash);
         Assert.Equal(default, repository.BlockCommit);
 
+        repository.Append(block1, default);
+
+        Assert.Equal(block1.Height, repository.GenesisHeight);
+        Assert.Equal(block1.Height, repository.Height);
+        Assert.Equal(default, repository.StateRootHash);
+        Assert.Equal(block1.BlockHash, repository.GenesisBlockHash);
+        Assert.Equal(block1.BlockHash, repository.BlockHash);
+        Assert.Equal(default, repository.BlockCommit);
+
         Assert.Contains(block1.BlockHash, repository.BlockDigests.Keys);
-        Assert.Contains(block1.BlockHash, repository.BlockCommits.Keys);
+        Assert.Empty(repository.BlockCommits.Keys);
         Assert.Contains(block1.Height, repository.BlockHashes.Keys);
 
         foreach (var item in block1.Transactions)
@@ -163,8 +186,30 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
             Assert.Contains(item.Id, repository.CommittedEvidences.Keys);
         }
 
-        repository.Append(block2, default);
-        Assert.DoesNotContain(block2.BlockHash, repository.BlockCommits.Keys);
+        var block2 = new BlockBuilder
+        {
+            Height = block1.Height + 1,
+            PreviousBlockHash = block1.BlockHash,
+            PreviousStateRootHash = repository.StateRootHash,
+        }.Create(proposer);
+        var blockCommit2 = new BlockCommit
+        {
+            Height = block2.Height,
+            BlockHash = block2.BlockHash,
+        };
+
+        repository.Append(block2, blockCommit2);
+
+        Assert.Equal(block1.Height, repository.GenesisHeight);
+        Assert.Equal(block2.Height, repository.Height);
+        Assert.Equal(default, repository.StateRootHash);
+        Assert.Equal(block1.BlockHash, repository.GenesisBlockHash);
+        Assert.Equal(block2.BlockHash, repository.BlockHash);
+        Assert.Equal(blockCommit2, repository.BlockCommit);
+
+        Assert.Contains(block2.BlockHash, repository.BlockDigests.Keys);
+        Assert.Single(repository.BlockCommits.Keys, block2.BlockHash);
+        Assert.Contains(block2.Height, repository.BlockHashes.Keys);
     }
 
     [Fact]
@@ -194,7 +239,10 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
-        var block = RandomUtility.Block(random);
+        var block = new BlockBuilder
+        {
+            Height = RandomUtility.NonNegative(random),
+        }.Create(RandomUtility.Signer(random));
 
         repository.Append(block, default);
 
@@ -216,7 +264,10 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var repository = CreateRepository();
-        var block = RandomUtility.Block(random);
+        var block = new BlockBuilder
+        {
+            Height = RandomUtility.NonNegative(random),
+        }.Create(RandomUtility.Signer(random));
 
         repository.Append(block, default);
 

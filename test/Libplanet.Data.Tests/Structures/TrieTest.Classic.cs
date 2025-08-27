@@ -139,8 +139,8 @@ public sealed partial class TrieTest
         trie = commit ? stateStore.Commit(trie) : trie;
         Assert.Equal(
             HashDigest<SHA256>.Parse(commit
-                ? "0f629bfaa6a91eef0ff4abc4656282dc03dc2ec04b3657c5c089f68bd0dd347b"
-                : "a390cb3d31ce0f310204072d36abee200fc4fa8cadc00a6a7850c1d7ca93a47e"),
+                ? "c7fe6d6e894c80a1d4194d5d8a902ed863c9fd9381ac9f3ad1c63bbf9d33107d"
+                : "5093c6e77083a3a0b3eaa4a4d31c32e3c7c82e5c3876436275473aaaa8b748d4"),
             trie.Hash);
         Assert.Equal("null", trie["0xbe, 0xef"]);
         Assert.Throws<KeyNotFoundException>(() => trie["0x11, 0x22"]);
@@ -151,8 +151,8 @@ public sealed partial class TrieTest
         trie = commit ? stateStore.Commit(trie) : trie;
         Assert.Equal(
             HashDigest<SHA256>.Parse(commit
-                ? "d843063e618a85d6f3bdc44eb50fd90f08e4bfec388cc4e36eca5a710b9a1178"
-                : "32bc454aea4f116eaf55eeea7fc997cef8b3e617640e7b08e55f12ef5eec21c3"),
+                ? "fa3b2fdfc616b95d0d1b80f321e697940697a82e0850feb413c840e101803499"
+                : "cc940724c3c13c75ad3388a1fe1ef9c004d664712151948b875414af2910c311"),
             trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Throws<KeyNotFoundException>(() => trie["0x11, 0x22"]);
@@ -163,8 +163,8 @@ public sealed partial class TrieTest
         trie = commit ? stateStore.Commit(trie) : trie;
         Assert.Equal(
             HashDigest<SHA256>.Parse(commit
-                ? "a7861e19487071409d67460633d7b90d5fe1f561220e92b3c4a9bdefb76ecc8e"
-                : "c6eb8995a83d9f9c14b01dd2671bdb6a930c1f5c3ee54b0bcec523bbd764bb4f"),
+                ? "a2c8f378e7490f37f76b043c7f14f040b6e1cd9488745d4a0b0eaa231e8dc377"
+                : "a99503b54c35e41d0dd09e858d343cf903509ad2579e4c165703a4eb5445ccb5"),
             trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal<string>([], (List<string>)trie["0x11, 0x22"]);
@@ -175,8 +175,8 @@ public sealed partial class TrieTest
         trie = commit ? stateStore.Commit(trie) : trie;
         Assert.Equal(
             HashDigest<SHA256>.Parse(commit
-                ? "5669b367c51a123727c4617e10ccf98681ff05f6435f6ec878c67c1f63c09744"
-                : "b8b7c0a190abdb04c6f2715197ff27d04c88079af94149ad5339aab33c0c3ae8"),
+                ? "f8cb0be36caff8f37f9cc42cafc506f1d588989135c9f31edcc26aeb03eb1aaa"
+                : "169a07a710939e6cd8f6536abd02878203e5802e3cdd925d00bbdeca1b69021f"),
             trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal<string>([], (List<string>)trie["0x11, 0x22"]);
@@ -190,8 +190,8 @@ public sealed partial class TrieTest
         trie = commit ? stateStore.Commit(trie) : trie;
         Assert.Equal(
             HashDigest<SHA256>.Parse(commit
-                ? "5c914a620e58eb66d9bc9611a09bca1e37962f8ba6ee05c80c17ff67e15a74a1"
-                : "d869a6da787ea7625e0bcb377c40ab6169630251cdd8cde1efaaa25cb75c2be5"),
+                ? "0d585620490c8d0eaad8eaf098d602b57b05694fb5d14780570bbca3b593b248"
+                : "6fd4b3437f49dddbda2d01f9a11e2e9e82b171c6ee6eef2ba4052eac5b0dadd2"),
             trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal<string>([], (List<string>)trie["0x11, 0x22"]);
@@ -202,8 +202,8 @@ public sealed partial class TrieTest
         trie = commit ? stateStore.Commit(trie) : trie;
         Assert.Equal(
             HashDigest<SHA256>.Parse(commit
-                ? "a613f0344a6384d420767f66ce49ac8f74a0283f4f0a1d69276b92b0ef9f4c76"
-                : "e8876c98e212b063ccf5111785bf7d96c8d00755a2b08be7450c656628689495"),
+                ? "5c291774004e27591a2f7f356e8a64649ab0f7d790c97472e5a2f3c197ac0391"
+                : "f4ad1c355458408b68bb1ee8953a49081b0807ed68e7930cbd3f62d04072b570"),
             trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal<string>([], (List<string>)trie["0x11, 0x22"]);
@@ -223,8 +223,8 @@ public sealed partial class TrieTest
         trie = commit ? stateStore.Commit(trie) : trie;
         Assert.Equal(
             HashDigest<SHA256>.Parse(commit
-                ? "892d300adc43befc6b57348bdbe4674ab0272f3604deaada851865e8e67516f6"
-                : "960b217880c33e07c74af077e0b26bd0e636dc34a9b04bc139925601ab97691a"),
+                ? "2b5a88e37d74a2bf981b868c9482b227c2674e3b3583b705d04f375beebbff66"
+                : "b2d0c79ff0d063d9fcc14959ca9e5eddebcf46d737585f8784beb65f6942588c"),
             trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.True(ModelResolver.Equals(complexList, (ImmutableList<object>)trie["0x11, 0x22"]));
@@ -249,8 +249,8 @@ public sealed partial class TrieTest
         trie = commit ? stateStore.Commit(trie) : trie;
         Assert.Equal(
             HashDigest<SHA256>.Parse(commit
-                ? "ea933057a8d953e4e88191a495442dc45359862cc2d8871ab3ead88942f599a9"
-                : "f09781287f2160aba0153473d3ccea45c4df929c1af4e155480c498a75199af8"),
+                ? "e09d526b2ccb6acf2cd651729ea8fb56b8229376de8ff9ad90f1a32780ab910d"
+                : "e9199e0f481b88d31af17c432b12b66bdb87e08c0f56870ab9a77d51b8d2736a"),
             trie.Hash);
         Assert.True(trie["0xbe, 0xef"] is true);
         Assert.Equal(complexList, trie["0x11, 0x22"]);
