@@ -29,7 +29,7 @@ public sealed record class Validator : IComparable<Validator>, IComparable
             return 1;
         }
 
-        var result = Power.CompareTo(other.Power);
+        var result = other.Power.CompareTo(Power);
         if (result == 0)
         {
             result = Address.CompareTo(other.Address);

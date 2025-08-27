@@ -159,6 +159,13 @@ public class Repository
 
     public void Append(Block block, BlockCommit blockCommit)
     {
+        if (_genesisHeight == -1 && blockCommit != default)
+        {
+            throw new ArgumentException(
+                "Genesis block cannot have a block commit.",
+                nameof(blockCommit));
+        }
+
         if (blockCommit != default)
         {
             if (blockCommit.BlockHash != block.BlockHash)
@@ -183,6 +190,11 @@ public class Repository
                 nameof(block));
         }
 
+        if (_genesisHeight == -1)
+        {
+            GenesisHeight = block.Height;
+        }
+
         Nonces.Validate(block);
 
         BlockDigests.Add(block);
@@ -197,6 +209,7 @@ public class Repository
         CommittedTransactions.AddRange(block.Transactions);
         PendingEvidences.RemoveRange(block.Evidences);
         CommittedEvidences.AddRange(block.Evidences);
+        Height = block.Height;
     }
 
     public Block GetBlock(BlockHash blockHash)

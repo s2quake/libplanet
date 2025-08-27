@@ -1,12 +1,11 @@
+using System.Security.Cryptography;
+using Libplanet.Data;
+using Libplanet.Serialization;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
-using Libplanet.Extensions;
-using Libplanet.Data;
-using Libplanet.Types;
 using Libplanet.TestUtilities;
+using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
-using System.Security.Cryptography;
-using Xunit.Internal;
 
 namespace Libplanet.Tests.Blockchain;
 
@@ -32,7 +31,7 @@ public partial class BlockchainTest
                 PreviousStateRootHash = blockchain.StateRootHash,
             },
         }.Sign(proposer);
-        var blockCommit = TestUtils.CreateBlockCommit(block);
+        var blockCommit = CreateBlockCommit(block);
 
         blockchain.Append(block, blockCommit);
         Assert.Equal(blockchain.Tip, block);
@@ -76,7 +75,7 @@ public partial class BlockchainTest
                 PreviousStateRootHash = blockchain.StateRootHash,
             },
         }.Sign(proposer);
-        var blockCommit1 = TestUtils.CreateBlockCommit(block1);
+        var blockCommit1 = CreateBlockCommit(block1);
         blockchain.Append(block1, blockCommit1);
 
         var block2 = new RawBlock
@@ -92,7 +91,7 @@ public partial class BlockchainTest
                 PreviousStateRootHash = blockchain.StateRootHash,
             },
         }.Sign(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
         Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
 
         var block3 = new RawBlock
@@ -108,7 +107,7 @@ public partial class BlockchainTest
                 PreviousStateRootHash = blockchain.StateRootHash,
             },
         }.Sign(proposer);
-        var blockCommit3 = TestUtils.CreateBlockCommit(block3);
+        var blockCommit3 = CreateBlockCommit(block3);
 
         Assert.Throws<ArgumentException>(() => blockchain.Append(block3, blockCommit3));
     }
@@ -136,7 +135,7 @@ public partial class BlockchainTest
                 PreviousBlockHash = block1.BlockHash,
             },
         }.Sign(proposer);
-        var blockCommitA = TestUtils.CreateBlockCommit(blockA);
+        var blockCommitA = CreateBlockCommit(blockA);
         Assert.Throws<ArgumentException>(() => blockchain.Append(blockA, blockCommitA));
 
         var blockB = new RawBlock
@@ -147,10 +146,10 @@ public partial class BlockchainTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = proposer.Address,
                 PreviousBlockHash = block1.BlockHash,
-                PreviousBlockCommit = TestUtils.CreateBlockCommit(block1.BlockHash, block1.Height + 1, 0),
+                PreviousBlockCommit = CreateBlockCommit(block1.BlockHash, block1.Height + 1, 0),
             },
         }.Sign(proposer);
-        var blockCommitB = TestUtils.CreateBlockCommit(blockB);
+        var blockCommitB = CreateBlockCommit(blockB);
 
         Assert.Throws<ArgumentException>(() => blockchain.Append(blockB, blockCommitB));
     }
@@ -174,10 +173,10 @@ public partial class BlockchainTest
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = proposer.Address,
                 PreviousBlockHash = block1.PreviousBlockHash,
-                PreviousBlockCommit = TestUtils.CreateBlockCommit(block1.PreviousBlockHash, 1, 0),
+                PreviousBlockCommit = CreateBlockCommit(block1.PreviousBlockHash, 1, 0),
             },
         }.Sign(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
         Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
     }
 
@@ -203,7 +202,7 @@ public partial class BlockchainTest
                 PreviousBlockCommit = blockCommit1,
             },
         }.Sign(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
         Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
     }
 
@@ -236,7 +235,7 @@ public partial class BlockchainTest
             PreviousBlockHash = genesisBlock.BlockHash,
             PreviousStateRootHash = blockchainA.StateRootHash,
         }.Create(proposer);
-        var blockCommitA = TestUtils.CreateBlockCommit(blockA);
+        var blockCommitA = CreateBlockCommit(blockA);
 
         blockchainA.Append(blockA, blockCommitA);
 
@@ -247,7 +246,7 @@ public partial class BlockchainTest
             PreviousBlockHash = genesisBlock.BlockHash,
             PreviousStateRootHash = RandomUtility.HashDigest<SHA256>(random),
         }.Create(proposer);
-        var blockCommitB = TestUtils.CreateBlockCommit(blockB);
+        var blockCommitB = CreateBlockCommit(blockB);
 
         Assert.Throws<ArgumentException>(() => blockchainB.Append(blockB, blockCommitB));
     }
@@ -268,7 +267,7 @@ public partial class BlockchainTest
             PreviousBlockHash = genesisBlock.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
         }.Create(proposer);
-        var blockCommit1 = TestUtils.CreateBlockCommit(block1);
+        var blockCommit1 = CreateBlockCommit(block1);
         blockchain.Append(block1, blockCommit1);
         Assert.Equal(blockchain.Tip, block1);
     }
@@ -288,10 +287,10 @@ public partial class BlockchainTest
         {
             Height = 2,
             PreviousBlockHash = block1.BlockHash,
-            PreviousBlockCommit = TestUtils.CreateBlockCommit(block1),
+            PreviousBlockCommit = CreateBlockCommit(block1),
             PreviousStateRootHash = blockchain.StateRootHash,
         }.Create(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
         blockchain.Append(block2, blockCommit2);
         Assert.Equal(blockchain.Tip, block2);
     }
@@ -307,15 +306,13 @@ public partial class BlockchainTest
         var blockchain = new Libplanet.Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
 
-        var invalidValidator = RandomUtility.Try(random, RandomUtility.Signer, v => v.Address > Signers[3].Address);
-        var signers = TestUtils.Signers.Add(invalidValidator);
-        var validators = TestUtils.Validators.Add(new Validator { Address = invalidValidator.Address });
+        var validators = TestValidators.Add(new(RandomUtility.Signer(random)));
         var votes = Enumerable.Range(0, validators.Count).Select(index => new VoteBuilder
         {
             Validator = validators[index],
             Block = block1,
             Type = VoteType.PreCommit,
-        }.Create(signers[index])).ToImmutableArray();
+        }.Create(validators[index])).ToImmutableArray();
         var invalidBlockCommit = new BlockCommit
         {
             Height = 1,
@@ -330,7 +327,7 @@ public partial class BlockchainTest
             PreviousBlockCommit = invalidBlockCommit,
             PreviousStateRootHash = blockchain.StateRootHash,
         }.Create(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
         Assert.Throws<ArgumentException>("block", () => blockchain.Append(block2, blockCommit2));
     }
 
@@ -345,14 +342,13 @@ public partial class BlockchainTest
         var blockchain = new Libplanet.Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
 
-        var signers = TestUtils.Signers.Except([Signers[0]]).ToArray();
-        var validators = TestUtils.Validators.Except([TestUtils.Validators[0]]).ToImmutableSortedSet();
-        var votes = signers.Select((signer, i) => new VoteBuilder
+        var validators = TestValidators.Remove(TestValidators[0]);
+        var votes = validators.Select((signer, i) => new VoteBuilder
         {
             Validator = validators[i],
             Block = block1,
             Type = VoteType.PreCommit,
-        }.Create(signers[i])).ToImmutableArray();
+        }.Create(validators[i])).ToImmutableArray();
         var invalidBlockCommit = new BlockCommit
         {
             Height = 1,
@@ -366,281 +362,313 @@ public partial class BlockchainTest
             PreviousBlockCommit = invalidBlockCommit,
             PreviousStateRootHash = blockchain.StateRootHash,
         }.Create(proposer);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
         Assert.Throws<ArgumentException>("block", () => blockchain.Append(block2, blockCommit2));
     }
 
     [Fact]
     public void ValidateBlockCommitGenesis()
     {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchainA = new Libplanet.Blockchain();
         // Works fine.
-        // _blockChain.ValidateBlockCommit(_fx.GenesisBlock, default);
+        blockchainA.Append(genesisBlock, default);
 
         // Should be null for genesis.
         var blockCommit = new BlockCommit
         {
-            BlockHash = _fx.GenesisBlock.BlockHash,
-            Votes = [.. TestUtils.Signers.Select(x => new VoteMetadata
-            {
-                Height = 0,
-                Round = 0,
-                BlockHash = _fx.GenesisBlock.BlockHash,
-                Timestamp = DateTimeOffset.UtcNow,
-                Validator = x.Address,
-                ValidatorPower = TestUtils.Validators.GetValidator(x.Address).Power,
-                Type = VoteType.PreCommit,
-            }.Sign(x))],
+            BlockHash = genesisBlock.BlockHash,
+            Votes =
+            [
+                .. TestValidators.Select(validator => new Vote
+                {
+                    Metadata = new VoteMetadata
+                    {
+                        Height = 1,
+                        BlockHash = RandomUtility.BlockHash(random),
+                        Timestamp = DateTimeOffset.UtcNow,
+                        Validator = validator.Address,
+                        ValidatorPower = BigInteger.One,
+                        Type = VoteType.PreCommit,
+                    },
+                    Signature = RandomUtility.ImmutableArray(random, RandomUtility.Byte),
+                }),
+            ],
         };
-        Assert.Throws<InvalidOperationException>(() => blockCommit.Validate(_fx.GenesisBlock));
+        var blockchainB = new Libplanet.Blockchain();
+        Assert.Throws<ArgumentException>("blockCommit", () => blockchainB.Append(genesisBlock, blockCommit));
     }
 
     [Fact]
     public void ValidateBlockCommitFailsDifferentBlockHash()
     {
-        Block validNextBlock = new RawBlock
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
         {
-            Header = new BlockHeader
-            {
-                Height = 1,
-                Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
-                PreviousBlockHash = _fx.GenesisBlock.BlockHash,
-            },
-        }.Sign(_fx.Proposer);
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var block1 = new BlockBuilder
+        {
+            Height = 1,
+            Timestamp = genesisBlock.Timestamp.AddDays(1),
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+        }.Create(proposer);
+        var blockCommit1 = CreateBlockCommit(RandomUtility.BlockHash(random), 1, 0);
 
-        Assert.Throws<InvalidOperationException>(() =>
-            _blockchain.Append(
-                validNextBlock,
-                TestUtils.CreateBlockCommit(
-                    new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-                    1,
-                    0)));
+        Assert.Throws<ArgumentException>("blockCommit", () => blockchain.Append(block1, blockCommit1));
     }
 
     [Fact]
     public void ValidateBlockCommitFailsDifferentHeight()
     {
-        Block validNextBlock = new RawBlock
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
         {
-            Header = new BlockHeader
-            {
-                Height = 1,
-                Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
-                PreviousBlockHash = _fx.GenesisBlock.BlockHash,
-            },
-        }.Sign(_fx.Proposer);
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
 
-        Assert.Throws<InvalidOperationException>(() =>
-            _blockchain.Append(
-                validNextBlock,
-                TestUtils.CreateBlockCommit(
-                    validNextBlock.BlockHash,
-                    2,
-                    0)));
+        var block1 = new BlockBuilder
+        {
+            Height = 1,
+            Timestamp = genesisBlock.Timestamp.AddDays(1),
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+        }.Create(proposer);
+        var blockCommit1 = CreateBlockCommit(block1.BlockHash, 2, 0);
+
+        Assert.Throws<ArgumentException>("blockCommit", () => blockchain.Append(block1, blockCommit1));
     }
 
     [Fact]
     public void ValidateBlockCommitFailsDifferentValidatorSet()
     {
         var random = RandomUtility.GetRandom(_output);
-        var validNextBlock = new RawBlock
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
         {
-            Header = new BlockHeader
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+
+        var block1 = new BlockBuilder
+        {
+            Height = 1,
+            Timestamp = genesisBlock.Timestamp.AddDays(1),
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+        }.Create(proposer);
+        var blockCommit1 = new BlockCommit
+        {
+            Height = 1,
+            BlockHash = block1.BlockHash,
+            Votes =
+            [
+                .. TestUtils.Validators.Select(CreatVote),
+            ],
+        };
+
+        Assert.Throws<ArgumentException>(() => blockchain.Append(block1, blockCommit1));
+
+        Vote CreatVote(Validator validator)
+        {
+            var metadata = new VoteMetadata
             {
                 Height = 1,
-                Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
-                PreviousBlockHash = _fx.GenesisBlock.BlockHash,
-                PreviousStateRootHash = _blockchain.StateRootHash,
-            },
-        }.Sign(_fx.Proposer);
-
-        Assert.Throws<InvalidOperationException>(() =>
-            _blockchain.Append(
-                validNextBlock,
-                new BlockCommit
-                {
-                    Height = 1,
-                    Round = 0,
-                    BlockHash = validNextBlock.BlockHash,
-                    Votes = [.. Enumerable.Range(0, TestUtils.Validators.Count)
-                        .Select(x => RandomUtility.Signer(random))
-                        .Select(x => new VoteMetadata
-                        {
-                            Height = 1,
-                            Round = 0,
-                            BlockHash = validNextBlock.BlockHash,
-                            Timestamp = DateTimeOffset.UtcNow,
-                            Validator = x.Address,
-                            ValidatorPower = BigInteger.One,
-                            Type = VoteType.PreCommit,
-                        }.Sign(x))],
-                }));
+                Round = 0,
+                BlockHash = block1.BlockHash,
+                Timestamp = DateTimeOffset.UtcNow,
+                Validator = validator.Address,
+                ValidatorPower = BigInteger.One,
+                Type = VoteType.PreCommit,
+            };
+            var options = new ModelOptions();
+            var message = ModelSerializer.SerializeToBytes(metadata, options);
+            var signer = RandomUtility.Signer(random);
+            var signature = signer.Sign(message);
+            return new Vote { Metadata = metadata, Signature = [.. signature] };
+        }
     }
 
     [Fact]
     public void ValidateBlockCommitFailsNullBlockCommit()
     {
-        Block validNextBlock = new RawBlock
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
         {
-            Header = new BlockHeader
-            {
-                Height = 1,
-                Timestamp = _fx.GenesisBlock.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
-                PreviousBlockHash = _fx.GenesisBlock.BlockHash,
-            },
-        }.Sign(_fx.Proposer);
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var block1 = new BlockBuilder
+        {
+            Height = 1,
+            Timestamp = genesisBlock.Timestamp.AddDays(1),
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+        }.Create(proposer);
 
-        Assert.Throws<InvalidOperationException>(() =>
-            _blockchain.Append(validNextBlock, default));
+        Assert.Throws<ArgumentException>(() => blockchain.Append(block1, default));
     }
 
     [Fact]
     public void ValidateBlockCommitFailsInsufficientPower()
     {
         var random = RandomUtility.GetRandom(_output);
-        var signer1 = RandomUtility.Signer(random);
-        var signer2 = RandomUtility.Signer(random);
-        var signer3 = RandomUtility.Signer(random);
-        var signer4 = RandomUtility.Signer(random);
-        var validator1 = new Validator { Address = signer1.Address, Power = 10 };
-        var validator2 = new Validator { Address = signer2.Address, Power = 1 };
-        var validator3 = new Validator { Address = signer3.Address, Power = 1 };
-        var validator4 = new Validator { Address = signer4.Address, Power = 1 };
-        ImmutableSortedSet<Validator> validatorSet
-            = [validator1, validator2, validator3, validator4];
-        Libplanet.Blockchain blockChain = TestUtils.MakeBlockchain(
-            validators: validatorSet);
-        Block validNextBlock = new RawBlock
+        ImmutableSortedSet<TestValidator> validators =
+        [
+            new TestValidator(RandomUtility.Signer(random), 10),
+            new TestValidator(RandomUtility.Signer(random), 1),
+            new TestValidator(RandomUtility.Signer(random), 1),
+            new TestValidator(RandomUtility.Signer(random), 1),
+        ];
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
         {
-            Header = new BlockHeader
-            {
-                Height = 1,
-                Timestamp = blockChain.Genesis.Timestamp.AddDays(1),
-                Proposer = _fx.Proposer.Address,
-                PreviousBlockHash = blockChain.Genesis.BlockHash,
-            },
-        }.Sign(_fx.Proposer);
+            Validators = [.. validators.Select(item => (Validator)item)],
+        }.Create(proposer);
 
-        Vote GenerateVote(ISigner signer, BigInteger power, VoteType flag)
+        static Vote CreateVote(TestValidator validator, BlockHash blockHash, VoteType voteType)
         {
             var metadata = new VoteMetadata
             {
                 Height = 1,
                 Round = 0,
-                BlockHash = validNextBlock.BlockHash,
+                BlockHash = blockHash,
                 Timestamp = DateTimeOffset.UtcNow,
-                Validator = signer.Address,
-                ValidatorPower = power,
-                Type = flag,
+                Validator = validator.Address,
+                ValidatorPower = validator.Power,
+                Type = voteType,
             };
-            return flag == VoteType.Null
-                ? metadata.WithoutSignature()
-                : metadata.Sign(signer);
+            return voteType == VoteType.Null ? metadata.WithoutSignature() : metadata.Sign(validator);
         }
 
-        ImmutableArray<Vote> GenerateVotes(
-            VoteType flag1,
-            VoteType flag2,
-            VoteType flag3,
-            VoteType flag4)
-        {
-            return new[]
-            {
-                GenerateVote(signer1, validator1.Power, flag1),
-                GenerateVote(signer2, validator2.Power, flag2),
-                GenerateVote(signer3, validator3.Power, flag3),
-                GenerateVote(signer4, validator4.Power, flag4),
-            }.OrderBy(vote => vote.Validator).ToImmutableArray();
-        }
-
-        var fullBlockCommit = new BlockCommit
+        var blockchainA = new Libplanet.Blockchain(genesisBlock);
+        var blockA = new BlockBuilder
         {
             Height = 1,
-            Round = 0,
-            BlockHash = validNextBlock.BlockHash,
-            Votes = GenerateVotes(
-                VoteType.PreCommit,
-                VoteType.PreCommit,
-                VoteType.PreCommit,
-                VoteType.PreCommit),
+            Timestamp = genesisBlock.Timestamp.AddDays(1),
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchainA.StateRootHash,
+        }.Create(proposer);
+        var blockCommitA = new BlockCommit
+        {
+            Height = 1,
+            BlockHash = blockA.BlockHash,
+            Votes =
+            [
+                CreateVote(validators[0], blockA.BlockHash, VoteType.PreCommit),
+                CreateVote(validators[1], blockA.BlockHash, VoteType.PreCommit),
+                CreateVote(validators[2], blockA.BlockHash, VoteType.PreCommit),
+                CreateVote(validators[3], blockA.BlockHash, VoteType.PreCommit),
+            ]
         };
-        fullBlockCommit.Validate(validNextBlock);
+        blockchainA.Append(blockA, blockCommitA);
 
         // Can propose if power is big enough even count condition is not met.
-        var validBlockCommit = new BlockCommit
+        var blockchainB = new Libplanet.Blockchain(genesisBlock);
+        var blockB = new BlockBuilder
         {
             Height = 1,
-            Round = 0,
-            BlockHash = validNextBlock.BlockHash,
-            Votes = GenerateVotes(
-                VoteType.PreCommit,
-                VoteType.Null,
-                VoteType.Null,
-                VoteType.Null),
+            Timestamp = genesisBlock.Timestamp.AddDays(1),
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchainB.StateRootHash,
+        }.Create(proposer);
+        var blockCommitB = new BlockCommit
+        {
+            Height = 1,
+            BlockHash = blockA.BlockHash,
+            Votes =
+            [
+                CreateVote(validators[0], blockB.BlockHash, VoteType.PreCommit),
+                CreateVote(validators[1], blockB.BlockHash, VoteType.Null),
+                CreateVote(validators[2], blockB.BlockHash, VoteType.Null),
+                CreateVote(validators[3], blockB.BlockHash, VoteType.Null),
+            ],
         };
-        validBlockCommit.Validate(validNextBlock);
+        blockchainB.Append(blockB, blockCommitB);
 
         // Can not propose if power isn't big enough even count condition is met.
-        var invalidBlockCommit = new BlockCommit
+        var blockchainC = new Libplanet.Blockchain(genesisBlock);
+        var blockC = new BlockBuilder
         {
             Height = 1,
-            Round = 0,
-            BlockHash = validNextBlock.BlockHash,
-            Votes = GenerateVotes(
-                VoteType.Null,
-                VoteType.PreCommit,
-                VoteType.PreCommit,
-                VoteType.PreCommit),
+            Timestamp = genesisBlock.Timestamp.AddDays(1),
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchainC.StateRootHash,
+        }.Create(proposer);
+        var blockCommitC = new BlockCommit
+        {
+            Height = 1,
+            BlockHash = blockA.BlockHash,
+            Votes =
+            [
+                CreateVote(validators[0], blockC.BlockHash, VoteType.Null),
+                CreateVote(validators[1], blockC.BlockHash, VoteType.PreCommit),
+                CreateVote(validators[2], blockC.BlockHash, VoteType.PreCommit),
+                CreateVote(validators[3], blockC.BlockHash, VoteType.PreCommit),
+            ],
         };
-        Assert.Throws<InvalidOperationException>(() => invalidBlockCommit.Validate(validNextBlock));
+        Assert.Throws<ArgumentException>("blockCommit", () => blockchainC.Append(blockC, blockCommitC));
     }
 
     [Fact]
     public void ValidateNextBlockOnChainRestart()
     {
-        var repository = new Repository();
-        var newChain = new Libplanet.Blockchain(_blockchain.Genesis, repository, _options);
-        newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext));
-        Assert.Equal(newChain.Tip, _validNext);
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var block = new BlockBuilder
+        {
+            Height = 1,
+            Timestamp = genesisBlock.Timestamp.AddSeconds(1),
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+        }.Create(proposer);
+        var blockCommit = CreateBlockCommit(block);
+        blockchain.Append(block, blockCommit);
+        Assert.Equal(blockchain.Tip, block);
     }
 
     [Fact]
     public void ValidateNextBlockAEVChangedOnChainRestart()
     {
-        var endBlockActions =
-            new IAction[] { new SetStatesAtBlock(default, "foo", default, 0), }
-                .ToImmutableArray();
-        var policyWithBlockAction = new BlockchainOptions
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var options = new BlockchainOptions
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = endBlockActions,
+                EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
             },
         };
 
-        var repository = new Repository();
-        var newChain = new Libplanet.Blockchain(_blockchain.Genesis, repository, policyWithBlockAction);
+        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var (block1, blockCommit1) = blockchain.ProposeAndAppend(proposer);
 
-        Block newValidNext = new RawBlock
+        var block2 = new BlockBuilder
         {
-            Header = new BlockHeader
-            {
-                BlockVersion = BlockHeader.CurrentProtocolVersion,
-                Height = newChain.Tip.Height + 1,
-                Timestamp = newChain.Tip.Timestamp.AddSeconds(1),
-                Proposer = TestUtils.GenesisProposer.Address,
-                PreviousBlockHash = newChain.Tip.BlockHash,
-            },
-        }.Sign(TestUtils.GenesisProposer);
+            Height = blockchain.Tip.Height + 1,
+            Timestamp = block1.Timestamp.AddSeconds(1),
+            PreviousBlockHash = block1.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+        }.Create(proposer);
+        var blockCommit2 = CreateBlockCommit(block2);
 
-        Assert.NotEqual(_validNext, newValidNext);
+        Assert.NotEqual(block1, block2);
+        Assert.Throws<ArgumentException>("block", () => blockchain.Append(block1, blockCommit1));
+        Assert.Throws<ArgumentException>("blockCommit", () => blockchain.Append(block2, blockCommit1));
 
-        Assert.Throws<InvalidOperationException>(() =>
-            newChain.Append(_validNext, TestUtils.CreateBlockCommit(_validNext)));
-
-        newChain.Append(newValidNext, TestUtils.CreateBlockCommit(newValidNext));
+        blockchain.Append(block2, blockCommit2);
     }
 }

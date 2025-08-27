@@ -25,7 +25,6 @@ public partial class BlockchainTest
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var repository = new Repository();
         var options = new BlockchainOptions
@@ -318,7 +317,6 @@ public partial class BlockchainTest
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var blockchain = new Libplanet.Blockchain(genesisBlock);
         var accountAddress = Address.Parse("0123456789abcdef0123456789abcdef12345678");
@@ -350,7 +348,6 @@ public partial class BlockchainTest
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var options = new BlockchainOptions
         {
@@ -401,7 +398,6 @@ public partial class BlockchainTest
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var options = new BlockchainOptions
         {
@@ -438,7 +434,6 @@ public partial class BlockchainTest
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var options = new BlockchainOptions
         {
@@ -483,7 +478,6 @@ public partial class BlockchainTest
         };
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var blockchain = new Libplanet.Blockchain(genesisBlock, options);
 
@@ -508,7 +502,6 @@ public partial class BlockchainTest
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var repository = new Repository();
         var options = new BlockchainOptions
@@ -601,7 +594,6 @@ public partial class BlockchainTest
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var options = new BlockchainOptions
         {
@@ -642,7 +634,6 @@ public partial class BlockchainTest
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var blockchain = new Libplanet.Blockchain(genesisBlock);
         var txA0 = new TransactionBuilder

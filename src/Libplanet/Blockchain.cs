@@ -51,7 +51,7 @@ public partial class Blockchain
     public Blockchain(Block genesisBlock, Repository repository, BlockchainOptions options)
         : this(repository, options)
     {
-        repository.GenesisHeight = genesisBlock.Height;
+        // repository.GenesisHeight = genesisBlock.Height;
         Append(genesisBlock, default);
     }
 
@@ -137,17 +137,17 @@ public partial class Blockchain
     {
         if (_repository.BlockDigests.ContainsKey(block.BlockHash))
         {
-            throw new InvalidOperationException(
-                $"Block {block.BlockHash} already exists in the store.");
+            throw new ArgumentException(
+                $"Block {block.BlockHash} already exists in the store.", nameof(block));
         }
 
         if (_repository.BlockCommits.ContainsKey(block.BlockHash))
         {
-            throw new InvalidOperationException(
-                $"Block {block.BlockHash} already exists in the store.");
+            throw new ArgumentException(
+                $"Block {block.BlockHash} already exists in the store.", nameof(blockCommit));
         }
 
-        if (_repository.GenesisHeight != block.Height)
+        if (_repository.GenesisHeight != -1 && _repository.GenesisHeight != block.Height)
         {
             if (block.Version > _repository.BlockVersion)
             {
@@ -211,11 +211,37 @@ public partial class Blockchain
                 }
             }
 
+            if (blockCommit == default)
+            {
+                throw new ArgumentException(
+                    "Non-genesis block must have a block commit.",
+                    nameof(blockCommit));
+            }
+
             block.Validate(this);
-            blockCommit.Validate(block);
+            try
+            {
+                blockCommit.Validate(block);
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentException("Block commit is invalid.", nameof(blockCommit), e);
+            }
 
             var validators = this.GetValidators(block.Height);
             validators.ValidateBlockCommitValidators(blockCommit);
+
+            BigInteger commitPower = blockCommit.Votes.Aggregate(
+                BigInteger.Zero,
+                (power, vote) => power + (vote.Type == VoteType.PreCommit
+                    ? validators.GetValidator(vote.Validator).Power
+                    : BigInteger.Zero));
+            if (validators.GetTwoThirdsPower() >= commitPower)
+            {
+                throw new ArgumentException(
+                    "Block commit does not have enough power.",
+                    nameof(blockCommit));
+            }
 
             Options.BlockOptions.Validate(block);
             foreach (var tx in block.Transactions)
@@ -225,7 +251,7 @@ public partial class Blockchain
         }
 
         _repository.Append(block, blockCommit);
-        _repository.Height = block.Height;
+        // _repository.Height = block.Height;
         _tipChangedSubject.OnNext(block);
         _blockExecutingSubject.OnNext(Unit.Default);
         var execution = _blockExecutor.Execute((RawBlock)block);
