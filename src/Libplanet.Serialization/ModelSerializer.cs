@@ -47,10 +47,10 @@ public static class ModelSerializer
         {
             stream.WriteByte((byte)DataType.Null);
         }
-        else if (TypeUtility.IsDefault(obj, obj.GetType()))
-        {
-            stream.WriteByte((byte)DataType.Default);
-        }
+        // else if (TypeUtility.IsDefault(obj, obj.GetType()))
+        // {
+        //     stream.WriteByte((byte)DataType.Default);
+        // }
         else
         {
             Serialize(stream, obj, obj.GetType(), options);
@@ -80,6 +80,7 @@ public static class ModelSerializer
     }
 
     public static T Deserialize<T>(Stream stream, ModelOptions options)
+        where T : notnull
     {
         if (Deserialize(stream, options) is T obj)
         {
@@ -112,9 +113,11 @@ public static class ModelSerializer
     }
 
     public static T DeserializeFromBytes<T>(ReadOnlySpan<byte> bytes)
+        where T : notnull
         => DeserializeFromBytes<T>(bytes, ModelOptions.Empty);
 
     public static T DeserializeFromBytes<T>(ReadOnlySpan<byte> bytes, ModelOptions options)
+        where T : notnull
     {
         using var stream = new MemoryStream(bytes.ToArray());
         return Deserialize<T>(stream, options)
@@ -122,9 +125,10 @@ public static class ModelSerializer
                 $"Failed to deserialize {typeof(T)} from bytes.");
     }
 
-    public static T Clone<T>(T obj) => Clone(obj, ModelOptions.Empty);
+    public static T Clone<T>(T obj) where T : notnull => Clone(obj, ModelOptions.Empty);
 
     public static T Clone<T>(T obj, ModelOptions options)
+        where T : notnull
     {
         using var stream = new MemoryStream();
         Serialize(stream, obj, options);

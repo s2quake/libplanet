@@ -383,6 +383,7 @@ public static class TestUtils
             output,
             conditionLabel);
 
+    [Obsolete]
     public static void AssertJsonSerializable<T>(
         T obj,
         string expectedJson,

@@ -50,8 +50,7 @@ public class TransactionTest
             0x02, 0x65, 0x82, 0x5e, 0x3b, 0x8c, 0x6b, 0xa2, 0x14, 0x46,
             0x7b, 0x76,
         ]).AsSigner();
-        var timestamp =
-            new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
+        var timestamp = new DateTimeOffset(2018, 11, 21, 0, 0, 0, TimeSpan.Zero);
         var action = new Initialize
         {
             Validators = [new Validator { Address = signer.Address }],
@@ -69,17 +68,11 @@ public class TransactionTest
         Assert.Equal(signer.Address, tx.Signer);
         Assert.Equal(timestamp, tx.Timestamp);
         Assert.Equal(
-            new byte[]
-            {
-                0x08, 0xef, 0x2a, 0x58, 0x52, 0x8b, 0x15, 0xe5, 0xc3, 0x25, 0xe1, 0x59, 0x2a,
-                0x5e, 0x1d, 0x3a, 0x8a, 0xf3, 0xeb, 0x12, 0x01, 0xfe, 0x1f, 0x2b, 0xf7, 0x42,
-                0x80, 0xd1, 0xc1, 0xaa, 0x09, 0xbc, 0x19, 0xb1, 0x59, 0x77, 0x95, 0xaa, 0x03,
-                0x74, 0x75, 0x5f, 0x6c, 0xdd, 0x69, 0x89, 0x3a, 0x82, 0x72, 0xd2, 0xcf, 0xee,
-                0x31, 0x31, 0x7f, 0x53, 0x39, 0x25, 0xe4, 0x1c, 0xdf, 0x3d, 0x55, 0x61, 0x1b,
-            },
-            tx.Signature);
+            "eeb90f4c658ca28047ab2c3b16bc69b271fbf0e4678c5d6513c9ab09740837ff0" +
+            "6709d274a29dc8612890c49038bc385ae2869158ed35835005352c53b2e032a1b",
+            ByteUtility.Hex(tx.Signature));
         Assert.Equal(
-            TxId.Parse("babd317f0ce9961a528d9c923022fa4e0a360df0437463af7267ac40c5a889e6"),
+            TxId.Parse("486f80d9b52ba24483f7b4b352386c775453a1b9f1f6eaed72d16c26ec57f92a"),
             tx.Id);
     }
 
@@ -201,156 +194,156 @@ public class TransactionTest
         };
     }
 
-//     [Fact]
-//     public void Equality()
-//     {
-//         var genesisHash = BlockHash.Parse(
-//             "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
-//         Address addressA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
-//         Address addressB = Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
-//         var updatedAddresses = ImmutableSortedSet.Create(addressA, addressB);
-//         var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
-//         var actions = ImmutableArray.Create<IAction>([
-//             DumbAction.Create((addressA, "foo")),
-//             DumbAction.Create((addressB, "bar")),
-//         ]).ToImmutableArray();
-//         // var invoice = new TxInvoice
-//         // {
-//         //     GenesisHash = genesisHash,
-//         //     UpdatedAddresses = updatedAddresses,
-//         //     Timestamp = timestamp,
-//         //     Actions = actions.ToBytecodes(),
-//         // };
-//         var privateKey =
-//             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
-//         PublicKey publicKey = privateKey.PublicKey;
-//         // var signingMetadata = TxSigningMetadata.Create(publicKey, 123L);
-//         // var unsignedTx = UnsignedTx.Create(invoice, signingMetadata);
-//         ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
-//             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
-//             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
-//         var tx = new Transaction
-//         {
-//             Metadata = new TransactionMetadata
-//             {
-//                 GenesisHash = genesisHash,
-//                 Timestamp = timestamp,
-//                 Actions = actions.ToBytecodes(),
-//                 Signer = privateKey.Address,
-//             },
-//             Signature = signature,
-//         }
+    //     [Fact]
+    //     public void Equality()
+    //     {
+    //         var genesisHash = BlockHash.Parse(
+    //             "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
+    //         Address addressA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
+    //         Address addressB = Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
+    //         var updatedAddresses = ImmutableSortedSet.Create(addressA, addressB);
+    //         var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
+    //         var actions = ImmutableArray.Create<IAction>([
+    //             DumbAction.Create((addressA, "foo")),
+    //             DumbAction.Create((addressB, "bar")),
+    //         ]).ToImmutableArray();
+    //         // var invoice = new TxInvoice
+    //         // {
+    //         //     GenesisHash = genesisHash,
+    //         //     UpdatedAddresses = updatedAddresses,
+    //         //     Timestamp = timestamp,
+    //         //     Actions = actions.ToBytecodes(),
+    //         // };
+    //         var privateKey =
+    //             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
+    //         PublicKey publicKey = privateKey.PublicKey;
+    //         // var signingMetadata = TxSigningMetadata.Create(publicKey, 123L);
+    //         // var unsignedTx = UnsignedTx.Create(invoice, signingMetadata);
+    //         ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
+    //             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
+    //             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
+    //         var tx = new Transaction
+    //         {
+    //             Metadata = new TransactionMetadata
+    //             {
+    //                 GenesisHash = genesisHash,
+    //                 Timestamp = timestamp,
+    //                 Actions = actions.ToBytecodes(),
+    //                 Signer = privateKey.Address,
+    //             },
+    //             Signature = signature,
+    //         }
 
-//         // Assert.Equal(invoice, tx.UnsignedTx.Invoice);
-//         // Assert.Equal(signingMetadata, tx.UnsignedTx.SigningMetadata);
-//         // Assert.Equal(unsignedTx, tx.UnsignedTx);
+    //         // Assert.Equal(invoice, tx.UnsignedTx.Invoice);
+    //         // Assert.Equal(signingMetadata, tx.UnsignedTx.SigningMetadata);
+    //         // Assert.Equal(unsignedTx, tx.UnsignedTx);
 
-//         var copy = Transaction.Create(unsignedTx, signature);
-//         Assert.Equal(tx.UnsignedTx, copy.UnsignedTx);
-//         Assert.Equal(tx, copy);
-//         Assert.True(tx.Equals((object)copy));
-//         Assert.Equal(tx.GetHashCode(), copy.GetHashCode());
+    //         var copy = Transaction.Create(unsignedTx, signature);
+    //         Assert.Equal(tx.UnsignedTx, copy.UnsignedTx);
+    //         Assert.Equal(tx, copy);
+    //         Assert.True(tx.Equals((object)copy));
+    //         Assert.Equal(tx.GetHashCode(), copy.GetHashCode());
 
-//         var wrongKey = new PrivateKey();
-//         for (int i = 0; i < 6; i++)
-//         {
-//             var diffInvoice = new TxInvoice
-//             {
-//                 GenesisHash = i == 0 ? default : invoice.GenesisHash,
-//                 UpdatedAddresses = i == 1 ? [] : invoice.UpdatedAddresses,
-//                 Timestamp = i == 2 ? DateTimeOffset.MinValue : invoice.Timestamp,
-//                 Actions = i == 3 ? [] : invoice.Actions,
-//             };
-//             var diffSigningMetadata = new TxSigningMetadata
-//             {
-//                 Signer = i == 4 ? wrongKey.Address : signingMetadata.Signer,
-//                 Nonce = i == 5 ? 456L : signingMetadata.Nonce,
-//             };
+    //         var wrongKey = new PrivateKey();
+    //         for (int i = 0; i < 6; i++)
+    //         {
+    //             var diffInvoice = new TxInvoice
+    //             {
+    //                 GenesisHash = i == 0 ? default : invoice.GenesisHash,
+    //                 UpdatedAddresses = i == 1 ? [] : invoice.UpdatedAddresses,
+    //                 Timestamp = i == 2 ? DateTimeOffset.MinValue : invoice.Timestamp,
+    //                 Actions = i == 3 ? [] : invoice.Actions,
+    //             };
+    //             var diffSigningMetadata = new TxSigningMetadata
+    //             {
+    //                 Signer = i == 4 ? wrongKey.Address : signingMetadata.Signer,
+    //                 Nonce = i == 5 ? 456L : signingMetadata.Nonce,
+    //             };
 
-//             if (i < 4)
-//             {
-//                 Assert.NotEqual<TxInvoice>(diffInvoice, unsignedTx.Invoice);
-//                 Assert.Equal<TxSigningMetadata>(diffSigningMetadata, unsignedTx.SigningMetadata);
-//             }
-//             else
-//             {
-//                 Assert.Equal(diffInvoice, unsignedTx.Invoice);
-//                 Assert.NotEqual(diffSigningMetadata, unsignedTx.SigningMetadata);
-//             }
+    //             if (i < 4)
+    //             {
+    //                 Assert.NotEqual<TxInvoice>(diffInvoice, unsignedTx.Invoice);
+    //                 Assert.Equal<TxSigningMetadata>(diffSigningMetadata, unsignedTx.SigningMetadata);
+    //             }
+    //             else
+    //             {
+    //                 Assert.Equal(diffInvoice, unsignedTx.Invoice);
+    //                 Assert.NotEqual(diffSigningMetadata, unsignedTx.SigningMetadata);
+    //             }
 
-//             var diffUnsignedTx = UnsignedTx.Create(diffInvoice, diffSigningMetadata);
-//             var diffTx = Transaction.Create(
-//                 diffUnsignedTx,
-//                 i == 4 ? wrongKey : privateKey);
-//             Assert.NotEqual(tx.UnsignedTx, diffTx.UnsignedTx);
-//             Assert.NotEqual(tx, diffTx);
-//             Assert.False(tx.Equals((object)diffTx));
-//             Assert.NotEqual(tx.GetHashCode(), diffTx.GetHashCode());
-//         }
-//     }
+    //             var diffUnsignedTx = UnsignedTx.Create(diffInvoice, diffSigningMetadata);
+    //             var diffTx = Transaction.Create(
+    //                 diffUnsignedTx,
+    //                 i == 4 ? wrongKey : privateKey);
+    //             Assert.NotEqual(tx.UnsignedTx, diffTx.UnsignedTx);
+    //             Assert.NotEqual(tx, diffTx);
+    //             Assert.False(tx.Equals((object)diffTx));
+    //             Assert.NotEqual(tx.GetHashCode(), diffTx.GetHashCode());
+    //         }
+    //     }
 
-//     [Fact]
-//     public void JsonSerialization()
-//     {
-//         var genesisHash = BlockHash.Parse(
-//             "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
-//         Address addressA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
-//         Address addressB = Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
-//         var updatedAddresses = ImmutableSortedSet.Create(addressA, addressB);
-//         var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
-//         var actions = ImmutableArray.Create<IAction>([
-//             DumbAction.Create((addressA, "foo")),
-//             DumbAction.Create((addressB, "bar")),
-//         ]).ToImmutableArray();
-//         var invoice = new TxInvoice
-//         {
-//             GenesisHash = genesisHash,
-//             UpdatedAddresses = updatedAddresses,
-//             Timestamp = timestamp,
-//             Actions = actions.ToBytecodes(),
-//         };
-//         var privateKey =
-//             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
-//         PublicKey publicKey = privateKey.PublicKey;
-//         var signingMetadata = TxSigningMetadata.Create(publicKey, 123L);
-//         var unsignedTx = UnsignedTx.Create(invoice, signingMetadata);
-//         ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
-//             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
-//             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
-//         var tx = Transaction.Create(unsignedTx, signature);
+    //     [Fact]
+    //     public void JsonSerialization()
+    //     {
+    //         var genesisHash = BlockHash.Parse(
+    //             "92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265");
+    //         Address addressA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
+    //         Address addressB = Address.Parse("B61CE2Ce6d28237C1BC6E114616616762f1a12Ab");
+    //         var updatedAddresses = ImmutableSortedSet.Create(addressA, addressB);
+    //         var timestamp = new DateTimeOffset(2023, 3, 29, 1, 2, 3, 456, TimeSpan.Zero);
+    //         var actions = ImmutableArray.Create<IAction>([
+    //             DumbAction.Create((addressA, "foo")),
+    //             DumbAction.Create((addressB, "bar")),
+    //         ]).ToImmutableArray();
+    //         var invoice = new TxInvoice
+    //         {
+    //             GenesisHash = genesisHash,
+    //             UpdatedAddresses = updatedAddresses,
+    //             Timestamp = timestamp,
+    //             Actions = actions.ToBytecodes(),
+    //         };
+    //         var privateKey =
+    //             PrivateKey.Parse("51fb8c2eb261ed761429c297dd1f8952c8ce327d2ec2ec5bcc7728e3362627c2");
+    //         PublicKey publicKey = privateKey.PublicKey;
+    //         var signingMetadata = TxSigningMetadata.Create(publicKey, 123L);
+    //         var unsignedTx = UnsignedTx.Create(invoice, signingMetadata);
+    //         ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
+    //             "6624cbd4281c0fb29d73f7912f8bec6a9bf4be4b73538148e5ef0352885906c54" +
+    //             "f05d12acbe0cf6afd8665b744db99a2a4a54cb473f9ac0077b93cc614e806a91c");
+    //         var tx = Transaction.Create(unsignedTx, signature);
 
-// #pragma warning disable MEN002  // Long lines are OK for test JSON data.
-//         AssertJsonSerializable(
-//             tx,
-//             @"
-//                     {
-//                       ""id"": ""daa356224285b0a0aaafa1be222dc47ec1fea27b835e09c46a8b0c3cde797b73"",
-//                       ""nonce"": 123,
-//                       ""signer"": ""89F0eE48e8BeaE3131B17Dc79A1282A0D7EdC6b9"",
-//                       ""updatedAddresses"": [
-//                         ""B61CE2Ce6d28237C1BC6E114616616762f1a12Ab"",
-//                         ""D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9""
-//                       ],
-//                       ""signature"": ""ZiTL1CgcD7Kdc/eRL4vsapv0vktzU4FI5e8DUohZBsVPBdEqy\u002BDPav2GZbdE25mipKVMtHP5rAB3uTzGFOgGqRw="",
-//                       ""actions"": [
-//                         {
-//                           ""\uFEFFitem"": ""\uFEFFfoo"",
-//                           ""\uFEFFtarget_address"": ""0xd6d639da5a58a78a564c2cd3db55fa7cebe244a9"",
-//                           ""\uFEFFtype_id"": ""\uFEFFDumbAction""
-//                         },
-//                         {
-//                           ""\uFEFFitem"": ""\uFEFFbar"",
-//                           ""\uFEFFtarget_address"": ""0xb61ce2ce6d28237c1bc6e114616616762f1a12ab"",
-//                           ""\uFEFFtype_id"": ""\uFEFFDumbAction""
-//                         }
-//                       ],
-//                       ""timestamp"": ""2023-03-29T01:02:03.456\u002B00:00"",
-//                       ""genesisHash"": ""92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265"",
-//                       ""maxGasPrice"": null,
-//                       ""gasLimit"": null
-//                     }
-//                 ",
-//             false);
-// #pragma warning restore MEN002
-//     }
+    // #pragma warning disable MEN002  // Long lines are OK for test JSON data.
+    //         AssertJsonSerializable(
+    //             tx,
+    //             @"
+    //                     {
+    //                       ""id"": ""daa356224285b0a0aaafa1be222dc47ec1fea27b835e09c46a8b0c3cde797b73"",
+    //                       ""nonce"": 123,
+    //                       ""signer"": ""89F0eE48e8BeaE3131B17Dc79A1282A0D7EdC6b9"",
+    //                       ""updatedAddresses"": [
+    //                         ""B61CE2Ce6d28237C1BC6E114616616762f1a12Ab"",
+    //                         ""D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9""
+    //                       ],
+    //                       ""signature"": ""ZiTL1CgcD7Kdc/eRL4vsapv0vktzU4FI5e8DUohZBsVPBdEqy\u002BDPav2GZbdE25mipKVMtHP5rAB3uTzGFOgGqRw="",
+    //                       ""actions"": [
+    //                         {
+    //                           ""\uFEFFitem"": ""\uFEFFfoo"",
+    //                           ""\uFEFFtarget_address"": ""0xd6d639da5a58a78a564c2cd3db55fa7cebe244a9"",
+    //                           ""\uFEFFtype_id"": ""\uFEFFDumbAction""
+    //                         },
+    //                         {
+    //                           ""\uFEFFitem"": ""\uFEFFbar"",
+    //                           ""\uFEFFtarget_address"": ""0xb61ce2ce6d28237c1bc6e114616616762f1a12ab"",
+    //                           ""\uFEFFtype_id"": ""\uFEFFDumbAction""
+    //                         }
+    //                       ],
+    //                       ""timestamp"": ""2023-03-29T01:02:03.456\u002B00:00"",
+    //                       ""genesisHash"": ""92854cf0a62a7103b9c610fd588ad45254e64b74ceeeb209090ba572a41bf265"",
+    //                       ""maxGasPrice"": null,
+    //                       ""gasLimit"": null
+    //                     }
+    //                 ",
+    //             false);
+    // #pragma warning restore MEN002
+    //     }
 }
