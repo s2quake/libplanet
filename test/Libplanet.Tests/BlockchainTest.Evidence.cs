@@ -572,32 +572,34 @@ public partial class BlockchainTest
     public void AddEvidence_DuplicateVoteEvidence_FromNonValidator_ThrowTest()
     {
         var random = RandomUtility.GetRandom(_output);
+        var signer = RandomUtility.Signer(random);
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
+        _ = blockchain.ProposeAndAppend(proposer);
         var voteRef = new VoteMetadata
         {
             Height = blockchain.Tip.Height,
             Round = 2,
             BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = Signers[0].Address,
+            Validator = signer.Address,
             ValidatorPower = BigInteger.One,
             Type = VoteType.PreCommit,
-        }.Sign(Signers[0]);
+        }.Sign(signer);
         var voteDup = new VoteMetadata
         {
             Height = blockchain.Tip.Height,
             Round = 2,
             BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
-            Validator = Signers[0].Address,
+            Validator = signer.Address,
             ValidatorPower = BigInteger.One,
             Type = VoteType.PreCommit,
-        }.Sign(Signers[0]);
-        var validators = ImmutableSortedSet.Create(new Validator { Address = Signers[0].Address });
+        }.Sign(signer);
+        var validators = ImmutableSortedSet.Create(new Validator { Address = signer.Address });
         var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, validators);
 
         Assert.Empty(blockchain.PendingEvidence);

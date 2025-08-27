@@ -105,12 +105,20 @@ public partial class BlockchainTest
             Assert.Equal(signerTxs, signerTxs.OrderBy(tx => tx.Nonce));
         }
 
-        var comparer = Comparer<Transaction>.Create((tx1, tx2) => tx1.Signer == signerA.Address ? -1 : 1);
+        var comparer = Comparer<Transaction>.Create((tx1, tx2) =>
+        {
+            if (tx1.Signer == tx2.Signer)
+            {
+                return tx1.Nonce.CompareTo(tx2.Nonce);
+            }
+
+            return tx1.Signer == signerA.Address ? -1 : 1;
+        });
         var optionsB = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
             {
-                Sorter = items => items.OrderBy(tx => tx, comparer).ThenBy(tx => tx.Nonce),
+                Sorter = items => items.OrderBy(tx => tx, comparer),
             },
         };
         var blockchainB = new Blockchain(repository, optionsB);

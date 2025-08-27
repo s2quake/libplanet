@@ -67,7 +67,7 @@ public partial class Blockchain
         BlockCommits = new BlockCommitCollection(repository);
         StagedTransactions = new StagedTransactionCollection(repository, options);
         Transactions = new TransactionCollection(repository);
-        PendingEvidence = new PendingEvidenceCollection(repository);
+        PendingEvidence = new PendingEvidenceCollection(repository, options);
         Evidence = new EvidenceCollection(repository);
         TxExecutions = new TxExecutionCollection(repository);
     }
@@ -228,6 +228,18 @@ public partial class Blockchain
                 throw new ArgumentException("Block commit is invalid.", nameof(blockCommit), e);
             }
 
+            foreach (var tx in block.Transactions)
+            {
+                try
+                {
+                    Options.TransactionOptions.Validate(tx);
+                }
+                catch (Exception e)
+                {
+                    throw new ArgumentException("Transaction is invalid.", nameof(block), e);
+                }
+            }
+
             var validators = this.GetValidators(block.Height);
             validators.ValidateBlockCommitValidators(blockCommit);
 
@@ -315,7 +327,7 @@ public partial class Blockchain
         var blockContent = new BlockContent
         {
             Transactions = [.. StagedTransactions.Collect(timestamp)],
-            Evidences = PendingEvidence.Collect(),
+            Evidences = [.. PendingEvidence.Collect()],
         };
         var rawBlock = new RawBlock
         {

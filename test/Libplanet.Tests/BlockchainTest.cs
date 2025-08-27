@@ -39,10 +39,13 @@ public partial class BlockchainTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
+        var validator = new Validator { Address = proposer.Address };
+        var repository = new Repository();
+        _ = new World(repository.States).SetValidators([validator]).Commit();
         var genesisBlock = new BlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock, repository);
         Assert.NotEqual(Guid.Empty, blockchain.Id);
         Assert.Single(blockchain.Blocks);
         Assert.Single(blockchain.BlockCommits);
@@ -66,15 +69,9 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = [new Validator { Address = proposer.Address }],
         };
-        var genesisBlock = new BlockBuilder
+        var genesisBlock = new GenesisBlockBuilder
         {
-            Transactions =
-            [
-                new TransactionBuilder
-                {
-                    Actions = [action],
-                }.Create(proposer),
-            ],
+            Validators = [new Validator { Address = proposer.Address }],
         }.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         Assert.NotEqual(Guid.Empty, blockchain.Id);
@@ -95,7 +92,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
     public void Validators()
     {
         var random = RandomUtility.GetRandom(_output);
-        var validators = RandomUtility.Array(random, RandomUtility.Validator, 4);
+        var validators = RandomUtility.ImmutableSortedSet(random, RandomUtility.Validator, 4);
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
@@ -111,7 +108,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new BlockBuilder
+        var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
@@ -130,7 +127,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new BlockBuilder
+        var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
@@ -156,20 +153,8 @@ public partial class BlockchainTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(_output);
         var address1 = RandomUtility.Address(random);
-        var actions = new IAction[]
+        var genesisBlock = new GenesisBlockBuilder
         {
-            new Initialize { Validators = TestUtils.Validators, },
-        };
-
-        var genesisBlock = new BlockBuilder
-        {
-            Transactions =
-            [
-                new TransactionBuilder
-                {
-                    Actions = actions,
-                }.Create(GenesisProposer),
-            ],
         }.Create(GenesisProposer);
 
         var blockchain = new Blockchain(genesisBlock);
@@ -1094,7 +1079,6 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var options = new BlockchainOptions
         {
@@ -1110,12 +1094,19 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var blockchain = new Blockchain(genesisBlock, options);
 
         var signer = RandomUtility.Signer(random);
-        _ = blockchain.StagedTransactions.Add(signer, @params: new());
-        var block = blockchain.Propose(proposer);
+        var tx = blockchain.CreateTransaction(signer, @params: new());
+        var block = new BlockBuilder
+        {
+            Height = 1,
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Transactions = [tx],
+        }.Create(proposer);
         var blockCommit = CreateBlockCommit(block);
 
-        var e = Assert.Throws<InvalidOperationException>(() => blockchain.Append(block, blockCommit));
-        Assert.Equal("tx always throws", e.Message);
+        var e = Assert.Throws<ArgumentException>("block", () => blockchain.Append(block, blockCommit));
+        Assert.NotNull(e.InnerException);
+        Assert.Equal("tx always throws", e.InnerException.Message);
     }
 
     [Fact]
