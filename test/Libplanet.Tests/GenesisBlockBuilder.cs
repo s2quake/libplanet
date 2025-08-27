@@ -37,7 +37,7 @@ public sealed record class GenesisBlockBuilder
         {
             Height = Height,
             Timestamp = Timestamp,
-            PreviousCommit = default,
+            PreviousBlockCommit = default,
             PreviousStateRootHash = StateRootHash,
             Transactions = [tx],
             Evidences = [],

@@ -118,7 +118,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Height = blockchain.Tip.Height + 1,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = signer.Address,
-                PreviousHash = blockchain.Tip.BlockHash,
+                PreviousBlockHash = blockchain.Tip.BlockHash,
             },
         }.Sign(signer);
 
@@ -180,7 +180,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Height = blockchain.Tip.Height + 2,
                 Timestamp = blockchain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
                 Proposer = Signers[1].Address,
-                PreviousHash = blockchain.Tip.BlockHash,
+                PreviousBlockHash = blockchain.Tip.BlockHash,
             },
         }.Sign(Signers[1]);
 
@@ -320,7 +320,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Height = 1,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = Signers[1].Address,
-                PreviousHash = blockchain.Genesis.BlockHash,
+                PreviousBlockHash = blockchain.Genesis.BlockHash,
                 PreviousStateRootHash = RandomUtility.HashDigest<SHA256>(random),
             },
             Content = new BlockContent

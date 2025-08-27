@@ -34,18 +34,18 @@ public static class BlockExtensions
                 $"The highest supported protocol version is {BlockHeader.CurrentProtocolVersion}.");
         }
 
-        if (@this.PreviousHash != default)
+        if (@this.PreviousBlockHash != default)
         {
             throw new InvalidOperationException(
                 "A genesis block should not have previous hash, " +
-                $"but its value is {@this.PreviousHash}.");
+                $"but its value is {@this.PreviousBlockHash}.");
         }
 
-        if (@this.PreviousCommit != default)
+        if (@this.PreviousBlockCommit != default)
         {
             throw new InvalidOperationException(
                 "A genesis block should not have last commit, " +
-                $"but its value is {@this.PreviousCommit}.");
+                $"but its value is {@this.PreviousBlockCommit}.");
         }
     }
 }

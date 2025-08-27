@@ -25,7 +25,7 @@ public sealed partial record class BlockDigest : IHasKey<BlockHash>
 
     public Address Proposer => Header.Proposer;
 
-    public BlockHash PreviousHash => Header.PreviousHash;
+    public BlockHash PreviousHash => Header.PreviousBlockHash;
 
     BlockHash IHasKey<BlockHash>.Key => BlockHash;
 

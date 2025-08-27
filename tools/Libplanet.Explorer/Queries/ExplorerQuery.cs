@@ -147,7 +147,7 @@ namespace Libplanet.Explorer.Queries
 
         private static Block? GetNextBlock(Block block, bool desc)
         {
-            if (desc && block.PreviousHash is { } prev)
+            if (desc && block.PreviousBlockHash is { } prev)
             {
                 return Chain.Blocks[prev];
             }

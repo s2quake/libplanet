@@ -74,7 +74,7 @@ public class ConsensusContextNonProposerTest
 
         var proposal = await blockProposedHeight2Task.WaitAsync(WaitTimeout5, cancellationToken);
         var proposedBlock = proposal.Block;
-        var votes = proposedBlock.PreviousCommit.Votes;
+        var votes = proposedBlock.PreviousBlockCommit.Votes;
         Assert.Equal(VoteType.PreCommit, votes[0].Type);
         Assert.Equal(VoteType.PreCommit, votes[1].Type);
         Assert.Equal(VoteType.PreCommit, votes[2].Type);
@@ -180,7 +180,7 @@ public class ConsensusContextNonProposerTest
 
         // Context for height #2 where node #2 is the proposer is automatically started
         // by watching blockchain's Tip.
-        Assert.Equal(blockCommit, proposal.Block.PreviousCommit);
+        Assert.Equal(blockCommit, proposal.Block.PreviousBlockCommit);
     }
 
     // Retry: This calculates delta time.

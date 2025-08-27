@@ -44,8 +44,8 @@ public class BlockTypeTest
                 Height = 2,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = signer.Address,
-                PreviousHash = lastBlockHash,
-                PreviousCommit = lastBlockCommit,
+                PreviousBlockHash = lastBlockHash,
+                PreviousBlockCommit = lastBlockCommit,
             },
         };
         var stateRootHash =

@@ -52,7 +52,7 @@ public sealed class ConsensusClassicTest
         _ = consensus.PreVoteAsync(preVote, cancellationToken);
 
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
-        Assert.Equal(blockCommit1, proposal.Block.PreviousCommit);
+        Assert.Equal(blockCommit1, proposal.Block.PreviousBlockCommit);
     }
 
     [Fact(Timeout = Timeout)]

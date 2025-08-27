@@ -41,9 +41,9 @@ public class TransactionQueryGeneratedTest
     {
         var emptyBlock = Fx.Chain.Tip;
         var emptyTx = emptyBlock.Transactions[0];
-        var failBlock = Fx.Chain.Blocks[emptyBlock.PreviousHash]!;
+        var failBlock = Fx.Chain.Blocks[emptyBlock.PreviousBlockHash]!;
         var failTx = failBlock.Transactions[0];
-        var successBlock = Fx.Chain.Blocks[failBlock.PreviousHash]!;
+        var successBlock = Fx.Chain.Blocks[failBlock.PreviousBlockHash]!;
         var successTx = successBlock.Transactions[0];
         var signer = Fx.Signers[0];
         var stagingTx = new TransactionMetadata

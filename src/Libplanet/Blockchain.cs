@@ -174,10 +174,17 @@ public partial class Blockchain
                     nameof(block));
             }
 
-            if (block.PreviousHash != Tip.BlockHash)
+            if (block.PreviousBlockHash != Tip.BlockHash)
             {
                 throw new ArgumentException(
                     "Block's previous hash does not match the current tip's hash.",
+                    nameof(block));
+            }
+
+            if (block.PreviousStateRootHash != StateRootHash)
+            {
+                throw new ArgumentException(
+                    "Block's previous state root hash does not match the current state root hash.",
                     nameof(block));
             }
 
@@ -186,6 +193,22 @@ public partial class Blockchain
                 throw new ArgumentException(
                     "Block's timestamp is earlier than the current tip's timestamp.",
                     nameof(block));
+            }
+
+            if (block.PreviousBlockCommit != default)
+            {
+                var h = _repository.BlockDigests[block.PreviousBlockHash].Height;
+                var v = this.GetValidators(h);
+                try
+                {
+                    v.ValidateBlockCommitValidators(block.PreviousBlockCommit);
+                }
+                catch (Exception e)
+                {
+                    throw new ArgumentException(
+                        "Block's previous commit is invalid.",
+                        nameof(block), e);
+                }
             }
 
             block.Validate(this);
@@ -229,7 +252,7 @@ public partial class Blockchain
             Options.TransactionOptions.Validate(tx);
         }
 
-        var previousBlock = Blocks[block.PreviousHash];
+        var previousBlock = Blocks[block.PreviousBlockHash];
         var previousStateRootHash = _repository.StateRootHashes[previousBlock.BlockHash];
         if (previousStateRootHash != block.PreviousStateRootHash)
         {
@@ -259,8 +282,8 @@ public partial class Blockchain
             Height = height + 1,
             Timestamp = timestamp,
             Proposer = proposer.Address,
-            PreviousHash = blockHash,
-            PreviousCommit = blockCommit,
+            PreviousBlockHash = blockHash,
+            PreviousBlockCommit = blockCommit,
             PreviousStateRootHash = _repository.StateRootHashes[blockHash],
         };
         var blockContent = new BlockContent

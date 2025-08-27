@@ -382,7 +382,7 @@ public partial class BlockchainTest
         var block = new BlockBuilder
         {
             Height = 1,
-            PreviousHash = genesisBlock.BlockHash,
+            PreviousBlockHash = genesisBlock.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [.. txList],
         }.Create(proposer);
@@ -419,7 +419,7 @@ public partial class BlockchainTest
         var block = new BlockBuilder
         {
             Height = 1,
-            PreviousHash = genesisBlock.BlockHash,
+            PreviousBlockHash = genesisBlock.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [.. blockchain.StagedTransactions.Values],
         }.Create(proposer);
@@ -557,8 +557,8 @@ public partial class BlockchainTest
         var block2 = new BlockBuilder
         {
             Height = blockchain.Tip.Height + 1,
-            PreviousHash = blockchain.Tip.BlockHash,
-            PreviousCommit = blockchain.BlockCommits[blockchain.Tip.BlockHash],
+            PreviousBlockHash = blockchain.Tip.BlockHash,
+            PreviousBlockCommit = blockchain.BlockCommits[blockchain.Tip.BlockHash],
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [txs[0]],
         }.Create(signerA);
@@ -581,8 +581,8 @@ public partial class BlockchainTest
         var block3 = new BlockBuilder
         {
             Height = blockchain.Tip.Height + 1,
-            PreviousHash = blockchain.Tip.BlockHash,
-            PreviousCommit = blockchain.BlockCommits[blockchain.Tip.BlockHash],
+            PreviousBlockHash = blockchain.Tip.BlockHash,
+            PreviousBlockCommit = blockchain.BlockCommits[blockchain.Tip.BlockHash],
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [txs[1]],
         }.Create(signerA);

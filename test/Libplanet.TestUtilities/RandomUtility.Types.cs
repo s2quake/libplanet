@@ -44,8 +44,8 @@ public static partial class RandomUtility
         Height = NonNegative(random),
         Timestamp = DateTimeOffset(random),
         Proposer = Address(random),
-        PreviousHash = BlockHash(random),
-        PreviousCommit = BlockCommit(random),
+        PreviousBlockHash = BlockHash(random),
+        PreviousBlockCommit = BlockCommit(random),
         PreviousStateRootHash = HashDigest<SHA256>(random),
     };
 

@@ -129,7 +129,7 @@ public partial class BlockchainTest
         var block = new BlockBuilder
         {
             Height = 1,
-            PreviousHash = blockchain.Tip.BlockHash,
+            PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [tx],
         }.Create(proposer);
@@ -529,12 +529,12 @@ public partial class BlockchainTest
         var block = new BlockBuilder
         {
             Height = blockchain.Tip.Height + 1,
-            PreviousHash = blockchain.Tip.BlockHash,
+            PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
-            PreviousCommit = blockCommit,
+            PreviousBlockCommit = blockCommit,
         }.Create(RandomUtility.Signer(random));
 
-        Assert.Equal(block.PreviousCommit, blockCommit);
+        Assert.Equal(block.PreviousBlockCommit, blockCommit);
     }
 
     [Fact]

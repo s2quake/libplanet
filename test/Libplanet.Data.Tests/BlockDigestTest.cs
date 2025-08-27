@@ -11,7 +11,7 @@ public sealed class BlockDigestTest(ITestOutputHelper output)
         var blockDigest = RandomUtility.BlockDigest(random);
         Assert.Equal(blockDigest.Height, blockDigest.Header.Height);
         Assert.Equal(blockDigest.Proposer, blockDigest.Header.Proposer);
-        Assert.Equal(blockDigest.PreviousHash, blockDigest.Header.PreviousHash);
+        Assert.Equal(blockDigest.PreviousHash, blockDigest.Header.PreviousBlockHash);
 
         Assert.Equal(blockDigest, blockDigest with { });
     }

@@ -53,7 +53,7 @@ public partial class BlockchainTest
                 Height = 1,
                 Timestamp = _fx.GenesisBlock.Timestamp.AddSeconds(1),
                 Proposer = _fx.Proposer.Address,
-                PreviousHash = _fx.GenesisBlock.BlockHash,
+                PreviousBlockHash = _fx.GenesisBlock.BlockHash,
             },
         }.Sign(_fx.Proposer);
     }
@@ -432,8 +432,8 @@ public partial class BlockchainTest
         var block2 = new BlockBuilder
         {
             Height = 2,
-            PreviousHash = block1.BlockHash,
-            PreviousCommit = blockCommit1,
+            PreviousBlockHash = block1.BlockHash,
+            PreviousBlockCommit = blockCommit1,
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [tx1],
         }.Create(proposer);
@@ -451,8 +451,8 @@ public partial class BlockchainTest
         var block3 = new BlockBuilder
         {
             Height = 2,
-            PreviousHash = block1.BlockHash,
-            PreviousCommit = blockCommit1,
+            PreviousBlockHash = block1.BlockHash,
+            PreviousBlockCommit = blockCommit1,
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [tx3],
         }.Create(proposer);
@@ -489,8 +489,8 @@ public partial class BlockchainTest
         var block2 = new BlockBuilder
         {
             Height = 2,
-            PreviousHash = block1.BlockHash,
-            PreviousCommit = CreateBlockCommit(blockchain.Tip),
+            PreviousBlockHash = block1.BlockHash,
+            PreviousBlockCommit = CreateBlockCommit(blockchain.Tip),
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [],
         }.Create(RandomUtility.Signer(random));
@@ -498,8 +498,8 @@ public partial class BlockchainTest
         blockchain.Append(block2, blockCommit2);
 
         Assert.Equal(blockCommit2, blockchain.BlockCommits[block2.Height]);
-        Assert.NotEqual(block2.PreviousCommit, blockchain.BlockCommits[block1.Height]);
-        Assert.NotEqual(block2.PreviousCommit, blockchain.BlockCommits[block1.BlockHash]);
+        Assert.NotEqual(block2.PreviousBlockCommit, blockchain.BlockCommits[block1.Height]);
+        Assert.NotEqual(block2.PreviousBlockCommit, blockchain.BlockCommits[block1.BlockHash]);
     }
 
     [Fact]
@@ -630,7 +630,7 @@ public partial class BlockchainTest
         _ = blockchain.ProposeAndAppend(signer);
         var (b4, _) = blockchain.ProposeAndAppend(signer);
 
-        Assert.Equal(b1.PreviousHash, blockchain.Genesis.BlockHash);
+        Assert.Equal(b1.PreviousBlockHash, blockchain.Genesis.BlockHash);
 
         var emptyLocator = blockchain.Genesis.BlockHash;
         var invalidLocator = RandomUtility.BlockHash(random);
@@ -809,8 +809,8 @@ public partial class BlockchainTest
             return new BlockBuilder
             {
                 Height = previousBlock.Height + 1,
-                PreviousHash = previousBlock.BlockHash,
-                PreviousCommit = CreateBlockCommit(previousBlock),
+                PreviousBlockHash = previousBlock.BlockHash,
+                PreviousBlockCommit = CreateBlockCommit(previousBlock),
                 PreviousStateRootHash = blockchain.GetStateRootHash(previousBlock.BlockHash),
                 Timestamp = previousBlock.Timestamp + TimeSpan.FromSeconds(10),
                 Transactions = txs,

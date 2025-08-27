@@ -27,10 +27,10 @@ public sealed partial record class BlockHeader : IValidatableObject
     public Address Proposer { get; init; }
 
     [Property(4)]
-    public BlockHash PreviousHash { get; init; }
+    public BlockHash PreviousBlockHash { get; init; }
 
     [Property(5)]
-    public BlockCommit PreviousCommit { get; init; }
+    public BlockCommit PreviousBlockCommit { get; init; }
 
     [Property(6)]
     public HashDigest<SHA256> PreviousStateRootHash { get; init; }

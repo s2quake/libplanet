@@ -11,8 +11,8 @@ public static class BlockBuilderExtensions
         var builder = @this with
         {
             Height = tipInfo.Height + 1,
-            PreviousHash = tipInfo.BlockHash,
-            PreviousCommit = tipInfo.BlockCommit,
+            PreviousBlockHash = tipInfo.BlockHash,
+            PreviousBlockCommit = tipInfo.BlockCommit,
             PreviousStateRootHash = tipInfo.StateRootHash,
         };
         return builder.Create(proposer);
@@ -23,8 +23,8 @@ public static class BlockBuilderExtensions
         var builder = @this with
         {
             Height = repository.Height + 1,
-            PreviousHash = repository.BlockHash,
-            PreviousCommit = repository.BlockCommit,
+            PreviousBlockHash = repository.BlockHash,
+            PreviousBlockCommit = repository.BlockCommit,
             PreviousStateRootHash = repository.StateRootHash,
         };
         return builder.Create(proposer);

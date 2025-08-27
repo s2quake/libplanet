@@ -71,7 +71,7 @@ public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
                 Height = blockchain.Tip.Height + 1,
                 Timestamp = blockchain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
                 Proposer = signer.Address,
-                PreviousHash = blockchain.Tip.BlockHash,
+                PreviousBlockHash = blockchain.Tip.BlockHash,
             },
         }.Sign(signer);
 

@@ -33,6 +33,14 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
 
     public ImmutableArray<byte> Bytes => _bytes.IsDefault ? _defaultBytes : _bytes;
 
+    public static bool operator <(Address left, Address right) => left.CompareTo(right) < 0;
+
+    public static bool operator >(Address left, Address right) => left.CompareTo(right) > 0;
+
+    public static bool operator <=(Address left, Address right) => left.CompareTo(right) <= 0;
+
+    public static bool operator >=(Address left, Address right) => left.CompareTo(right) >= 0;
+
     public static Address Parse(string hex)
     {
         try

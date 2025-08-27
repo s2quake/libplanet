@@ -33,7 +33,7 @@ public class BlockType : ObjectGraphType<Block>
             name: "PreviousBlock",
             description: "The previous block.  If it's a genesis block (i.e., its index is " +
                          "0) this must be null.",
-            resolve: ctx => context.BlockChain.Blocks[ctx.Source.PreviousHash]);
+            resolve: ctx => context.BlockChain.Blocks[ctx.Source.PreviousBlockHash]);
         Field(x => x.Timestamp);
         Field<NonNullGraphType<ByteStringType>>(
             name: "StateRootHash",
@@ -54,7 +54,7 @@ public class BlockType : ObjectGraphType<Block>
         Field<BlockCommitType>(
             name: "LastCommit",
             description: "The LastCommit of the block.",
-            resolve: ctx => ctx.Source.PreviousCommit);
+            resolve: ctx => ctx.Source.PreviousBlockCommit);
         Field<NonNullGraphType<LongGraphType>>(
             name: "Difficulty",
             description: "The mining difficulty that the block's nonce has to satisfy.",

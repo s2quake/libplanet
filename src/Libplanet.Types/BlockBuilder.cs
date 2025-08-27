@@ -8,9 +8,9 @@ public sealed record class BlockBuilder
 
     public DateTimeOffset Timestamp { get; init; }
 
-    public BlockHash PreviousHash { get; init; }
+    public BlockHash PreviousBlockHash { get; init; }
 
-    public BlockCommit PreviousCommit { get; init; }
+    public BlockCommit PreviousBlockCommit { get; init; }
 
     public HashDigest<SHA256> PreviousStateRootHash { get; init; }
 
@@ -26,8 +26,8 @@ public sealed record class BlockBuilder
             Height = Height,
             Timestamp = Timestamp == default ? DateTimeOffset.UtcNow : Timestamp,
             Proposer = proposer.Address,
-            PreviousHash = PreviousHash,
-            PreviousCommit = PreviousCommit,
+            PreviousBlockHash = PreviousBlockHash,
+            PreviousBlockCommit = PreviousBlockCommit,
             PreviousStateRootHash = PreviousStateRootHash,
         };
         var blockContent = new BlockContent

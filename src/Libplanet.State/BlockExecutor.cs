@@ -80,7 +80,7 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
                 Proposer = rawBlock.Header.Proposer,
                 BlockHeight = rawBlock.Header.Height,
                 BlockProtocolVersion = rawBlock.Header.BlockVersion,
-                PreviousCommit = rawBlock.Header.PreviousCommit,
+                PreviousCommit = rawBlock.Header.PreviousBlockCommit,
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice ?? default,
             };

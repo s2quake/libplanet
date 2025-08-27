@@ -231,8 +231,8 @@ public static class TestUtils
             Timestamp = previousBlock.Timestamp.Add(
                     blockInterval ?? TimeSpan.FromSeconds(15)),
             Proposer = proposer?.Address ?? previousBlock.Proposer,
-            PreviousHash = previousBlock.BlockHash,
-            PreviousCommit = previousCommit ?? default,
+            PreviousBlockHash = previousBlock.BlockHash,
+            PreviousBlockCommit = previousCommit ?? default,
             PreviousStateRootHash = previousStateRootHash,
         };
         var content = new BlockContent

@@ -23,8 +23,8 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Height), 1);
         ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Timestamp), 2);
         ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Proposer), 3);
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.PreviousHash), 4);
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.PreviousCommit), 5);
+        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.PreviousBlockHash), 4);
+        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.PreviousBlockCommit), 5);
         ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.PreviousStateRootHash), 6);
     }
 
@@ -46,8 +46,8 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         Assert.Equal(0L, blockHeader.Height);
         Assert.Equal(default, blockHeader.Timestamp);
         Assert.Equal(default, blockHeader.Proposer);
-        Assert.Equal(default, blockHeader.PreviousHash);
-        Assert.Equal(default, blockHeader.PreviousCommit);
+        Assert.Equal(default, blockHeader.PreviousBlockHash);
+        Assert.Equal(default, blockHeader.PreviousBlockCommit);
         Assert.Equal(default, blockHeader.PreviousStateRootHash);
     }
 
@@ -130,9 +130,9 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         var previousHash = RandomUtility.BlockHash(random);
         var blockHeader = RandomUtility.BlockHeader(random) with
         {
-            PreviousHash = previousHash,
+            PreviousBlockHash = previousHash,
         };
-        Assert.Equal(previousHash, blockHeader.PreviousHash);
+        Assert.Equal(previousHash, blockHeader.PreviousBlockHash);
     }
 
     [Fact]
@@ -142,9 +142,9 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         var previousCommit = RandomUtility.BlockCommit(random);
         var blockHeader = RandomUtility.BlockHeader(random) with
         {
-            PreviousCommit = previousCommit,
+            PreviousBlockCommit = previousCommit,
         };
-        Assert.Equal(previousCommit, blockHeader.PreviousCommit);
+        Assert.Equal(previousCommit, blockHeader.PreviousBlockCommit);
     }
 
     [Fact]

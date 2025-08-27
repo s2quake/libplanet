@@ -25,9 +25,9 @@ public sealed partial record class Block : IComparable<Block>, IComparable
 
     public Address Proposer => Header.Proposer;
 
-    public BlockHash PreviousHash => Header.PreviousHash;
+    public BlockHash PreviousBlockHash => Header.PreviousBlockHash;
 
-    public BlockCommit PreviousCommit => Header.PreviousCommit;
+    public BlockCommit PreviousBlockCommit => Header.PreviousBlockCommit;
 
     public HashDigest<SHA256> PreviousStateRootHash => Header.PreviousStateRootHash;
 
