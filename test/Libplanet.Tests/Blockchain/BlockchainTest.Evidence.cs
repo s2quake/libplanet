@@ -1,567 +1,689 @@
+using Libplanet.TestUtilities;
+using Libplanet.Types;
+using static Libplanet.Tests.TestUtils;
+
 namespace Libplanet.Tests.Blockchain;
 
 public partial class BlockchainTest
 {
-    // [Fact]
-    // public void GetPendingEvidence_Test()
-    // {
-    //     Assert.Empty(_blockChain.PendingEvidences);
-    // }
-
-    // [Fact]
-    // public void GetPendingEvidence_AfterAddingEvidence_Test()
-    // {
-    //     // Given
-    //     var blockChain = _blockChain;
-    //     var height = blockChain.Tip.Height;
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
-
-    //     // When
-    //     blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence);
-
-    //     // Then
-    //     Assert.Single(blockChain.PendingEvidences);
-    // }
-
-    // [Fact]
-    // public void GetPendingEvidence_Throw_Test()
-    // {
-    //     var blockChain = _blockChain;
-    //     var height = blockChain.Tip.Height;
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
-    //     Assert.Throws<KeyNotFoundException>(
-    //         () => _blockChain.PendingEvidences[testEvidence.Id]);
-    // }
-
-    // [Fact]
-    // public void GetPendingEvidence_AfterAppendingBlock_Throw_Test()
-    // {
-    //     // Given
-    //     var blockChain = _blockChain;
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var proposer = key;
-    //     var address = new PrivateKey().Address;
-    //     var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-
-    //     // When
-    //     NextBlock(blockChain, proposer, ImmutableArray.Create<EvidenceBase>(expectedEvidence));
-
-    //     // Then
-    //     Assert.Throws<KeyNotFoundException>(
-    //         () => blockChain.PendingEvidences[expectedEvidence.Id]);
-    // }
-
-    // [Fact]
-    // public void GetPendingEvidence_Add_Test()
-    // {
-    //     // Given
-    //     var blockChain = _blockChain;
-    //     var address = new PrivateKey().Address;
-    //     var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-    //     blockChain.PendingEvidences.Add(expectedEvidence.Id, expectedEvidence);
-
-    //     // Then
-    //     var actualEvidence = blockChain.PendingEvidences[expectedEvidence.Id];
-    //     Assert.Equal(expectedEvidence, actualEvidence);
-    // }
-
-    // [Fact]
-    // public void GetCommittedEvidence_Throw_Test()
-    // {
-    //     var blockChain = _blockChain;
-    //     var height = blockChain.Tip.Height;
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
-    //     Assert.Throws<KeyNotFoundException>(
-    //         () => _blockChain.CommittedEvidences[testEvidence.Id]);
-    // }
-
-    // [Fact]
-    // public void GetCommittedEvidence_Test()
-    // {
-    //     // Given
-    //     var blockChain = _blockChain;
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var proposer = key;
-    //     var address = new PrivateKey().Address;
-    //     var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-
-    //     // When
-    //     NextBlock(blockChain, proposer, ImmutableArray.Create<EvidenceBase>(expectedEvidence));
-
-    //     // Then
-    //     var actualEvidence = blockChain.CommittedEvidences[expectedEvidence.Id];
-    //     Assert.Equal(expectedEvidence, actualEvidence);
-    // }
-
-    // [Fact]
-    // public void AddEvidence_CommittedEvidence_ThrowTest()
-    // {
-    //     // Given
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var proposer = key;
-    //     var blockChain = _blockChain;
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-
-    //     // When
-    //     NextBlock(blockChain, proposer, [testEvidence]);
-
-    //     // Then
-    //     Assert.Throws<ArgumentException>(
-    //         () => blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence));
-    // }
-
-    // [Fact]
-    // public void AddEvidence_PendingEvidence_ThrowTest()
-    // {
-    //     // Given
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var blockChain = _blockChain;
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-    //     blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence);
-
-    //     // Then
-    //     Assert.Throws<ArgumentException>(
-    //         () => blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence));
-    // }
-
-    // [Fact]
-    // public void AddEvidence_HeightGreaterThanTip_ThrowTest()
-    // {
-    //     // Given
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var proposer = key;
-    //     var blockChain = _blockChain;
-    //     var address = new PrivateKey().Address;
-    //     var height = blockChain.Tip.Height + 1;
-    //     var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
-
-    //     // Then
-    //     Assert.Throws<ArgumentException>(
-    //         () => blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence));
-    // }
-
-    // [Fact]
-    // public void AddEvidence_ExpiredEvidence_ThrowTest()
-    // {
-    //     // Given
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var proposer = key;
-    //     var blockChain = _blockChain;
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-    //     var index = blockChain.Tip.Height;
-    //     var pendingDuration = blockChain.Options.MaxEvidencePendingDuration;
-    //     var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
-
-    //     // When
-    //     for (var i = index; i < pendingDuration + 1; i++)
-    //     {
-    //         NextBlock(blockChain, proposer, emptyEvidence);
-    //     }
-
-    //     // Then
-    //     Assert.Throws<ArgumentException>(
-    //         () => blockChain.PendingEvidences.Add(testEvidence.Id, testEvidence));
-    // }
-
-    // [Fact]
-    // public void AddEvidence_Test()
-    // {
-    //     // Given
-    //     var address = RandomUtility.Address();
-    //     var blockChain = _blockChain;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-
-    //     // When
-    //     blockChain.PendingEvidences.Add(testEvidence);
-
-    //     // Then
-    //     Assert.Single(blockChain.PendingEvidences);
-    // }
-
-    // [Fact]
-    // public void CommitEvidence_AddingCommittedEvidence_ThrowTest()
-    // {
-    //     // Given
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var proposer = key;
-    //     var blockChain = _blockChain;
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-
-    //     // When
-    //     NextBlock(blockChain, proposer, ImmutableArray.Create<EvidenceBase>(testEvidence));
-
-    //     // Then
-    //     Assert.Throws<ArgumentException>(
-    //         () => blockChain.CommitEvidence(testEvidence));
-    // }
-
-    // [Fact]
-    // public void CommitEvidence_AddingExpiredEvidence_ThrowTest()
-    // {
-    //     // Given
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var proposer = key;
-    //     var blockChain = _blockChain;
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-    //     var index = blockChain.Tip.Height;
-    //     var pendingDuration = blockChain.Options.MaxEvidencePendingDuration;
-    //     var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
-
-    //     // When
-    //     for (var i = index; i < pendingDuration + 1; i++)
-    //     {
-    //         NextBlock(blockChain, proposer, emptyEvidence);
-    //     }
-
-    //     // Then
-    //     Assert.Throws<ArgumentException>(
-    //         () => blockChain.CommitEvidence(testEvidence));
-    // }
-
-    // [Fact]
-    // public void CommitEvidence_WithoutPendingEvidence_Test()
-    // {
-    //     // Given
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var blockChain = _blockChain;
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-
-    //     // When
-    //     blockChain.CommitEvidence(testEvidence);
-
-    //     // Then
-    //     Assert.True(blockChain.IsEvidenceCommitted(testEvidence.Id));
-    // }
-
-    // [Fact]
-    // public void CommitEvidence_Test()
-    // {
-    //     // Given
-    //     var address = new PrivateKey().Address;
-    //     var blockChain = _blockChain;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-    //     blockChain.PendingEvidences.Add(testEvidence);
-
-    //     // When
-    //     blockChain.CommitEvidence(testEvidence);
-
-    //     // Then
-    //     Assert.Empty(blockChain.PendingEvidences);
-    //     Assert.True(blockChain.IsEvidenceCommitted(testEvidence.Id));
-    // }
-
-    // [Fact]
-    // public void IsEvidencePending_True_Test()
-    // {
-    //     // Given
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-    //     _blockChain.PendingEvidences.Add(testEvidence);
-
-    //     // Then
-    //     Assert.True(_blockChain.IsEvidencePending(testEvidence.Id));
-    // }
-
-    // [Fact]
-    // public void IsEvidencePending_False_Test()
-    // {
-    //     // Given
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-
-    //     // Then
-    //     Assert.False(_blockChain.IsEvidencePending(testEvidence.Id));
-    // }
-
-    // [Fact]
-    // public void IsEvidenceCommitted_True_Test()
-    // {
-    //     // Given
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-    //     _blockChain.PendingEvidences.Add(testEvidence);
-    //     _blockChain.CommitEvidence(testEvidence);
-
-    //     // Then
-    //     Assert.True(_blockChain.IsEvidenceCommitted(testEvidence.Id));
-    // }
-
-    // [Fact]
-    // public void IsEvidenceCommitted_False_Test()
-    // {
-    //     // Given
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-    //     _blockChain.AddEvidence(testEvidence);
-
-    //     // Then
-    //     Assert.False(_blockChain.IsEvidenceCommitted(testEvidence.Id));
-    // }
-
-    // [Fact]
-    // public void IsEvidenceExpired_True_Test()
-    // {
-    //     // Given
-    //     var address = new PrivateKey().Address;
-    //     var height = Random.Shared.Next(1, 6);
-    //     var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
-    //     var index = _blockChain.Tip.Height;
-    //     var pendingDuration = _blockChain.Options.MaxEvidencePendingDuration;
-    //     var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
-
-    //     // When
-    //     for (var i = index; i < testEvidence.Height + pendingDuration + 1; i++)
-    //     {
-    //         NextBlock(_blockChain, TestUtils.ValidatorPrivateKeys[0], emptyEvidence);
-    //     }
-
-    //     // Then
-    //     Assert.True(_blockChain.IsEvidenceExpired(testEvidence));
-    // }
-
-    // [Fact]
-    // public void IsEvidenceExpired_False_Test()
-    // {
-    //     // Given
-    //     var address = new PrivateKey().Address;
-    //     var height = Random.Shared.Next(1, 6);
-    //     var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
-    //     var index = _blockChain.Tip.Height;
-    //     var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
-
-    //     // When
-    //     for (var i = index; i < testEvidence.Height; i++)
-    //     {
-    //         NextBlock(_blockChain, TestUtils.ValidatorPrivateKeys[0], emptyEvidence);
-    //     }
-
-    //     // Then
-    //     Assert.False(_blockChain.IsEvidenceExpired(testEvidence));
-    // }
-
-    // [Fact]
-    // public void DeletePendingEvidence_True_Test()
-    // {
-    //     // Given
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-    //     _blockChain.AddEvidence(testEvidence);
-
-    //     // Then
-    //     Assert.True(_blockChain.DeletePendingEvidence(testEvidence.Id));
-    // }
-
-    // [Fact]
-    // public void DeletePendingEvidence_False_Test()
-    // {
-    //     // Given
-    //     var address = new PrivateKey().Address;
-    //     var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-
-    //     // Then
-    //     Assert.False(_blockChain.DeletePendingEvidence(testEvidence.Id));
-    //     Assert.False(_blockChain.IsEvidencePending(testEvidence.Id));
-    //     Assert.False(_blockChain.IsEvidenceCommitted(testEvidence.Id));
-    // }
-
-    // [Fact]
-    // public void AddEvidence_CommitEvidence_DuplicatedVoteEvidence_Test()
-    // {
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var proposer = key;
-    //     var blockChain = _blockChain;
-    //     var voteRef = new VoteMetadata
-    //     {
-    //         Height = blockChain.Tip.Height,
-    //         Round = 2,
-    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Validator = key.PublicKey,
-    //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteType.PreCommit,
-    //     }.Sign(key);
-    //     var voteDup = new VoteMetadata
-    //     {
-    //         Height = blockChain.Tip.Height,
-    //         Round = 2,
-    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Validator = key.PublicKey,
-    //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteType.PreCommit,
-    //     }.Sign(key);
-    //     var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
-
-    //     Assert.Empty(blockChain.PendingEvidences);
-    //     Assert.False(blockChain.IsEvidencePending(evidence.Id));
-    //     Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
-
-    //     blockChain.AddEvidence(evidence);
-    //     NextBlock(blockChain, proposer, ImmutableArray<EvidenceBase>.Empty);
-
-    //     Assert.Single(blockChain.PendingEvidences);
-    //     Assert.Equal(evidence, blockChain.PendingEvidences.First());
-    //     Assert.True(blockChain.IsEvidencePending(evidence.Id));
-    //     Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
-
-    //     blockChain.CommitEvidence(evidence);
-
-    //     Assert.Empty(blockChain.PendingEvidences);
-    //     Assert.False(blockChain.IsEvidencePending(evidence.Id));
-    //     Assert.True(blockChain.IsEvidenceCommitted(evidence.Id));
-    // }
-
-    // [Fact]
-    // public void CommitEvidence_DuplicateVoteEvidence_Test()
-    // {
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var blockChain = _blockChain;
-    //     var voteRef = new VoteMetadata
-    //     {
-    //         Height = blockChain.Tip.Height,
-    //         Round = 2,
-    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Validator = key.PublicKey,
-    //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteType.PreCommit,
-    //     }.Sign(key);
-    //     var voteDup = new VoteMetadata
-    //     {
-    //         Height = blockChain.Tip.Height,
-    //         Round = 2,
-    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Validator = key.PublicKey,
-    //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteType.PreCommit,
-    //     }.Sign(key);
-    //     var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
-
-    //     Assert.Empty(blockChain.PendingEvidences);
-    //     Assert.False(blockChain.PendingEvidences.ContainsKey(evidence.Id));
-    //     Assert.False(blockChain.CommittedEvidences.ContainsKey(evidence.Id));
-
-    //     blockChain.CommitEvidence(evidence);
-
-    //     Assert.Empty(blockChain.PendingEvidences);
-    //     Assert.False(blockChain.IsEvidencePending(evidence.Id));
-    //     Assert.True(blockChain.IsEvidenceCommitted(evidence.Id));
-    // }
-
-    // [Fact]
-    // public void AddEvidence_DuplicateVoteEvidence_FromNonValidator_ThrowTest()
-    // {
-    //     var key = new PrivateKey();
-    //     var voteRef = new VoteMetadata
-    //     {
-    //         Height = _blockChain.Tip.Height,
-    //         Round = 2,
-    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Validator = key.PublicKey,
-    //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteType.PreCommit,
-    //     }.Sign(key);
-    //     var voteDup = new VoteMetadata
-    //     {
-    //         Height = _blockChain.Tip.Height,
-    //         Round = 2,
-    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Validator = key.PublicKey,
-    //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteType.PreCommit,
-    //     }.Sign(key);
-    //     var validators = ImmutableSortedSet.Create(Validator.Create(key.PublicKey, BigInteger.One));
-    //     var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, validators);
-
-    //     Assert.Empty(_blockChain.PendingEvidences);
-    //     Assert.False(_blockChain.IsEvidencePending(evidence.Id));
-    //     Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
-
-    //     Assert.Throws<ValidationException>(() => _blockChain.AddEvidence(evidence));
-
-    //     Assert.Empty(_blockChain.PendingEvidences);
-    //     Assert.False(_blockChain.IsEvidencePending(evidence.Id));
-    //     Assert.False(_blockChain.IsEvidenceCommitted(evidence.Id));
-    // }
-
-    // [Fact]
-    // public void EvidenceExpired_ThrowTest()
-    // {
-    //     var key = TestUtils.ValidatorPrivateKeys[0];
-    //     var proposer = key;
-    //     var blockChain = _blockChain;
-    //     var voteRef = new VoteMetadata
-    //     {
-    //         Height = blockChain.Tip.Height,
-    //         Round = 2,
-    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Validator = key.PublicKey,
-    //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteType.PreCommit,
-    //     }.Sign(key);
-    //     var voteDup = new VoteMetadata
-    //     {
-    //         Height = blockChain.Tip.Height,
-    //         Round = 2,
-    //         BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
-    //         Timestamp = DateTimeOffset.UtcNow,
-    //         Validator = key.PublicKey,
-    //         ValidatorPower = BigInteger.One,
-    //         Flag = VoteType.PreCommit,
-    //     }.Sign(key);
-    //     var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
-
-    //     Assert.Empty(blockChain.PendingEvidences);
-    //     Assert.False(blockChain.IsEvidencePending(evidence.Id));
-    //     Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
-
-    //     blockChain.AddEvidence(evidence);
-
-    //     Assert.Single(blockChain.PendingEvidences);
-    //     Assert.Equal(evidence, blockChain.PendingEvidences.First());
-    //     Assert.True(blockChain.IsEvidencePending(evidence.Id));
-    //     Assert.False(blockChain.IsEvidenceCommitted(evidence.Id));
-
-    //     var pendingDuration = blockChain.Options.MaxEvidencePendingDuration;
-    //     var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
-
-    //     for (var i = 0; i < pendingDuration; i++)
-    //     {
-    //         NextBlock(blockChain, proposer, emptyEvidence);
-    //     }
-
-    //     Assert.Throws<InvalidOperationException>(
-    //         () => NextBlock(blockChain, proposer, blockChain.PendingEvidences));
-
-    //     Assert.Single(blockChain.PendingEvidences);
-
-    //     NextBlock(blockChain, proposer, emptyEvidence);
-
-    //     Assert.Empty(blockChain.PendingEvidences);
-    // }
-
-    // private static Block NextBlock(
-    //     BlockChain blockChain, PrivateKey proposer, ImmutableArray<EvidenceBase> evidence)
-    // {
-    //     var tip = blockChain.Tip;
-    //     var block = blockChain.ProposeBlock(
-    //         proposer: proposer,
-    //         lastCommit: TestUtils.CreateBlockCommit(tip, true),
-    //         evidences: [.. evidence]);
-    //     blockChain.Append(block, TestUtils.CreateBlockCommit(block, true));
-    //     return block;
-    // }
+    [Fact]
+    public void GetPendingEvidence_Test()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        Assert.Empty(blockchain.PendingEvidence);
+    }
+
+    [Fact]
+    public void GetPendingEvidence_AfterAddingEvidence_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var height = blockchain.Tip.Height;
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
+
+        // When
+        blockchain.PendingEvidence.Add(testEvidence);
+
+        // Then
+        Assert.Single(blockchain.PendingEvidence);
+    }
+
+    [Fact]
+    public void GetPendingEvidence_Throw_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var height = blockchain.Tip.Height;
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
+        Assert.Throws<KeyNotFoundException>(() => blockchain.PendingEvidence[testEvidence.Id]);
+    }
+
+    [Fact]
+    public void GetPendingEvidence_AfterAppendingBlock_Throw_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(expectedEvidence);
+
+        // When
+        blockchain.ProposeAndAppend(proposer);
+
+        // Then
+        Assert.Throws<KeyNotFoundException>(() => blockchain.PendingEvidence[expectedEvidence.Id]);
+    }
+
+    [Fact]
+    public void GetPendingEvidence_Add_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(expectedEvidence);
+
+        // Then
+        var actualEvidence = blockchain.PendingEvidence[expectedEvidence.Id];
+        Assert.Equal(expectedEvidence, actualEvidence);
+    }
+
+    [Fact]
+    public void GetCommittedEvidence_Throw_Test()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var height = blockchain.Tip.Height;
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
+        Assert.Throws<KeyNotFoundException>(() => blockchain.Evidence[testEvidence.Id]);
+    }
+
+    [Fact]
+    public void GetCommittedEvidence_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(expectedEvidence);
+
+        // When
+        blockchain.ProposeAndAppend(proposer);
+
+        // Then
+        var actualEvidence = blockchain.Evidence[expectedEvidence.Id];
+        Assert.Equal(expectedEvidence, actualEvidence);
+    }
+
+    [Fact]
+    public void AddEvidence_CommittedEvidence_ThrowTest()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(testEvidence);
+
+        // When
+        blockchain.ProposeAndAppend(proposer);
+
+        // Then
+        Assert.Throws<ArgumentException>(() => blockchain.PendingEvidence.Add(testEvidence));
+    }
+
+    [Fact]
+    public void AddEvidence_PendingEvidence_ThrowTest()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(testEvidence);
+
+        // Then
+        Assert.Throws<ArgumentException>(() => blockchain.PendingEvidence.Add(testEvidence));
+    }
+
+    [Fact]
+    public void AddEvidence_HeightGreaterThanTip_ThrowTest()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var height = blockchain.Tip.Height + 1;
+        var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
+
+        // Then
+        Assert.Throws<ArgumentException>(() => blockchain.PendingEvidence.Add(testEvidence));
+    }
+
+    [Fact]
+    public void AddEvidence_ExpiredEvidence_ThrowTest()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var options = new BlockchainOptions();
+        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        var pendingDuration = options.BlockOptions.EvidencePendingDuration;
+
+        // When
+        blockchain.ProposeAndAppendMany(proposer, pendingDuration + 1);
+
+        // Then
+        Assert.Throws<ArgumentException>(() => blockchain.PendingEvidence.Add(testEvidence));
+    }
+
+    [Fact]
+    public void AddEvidence_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+
+        // When
+        blockchain.PendingEvidence.Add(testEvidence);
+
+        // Then
+        Assert.Single(blockchain.PendingEvidence);
+    }
+
+    [Fact]
+    public void CommitEvidence_AddingCommittedEvidence_ThrowTest()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(testEvidence);
+        var (block1, blockCommit1) = blockchain.ProposeAndAppend(proposer);
+
+        // When
+        var block2 = new BlockBuilder
+        {
+            Height = block1.Height + 1,
+            Timestamp = block1.Timestamp.AddSeconds(1),
+            PreviousBlockHash = block1.BlockHash,
+            PreviousBlockCommit = blockCommit1,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Evidences = [testEvidence],
+        }.Create(proposer);
+        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+
+        // Then
+        Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
+    }
+
+    [Fact]
+    public void CommitEvidence_AddingExpiredEvidence_ThrowTest()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var options = new BlockchainOptions();
+        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        var pendingDuration = options.BlockOptions.EvidencePendingDuration;
+        var e = blockchain.ProposeAndAppendMany(proposer, pendingDuration + 1);
+        var block1 = e[^1].Block;
+        var blockCommit1 = e[^1].BlockCommit;
+
+        // When
+        var block2 = new BlockBuilder
+        {
+            Height = block1.Height + 1,
+            Timestamp = block1.Timestamp.AddSeconds(1),
+            PreviousBlockHash = block1.BlockHash,
+            PreviousBlockCommit = blockCommit1,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Evidences = [testEvidence],
+        }.Create(proposer);
+        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+
+        // Then
+        Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
+    }
+
+    [Fact]
+    public void CommitEvidence_WithoutPendingEvidence_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        var (block1, blockCommit1) = blockchain.ProposeAndAppend(proposer);
+        var block2 = new BlockBuilder
+        {
+            Height = block1.Height + 1,
+            Timestamp = block1.Timestamp.AddSeconds(1),
+            PreviousBlockHash = block1.BlockHash,
+            PreviousBlockCommit = blockCommit1,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Evidences = [testEvidence],
+        }.Create(proposer);
+        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+
+        // When
+        blockchain.Append(block2, blockCommit2);
+
+        // Then
+        Assert.Contains(testEvidence.Id, blockchain.Evidence);
+    }
+
+    [Fact]
+    public void CommitEvidence_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+
+        // When
+        blockchain.PendingEvidence.Add(testEvidence);
+        blockchain.ProposeAndAppend(proposer);
+
+        // Then
+        Assert.Empty(blockchain.PendingEvidence);
+        Assert.Contains(testEvidence.Id, blockchain.Evidence);
+    }
+
+    [Fact]
+    public void IsEvidencePending_True_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(testEvidence);
+
+        // Then
+        Assert.Contains(testEvidence.Id, blockchain.PendingEvidence);
+    }
+
+    [Fact]
+    public void IsEvidencePending_False_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+
+        // Then
+        Assert.DoesNotContain(testEvidence.Id, blockchain.PendingEvidence);
+    }
+
+    [Fact]
+    public void IsEvidenceCommitted_True_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(testEvidence);
+
+        // When
+        blockchain.ProposeAndAppend(proposer);
+
+        // Then
+        Assert.Contains(testEvidence.Id, blockchain.Evidence);
+    }
+
+    [Fact]
+    public void IsEvidenceCommitted_False_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(testEvidence);
+
+        // Then
+        Assert.DoesNotContain(testEvidence.Id, blockchain.Evidence);
+    }
+
+    [Fact]
+    public void DeletePendingEvidence_True_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+        blockchain.PendingEvidence.Add(testEvidence);
+
+        // Then
+        Assert.True(blockchain.PendingEvidence.Remove(testEvidence.Id));
+    }
+
+    [Fact]
+    public void DeletePendingEvidence_False_Test()
+    {
+        // Given
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var address = RandomUtility.Address(random);
+        var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
+
+        // Then
+        Assert.False(blockchain.PendingEvidence.Remove(testEvidence.Id));
+        Assert.DoesNotContain(testEvidence.Id, blockchain.PendingEvidence);
+        Assert.DoesNotContain(testEvidence.Id, blockchain.Evidence);
+    }
+
+    [Fact]
+    public void AddEvidence_CommitEvidence_DuplicatedVoteEvidence_Test()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var voteRef = new VoteMetadata
+        {
+            Height = blockchain.Tip.Height,
+            Round = 2,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = Signers[0].Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreCommit,
+        }.Sign(Signers[0]);
+        var voteDup = new VoteMetadata
+        {
+            Height = blockchain.Tip.Height,
+            Round = 2,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = Signers[0].Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreCommit,
+        }.Sign(Signers[0]);
+        var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
+
+        Assert.Empty(blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
+
+        blockchain.PendingEvidence.Add(evidence);
+        var block1 = new BlockBuilder
+        {
+            Height = blockchain.Tip.Height + 1,
+            Timestamp = blockchain.Tip.Timestamp.AddSeconds(1),
+            PreviousBlockHash = blockchain.Tip.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+        }.Create(proposer);
+        var blockCommit1 = TestUtils.CreateBlockCommit(block1);
+        blockchain.Append(block1, blockCommit1);
+
+        Assert.Single(blockchain.PendingEvidence, evidence);
+        Assert.Contains(evidence.Id, blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
+
+        blockchain.ProposeAndAppend(proposer);
+
+        Assert.Empty(blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.PendingEvidence);
+        Assert.Contains(evidence.Id, blockchain.Evidence);
+    }
+
+    [Fact]
+    public void CommitEvidence_DuplicateVoteEvidence_Test()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var voteRef = new VoteMetadata
+        {
+            Height = blockchain.Tip.Height,
+            Round = 2,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = Signers[0].Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreCommit,
+        }.Sign(Signers[0]);
+        var voteDup = new VoteMetadata
+        {
+            Height = blockchain.Tip.Height,
+            Round = 2,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = Signers[0].Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreCommit,
+        }.Sign(Signers[0]);
+        var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
+
+        Assert.Empty(blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
+
+        var block1 = new BlockBuilder
+        {
+            Height = blockchain.Tip.Height + 1,
+            Timestamp = blockchain.Tip.Timestamp.AddSeconds(1),
+            PreviousBlockHash = blockchain.Tip.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Evidences = [evidence]
+        }.Create(proposer);
+        var blockCommit1 = TestUtils.CreateBlockCommit(block1);
+        blockchain.Append(block1, blockCommit1);
+
+        Assert.Empty(blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.PendingEvidence);
+        Assert.Contains(evidence.Id, blockchain.Evidence);
+    }
+
+    [Fact]
+    public void AddEvidence_DuplicateVoteEvidence_FromNonValidator_ThrowTest()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var voteRef = new VoteMetadata
+        {
+            Height = blockchain.Tip.Height,
+            Round = 2,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = Signers[0].Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreCommit,
+        }.Sign(Signers[0]);
+        var voteDup = new VoteMetadata
+        {
+            Height = blockchain.Tip.Height,
+            Round = 2,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = Signers[0].Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreCommit,
+        }.Sign(Signers[0]);
+        var validators = ImmutableSortedSet.Create(new Validator { Address = Signers[0].Address });
+        var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, validators);
+
+        Assert.Empty(blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
+
+        Assert.Throws<ArgumentException>(() => blockchain.PendingEvidence.Add(evidence));
+
+        Assert.Empty(blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
+    }
+
+    [Fact]
+    public void EvidenceExpired_ThrowTest()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var options = new BlockchainOptions();
+        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var voteRef = new VoteMetadata
+        {
+            Height = blockchain.Tip.Height,
+            Round = 2,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = Signers[0].Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreCommit,
+        }.Sign(Signers[0]);
+        var voteDup = new VoteMetadata
+        {
+            Height = blockchain.Tip.Height,
+            Round = 2,
+            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            Timestamp = DateTimeOffset.UtcNow,
+            Validator = Signers[0].Address,
+            ValidatorPower = BigInteger.One,
+            Type = VoteType.PreCommit,
+        }.Sign(Signers[0]);
+        var evidence = DuplicateVoteEvidence.Create(voteRef, voteDup, TestUtils.Validators);
+
+        Assert.Empty(blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
+
+        blockchain.PendingEvidence.Add(evidence);
+
+        Assert.Single(blockchain.PendingEvidence, evidence);
+        Assert.Contains(evidence.Id, blockchain.PendingEvidence);
+        Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
+
+        var pendingDuration = options.BlockOptions.EvidencePendingDuration;
+        var emptyEvidence = ImmutableArray<EvidenceBase>.Empty;
+
+        for (var i = 0; i < pendingDuration; i++)
+        {
+            var block1 = new BlockBuilder
+            {
+                Height = blockchain.Tip.Height + 1,
+                Timestamp = blockchain.Tip.Timestamp.AddSeconds(1),
+                PreviousBlockHash = blockchain.Tip.BlockHash,
+                PreviousStateRootHash = blockchain.StateRootHash,
+            }.Create(proposer);
+            var blockCommit1 = TestUtils.CreateBlockCommit(block1);
+            blockchain.Append(block1, blockCommit1);
+        }
+
+        var block2 = new BlockBuilder
+        {
+            Height = blockchain.Tip.Height + 1,
+            Timestamp = blockchain.Tip.Timestamp.AddSeconds(1),
+            PreviousBlockHash = blockchain.Tip.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+        }.Create(proposer);
+        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
+
+        Assert.Single(blockchain.PendingEvidence);
+
+        blockchain.ProposeAndAppend(proposer);
+        Assert.Single(blockchain.PendingEvidence);
+        blockchain.PendingEvidence.Prune();
+        Assert.Empty(blockchain.PendingEvidence);
+    }
 }

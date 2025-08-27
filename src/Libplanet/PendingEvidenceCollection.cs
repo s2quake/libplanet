@@ -64,6 +64,11 @@ public sealed class PendingEvidenceCollection(Repository repository)
     public bool TryGetValue(EvidenceId evidenceId, [MaybeNullWhen(false)] out EvidenceBase value)
         => _store.TryGetValue(evidenceId, out value);
 
+    public void Prune()
+    {
+        throw new NotImplementedException();
+    }
+
     IEnumerator<KeyValuePair<EvidenceId, EvidenceBase>> IEnumerable<KeyValuePair<EvidenceId, EvidenceBase>>.GetEnumerator()
     {
         foreach (var kvp in _store)

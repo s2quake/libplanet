@@ -12,7 +12,7 @@ public sealed record class BlockOptions
 
     public int MaxTransactionsPerSigner { get; init; } = 100;
 
-    public long EvidencePendingDuration { get; init; } = 10L;
+    public int EvidencePendingDuration { get; init; } = 10;
 
     public int MaxEvidence { get; init; } = 10;
 
