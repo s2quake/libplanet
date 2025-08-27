@@ -8,7 +8,7 @@
 // using Xunit;
 // // using static Libplanet.Tests.TestUtils;
 
-// namespace Libplanet.Tests.Blocks;
+// namespace Libplanet.Types.Tests.Blocks;
 
 // public class BlockContentTest : BlockContentFixture
 // {
