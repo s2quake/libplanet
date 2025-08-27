@@ -9,7 +9,7 @@ using Libplanet.Extensions;
 using Libplanet.Data.Structures;
 using Libplanet.State.Builtin;
 
-namespace Libplanet.Tests.Blockchain;
+namespace Libplanet.Tests;
 
 public partial class BlockchainTest
 {
@@ -34,7 +34,7 @@ public partial class BlockchainTest
                 EndBlockActions = [new MinerReward(1)],
             },
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, repository, options);
+        var blockchain = new Blockchain(genesisBlock, repository, options);
 
         Transaction[] txs =
         [
@@ -318,7 +318,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var accountAddress = Address.Parse("0123456789abcdef0123456789abcdef12345678");
         var address1 = RandomUtility.Address(random);
         var address2 = RandomUtility.Address(random);
@@ -352,7 +352,7 @@ public partial class BlockchainTest
         var options = new BlockchainOptions
         {
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
 
         var manyActions = Enumerable.Repeat(DumbAction.Create((default, "_")), 200).ToArray();
         var signer = RandomUtility.Signer(random);
@@ -402,7 +402,7 @@ public partial class BlockchainTest
         var options = new BlockchainOptions
         {
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
 
         var maxTxs = options.BlockOptions.MaxTransactions;
         for (var i = 0; i <= maxTxs; i++)
@@ -438,7 +438,7 @@ public partial class BlockchainTest
         var options = new BlockchainOptions
         {
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
         var signer = RandomUtility.Signer(random);
 
         var action = new ThrowException { ThrowOnExecution = true };
@@ -479,7 +479,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
 
         _ = blockchain.StagedTransactions.Add(validSigner, new());
 
@@ -511,7 +511,7 @@ public partial class BlockchainTest
                 EndBlockActions = [new MinerReward(1)],
             },
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, repository, options);
+        var blockchain = new Blockchain(genesisBlock, repository, options);
         Transaction[] txs =
         [
             new TransactionBuilder
@@ -618,7 +618,7 @@ public partial class BlockchainTest
                 ],
             },
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
         var block1 = blockchain.Propose(proposer);
         var blockCommit1 = TestUtils.CreateBlockCommit(block1);
         var e = Assert.Throws<InvalidOperationException>(() => blockchain.Append(block1, blockCommit1));
@@ -635,7 +635,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var txA0 = new TransactionBuilder
         {
             Nonce = 0,
@@ -769,7 +769,7 @@ public partial class BlockchainTest
             },
         };
         var genesisBlock = rawGenesisBlock.Sign(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
         Assert.Equal<byte>(
             blockchain.GetWorld(genesisBlock.BlockHash).Trie.Hash.Bytes,

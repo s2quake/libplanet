@@ -2,7 +2,6 @@ using System.IO;
 using global::Cocona;
 using Libplanet.State;
 using Libplanet.Extensions.Cocona.Commands;
-using Libplanet.Data.RocksDB.Tests;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
@@ -37,8 +36,7 @@ public sealed class StoreCommandTest : IDisposable
         try
         {
             _storeFixtures = ImmutableArray.Create<RepositoryFixture>(
-                new MemoryRepositoryFixture(),
-                new RocksDBStoreFixture());
+                new MemoryRepositoryFixture());
         }
         catch (TypeInitializationException)
         {

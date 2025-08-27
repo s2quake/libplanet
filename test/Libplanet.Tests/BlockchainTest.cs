@@ -10,7 +10,7 @@ using Libplanet.Types;
 using Xunit.Internal;
 using static Libplanet.Tests.TestUtils;
 
-namespace Libplanet.Tests.Blockchain;
+namespace Libplanet.Tests;
 
 public partial class BlockchainTest(ITestOutputHelper output)
 {
@@ -19,7 +19,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
     [Fact]
     public void BaseTest()
     {
-        var blockchain = new Libplanet.Blockchain();
+        var blockchain = new Blockchain();
         Assert.NotEqual(Guid.Empty, blockchain.Id);
         Assert.Empty(blockchain.Blocks);
         Assert.Empty(blockchain.BlockCommits);
@@ -42,7 +42,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var genesisBlock = new BlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         Assert.NotEqual(Guid.Empty, blockchain.Id);
         Assert.Single(blockchain.Blocks);
         Assert.Single(blockchain.BlockCommits);
@@ -76,7 +76,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
                 }.Create(proposer),
             ],
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         Assert.NotEqual(Guid.Empty, blockchain.Id);
         Assert.Single(blockchain.Blocks);
         Assert.Single(blockchain.BlockCommits);
@@ -101,7 +101,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = [..validators],
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var actualValidators = blockchain.GetWorld().GetValidators();
         Assert.Equal(validators, actualValidators);
     }
@@ -114,7 +114,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var genesisBlock = new BlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var genesis = blockchain.Genesis;
         Assert.Equal(genesis, blockchain.Blocks[0]);
@@ -133,7 +133,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var genesisBlock = new BlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         Assert.Single(blockchain.Blocks.Keys);
 
@@ -172,7 +172,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
             ],
         }.Create(GenesisProposer);
 
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         IAction[] actions1 =
         [
@@ -465,7 +465,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = TestUtils.Validators,
         }.Create(proposer);
-        _ = new Libplanet.Blockchain(genesisBlock, repository);
+        _ = new Blockchain(genesisBlock, repository);
         var blockCommit1 = CreateBlockCommit(RandomUtility.BlockHash(random), 1, 0);
         var blockCommit2 = CreateBlockCommit(RandomUtility.BlockHash(random), 2, 0);
         var blockCommit3 = CreateBlockCommit(RandomUtility.BlockHash(random), 3, 0);
@@ -508,7 +508,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
             Validators = TestUtils.Validators,
         }.Create(genesisProposer);
 
-        _ = new Libplanet.Blockchain(genesisBlock, options);
+        _ = new Blockchain(genesisBlock, options);
         Assert.False(invoked);
     }
 
@@ -524,7 +524,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
             Validators = TestUtils.Validators,
         }.Create(proposer);
 
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         foreach (var address in addresses)
         {
@@ -576,7 +576,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = TestUtils.Validators,
         }.Create(genesisProposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var (b1, _) = blockchain.ProposeAndAppend(signer);
         var (b2, _) = blockchain.ProposeAndAppend(signer);
@@ -589,8 +589,8 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var invalidLocator = RandomUtility.BlockHash(random);
         var locator = b4.BlockHash;
 
-        var blockchainA = new Libplanet.Blockchain(genesisBlock);
-        var blockchainB = new Libplanet.Blockchain(genesisBlock);
+        var blockchainA = new Blockchain(genesisBlock);
+        var blockchainB = new Blockchain(genesisBlock);
         blockchainB.Append(b1, CreateBlockCommit(b1));
         blockchainB.Append(b2, CreateBlockCommit(b2));
         _ = blockchainB.ProposeAndAppend(signer);
@@ -626,7 +626,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
             Validators = TestUtils.Validators,
         }.Create(proposer);
         var genesisBlockHash = genesisBlock.BlockHash;
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var txBuilder = new TransactionBuilder
         {
             GenesisBlockHash = genesisBlockHash,
@@ -697,7 +697,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
             Validators = TestUtils.Validators,
         }.Create(proposer);
         var genesisBlockHash = genesisBlock.BlockHash;
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var txBuilder = new TransactionBuilder
         {
             GenesisBlockHash = genesisBlockHash,
@@ -750,7 +750,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
             Validators = TestUtils.Validators,
         }.Create(proposer);
         var genesisBlockHash = genesisBlock.BlockHash;
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var txBuilder = new TransactionBuilder
         {
             GenesisBlockHash = genesisBlockHash,
@@ -820,7 +820,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = TestUtils.Validators,
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         blockchain.StagedTransactions.Add(signer, @params: new()
         {
@@ -859,7 +859,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = TestUtils.Validators,
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         blockchain.StagedTransactions.Add(signer, @params: new()
         {
@@ -898,7 +898,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = TestUtils.Validators,
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var tasks = Enumerable.Range(0, 10)
             .Select(_ => Task.Run(() => blockchain.StagedTransactions.Add(signer, @params: new()
@@ -935,7 +935,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = TestUtils.Validators,
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         _ = blockchain.ProposeAndAppend(miner1);
         _ = blockchain.ProposeAndAppend(miner1);
@@ -972,7 +972,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = TestUtils.Validators,
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var block = blockchain.Propose(RandomUtility.Signer(random));
         var blockCommit = CreateBlockCommit(block);
@@ -1026,7 +1026,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Transactions = [.. systemTxs.Concat(customTxs)],
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var actualValidator = blockchain
             .GetWorld()
@@ -1056,7 +1056,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = TestUtils.Validators,
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var txsA = Enumerable.Range(0, 3)
             .Select(nonce => new TransactionBuilder
@@ -1107,7 +1107,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
                 ],
             },
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
 
         var signer = RandomUtility.Signer(random);
         _ = blockchain.StagedTransactions.Add(signer, @params: new());
@@ -1135,7 +1135,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
             Validators = [.. validatorsA],
         }.Create(proposer);
 
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         blockchain.StagedTransactions.Add(RandomUtility.Signer(random), @params: new()
         {

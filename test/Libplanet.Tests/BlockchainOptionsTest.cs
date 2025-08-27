@@ -4,7 +4,7 @@ using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.TestUtilities;
 
-namespace Libplanet.Tests.Blockchain;
+namespace Libplanet.Tests;
 
 public class BlockchainOptionsTest(ITestOutputHelper output)
 {

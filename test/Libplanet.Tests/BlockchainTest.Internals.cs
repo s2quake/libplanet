@@ -6,7 +6,7 @@ using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Extensions;
 using Libplanet.Types;
 
-namespace Libplanet.Tests.Blockchain;
+namespace Libplanet.Tests;
 
 public partial class BlockchainTest
 {
@@ -19,7 +19,7 @@ public partial class BlockchainTest
         {
         }.Create(proposer);
         var repository = new Repository();
-        var blockchainA = new Libplanet.Blockchain(genesisBlock, repository);
+        var blockchainA = new Blockchain(genesisBlock, repository);
 
         var signerA = RandomUtility.Signer(random);
         var signerB = RandomUtility.Signer(random);
@@ -113,7 +113,7 @@ public partial class BlockchainTest
                 Sorter = items => items.OrderBy(tx => tx, comparer).ThenBy(tx => tx.Nonce),
             },
         };
-        var blockchainB = new Libplanet.Blockchain(repository, optionsB);
+        var blockchainB = new Blockchain(repository, optionsB);
 
         // A is prioritized over B, C, D, E:
         var stagedTransactionsB = blockchainB.StagedTransactions.Collect();
@@ -153,7 +153,7 @@ public partial class BlockchainTest
                 EndBlockActions = [new MinerReward(1)],
             },
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, repository, options);
+        var blockchain = new Blockchain(genesisBlock, repository, options);
 
         Transaction[] txs =
         [
@@ -210,7 +210,7 @@ public partial class BlockchainTest
         {
         }.Create(proposer);
         var repository = new Repository();
-        var blockchain = new Libplanet.Blockchain(genesisBlock, repository);
+        var blockchain = new Blockchain(genesisBlock, repository);
 
         var blockHash1 = RandomUtility.BlockHash(random);
         var blockHash2 = RandomUtility.BlockHash(random);

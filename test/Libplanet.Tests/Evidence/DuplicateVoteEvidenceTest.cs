@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 
-namespace Libplanet.Tests.Blockchain.Evidence;
+namespace Libplanet.Tests.Evidence;
 
 public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
 {

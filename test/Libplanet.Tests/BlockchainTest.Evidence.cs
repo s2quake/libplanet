@@ -2,7 +2,7 @@ using Libplanet.TestUtilities;
 using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 
-namespace Libplanet.Tests.Blockchain;
+namespace Libplanet.Tests;
 
 public partial class BlockchainTest
 {
@@ -14,7 +14,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         Assert.Empty(blockchain.PendingEvidence);
     }
 
@@ -27,7 +27,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var height = blockchain.Tip.Height;
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
@@ -48,7 +48,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var height = blockchain.Tip.Height;
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
@@ -64,7 +64,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(expectedEvidence);
@@ -85,7 +85,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(expectedEvidence);
@@ -103,7 +103,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var height = blockchain.Tip.Height;
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
@@ -119,7 +119,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(expectedEvidence);
@@ -141,7 +141,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(testEvidence);
@@ -162,7 +162,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(testEvidence);
@@ -180,7 +180,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var height = blockchain.Tip.Height + 1;
         var testEvidence = TestEvidence.Create(height, address, DateTimeOffset.UtcNow);
@@ -199,7 +199,7 @@ public partial class BlockchainTest
         {
         }.Create(proposer);
         var options = new BlockchainOptions();
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         var pendingDuration = options.BlockOptions.EvidencePendingDuration;
@@ -220,7 +220,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
@@ -240,7 +240,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(testEvidence);
@@ -272,7 +272,7 @@ public partial class BlockchainTest
         {
         }.Create(proposer);
         var options = new BlockchainOptions();
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         var pendingDuration = options.BlockOptions.EvidencePendingDuration;
@@ -305,7 +305,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         var (block1, blockCommit1) = blockchain.ProposeAndAppend(proposer);
@@ -336,7 +336,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
@@ -358,7 +358,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(testEvidence);
@@ -376,7 +376,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
@@ -393,7 +393,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(testEvidence);
@@ -414,7 +414,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(testEvidence);
@@ -432,7 +432,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
         blockchain.PendingEvidence.Add(testEvidence);
@@ -450,7 +450,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
 
@@ -468,7 +468,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var voteRef = new VoteMetadata
         {
             Height = blockchain.Tip.Height,
@@ -525,7 +525,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var voteRef = new VoteMetadata
         {
             Height = blockchain.Tip.Height,
@@ -576,7 +576,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var voteRef = new VoteMetadata
         {
             Height = blockchain.Tip.Height,
@@ -620,7 +620,7 @@ public partial class BlockchainTest
         {
         }.Create(proposer);
         var options = new BlockchainOptions();
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var voteRef = new VoteMetadata
         {
             Height = blockchain.Tip.Height,

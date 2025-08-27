@@ -18,7 +18,7 @@ namespace Libplanet.Benchmarks
         {
             var fx = new MemoryRepositoryFixture();
             var repository = new Repository();
-            _blockChain = new Libplanet.Blockchain(fx.GenesisBlock, repository, fx.Options);
+            _blockChain = new Blockchain(fx.GenesisBlock, repository, fx.Options);
             _signer = new PrivateKey().AsSigner();
         }
 

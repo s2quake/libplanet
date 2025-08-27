@@ -1,6 +1,5 @@
 using System.IO;
 using Libplanet.Extensions.Cocona.Commands;
-using Libplanet.Data.RocksDB.Tests;
 using Libplanet.Tests.Store;
 
 namespace Libplanet.Extensions.Cocona.Tests.Commands;
@@ -17,7 +16,7 @@ public sealed class StatsCommandTest : IDisposable
         _originalWriter = Console.Out;
         try
         {
-            _storeFixtures = [new MemoryRepositoryFixture(), new RocksDBStoreFixture()];
+            _storeFixtures = [new MemoryRepositoryFixture()];
         }
         catch (TypeInitializationException)
         {

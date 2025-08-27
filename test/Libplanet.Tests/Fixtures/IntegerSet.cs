@@ -55,7 +55,7 @@
 //                 timestamp: DateTimeOffset.UtcNow,
 //                 protocolVersion: BlockHeader.CurrentProtocolVersion).Sign(Proposer);
 //         Repository = new Repository(new MemoryDatabase());
-//         Chain = new Libplanet.Blockchain(Genesis, Repository, policy);
+//         Chain = new Blockchain(Genesis, Repository, policy);
 //     }
 
 //     public int Count => Addresses.Count;

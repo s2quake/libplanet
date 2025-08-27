@@ -332,7 +332,7 @@ public static class TestUtils
             genesisBlock = preEval.Sign(signer);
         }
 
-        return new Libplanet.Blockchain(genesisBlock, repository, options);
+        return new Blockchain(genesisBlock, repository, options);
     }
 
     public static async Task AssertThatEventually(

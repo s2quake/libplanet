@@ -7,7 +7,7 @@ using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 using static Libplanet.Tests.TestUtils;
 
-namespace Libplanet.Tests.Blockchain;
+namespace Libplanet.Tests;
 
 public partial class BlockchainTest
 {
@@ -27,7 +27,7 @@ public partial class BlockchainTest
             },
         };
         var maxActionBytes = options.BlockOptions.MaxActionBytes;
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
         Assert.Single(blockchain.Blocks);
         Assert.Equal(
             $"{proposer.Address}",
@@ -105,7 +105,7 @@ public partial class BlockchainTest
                 }.Create(proposer),
             ]
         }.Create(proposer);
-        Assert.Throws<ArgumentException>(() => new Libplanet.Blockchain(genesisBlock));
+        Assert.Throws<ArgumentException>(() => new Blockchain(genesisBlock));
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var txSigner = RandomUtility.Signer(random);
         var tx = new TransactionBuilder
         {
@@ -152,7 +152,7 @@ public partial class BlockchainTest
                 EndBlockActions = [new MinerReward(1)],
             },
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
 
         var signers = RandomUtility.Array(random, RandomUtility.Signer, 3);
         var signerA = RandomUtility.Signer(random);
@@ -313,7 +313,7 @@ public partial class BlockchainTest
                 ],
             },
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
         var validTx = blockchain.StagedTransactions.Add(validSigner, new());
         var invalidTx = blockchain.StagedTransactions.Add(invalidSigner, new());
         var (block, _) = blockchain.ProposeAndAppend(proposer);
@@ -334,7 +334,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var txs = new[]
         {
             new TransactionBuilder
@@ -369,7 +369,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         blockchain.StagedTransactions.Add(signer, new()
         {
             Nonce = 0L,
@@ -411,7 +411,7 @@ public partial class BlockchainTest
                 EndBlockActions = [DumbAction.Create((address1, "foo"))],
             },
         };
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
 
         var tx = blockchain.CreateTransaction(signer2, new TransactionParams
         {
@@ -475,7 +475,7 @@ public partial class BlockchainTest
             },
         };
 
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
 
         var txsA = Enumerable.Range(0, 50)
             .Select(nonce => blockchain.CreateTransaction(signerA, new() { Nonce = nonce }))
@@ -507,7 +507,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         _ = blockchain.ProposeAndAppend(RandomUtility.Signer(random));
         var votes = signers.Select(signer => new VoteMetadata
         {
@@ -546,7 +546,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var txsA = Enumerable.Range(0, 3)
             .Select(nonce => blockchain.CreateTransaction(signer, new() { Nonce = nonce }))
@@ -575,7 +575,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var txs = Enumerable.Range(0, 3)
             .Select(_ => blockchain.CreateTransaction(signer, new() { Nonce = 0 }))
             .ToArray();
@@ -610,7 +610,7 @@ public partial class BlockchainTest
             },
         };
         var repository = new Repository();
-        var blockchainA = new Libplanet.Blockchain(genesisBlock, repository, optionsA);
+        var blockchainA = new Blockchain(genesisBlock, repository, optionsA);
 
         var txsA = Enumerable.Range(0, 3)
             .Select(nonce => blockchainA.CreateTransaction(signerA, new() { Nonce = nonce }))
@@ -658,7 +658,7 @@ public partial class BlockchainTest
                 Sorter = txs => txs.OrderBy(tx => tx, comparer).ThenBy(tx => tx.Nonce),
             },
         };
-        var blockchainB = new Libplanet.Blockchain(repository, optionsB);
+        var blockchainB = new Blockchain(repository, optionsB);
         var collectedTxsB = blockchainB.StagedTransactions.Collect();
 
         Assert.Equal(
@@ -676,7 +676,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var txWithInvalidAction = new TransactionMetadata
         {
             Nonce = 1L,

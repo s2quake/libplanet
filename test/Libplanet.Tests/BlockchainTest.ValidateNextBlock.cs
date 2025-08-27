@@ -7,7 +7,7 @@ using Libplanet.TestUtilities;
 using Libplanet.Types;
 using static Libplanet.Tests.TestUtils;
 
-namespace Libplanet.Tests.Blockchain;
+namespace Libplanet.Tests;
 
 public partial class BlockchainTest
 {
@@ -19,7 +19,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var block = new RawBlock
         {
             Header = new BlockHeader
@@ -60,7 +60,7 @@ public partial class BlockchainTest
             },
         }.Sign(proposer);
 
-        var blockchain = new Libplanet.Blockchain(genesisBlock, repository);
+        var blockchain = new Blockchain(genesisBlock, repository);
 
         var block1 = new RawBlock
         {
@@ -120,7 +120,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         blockchain.ProposeAndAppend(proposer);
 
@@ -162,7 +162,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
 
         var block2 = new RawBlock
@@ -188,7 +188,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var (block1, blockCommit1) = blockchain.ProposeAndAppend(proposer);
 
         var block2 = new RawBlock
@@ -217,7 +217,7 @@ public partial class BlockchainTest
         var optionsA = new BlockchainOptions
         {
         };
-        var blockchainA = new Libplanet.Blockchain(genesisBlock, optionsA);
+        var blockchainA = new Blockchain(genesisBlock, optionsA);
 
         var optionsB = new BlockchainOptions
         {
@@ -226,7 +226,7 @@ public partial class BlockchainTest
                 EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
             },
         };
-        var blockchainB = new Libplanet.Blockchain(genesisBlock, optionsB);
+        var blockchainB = new Blockchain(genesisBlock, optionsB);
 
         var blockA = new BlockBuilder
         {
@@ -259,7 +259,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var block1 = new BlockBuilder
         {
@@ -280,7 +280,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
 
         var block2 = new BlockBuilder
@@ -303,7 +303,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
 
         var validators = TestValidators.Add(new(RandomUtility.Signer(random)));
@@ -339,7 +339,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
 
         var validators = TestValidators.Remove(TestValidators[0]);
@@ -374,7 +374,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchainA = new Libplanet.Blockchain();
+        var blockchainA = new Blockchain();
         // Works fine.
         blockchainA.Append(genesisBlock, default);
 
@@ -399,7 +399,7 @@ public partial class BlockchainTest
                 }),
             ],
         };
-        var blockchainB = new Libplanet.Blockchain();
+        var blockchainB = new Blockchain();
         Assert.Throws<ArgumentException>("blockCommit", () => blockchainB.Append(genesisBlock, blockCommit));
     }
 
@@ -411,7 +411,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var block1 = new BlockBuilder
         {
             Height = 1,
@@ -432,7 +432,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var block1 = new BlockBuilder
         {
@@ -454,7 +454,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var block1 = new BlockBuilder
         {
@@ -503,7 +503,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var block1 = new BlockBuilder
         {
             Height = 1,
@@ -547,7 +547,7 @@ public partial class BlockchainTest
             return voteType == VoteType.Null ? metadata.WithoutSignature() : metadata.Sign(validator);
         }
 
-        var blockchainA = new Libplanet.Blockchain(genesisBlock);
+        var blockchainA = new Blockchain(genesisBlock);
         var blockA = new BlockBuilder
         {
             Height = 1,
@@ -570,7 +570,7 @@ public partial class BlockchainTest
         blockchainA.Append(blockA, blockCommitA);
 
         // Can propose if power is big enough even count condition is not met.
-        var blockchainB = new Libplanet.Blockchain(genesisBlock);
+        var blockchainB = new Blockchain(genesisBlock);
         var blockB = new BlockBuilder
         {
             Height = 1,
@@ -593,7 +593,7 @@ public partial class BlockchainTest
         blockchainB.Append(blockB, blockCommitB);
 
         // Can not propose if power isn't big enough even count condition is met.
-        var blockchainC = new Libplanet.Blockchain(genesisBlock);
+        var blockchainC = new Blockchain(genesisBlock);
         var blockC = new BlockBuilder
         {
             Height = 1,
@@ -624,7 +624,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var block = new BlockBuilder
         {
             Height = 1,
@@ -653,7 +653,7 @@ public partial class BlockchainTest
             },
         };
 
-        var blockchain = new Libplanet.Blockchain(genesisBlock, options);
+        var blockchain = new Blockchain(genesisBlock, options);
         var (block1, blockCommit1) = blockchain.ProposeAndAppend(proposer);
 
         var block2 = new BlockBuilder

@@ -1,7 +1,7 @@
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 
-namespace Libplanet.Tests.Blockchain;
+namespace Libplanet.Tests;
 
 public partial class BlockchainTest
 {
@@ -13,7 +13,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         ImmutableSortedSet<Transaction> txs =
         [
             blockchain.CreateTransaction(proposer),
@@ -33,7 +33,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
 
         var tx1Signer = RandomUtility.Signer(random);
         var tx1 = new TransactionBuilder
@@ -71,7 +71,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         var signer = RandomUtility.Signer(random);
 
         var tx_0_0 = blockchain.CreateTransaction(signer, new() { Nonce = 0L });
@@ -118,7 +118,7 @@ public partial class BlockchainTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var blockchain = new Libplanet.Blockchain(genesisBlock);
+        var blockchain = new Blockchain(genesisBlock);
         Transaction[] txs =
         [
             blockchain.CreateTransaction(proposer),

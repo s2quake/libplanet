@@ -2,7 +2,7 @@ using Libplanet.Data;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 
-namespace Libplanet.Tests.Blockchain;
+namespace Libplanet.Tests;
 
 public sealed class StagedTransactionCollectionTest(ITestOutputHelper output)
 {
