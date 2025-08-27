@@ -185,6 +185,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Signer = tx1Signer.Address,
             GenesisBlockHash = genesisBlock.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
             Actions = actions1.ToBytecodes(),
         }.Sign(tx1Signer);
 
@@ -214,6 +215,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Signer = tx2Signer.Address,
             GenesisBlockHash = genesisBlock.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
             Actions = actions2.ToBytecodes(),
         }.Sign(tx2Signer);
 
@@ -232,6 +234,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Signer = tx3Signer.Address,
             GenesisBlockHash = genesisBlock.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
             Actions = new[]
             {
                 new Attack

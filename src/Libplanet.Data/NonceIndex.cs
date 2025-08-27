@@ -37,34 +37,6 @@ public sealed class NonceIndex(IDatabase database, int cacheSize = 100)
         }
     }
 
-    // internal Dictionary<Address, long> ValidateBlockNonces(
-    //         Dictionary<Address, long> storedNonces,
-    //         Block block)
-    // {
-    //     var nonceDeltas = new Dictionary<Address, long>();
-    //     foreach (Transaction tx in block.Transactions.OrderBy(tx => tx.Nonce))
-    //     {
-    //         nonceDeltas.TryGetValue(tx.Signer, out var nonceDelta);
-    //         storedNonces.TryGetValue(tx.Signer, out var storedNonce);
-
-    //         long expectedNonce = nonceDelta + storedNonce;
-
-    //         if (!expectedNonce.Equals(tx.Nonce))
-    //         {
-    //             throw new InvalidTxNonceException(
-    //                 $"Transaction {tx.Id} has an invalid nonce {tx.Nonce} that is different " +
-    //                 $"from expected nonce {expectedNonce}.",
-    //                 tx.Id,
-    //                 expectedNonce,
-    //                 tx.Nonce);
-    //         }
-
-    //         nonceDeltas[tx.Signer] = nonceDelta + 1;
-    //     }
-
-    //     return nonceDeltas;
-    // }
-
     protected override byte[] ValueToBytes(long value) => BitConverter.GetBytes(value);
 
     protected override long BytesToValue(byte[] bytes) => BitConverter.ToInt64(bytes, 0);
