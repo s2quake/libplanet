@@ -327,7 +327,7 @@ public partial class Blockchain
         var blockContent = new BlockContent
         {
             Transactions = [.. StagedTransactions.Collect(timestamp)],
-            Evidences = [.. PendingEvidence.Collect()],
+            Evidences = [.. PendingEvidence.Collect(height + 1, timestamp)],
         };
         var rawBlock = new RawBlock
         {

@@ -48,12 +48,12 @@ public sealed class PendingEvidenceCollection(Repository repository, BlockchainO
                 nameof(evidence));
         }
 
-        if (IsExpired(evidence, options.BlockOptions.EvidencePendingDuration, repository.Height))
-        {
-            throw new ArgumentException(
-                $"Evidence with ID {evidence.Id} is too old to be added.",
-                nameof(evidence));
-        }
+        // if (IsExpired(evidence))
+        // {
+        //     throw new ArgumentException(
+        //         $"Evidence with ID {evidence.Id} is too old to be added.",
+        //         nameof(evidence));
+        // }
 
         Validate(evidence);
 
@@ -104,13 +104,22 @@ public sealed class PendingEvidenceCollection(Repository repository, BlockchainO
         }
     }
 
-    public ImmutableArray<EvidenceBase> Collect()
+    public ImmutableArray<EvidenceBase> Collect(int height, DateTimeOffset timestamp)
     {
-        return [.. Values];
+        var items1 = Values.Where(item => !IsExpired(item, height, timestamp));
+        return [.. items1];
     }
 
-    private static bool IsExpired(EvidenceBase evidence, int duration, int height)
-        => evidence.Height + duration < height;
+    private bool IsExpired(EvidenceBase evidence, int height, DateTimeOffset timestamp)
+    {
+        var evidenceOptions = options.EvidenceOptions;
+        if (evidence.Height + evidenceOptions.ExpiresInBlocks < height)
+        {
+            return true;
+        }
+
+        return evidence.Timestamp + evidenceOptions.Lifetime < timestamp;
+    }
 
     private void Validate(EvidenceBase evidence)
     {

@@ -23,6 +23,8 @@ public sealed partial record class BlockDigest : IHasKey<BlockHash>
 
     public int Height => Header.Height;
 
+    public DateTimeOffset Timestamp => Header.Timestamp;
+
     public Address Proposer => Header.Proposer;
 
     public BlockHash PreviousHash => Header.PreviousBlockHash;

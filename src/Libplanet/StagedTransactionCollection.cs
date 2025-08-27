@@ -136,12 +136,11 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
 
     public ImmutableArray<Transaction> Collect(DateTimeOffset timestamp)
     {
-        var lifetime = _options.TransactionOptions.Lifetime;
         var maxTransactions = _options.BlockOptions.MaxTransactions;
         var maxActionBytes = _options.BlockOptions.MaxActionBytes;
         var maxTransactionsPerSigner = _options.BlockOptions.MaxTransactionsPerSigner;
         var sorter = _options.TransactionOptions.Sorter;
-        var items1 = Values.Where(item => !IsExpired(item, timestamp, lifetime) && IsValid(item));
+        var items1 = Values.Where(item => !IsExpired(item, timestamp) && IsValid(item));
         var items2 = sorter(items1);
 
         var nonceByAddress = new Dictionary<Address, long>();
@@ -205,13 +204,12 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         return _repository.GetNonce(address);
     }
 
-    public void Prune() => Prune(DateTimeOffset.UtcNow);
+    public void Prune() => Prune(_repository.Timestamp);
 
     public void Prune(DateTimeOffset timestamp)
     {
-        var lifetime = _options.TransactionOptions.Lifetime;
         var query = from tx in Values
-                    where IsExpired(tx, timestamp, lifetime) || !IsValid(tx)
+                    where IsExpired(tx, timestamp) || !IsValid(tx)
                     select tx;
         var txs = query.ToArray();
         foreach (var tx in txs)
@@ -264,8 +262,8 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         }
     }
 
-    private static bool IsExpired(Transaction transaction, DateTimeOffset timestamp, TimeSpan lifetime)
-        => transaction.Timestamp + lifetime < timestamp;
+    private bool IsExpired(Transaction transaction, DateTimeOffset timestamp)
+        => transaction.Timestamp + _options.TransactionOptions.Lifetime < timestamp;
 
     private bool IsValid(Transaction transaction)
     {

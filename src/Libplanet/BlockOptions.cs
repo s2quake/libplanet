@@ -12,8 +12,6 @@ public sealed record class BlockOptions
 
     public int MaxTransactionsPerSigner { get; init; } = 100;
 
-    public int EvidencePendingDuration { get; init; } = 10;
-
     public int MaxEvidence { get; init; } = 10;
 
     public ImmutableArray<IObjectValidator<Block>> Validators { get; init; } = [];
@@ -64,15 +62,15 @@ public sealed record class BlockOptions
             }
         }
 
-        var evidenceExpirationHeight = block.Height - EvidencePendingDuration;
-        if (block.Evidences.Any(evidence => evidence.Height < evidenceExpirationHeight))
-        {
-            throw new ArgumentException(
-                $"Block #{block.Height} {block.BlockHash} includes " +
-                $"evidences that are expired (height < {evidenceExpirationHeight}).");
-        }
+        // var evidenceExpirationHeight = block.Height - EvidencePendingDuration;
+        // if (block.Evidences.Any(evidence => evidence.Height < evidenceExpirationHeight))
+        // {
+        //     throw new ArgumentException(
+        //         $"Block #{block.Height} {block.BlockHash} includes " +
+        //         $"evidences that are expired (height < {evidenceExpirationHeight}).");
+        // }
     }
 
-    internal bool IsEvidenceExpired(EvidenceBase evidence, int height)
-        => evidence.Height + EvidencePendingDuration + evidence.Height < height;
+    // internal bool IsEvidenceExpired(EvidenceBase evidence, int height)
+    //     => evidence.Height + EvidencePendingDuration + evidence.Height < height;
 }

@@ -153,6 +153,8 @@ public class Repository
 
     public BlockCommit BlockCommit => BlockCommits.GetValueOrDefault(BlockHash, default);
 
+    public DateTimeOffset Timestamp => _height == -1 ? default : BlockDigests[BlockHash].Timestamp;
+
     public int BlockVersion { get; set; } = BlockHeader.CurrentProtocolVersion;
 
     protected IDatabase Database { get; }

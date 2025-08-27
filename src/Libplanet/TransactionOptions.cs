@@ -6,7 +6,7 @@ public sealed record class TransactionOptions
 {
     public ImmutableArray<IObjectValidator<Transaction>> Validators { get; init; } = [];
 
-    public TimeSpan Lifetime { get; init; } = TimeSpan.FromSeconds(10);
+    public TimeSpan Lifetime { get; init; } = TimeSpan.FromMinutes(1);
 
     /// <summary>
     /// 

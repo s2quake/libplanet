@@ -202,7 +202,7 @@ public partial class BlockchainTest
         var blockchain = new Blockchain(genesisBlock, options);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-        var pendingDuration = options.BlockOptions.EvidencePendingDuration;
+        var pendingDuration = options.EvidenceOptions.ExpiresInBlocks;
 
         // When
         blockchain.ProposeAndAppendMany(proposer, pendingDuration + 1);
@@ -275,7 +275,7 @@ public partial class BlockchainTest
         var blockchain = new Blockchain(genesisBlock, options);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
-        var pendingDuration = options.BlockOptions.EvidencePendingDuration;
+        var pendingDuration = options.EvidenceOptions.ExpiresInBlocks;
         var e = blockchain.ProposeAndAppendMany(proposer, pendingDuration + 1);
         var block1 = e[^1].Block;
         var blockCommit1 = e[^1].BlockCommit;
@@ -655,7 +655,7 @@ public partial class BlockchainTest
         Assert.Contains(evidence.Id, blockchain.PendingEvidence);
         Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
 
-        var pendingDuration = options.BlockOptions.EvidencePendingDuration;
+        var pendingDuration = options.EvidenceOptions.ExpiresInBlocks;
 
         for (var i = 0; i < pendingDuration; i++)
         {
