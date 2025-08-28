@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Extensions;
 
-public static class BlockEvaluationExtensions
+public static class BlockExecutionInfoExtensions
 {
     public static TxExecution[] GetTxExecutions(this BlockExecutionInfo @this, BlockHash blockHash)
     {
