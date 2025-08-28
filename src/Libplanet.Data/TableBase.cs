@@ -16,6 +16,8 @@ public abstract class TableBase : ITable, IEquatable<ITable>
         Name = name;
     }
 
+    public event EventHandler? Cleared;
+
     public string Name { get; }
 
     public ICollection<string> Keys => _keys;
@@ -27,17 +29,25 @@ public abstract class TableBase : ITable, IEquatable<ITable>
 
     public bool IsReadOnly => false;
 
-    public abstract byte[] this[string key] { get; set; }
+    public byte[] this[string key]
+    {
+        get => GetOverride(key);
+        set => SetOverride(key, value);
+    }
 
-    public abstract bool Remove(string key);
+    public void Add(string key, byte[] value) => AddOverride(key, value);
 
-    public abstract void Add(string key, byte[] value);
+    public bool Remove(string key) => RemoveOverride(key);
 
     public abstract bool ContainsKey(string key);
 
     public abstract bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value);
 
-    public abstract void Clear();
+    public void Clear()
+    {
+        ClearOverride();
+        Cleared?.Invoke(this, EventArgs.Empty);
+    }
 
     void ICollection<KeyValuePair<string, byte[]>>.Add(KeyValuePair<string, byte[]> item)
         => Add(item.Key, item.Value);
@@ -86,6 +96,16 @@ public abstract class TableBase : ITable, IEquatable<ITable>
     }
 
     bool IEquatable<ITable>.Equals(ITable? other) => ReferenceEquals(this, other);
+
+    protected abstract void AddOverride(string key, byte[] value);
+
+    protected abstract bool RemoveOverride(string key);
+
+    protected abstract void ClearOverride();
+
+    protected abstract void SetOverride(string key, byte[] value);
+
+    protected abstract byte[] GetOverride(string key);
 
     protected abstract IEnumerable<string> EnumerateKeys();
 

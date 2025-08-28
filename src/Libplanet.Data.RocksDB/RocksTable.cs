@@ -48,36 +48,6 @@ public sealed class RocksTable : TableBase, IDisposable
         }
     }
 
-    public override byte[] this[string key]
-    {
-        get => _rocksDb.Get(Encoding.UTF8.GetBytes(key)) ?? throw new KeyNotFoundException($"No such key: ${key}.");
-        set
-        {
-            var exists = _rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { };
-            _rocksDb.Put(Encoding.UTF8.GetBytes(key), value);
-            if (!exists && _count is not null)
-            {
-                _count++;
-            }
-        }
-    }
-
-    public override bool Remove(string key)
-    {
-        if (_rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { })
-        {
-            _rocksDb.Remove(Encoding.UTF8.GetBytes(key));
-            if (_count is not null)
-            {
-                _count--;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
     public void Dispose()
     {
         if (!_disposed)
@@ -95,7 +65,32 @@ public sealed class RocksTable : TableBase, IDisposable
         _rocksDb.TryCatchUpWithPrimary();
     }
 
-    public override void Add(string key, byte[] value)
+    public override bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value)
+    {
+        if (_rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { } bytes)
+        {
+            value = bytes;
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
+    protected override byte[] GetOverride(string key)
+        => _rocksDb.Get(Encoding.UTF8.GetBytes(key)) ?? throw new KeyNotFoundException($"No such key: ${key}.");
+
+    protected override void SetOverride(string key, byte[] value)
+    {
+        var exists = _rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { };
+        _rocksDb.Put(Encoding.UTF8.GetBytes(key), value);
+        if (!exists && _count is not null)
+        {
+            _count++;
+        }
+    }
+
+    protected override void AddOverride(string key, byte[] value)
     {
         if (_rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { })
         {
@@ -109,19 +104,23 @@ public sealed class RocksTable : TableBase, IDisposable
         }
     }
 
-    public override bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value)
+    protected override bool RemoveOverride(string key)
     {
-        if (_rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { } bytes)
+        if (_rocksDb.Get(Encoding.UTF8.GetBytes(key)) is { })
         {
-            value = bytes;
+            _rocksDb.Remove(Encoding.UTF8.GetBytes(key));
+            if (_count is not null)
+            {
+                _count--;
+            }
+
             return true;
         }
 
-        value = null;
         return false;
     }
 
-    public override void Clear()
+    protected override void ClearOverride()
     {
         _rocksDb.Dispose();
         if (Directory.Exists(_path))

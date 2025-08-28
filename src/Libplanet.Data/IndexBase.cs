@@ -18,7 +18,7 @@ public abstract class IndexBase<TKey, TValue>
     private readonly KeyCollection _keys;
     private readonly ValueCollection _values;
 
-    protected IndexBase(ITable dictionary, int cacheSize = 100)
+    protected IndexBase(ITable table, int cacheSize = 100)
     {
         if (cacheSize > 0)
         {
@@ -27,7 +27,8 @@ public abstract class IndexBase<TKey, TValue>
                 .Build();
         }
 
-        _table = dictionary;
+        _table = table;
+        _table.Cleared += (s, e) => _cache?.Clear();
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
     }

@@ -14,13 +14,16 @@ public sealed class MemoryTable(string name) : TableBase(name)
 
     public override int Count => _dictionary.Count;
 
-    public override byte[] this[string key]
-    {
-        get => _dictionary[key];
-        set => _dictionary[key] = value;
-    }
+    public override bool ContainsKey(string key) => _dictionary.ContainsKey(key);
 
-    public override void Add(string key, byte[] value)
+    public override bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value)
+        => _dictionary.TryGetValue(key, out value);
+
+    protected override byte[] GetOverride(string key) => _dictionary[key];
+
+    protected override void SetOverride(string key, byte[] value) => _dictionary[key] = value;
+
+    protected override void AddOverride(string key, byte[] value)
     {
         if (!_dictionary.TryAdd(key, value))
         {
@@ -28,14 +31,9 @@ public sealed class MemoryTable(string name) : TableBase(name)
         }
     }
 
-    public override void Clear() => _dictionary.Clear();
+    protected override bool RemoveOverride(string key) => _dictionary.TryRemove(key, out _);
 
-    public override bool ContainsKey(string key) => _dictionary.ContainsKey(key);
-
-    public override bool Remove(string key) => _dictionary.TryRemove(key, out _);
-
-    public override bool TryGetValue(string key, [MaybeNullWhen(false)] out byte[] value)
-        => _dictionary.TryGetValue(key, out value);
+    protected override void ClearOverride() => _dictionary.Clear();
 
     protected override IEnumerable<string> EnumerateKeys()
     {
