@@ -64,10 +64,6 @@ public partial class BlockchainTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var action = new Initialize
-        {
-            Validators = [new Validator { Address = proposer.Address }],
-        };
         var genesisBlock = new GenesisBlockBuilder
         {
             Validators = [new Validator { Address = proposer.Address }],
@@ -95,7 +91,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = [..validators],
+            Validators = [.. validators],
         }.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var actualValidators = blockchain.GetWorld().GetValidators();
@@ -190,15 +186,15 @@ public partial class BlockchainTest(ITestOutputHelper output)
 
         blockchain.StagedTransactions.Add(tx1);
         _ = blockchain.ProposeAndAppend(RandomUtility.Signer(random));
-        var result = (BattleResult)blockchain
+        var result1 = (BattleResult)blockchain
             .GetWorld()
             .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(address1);
 
-        Assert.Contains("sword", result.UsedWeapons);
-        Assert.Contains("staff", result.UsedWeapons);
-        Assert.Contains("orc", result.Targets);
-        Assert.Contains("goblin", result.Targets);
+        Assert.Contains("sword", result1.UsedWeapons);
+        Assert.Contains("staff", result1.UsedWeapons);
+        Assert.Contains("orc", result1.Targets);
+        Assert.Contains("goblin", result1.Targets);
 
         IAction[] actions2 =
         [
@@ -221,12 +217,12 @@ public partial class BlockchainTest(ITestOutputHelper output)
         blockchain.StagedTransactions.Add(tx2);
         _ = blockchain.ProposeAndAppend(RandomUtility.Signer(random));
 
-        result = (BattleResult)blockchain
+        var result2 = (BattleResult)blockchain
             .GetWorld()
             .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(address1);
 
-        Assert.Contains("bow", result.UsedWeapons);
+        Assert.Contains("bow", result2.UsedWeapons);
 
         var tx3Signer = RandomUtility.Signer(random);
         var tx3 = new TransactionMetadata
@@ -247,11 +243,13 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var block3 = blockchain.Propose(RandomUtility.Signer(random));
         blockchain.StagedTransactions.Add(tx3);
         blockchain.Append(block3, CreateBlockCommit(block3));
-        result = (BattleResult)blockchain
+        var result3 = (BattleResult)blockchain
             .GetWorld()
             .GetAccount(SystemAddresses.SystemAccount)
             .GetValue(address1);
 
+        Assert.Equal(["goblin", "orc"], result3.Targets);
+        Assert.Equal(["bow", "staff", "sword"], result3.UsedWeapons);
     }
 
     [Fact]
@@ -681,7 +679,6 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = TestUtils.Validators,
         }.Create(proposer);
         var genesisBlockHash = genesisBlock.BlockHash;
         var blockchain = new Blockchain(genesisBlock);
@@ -912,7 +909,6 @@ public partial class BlockchainTest(ITestOutputHelper output)
     public void BlockActionWithMultipleAddress()
     {
         var random = RandomUtility.GetRandom(_output);
-        var miner0 = RandomUtility.Signer(random);
         var miner1 = RandomUtility.Signer(random);
         var miner2 = RandomUtility.Signer(random);
         var rewardRecordAddress = MinerReward.RewardRecordAddress;
@@ -922,7 +918,14 @@ public partial class BlockchainTest(ITestOutputHelper output)
         {
             Validators = TestUtils.Validators,
         }.Create(proposer);
-        var blockchain = new Blockchain(genesisBlock);
+        var options = new BlockchainOptions
+        {
+            SystemActions = new SystemActions
+            {
+                EndBlockActions = [new MinerReward(1)],
+            },
+        };
+        var blockchain = new Blockchain(genesisBlock, options);
 
         _ = blockchain.ProposeAndAppend(miner1);
         _ = blockchain.ProposeAndAppend(miner1);
@@ -945,7 +948,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         Assert.Equal(1, miner2state);
 
         Assert.Equal(
-            $"{miner0},{miner1.Address},{miner1.Address},{miner2.Address}",
+            $"{proposer.Address},{miner1.Address},{miner1.Address},{miner2.Address}",
             rewardState);
     }
 
@@ -968,7 +971,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var tip = await waitTask.WaitAsync(cancellationToken);
         Assert.Equal(block, tip);
         Assert.Equal(1, tip.Height);
-        Assert.Throws<InvalidOperationException>(() => blockchain.Append(block, CreateBlockCommit(block)));
+        Assert.Throws<ArgumentException>("block", () => blockchain.Append(block, CreateBlockCommit(block)));
     }
 
     [Fact]
@@ -1146,6 +1149,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
                     {
                         Validator = v,
                         Block = block1,
+                        Type = VoteType.PreCommit,
                     }.Create(s))
             ],
         };
@@ -1167,6 +1171,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
                     {
                         Validator = v,
                         Block = block2,
+                        Type = VoteType.PreCommit,
                     }.Create(s))
             ],
         };
@@ -1188,6 +1193,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
                     {
                         Validator = v,
                         Block = block3,
+                        Type = VoteType.PreCommit,
                     }.Create(s))
             ],
         };

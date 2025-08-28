@@ -109,6 +109,7 @@ public static class TestUtils
         ]),
     ];
 
+    [Obsolete]
     public static ISigner GenesisProposer => Signers[0];
 
     public static BlockCommit CreateBlockCommit(

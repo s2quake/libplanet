@@ -14,6 +14,12 @@ public sealed record class VoteBuilder
 
     public Vote Create(ISigner signer)
     {
+        if (Type is not VoteType.PreVote and not VoteType.PreCommit)
+        {
+            throw new InvalidOperationException(
+                $"The {nameof(Type)} must be either {VoteType.PreVote} or {VoteType.PreCommit}.");
+        }
+
         var metadata = new VoteMetadata
         {
             Validator = Validator.Address,

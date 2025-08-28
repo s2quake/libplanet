@@ -159,21 +159,6 @@ public partial class SwarmTest(ITestOutputHelper output)
 
 
         await using var transport = CreateTransport();
-        // options: new SwarmOptions
-        // {
-        //     StaticPeers = new[]
-        //     {
-        //         transportA.Peer,
-        //         transportB.Peer,
-        //         // Unreachable peer:
-        //         new Peer
-        //         {
-        //             Address = new PrivateKey().Address,
-        //             EndPoint = new DnsEndPoint("127.0.0.1", 65535),
-        //         },
-        //         }.ToImmutableHashSet(),
-        //     StaticPeersMaintainPeriod = TimeSpan.FromMilliseconds(100),
-        // });
 
         var peers = new PeerCollection(transport.Peer.Address);
         var peerExplorer = new PeerExplorer(transport, peers)

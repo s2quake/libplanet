@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.State;
@@ -7,37 +6,24 @@ using Libplanet.Data;
 using Libplanet.Types;
 using System.Reactive.Subjects;
 using Libplanet.Serialization;
+using Libplanet.Types.Threading;
 
 namespace Libplanet;
 
-public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Transaction>
+public sealed class StagedTransactionCollection(Repository repository, BlockchainOptions options)
+    : IReadOnlyDictionary<TxId, Transaction>
 {
     private readonly Subject<Transaction> _addedSubject = new();
     private readonly Subject<Transaction> _removedSubject = new();
-    private readonly Repository _repository;
-    private readonly PendingTransactionIndex _stagedIndex;
-    private readonly CommittedTransactionIndex _committedIndex;
-    private readonly BlockchainOptions _options;
-    private readonly ConcurrentDictionary<Address, ImmutableArray<long>> _noncesByAddress = new();
-    private readonly ConcurrentDictionary<TxId, bool> _isActionValidById = new();
+    private readonly Repository _repository = repository;
+    private readonly PendingTransactionIndex _stagedIndex = repository.PendingTransactions;
+    private readonly CommittedTransactionIndex _committedIndex = repository.CommittedTransactions;
+    private readonly BlockchainOptions _options = options;
+    private readonly Dictionary<Address, ImmutableArray<long>> _noncesByAddress
+        = Create(repository.PendingTransactions);
 
-    public StagedTransactionCollection(Repository repository, BlockchainOptions options)
-    {
-        _repository = repository;
-        _stagedIndex = repository.PendingTransactions;
-        _committedIndex = repository.CommittedTransactions;
-        _options = options;
-
-        foreach (var transaction in _stagedIndex.Values)
-        {
-            var address = transaction.Signer;
-            var newNonce = transaction.Nonce;
-            _noncesByAddress.AddOrUpdate(
-                address,
-                address => [newNonce],
-                (_, existingNonces) => Insert(existingNonces, newNonce));
-        }
-    }
+    private readonly Dictionary<TxId, bool> _isActionValidById = [];
+    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
 
     public StagedTransactionCollection(Repository repository)
         : this(repository, new BlockchainOptions())
@@ -48,48 +34,51 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
 
     public IObservable<Transaction> Removed => _removedSubject;
 
-    public IEnumerable<TxId> Keys => _stagedIndex.Keys;
+    public IEnumerable<TxId> Keys
+    {
+        get
+        {
+            using var _ = _lock.ReadScope();
+            return _stagedIndex.Keys;
+        }
+    }
 
-    public IEnumerable<Transaction> Values => _stagedIndex.Values;
+    public IEnumerable<Transaction> Values
+    {
+        get
+        {
+            using var _ = _lock.ReadScope();
+            return _stagedIndex.Values;
+        }
+    }
 
-    public int Count => _stagedIndex.Count;
+    public int Count
+    {
+        get
+        {
+            using var _ = _lock.ReadScope();
+            return _stagedIndex.Count;
+        }
+    }
 
-    public Transaction this[TxId txId] => _stagedIndex[txId];
+    public Transaction this[TxId txId]
+    {
+        get
+        {
+            using var _ = _lock.ReadScope();
+            return _stagedIndex[txId];
+        }
+    }
 
     public void Add(Transaction transaction)
     {
-        if (_committedIndex.ContainsKey(transaction.Id))
-        {
-            throw new ArgumentException(
-                $"Transaction {transaction.Id} already exists in the committed transactions.", nameof(transaction));
-        }
-
-        if (_repository.GenesisBlockHash != transaction.GenesisBlockHash)
-        {
-            throw new ArgumentException(
-                $"Transaction {transaction.Id} has a different genesis hash than the repository's genesis block.",
-                nameof(transaction));
-        }
-
-        if (!_stagedIndex.TryAdd(transaction))
-        {
-            throw new ArgumentException(
-                $"Transaction {transaction.Id} already exists in the staged transactions.", nameof(transaction));
-        }
-
-        if (transaction.Nonce < _repository.GetNonce(transaction.Signer))
-        {
-            _stagedIndex.Remove(transaction.Id);
-            throw new ArgumentException(
-                $"Transaction {transaction.Id} has an expired nonce.", nameof(transaction));
-        }
-
-        AddNonce(transaction);
-        _addedSubject.OnNext(transaction);
+        using var _ = _lock.WriteScope();
+        AddInternal(transaction);
     }
 
     public Transaction Add(ISigner signer, TransactionParams @params)
     {
+        using var _ = _lock.WriteScope();
         var tx = new TransactionMetadata
         {
             Nonce = @params.Nonce == -1L ? GetNextTxNonce(signer.Address) : @params.Nonce,
@@ -101,48 +90,36 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
             GasLimit = @params.GasLimit,
         }.Sign(signer);
 
-        Add(tx);
+        AddInternal(tx);
         return tx;
     }
 
     public void AddRange(IEnumerable<Transaction> transactions)
     {
+        using var _ = _lock.WriteScope();
         foreach (var transaction in transactions)
         {
-            Add(transaction);
+            AddInternal(transaction);
         }
     }
 
     public bool Remove(TxId txId)
     {
-        if (_stagedIndex.TryGetValue(txId, out var transaction))
-        {
-            _stagedIndex.Remove(txId);
-            RemoveNonce(transaction);
-            _isActionValidById.TryRemove(txId, out _);
-            _removedSubject.OnNext(transaction);
-            return true;
-        }
-
-        return false;
+        using var _ = _lock.WriteScope();
+        return RemoveInternal(txId);
     }
 
     public bool Remove(Transaction transaction)
     {
-        if (_stagedIndex.Remove(transaction.Id))
-        {
-            RemoveNonce(transaction);
-            _removedSubject.OnNext(transaction);
-            return true;
-        }
-
-        return false;
+        using var _ = _lock.WriteScope();
+        return RemoveInternal(transaction.Id);
     }
 
     public ImmutableArray<Transaction> Collect() => Collect(DateTimeOffset.UtcNow);
 
     public ImmutableArray<Transaction> Collect(DateTimeOffset timestamp)
     {
+        using var _ = _lock.ReadScope();
         var maxTransactions = _options.BlockOptions.MaxTransactions;
         var maxActionBytes = _options.BlockOptions.MaxActionBytes;
         var maxTransactionsPerSigner = _options.BlockOptions.MaxTransactionsPerSigner;
@@ -190,6 +167,7 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
 
     public long GetNextTxNonce(Address address)
     {
+        using var _ = _lock.ReadScope();
         if (_noncesByAddress.TryGetValue(address, out var nonces) && !nonces.IsEmpty)
         {
             var n = nonces[0] + 1;
@@ -215,36 +193,39 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
 
     public void Prune(DateTimeOffset timestamp)
     {
+        using var _ = _lock.WriteScope();
         var query = from tx in Values
                     where IsExpired(tx, timestamp) || !IsValid(tx)
                     select tx;
         var txs = query.ToArray();
         foreach (var tx in txs)
         {
-            Remove(tx.Id);
+            RemoveInternal(tx.Id);
         }
     }
 
-    public bool ContainsKey(TxId txId) => _stagedIndex.ContainsKey(txId);
+    public bool ContainsKey(TxId txId)
+    {
+        using var _ = _lock.ReadScope();
+        return _stagedIndex.ContainsKey(txId);
+    }
 
     public bool TryGetValue(TxId txId, [MaybeNullWhen(false)] out Transaction value)
-        => _stagedIndex.TryGetValue(txId, out value);
-
-    IEnumerator<KeyValuePair<TxId, Transaction>> IEnumerable<KeyValuePair<TxId, Transaction>>.GetEnumerator()
     {
-        foreach (var kvp in _stagedIndex)
+        using var _ = _lock.ReadScope();
+        return _stagedIndex.TryGetValue(txId, out value);
+    }
+
+    public IEnumerator<KeyValuePair<TxId, Transaction>> GetEnumerator()
+    {
+        using var _ = _lock.ReadScope();
+        foreach (var kvp in _stagedIndex.ToArray())
         {
             yield return kvp;
         }
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        foreach (var kvp in _stagedIndex)
-        {
-            yield return kvp;
-        }
-    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     internal static IEnumerable<Transaction> Sort(IEnumerable<Transaction> transactions)
     {
@@ -267,6 +248,79 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
 
             yield return item;
         }
+    }
+
+    private static Dictionary<Address, ImmutableArray<long>> Create(PendingTransactionIndex pendingIndex)
+    {
+        var noncesByAddress = new Dictionary<Address, ImmutableArray<long>>();
+        foreach (var transaction in pendingIndex.Values)
+        {
+            var address = transaction.Signer;
+            var newNonce = transaction.Nonce;
+            if (noncesByAddress.TryGetValue(address, out var existingNonces))
+            {
+                noncesByAddress[address] = Insert(existingNonces, newNonce);
+            }
+            else
+            {
+                noncesByAddress[address] = [newNonce];
+            }
+        }
+
+        return noncesByAddress;
+    }
+
+    private static ImmutableArray<long> Insert(ImmutableArray<long> array, long item)
+    {
+        var insertPosition = array.Length;
+        for (var i = 0; i < array.Length; i++)
+        {
+            if (item < array[i])
+            {
+                insertPosition = i;
+            }
+        }
+
+        return array.Insert(insertPosition, item);
+    }
+
+    private void AddInternal(Transaction transaction)
+    {
+        if (_committedIndex.ContainsKey(transaction.Id))
+        {
+            throw new ArgumentException(
+                $"Transaction {transaction.Id} already exists in the committed transactions.", nameof(transaction));
+        }
+
+        if (_repository.GenesisBlockHash != transaction.GenesisBlockHash)
+        {
+            throw new ArgumentException(
+                $"Transaction {transaction.Id} has a different genesis hash than the repository's genesis block.",
+                nameof(transaction));
+        }
+
+        if (!_stagedIndex.TryAdd(transaction))
+        {
+            throw new ArgumentException(
+                $"Transaction {transaction.Id} already exists in the staged transactions.", nameof(transaction));
+        }
+
+        AddNonce(transaction);
+        _addedSubject.OnNext(transaction);
+    }
+
+    private bool RemoveInternal(TxId txId)
+    {
+        if (_stagedIndex.TryGetValue(txId, out var transaction))
+        {
+            _stagedIndex.Remove(txId);
+            RemoveNonce(transaction);
+            _isActionValidById.Remove(txId);
+            _removedSubject.OnNext(transaction);
+            return true;
+        }
+
+        return false;
     }
 
     private bool IsExpired(Transaction transaction, DateTimeOffset timestamp)
@@ -315,34 +369,20 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         var address = transaction.Signer;
         var nonce = transaction.Nonce;
 
-        _noncesByAddress.AddOrUpdate(
-            address,
-            _ => [nonce],
-            (_, existingNonces) => Insert(existingNonces, nonce));
+        if (_noncesByAddress.TryGetValue(address, out var existingNonces))
+        {
+            _noncesByAddress[address] = Insert(existingNonces, nonce);
+        }
+        else
+        {
+            _noncesByAddress[address] = [nonce];
+        }
     }
 
     private void RemoveNonce(Transaction transaction)
     {
         var address = transaction.Signer;
         var nonce = transaction.Nonce;
-        _noncesByAddress.AddOrUpdate(
-            address,
-            _ => [],
-            (_, existingNonces) => existingNonces.Remove(nonce)
-        );
-    }
-
-    private static ImmutableArray<long> Insert(ImmutableArray<long> array, long item)
-    {
-        var insertPosition = array.Length;
-        for (var i = 0; i < array.Length; i++)
-        {
-            if (item < array[i])
-            {
-                insertPosition = i;
-            }
-        }
-
-        return array.Insert(insertPosition, item);
+        _noncesByAddress[address] = _noncesByAddress[address].Remove(nonce);
     }
 }
