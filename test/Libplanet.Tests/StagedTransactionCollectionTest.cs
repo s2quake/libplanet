@@ -23,6 +23,7 @@ public sealed class StagedTransactionCollectionTest(ITestOutputHelper output)
         var tx = new TransactionMetadata
         {
             Signer = signer.Address,
+            Timestamp = DateTimeOffset.UtcNow,
         }.Sign(signer);
         transactions.Add(tx);
         Assert.Contains(tx.Id, transactions);
@@ -44,7 +45,9 @@ public sealed class StagedTransactionCollectionTest(ITestOutputHelper output)
         var signer = RandomUtility.Signer(random);
         var tx = new TransactionMetadata
         {
+            Nonce = 0L,
             Signer = signer.Address,
+            Timestamp = DateTimeOffset.UtcNow,
         }.Sign(signer);
         repository.Nonces.Increase(signer.Address, 100);
         Assert.Throws<ArgumentException>(() => transactions.Add(tx));

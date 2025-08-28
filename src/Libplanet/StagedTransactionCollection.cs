@@ -77,6 +77,13 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
                 $"Transaction {transaction.Id} already exists in the staged transactions.", nameof(transaction));
         }
 
+        if (transaction.Nonce < _repository.GetNonce(transaction.Signer))
+        {
+            _stagedIndex.Remove(transaction.Id);
+            throw new ArgumentException(
+                $"Transaction {transaction.Id} has an expired nonce.", nameof(transaction));
+        }
+
         AddNonce(transaction);
         _addedSubject.OnNext(transaction);
     }
