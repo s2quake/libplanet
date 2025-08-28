@@ -335,5 +335,11 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
 
         await repositoryA.CopyToAsync(repositoryB, cancellationToken, new Progress<(string, double)>());
 
+        Assert.Equal(repositoryA.GenesisHeight, repositoryB.GenesisHeight);
+        Assert.Equal(repositoryA.Height, repositoryB.Height);
+        Assert.Equal(repositoryA.StateRootHash, repositoryB.StateRootHash);
+        Assert.Equal(
+            repositoryA.BlockDigests[repositoryA.BlockHash],
+            repositoryB.BlockDigests[repositoryB.BlockHash]);
     }
 }
