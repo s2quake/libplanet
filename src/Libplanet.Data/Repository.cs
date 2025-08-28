@@ -305,6 +305,39 @@ public class Repository
 
         return 0;
     }
+
+    public void Clear()
+    {
+
+    }
+
+    public async Task CopyToAsync(
+        Repository destination, CancellationToken cancellationToken, IProgress<(string, double)> progress)
+    {
+        if (!destination.IsEmpty)
+        {
+            throw new ArgumentException("Destination repository is not empty.", nameof(destination));
+        }
+
+        foreach (var (name, sourceTable) in Database)
+        {
+            var destTable = destination.Database.GetOrAdd(name);
+            await CopyTableAsync(sourceTable, destTable, cancellationToken, progress);
+        }
+    }
+
+    private async Task CopyTableAsync(
+        ITable source,
+        ITable destination,
+        CancellationToken cancellationToken,
+        IProgress<(string, double)> progress)
+    {
+        foreach (var (key, value) in source)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            destination[key] = value;
+        }
+    }
 }
 
 public class Repository<TDatabase>(TDatabase database) : Repository(database)

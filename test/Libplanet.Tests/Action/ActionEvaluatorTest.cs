@@ -9,6 +9,7 @@ using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
 using static Libplanet.State.SystemAddresses;
 using Libplanet.Extensions;
+using System.Threading.Tasks;
 
 namespace Libplanet.Tests.Action;
 
@@ -110,7 +111,7 @@ public partial class BlockExecutorTest
     }
 
     [Fact]
-    public void Evaluate()
+    public async Task Evaluate()
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
@@ -125,6 +126,8 @@ public partial class BlockExecutorTest
         var blockchain = new Blockchain(genesisBlock, repositoryA);
         var action = new ContextRecording { Address = signer.Address, Value = "Foo" };
         var blockExecutor = new BlockExecutor(repositoryA.States);
+        var repositoryB = new Repository();
+        await repositoryA.CopyToAsync(repositoryB, CancellationToken.None, new Progress<(string, double)>(p => { }));
         // var tx = new TransactionMetadata
         // {
         //     Nonce = 0,
