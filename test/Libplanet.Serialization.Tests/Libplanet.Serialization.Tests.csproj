@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.Serialization\Libplanet.Serialization.csproj" />
-    <!-- <ProjectReference Include="..\Libplanet.Tests\Libplanet.Tests.csproj" /> -->
     <ProjectReference Include="..\Libplanet.TestUtilities\Libplanet.TestUtilities.csproj" />
   </ItemGroup>
 

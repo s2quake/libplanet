@@ -9,7 +9,7 @@ public static class ValidationTest
     {
         try
         {
-            System.ComponentModel.DataAnnotations.Validator.ValidateObject(
+            Validator.ValidateObject(
                 instance: obj,
                 validationContext: new ValidationContext(obj),
                 validateAllProperties: true);
@@ -40,5 +40,48 @@ public static class ValidationTest
 
             return e;
         }
+    }
+
+    [AssertionMethod]
+    public static void ThrowsMany(object obj, string[] propertyNames)
+    {
+        var results = new List<ValidationResult>();
+        var validationContext = new ValidationContext(obj);
+        if (Validator.TryValidateObject(obj, validationContext, results, true))
+        {
+            throw new ArgumentException(
+                $"Validation should have failed for {obj.GetType().Name} but it didn't.",
+                nameof(obj));
+        }
+
+        foreach (var propertyName in propertyNames)
+        {
+            if (!results.Any(r => r.MemberNames.Contains(propertyName)))
+            {
+                throw new ArgumentException(
+                    $"Validation should have failed for {obj.GetType().Name}.{propertyName} but it didn't.",
+                    nameof(propertyNames));
+            }
+        }
+
+        foreach (var result in results)
+        {
+            if (result.MemberNames.Any(n => !propertyNames.Contains(n)))
+            {
+                var memberNames = string.Join(", ", result.MemberNames);
+                throw new ArgumentException(
+                    $"Validation should not have failed for {obj.GetType().Name}.{memberNames} but it did.",
+                    nameof(propertyNames));
+            }
+        }
+    }
+
+    [AssertionMethod]
+    public static void DoseNotThrow(object obj)
+    {
+        Validator.ValidateObject(
+            instance: obj,
+            validationContext: new ValidationContext(obj),
+            validateAllProperties: true);
     }
 }

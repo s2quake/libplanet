@@ -16,6 +16,8 @@ public sealed class LessThanAttribute : ComparisonAttribute
     protected override bool Compare(IComparable value, IComparable target)
         => value.CompareTo(target) < 0;
 
-    protected override string FormatErrorMessage(string name, IComparable value, IComparable target)
-        => $"The property {name} must be less than {target}. Current value: {value}.";
+    protected override string FormatErrorMessage(
+        string memberName, Type declaringType, IComparable value, IComparable target)
+        => $"The property {memberName} of {declaringType.Name} must be less than {target}. " +
+           $"Current value: {value}.";
 }

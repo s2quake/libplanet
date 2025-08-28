@@ -4,131 +4,166 @@ using System.Globalization;
 
 namespace Libplanet.Serialization.DataAnnotations;
 
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
 public abstract class ComparisonAttribute : ValidationAttribute
 {
-    private readonly Type? _targetType;
-    private readonly string? _propertyName;
+    private readonly (Type?, string)? _targetAndPropertyName;
     private readonly object? _value;
+    private readonly (string, Type)? _textValueAndType;
 
     protected ComparisonAttribute(Type? targetType, string propertyName)
-    {
-        _targetType = targetType;
-        _propertyName = propertyName;
-    }
+        => _targetAndPropertyName = (targetType, propertyName);
 
-    protected ComparisonAttribute(object value)
-    {
-        _value = value;
-    }
+    protected ComparisonAttribute(object value) => _value = value;
 
-    public sealed override bool IsValid(object? value) => base.IsValid(value);
-
-    public sealed override string FormatErrorMessage(string name) => base.FormatErrorMessage(name);
+    protected ComparisonAttribute(string textValue, Type valueType)
+        => _textValueAndType = (textValue, valueType);
 
     protected abstract bool Compare(IComparable value, IComparable target);
 
     protected abstract string FormatErrorMessage(
-        string name, IComparable value, IComparable target);
+        string memberName, Type declaringType, IComparable value, IComparable target);
 
-    protected sealed override ValidationResult? IsValid(
-        object? value, ValidationContext validationContext)
+    protected sealed override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
+        var memberName = validationContext.DisplayName;
+        var declaringType = validationContext.ObjectType;
         try
         {
             if (value is not IComparable comparable)
             {
-                return new ValidationResult(
-                    $"{validationContext.DisplayName} must implement IComparable.");
+                return new ValidationResult($"{memberName} must implement IComparable.");
             }
 
-            var targetComparable = GetTargetComparable(comparable.GetType());
-            if (!Compare(comparable, targetComparable))
+            var targetComparable = GetTargetComparable(validationContext);
+            if (!Compare(comparable, targetComparable, validationContext))
             {
-                return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
+                var message = FormatErrorMessage(memberName, declaringType, comparable, targetComparable);
+                return new ValidationResult(message, [memberName]);
             }
 
             return ValidationResult.Success;
         }
         catch (Exception e)
         {
-            return new ValidationResult(e.Message);
-        }
-
-        IComparable GetTargetComparable(Type propertyType)
-        {
-            if (_propertyName is { } propertyName)
-            {
-                return GetComparable(_targetType, propertyName, validationContext);
-            }
-            else if (_value is { } targetValue)
-            {
-                return GetComparable(propertyType, targetValue, validationContext);
-            }
-            else
-            {
-                throw new ValidationException("Target property or value not found.");
-            }
+            return new ValidationResult(e.Message, [memberName]);
         }
     }
 
-    private static IComparable GetComparable(
-        Type? targetType, string propertyName, ValidationContext validationContext)
+    private bool Compare(IComparable value, IComparable target, ValidationContext validationContext)
     {
+        try
+        {
+            return Compare(value, target);
+        }
+        catch (Exception e)
+        {
+            var memberName = validationContext.DisplayName;
+            var declaringType = validationContext.ObjectType;
+            var message = $"An exception occurred when comparing the property {memberName} of " +
+                          $"{declaringType.Name} with the target value {target}({target.GetType().Name}). " +
+                          $"Current value: {value}({value.GetType().Name}).";
+            throw new InvalidOperationException(message, e);
+        }
+    }
+
+    private IComparable GetTargetComparable(ValidationContext validationContext)
+    {
+        var memberName = validationContext.DisplayName;
+        var declaringType = validationContext.ObjectType;
+
+        if (_targetAndPropertyName is { } targetAndPropertyName)
+        {
+            return GetComparable(targetAndPropertyName.Item1, targetAndPropertyName.Item2, validationContext);
+        }
+        else if (_textValueAndType is { } textValueAndType)
+        {
+            var (textValue, valueType) = textValueAndType;
+            if (!typeof(IComparable).IsAssignableFrom(valueType))
+            {
+                var message = $"The type {valueType.Name} specified in {GetType().Name} on " +
+                              $"{declaringType.Name}.{memberName} must implement IComparable.";
+                throw new InvalidOperationException(message);
+            }
+
+            var converted = ConvertFrom(textValue, valueType);
+            if (converted is null)
+            {
+                var message = $"The value '{textValue}' specified in {GetType().Name} on " +
+                              $"{declaringType.Name}.{memberName} cannot be converted to {valueType.Name}.";
+                throw new InvalidOperationException(message);
+            }
+
+            return converted;
+        }
+        else if (_value is IComparable targetComparable)
+        {
+            return targetComparable;
+        }
+        else
+        {
+            var message = $"The value specified in {GetType().Name} on " +
+                          $"{declaringType.Name}.{memberName} cannot be null or must be convertible to IComparable.";
+            throw new InvalidOperationException(message);
+        }
+    }
+
+    private IComparable GetComparable(Type? targetType, string propertyName, ValidationContext validationContext)
+    {
+        var memberName = validationContext.DisplayName;
+        var declaringType = validationContext.ObjectType;
+
         if (propertyName == string.Empty)
         {
-            throw new ValidationException("Property name cannot be empty.");
+            var message = $"The property specified in {GetType().Name} on {declaringType.Name}.{memberName} " +
+                          $"cannot be empty.";
+            throw new ArgumentException(message, nameof(propertyName));
         }
 
         var objectType = targetType ?? validationContext.ObjectType;
         if (objectType == validationContext.ObjectType
             && propertyName == validationContext.MemberName)
         {
-            throw new ValidationException("Property cannot reference itself.");
+            var message = $"The property {propertyName} specified in {GetType().Name} on " +
+                          $"{declaringType.Name}.{memberName} cannot reference itself.";
+            throw new ArgumentException(message, nameof(propertyName));
         }
 
         if (objectType.GetProperty(propertyName) is not { } propertyInfo)
         {
-            throw new ValidationException($"Property {propertyName} not found.");
+            var targetPropertyName = targetType is null ? propertyName : $"{targetType.Name}.{propertyName}";
+            var message = $"The property {targetPropertyName} specified in {GetType().Name} on " +
+                          $"{declaringType.Name}.{memberName} cannot be found.";
+            throw new ArgumentException(message, nameof(propertyName));
         }
 
         var propertyValue = propertyInfo.GetValue(validationContext.ObjectInstance);
         if (propertyValue is not IComparable targetComparable)
         {
-            throw new ValidationException($"Property {propertyName} must implement IComparable.");
+            var targetPropertyName = targetType is null ? propertyName : $"{targetType.Name}.{propertyName}";
+            var message = $"The property {targetPropertyName} specified in {GetType().Name} on " +
+                          $"{declaringType.Name}.{memberName} must implement IComparable.";
+            throw new ArgumentException(message, nameof(propertyName));
         }
 
         return targetComparable;
     }
 
-    private static IComparable GetComparable(
-        Type propertyType, object value, ValidationContext validationContext)
+    private static IComparable? ConvertFrom(string textValue, Type valueType)
     {
-        var displayName = validationContext.DisplayName;
-        var targetComparable = value as IComparable;
-        if (value is string @string)
+        // Since the BigInteger type is frequently used in types such as Currency in blockchain,
+        // I have exceptionally added the following code.
+        if (valueType == typeof(BigInteger))
         {
-            if (propertyType == typeof(BigInteger))
+            if (BigInteger.TryParse(textValue, NumberStyles.Number, CultureInfo.InvariantCulture, out var v))
             {
-                targetComparable = BigInteger.Parse(@string, NumberStyles.Number, CultureInfo.InvariantCulture);
+                return v;
             }
-            else
-            {
-                var converter = TypeDescriptor.GetConverter(value.GetType());
-                var targetValue = converter.ConvertFromInvariantString(@string);
-                targetComparable = targetValue as IComparable;
-            }
-        }
-        else if (value.GetType() != propertyType)
-        {
-            targetComparable = Convert.ChangeType(value, propertyType, CultureInfo.InvariantCulture) as IComparable;
+
+            return null;
         }
 
-        if (targetComparable is null)
-        {
-            throw new ValidationException(
-                $"The value of {displayName} must implement IComparable.");
-        }
-
-        return targetComparable;
+        var converter = TypeDescriptor.GetConverter(valueType);
+        return converter.ConvertFromInvariantString(textValue) as IComparable;
     }
 }
