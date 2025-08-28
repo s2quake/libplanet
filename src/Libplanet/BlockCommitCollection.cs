@@ -43,7 +43,7 @@ public sealed class BlockCommitCollection : IReadOnlyDictionary<BlockHash, Block
 
     public int Count => _blockHashes.Count;
 
-    public BlockCommit this[Index index] => this[_blockHashes[index]];
+    public BlockCommit this[int height] => this[_blockHashes[height]];
 
     public BlockCommit this[BlockHash blockHash]
     {

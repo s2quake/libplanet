@@ -5,9 +5,7 @@ namespace Libplanet.Data;
 public sealed class BlockHashIndex(IDatabase database, int cacheSize = 100)
     : IndexBase<int, BlockHash>(database.GetOrAdd("block_hash"), cacheSize)
 {
-    public int GenesisHeight { get; internal set; }
-
-    public int Height { get; internal set; }
+    public int Height { get; set; } = -1;
 
     public BlockHash this[Index index]
     {

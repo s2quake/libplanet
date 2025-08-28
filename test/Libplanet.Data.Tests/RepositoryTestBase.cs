@@ -65,13 +65,11 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         repository.GenesisHeight = genesisHeight;
 
         Assert.Equal(genesisHeight, repository.GenesisHeight);
-        Assert.Equal(genesisHeight, repository.BlockHashes.GenesisHeight);
         Assert.Throws<KeyNotFoundException>(() => repository.GenesisBlockHash);
 
         repository.GenesisHeight = -1;
 
         Assert.Equal(-1, repository.GenesisHeight);
-        Assert.Equal(-1, repository.BlockHashes.GenesisHeight);
         Assert.Equal(default, repository.GenesisBlockHash);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => repository.GenesisHeight = -2);

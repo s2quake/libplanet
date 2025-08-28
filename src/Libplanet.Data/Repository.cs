@@ -49,7 +49,6 @@ public class Repository
             Id = Guid.Parse(id);
         }
 
-        BlockHashes.GenesisHeight = _genesisHeight;
         BlockHashes.Height = _height;
     }
 
@@ -90,7 +89,6 @@ public class Repository
             }
 
             _genesisHeight = value;
-            BlockHashes.GenesisHeight = value;
             Id = Guid.NewGuid();
             _metadata["id"] = Id.ToString();
 

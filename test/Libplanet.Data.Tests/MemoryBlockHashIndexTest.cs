@@ -33,6 +33,9 @@ public sealed class MemoryBlockHashIndexTest(ITestOutputHelper output)
         Assert.Single(index[block0.Height..]);
 
         index.Add(block2);
+        Assert.Empty(index[block2.Height..]);
+
+        index.Height = block2.Height;
         Assert.Single(index[block2.Height..]);
         Assert.Equal(2, index[block0.Height..].Count());
     }
