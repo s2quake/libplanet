@@ -500,7 +500,6 @@ public partial class BlockchainTest
         var block1 = new BlockBuilder
         {
             Height = blockchain.Tip.Height + 1,
-            Timestamp = blockchain.Tip.Timestamp.AddSeconds(1),
             PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
         }.Create(proposer);
@@ -527,6 +526,7 @@ public partial class BlockchainTest
         {
         }.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
+        _ = blockchain.ProposeAndAppend(proposer);
         var voteRef = new VoteMetadata
         {
             Height = blockchain.Tip.Height,
@@ -624,6 +624,7 @@ public partial class BlockchainTest
         }.Create(proposer);
         var options = new BlockchainOptions();
         var blockchain = new Blockchain(genesisBlock);
+        _ = blockchain.ProposeAndAppend(proposer);
         var voteRef = new VoteMetadata
         {
             Height = blockchain.Tip.Height,
@@ -652,7 +653,7 @@ public partial class BlockchainTest
 
         blockchain.PendingEvidence.Add(evidence);
 
-        Assert.Single(blockchain.PendingEvidence, evidence);
+        Assert.Single(blockchain.PendingEvidence.Keys, evidence.Id);
         Assert.Contains(evidence.Id, blockchain.PendingEvidence);
         Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
 
@@ -663,7 +664,6 @@ public partial class BlockchainTest
             var block1 = new BlockBuilder
             {
                 Height = blockchain.Tip.Height + 1,
-                Timestamp = blockchain.Tip.Timestamp.AddSeconds(1),
                 PreviousBlockHash = blockchain.Tip.BlockHash,
                 PreviousStateRootHash = blockchain.StateRootHash,
             }.Create(proposer);
@@ -674,9 +674,9 @@ public partial class BlockchainTest
         var block2 = new BlockBuilder
         {
             Height = blockchain.Tip.Height + 1,
-            Timestamp = blockchain.Tip.Timestamp.AddSeconds(1),
             PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
+            Evidences = [evidence],
         }.Create(proposer);
         var blockCommit2 = CreateBlockCommit(block2);
         Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));

@@ -71,6 +71,7 @@ public sealed class PendingEvidenceCollection(Repository repository, BlockchainO
     {
         if (_pendingIndex.TryGetValue(evidenceId, out var evidence))
         {
+            _pendingIndex.Remove(evidenceId);
             _removedSubject.OnNext(evidence);
             return true;
         }
@@ -85,7 +86,15 @@ public sealed class PendingEvidenceCollection(Repository repository, BlockchainO
 
     public void Prune()
     {
-        throw new NotImplementedException();
+        var height = repository.Height;
+        var query = from evidence in Values
+                    where IsHeightExpired(evidence, height)
+                    select evidence;
+        var items = query.ToArray();
+        foreach (var item in items)
+        {
+            Remove(item.Id);
+        }
     }
 
     IEnumerator<KeyValuePair<EvidenceId, EvidenceBase>> IEnumerable<KeyValuePair<EvidenceId, EvidenceBase>>.GetEnumerator()
@@ -104,23 +113,14 @@ public sealed class PendingEvidenceCollection(Repository repository, BlockchainO
         }
     }
 
-    public ImmutableArray<EvidenceBase> Collect(int height, DateTimeOffset timestamp)
+    public ImmutableArray<EvidenceBase> Collect(int height)
     {
-        var items1 = Values.Where(item => !IsHeightExpired(item, height) && !IsDateTimeExpired(item, timestamp));
+        var items1 = Values.Where(item => !IsHeightExpired(item, height));
         return [.. items1];
     }
 
     private bool IsHeightExpired(EvidenceBase evidence, int height)
-    {
-        var evidenceOptions = options.EvidenceOptions;
-        return evidence.Height + evidenceOptions.ExpiresInBlocks < height;
-    }
-
-    private bool IsDateTimeExpired(EvidenceBase evidence, DateTimeOffset timestamp)
-    {
-        var evidenceOptions = options.EvidenceOptions;
-        return evidence.Timestamp + evidenceOptions.Lifetime < timestamp;
-    }
+        => options.EvidenceOptions.IsHeightExpired(evidence, height);
 
     private void Validate(EvidenceBase evidence)
     {

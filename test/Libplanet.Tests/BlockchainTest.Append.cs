@@ -8,6 +8,7 @@ using Libplanet.TestUtilities;
 using Libplanet.Extensions;
 using Libplanet.Data.Structures;
 using Libplanet.State.Builtin;
+using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests;
 
@@ -63,7 +64,7 @@ public partial class BlockchainTest
         Assert.Single(blockchain.Blocks);
         var block1 = blockchain.Propose(signers[4]);
         var blockExecuted1Task = blockchain.BlockExecuted.WaitAsync();
-        blockchain.Append(block1, TestUtils.CreateBlockCommit(block1));
+        blockchain.Append(block1, CreateBlockCommit(block1));
         var blockExecution1 = await blockExecuted1Task.WaitAsync(cancellationToken);
         blockchain.StagedTransactions.AddRange(txs);
 
@@ -79,7 +80,7 @@ public partial class BlockchainTest
         }
 
         var blockExecuted2Task = blockchain.BlockExecuted.WaitAsync();
-        blockchain.Append(block2, TestUtils.CreateBlockCommit(block2));
+        blockchain.Append(block2, CreateBlockCommit(block2));
         var blockExecution2 = await blockExecuted2Task.WaitAsync(cancellationToken);
 
         foreach (var tx in txs)
@@ -252,7 +253,7 @@ public partial class BlockchainTest
         }.Create(signer2);
         blockchain.StagedTransactions.AddRange([tx1Transfer, tx2Error, tx3Transfer]);
         var block3 = blockchain.Propose(signers[4]);
-        blockchain.Append(block3, TestUtils.CreateBlockCommit(block3));
+        blockchain.Append(block3, CreateBlockCommit(block3));
         var txExecution3 = repository.TxExecutions[tx1Transfer.Id];
         Assert.False(txExecution3.Fail);
         var inputAccount1 = blockchain.GetWorld(
@@ -334,7 +335,7 @@ public partial class BlockchainTest
             "foo",
             world1.GetAccount(accountAddress).GetValue(address1));
         var block2 = blockchain.Propose(proposer);
-        blockchain.Append(block2, TestUtils.CreateBlockCommit(block2));
+        blockchain.Append(block2, CreateBlockCommit(block2));
         var world2 = blockchain.GetWorld();
         Assert.Equal(
             "bar",
@@ -383,7 +384,7 @@ public partial class BlockchainTest
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [.. txList],
         }.Create(proposer);
-        var blockCommit = TestUtils.CreateBlockCommit(block);
+        var blockCommit = CreateBlockCommit(block);
         var maxBytes = options.BlockOptions.MaxActionBytes;
         Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
 
@@ -419,7 +420,7 @@ public partial class BlockchainTest
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [.. blockchain.StagedTransactions.Values],
         }.Create(proposer);
-        var blockCommit = TestUtils.CreateBlockCommit(block);
+        var blockCommit = CreateBlockCommit(block);
         Assert.True(block.Transactions.Count > maxTxs);
 
         var e = Assert.Throws<ArgumentException>(() => blockchain.Append(block, blockCommit));
@@ -485,10 +486,20 @@ public partial class BlockchainTest
 
         blockchain.ProposeAndAppend(proposer);
 
-        _ = blockchain.StagedTransactions.Add(invalidSigner, new());
+        var invalidTx = blockchain.CreateTransaction(invalidSigner, new());
+        var block1 = new BlockBuilder
+        {
+            Height = blockchain.Tip.Height + 1,
+            PreviousBlockHash = blockchain.Tip.BlockHash,
+            PreviousBlockCommit = blockchain.BlockCommits[blockchain.Tip.BlockHash],
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Transactions = [invalidTx],
+        }.Create(proposer);
+        var blockCommit1 = CreateBlockCommit(block1);
 
-        var e = Assert.Throws<InvalidOperationException>(() => blockchain.ProposeAndAppend(proposer));
-        Assert.Equal("invalid signer", e.Message);
+        var e = Assert.Throws<ArgumentException>("block", () => blockchain.Append(block1, blockCommit1));
+        Assert.NotNull(e.InnerException);
+        Assert.Equal("invalid signer", e.InnerException.Message);
     }
 
     [Fact]
@@ -555,7 +566,7 @@ public partial class BlockchainTest
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [txs[0]],
         }.Create(signerA);
-        var blockCommit2 = TestUtils.CreateBlockCommit(block2);
+        var blockCommit2 = CreateBlockCommit(block2);
         blockchain.Append(block2, blockCommit2);
         Assert.Single(blockchain.StagedTransactions.Keys);
 
@@ -579,7 +590,7 @@ public partial class BlockchainTest
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [txs[1]],
         }.Create(signerA);
-        var blockCommit3 = TestUtils.CreateBlockCommit(block3);
+        var blockCommit3 = CreateBlockCommit(block3);
         blockchain.Append(block3, blockCommit3);
         var tx3 = Assert.Single(blockchain.StagedTransactions.Values);
         Assert.Equal(tx2, tx3);
@@ -620,7 +631,7 @@ public partial class BlockchainTest
         };
         var blockchain = new Blockchain(genesisBlock, options);
         var block1 = blockchain.Propose(proposer);
-        var blockCommit1 = TestUtils.CreateBlockCommit(block1);
+        var blockCommit1 = CreateBlockCommit(block1);
         var e = Assert.Throws<InvalidOperationException>(() => blockchain.Append(block1, blockCommit1));
         Assert.Equal("block", e.Message);
     }
@@ -707,7 +718,7 @@ public partial class BlockchainTest
             }.Select(tx => tx.Id).ToImmutableSortedSet(),
             [.. blockchain.StagedTransactions.Keys]);
 
-        blockchain.Append(block, TestUtils.CreateBlockCommit(block));
+        blockchain.Append(block, CreateBlockCommit(block));
         Assert.Equal(
             new Transaction[]
             {

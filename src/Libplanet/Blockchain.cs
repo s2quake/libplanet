@@ -259,6 +259,11 @@ public partial class Blockchain
             {
                 Options.TransactionOptions.Validate(tx);
             }
+
+            foreach (var evidence in block.Evidences)
+            {
+                Options.EvidenceOptions.Validate(block, evidence);
+            }
         }
 
         _repository.Append(block, blockCommit);
@@ -325,7 +330,7 @@ public partial class Blockchain
         var blockContent = new BlockContent
         {
             Transactions = [.. StagedTransactions.Collect(timestamp)],
-            Evidences = [.. PendingEvidence.Collect(height + 1, timestamp)],
+            Evidences = [.. PendingEvidence.Collect(height + 1)],
         };
         var rawBlock = new RawBlock
         {
