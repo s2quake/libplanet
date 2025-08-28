@@ -35,12 +35,6 @@ public sealed class BlockHashIndex(IDatabase database, int cacheSize = 100)
 
     public void Add(Block block) => Add(block.Height, block.BlockHash);
 
-    protected override void OnUpdated(int key, BlockHash item)
-    {
-        base.OnUpdated(key, item);
-        Height = Math.Max(Height, key);
-    }
-
     protected override string KeyToString(int key) => key.ToString("R");
 
     protected override int StringToKey(string key) => int.Parse(key);
@@ -48,5 +42,4 @@ public sealed class BlockHashIndex(IDatabase database, int cacheSize = 100)
     protected override byte[] ValueToBytes(BlockHash value) => [.. value.Bytes];
 
     protected override BlockHash BytesToValue(byte[] bytes) => new(bytes);
-
 }

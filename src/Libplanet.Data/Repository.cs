@@ -48,17 +48,12 @@ public class Repository
         {
             Id = Guid.Parse(id);
         }
-        else
-        {
-            Id = Guid.NewGuid();
-            _metadata["id"] = Id.ToString();
-        }
 
         BlockHashes.GenesisHeight = _genesisHeight;
         BlockHashes.Height = _height;
     }
 
-    public Guid Id { get; }
+    public Guid Id { get; private set; }
 
     public PendingEvidenceIndex PendingEvidences { get; }
 
@@ -96,6 +91,9 @@ public class Repository
 
             _genesisHeight = value;
             BlockHashes.GenesisHeight = value;
+            Id = Guid.NewGuid();
+            _metadata["id"] = Id.ToString();
+
             if (value != -1)
             {
                 _metadata["genesisHeight"] = _genesisHeight.ToString();
@@ -324,6 +322,10 @@ public class Repository
             var destTable = destination.Database.GetOrAdd(name);
             await CopyTableAsync(sourceTable, destTable, cancellationToken, progress);
         }
+
+        destination.GenesisHeight = GenesisHeight;
+        destination.Height = Height;
+        destination.StateRootHash = StateRootHash;
     }
 
     private async Task CopyTableAsync(

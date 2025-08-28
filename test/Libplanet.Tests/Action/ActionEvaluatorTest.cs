@@ -113,6 +113,7 @@ public partial class BlockExecutorTest
     [Fact]
     public async Task Evaluate()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
         var signer = RandomUtility.Signer(random);
@@ -121,62 +122,51 @@ public partial class BlockExecutorTest
         {
         }.Create(proposer);
         var repositoryA = new Repository();
-        // var repositoryB = new Repository();
-        // var options = new BlockchainOptions();
         var blockchain = new Blockchain(genesisBlock, repositoryA);
         var action = new ContextRecording { Address = signer.Address, Value = "Foo" };
-        var blockExecutor = new BlockExecutor(repositoryA.States);
+
         var repositoryB = new Repository();
-        await repositoryA.CopyToAsync(repositoryB, CancellationToken.None, new Progress<(string, double)>(p => { }));
-        // var tx = new TransactionMetadata
-        // {
-        //     Nonce = 0,
-        //     Signer = privateKey.Address,
-        //     GenesisHash = blockchain.Genesis.BlockHash,
-        //     Actions = new[] { action }.ToBytecodes(),
-        // }.Sign(privateKey);
+        var blockExecutor = new BlockExecutor(repositoryB.States);
+        await repositoryA.CopyToAsync(repositoryB, cancellationToken);
 
         _ = blockchain.StagedTransactions.Add(signer, new()
         {
             Actions = [action],
         });
-        // var miner = new PrivateKey();
-        // var block = blockchain.ProposeBlock(miner);
-        // blockchain.Append(block, CreateBlockCommit(block));
         blockchain.ProposeAndAppend(proposer);
-        // repositoryB.Append(genesisBlock, default);
 
         var executionInfo = blockExecutor.Execute((RawBlock)blockchain.Tip);
-
         var txExecutionInfo = Assert.Single(executionInfo.Executions);
         var actionExecutionInfo = Assert.Single(txExecutionInfo.Executions);
         var world = new World(executionInfo.OutputWorld.Trie, repositoryA.States);
+        Assert.Equal(blockchain.StateRootHash, executionInfo.StateRootHash);
         Assert.Null(actionExecutionInfo.Exception);
         Assert.Equal("Foo", blockchain.GetSystemValue(signer.Address));
+        Assert.Equal("Foo", world.GetSystemValue(signer.Address));
         Assert.Equal(
             proposer.Address,
-            blockchain
-                .GetWorld()
-                .GetAccount(SystemAccount)
-                .GetValue(ContextRecording.MinerRecordAddress));
+            blockchain.GetSystemValue(ContextRecording.MinerRecordAddress));
+        Assert.Equal(
+            proposer.Address,
+            world.GetSystemValue(ContextRecording.MinerRecordAddress));
         Assert.Equal(
             signer.Address,
-            blockchain
-                .GetWorld()
-                .GetAccount(SystemAccount)
-                .GetValue(ContextRecording.SignerRecordAddress));
+            blockchain.GetSystemValue(ContextRecording.SignerRecordAddress));
+        Assert.Equal(
+            signer.Address,
+            world.GetSystemValue(ContextRecording.SignerRecordAddress));
         Assert.Equal(
             blockchain.Tip.Height,
-            blockchain
-                .GetWorld()
-                .GetAccount(SystemAccount)
-                .GetValue(ContextRecording.BlockIndexRecordAddress));
+            blockchain.GetSystemValue(ContextRecording.BlockIndexRecordAddress));
+        Assert.Equal(
+            blockchain.Tip.Height,
+            world.GetSystemValue(ContextRecording.BlockIndexRecordAddress));
         Assert.Equal(
             actionExecutionInfo.InputContext.GetRandom().Next(),
-            blockchain
-                .GetWorld()
-                .GetAccount(SystemAccount)
-                .GetValue(ContextRecording.RandomRecordAddress));
+            blockchain.GetSystemValue(ContextRecording.RandomRecordAddress));
+        Assert.Equal(
+            actionExecutionInfo.InputContext.GetRandom().Next(),
+            world.GetSystemValue(ContextRecording.RandomRecordAddress));
     }
 
     //     [Fact]

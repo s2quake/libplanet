@@ -74,6 +74,24 @@ public static class WorldExtensions
     public static World SetValue(this World @this, Address name, Address key, object value)
         => @this.SetAccount(name, @this.GetAccount(name).SetValue(key, value));
 
+    public static object? GetSystemValueOrDefault(this World @this, string key)
+        => @this.GetAccount(SystemAccount).GetValueOrDefault(key);
+
+    public static object? GetSystemValueOrDefault(this World @this, Address key)
+        => @this.GetAccount(SystemAccount).GetValueOrDefault(key);
+
+    public static object GetSystemValue(this World @this, string key)
+        => @this.GetAccount(SystemAccount).GetValue(key);
+
+    public static object GetSystemValue(this World @this, Address key)
+        => @this.GetAccount(SystemAccount).GetValue(key);
+
+    public static World SetSystemValue(this World @this, string key, object value)
+        => @this.SetAccount(SystemAccount, @this.GetAccount(SystemAccount).SetValue(key, value));
+
+    public static World SetSystemValue(this World @this, Address key, object value)
+        => @this.SetAccount(SystemAccount, @this.GetAccount(SystemAccount).SetValue(key, value));
+
     internal static CurrencyAccount GetCurrencyAccount(this World @this, Currency currency)
         => new(@this.GetAccount(currency.Hash.ToString()).Trie, @this.Signer, currency);
 

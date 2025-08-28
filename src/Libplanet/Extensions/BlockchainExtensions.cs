@@ -37,6 +37,30 @@ public static class BlockchainExtensions
     public static object GetValue(this Blockchain @this, HashDigest<SHA256> stateRootHash, Address name, Address key)
         => @this.GetWorld(stateRootHash).GetAccount(name).GetValue(key);
 
+    public static object? GetValueOrDefault(this Blockchain @this, string name, string key)
+        => @this.GetWorld().GetAccount(name).GetValueOrDefault(key);
+
+    public static object? GetValueOrDefault(this Blockchain @this, Address name, Address key)
+        => @this.GetWorld().GetAccount(name).GetValueOrDefault(key);
+
+    public static object? GetValueOrDefault(this Blockchain @this, int height, string name, string key)
+        => @this.GetWorld(height).GetAccount(name).GetValueOrDefault(key);
+
+    public static object? GetValueOrDefault(this Blockchain @this, int height, Address name, Address key)
+        => @this.GetWorld(height).GetAccount(name).GetValueOrDefault(key);
+
+    public static object? GetValueOrDefault(this Blockchain @this, BlockHash blockHash, string name, string key)
+        => @this.GetWorld(blockHash).GetAccount(name).GetValueOrDefault(key);
+
+    public static object? GetValueOrDefault(this Blockchain @this, BlockHash blockHash, Address name, Address key)
+        => @this.GetWorld(blockHash).GetAccount(name).GetValueOrDefault(key);
+
+    public static object? GetValueOrDefault(this Blockchain @this, HashDigest<SHA256> stateRootHash, string name, string key)
+        => @this.GetWorld(stateRootHash).GetAccount(name).GetValueOrDefault(key);
+
+    public static object? GetValueOrDefault(this Blockchain @this, HashDigest<SHA256> stateRootHash, Address name, Address key)
+        => @this.GetWorld(stateRootHash).GetAccount(name).GetValueOrDefault(key);
+
     public static object GetSystemValue(this Blockchain @this, string key)
         => @this.GetWorld().GetAccount(SystemAccount).GetValue(key);
 
@@ -60,4 +84,28 @@ public static class BlockchainExtensions
 
     public static object GetSystemValue(this Blockchain @this, HashDigest<SHA256> stateRootHash, Address key)
         => @this.GetWorld(stateRootHash).GetAccount(SystemAccount).GetValue(key);
+
+    public static object? GetSystemValueOrDefault(this Blockchain @this, string key)
+        => @this.GetWorld().GetAccount(SystemAccount).GetValueOrDefault(key);
+
+    public static object? GetSystemValueOrDefault(this Blockchain @this, Address key)
+        => @this.GetWorld().GetAccount(SystemAccount).GetValueOrDefault(key);
+
+    public static object? GetSystemValueOrDefault(this Blockchain @this, int height, string key)
+        => @this.GetWorld(height).GetAccount(SystemAccount).GetValueOrDefault(key);
+
+    public static object? GetSystemValueOrDefault(this Blockchain @this, int height, Address key)
+        => @this.GetWorld(height).GetAccount(SystemAccount).GetValueOrDefault(key);
+
+    public static object? GetSystemValueOrDefault(this Blockchain @this, BlockHash blockHash, string key)
+        => @this.GetWorld(blockHash).GetAccount(SystemAccount).GetValueOrDefault(key);
+
+    public static object? GetSystemValueOrDefault(this Blockchain @this, BlockHash blockHash, Address key)
+        => @this.GetWorld(blockHash).GetAccount(SystemAccount).GetValueOrDefault(key);
+
+    public static object? GetSystemValueOrDefault(this Blockchain @this, HashDigest<SHA256> stateRootHash, string key)
+        => @this.GetWorld(stateRootHash).GetAccount(SystemAccount).GetValueOrDefault(key);
+
+    public static object? GetSystemValueOrDefault(this Blockchain @this, HashDigest<SHA256> stateRootHash, Address key)
+        => @this.GetWorld(stateRootHash).GetAccount(SystemAccount).GetValueOrDefault(key);
 }

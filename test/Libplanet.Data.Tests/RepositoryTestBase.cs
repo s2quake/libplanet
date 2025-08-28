@@ -299,4 +299,41 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
 
         Assert.Equal(0, repository.GetNonce(RandomUtility.Address(random)));
     }
+
+    [Fact]
+    public async Task CopyToAsync()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var repositoryA = CreateRepository();
+        var repositoryB = CreateRepository();
+
+        var block1 = new BlockBuilder
+        {
+            Height = 0,
+            Transactions =
+            [
+                new TransactionBuilder
+                {
+                    Nonce = 0L,
+                }.Create(proposer),
+                new TransactionBuilder
+                {
+                    Nonce = 1L,
+                    Actions = [new TestAction()],
+                }.Create(proposer),
+            ],
+            Evidences =
+            [
+                TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
+                TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
+            ],
+        }.Create(proposer);
+
+        repositoryA.Append(block1, default);
+
+        await repositoryA.CopyToAsync(repositoryB, cancellationToken, new Progress<(string, double)>());
+
+    }
 }
