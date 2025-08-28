@@ -3,30 +3,11 @@ using System.ComponentModel.DataAnnotations;
 namespace Libplanet.Serialization.DataAnnotations;
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class NegativeAttribute : ValidationAttribute
+public sealed class NegativeAttribute : SignComparisonAttribute
 {
-    public override bool IsValid(object? value)
-    {
-        if (value is sbyte and < 0
-            or byte and < 0
-            or short and < 0
-            or ushort and < 0
-            or int and < 0
-            or uint and < 0
-            or long and < 0
-            or ulong and < 0
-            or float and < 0
-            or double and < 0
-            or decimal and < 0)
-        {
-            return true;
-        }
+    protected override bool Compare(IComparable value, IComparable target) => value.CompareTo(target) < 0;
 
-        if (value is BigInteger bigInteger && bigInteger < 0)
-        {
-            return true;
-        }
-
-        return false;
-    }
+    protected override string FormatErrorMessage(
+        string memberName, Type declaringType, IComparable value, IComparable target)
+        => $"The property {memberName} of {declaringType.Name} must be less than zero. Current value: {value}.";
 }

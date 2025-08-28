@@ -35,7 +35,7 @@ public abstract class ComparisonAttribute : ValidationAttribute
                 return new ValidationResult($"{memberName} must implement IComparable.");
             }
 
-            var targetComparable = GetTargetComparable(validationContext);
+            var targetComparable = GetTargetComparable(value.GetType(), validationContext);
             if (!Compare(comparable, targetComparable, validationContext))
             {
                 var message = FormatErrorMessage(memberName, declaringType, comparable, targetComparable);
@@ -50,36 +50,20 @@ public abstract class ComparisonAttribute : ValidationAttribute
         }
     }
 
-    private bool Compare(IComparable value, IComparable target, ValidationContext validationContext)
-    {
-        try
-        {
-            return Compare(value, target);
-        }
-        catch (Exception e)
-        {
-            var memberName = validationContext.DisplayName;
-            var declaringType = validationContext.ObjectType;
-            var message = $"An exception occurred when comparing the property {memberName} of " +
-                          $"{declaringType.Name} with the target value {target}({target.GetType().Name}). " +
-                          $"Current value: {value}({value.GetType().Name}).";
-            throw new InvalidOperationException(message, e);
-        }
-    }
-
-    private IComparable GetTargetComparable(ValidationContext validationContext)
+    protected virtual IComparable GetTargetComparable(Type valueType, ValidationContext validationContext)
     {
         var memberName = validationContext.DisplayName;
         var declaringType = validationContext.ObjectType;
 
         if (_targetAndPropertyName is { } targetAndPropertyName)
         {
-            return GetComparable(targetAndPropertyName.Item1, targetAndPropertyName.Item2, validationContext);
+            var (targetType, propertyName) = targetAndPropertyName;
+            return GetComparable(targetType, propertyName, validationContext);
         }
         else if (_textValueAndType is { } textValueAndType)
         {
-            var (textValue, valueType) = textValueAndType;
-            if (!typeof(IComparable).IsAssignableFrom(valueType))
+            var (textValue, textType) = textValueAndType;
+            if (!typeof(IComparable).IsAssignableFrom(textType))
             {
                 var message = $"The type {valueType.Name} specified in {GetType().Name} on " +
                               $"{declaringType.Name}.{memberName} must implement IComparable.";
@@ -105,6 +89,23 @@ public abstract class ComparisonAttribute : ValidationAttribute
             var message = $"The value specified in {GetType().Name} on " +
                           $"{declaringType.Name}.{memberName} cannot be null or must be convertible to IComparable.";
             throw new InvalidOperationException(message);
+        }
+    }
+
+    private bool Compare(IComparable value, IComparable target, ValidationContext validationContext)
+    {
+        try
+        {
+            return Compare(value, target);
+        }
+        catch (Exception e)
+        {
+            var memberName = validationContext.DisplayName;
+            var declaringType = validationContext.ObjectType;
+            var message = $"An exception occurred when comparing the property {memberName} of " +
+                          $"{declaringType.Name} with the target value {target}({target.GetType().Name}). " +
+                          $"Current value: {value}({value.GetType().Name}).";
+            throw new InvalidOperationException(message, e);
         }
     }
 

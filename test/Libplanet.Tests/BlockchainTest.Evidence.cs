@@ -469,6 +469,7 @@ public partial class BlockchainTest
         {
         }.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
+        _ = blockchain.ProposeAndAppend(proposer);
         var voteRef = new VoteMetadata
         {
             Height = blockchain.Tip.Height,
@@ -506,7 +507,7 @@ public partial class BlockchainTest
         var blockCommit1 = CreateBlockCommit(block1);
         blockchain.Append(block1, blockCommit1);
 
-        Assert.Single(blockchain.PendingEvidence, evidence);
+        Assert.Single(blockchain.PendingEvidence.Keys, evidence.Id);
         Assert.Contains(evidence.Id, blockchain.PendingEvidence);
         Assert.DoesNotContain(evidence.Id, blockchain.Evidence);
 
