@@ -47,10 +47,6 @@ public static class ModelSerializer
         {
             stream.WriteByte((byte)DataType.Null);
         }
-        // else if (TypeUtility.IsDefault(obj, obj.GetType()))
-        // {
-        //     stream.WriteByte((byte)DataType.Default);
-        // }
         else
         {
             Serialize(stream, obj, obj.GetType(), options);

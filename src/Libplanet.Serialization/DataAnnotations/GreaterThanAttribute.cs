@@ -18,8 +18,7 @@ public sealed class GreaterThanAttribute : ComparisonAttribute
     {
     }
 
-    protected override bool Compare(IComparable value, IComparable target)
-        => value.CompareTo(target) > 0;
+    protected override bool Compare(IComparable value, IComparable target) => value.CompareTo(target) > 0;
 
     protected override string FormatErrorMessage(
         string memberName, Type declaringType, IComparable value, IComparable target)
