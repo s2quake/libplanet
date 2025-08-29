@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Libplanet.Types;
+using Libplanet.Types.Progresses;
 
 namespace Libplanet.Data;
 
@@ -308,36 +309,42 @@ public class Repository
     }
 
     public async Task CopyToAsync(
-        Repository destination, CancellationToken cancellationToken, IProgress<(string, double)> progress)
+        Repository destination, CancellationToken cancellationToken, IProgress<ProgressInfo> progress)
     {
         if (!destination.IsEmpty)
         {
             throw new ArgumentException("Destination repository is not empty.", nameof(destination));
         }
 
+        var stepProgress = new StepProgress(Database.Count + 1);
         foreach (var (name, sourceTable) in Database)
         {
             var destTable = destination.Database.GetOrAdd(name);
-            await CopyTableAsync(sourceTable, destTable, cancellationToken, progress);
+            await CopyTableAsync(sourceTable, destTable, cancellationToken, stepProgress);
         }
 
+        stepProgress.Next("Copying database state...");
         destination.GenesisHeight = GenesisHeight;
         destination.Height = Height;
         destination.StateRootHash = StateRootHash;
+
+        stepProgress.Complete("Completed.");
     }
 
-    private async Task CopyTableAsync(
-        ITable source,
-        ITable destination,
-        CancellationToken cancellationToken,
-        IProgress<(string, double)> progress)
+    private static async Task CopyTableAsync(
+        ITable source, ITable destination, CancellationToken cancellationToken, StepProgress progress)
     {
+        var stepProgress = progress.BeginSubProgress(source.Count);
         foreach (var (key, value) in source)
         {
+            stepProgress.Next($"Copying table '{source.Name}' key '{key}'...");
             cancellationToken.ThrowIfCancellationRequested();
             destination[key] = value;
         }
+
+        stepProgress.Complete($"Copied table '{source.Name}' with {source.Count} entries.");
     }
+
 }
 
 public class Repository<TDatabase>(TDatabase database) : Repository(database)

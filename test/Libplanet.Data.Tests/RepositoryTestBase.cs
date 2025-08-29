@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
+using Libplanet.Types.Progresses;
 
 namespace Libplanet.Data.Tests;
 
@@ -331,7 +332,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
 
         repositoryA.Append(block1, default);
 
-        await repositoryA.CopyToAsync(repositoryB, cancellationToken, new Progress<(string, double)>());
+        await repositoryA.CopyToAsync(repositoryB, cancellationToken, new Progress<ProgressInfo>());
 
         Assert.Equal(repositoryA.GenesisHeight, repositoryB.GenesisHeight);
         Assert.Equal(repositoryA.Height, repositoryB.Height);

@@ -10,6 +10,7 @@ using Libplanet.TestUtilities;
 using static Libplanet.State.SystemAddresses;
 using Libplanet.Extensions;
 using System.Threading.Tasks;
+using Libplanet.Types.Progresses;
 
 namespace Libplanet.Tests.Action;
 
@@ -127,7 +128,7 @@ public partial class BlockExecutorTest
 
         var repositoryB = new Repository();
         var blockExecutor = new BlockExecutor(repositoryB.States);
-        await repositoryA.CopyToAsync(repositoryB, cancellationToken);
+        await repositoryA.CopyToAsync(repositoryB, cancellationToken, new Progress<ProgressInfo>());
 
         _ = blockchain.StagedTransactions.Add(signer, new()
         {
