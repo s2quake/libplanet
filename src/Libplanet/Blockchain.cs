@@ -270,7 +270,7 @@ public partial class Blockchain
         _tipChangedSubject.OnNext(block);
         _blockExecutingSubject.OnNext(Unit.Default);
         var execution = _blockExecutor.Execute((RawBlock)block);
-        _repository.StateRootHash = execution.OutputWorld.Hash;
+        _repository.StateRootHash = execution.LeaveWorld.Hash;
         _repository.StateRootHashes.Add(block.BlockHash, _repository.StateRootHash);
         _repository.TxExecutions.AddRange(execution.GetTxExecutions(block.BlockHash));
         _appendedSubject.OnNext((block, blockCommit));

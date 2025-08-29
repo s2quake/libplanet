@@ -26,7 +26,7 @@ public static class TestUtils
     {
         SystemActions = new SystemActions
         {
-            EndBlockActions = [new MinerReward(1)],
+            LeaveBlockActions = [new MinerReward(1)],
         },
         BlockOptions = new BlockOptions
         {

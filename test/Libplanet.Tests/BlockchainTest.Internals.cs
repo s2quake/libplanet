@@ -157,7 +157,7 @@ public partial class BlockchainTest
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new MinerReward(1)],
+                LeaveBlockActions = [new MinerReward(1)],
             },
         };
         var blockchain = new Blockchain(genesisBlock, repository, options);

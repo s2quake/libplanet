@@ -223,7 +223,7 @@ public partial class BlockchainTest
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
+                LeaveBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
             },
         };
         var blockchainB = new Blockchain(genesisBlock, optionsB);
@@ -649,7 +649,7 @@ public partial class BlockchainTest
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
+                LeaveBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
             },
         };
 

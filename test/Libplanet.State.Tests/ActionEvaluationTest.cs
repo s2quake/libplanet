@@ -36,7 +36,7 @@ public class ActionEvaluationTest(ITestOutputHelper output)
         var evaluation = new ActionExecutionInfo
         {
             Action = DumbAction.Create((address, "item")),
-            InputContext = new ActionContext
+            ActionContext = new ActionContext
             {
                 Signer = address,
                 TxId = txid,
@@ -46,19 +46,19 @@ public class ActionEvaluationTest(ITestOutputHelper output)
                 PreviousCommit = lastCommit,
                 RandomSeed = 123,
             },
-            InputWorld = new World(),
-            OutputWorld = world,
+            EnterWorld = new World(),
+            LeaveWorld = world,
         };
         var action = (DumbAction)evaluation.Action;
 
         Assert.Equal(address, action.Append?.At);
         Assert.Equal("item", action.Append?.Item);
-        Assert.Equal(address, evaluation.InputContext.Signer);
-        Assert.Equal(txid, evaluation.InputContext.TxId);
-        Assert.Equal(address, evaluation.InputContext.Proposer);
-        Assert.Equal(1, evaluation.InputContext.BlockHeight);
-        Assert.Null(evaluation.InputWorld.GetValueOrDefault(SystemAccount, address));
-        Assert.Equal("item", evaluation.OutputWorld.GetValue(SystemAccount, address));
-        Assert.Equal(lastCommit, evaluation.InputContext.PreviousCommit);
+        Assert.Equal(address, evaluation.ActionContext.Signer);
+        Assert.Equal(txid, evaluation.ActionContext.TxId);
+        Assert.Equal(address, evaluation.ActionContext.Proposer);
+        Assert.Equal(1, evaluation.ActionContext.BlockHeight);
+        Assert.Null(evaluation.EnterWorld.GetValueOrDefault(SystemAccount, address));
+        Assert.Equal("item", evaluation.LeaveWorld.GetValue(SystemAccount, address));
+        Assert.Equal(lastCommit, evaluation.ActionContext.PreviousCommit);
     }
 }

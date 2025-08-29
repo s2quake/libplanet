@@ -46,18 +46,18 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
     {
         var world = new World(states, rawBlock.Header.PreviousStateRootHash);
         var inputWorld = world;
-        var beginEvaluations = ExecuteActions(rawBlock, null, systemActions.BeginBlockActions, ref world);
+        var beginEvaluations = ExecuteActions(rawBlock, null, systemActions.EnterBlockActions, ref world);
         var txEvaluations = ExecuteTransactions(rawBlock, ref world);
-        var endEvaluations = ExecuteActions(rawBlock, null, systemActions.EndBlockActions, ref world);
+        var endEvaluations = ExecuteActions(rawBlock, null, systemActions.LeaveBlockActions, ref world);
 
         var blockEvaluation = new BlockExecutionInfo
         {
             Block = rawBlock,
-            InputWorld = inputWorld,
-            OutputWorld = world,
-            BeginExecutions = beginEvaluations,
+            EnterWorld = inputWorld,
+            LeaveWorld = world,
+            EnterExecutions = beginEvaluations,
             Executions = txEvaluations,
-            EndExecutions = endEvaluations,
+            LeaveExecutions = endEvaluations,
         };
         _blockExecutedResult.OnNext(blockEvaluation);
         return blockEvaluation;
@@ -86,7 +86,7 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
             };
             var evaluation = ExecuteAction(action, world, actionContext);
             evaluations[i] = evaluation;
-            world = evaluation.OutputWorld;
+            world = evaluation.LeaveWorld;
 
             unchecked
             {
@@ -134,9 +134,9 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         var evaluation = new ActionExecutionInfo
         {
             Action = action,
-            InputContext = actionContext,
-            InputWorld = inputWorld,
-            OutputWorld = world,
+            ActionContext = actionContext,
+            EnterWorld = inputWorld,
+            LeaveWorld = world,
             Exception = exception,
         };
 
@@ -163,23 +163,23 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         GasTracer.Initialize(transaction.GasLimit is 0 ? long.MaxValue : transaction.GasLimit);
         var inputWorld = world;
         GasTracer.IsTxAction = true;
-        var beginEvaluations = ExecuteActions(rawBlock, transaction, systemActions.BeginTxActions, ref world);
+        var beginEvaluations = ExecuteActions(rawBlock, transaction, systemActions.EnterTxActions, ref world);
         GasTracer.IsTxAction = false;
         var actions = transaction.Actions.Select(item => item.ToAction<IAction>()).ToImmutableArray();
         var evaluations = ExecuteActions(rawBlock, transaction, actions, ref world);
         GasTracer.IsTxAction = true;
-        var endEvaluations = ExecuteActions(rawBlock, transaction, systemActions.EndTxActions, ref world);
+        var endEvaluations = ExecuteActions(rawBlock, transaction, systemActions.LeaveTxActions, ref world);
         GasTracer.IsTxAction = false;
 
         GasTracer.Release();
         var txEvaluation = new TransactionExecutionInfo
         {
             Transaction = transaction,
-            InputWorld = inputWorld,
-            OutputWorld = world,
-            BeginExecutions = beginEvaluations,
+            EnterWorld = inputWorld,
+            LeaveWorld = world,
+            EnterExecutions = beginEvaluations,
             Executions = evaluations,
-            EndExecutions = endEvaluations,
+            LeaveExecutions = endEvaluations,
         };
 
         _txExecutedResult.OnNext(txEvaluation);
@@ -190,10 +190,10 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
     {
         var txCount = rawBlock.Content.Transactions.Count;
         var actionCount = rawBlock.Content.Transactions.Sum(tx => tx.Actions.Length);
-        var blockActionCount = systemActions.BeginBlockActions.Length
-            + systemActions.EndBlockActions.Length;
-        var txActionCount = systemActions.BeginTxActions.Length
-            + systemActions.EndTxActions.Length;
+        var blockActionCount = systemActions.EnterBlockActions.Length
+            + systemActions.LeaveBlockActions.Length;
+        var txActionCount = systemActions.EnterTxActions.Length
+            + systemActions.LeaveTxActions.Length;
         var capacity = actionCount + blockActionCount + (txActionCount * txCount);
         return capacity;
     }

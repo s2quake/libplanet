@@ -4,11 +4,11 @@ public sealed record class SystemActions
 {
     public static SystemActions Empty { get; } = new SystemActions();
 
-    public ImmutableArray<IAction> BeginBlockActions { get; init; } = [];
+    public ImmutableArray<IAction> EnterBlockActions { get; init; } = [];
 
-    public ImmutableArray<IAction> EndBlockActions { get; init; } = [];
+    public ImmutableArray<IAction> LeaveBlockActions { get; init; } = [];
 
-    public ImmutableArray<IAction> BeginTxActions { get; init; } = [];
+    public ImmutableArray<IAction> EnterTxActions { get; init; } = [];
 
-    public ImmutableArray<IAction> EndTxActions { get; init; } = [];
+    public ImmutableArray<IAction> LeaveTxActions { get; init; } = [];
 }

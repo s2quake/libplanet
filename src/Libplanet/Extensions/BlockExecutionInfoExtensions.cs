@@ -13,8 +13,8 @@ public static class BlockExecutionInfoExtensions
         {
             TxId = evaluation.Transaction.Id,
             BlockHash = blockHash,
-            InputState = evaluation.InputWorld.Hash,
-            OutputState = evaluation.OutputWorld.Hash,
+            InputState = evaluation.EnterWorld.Hash,
+            OutputState = evaluation.LeaveWorld.Hash,
             ExceptionNames =
             [
                 .. GetActionEvaluations(evaluation).Select(GetExceptionName).Where(item => item != string.Empty),
@@ -22,7 +22,7 @@ public static class BlockExecutionInfoExtensions
         };
 
         static IEnumerable<ActionExecutionInfo> GetActionEvaluations(TransactionExecutionInfo txEvaluation)
-            => txEvaluation.BeginExecutions.Concat(txEvaluation.Executions).Concat(txEvaluation.EndExecutions);
+            => txEvaluation.EnterExecutions.Concat(txEvaluation.Executions).Concat(txEvaluation.LeaveExecutions);
 
         static string GetExceptionName(ActionExecutionInfo evaluation)
             => GetActualException(evaluation.Exception)?.GetType().FullName ?? string.Empty;
@@ -33,7 +33,7 @@ public static class BlockExecutionInfoExtensions
     public static BlockExecution GetBlockExecution(this BlockExecutionInfo @this, BlockHash blockHash) => new()
     {
         BlockHash = blockHash,
-        InputState = @this.InputWorld.Hash,
-        OutputState = @this.OutputWorld.Hash,
+        InputState = @this.EnterWorld.Hash,
+        OutputState = @this.LeaveWorld.Hash,
     };
 }

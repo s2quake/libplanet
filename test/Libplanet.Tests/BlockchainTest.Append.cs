@@ -32,7 +32,7 @@ public partial class BlockchainTest
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new MinerReward(1)],
+                LeaveBlockActions = [new MinerReward(1)],
             },
         };
         var blockchain = new Blockchain(genesisBlock, repository, options);
@@ -103,64 +103,64 @@ public partial class BlockchainTest
         ];
         Assert.Equal(4, actions.Length);
         Assert.Equal("foo", actions[0].Append?.Item);
-        Assert.Equal(2, actionExecutions[0].InputContext.BlockHeight);
+        Assert.Equal(2, actionExecutions[0].ActionContext.BlockHeight);
         Assert.Equal(
             [null, null, null, null, 1],
-            addresses.Select(address => actionExecutions[0].InputWorld
+            addresses.Select(address => actionExecutions[0].EnterWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)));
         Assert.Equal(
             ["foo", null, null, null, 1],
             // new IValue[] { "foo", null, null, null, (Integer)1 },
-            addresses.Select(address => actionExecutions[0].OutputWorld
+            addresses.Select(address => actionExecutions[0].LeaveWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)));
         Assert.Equal("bar", actions[1].Append?.Item);
-        Assert.Equal(2, actionExecutions[1].InputContext.BlockHeight);
+        Assert.Equal(2, actionExecutions[1].ActionContext.BlockHeight);
         Assert.Equal(
-            addresses.Select(address => actionExecutions[0].OutputWorld
+            addresses.Select(address => actionExecutions[0].LeaveWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)),
-            addresses.Select(address => actionExecutions[1].InputWorld
+            addresses.Select(address => actionExecutions[1].EnterWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)));
         Assert.Equal(
             ["foo", "bar", null, null, 1],
-            addresses.Select(address => actionExecutions[1].OutputWorld
+            addresses.Select(address => actionExecutions[1].LeaveWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)));
         Assert.Equal("baz", actions[2].Append?.Item);
-        Assert.Equal(2, actionExecutions[2].InputContext.BlockHeight);
+        Assert.Equal(2, actionExecutions[2].ActionContext.BlockHeight);
         Assert.Equal(
-            addresses.Select(address => actionExecutions[1].OutputWorld
+            addresses.Select(address => actionExecutions[1].LeaveWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)),
-            addresses.Select(address => actionExecutions[2].InputWorld
+            addresses.Select(address => actionExecutions[2].EnterWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)));
         Assert.Equal(
             ["foo", "bar", "baz", null, 1],
-            addresses.Select(address => actionExecutions[2].OutputWorld
+            addresses.Select(address => actionExecutions[2].LeaveWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)));
         Assert.Equal("qux", actions[3].Append?.Item);
-        Assert.Equal(2, actionExecutions[3].InputContext.BlockHeight);
+        Assert.Equal(2, actionExecutions[3].ActionContext.BlockHeight);
         Assert.Equal(
-            addresses.Select(address => actionExecutions[2].OutputWorld
+            addresses.Select(address => actionExecutions[2].LeaveWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)),
-            addresses.Select(address => actionExecutions[3].InputWorld
+            addresses.Select(address => actionExecutions[3].EnterWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)));
         Assert.Equal(
             ["foo", "bar", "baz", "qux", 1,],
-            addresses.Select(address => actionExecutions[3].OutputWorld
+            addresses.Select(address => actionExecutions[3].LeaveWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValueOrDefault(address)));
 
         var minerAddress = addresses[4];
-        var rewardMinerActionExecution1 = blockExecution1.EndExecutions.Single();
-        var rewardMinerActionExecution2 = blockExecution2.EndExecutions.Single();
+        var rewardMinerActionExecution1 = blockExecution1.LeaveExecutions.Single();
+        var rewardMinerActionExecution2 = blockExecution2.LeaveExecutions.Single();
 
         Assert.Equal(
             2,
@@ -168,22 +168,22 @@ public partial class BlockchainTest
                 .GetWorld()
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(minerAddress));
-        Assert.Equal(1, rewardMinerActionExecution1.InputContext.BlockHeight);
-        Assert.Equal(2, rewardMinerActionExecution2.InputContext.BlockHeight);
+        Assert.Equal(1, rewardMinerActionExecution1.ActionContext.BlockHeight);
+        Assert.Equal(2, rewardMinerActionExecution2.ActionContext.BlockHeight);
 
         Assert.Equal(
             1,
-            rewardMinerActionExecution1.OutputWorld
+            rewardMinerActionExecution1.LeaveWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(minerAddress));
         Assert.Equal(
             1,
-            rewardMinerActionExecution2.InputWorld
+            rewardMinerActionExecution2.EnterWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(minerAddress));
         Assert.Equal(
             2,
-            rewardMinerActionExecution2.OutputWorld
+            rewardMinerActionExecution2.LeaveWorld
                 .GetAccount(SystemAddresses.SystemAccount)
                 .GetValue(minerAddress));
 
@@ -519,7 +519,7 @@ public partial class BlockchainTest
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new MinerReward(1)],
+                LeaveBlockActions = [new MinerReward(1)],
             },
         };
         var blockchain = new Blockchain(genesisBlock, repository, options);

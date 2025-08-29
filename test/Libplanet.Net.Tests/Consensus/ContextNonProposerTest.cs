@@ -210,7 +210,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new MinerReward(1)],
+                LeaveBlockActions = [new MinerReward(1)],
             },
             BlockOptions = new BlockOptions
             {
@@ -283,7 +283,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new MinerReward(1)],
+                LeaveBlockActions = [new MinerReward(1)],
             },
             BlockOptions = new BlockOptions
             {

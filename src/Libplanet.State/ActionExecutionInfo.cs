@@ -4,11 +4,11 @@ public sealed record class ActionExecutionInfo
 {
     public required IAction Action { get; init; }
 
-    public required IActionContext InputContext { get; init; }
+    public required IActionContext ActionContext { get; init; }
 
-    public required World InputWorld { get; init; }
+    public required World EnterWorld { get; init; }
 
-    public required World OutputWorld { get; init; }
+    public required World LeaveWorld { get; init; }
 
     public Exception? Exception { get; init; }
 

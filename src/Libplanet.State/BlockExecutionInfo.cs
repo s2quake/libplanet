@@ -7,15 +7,15 @@ public sealed record class BlockExecutionInfo
 {
     public required RawBlock Block { get; init; }
 
-    public required World InputWorld { get; init; }
+    public required World EnterWorld { get; init; }
 
-    public required World OutputWorld { get; init; }
+    public required World LeaveWorld { get; init; }
 
-    public ImmutableArray<ActionExecutionInfo> BeginExecutions { get; init; } = [];
+    public ImmutableArray<ActionExecutionInfo> EnterExecutions { get; init; } = [];
 
     public ImmutableArray<TransactionExecutionInfo> Executions { get; init; } = [];
 
-    public ImmutableArray<ActionExecutionInfo> EndExecutions { get; init; } = [];
+    public ImmutableArray<ActionExecutionInfo> LeaveExecutions { get; init; } = [];
 
-    public HashDigest<SHA256> StateRootHash => OutputWorld.Trie.Hash;
+    public HashDigest<SHA256> StateRootHash => LeaveWorld.Trie.Hash;
 }

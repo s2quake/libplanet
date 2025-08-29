@@ -642,7 +642,7 @@ public partial class SwarmTest
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new MinerReward(1)],
+                LeaveBlockActions = [new MinerReward(1)],
             },
         };
         using var fx = new MemoryRepositoryFixture();

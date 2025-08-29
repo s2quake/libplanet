@@ -23,7 +23,7 @@ public partial class BlockchainTest
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new MinerReward(1)],
+                LeaveBlockActions = [new MinerReward(1)],
             },
         };
         var maxActionBytes = options.BlockOptions.MaxActionBytes;
@@ -149,7 +149,7 @@ public partial class BlockchainTest
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [new MinerReward(1)],
+                LeaveBlockActions = [new MinerReward(1)],
             },
         };
         var blockchain = new Blockchain(genesisBlock, options);
@@ -408,7 +408,7 @@ public partial class BlockchainTest
         {
             SystemActions = new SystemActions
             {
-                EndBlockActions = [DumbAction.Create((address1, "foo"))],
+                LeaveBlockActions = [DumbAction.Create((address1, "foo"))],
             },
         };
         var blockchain = new Blockchain(genesisBlock, options);
