@@ -2,9 +2,13 @@ namespace Libplanet.Types.Progresses;
 
 public sealed class StepProgress : Progress<ProgressInfo>
 {
+    private const int DefaultMaxUpdateRate = 120;
     private readonly double _delta;
     private readonly StepProgress? _parent;
     private readonly int _parentStep;
+    private DateTimeOffset _lastUpdate = DateTimeOffset.MinValue;
+    private int _maxUpdateRate = DefaultMaxUpdateRate;
+    private TimeSpan _minUpdateInterval = TimeSpan.FromSeconds(1.0d / DefaultMaxUpdateRate);
 
     public StepProgress(int length)
         : this(length, null)
@@ -40,14 +44,24 @@ public sealed class StepProgress : Progress<ProgressInfo>
 
     public int Step { get; private set; } = -1;
 
+    public int MaxUpdateRate
+    {
+        get => _maxUpdateRate;
+        set
+        {
+            if (value <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), value, "The value must be greater than 0.");
+            }
+
+            _maxUpdateRate = value;
+            _minUpdateInterval = TimeSpan.FromSeconds(1.0d / value);
+        }
+    }
+
     public StepProgress BeginSubProgress(int length)
     {
-        if (length <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(length), length, "The length must be greater than 0.");
-        }
-
-        if (Step >= Length)
+        if (Step == Length)
         {
             throw new InvalidOperationException("The progress has already been completed.");
         }
@@ -57,15 +71,22 @@ public sealed class StepProgress : Progress<ProgressInfo>
 
     public void Next(string text)
     {
-        if (Step >= Length)
+        if (Step >= Length - 1)
         {
             throw new InvalidOperationException("The progress has already been completed.");
         }
 
+        var now = DateTimeOffset.UtcNow;
         var step = Step + 1;
         var item = new ProgressInfo((double)step / Length, text);
         Step = step;
-        OnReport(item);
+
+        if (now - _lastUpdate >= _minUpdateInterval)
+        {
+            _lastUpdate = now;
+            OnReport(item);
+        }
+
         _parent?.BubbleNext(_parentStep, item);
     }
 
