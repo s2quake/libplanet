@@ -228,8 +228,14 @@ public partial class BlockExecutorTest
         await repository.CopyToAsync(repositoryA, cancellationToken);
 
         var blockExecutor = new BlockExecutor(repositoryA.States, options.SystemActions);
-
         var executionInfo = blockExecutor.Execute((RawBlock)block);
+
+        Assert.Equal(2, executionInfo.Executions.Length);
+        Assert.Single(executionInfo.EnterExecutions);
+        Assert.Single(executionInfo.LeaveExecutions);
+        Assert.Equal(4, executionInfo.Executions.Sum(i => i.Executions.Length));
+        Assert.Equal(2, executionInfo.Executions.Sum(i => i.EnterExecutions.Length));
+        Assert.Equal(2, executionInfo.Executions.Sum(i => i.LeaveExecutions.Length));
 
         // Assert.Equal(executionInfo.BeginExecutions)
 
@@ -243,7 +249,32 @@ public partial class BlockExecutorTest
         //     2 + (txs.Length * 2) + txs.Aggregate(0, (sum, tx) => sum + tx.Actions.Length),
         //     evaluations.Length);
 
+        var worldA0 = executionInfo.Executions[0].Executions[0].LeaveWorld;
+        Assert.Equal(
+            ["foo", (BigInteger)1, (BigInteger)2, (BigInteger)1],
+            signers.Select(signer => worldA0.GetSystemValue(signer.Address)));
+
+        var worldA1 = executionInfo.Executions[0].Executions[1].LeaveWorld;
+        Assert.Equal(
+            ["foo", "bar", (BigInteger)2, (BigInteger)1],
+            signers.Select(signer => worldA1.GetSystemValue(signer.Address)));
+
+        var worldA2 = executionInfo.Executions[1].Executions[0].LeaveWorld;
+        Assert.Equal(
+            ["foo", "bar", "baz", (BigInteger)2],
+            signers.Select(signer => worldA2.GetSystemValue(signer.Address)));
+
+        var worldA3 = executionInfo.Executions[1].Executions[1].LeaveWorld;
+        Assert.Equal(
+            ["foo", "bar", "baz", "qux"],
+            signers.Select(signer => worldA3.GetSystemValue(signer.Address)));
+
+
+
         blockchain.Append(block, blockCommit);
+
+
+        // Assert.Equal(blockchain.StateRootHash, executionInfo.StateRootHash);
         // Assert.Equal(2, blockchain.GetSystemValue(signers[0].Address));
         // Assert.Equal(2, blockchain.GetSystemValue(signers[1].Address));
         // Assert.Equal(

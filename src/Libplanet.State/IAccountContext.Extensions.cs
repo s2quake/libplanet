@@ -11,12 +11,63 @@ public partial interface IAccountContext
         set => this[key.ToString()] = value;
     }
 
-    bool TryGetValue<T>(Address key, [MaybeNullWhen(false)] out T value) => TryGetValue(key.ToString(), out value);
+    /// <exception cref="InvalidCastException">
+    /// Thrown when the value stored at the specified key cannot be cast to the specified type.
+    /// </exception>
+    bool TryGetValue<T>(Address key, [MaybeNullWhen(false)] out T value)
+        where T : notnull
+        => TryGetValue(key.ToString(), out value);
 
+    bool TryGetValueLenient<T>(string key, [MaybeNullWhen(false)] out T value)
+        where T : notnull
+    {
+        try
+        {
+            if (TryGetValue<T>(key, out var v))
+            {
+                value = v;
+                return true;
+            }
+        }
+        catch (InvalidCastException)
+        {
+            // Ignored
+        }
+
+        value = default;
+        return false;
+    }
+
+    /// <exception cref="InvalidCastException">
+    /// Thrown when the value stored at the specified key cannot be cast to the specified type.
+    /// </exception>
     T GetValueOrDefault<T>(string key, T defaultValue)
+        where T : notnull
         => TryGetValue<T>(key, out var value) ? value : defaultValue;
 
-    T GetValueOrDefault<T>(Address key, T defaultValue) => GetValueOrDefault(key.ToString(), defaultValue);
+    /// <exception cref="InvalidCastException">
+    /// Thrown when the value stored at the specified key cannot be cast to the specified type.
+    /// </exception>
+    T GetValueOrDefault<T>(Address key, T defaultValue)
+        where T : notnull
+        => GetValueOrDefault(key.ToString(), defaultValue);
+
+    T GetValueOrDefaultLenient<T>(string key, T defaultValue)
+        where T : notnull
+    {
+        try
+        {
+            return GetValueOrDefault(key, defaultValue);
+        }
+        catch (InvalidCastException)
+        {
+            return defaultValue;
+        }
+    }
+
+    T GetValueOrDefaultLenient<T>(Address key, T defaultValue)
+        where T : notnull
+        => GetValueOrDefaultLenient(key.ToString(), defaultValue);
 
     bool Contains(Address key) => Contains(key.ToString());
 

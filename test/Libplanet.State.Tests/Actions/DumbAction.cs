@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
@@ -54,8 +55,9 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
     {
         if (Append is { } append)
         {
-            var items = world.GetValueOrDefault(AccountAddress, append.At, string.Empty);
+            var items = world.GetValueOrDefaultLenient(AccountAddress, append.At, string.Empty);
             world[AccountAddress, append.At] = items == string.Empty ? append.Item : $"{items},{append.Item}";
+            Trace.WriteLine(world[AccountAddress, append.At]);
         }
 
         if (Transfer is { } transfer)

@@ -320,7 +320,14 @@ public class Repository
         foreach (var (name, sourceTable) in Database)
         {
             var destTable = destination.Database.GetOrAdd(name);
-            await CopyTableAsync(sourceTable, destTable, cancellationToken, stepProgress);
+            if (sourceTable.Count > 0)
+            {
+                await CopyTableAsync(sourceTable, destTable, cancellationToken, stepProgress);
+            }
+            else
+            {
+                stepProgress.Next($"Skipping empty table '{name}'...");
+            }
         }
 
         stepProgress.Next("Copying database state...");

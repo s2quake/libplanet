@@ -19,7 +19,11 @@ public partial interface IWorldContext
         set => this[name][key] = value;
     }
 
+    /// <exception cref="InvalidCastException">
+    /// Thrown when the value stored at the specified key cannot be cast to the specified type.
+    /// </exception>
     bool TryGetValue<T>(string name, string key, [MaybeNullWhen(false)] out T value)
+        where T : notnull
     {
         if (this[name].TryGetValue<T>(key, out var obj))
         {
@@ -31,10 +35,26 @@ public partial interface IWorldContext
         return false;
     }
 
+    /// <exception cref="InvalidCastException">
+    /// Thrown when the value stored at the specified key cannot be cast to the specified type.
+    /// </exception>
     bool TryGetValue<T>(Address name, Address key, [MaybeNullWhen(false)] out T value)
+        where T : notnull
         => TryGetValue(name.ToString(), key.ToString(), out value);
 
+    bool TryGetValueLenient<T>(string name, string key, [MaybeNullWhen(false)] out T value)
+        where T : notnull
+        => this[name].TryGetValueLenient(key, out value);
+
+    bool TryGetValueLenient<T>(string name, Address key, [MaybeNullWhen(false)] out T value)
+        where T : notnull
+        => TryGetValueLenient(name, key.ToString(), out value);
+
+    /// <exception cref="InvalidCastException">
+    /// Thrown when the value stored at the specified key cannot be cast to the specified type.
+    /// </exception>
     T GetValueOrDefault<T>(string name, string key, T defaultValue)
+        where T : notnull
     {
         if (this[name].TryGetValue<T>(key, out var obj))
         {
@@ -44,8 +64,20 @@ public partial interface IWorldContext
         return defaultValue;
     }
 
+    /// <exception cref="InvalidCastException">
+    /// Thrown when the value stored at the specified key cannot be cast to the specified type.
+    /// </exception>
     T GetValueOrDefault<T>(Address name, Address key, T defaultValue)
+        where T : notnull
         => GetValueOrDefault(name.ToString(), key.ToString(), defaultValue);
+
+    T GetValueOrDefaultLenient<T>(string name, string key, T defaultValue)
+        where T : notnull
+        => this[name].GetValueOrDefaultLenient(key, defaultValue);
+
+    T GetValueOrDefaultLenient<T>(Address name, Address key, T defaultValue)
+        where T : notnull
+        => GetValueOrDefaultLenient(name.ToString(), key.ToString(), defaultValue);
 
     bool Contains(string name, string key) => this[name].Contains(key);
 
