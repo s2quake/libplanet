@@ -31,6 +31,7 @@ internal sealed class AccountContext(Account account, string name, Action<Accoun
     }
 
     public bool TryGetValue<T>(string key, [MaybeNullWhen(false)] out T value)
+        where T : notnull
         => _account.TryGetValue(key, out value);
 
     public bool Contains(string key) => _account.GetValueOrDefault(key) is not null;

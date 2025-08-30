@@ -46,18 +46,18 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
     {
         var world = new World(states, rawBlock.Header.PreviousStateRootHash);
         var inputWorld = world;
-        var beginEvaluations = ExecuteActions(rawBlock, null, systemActions.EnterBlockActions, ref world);
+        var enterEvaluations = ExecuteActions(rawBlock, null, systemActions.EnterBlockActions, ref world);
         var txEvaluations = ExecuteTransactions(rawBlock, ref world);
-        var endEvaluations = ExecuteActions(rawBlock, null, systemActions.LeaveBlockActions, ref world);
+        var leaveEvaluations = ExecuteActions(rawBlock, null, systemActions.LeaveBlockActions, ref world);
 
         var blockEvaluation = new BlockExecutionInfo
         {
             Block = rawBlock,
             EnterWorld = inputWorld,
             LeaveWorld = world,
-            EnterExecutions = beginEvaluations,
+            EnterExecutions = enterEvaluations,
             Executions = txEvaluations,
-            LeaveExecutions = endEvaluations,
+            LeaveExecutions = leaveEvaluations,
         };
         _blockExecutedResult.OnNext(blockEvaluation);
         return blockEvaluation;
@@ -163,12 +163,12 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         GasTracer.Initialize(transaction.GasLimit is 0 ? long.MaxValue : transaction.GasLimit);
         var inputWorld = world;
         GasTracer.IsTxAction = true;
-        var beginEvaluations = ExecuteActions(rawBlock, transaction, systemActions.EnterTxActions, ref world);
+        var enterEvaluations = ExecuteActions(rawBlock, transaction, systemActions.EnterTxActions, ref world);
         GasTracer.IsTxAction = false;
         var actions = transaction.Actions.Select(item => item.ToAction<IAction>()).ToImmutableArray();
         var evaluations = ExecuteActions(rawBlock, transaction, actions, ref world);
         GasTracer.IsTxAction = true;
-        var endEvaluations = ExecuteActions(rawBlock, transaction, systemActions.LeaveTxActions, ref world);
+        var leaveEvaluations = ExecuteActions(rawBlock, transaction, systemActions.LeaveTxActions, ref world);
         GasTracer.IsTxAction = false;
 
         GasTracer.Release();
@@ -177,9 +177,9 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
             Transaction = transaction,
             EnterWorld = inputWorld,
             LeaveWorld = world,
-            EnterExecutions = beginEvaluations,
+            EnterExecutions = enterEvaluations,
             Executions = evaluations,
-            LeaveExecutions = endEvaluations,
+            LeaveExecutions = leaveEvaluations,
         };
 
         _txExecutedResult.OnNext(txEvaluation);

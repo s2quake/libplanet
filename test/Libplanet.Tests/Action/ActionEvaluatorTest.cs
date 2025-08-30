@@ -12,6 +12,7 @@ using Libplanet.Extensions;
 using System.Threading.Tasks;
 using Libplanet.Types.Progresses;
 using Xunit.Internal;
+using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Action;
 
@@ -184,7 +185,7 @@ public partial class BlockExecutorTest
         var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
-        var repository = new Repository();
+        var repositoryB = new Repository();
         var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
         var options = new BlockchainOptions
         {
@@ -196,7 +197,7 @@ public partial class BlockExecutorTest
                 LeaveTxActions = [new UpdateValue { Address = signers[3].Address, Increment = 1 }],
             },
         };
-        var blockchain = new Blockchain(genesisBlock, repository, options);
+        var blockchain = new Blockchain(genesisBlock, repositoryB, options);
 
         Assert.Equal((BigInteger)1, blockchain.GetSystemValue(signers[0].Address));
         Assert.Equal((BigInteger)1, blockchain.GetSystemValue(signers[1].Address));
@@ -225,64 +226,78 @@ public partial class BlockExecutorTest
 
         var repositoryA = new Repository();
 
-        await repository.CopyToAsync(repositoryA, cancellationToken);
+        await repositoryB.CopyToAsync(repositoryA, cancellationToken);
 
         var blockExecutor = new BlockExecutor(repositoryA.States, options.SystemActions);
-        var executionInfo = blockExecutor.Execute((RawBlock)block);
+        var executionInfoA = blockExecutor.Execute((RawBlock)block);
 
-        Assert.Equal(2, executionInfo.Executions.Length);
-        Assert.Single(executionInfo.EnterExecutions);
-        Assert.Single(executionInfo.LeaveExecutions);
-        Assert.Equal(4, executionInfo.Executions.Sum(i => i.Executions.Length));
-        Assert.Equal(2, executionInfo.Executions.Sum(i => i.EnterExecutions.Length));
-        Assert.Equal(2, executionInfo.Executions.Sum(i => i.LeaveExecutions.Length));
+        Assert.Equal(2, executionInfoA.Executions.Length);
+        Assert.Single(executionInfoA.EnterExecutions);
+        Assert.Single(executionInfoA.LeaveExecutions);
+        Assert.Equal(4, executionInfoA.Executions.Sum(i => i.Executions.Length));
+        Assert.Equal(2, executionInfoA.Executions.Sum(i => i.EnterExecutions.Length));
+        Assert.Equal(2, executionInfoA.Executions.Sum(i => i.LeaveExecutions.Length));
 
-        // Assert.Equal(executionInfo.BeginExecutions)
-
-        // (_, Transaction[] txs) = MakeFixturesForAppendTests();
-        // var block = blockchain.ProposeBlock(proposer: GenesisProposer);
-        // var evaluations = blockExecutor.Evaluate(
-        //     (RawBlock)block, blockchain.Tip.StateRootHash).ToArray();
-
-        // // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
-        // Assert.Equal(
-        //     2 + (txs.Length * 2) + txs.Aggregate(0, (sum, tx) => sum + tx.Actions.Length),
-        //     evaluations.Length);
-
-        var worldA0 = executionInfo.Executions[0].Executions[0].LeaveWorld;
+        var worldA0 = executionInfoA.Executions[0].Executions[0].LeaveWorld;
         Assert.Equal(
             ["foo", (BigInteger)1, (BigInteger)2, (BigInteger)1],
             signers.Select(signer => worldA0.GetSystemValue(signer.Address)));
 
-        var worldA1 = executionInfo.Executions[0].Executions[1].LeaveWorld;
+        var worldA1 = executionInfoA.Executions[0].Executions[1].LeaveWorld;
         Assert.Equal(
             ["foo", "bar", (BigInteger)2, (BigInteger)1],
             signers.Select(signer => worldA1.GetSystemValue(signer.Address)));
 
-        var worldA2 = executionInfo.Executions[1].Executions[0].LeaveWorld;
+        var worldA2 = executionInfoA.Executions[1].Executions[0].LeaveWorld;
         Assert.Equal(
             ["foo", "bar", "baz", (BigInteger)2],
             signers.Select(signer => worldA2.GetSystemValue(signer.Address)));
 
-        var worldA3 = executionInfo.Executions[1].Executions[1].LeaveWorld;
+        var worldA3 = executionInfoA.Executions[1].Executions[1].LeaveWorld;
         Assert.Equal(
             ["foo", "bar", "baz", "qux"],
             signers.Select(signer => worldA3.GetSystemValue(signer.Address)));
 
+        Assert.IsType<InvalidCastException>(executionInfoA.Executions[1].LeaveExecutions[0].Exception);
+        Assert.IsType<InvalidCastException>(executionInfoA.LeaveExecutions[0].Exception);
 
-
+        var blockExecutedTask = blockchain.BlockExecuted.WaitAsync();
         blockchain.Append(block, blockCommit);
+        var executionInfoB = await blockExecutedTask.WaitAsync(TimeSpan.FromSeconds(3), cancellationToken);
 
+        Assert.Equal(2, executionInfoB.Executions.Length);
+        Assert.Single(executionInfoB.EnterExecutions);
+        Assert.Single(executionInfoB.LeaveExecutions);
+        Assert.Equal(4, executionInfoB.Executions.Sum(i => i.Executions.Length));
+        Assert.Equal(2, executionInfoB.Executions.Sum(i => i.EnterExecutions.Length));
+        Assert.Equal(2, executionInfoB.Executions.Sum(i => i.LeaveExecutions.Length));
 
-        // Assert.Equal(blockchain.StateRootHash, executionInfo.StateRootHash);
-        // Assert.Equal(2, blockchain.GetSystemValue(signers[0].Address));
-        // Assert.Equal(2, blockchain.GetSystemValue(signers[1].Address));
-        // Assert.Equal(
-        //     blockchain.Genesis.Transactions.Count + txs.Length,
-        //     blockchain.GetSystemValue(signers[2].Address));
-        // Assert.Equal(
-        //     blockchain.Genesis.Transactions.Count + txs.Length,
-        //     blockchain.GetSystemValue(signers[3].Address));
+        var worldB0 = executionInfoB.Executions[0].Executions[0].LeaveWorld;
+        Assert.Equal(
+            ["foo", (BigInteger)1, (BigInteger)2, (BigInteger)1],
+            signers.Select(signer => worldB0.GetSystemValue(signer.Address)));
+
+        var worldB1 = executionInfoB.Executions[0].Executions[1].LeaveWorld;
+        Assert.Equal(
+            ["foo", "bar", (BigInteger)2, (BigInteger)1],
+            signers.Select(signer => worldB1.GetSystemValue(signer.Address)));
+
+        var worldB2 = executionInfoB.Executions[1].Executions[0].LeaveWorld;
+        Assert.Equal(
+            ["foo", "bar", "baz", (BigInteger)2],
+            signers.Select(signer => worldB2.GetSystemValue(signer.Address)));
+
+        var worldB3 = executionInfoB.Executions[1].Executions[1].LeaveWorld;
+        Assert.Equal(
+            ["foo", "bar", "baz", "qux"],
+            signers.Select(signer => worldB3.GetSystemValue(signer.Address)));
+
+        Assert.IsType<InvalidCastException>(executionInfoB.Executions[1].LeaveExecutions[0].Exception);
+        Assert.IsType<InvalidCastException>(executionInfoB.LeaveExecutions[0].Exception);
+
+        Assert.Equal(executionInfoA.StateRootHash, executionInfoB.StateRootHash);
+        Assert.True(repositoryA.States.Contains(executionInfoA.StateRootHash));
+        Assert.True(repositoryB.States.Contains(executionInfoB.StateRootHash));
     }
 
     //     [Fact]
