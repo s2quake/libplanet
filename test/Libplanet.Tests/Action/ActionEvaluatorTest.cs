@@ -37,21 +37,21 @@ public partial class BlockExecutorTest
         _output = output;
         // _options = new BlockchainOptions
         // {
-        //     PolicyActions = new PolicyActions
+        //     SystemActions = new SystemActions
         //     {
-        //         BeginBlockActions =
+        //         EnterBlockActions =
         //         [
         //             new UpdateValue { Address = _beginBlockValueAddress, Increment = 1 },
         //         ],
-        //         EndBlockActions =
+        //         LeaveBlockActions =
         //         [
         //             new UpdateValue { Address = _endBlockValueAddress, Increment = 1 },
         //         ],
-        //         BeginTxActions =
+        //         EnterTxActions =
         //         [
         //             new UpdateValue { Address = _beginTxValueAddress, Increment = 1 },
         //         ],
-        //         EndTxActions =
+        //         LeaveTxActions =
         //         [
         //             new UpdateValue { Address = _endTxValueAddress, Increment = 1 },
         //         ],
@@ -177,7 +177,7 @@ public partial class BlockExecutorTest
     }
 
     [Fact]
-    public async Task EvaluateWithPolicyActions()
+    public async Task EvaluateWithSystemActions()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(_output);
@@ -300,88 +300,137 @@ public partial class BlockExecutorTest
         Assert.True(repositoryB.States.Contains(executionInfoB.StateRootHash));
     }
 
-    //     [Fact]
-    //     public void EvaluateWithPolicyActionsWithException()
-    //     {
-    //         var policyWithExceptions = new BlockchainOptions
-    //         {
-    //             PolicyActions = new PolicyActions
-    //             {
-    //                 BeginBlockActions =
-    //                 [
-    //                     new UpdateValue { Address = _beginBlockValueAddress, Increment = 1 },
-    //                     new ThrowException { ThrowOnExecution = true },
-    //                 ],
-    //                 EndBlockActions =
-    //                 [
-    //                     new UpdateValue { Address = _endBlockValueAddress, Increment = 1 },
-    //                     new ThrowException { ThrowOnExecution = true },
-    //                 ],
-    //                 BeginTxActions =
-    //                 [
-    //                     new UpdateValue { Address = _beginTxValueAddress, Increment = 1 },
-    //                     new ThrowException { ThrowOnExecution = true },
-    //                 ],
-    //                 EndTxActions =
-    //                 [
-    //                     new UpdateValue { Address = _endTxValueAddress, Increment = 1 },
-    //                     new ThrowException { ThrowOnExecution = true },
-    //                 ],
-    //             },
-    //         };
+    [Fact]
+    public void EvaluateWithSystemActionsWithException()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var options = new BlockchainOptions
+        {
+            SystemActions = new SystemActions
+            {
+                EnterBlockActions =
+                [
+                    new UpdateValue { Address = signers[0].Address, Increment = 1 },
+                    new ThrowException { ThrowOnExecution = true },
+                ],
+                LeaveBlockActions =
+                [
+                    new UpdateValue { Address = signers[1].Address, Increment = 1 },
+                    new ThrowException { ThrowOnExecution = true },
+                ],
+                EnterTxActions =
+                [
+                    new UpdateValue { Address = signers[2].Address, Increment = 1 },
+                    new ThrowException { ThrowOnExecution = true },
+                ],
+                LeaveTxActions =
+                [
+                    new UpdateValue { Address = signers[3].Address, Increment = 1 },
+                    new ThrowException { ThrowOnExecution = true },
+                ],
+            },
+        };
+        var repository = new Repository();
+        var blockchain = new Blockchain(genesisBlock, repository, options);
 
-    //         var (chain, blockExecutor) = TestUtils.MakeBlockChainAndBlockExecutor(options: policyWithExceptions);
+        blockchain.StagedTransactions.Add(proposer, @params: new()
+        {
+            Actions =
+            [
+                DumbAction.Create((signers[0].Address, "foo")),
+                DumbAction.Create((signers[1].Address, "bar")),
+            ],
+        });
+        blockchain.StagedTransactions.Add(proposer, @params: new()
+        {
+            Actions =
+            [
+                DumbAction.Create((signers[2].Address, "baz")),
+                DumbAction.Create((signers[3].Address, "qux")),
+            ],
+        });
 
-    //         (_, Transaction[] txs) = MakeFixturesForAppendTests();
-    //         var block = blockchain.ProposeBlock(GenesisProposer);
-    //         var evaluations = blockExecutor.Evaluate(
-    //             (RawBlock)block, blockchain.Tip.StateRootHash).ToArray();
+        var block = blockchain.Propose(proposer);
+        var blockExecutor = new BlockExecutor(repository.States, options.SystemActions);
+        var executionInfo = blockExecutor.Execute((RawBlock)block);
 
-    //         // BeginBlockAction + (BeginTxAction + #Action + EndTxAction) * #Tx + EndBlockAction
-    //         Assert.Equal(
-    //             4 + (txs.Length * 4) + txs.Sum(tx => tx.Actions.Length),
-    //             evaluations.Length);
-    //         Assert.Equal(
-    //             2 + (txs.Length * 2),
-    //             evaluations.Count(e => e.Exception != null));
-    //     }
+        Assert.Equal(2, executionInfo.Executions.Length);
+        Assert.Equal(2, executionInfo.EnterExecutions.Length);
+        Assert.Equal(2, executionInfo.LeaveExecutions.Length);
+        Assert.Equal(4, executionInfo.Executions.Sum(i => i.Executions.Length));
+        Assert.Equal(4, executionInfo.Executions.Sum(i => i.EnterExecutions.Length));
+        Assert.Equal(4, executionInfo.Executions.Sum(i => i.LeaveExecutions.Length));
 
-    //     // [Fact]
-    //     // public void EvaluateWithException()
-    //     // {
-    //     //     var privateKey = new PrivateKey();
-    //     //     var address = privateKey.Address;
+        Assert.IsType<ThrowException.SomeException>(executionInfo.EnterExecutions[1].Exception);
+        Assert.IsType<ThrowException.SomeException>(executionInfo.LeaveExecutions[1].Exception);
+        Assert.IsType<ThrowException.SomeException>(executionInfo.Executions[0].EnterExecutions[1].Exception);
+        Assert.IsType<ThrowException.SomeException>(executionInfo.Executions[0].LeaveExecutions[1].Exception);
+        Assert.IsType<ThrowException.SomeException>(executionInfo.Executions[1].EnterExecutions[1].Exception);
+        Assert.IsType<ThrowException.SomeException>(executionInfo.Executions[1].LeaveExecutions[1].Exception);
+    }
 
-    //     //     var action = new ThrowException { ThrowOnExecution = true };
+    [Fact]
+    public void EvaluateWithException()
+    {
+        var random = RandomUtility.GetRandom(_output);
+        var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var repository = new Repository();
+        var blockchain = new Blockchain(genesisBlock, repository);
 
-    //     //     var store = new Libplanet.Data.Store(new MemoryDatabase());
-    //     //     var stateStore = new TrieStateStore();
-    //     //     var chain = TestUtils.MakeBlockChain(
-    //     //         policy: new BlockPolicy(),
-    //     //         store: store,
-    //     //         stateStore: stateStore,
-    //     //         actionLoader: new SingleActionLoader<ThrowException>());
-    //     //     var tx = new TransactionMetadata
-    //     // {
-    //     //         nonce: 0,
-    //     //         privateKey: privateKey,
-    //     //         genesisHash: blockchain.Genesis.Hash,
-    //     //         actions: new[] { action }.ToPlainValues());
+        // var privateKey = new PrivateKey();
+        // var address = privateKey.Address;
 
-    //     //     blockchain.StageTransaction(tx);
-    //     //     Block block = blockchain.ProposeBlock(new PrivateKey());
-    //     //     blockchain.Append(block, CreateBlockCommit(block));
-    //     //     var evaluations = blockchain.BlockExecutor.Evaluate(
-    //     //         (RawBlock)blockchain.Tip, blockchain.Store.GetStateRootHash(blockchain.Tip.PreviousHash));
+        _ = blockchain.StagedTransactions.Add(proposer, new()
+        {
+            Actions =
+            [
+                new ThrowException { ThrowOnExecution = true },
+            ],
+        });
+        var block = blockchain.Propose(proposer);
+        var blockExecutor = new BlockExecutor(repository.States);
+        var executionInfo = blockExecutor.Execute((RawBlock)block);
 
-    //     //     Assert.False(evaluations[0].InputContext.IsPolicyAction);
-    //     //     Assert.Single(evaluations);
-    //     //     Assert.NotNull(evaluations.Single().Exception);
-    //     //     Assert.IsType<UnexpectedlyTerminatedActionException>(
-    //     //         evaluations.Single().Exception);
-    //     //     Assert.IsType<ThrowException.SomeException>(
-    //     //         evaluations.Single().Exception.InnerException);
-    //     // }
+        // var action = new ThrowException { ThrowOnExecution = true };
+
+        // // var store = new Libplanet.Data.Store(new MemoryDatabase());
+        // // var stateStore = new TrieStateStore();
+        // var chain = TestUtils.MakeBlockChain(
+        //     policy: new BlockPolicy(),
+        //     store: store,
+        //     stateStore: stateStore,
+        //     actionLoader: new SingleActionLoader<ThrowException>());
+        // var tx = new TransactionMetadata
+        // {
+        //         nonce: 0,
+        //         privateKey: privateKey,
+        //         genesisHash: blockchain.Genesis.Hash,
+        //         actions: new[] { action }.ToPlainValues());
+
+        // blockchain.StageTransaction(tx);
+
+        // Block block = blockchain.ProposeBlock(new PrivateKey());
+        // blockchain.Append(block, CreateBlockCommit(block));
+        // var evaluations = blockchain.BlockExecutor.Evaluate(
+        //     (RawBlock)blockchain.Tip, blockchain.Store.GetStateRootHash(blockchain.Tip.PreviousHash));
+
+        // Assert.False(evaluations[0].InputContext.IsPolicyAction);
+        // Assert.Single(evaluations);
+        // Assert.NotNull(evaluations.Single().Exception);
+        // Assert.IsType<UnexpectedlyTerminatedActionException>(
+        //     evaluations.Single().Exception);
+        // Assert.IsType<ThrowException.SomeException>(
+        //     evaluations.Single().Exception.InnerException);
+    }
 
     //     // [Fact]
     //     // public void EvaluateWithCriticalException()
@@ -967,7 +1016,7 @@ public partial class BlockExecutorTest
     //     }
 
     //     [Fact]
-    //     public void EvaluatePolicyBeginBlockActions()
+    //     public void EvaluatePolicyEnterBlockActions()
     //     {
     //         var (chain, blockExecutor) = MakeBlockChainAndBlockExecutor(
     //             options: _options,
@@ -978,12 +1027,12 @@ public partial class BlockExecutorTest
     //         var block = blockchain.ProposeBlock(proposer: GenesisProposer);
 
     //         World previousState = blockchain.GetWorld(stateRootHash: default);
-    //         var evaluations = blockExecutor.EvaluateBeginBlockActions(
+    //         var evaluations = blockExecutor.EvaluateEnterBlockActions(
     //             (RawBlock)genesis,
     //             previousState);
 
     //         Assert.Equal<IAction>(
-    //             blockchain.Options.PolicyActions.BeginBlockActions,
+    //             blockchain.Options.SystemActions.EnterBlockActions,
     //             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
     //         Assert.Single(evaluations);
     //         Assert.Equal(
@@ -991,12 +1040,12 @@ public partial class BlockExecutorTest
     //             (BigInteger)evaluations[0].OutputWorld.GetValue(SystemAccount, _beginBlockValueAddress));
 
     //         previousState = evaluations[0].OutputWorld;
-    //         evaluations = blockExecutor.EvaluateBeginBlockActions(
+    //         evaluations = blockExecutor.EvaluateEnterBlockActions(
     //             (RawBlock)block,
     //             previousState);
 
     //         Assert.Equal<IAction>(
-    //             blockchain.Options.PolicyActions.BeginBlockActions,
+    //             blockchain.Options.SystemActions.EnterBlockActions,
     //             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
     //         Assert.Single(evaluations);
     //         Assert.Equal(
@@ -1005,7 +1054,7 @@ public partial class BlockExecutorTest
     //     }
 
     //     [Fact]
-    //     public void EvaluatePolicyEndBlockActions()
+    //     public void EvaluatePolicyLeaveBlockActions()
     //     {
     //         var (chain, blockExecutor) = MakeBlockChainAndBlockExecutor(
     //             options: _options,
@@ -1016,12 +1065,12 @@ public partial class BlockExecutorTest
     //         var block = blockchain.ProposeBlock(GenesisProposer);
 
     //         World previousState = blockchain.GetWorld(stateRootHash: default);
-    //         var evaluations = blockExecutor.EvaluateEndBlockActions(
+    //         var evaluations = blockExecutor.EvaluateLeaveBlockActions(
     //             (RawBlock)genesis,
     //             previousState);
 
     //         Assert.Equal<IAction>(
-    //             blockchain.Options.PolicyActions.EndBlockActions,
+    //             blockchain.Options.SystemActions.LeaveBlockActions,
     //             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
     //         Assert.Single(evaluations);
     //         Assert.Equal(
@@ -1029,12 +1078,12 @@ public partial class BlockExecutorTest
     //             evaluations[0].OutputWorld.GetValue(SystemAccount, _endBlockValueAddress));
 
     //         previousState = evaluations[0].OutputWorld;
-    //         evaluations = blockExecutor.EvaluateEndBlockActions(
+    //         evaluations = blockExecutor.EvaluateLeaveBlockActions(
     //             (RawBlock)block,
     //             previousState);
 
     //         Assert.Equal<IAction>(
-    //             blockchain.Options.PolicyActions.EndBlockActions,
+    //             blockchain.Options.SystemActions.LeaveBlockActions,
     //             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
     //         Assert.Single(evaluations);
     //         Assert.Equal(
@@ -1043,7 +1092,7 @@ public partial class BlockExecutorTest
     //     }
 
     //     [Fact]
-    //     public void EvaluatePolicyBeginTxActions()
+    //     public void EvaluatePolicyEnterTxActions()
     //     {
     //         var (chain, blockExecutor) = MakeBlockChainAndBlockExecutor(
     //             options: _options,
@@ -1054,13 +1103,13 @@ public partial class BlockExecutorTest
     //         var block = blockchain.ProposeBlock(proposer: GenesisProposer);
 
     //         World previousState = blockchain.GetWorld(stateRootHash: default);
-    //         var evaluations = blockExecutor.EvaluateBeginTxActions(
+    //         var evaluations = blockExecutor.EvaluateEnterTxActions(
     //             (RawBlock)genesis,
     //             txs[0],
     //             previousState);
 
     //         Assert.Equal<IAction>(
-    //             blockchain.Options.PolicyActions.BeginTxActions,
+    //             blockchain.Options.SystemActions.EnterTxActions,
     //             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
     //         Assert.Single(evaluations);
     //         Assert.Equal(
@@ -1069,13 +1118,13 @@ public partial class BlockExecutorTest
     //         Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
 
     //         previousState = evaluations[0].OutputWorld;
-    //         evaluations = blockExecutor.EvaluateBeginTxActions(
+    //         evaluations = blockExecutor.EvaluateEnterTxActions(
     //             (RawBlock)block,
     //             txs[1],
     //             previousState);
 
     //         Assert.Equal<IAction>(
-    //             blockchain.Options.PolicyActions.BeginTxActions,
+    //             blockchain.Options.SystemActions.EnterTxActions,
     //             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
     //         Assert.Single(evaluations);
     //         Assert.Equal(
@@ -1085,7 +1134,7 @@ public partial class BlockExecutorTest
     //     }
 
     //     [Fact]
-    //     public void EvaluatePolicyEndTxActions()
+    //     public void EvaluatePolicyLeaveTxActions()
     //     {
     //         var (chain, blockExecutor) = MakeBlockChainAndBlockExecutor(
     //             options: _options,
@@ -1096,13 +1145,13 @@ public partial class BlockExecutorTest
     //         var block = blockchain.ProposeBlock(proposer: GenesisProposer);
 
     //         World previousState = blockchain.GetWorld(stateRootHash: default);
-    //         var evaluations = blockExecutor.EvaluateEndTxActions(
+    //         var evaluations = blockExecutor.EvaluateLeaveTxActions(
     //             (RawBlock)genesis,
     //             txs[0],
     //             previousState);
 
     //         Assert.Equal<IAction>(
-    //             blockchain.Options.PolicyActions.EndTxActions,
+    //             blockchain.Options.SystemActions.LeaveTxActions,
     //             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
     //         Assert.Single(evaluations);
     //         Assert.Equal(
@@ -1111,13 +1160,13 @@ public partial class BlockExecutorTest
     //         Assert.Equal(txs[0].Signer, evaluations[0].InputContext.Signer);
 
     //         previousState = evaluations[0].OutputWorld;
-    //         evaluations = blockExecutor.EvaluateEndTxActions(
+    //         evaluations = blockExecutor.EvaluateLeaveTxActions(
     //             (RawBlock)block,
     //             txs[1],
     //             previousState);
 
     //         Assert.Equal<IAction>(
-    //             blockchain.Options.PolicyActions.EndTxActions,
+    //             blockchain.Options.SystemActions.LeaveTxActions,
     //             ImmutableArray.ToImmutableArray(evaluations.Select(item => item.Action)));
     //         Assert.Single(evaluations);
     //         Assert.Equal(
@@ -1152,7 +1201,7 @@ public partial class BlockExecutorTest
     //         var chain = TestUtils.MakeBlockChain(
     //             options: options,
     //             actions: [freeGasAction]);
-    //         var blockExecutor = new BlockExecutor(repository.StateStore, options.PolicyActions);
+    //         var blockExecutor = new BlockExecutor(repository.StateStore, options.SystemActions);
     //         var tx = new TransactionMetadata
     //         {
     //             Signer = privateKey.Address,
@@ -1207,7 +1256,7 @@ public partial class BlockExecutorTest
     //             {
     //                 freeGasAction,
     //             });
-    //         var blockExecutor = new BlockExecutor(repository.StateStore, options.PolicyActions);
+    //         var blockExecutor = new BlockExecutor(repository.StateStore, options.SystemActions);
     //         var tx = new TransactionMetadata
     //         {
     //             Signer = privateKey.Address,
