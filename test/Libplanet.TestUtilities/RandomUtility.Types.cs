@@ -156,8 +156,8 @@ public static partial class RandomUtility
     {
         TxId = TxId(random),
         BlockHash = BlockHash(random),
-        InputState = HashDigest<SHA256>(random),
-        OutputState = HashDigest<SHA256>(random),
+        EnterState = HashDigest<SHA256>(random),
+        LeaveState = HashDigest<SHA256>(random),
         ExceptionNames = ImmutableArray(random, String),
     };
 
@@ -166,8 +166,8 @@ public static partial class RandomUtility
     public static BlockExecution BlockExecution(Random random) => new()
     {
         BlockHash = BlockHash(random),
-        InputState = HashDigest<SHA256>(random),
-        OutputState = HashDigest<SHA256>(random),
+        EnterState = HashDigest<SHA256>(random),
+        LeaveState = HashDigest<SHA256>(random),
     };
 
     public static BlockContent BlockContent() => BlockContent(System.Random.Shared);

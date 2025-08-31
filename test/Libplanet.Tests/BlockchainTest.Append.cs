@@ -197,7 +197,7 @@ public partial class BlockchainTest
 
         var txExecution1 = repository.TxExecutions[txs[0].Id];
         var outputWorld1 = blockchain
-            .GetWorld(Assert.IsType<HashDigest<SHA256>>(txExecution1.OutputState));
+            .GetWorld(Assert.IsType<HashDigest<SHA256>>(txExecution1.LeaveState));
         Assert.Equal(
             DumbAction.DumbCurrency * 100,
             outputWorld1.GetBalance(addresses[0], DumbAction.DumbCurrency));
@@ -209,7 +209,7 @@ public partial class BlockchainTest
             outputWorld1.GetTotalSupply(DumbAction.DumbCurrency));
         var txExecution2 = repository.TxExecutions[txs[1].Id];
         var outputWorld2 = blockchain
-            .GetWorld(Assert.IsType<HashDigest<SHA256>>(txExecution2.OutputState));
+            .GetWorld(Assert.IsType<HashDigest<SHA256>>(txExecution2.LeaveState));
         Assert.Equal(
             DumbAction.DumbCurrency * 100,
             outputWorld2.GetBalance(addresses[2], DumbAction.DumbCurrency));
@@ -257,10 +257,10 @@ public partial class BlockchainTest
         var txExecution3 = repository.TxExecutions[tx1Transfer.Id];
         Assert.False(txExecution3.Fail);
         var inputAccount1 = blockchain.GetWorld(
-            Assert.IsType<HashDigest<SHA256>>(txExecution3.InputState))
+            Assert.IsType<HashDigest<SHA256>>(txExecution3.EnterState))
                 .GetAccount(SystemAddresses.SystemAccount);
         var outputWorld3 = blockchain.GetWorld(
-            Assert.IsType<HashDigest<SHA256>>(txExecution3.OutputState));
+            Assert.IsType<HashDigest<SHA256>>(txExecution3.LeaveState));
         var outputAccount3 = outputWorld3
                 .GetAccount(SystemAddresses.SystemAccount);
 
@@ -299,7 +299,7 @@ public partial class BlockchainTest
         var txExecution5 = repository.TxExecutions[tx3Transfer.Id];
         Assert.False(txExecution5.Fail);
         var outputWorld5 = blockchain.GetWorld(
-            Assert.IsType<HashDigest<SHA256>>(txExecution5.OutputState));
+            Assert.IsType<HashDigest<SHA256>>(txExecution5.LeaveState));
         Assert.Equal(
             DumbAction.DumbCurrency * 0,
             outputWorld5.GetBalance(signer2.Address, DumbAction.DumbCurrency));

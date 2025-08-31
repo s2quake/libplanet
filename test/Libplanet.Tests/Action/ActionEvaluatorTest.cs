@@ -389,6 +389,11 @@ public partial class BlockExecutorTest
         // var privateKey = new PrivateKey();
         // var address = privateKey.Address;
 
+        var tx = new TransactionBuilder
+        {
+            Actions = [new ThrowException { ThrowOnExecution = true }],
+        }.Create(proposer);
+
         _ = blockchain.StagedTransactions.Add(proposer, new()
         {
             Actions =

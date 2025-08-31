@@ -14,10 +14,10 @@ public sealed partial record class TxExecution : IHasKey<TxId>
     public BlockHash BlockHash { get; init; }
 
     [Property(2)]
-    public HashDigest<SHA256> InputState { get; init; }
+    public HashDigest<SHA256> EnterState { get; init; }
 
     [Property(3)]
-    public HashDigest<SHA256> OutputState { get; init; }
+    public HashDigest<SHA256> LeaveState { get; init; }
 
     [Property(4)]
     public ImmutableArray<string> ExceptionNames { get; init; } = [];

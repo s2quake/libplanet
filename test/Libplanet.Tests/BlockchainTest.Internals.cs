@@ -231,24 +231,24 @@ public partial class BlockchainTest
         {
             BlockHash = blockHash1,
             TxId = txId1,
-            InputState = RandomUtility.HashDigest<SHA256>(random),
-            OutputState = RandomUtility.HashDigest<SHA256>(random),
+            EnterState = RandomUtility.HashDigest<SHA256>(random),
+            LeaveState = RandomUtility.HashDigest<SHA256>(random),
             ExceptionNames = [],
         };
         var inputB = new TxExecution
         {
             BlockHash = blockHash1,
             TxId = txId2,
-            InputState = RandomUtility.HashDigest<SHA256>(random),
-            OutputState = RandomUtility.HashDigest<SHA256>(random),
+            EnterState = RandomUtility.HashDigest<SHA256>(random),
+            LeaveState = RandomUtility.HashDigest<SHA256>(random),
             ExceptionNames = ["AnExceptionName"],
         };
         var inputC = new TxExecution
         {
             BlockHash = blockHash2,
             TxId = txId1,
-            InputState = RandomUtility.HashDigest<SHA256>(random),
-            OutputState = RandomUtility.HashDigest<SHA256>(random),
+            EnterState = RandomUtility.HashDigest<SHA256>(random),
+            LeaveState = RandomUtility.HashDigest<SHA256>(random),
             ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
         };
         repository.TxExecutions.AddRange([inputA, inputB]);

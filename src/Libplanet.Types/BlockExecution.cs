@@ -10,10 +10,10 @@ public sealed partial record class BlockExecution : IEquatable<BlockExecution>, 
     public BlockHash BlockHash { get; init; }
 
     [Property(1)]
-    public HashDigest<SHA256> InputState { get; init; }
+    public HashDigest<SHA256> EnterState { get; init; }
 
     [Property(2)]
-    public HashDigest<SHA256> OutputState { get; init; }
+    public HashDigest<SHA256> LeaveState { get; init; }
 
     BlockHash IHasKey<BlockHash>.Key => BlockHash;
 }

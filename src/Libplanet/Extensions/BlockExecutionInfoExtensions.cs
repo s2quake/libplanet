@@ -13,8 +13,8 @@ public static class BlockExecutionInfoExtensions
         {
             TxId = evaluation.Transaction.Id,
             BlockHash = blockHash,
-            InputState = evaluation.EnterWorld.Hash,
-            OutputState = evaluation.LeaveWorld.Hash,
+            EnterState = evaluation.EnterWorld.Hash,
+            LeaveState = evaluation.LeaveWorld.Hash,
             ExceptionNames =
             [
                 .. GetActionEvaluations(evaluation).Select(GetExceptionName).Where(item => item != string.Empty),
@@ -33,7 +33,7 @@ public static class BlockExecutionInfoExtensions
     public static BlockExecution GetBlockExecution(this BlockExecutionInfo @this, BlockHash blockHash) => new()
     {
         BlockHash = blockHash,
-        InputState = @this.EnterWorld.Hash,
-        OutputState = @this.LeaveWorld.Hash,
+        EnterState = @this.EnterWorld.Hash,
+        LeaveState = @this.LeaveWorld.Hash,
     };
 }
