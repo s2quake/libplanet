@@ -136,7 +136,7 @@ public sealed class BlockExecutor(StateIndex stateIndex)
 
         world = world.Commit();
 
-        if (!world.Trie.IsCommitted)
+        if (!world.Trie.IsEmpty && !world.Trie.IsCommitted)
         {
             throw new InvalidOperationException($"Failed to record {nameof(Account)}'s {nameof(Trie)}.");
         }
