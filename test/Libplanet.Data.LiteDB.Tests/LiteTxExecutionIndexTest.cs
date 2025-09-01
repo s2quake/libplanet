@@ -4,12 +4,12 @@ using Libplanet.Types;
 namespace Libplanet.Data.LiteDB.Tests;
 
 public sealed class LiteTxExecutionIndexTest(ITestOutputHelper output)
-    : LiteKeyedIndexTestBase<TxId, TxExecutionInfo, TxExecutionIndex>(output)
+    : LiteKeyedIndexTestBase<TxId, TransactionExecutionInfo, TxExecutionIndex>(output)
 {
     protected override TxExecutionIndex CreateIndex(LiteDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
     protected override TxId CreateKey(Random random) => RandomUtility.TxId(random);
 
-    protected override TxExecutionInfo CreateValue(Random random) => RandomUtility.TxExecution(random);
+    protected override TransactionExecutionInfo CreateValue(Random random) => RandomUtility.TxExecution(random);
 }

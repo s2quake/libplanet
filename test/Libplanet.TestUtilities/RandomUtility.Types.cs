@@ -150,9 +150,9 @@ public static partial class RandomUtility
         Timestamp = DateTimeOffset(random),
     };
 
-    public static TxExecutionInfo Txexecution() => TxExecution(System.Random.Shared);
+    public static TransactionExecutionInfo Txexecution() => TxExecution(System.Random.Shared);
 
-    public static TxExecutionInfo TxExecution(Random random) => new()
+    public static TransactionExecutionInfo TxExecution(Random random) => new()
     {
         TxId = TxId(random),
         BlockHash = BlockHash(random),
@@ -161,9 +161,9 @@ public static partial class RandomUtility
         ExceptionNames = ImmutableArray(random, String),
     };
 
-    public static BlockExecutionResult BlockExecution() => BlockExecution(System.Random.Shared);
+    public static BlockExecutionInfo BlockExecution() => BlockExecution(System.Random.Shared);
 
-    public static BlockExecutionResult BlockExecution(Random random) => new()
+    public static BlockExecutionInfo BlockExecution(Random random) => new()
     {
         BlockHash = BlockHash(random),
         EnterState = HashDigest<SHA256>(random),

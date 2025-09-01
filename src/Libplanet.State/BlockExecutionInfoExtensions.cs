@@ -4,11 +4,11 @@ namespace Libplanet.State;
 
 public static class BlockExecutionExtensions
 {
-    public static TxExecutionInfo[] GetTxExecutions(this BlockExecution @this, BlockHash blockHash)
+    public static TransactionExecutionInfo[] GetTxExecutions(this BlockExecution @this, BlockHash blockHash)
     {
         return [.. @this.Executions.Select(ToTxExecution)];
 
-        TxExecutionInfo ToTxExecution(TransactionExecution evaluation) => new()
+        TransactionExecutionInfo ToTxExecution(TransactionExecution evaluation) => new()
         {
             TxId = evaluation.Transaction.Id,
             BlockHash = blockHash,
@@ -29,7 +29,7 @@ public static class BlockExecutionExtensions
         static Exception? GetActualException(Exception? exception) => exception?.InnerException ?? exception;
     }
 
-    public static BlockExecutionResult GetBlockExecution(this BlockExecution @this, BlockHash blockHash) => new()
+    public static BlockExecutionInfo GetBlockExecution(this BlockExecution @this, BlockHash blockHash) => new()
     {
         BlockHash = blockHash,
         EnterState = @this.EnterWorld.Hash,

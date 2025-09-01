@@ -208,7 +208,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         var invalidKey = new PrivateKey();
         var blockchainOptions = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },
@@ -281,7 +281,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         var txSigner = RandomUtility.Signer(random);
         var blockchainOptions = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },

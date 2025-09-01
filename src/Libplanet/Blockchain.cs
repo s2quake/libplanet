@@ -6,6 +6,7 @@ using Libplanet.Extensions;
 using Libplanet.Data;
 using Libplanet.Types;
 using Microsoft.Extensions.Logging;
+using Libplanet.Serialization;
 
 namespace Libplanet;
 
@@ -57,7 +58,8 @@ public partial class Blockchain
     public Blockchain(Repository repository, BlockchainOptions options)
     {
         _repository = repository;
-        _blockExecutor = new BlockExecutor(repository.States, options.SystemActions);
+        _repository.States[options.SystemAction.Hash] = ModelSerializer.SerializeToBytes(options.SystemAction);
+        _blockExecutor = new BlockExecutor(repository.States);
         Options = options;
         _logger = options.Logger;
         Id = _repository.Id;
@@ -256,7 +258,7 @@ public partial class Blockchain
         _repository.Append(block, blockCommit);
         _tipChangedSubject.OnNext(block);
         _blockExecutingSubject.OnNext(Unit.Default);
-        _repository.AppendExecution(_blockExecutor.Execute(block));
+        _repository.AppendExecution(_blockExecutor.Execute(block, Options.SystemAction));
         _appendedSubject.OnNext((block, blockCommit));
         LogAppended(_logger, block.Height, block.BlockHash);
     }

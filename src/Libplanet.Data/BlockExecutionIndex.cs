@@ -4,12 +4,12 @@ using Libplanet.Types;
 namespace Libplanet.Data;
 
 public sealed class BlockExecutionIndex(IDatabase database, int cacheSize = 100)
-    : KeyedIndexBase<BlockHash, BlockExecutionResult>(database.GetOrAdd("block_execution"), cacheSize)
+    : KeyedIndexBase<BlockHash, BlockExecutionInfo>(database.GetOrAdd("block_execution"), cacheSize)
 {
-    protected override byte[] ValueToBytes(BlockExecutionResult value) => ModelSerializer.SerializeToBytes(value);
+    protected override byte[] ValueToBytes(BlockExecutionInfo value) => ModelSerializer.SerializeToBytes(value);
 
-    protected override BlockExecutionResult BytesToValue(byte[] bytes)
-        => ModelSerializer.DeserializeFromBytes<BlockExecutionResult>(bytes);
+    protected override BlockExecutionInfo BytesToValue(byte[] bytes)
+        => ModelSerializer.DeserializeFromBytes<BlockExecutionInfo>(bytes);
 
     protected override string KeyToString(BlockHash key) => key.ToString();
 

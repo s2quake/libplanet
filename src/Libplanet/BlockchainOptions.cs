@@ -8,7 +8,7 @@ public sealed record class BlockchainOptions
 {
     public static BlockchainOptions Empty { get; } = new();
 
-    public SystemActions SystemActions { get; init; } = SystemActions.Empty;
+    public SystemAction SystemAction { get; init; } = SystemAction.Empty;
 
     public BlockOptions BlockOptions { get; init; } = new();
 

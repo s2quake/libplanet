@@ -221,7 +221,7 @@ public partial class BlockchainTest
 
         var optionsB = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
             },
@@ -647,7 +647,7 @@ public partial class BlockchainTest
         }.Create(proposer);
         var options = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new SetStatesAtBlock(default, "foo", default, 0)],
             },

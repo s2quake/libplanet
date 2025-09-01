@@ -21,7 +21,7 @@ public partial class BlockchainTest
         }.Create(proposer);
         var options = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },
@@ -147,7 +147,7 @@ public partial class BlockchainTest
         }.Create(proposer);
         var options = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },
@@ -406,7 +406,7 @@ public partial class BlockchainTest
         }.Create(proposer);
         var options = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [DumbAction.Create((address1, "foo"))],
             },

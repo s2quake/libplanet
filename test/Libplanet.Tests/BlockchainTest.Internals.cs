@@ -155,7 +155,7 @@ public partial class BlockchainTest
         var repository = new Repository();
         var options = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },
@@ -227,7 +227,7 @@ public partial class BlockchainTest
         Assert.Null(blockchain.TxExecutions.GetValueOrDefault(txId1));
         Assert.Null(blockchain.TxExecutions.GetValueOrDefault(txId2));
 
-        var inputA = new TxExecutionInfo
+        var inputA = new TransactionExecutionInfo
         {
             BlockHash = blockHash1,
             TxId = txId1,
@@ -235,7 +235,7 @@ public partial class BlockchainTest
             LeaveState = RandomUtility.HashDigest<SHA256>(random),
             ExceptionNames = [],
         };
-        var inputB = new TxExecutionInfo
+        var inputB = new TransactionExecutionInfo
         {
             BlockHash = blockHash1,
             TxId = txId2,
@@ -243,7 +243,7 @@ public partial class BlockchainTest
             LeaveState = RandomUtility.HashDigest<SHA256>(random),
             ExceptionNames = ["AnExceptionName"],
         };
-        var inputC = new TxExecutionInfo
+        var inputC = new TransactionExecutionInfo
         {
             BlockHash = blockHash2,
             TxId = txId1,

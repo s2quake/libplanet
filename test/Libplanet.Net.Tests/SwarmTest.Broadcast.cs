@@ -640,7 +640,7 @@ public partial class SwarmTest
         var random = RandomUtility.GetRandom(output);
         var blockchainOptions = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },

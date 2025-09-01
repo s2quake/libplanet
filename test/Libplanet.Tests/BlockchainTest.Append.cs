@@ -30,7 +30,7 @@ public partial class BlockchainTest
         var repository = new Repository();
         var options = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },
@@ -517,7 +517,7 @@ public partial class BlockchainTest
         var repository = new Repository();
         var options = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },

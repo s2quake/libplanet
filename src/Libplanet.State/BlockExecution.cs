@@ -7,6 +7,8 @@ public sealed record class BlockExecution
 {
     public required Block Block { get; init; }
 
+    public required HashDigest<SHA256> SystemActionHash { get; init; }
+
     public required World EnterWorld { get; init; }
 
     public required World LeaveWorld { get; init; }

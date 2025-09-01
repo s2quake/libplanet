@@ -24,7 +24,7 @@ public static class TestUtils
 
     public static readonly BlockchainOptions BlockchainOptions = new()
     {
-        SystemActions = new SystemActions
+        SystemAction = new SystemAction
         {
             LeaveBlockActions = [new MinerReward(1)],
         },

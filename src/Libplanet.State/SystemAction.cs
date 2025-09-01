@@ -4,10 +4,10 @@ using Libplanet.Types;
 
 namespace Libplanet.State;
 
-[Model(Version = 1, TypeName = "SystemActions")]
-public sealed partial record class SystemActions
+[Model(Version = 1, TypeName = "SystemAction")]
+public sealed partial record class SystemAction
 {
-    public static SystemActions Empty { get; } = new SystemActions();
+    public static SystemAction Empty { get; } = new SystemAction();
 
     [Property(0)]
     public ImmutableArray<IAction> EnterBlockActions { get; init; } = [];

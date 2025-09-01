@@ -920,7 +920,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
         }.Create(proposer);
         var options = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },

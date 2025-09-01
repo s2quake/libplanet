@@ -6,16 +6,11 @@ using Libplanet.Types;
 
 namespace Libplanet.State;
 
-public sealed class BlockExecutor(StateIndex states, SystemActions systemActions)
+public sealed class BlockExecutor(StateIndex stateIndex)
 {
     private readonly Subject<ActionExecution> _actionExecutedSubject = new();
     private readonly Subject<TransactionExecution> _txExecutedResult = new();
     private readonly Subject<BlockExecution> _blockExecutedResult = new();
-
-    public BlockExecutor(StateIndex states)
-        : this(states, SystemActions.Empty)
-    {
-    }
 
     public IObservable<ActionExecution> ActionExecuted => _actionExecutedSubject;
 
@@ -42,17 +37,20 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         }
     }
 
-    public BlockExecution Execute(Block block)
+    public BlockExecution Execute(Block block) => Execute(block, SystemAction.Empty);
+
+    public BlockExecution Execute(Block block, SystemAction systemAction)
     {
-        var world = new World(states, block.Header.PreviousStateRootHash);
+        var world = new World(stateIndex, block.Header.PreviousStateRootHash);
         var inputWorld = world;
-        var enterEvaluations = ExecuteActions(block, null, systemActions.EnterBlockActions, ref world);
-        var txEvaluations = ExecuteTransactions(block, ref world);
-        var leaveEvaluations = ExecuteActions(block, null, systemActions.LeaveBlockActions, ref world);
+        var enterEvaluations = ExecuteActions(block, null, systemAction.EnterBlockActions, ref world);
+        var txEvaluations = ExecuteTransactions(block, systemAction, ref world);
+        var leaveEvaluations = ExecuteActions(block, null, systemAction.LeaveBlockActions, ref world);
 
         var blockEvaluation = new BlockExecution
         {
             Block = block,
+            SystemActionHash = systemAction.Hash,
             EnterWorld = inputWorld,
             LeaveWorld = world,
             EnterExecutions = enterEvaluations,
@@ -61,6 +59,18 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         };
         _blockExecutedResult.OnNext(blockEvaluation);
         return blockEvaluation;
+    }
+
+    private static int GetCapacity(Block block, SystemAction systemAction)
+    {
+        var txCount = block.Content.Transactions.Count;
+        var actionCount = block.Content.Transactions.Sum(tx => tx.Actions.Length);
+        var blockActionCount = systemAction.EnterBlockActions.Length
+            + systemAction.LeaveBlockActions.Length;
+        var txActionCount = systemAction.EnterTxActions.Length
+            + systemAction.LeaveTxActions.Length;
+        var capacity = actionCount + blockActionCount + (txActionCount * txCount);
+        return capacity;
     }
 
     private ImmutableArray<ActionExecution> ExecuteActions(
@@ -144,31 +154,33 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         return evaluation;
     }
 
-    private ImmutableArray<TransactionExecution> ExecuteTransactions(Block block, ref World world)
+    private ImmutableArray<TransactionExecution> ExecuteTransactions(
+        Block block, SystemAction systemAction, ref World world)
     {
         var txs = block.Content.Transactions;
-        var capacity = GetCapacity(block);
+        var capacity = GetCapacity(block, systemAction);
         var evaluationList = new List<TransactionExecution>(capacity);
 
         foreach (var tx in txs)
         {
-            evaluationList.Add(ExecuteTransaction(block, tx, ref world));
+            evaluationList.Add(ExecuteTransaction(block, tx, systemAction, ref world));
         }
 
         return [.. evaluationList];
     }
 
-    private TransactionExecution ExecuteTransaction(Block block, Transaction transaction, ref World world)
+    private TransactionExecution ExecuteTransaction(
+        Block block, Transaction transaction, SystemAction systemAction, ref World world)
     {
         GasTracer.Initialize(transaction.GasLimit is 0 ? long.MaxValue : transaction.GasLimit);
         var inputWorld = world;
         GasTracer.IsTxAction = true;
-        var enterEvaluations = ExecuteActions(block, transaction, systemActions.EnterTxActions, ref world);
+        var enterEvaluations = ExecuteActions(block, transaction, systemAction.EnterTxActions, ref world);
         GasTracer.IsTxAction = false;
         var actions = transaction.Actions.Select(item => item.ToAction<IAction>()).ToImmutableArray();
         var evaluations = ExecuteActions(block, transaction, actions, ref world);
         GasTracer.IsTxAction = true;
-        var leaveEvaluations = ExecuteActions(block, transaction, systemActions.LeaveTxActions, ref world);
+        var leaveEvaluations = ExecuteActions(block, transaction, systemAction.LeaveTxActions, ref world);
         GasTracer.IsTxAction = false;
 
         GasTracer.Release();
@@ -184,17 +196,5 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
 
         _txExecutedResult.OnNext(txEvaluation);
         return txEvaluation;
-    }
-
-    private int GetCapacity(Block block)
-    {
-        var txCount = block.Content.Transactions.Count;
-        var actionCount = block.Content.Transactions.Sum(tx => tx.Actions.Length);
-        var blockActionCount = systemActions.EnterBlockActions.Length
-            + systemActions.LeaveBlockActions.Length;
-        var txActionCount = systemActions.EnterTxActions.Length
-            + systemActions.LeaveTxActions.Length;
-        var capacity = actionCount + blockActionCount + (txActionCount * txCount);
-        return capacity;
     }
 }

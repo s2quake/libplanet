@@ -193,7 +193,7 @@ public sealed class ConsensusClassicTest
         var cancellationToken = TestContext.Current.CancellationToken;
         var blockchainOptions = new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 LeaveBlockActions = [new MinerReward(1)],
             },
