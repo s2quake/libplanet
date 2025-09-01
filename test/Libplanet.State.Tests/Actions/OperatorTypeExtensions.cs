@@ -1,4 +1,4 @@
-namespace Libplanet.Tests.Fixtures;
+namespace Libplanet.State.Tests.Actions;
 
 public static class OperatorTypeExtensions
 {
