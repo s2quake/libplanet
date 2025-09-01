@@ -123,7 +123,7 @@ public partial class Blockchain
 
     public BlockExecutionInfo Execute(Block block)
     {
-        var execution = _blockExecutor.Execute((RawBlock)block);
+        var execution = _blockExecutor.Execute(block);
         var blockHash = block.BlockHash;
         _repository.TxExecutions.AddRange(execution.GetTxExecutions(blockHash));
         _repository.BlockExecutions.Add(execution.GetBlockExecution(blockHash));
@@ -269,7 +269,7 @@ public partial class Blockchain
         _repository.Append(block, blockCommit);
         _tipChangedSubject.OnNext(block);
         _blockExecutingSubject.OnNext(Unit.Default);
-        var execution = _blockExecutor.Execute((RawBlock)block);
+        var execution = _blockExecutor.Execute(block);
         _repository.StateRootHash = execution.LeaveWorld.Hash;
         _repository.StateRootHashes.Add(block.BlockHash, _repository.StateRootHash);
         _repository.TxExecutions.AddRange(execution.GetTxExecutions(block.BlockHash));

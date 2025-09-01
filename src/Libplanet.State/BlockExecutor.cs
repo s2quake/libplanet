@@ -42,17 +42,17 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         }
     }
 
-    public BlockExecutionInfo Execute(RawBlock rawBlock)
+    public BlockExecutionInfo Execute(Block block)
     {
-        var world = new World(states, rawBlock.Header.PreviousStateRootHash);
+        var world = new World(states, block.Header.PreviousStateRootHash);
         var inputWorld = world;
-        var enterEvaluations = ExecuteActions(rawBlock, null, systemActions.EnterBlockActions, ref world);
-        var txEvaluations = ExecuteTransactions(rawBlock, ref world);
-        var leaveEvaluations = ExecuteActions(rawBlock, null, systemActions.LeaveBlockActions, ref world);
+        var enterEvaluations = ExecuteActions(block, null, systemActions.EnterBlockActions, ref world);
+        var txEvaluations = ExecuteTransactions(block, ref world);
+        var leaveEvaluations = ExecuteActions(block, null, systemActions.LeaveBlockActions, ref world);
 
         var blockEvaluation = new BlockExecutionInfo
         {
-            Block = rawBlock,
+            Block = block,
             EnterWorld = inputWorld,
             LeaveWorld = world,
             EnterExecutions = enterEvaluations,
@@ -64,10 +64,10 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
     }
 
     private ImmutableArray<ActionExecutionInfo> ExecuteActions(
-        RawBlock rawBlock, Transaction? tx, ImmutableArray<IAction> actions, ref World world)
+        Block block, Transaction? tx, ImmutableArray<IAction> actions, ref World world)
     {
         var signature = tx?.Signature ?? [];
-        var randomSeed = GenerateRandomSeed(rawBlock.Hash.Bytes.AsSpan(), signature);
+        var randomSeed = GenerateRandomSeed(block.BlockHash.Bytes.AsSpan(), signature);
         var evaluations = new ActionExecutionInfo[actions.Length];
 
         for (var i = 0; i < actions.Length; i++)
@@ -77,10 +77,10 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
             {
                 Signer = tx?.Signer ?? default,
                 TxId = tx?.Id ?? default,
-                Proposer = rawBlock.Header.Proposer,
-                BlockHeight = rawBlock.Header.Height,
-                BlockProtocolVersion = rawBlock.Header.BlockVersion,
-                PreviousCommit = rawBlock.Header.PreviousBlockCommit,
+                Proposer = block.Header.Proposer,
+                BlockHeight = block.Header.Height,
+                BlockProtocolVersion = block.Header.BlockVersion,
+                PreviousCommit = block.Header.PreviousBlockCommit,
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice ?? default,
             };
@@ -144,31 +144,31 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         return evaluation;
     }
 
-    private ImmutableArray<TransactionExecutionInfo> ExecuteTransactions(RawBlock rawBlock, ref World world)
+    private ImmutableArray<TransactionExecutionInfo> ExecuteTransactions(Block block, ref World world)
     {
-        var txs = rawBlock.Content.Transactions;
-        var capacity = GetCapacity(rawBlock);
+        var txs = block.Content.Transactions;
+        var capacity = GetCapacity(block);
         var evaluationList = new List<TransactionExecutionInfo>(capacity);
 
         foreach (var tx in txs)
         {
-            evaluationList.Add(ExecuteTransaction(rawBlock, tx, ref world));
+            evaluationList.Add(ExecuteTransaction(block, tx, ref world));
         }
 
         return [.. evaluationList];
     }
 
-    private TransactionExecutionInfo ExecuteTransaction(RawBlock rawBlock, Transaction transaction, ref World world)
+    private TransactionExecutionInfo ExecuteTransaction(Block block, Transaction transaction, ref World world)
     {
         GasTracer.Initialize(transaction.GasLimit is 0 ? long.MaxValue : transaction.GasLimit);
         var inputWorld = world;
         GasTracer.IsTxAction = true;
-        var enterEvaluations = ExecuteActions(rawBlock, transaction, systemActions.EnterTxActions, ref world);
+        var enterEvaluations = ExecuteActions(block, transaction, systemActions.EnterTxActions, ref world);
         GasTracer.IsTxAction = false;
         var actions = transaction.Actions.Select(item => item.ToAction<IAction>()).ToImmutableArray();
-        var evaluations = ExecuteActions(rawBlock, transaction, actions, ref world);
+        var evaluations = ExecuteActions(block, transaction, actions, ref world);
         GasTracer.IsTxAction = true;
-        var leaveEvaluations = ExecuteActions(rawBlock, transaction, systemActions.LeaveTxActions, ref world);
+        var leaveEvaluations = ExecuteActions(block, transaction, systemActions.LeaveTxActions, ref world);
         GasTracer.IsTxAction = false;
 
         GasTracer.Release();
@@ -186,10 +186,10 @@ public sealed class BlockExecutor(StateIndex states, SystemActions systemActions
         return txEvaluation;
     }
 
-    private int GetCapacity(RawBlock rawBlock)
+    private int GetCapacity(Block block)
     {
-        var txCount = rawBlock.Content.Transactions.Count;
-        var actionCount = rawBlock.Content.Transactions.Sum(tx => tx.Actions.Length);
+        var txCount = block.Content.Transactions.Count;
+        var actionCount = block.Content.Transactions.Sum(tx => tx.Actions.Length);
         var blockActionCount = systemActions.EnterBlockActions.Length
             + systemActions.LeaveBlockActions.Length;
         var txActionCount = systemActions.EnterTxActions.Length

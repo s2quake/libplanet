@@ -1,77 +1,25 @@
+using Libplanet.Data;
+using Libplanet.Extensions;
+using Libplanet.Serialization;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
-using Libplanet;
-using Libplanet.Serialization;
-using Libplanet.Data;
-using Libplanet.Tests.Fixtures;
-using Libplanet.Types;
-using static Libplanet.Tests.TestUtils;
 using Libplanet.TestUtilities;
-using static Libplanet.State.SystemAddresses;
-using Libplanet.Extensions;
-using System.Threading.Tasks;
-using Libplanet.Types.Progresses;
+using Libplanet.Types;
 using Xunit.Internal;
+using static Libplanet.State.SystemAddresses;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests.Action;
 
-public partial class BlockExecutorTest
+public partial class BlockExecutorTest(ITestOutputHelper output)
 {
-    private readonly ITestOutputHelper _output;
-    // private readonly BlockchainOptions _options;
-    // private readonly StoreFixture _storeFx;
-    // private readonly TxFixture _txFx;
-
-    [Obsolete]
-    private readonly Address _beginBlockValueAddress = Address.Parse("0000000000000000000000000000000000000120");
-    [Obsolete]
-    private readonly Address _endBlockValueAddress = Address.Parse("0000000000000000000000000000000000000121");
-    [Obsolete]
-    private readonly Address _beginTxValueAddress = Address.Parse("0000000000000000000000000000000000000122");
-    [Obsolete]
-    private readonly Address _endTxValueAddress = Address.Parse("0000000000000000000000000000000000000123");
-
-    public BlockExecutorTest(ITestOutputHelper output)
-    {
-        _output = output;
-        // _options = new BlockchainOptions
-        // {
-        //     SystemActions = new SystemActions
-        //     {
-        //         EnterBlockActions =
-        //         [
-        //             new UpdateValue { Address = _beginBlockValueAddress, Increment = 1 },
-        //         ],
-        //         LeaveBlockActions =
-        //         [
-        //             new UpdateValue { Address = _endBlockValueAddress, Increment = 1 },
-        //         ],
-        //         EnterTxActions =
-        //         [
-        //             new UpdateValue { Address = _beginTxValueAddress, Increment = 1 },
-        //         ],
-        //         LeaveTxActions =
-        //         [
-        //             new UpdateValue { Address = _endTxValueAddress, Increment = 1 },
-        //         ],
-        //     },
-        //     BlockOptions = new BlockOptions
-        //     {
-        //         MaxTransactionsBytes = 50 * 1024,
-        //     },
-        // };
-        // _storeFx = new MemoryStoreFixture(_options);
-        // _txFx = new TxFixture(default);
-    }
-
     [Fact]
     public void Idempotent()
     {
         // NOTE: This test checks that blocks can be evaluated idempotently. Also it checks
         // the action results in pre-evaluation step and in evaluation step are equal.
         const int repeatCount = 2;
-        var random = RandomUtility.GetRandom(_output);
+        var random = RandomUtility.GetRandom(output);
         var signer = RandomUtility.Signer(random);
         var proposer = RandomUtility.Signer(random);
         var timestamp = DateTimeOffset.UtcNow;
@@ -107,10 +55,10 @@ public partial class BlockExecutorTest
 
         for (var i = 0; i < repeatCount; ++i)
         {
-            var blockExecution1 = blockExecutor.Execute(rawBlock);
+            var blockExecution1 = blockExecutor.Execute(block);
             var world1 = new World(blockExecution1.LeaveWorld.Trie, stateIndex);
             var value1 = world1.GetAccount(SystemAccount).GetValue(ContextRecording.RandomRecordAddress);
-            var blockExecution2 = blockExecutor.Execute((RawBlock)block);
+            var blockExecution2 = blockExecutor.Execute(block);
             var world2 = new World(blockExecution2.LeaveWorld.Trie, stateIndex);
             var value2 = world2.GetAccount(SystemAccount).GetValue(ContextRecording.RandomRecordAddress);
             Assert.Equal(value1, value2);
@@ -121,7 +69,7 @@ public partial class BlockExecutorTest
     public async Task Evaluate()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(_output);
+        var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
         var signer = RandomUtility.Signer(random);
 
@@ -142,7 +90,7 @@ public partial class BlockExecutorTest
         });
         blockchain.ProposeAndAppend(proposer);
 
-        var executionInfo = blockExecutor.Execute((RawBlock)blockchain.Tip);
+        var executionInfo = blockExecutor.Execute(blockchain.Tip);
         var txExecutionInfo = Assert.Single(executionInfo.Executions);
         var actionExecutionInfo = Assert.Single(txExecutionInfo.Executions);
         var world = new World(executionInfo.LeaveWorld.Trie, repositoryA.States);
@@ -180,7 +128,7 @@ public partial class BlockExecutorTest
     public async Task EvaluateWithSystemActions()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(_output);
+        var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
@@ -229,7 +177,7 @@ public partial class BlockExecutorTest
         await repositoryB.CopyToAsync(repositoryA, cancellationToken);
 
         var blockExecutor = new BlockExecutor(repositoryA.States, options.SystemActions);
-        var executionInfoA = blockExecutor.Execute((RawBlock)block);
+        var executionInfoA = blockExecutor.Execute(block);
 
         Assert.Equal(2, executionInfoA.Executions.Length);
         Assert.Single(executionInfoA.EnterExecutions);
@@ -303,7 +251,7 @@ public partial class BlockExecutorTest
     [Fact]
     public void EvaluateWithSystemActionsWithException()
     {
-        var random = RandomUtility.GetRandom(_output);
+        var random = RandomUtility.GetRandom(output);
         var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
@@ -357,7 +305,7 @@ public partial class BlockExecutorTest
 
         var block = blockchain.Propose(proposer);
         var blockExecutor = new BlockExecutor(repository.States, options.SystemActions);
-        var executionInfo = blockExecutor.Execute((RawBlock)block);
+        var executionInfo = blockExecutor.Execute(block);
 
         Assert.Equal(2, executionInfo.Executions.Length);
         Assert.Equal(2, executionInfo.EnterExecutions.Length);
@@ -377,7 +325,7 @@ public partial class BlockExecutorTest
     [Fact]
     public void EvaluateWithException()
     {
-        var random = RandomUtility.GetRandom(_output);
+        var random = RandomUtility.GetRandom(output);
         var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
@@ -403,7 +351,7 @@ public partial class BlockExecutorTest
         });
         var block = blockchain.Propose(proposer);
         var blockExecutor = new BlockExecutor(repository.States);
-        var executionInfo = blockExecutor.Execute((RawBlock)block);
+        var executionInfo = blockExecutor.Execute(block);
 
         // var action = new ThrowException { ThrowOnExecution = true };
 

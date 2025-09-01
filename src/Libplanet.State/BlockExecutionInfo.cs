@@ -5,7 +5,7 @@ namespace Libplanet.State;
 
 public sealed record class BlockExecutionInfo
 {
-    public required RawBlock Block { get; init; }
+    public required Block Block { get; init; }
 
     public required World EnterWorld { get; init; }
 

@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Libplanet.Serialization;
 
 namespace Libplanet.Types;
@@ -11,8 +10,6 @@ public sealed partial record class RawBlock
 
     [Property(1)]
     public BlockContent Content { get; init; } = new();
-
-    public HashDigest<SHA256> Hash => HashDigest<SHA256>.HashData(ModelSerializer.SerializeToBytes(this));
 
     public static explicit operator RawBlock(Block block) => new()
     {

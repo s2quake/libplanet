@@ -97,7 +97,7 @@ public abstract class RepositoryFixture : IDisposable
             ],
             Timestamp = new DateTimeOffset(2018, 11, 29, 0, 0, 0, TimeSpan.Zero),
         }.Create(Proposer);
-        GenesisBlockExecutionInfo = BlockExecutor.Execute((RawBlock)GenesisBlock);
+        GenesisBlockExecutionInfo = BlockExecutor.Execute(GenesisBlock);
         GenesisStateRootHash = GenesisBlockExecutionInfo.StateRootHash;
         Block1 = TestUtils.ProposeNextBlock(
             GenesisBlock,

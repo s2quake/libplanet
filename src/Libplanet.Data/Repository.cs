@@ -303,11 +303,6 @@ public class Repository
         return 0;
     }
 
-    public void Clear()
-    {
-
-    }
-
     public async Task CopyToAsync(
         Repository destination, CancellationToken cancellationToken, IProgress<ProgressInfo> progress)
     {
@@ -322,7 +317,7 @@ public class Repository
             var destTable = destination.Database.GetOrAdd(name);
             if (sourceTable.Count > 0)
             {
-                await CopyTableAsync(sourceTable, destTable, cancellationToken, stepProgress);
+                await CopyTableAsync(sourceTable, destTable, stepProgress, cancellationToken);
             }
             else
             {
@@ -339,7 +334,7 @@ public class Repository
     }
 
     private static async Task CopyTableAsync(
-        ITable source, ITable destination, CancellationToken cancellationToken, StepProgress progress)
+        ITable source, ITable destination, StepProgress progress, CancellationToken cancellationToken)
     {
         var stepProgress = progress.BeginSubProgress(source.Count);
         foreach (var (key, value) in source)
