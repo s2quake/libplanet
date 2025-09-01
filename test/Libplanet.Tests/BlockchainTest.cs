@@ -146,10 +146,11 @@ public partial class BlockchainTest(ITestOutputHelper output)
     public void ProcessActions()
     {
         var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
         var address1 = RandomUtility.Address(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-        }.Create(GenesisProposer);
+        }.Create(proposer);
 
         var blockchain = new Blockchain(genesisBlock);
 
@@ -256,8 +257,12 @@ public partial class BlockchainTest(ITestOutputHelper output)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(_output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
         var options = new BlockchainOptions();
-        var blockchain = MakeBlockchain(options);
+        var blockchain = new Blockchain(genesisBlock, options);
         var signer = RandomUtility.Signer(random);
         blockchain.StagedTransactions.Add(signer, @params: new()
         {
@@ -279,7 +284,11 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(_output);
         var options = new BlockchainOptions();
-        var blockchain = MakeBlockchain(options);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock, options);
         var signer = RandomUtility.Signer(random);
 
         var action = DumbAction.Create((default, string.Empty));
@@ -305,7 +314,11 @@ public partial class BlockchainTest(ITestOutputHelper output)
     public void RenderActionsAfterAppendComplete()
     {
         var random = RandomUtility.GetRandom(_output);
-        var blockchain = MakeBlockchain();
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         var signer = RandomUtility.Signer(random);
 
         var action = DumbAction.Create((default, string.Empty));
@@ -332,7 +345,11 @@ public partial class BlockchainTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(_output);
         var signer = RandomUtility.Signer(random);
-        var blockchain = MakeBlockchain();
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
 
         Assert.Single(blockchain.BlockHashes[0..], blockchain.Genesis.BlockHash);
         var block0 = blockchain.Genesis;
@@ -361,7 +378,10 @@ public partial class BlockchainTest(ITestOutputHelper output)
         var signer = RandomUtility.Signer(random);
         var address1 = RandomUtility.Address(random);
         var actions = new[] { DumbAction.Create((address1, "foo")) };
-        var blockchain = MakeBlockchain();
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
 
         var tx1 = blockchain.StagedTransactions.Add(signer, new() { Actions = actions });
         var (block1, blockCommit1) = blockchain.ProposeAndAppend(proposer);
@@ -402,7 +422,11 @@ public partial class BlockchainTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(_output);
         var signer = RandomUtility.Signer(random);
-        var blockchain = MakeBlockchain();
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         var items = blockchain.ProposeAndAppendMany(signer, 10);
         var actual = blockchain.Tip.BlockHash;
         var expected = items[9].Block.BlockHash;
@@ -414,7 +438,11 @@ public partial class BlockchainTest(ITestOutputHelper output)
     public void GetBlockCommit()
     {
         var random = RandomUtility.GetRandom(_output);
-        var blockchain = MakeBlockchain();
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         Assert.Equal(default, blockchain.BlockCommits[0]);
         Assert.Equal(default, blockchain.BlockCommits[blockchain.Genesis.BlockHash]);
 

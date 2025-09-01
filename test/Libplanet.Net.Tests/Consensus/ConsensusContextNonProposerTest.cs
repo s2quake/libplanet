@@ -6,10 +6,11 @@ using Libplanet.Extensions;
 using System.Reactive.Linq;
 using static Libplanet.Net.Tests.TestUtils;
 using Libplanet.Types.Threading;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class ConsensusContextNonProposerTest
+public class ConsensusContextNonProposerTest(ITestOutputHelper output)
 {
     private const int Timeout = 30000;
 
@@ -17,7 +18,12 @@ public class ConsensusContextNonProposerTest
     public async Task NewHeightWithLastCommit()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);
         await using var transportB = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
@@ -84,7 +90,12 @@ public class ConsensusContextNonProposerTest
     [Fact(Timeout = Timeout)]
     public async Task HandleMessageFromHigherHeight()
     {
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);
         await using var transportB = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
@@ -164,7 +175,12 @@ public class ConsensusContextNonProposerTest
     [Fact(Timeout = Timeout)]
     public async Task UseLastCommitCacheIfHeightContextIsEmpty()
     {
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transport = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
         {
@@ -191,7 +207,12 @@ public class ConsensusContextNonProposerTest
         var newHeightDelay = TimeSpan.FromSeconds(1);
         // The maximum error margin. (macos-netcore-test)
         var timeError = 500;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);
         await using var transportB = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions

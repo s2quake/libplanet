@@ -63,23 +63,6 @@ public static class TestUtils
         return new Libplanet.Net.NetMQ.NetMQTransport(signer, options);
     }
 
-    public static Blockchain MakeBlockchain(
-        BlockchainOptions? options = null,
-        IEnumerable<IAction>? actions = null,
-        ImmutableSortedSet<Validator>? validators = null,
-        ISigner? signer = null,
-        DateTimeOffset? timestamp = null,
-        Block? genesisBlock = null,
-        int protocolVersion = BlockHeader.CurrentProtocolVersion)
-        => Libplanet.Tests.TestUtils.MakeBlockchain(
-            options: options ?? BlockchainOptions,
-            actions: actions,
-            validators: validators ?? Validators,
-            signer: signer ?? Signers[0],
-            timestamp: timestamp,
-            genesisBlock: genesisBlock,
-            protocolVersion: protocolVersion);
-
     public static void InvokeDelay(Action action, int millisecondsDelay)
     {
         _ = Task.Run(async () =>

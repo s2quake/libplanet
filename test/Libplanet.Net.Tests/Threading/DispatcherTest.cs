@@ -206,6 +206,7 @@ public class DispatcherTest(ITestOutputHelper output)
     [Fact]
     public async Task InvokeAsync_CancelBeforeRun_WithAction()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         await using var dispatcher = new Dispatcher();
         _ = dispatcher.InvokeAsync(() => Thread.Sleep(1000));
 
@@ -216,7 +217,7 @@ public class DispatcherTest(ITestOutputHelper output)
         {
             Thread.Sleep(100);
             await dispatcher.DisposeAsync();
-        });
+        }, cancellationToken);
 
         var e = await Assert.ThrowsAsync<OperationCanceledException>(
             () => dispatcher.InvokeAsync(Action, cancellationTokenSource.Token));
@@ -226,6 +227,7 @@ public class DispatcherTest(ITestOutputHelper output)
     [Fact]
     public async Task InvokeAsync_CancelBeforeRun_WithFunc()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         await using var dispatcher = new Dispatcher();
         _ = dispatcher.InvokeAsync(() => Thread.Sleep(1000));
 
@@ -236,7 +238,7 @@ public class DispatcherTest(ITestOutputHelper output)
         {
             Thread.Sleep(100);
             await dispatcher.DisposeAsync();
-        });
+        }, cancellationToken);
 
         var e = await Assert.ThrowsAsync<OperationCanceledException>(
             () => dispatcher.InvokeAsync(Func, cancellationTokenSource.Token));
@@ -246,6 +248,7 @@ public class DispatcherTest(ITestOutputHelper output)
     [Fact]
     public async Task InvokeAsync_CancelBeforeRun_WithActionTask()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         await using var dispatcher = new Dispatcher();
         _ = dispatcher.InvokeAsync(() => Thread.Sleep(1000));
 
@@ -260,7 +263,7 @@ public class DispatcherTest(ITestOutputHelper output)
         {
             Thread.Sleep(100);
             await dispatcher.DisposeAsync();
-        });
+        }, cancellationToken);
 
         var e = await Assert.ThrowsAsync<OperationCanceledException>(
             () => dispatcher.InvokeAsync(ActionTask, cancellationTokenSource.Token));
@@ -270,6 +273,7 @@ public class DispatcherTest(ITestOutputHelper output)
     [Fact]
     public async Task InvokeAsync_CancelBeforeRun_WithFuncTask()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         await using var dispatcher = new Dispatcher();
         _ = dispatcher.InvokeAsync(() => Thread.Sleep(1000));
 
@@ -284,7 +288,7 @@ public class DispatcherTest(ITestOutputHelper output)
         {
             Thread.Sleep(100);
             await dispatcher.DisposeAsync();
-        });
+        }, cancellationToken);
 
         var e = await Assert.ThrowsAsync<OperationCanceledException>(
             () => dispatcher.InvokeAsync(FuncTask, cancellationTokenSource.Token));

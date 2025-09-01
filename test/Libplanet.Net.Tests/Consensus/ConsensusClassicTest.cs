@@ -12,14 +12,19 @@ using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public sealed class ConsensusClassicTest
+public sealed class ConsensusClassicTest(ITestOutputHelper output)
 {
     private const int Timeout = 30000;
 
     [Fact(Timeout = Timeout)]
     public async Task StartAsProposer()
     {
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[1], consensus, blockchain);
 
@@ -38,7 +43,12 @@ public sealed class ConsensusClassicTest
     public async Task StartAsProposerWithLastCommit()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 2);
         using var observer = new ConsensusObserver(Signers[2], consensus, blockchain);
         var (_, blockCommit1) = blockchain.ProposeAndAppend(Signers[1]);
@@ -68,7 +78,12 @@ public sealed class ConsensusClassicTest
     public async Task CanAcceptMessagesAfterCommitFailure()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         blockchain.ProposeAndAppend(Signers[1]);
 
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 2);
@@ -135,7 +150,12 @@ public sealed class ConsensusClassicTest
     [Fact(Timeout = Timeout)]
     public async Task ThrowOnInvalidProposerMessage()
     {
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var block = blockchain.Propose(Signers[0]);
         var proposal = new ProposalBuilder
@@ -155,7 +175,12 @@ public sealed class ConsensusClassicTest
     public async Task ThrowOnDifferentHeightMessage()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[1], consensus, blockchain);
         var proposeTask = observer.ShouldPropose.WaitAsync();
@@ -202,7 +227,12 @@ public sealed class ConsensusClassicTest
                 MaxActionBytes = 50 * 1024,
             },
         };
-        var blockchain = MakeBlockchain(blockchainOptions);
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock, blockchainOptions);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[0], consensus, blockchain);
         using var _1 = consensus.Finalized.Subscribe(e => blockchain.Append(e.Block, e.BlockCommit));
@@ -277,7 +307,12 @@ public sealed class ConsensusClassicTest
     public async Task CanReplaceProposal()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         using var observer = new ConsensusObserver(Signers[0], consensus, blockchain);
         var blockA = blockchain.Propose(Signers[1]);
@@ -354,7 +389,12 @@ public sealed class ConsensusClassicTest
     {
         const int actionDelay = 2000;
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transport = new NetMQ.NetMQTransport(Signers[0]);
         var options = new ConsensusServiceOptions
         {
@@ -427,7 +467,12 @@ public sealed class ConsensusClassicTest
         {
             EnterPreCommitDelay = delay,
         };
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 1, options);
         var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder

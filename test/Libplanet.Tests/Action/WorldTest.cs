@@ -12,7 +12,6 @@ public sealed class WorldTest
     private readonly Address[] _addresses;
     private readonly Currency[] _currencies;
     private readonly World _initWorld;
-    private readonly IActionContext _initContext;
     private readonly ITestOutputHelper _output;
 
     public WorldTest(ITestOutputHelper output)
@@ -46,8 +45,6 @@ public sealed class WorldTest
             .SetBalance(_addresses[1], _currencies[2], 15)
             .SetBalance(_addresses[1], _currencies[3], 20)
             .SetValidators([.. _signers.Select(key => new Validator { Address = key.Address })]);
-
-        _initContext = CreateContext(_addresses[0]);
     }
 
     public int ProtocolVersion { get; }
@@ -117,35 +114,35 @@ public sealed class WorldTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var blockChain = TestUtils.MakeBlockchain(
-            protocolVersion: ProtocolVersion,
-            signer: proposer);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
 
         // Mint
         var action = DumbAction.Create(null, (null, _addresses[1], 20));
         var tx = new TransactionMetadata
         {
             Signer = _signers[0].Address,
-            GenesisBlockHash = blockChain.Genesis.BlockHash,
+            GenesisBlockHash = blockchain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_signers[0]);
-        var rawBlock1 = TestUtils.ProposeNext(
-            previousBlock: blockChain.Tip,
-            previousStateRootHash: blockChain.StateRootHash,
-            transactions: [tx],
-            proposer: proposer,
-            protocolVersion: ProtocolVersion);
-        var block1 = rawBlock1.Sign(proposer);
+        var block1 = new BlockBuilder
+        {
+            PreviousBlockHash = blockchain.Tip.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Transactions = [tx],
+        }.Create(proposer);
         var blockCommit1 = TestUtils.CreateBlockCommit(block1);
-        blockChain.Append(block1, blockCommit1);
+        blockchain.Append(block1, blockCommit1);
         Assert.Equal(
             DumbAction.DumbCurrency * 0,
-            blockChain
+            blockchain
                 .GetWorld()
                 .GetBalance(_addresses[0], DumbAction.DumbCurrency));
         Assert.Equal(
             DumbAction.DumbCurrency * 20,
-            blockChain
+            blockchain
                 .GetWorld()
                 .GetBalance(_addresses[1], DumbAction.DumbCurrency));
 
@@ -155,27 +152,25 @@ public sealed class WorldTest
         {
             Nonce = 1,
             Signer = _signers[0].Address,
-            GenesisBlockHash = blockChain.Genesis.BlockHash,
+            GenesisBlockHash = blockchain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_signers[0]);
-        var rawBlock2 = TestUtils.ProposeNext(
-            previousBlock: blockChain.Tip,
-            previousStateRootHash: blockChain.StateRootHash,
-            transactions: [tx],
-            proposer: proposer,
-            protocolVersion: ProtocolVersion,
-            previousCommit: blockChain.BlockCommits[blockChain.Tip.Height]);
-        var block2 = rawBlock2.Sign(proposer);
+        var block2 = new BlockBuilder
+        {
+            PreviousBlockHash = blockchain.Tip.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Transactions = [tx],
+        }.Create(proposer);
         var blockCommit2 = TestUtils.CreateBlockCommit(block2);
-        blockChain.Append(block2, blockCommit2);
+        blockchain.Append(block2, blockCommit2);
         Assert.Equal(
             DumbAction.DumbCurrency * 5,
-            blockChain
+            blockchain
                 .GetWorld()
                 .GetBalance(_addresses[0], DumbAction.DumbCurrency));
         Assert.Equal(
             DumbAction.DumbCurrency * 15,
-            blockChain
+            blockchain
                 .GetWorld()
                 .GetBalance(_addresses[1], DumbAction.DumbCurrency));
 
@@ -183,24 +178,22 @@ public sealed class WorldTest
         action = DumbAction.Create((_addresses[0], "a"), (_addresses[0], _addresses[0], 1));
         tx = new TransactionMetadata
         {
-            Nonce = blockChain.GetNextTxNonce(_addresses[0]),
+            Nonce = blockchain.GetNextTxNonce(_addresses[0]),
             Signer = _signers[0].Address,
-            GenesisBlockHash = blockChain.Genesis.BlockHash,
+            GenesisBlockHash = blockchain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_signers[0]);
-        var rawBlock3 = TestUtils.ProposeNext(
-            previousBlock: blockChain.Tip,
-            previousStateRootHash: blockChain.StateRootHash,
-            transactions: [tx],
-            proposer: _signers[1],
-            protocolVersion: ProtocolVersion,
-            previousCommit: blockChain.BlockCommits[blockChain.Tip.Height]);
-        var block3 = rawBlock3.Sign(_signers[1]);
+        var block3 = new BlockBuilder
+        {
+            PreviousBlockHash = blockchain.Tip.BlockHash,
+            PreviousStateRootHash = blockchain.StateRootHash,
+            Transactions = [tx],
+        }.Create(_signers[1]);
         var blockCommit3 = TestUtils.CreateBlockCommit(block3);
-        blockChain.Append(block3, blockCommit3);
+        blockchain.Append(block3, blockCommit3);
         Assert.Equal(
             DumbAction.DumbCurrency * 5,
-            blockChain.GetWorld().GetBalance(_addresses[0], DumbAction.DumbCurrency));
+            blockchain.GetWorld().GetBalance(_addresses[0], DumbAction.DumbCurrency));
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using Libplanet.Net.Messages;
 using Libplanet.Net.NetMQ;
+using Libplanet.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using NetMQ;
@@ -13,6 +14,10 @@ public sealed class MessageTest(ITestOutputHelper output)
     public void BlockHeaderMsg()
     {
         var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
         var signer = RandomUtility.Signer(random);
         var peer = new Peer
         {
@@ -21,8 +26,11 @@ public sealed class MessageTest(ITestOutputHelper output)
         };
         var protocol = new ProtocolBuilder { Version = 1 }.Create(RandomUtility.Signer(random));
         var dateTimeOffset = DateTimeOffset.UtcNow;
-        var genesis = ProposeGenesisBlock(GenesisProposer);
-        var expected = new BlockSummaryMessage { GenesisBlockHash = genesis.BlockHash, BlockSummary = genesis };
+        var expected = new BlockSummaryMessage
+        {
+            GenesisBlockHash = genesisBlock.BlockHash,
+            BlockSummary = genesisBlock,
+        };
         var rawMessage = NetMQMessageCodec.Encode(
             new MessageEnvelope
             {
@@ -121,8 +129,16 @@ public sealed class MessageTest(ITestOutputHelper output)
     [Fact]
     public void GetId()
     {
-        var genesis = ProposeGenesisBlock(GenesisProposer);
-        var message = new BlockSummaryMessage { GenesisBlockHash = genesis.BlockHash, BlockSummary = genesis };
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var message = new BlockSummaryMessage
+        {
+            GenesisBlockHash = genesisBlock.BlockHash,
+            BlockSummary = genesisBlock,
+        };
         Assert.Equal(
             new MessageId(ByteUtility.ParseHex(
                 "e1acbdc4d0cc1eb156cec60d0bf6d40fae3a90192e95719b12e6ee944c71b742")),

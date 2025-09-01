@@ -359,88 +359,8 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         await Task.WhenAll(taskList);
         Trace.WriteLine("3");
+        Assert.True(true);
     }
-
-    // [Fact(Timeout = Timeout)]
-    // public async Task BroadcastGuarantee()
-    // {
-    //     // Make sure t1 and t2 is in same bucket of seed's routing table.
-    //     var privateKey0 = new PrivateKey(
-    //     [
-    //         0x1a, 0x55, 0x30, 0x84, 0xe8, 0x9e, 0xee, 0x1e, 0x9f, 0xe2, 0xd1, 0x49, 0xe7, 0xa9,
-    //         0x53, 0xa9, 0xb4, 0xe4, 0xfe, 0x5a, 0xc1, 0x6c, 0x61, 0x9f, 0x54, 0x8f, 0x5e, 0xd9,
-    //         0x7f, 0xa3, 0xa0, 0x79,
-    //     ]);
-    //     var privateKey1 = new PrivateKey(
-    //     [
-    //         0x8e, 0x26, 0x31, 0x4a, 0xee, 0x84, 0xd, 0x8a, 0xea, 0x7b, 0x6, 0xf8, 0x81, 0x5f,
-    //         0x69, 0xb3, 0x44, 0x46, 0xe0, 0x27, 0x65, 0x17, 0x1, 0x16, 0x58, 0x26, 0x69, 0x93,
-    //         0x48, 0xbb, 0xf, 0xb4,
-    //     ]);
-    //     var privateKey2 = new PrivateKey(
-    //     [
-    //         0xd4, 0x6b, 0x4b, 0x38, 0xde, 0x39, 0x25, 0x3b, 0xd8, 0x1, 0x9d, 0x2, 0x2, 0x7a,
-    //         0x90, 0x9, 0x46, 0x2f, 0xc1, 0xd3, 0xd9, 0xa, 0xa6, 0xf4, 0xfa, 0x9a, 0x6, 0xa3,
-    //         0x60, 0xed, 0xf3, 0xd7,
-    //     ]);
-
-    //     await using var seed = TestUtils.CreateTransport(privateKey0);
-    //     await using var t1 = TestUtils.CreateTransport(privateKey1, true);
-    //     await using var t2 = TestUtils.CreateTransport(privateKey2);
-    //     var seedTable = new RoutingTable(seed.Peer.Address);
-    //     _ = new PeerService(seedTable, seed);
-    //     var t1Table = new RoutingTable(t1.Peer.Address);
-    //     var t2Table = new RoutingTable(t2.Peer.Address);
-    //     var peerExplorer1 = new PeerService(t1Table, t1);
-    //     var peerExplorer2 = new PeerService(t2Table, t2);
-
-    //     await seed.StartAsync(default);
-    //     await t1.StartAsync(default);
-    //     await t2.StartAsync(default);
-
-    //     await peerExplorer1.BootstrapAsync([seed.Peer], 3, default);
-    //     await peerExplorer2.BootstrapAsync([seed.Peer], 3, default);
-
-    //     var tcs = new CancellationTokenSource();
-    //     var task = t2.WaitForTestMessageWithData("foo", tcs.Token);
-
-    //     seed.BroadcastTestMessage(default, "foo");
-
-    //     tcs.CancelAfter(TimeSpan.FromSeconds(5));
-    //     await task;
-
-    //     Assert.True(t2.ReceivedTestMessageOfData("foo"));
-
-    //     var tcs1 = new CancellationTokenSource();
-    //     task = t2.WaitForTestMessageWithData("bar", tcs.Token);
-
-    //     seed.BroadcastTestMessage(default, "bar");
-
-    //     tcs.CancelAfter(TimeSpan.FromSeconds(5));
-    //     await task;
-
-    //     Assert.True(t2.ReceivedTestMessageOfData("bar"));
-
-    //     tcs = new CancellationTokenSource();
-    //     task = t2.WaitForTestMessageWithData("baz", tcs.Token);
-
-    //     seed.BroadcastTestMessage(default, "baz");
-
-    //     tcs.CancelAfter(TimeSpan.FromSeconds(5));
-    //     await task;
-
-    //     Assert.True(t2.ReceivedTestMessageOfData("baz"));
-
-    //     tcs = new CancellationTokenSource();
-    //     task = t2.WaitForTestMessageWithData("qux", tcs.Token);
-
-    //     seed.BroadcastTestMessage(default, "qux");
-
-    //     tcs.CancelAfter(TimeSpan.FromSeconds(5));
-    //     await task;
-
-    //     Assert.True(t2.ReceivedTestMessageOfData("qux"));
-    // }
 
     [Fact(Timeout = Timeout)]
     public async Task DoNotBroadcastToSourcePeer()

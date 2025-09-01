@@ -1,11 +1,14 @@
 using System.Reactive.Linq;
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
+using Libplanet.Tests;
+using Libplanet.TestUtilities;
+using Xunit.Sdk;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public sealed class ConsensusTest
+public sealed class ConsensusTest(ITestOutputHelper output)
 {
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task BaseTest()
@@ -25,7 +28,12 @@ public sealed class ConsensusTest
     public async Task StartAsync(int index, bool isProposer)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         using var consensusController = new ConsensusObserver(
             Signers[index],
@@ -96,7 +104,12 @@ public sealed class ConsensusTest
     public async Task Propose()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         var options = new ConsensusOptions
         {
             ProposeTimeoutBase = TimeSpan.FromSeconds(1),
@@ -127,7 +140,12 @@ public sealed class ConsensusTest
     public async Task Propose_Throw_Double_Proposal()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         var options = new ConsensusOptions
         {
             ProposeTimeoutBase = TimeSpan.FromSeconds(2),
@@ -161,7 +179,12 @@ public sealed class ConsensusTest
     public async Task Propose_Throw_With_InvalidProposer()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),
@@ -185,7 +208,12 @@ public sealed class ConsensusTest
     public async Task Propose_Throw_With_InvalidRound()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(
             height: 1,
             // signer: TestUtils.PrivateKeys[0].AsSigner(),

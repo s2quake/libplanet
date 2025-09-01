@@ -1,8 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
-using Libplanet.Types;
-// using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Types.Tests;
 
@@ -165,34 +163,5 @@ public class CurrencyTest
 
         Assert.Equal(foo, ModelSerializer.Clone(foo));
         Assert.Equal(bar, ModelSerializer.Clone(bar));
-    }
-
-    [Fact]
-    public void JsonSerialization()
-    {
-        var foo = Currency.Create("FOO", 2);
-        var expectedFooJson = @"
-            {
-                ""hash"": ""b48e64cd4355c04a1a07a921c2dc4e070ae274ff"",
-                ""ticker"": ""FOO"",
-                ""decimalPlaces"": 2,
-                ""maximumSupply"": ""0"",
-                ""minters"": []
-            }";
-        // AssertJsonSerializable(foo, expectedFooJson);
-
-        var bar = Currency.Create("BAR", 0, 100, [AddressA, AddressB]);
-        var expectedBarJson = @"
-            {
-                ""hash"": ""6b187ae301440743c76edb7286a17d8982cac4eb"",
-                ""ticker"": ""BAR"",
-                ""decimalPlaces"": 0,
-                ""maximumSupply"": ""100"",
-                ""minters"": [
-                    ""0x5003712B63baAB98094aD678EA2B24BcE445D076"",
-                    ""0xD6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9"",
-                ]
-            }";
-        // AssertJsonSerializable(bar, expectedBarJson);
     }
 }

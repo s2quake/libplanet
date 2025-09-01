@@ -3,6 +3,8 @@ using Libplanet.Types;
 using Libplanet.Extensions;
 using System.Reactive.Linq;
 using static Libplanet.Net.Tests.TestUtils;
+using Libplanet.TestUtilities;
+using Libplanet.Tests;
 
 namespace Libplanet.Net.Tests;
 
@@ -12,10 +14,15 @@ public partial class SwarmTest
     public async Task DuplicateVote_Test()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
         var signers = Libplanet.Tests.TestUtils.Signers.ToArray();
         var count = signers.Length;
         var transports = signers.Select(item => TestUtils.CreateTransport(item)).ToArray();
-        var blockchains = transports.Select(item => Libplanet.Tests.TestUtils.MakeBlockchain()).ToArray();
+        var blockchains = transports.Select(item => new Blockchain(genesisBlock)).ToArray();
 
         var consensusPeers = transports.Select(item => item.Peer);
         var consensusServiceOptions = Enumerable.Range(0, count).Select(i =>
@@ -67,9 +74,9 @@ public partial class SwarmTest
 
         var waitTasks2 = blockchains.Select(item => item.TipChanged.WaitAsync(e => e.Height == i));
         await Task.WhenAll(waitTasks2);
-        foreach (Blockchain blockChain in blockchains)
+        foreach (Blockchain blockchain in blockchains)
         {
-            Assert.Equal(i + 1, blockChain.Blocks.Count);
+            Assert.Equal(i + 1, blockchain.Blocks.Count);
         }
     }
 

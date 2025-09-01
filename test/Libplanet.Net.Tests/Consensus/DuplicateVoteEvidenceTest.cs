@@ -15,7 +15,12 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public async Task Evidence_WithDuplicateVotes_Test()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
@@ -88,7 +93,11 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
-        var blockchain = MakeBlockchain();
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
@@ -124,7 +133,11 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
-        var blockchain = MakeBlockchain();
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
         await using var transportB = CreateTransport(Signers[3]);
         await using var consensusService = new ConsensusService(Signers[3], blockchain, transportB);
@@ -156,7 +169,11 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
-        var blockchain = MakeBlockchain();
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
@@ -191,7 +208,12 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public async Task IgnoreSameBlockHashVote()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
@@ -225,7 +247,12 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public async Task IgnoreNillVote()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions

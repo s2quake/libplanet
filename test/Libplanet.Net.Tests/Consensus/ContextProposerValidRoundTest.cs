@@ -1,5 +1,6 @@
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
+using Libplanet.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
@@ -12,7 +13,12 @@ public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
     public async Task EnterValidRoundPreVoteBlock()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var proposeStep2Task = consensus.StepChanged.WaitAsync(
             e => e.Step == ConsensusStep.Propose && consensus.Round.Index == 2);
@@ -51,7 +57,11 @@ public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
-        var blockchain = MakeBlockchain();
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var timeoutTask = consensus.TimeoutOccurred.WaitAsync();
         var proposeStep2Task = consensus.StepChanged.WaitAsync(
