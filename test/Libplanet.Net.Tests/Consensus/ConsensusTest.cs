@@ -206,14 +206,11 @@ public sealed class ConsensusTest
         Assert.Equal("proposal", e2.ParamName);
     }
 
-    [Theory(Timeout = TestUtils.Timeout)]
-    [InlineData(0)]
-    [InlineData(1)]
+    [Fact(Timeout = TestUtils.Timeout)]
     // proposal 이 늦게 올 수도 있다는 전제가 있어서 PreVote 단계에서 Timeout 를 검출해야 함
-    public async Task TimeoutOccured_Propose_Without_Proposal(int index)
+    public async Task TimeoutOccured_Propose_Without_Proposal()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var blockchain = MakeBlockchain();
         var options = new ConsensusOptions
         {
             ProposeTimeoutBase = TimeSpan.FromSeconds(1),

@@ -1,7 +1,6 @@
 using Libplanet.Extensions;
 using Libplanet.Net.Services;
 using Libplanet.Tests;
-using Libplanet.Tests.Store;
 using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests.Services;
@@ -16,12 +15,16 @@ public partial class BlockchainSynchronizationServiceTest(ITestOutputHelper outp
         // Given
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
-        using var fx = new MemoryRepositoryFixture();
         var signerA = RandomUtility.Signer(random);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
+
         var transportA = TestUtils.CreateTransport();
         var transportB = TestUtils.CreateTransport();
-        var blockchainA = Libplanet.Tests.TestUtils.MakeBlockchain(genesisBlock: fx.GenesisBlock);
-        var blockchainB = Libplanet.Tests.TestUtils.MakeBlockchain(genesisBlock: fx.GenesisBlock);
+        var blockchainA = new Blockchain(genesisBlock);
+        var blockchainB = new Blockchain(genesisBlock);
         var serviceA = new BlockSynchronizationResponderService(blockchainA, transportA);
         var serviceB = new BlockSynchronizationService(blockchainB, transportB);
         await using var services = new ServiceCollection

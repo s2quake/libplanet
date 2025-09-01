@@ -9,20 +9,6 @@ namespace Libplanet.State;
 
 public static class StateIndexExtensions
 {
-    // private readonly ITable _table = table;
-
-    // public StateIndex()
-    //     : this(new MemoryDatabase())
-    // {
-    // }
-
-    // public StateIndex(IDatabase database)
-    //     : this(database.GetOrAdd("trie_state_store"))
-    // {
-    // }
-
-    // public bool IsEmpty => _table.Count is 0;
-
     public static Trie GetTrie(this StateIndex stateIndex, HashDigest<SHA256> stateRootHash)
     {
         if (stateRootHash == default)
@@ -65,9 +51,6 @@ public static class StateIndexExtensions
 
         return new Trie(newNode);
     }
-
-    // public bool Contains(HashDigest<SHA256> stateRootHash)
-    //     => stateRootHash != default && _table.ContainsKey(stateRootHash.ToString());
 
     private static INode Commit(INode node, WriteBatch writeBatch) => node switch
     {

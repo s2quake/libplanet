@@ -1,11 +1,12 @@
-using Libplanet.Net.Consensus;
 using Libplanet.Data;
-using Libplanet.Tests.Store;
+using Libplanet.Net.Consensus;
+using Libplanet.Tests;
+using Libplanet.TestUtilities;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public class ConsensusServiceTest
+public class ConsensusServiceTest(ITestOutputHelper output)
 {
     private const int PropagationDelay = 25_000;
 
@@ -13,9 +14,13 @@ public class ConsensusServiceTest
     public async Task StartAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+        }.Create(proposer);
         var count = Signers.Length;
         var blockchains = new Blockchain[count];
-        using var fx = new MemoryRepositoryFixture();
         var validatorPeers = new List<Peer>();
         await using ServiceCollection<ITransport> transports = [];
         await using ServiceCollection<ConsensusService> consensusServices = [];
@@ -33,7 +38,7 @@ public class ConsensusServiceTest
             {
             };
             var repository = new Repository();
-            blockchains[i] = new Blockchain(fx.GenesisBlock, repository, blockchainOptions);
+            blockchains[i] = new Blockchain(genesisBlock, repository, blockchainOptions);
         }
 
         for (var i = 0; i < count; i++)

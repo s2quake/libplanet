@@ -256,7 +256,7 @@ public partial class BlockchainTest
         blockchain.Append(block3, CreateBlockCommit(block3));
         var txExecution3 = repository.TxExecutions[tx1Transfer.Id];
         Assert.False(txExecution3.Fail);
-        var inputAccount1 = blockchain.GetWorld(
+        _ = blockchain.GetWorld(
             Assert.IsType<HashDigest<SHA256>>(txExecution3.EnterState))
                 .GetAccount(SystemAddresses.SystemAccount);
         var outputWorld3 = blockchain.GetWorld(
@@ -264,11 +264,6 @@ public partial class BlockchainTest
         var outputAccount3 = outputWorld3
                 .GetAccount(SystemAddresses.SystemAccount);
 
-        // var accountDiff1 = AccountDiff.Create(inputAccount1, outputAccount1);
-
-        // Assert.Equal(
-        //     (new Address[] { addresses[0], pk.Address }).ToImmutableHashSet(),
-        //     accountDiff1.StateDiffs.Select(kv => kv.Key).ToImmutableHashSet());
         Assert.Equal(
             "foo",
             outputAccount3.GetValue(signer2.Address));

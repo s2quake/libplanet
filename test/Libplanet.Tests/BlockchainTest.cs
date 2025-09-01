@@ -3,7 +3,6 @@ using Libplanet.Extensions;
 using Libplanet.State;
 using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Actions;
-using Libplanet.Tests.Store;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using Xunit.Internal;
@@ -1202,7 +1201,4 @@ public partial class BlockchainTest(ITestOutputHelper output)
         Assert.Equal(blockchain.GetWorld(0).GetValidators(), [.. validatorsA]);
         Assert.Equal(blockchain.GetWorld(1).GetValidators(), [.. validatorsB]);
     }
-
-    protected virtual RepositoryFixture GetStoreFixture(BlockchainOptions? options = null)
-        => new MemoryRepositoryFixture(options ?? new());
 }

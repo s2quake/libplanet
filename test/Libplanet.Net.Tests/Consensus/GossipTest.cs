@@ -2,19 +2,24 @@ using Libplanet.Extensions;
 using Libplanet.Net.Components;
 using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
-using Libplanet.Tests.Store;
+using Libplanet.Tests;
 using Libplanet.TestUtilities;
+using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;
 
-public sealed class GossipTest
+public sealed class GossipTest(ITestOutputHelper output)
 {
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task PublishMessage()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        using var fx = new MemoryRepositoryFixture();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var block = new BlockBuilder
+        {
+        }.Create(proposer);
         var transport1 = CreateTransport();
         var transport2 = CreateTransport();
         var peers1 = new PeerCollection(transport1.Peer.Address)
@@ -39,8 +44,8 @@ public sealed class GossipTest
 
         var proposal = new ProposalBuilder
         {
-            Block = fx.Block1,
-        }.Create(fx.Proposer);
+            Block = block,
+        }.Create(proposer);
         var proposalMessage = new ConsensusProposalMessage { Proposal = proposal };
 
         gossip1.Broadcast(proposalMessage);
@@ -56,13 +61,22 @@ public sealed class GossipTest
     public async Task AddMessages()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        using var fx = new MemoryRepositoryFixture();
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new BlockBuilder
+        {
+        }.Create(proposer);
+        var blockchain = new Blockchain(genesisBlock);
+        var (block1, _) = blockchain.ProposeAndAppend(proposer);
+        var (block2, _) = blockchain.ProposeAndAppend(proposer);
+        var (block3, _) = blockchain.ProposeAndAppend(proposer);
+        var (block4, _) = blockchain.ProposeAndAppend(proposer);
         ConsensusProposalMessage[] messages =
         [
-            new () { Proposal = new ProposalBuilder { Block = fx.Block1, }.Create(fx.Proposer) },
-            new () { Proposal = new ProposalBuilder { Block = fx.Block2, }.Create(fx.Proposer) },
-            new () { Proposal = new ProposalBuilder { Block = fx.Block3, }.Create(fx.Proposer) },
-            new () { Proposal = new ProposalBuilder { Block = fx.Block4, }.Create(fx.Proposer) },
+            new () { Proposal = new ProposalBuilder { Block = block1, }.Create(proposer) },
+            new () { Proposal = new ProposalBuilder { Block = block2, }.Create(proposer) },
+            new () { Proposal = new ProposalBuilder { Block = block3, }.Create(proposer) },
+            new () { Proposal = new ProposalBuilder { Block = block4, }.Create(proposer) },
         ];
         var transport1 = CreateTransport();
         var transport2 = CreateTransport();
