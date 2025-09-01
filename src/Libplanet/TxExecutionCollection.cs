@@ -6,24 +6,24 @@ using Libplanet.Types;
 namespace Libplanet;
 
 public sealed class TxExecutionCollection(Repository repository)
-    : IReadOnlyDictionary<TxId, TxExecution>
+    : IReadOnlyDictionary<TxId, TxExecutionInfo>
 {
     private readonly TxExecutionIndex _store = repository.TxExecutions;
 
     public IEnumerable<TxId> Keys => _store.Keys;
 
-    public IEnumerable<TxExecution> Values => _store.Values;
+    public IEnumerable<TxExecutionInfo> Values => _store.Values;
 
     public int Count => _store.Count;
 
-    public TxExecution this[TxId txId] => _store[txId];
+    public TxExecutionInfo this[TxId txId] => _store[txId];
 
     public bool ContainsKey(TxId txId) => _store.ContainsKey(txId);
 
-    public bool TryGetValue(TxId txId, [MaybeNullWhen(false)] out TxExecution value)
+    public bool TryGetValue(TxId txId, [MaybeNullWhen(false)] out TxExecutionInfo value)
         => _store.TryGetValue(txId, out value);
 
-    IEnumerator<KeyValuePair<TxId, TxExecution>> IEnumerable<KeyValuePair<TxId, TxExecution>>.GetEnumerator()
+    IEnumerator<KeyValuePair<TxId, TxExecutionInfo>> IEnumerable<KeyValuePair<TxId, TxExecutionInfo>>.GetEnumerator()
     {
         foreach (var kvp in _store)
         {

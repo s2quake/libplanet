@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.State;
 
-public sealed record class BlockExecutionInfo
+public sealed record class BlockExecution
 {
     public required Block Block { get; init; }
 
@@ -11,11 +11,11 @@ public sealed record class BlockExecutionInfo
 
     public required World LeaveWorld { get; init; }
 
-    public ImmutableArray<ActionExecutionInfo> EnterExecutions { get; init; } = [];
+    public ImmutableArray<ActionExecution> EnterExecutions { get; init; } = [];
 
-    public ImmutableArray<TransactionExecutionInfo> Executions { get; init; } = [];
+    public ImmutableArray<TransactionExecution> Executions { get; init; } = [];
 
-    public ImmutableArray<ActionExecutionInfo> LeaveExecutions { get; init; } = [];
+    public ImmutableArray<ActionExecution> LeaveExecutions { get; init; } = [];
 
     public HashDigest<SHA256> StateRootHash => LeaveWorld.Trie.Hash;
 }

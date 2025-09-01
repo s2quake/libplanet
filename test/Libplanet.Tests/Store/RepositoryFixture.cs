@@ -186,7 +186,7 @@ public abstract class RepositoryFixture : IDisposable
 
     public BlockExecutor BlockExecutor { get; }
 
-    public BlockExecutionInfo GenesisBlockExecutionInfo { get; }
+    public BlockExecution GenesisBlockExecutionInfo { get; }
 
     public Transaction MakeTransaction(
         IEnumerable<DumbAction>? actions = null,

@@ -4,11 +4,11 @@ using Libplanet.Types;
 namespace Libplanet.Data;
 
 public sealed class TxExecutionIndex(IDatabase database, int cacheSize = 100)
-    : KeyedIndexBase<TxId, TxExecution>(database.GetOrAdd("tx_execution"), cacheSize)
+    : KeyedIndexBase<TxId, TxExecutionInfo>(database.GetOrAdd("tx_execution"), cacheSize)
 {
-    protected override byte[] ValueToBytes(TxExecution value) => ModelSerializer.SerializeToBytes(value);
+    protected override byte[] ValueToBytes(TxExecutionInfo value) => ModelSerializer.SerializeToBytes(value);
 
-    protected override TxExecution BytesToValue(byte[] bytes) => ModelSerializer.DeserializeFromBytes<TxExecution>(bytes);
+    protected override TxExecutionInfo BytesToValue(byte[] bytes) => ModelSerializer.DeserializeFromBytes<TxExecutionInfo>(bytes);
 
     protected override string KeyToString(TxId key) => key.ToString();
 

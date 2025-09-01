@@ -73,11 +73,11 @@ public partial class Blockchain
 
     public IObservable<Unit> BlockExecuting => _blockExecutingSubject;
 
-    public IObservable<ActionExecutionInfo> ActionExecuted => _blockExecutor.ActionExecuted;
+    public IObservable<ActionExecution> ActionExecuted => _blockExecutor.ActionExecuted;
 
-    public IObservable<TransactionExecutionInfo> TransactionExecuted => _blockExecutor.TransactionExecuted;
+    public IObservable<TransactionExecution> TransactionExecuted => _blockExecutor.TransactionExecuted;
 
-    public IObservable<BlockExecutionInfo> BlockExecuted => _blockExecutor.BlockExecuted;
+    public IObservable<BlockExecution> BlockExecuted => _blockExecutor.BlockExecuted;
 
     public IObservable<Block> TipChanged => _tipChangedSubject;
 
@@ -118,19 +118,6 @@ public partial class Blockchain
     private BlockchainOptions Options { get; }
 
     public long GetNextTxNonce(Address address) => StagedTransactions.GetNextTxNonce(address);
-
-    internal long GetTxNonce(Address address) => _repository.GetNonce(address);
-
-    public BlockExecutionInfo Execute(Block block)
-    {
-        var execution = _blockExecutor.Execute(block);
-        var blockHash = block.BlockHash;
-        _repository.TxExecutions.AddRange(execution.GetTxExecutions(blockHash));
-        _repository.BlockExecutions.Add(execution.GetBlockExecution(blockHash));
-        _repository.StateRootHashes.Add(blockHash, _repository.StateRootHash);
-
-        return execution;
-    }
 
     public void Append(Block block, BlockCommit blockCommit)
     {
@@ -269,10 +256,7 @@ public partial class Blockchain
         _repository.Append(block, blockCommit);
         _tipChangedSubject.OnNext(block);
         _blockExecutingSubject.OnNext(Unit.Default);
-        var execution = _blockExecutor.Execute(block);
-        _repository.StateRootHash = execution.LeaveWorld.Hash;
-        _repository.StateRootHashes.Add(block.BlockHash, _repository.StateRootHash);
-        _repository.TxExecutions.AddRange(execution.GetTxExecutions(block.BlockHash));
+        _repository.AppendExecution(_blockExecutor.Execute(block));
         _appendedSubject.OnNext((block, blockCommit));
         LogAppended(_logger, block.Height, block.BlockHash);
     }
@@ -350,4 +334,6 @@ public partial class Blockchain
         MaxGasPrice = @params.MaxGasPrice,
         GasLimit = @params.GasLimit,
     }.Sign(signer);
+
+    internal long GetTxNonce(Address address) => _repository.GetNonce(address);
 }

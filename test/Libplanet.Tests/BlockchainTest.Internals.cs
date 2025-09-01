@@ -227,7 +227,7 @@ public partial class BlockchainTest
         Assert.Null(blockchain.TxExecutions.GetValueOrDefault(txId1));
         Assert.Null(blockchain.TxExecutions.GetValueOrDefault(txId2));
 
-        var inputA = new TxExecution
+        var inputA = new TxExecutionInfo
         {
             BlockHash = blockHash1,
             TxId = txId1,
@@ -235,7 +235,7 @@ public partial class BlockchainTest
             LeaveState = RandomUtility.HashDigest<SHA256>(random),
             ExceptionNames = [],
         };
-        var inputB = new TxExecution
+        var inputB = new TxExecutionInfo
         {
             BlockHash = blockHash1,
             TxId = txId2,
@@ -243,7 +243,7 @@ public partial class BlockchainTest
             LeaveState = RandomUtility.HashDigest<SHA256>(random),
             ExceptionNames = ["AnExceptionName"],
         };
-        var inputC = new TxExecution
+        var inputC = new TxExecutionInfo
         {
             BlockHash = blockHash2,
             TxId = txId1,

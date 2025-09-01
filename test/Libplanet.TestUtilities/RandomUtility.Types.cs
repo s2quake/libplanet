@@ -150,9 +150,9 @@ public static partial class RandomUtility
         Timestamp = DateTimeOffset(random),
     };
 
-    public static TxExecution Txexecution() => TxExecution(System.Random.Shared);
+    public static TxExecutionInfo Txexecution() => TxExecution(System.Random.Shared);
 
-    public static TxExecution TxExecution(Random random) => new()
+    public static TxExecutionInfo TxExecution(Random random) => new()
     {
         TxId = TxId(random),
         BlockHash = BlockHash(random),

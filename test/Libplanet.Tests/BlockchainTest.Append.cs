@@ -94,7 +94,7 @@ public partial class BlockchainTest
             .SelectMany(e => e.Executions)
             .Select(e => (DumbAction)e.Action)
             .ToArray();
-        ActionExecutionInfo[] actionExecutions =
+        ActionExecution[] actionExecutions =
         [
             blockExecution2.Executions[0].Executions[0],
             blockExecution2.Executions[0].Executions[1],

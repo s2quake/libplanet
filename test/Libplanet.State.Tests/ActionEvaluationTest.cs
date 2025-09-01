@@ -33,7 +33,7 @@ public class ActionEvaluationTest(ITestOutputHelper output)
         };
         var world = new World();
         world = world.SetValue(SystemAccount, address, "item");
-        var evaluation = new ActionExecutionInfo
+        var evaluation = new ActionExecution
         {
             Action = DumbAction.Create((address, "item")),
             ActionContext = new ActionContext

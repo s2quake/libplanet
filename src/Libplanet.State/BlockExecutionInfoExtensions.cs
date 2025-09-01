@@ -1,15 +1,14 @@
-using Libplanet.State;
 using Libplanet.Types;
 
-namespace Libplanet.Extensions;
+namespace Libplanet.State;
 
-public static class BlockExecutionInfoExtensions
+public static class BlockExecutionExtensions
 {
-    public static TxExecution[] GetTxExecutions(this BlockExecutionInfo @this, BlockHash blockHash)
+    public static TxExecutionInfo[] GetTxExecutions(this BlockExecution @this, BlockHash blockHash)
     {
         return [.. @this.Executions.Select(ToTxExecution)];
 
-        TxExecution ToTxExecution(TransactionExecutionInfo evaluation) => new()
+        TxExecutionInfo ToTxExecution(TransactionExecution evaluation) => new()
         {
             TxId = evaluation.Transaction.Id,
             BlockHash = blockHash,
@@ -21,16 +20,16 @@ public static class BlockExecutionInfoExtensions
             ],
         };
 
-        static IEnumerable<ActionExecutionInfo> GetActionEvaluations(TransactionExecutionInfo txEvaluation)
+        static IEnumerable<ActionExecution> GetActionEvaluations(TransactionExecution txEvaluation)
             => txEvaluation.EnterExecutions.Concat(txEvaluation.Executions).Concat(txEvaluation.LeaveExecutions);
 
-        static string GetExceptionName(ActionExecutionInfo evaluation)
+        static string GetExceptionName(ActionExecution evaluation)
             => GetActualException(evaluation.Exception)?.GetType().FullName ?? string.Empty;
 
         static Exception? GetActualException(Exception? exception) => exception?.InnerException ?? exception;
     }
 
-    public static BlockExecutionResult GetBlockExecution(this BlockExecutionInfo @this, BlockHash blockHash) => new()
+    public static BlockExecutionResult GetBlockExecution(this BlockExecution @this, BlockHash blockHash) => new()
     {
         BlockHash = blockHash,
         EnterState = @this.EnterWorld.Hash,
