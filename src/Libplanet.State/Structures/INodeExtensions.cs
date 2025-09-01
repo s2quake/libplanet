@@ -1,6 +1,6 @@
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures.Nodes;
 
-namespace Libplanet.Data.Structures;
+namespace Libplanet.State.Structures;
 
 public static class INodeExtensions
 {

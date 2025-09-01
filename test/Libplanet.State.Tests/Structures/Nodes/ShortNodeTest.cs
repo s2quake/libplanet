@@ -1,10 +1,11 @@
-using Libplanet.Data.Structures;
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures;
+using Libplanet.State.Structures.Nodes;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
+using Libplanet.Data;
 
-namespace Libplanet.Data.Tests.Structures.Nodes;
+namespace Libplanet.State.Tests.Structures.Nodes;
 
 public class ShortNodeTest
 {
@@ -72,7 +73,7 @@ public class ShortNodeTest
 
         var node3 = node1 with
         {
-            Value = new HashNode { Hash = default, Table = new MemoryTable() },
+            Value = new HashNode { Hash = default, StateIndex = [] },
         };
         ValidationUtility.Validate(node3);
 

@@ -4,7 +4,7 @@
 // using Libplanet.Policies;
 // using Libplanet.Types;
 // using Libplanet.Data;
-// using Libplanet.Data.Structures;
+// using Libplanet.State.Structures;
 // // using Libplanet.Types;
 // using Libplanet.Types;
 // using Xunit;

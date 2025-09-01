@@ -161,9 +161,9 @@ public static partial class RandomUtility
         ExceptionNames = ImmutableArray(random, String),
     };
 
-    public static BlockExecution BlockExecution() => BlockExecution(System.Random.Shared);
+    public static BlockExecutionResult BlockExecution() => BlockExecution(System.Random.Shared);
 
-    public static BlockExecution BlockExecution(Random random) => new()
+    public static BlockExecutionResult BlockExecution(Random random) => new()
     {
         BlockHash = BlockHash(random),
         EnterState = HashDigest<SHA256>(random),

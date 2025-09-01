@@ -6,7 +6,7 @@ using Libplanet.Data;
 using Libplanet.Types;
 using Libplanet.TestUtilities;
 using Libplanet.Extensions;
-using Libplanet.Data.Structures;
+using Libplanet.State.Structures;
 using Libplanet.State.Builtin;
 using static Libplanet.Tests.TestUtils;
 

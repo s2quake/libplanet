@@ -2,7 +2,7 @@ using System.IO;
 using Libplanet.Extensions.Cocona.Commands;
 using Libplanet.Extensions.Cocona.Configuration;
 using Libplanet.Data;
-using Libplanet.Data.Structures;
+using Libplanet.State.Structures;
 using Libplanet.Tools.Tests.Services;
 using Libplanet.Types;
 

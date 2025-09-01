@@ -184,7 +184,7 @@ public class Repository
                     nameof(blockCommit));
             }
 
-            if (block.PreviousStateRootHash != default && !States.Contains(block.PreviousStateRootHash))
+            if (block.PreviousStateRootHash != default && !States.ContainsKey(block.PreviousStateRootHash))
             {
                 throw new ArgumentException(
                     $"Cannot find previous state root hash: {block.PreviousStateRootHash}.",

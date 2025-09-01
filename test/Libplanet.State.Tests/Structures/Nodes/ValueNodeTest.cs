@@ -1,9 +1,9 @@
-using Libplanet.Data.Structures;
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures;
+using Libplanet.State.Structures.Nodes;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 
-namespace Libplanet.Data.Tests.Structures.Nodes;
+namespace Libplanet.State.Tests.Structures.Nodes;
 
 public class ValueNodeTest
 {

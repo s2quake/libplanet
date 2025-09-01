@@ -244,8 +244,8 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
         Assert.IsType<InvalidCastException>(executionInfoB.LeaveExecutions[0].Exception);
 
         Assert.Equal(executionInfoA.StateRootHash, executionInfoB.StateRootHash);
-        Assert.True(repositoryA.States.Contains(executionInfoA.StateRootHash));
-        Assert.True(repositoryB.States.Contains(executionInfoB.StateRootHash));
+        Assert.True(repositoryA.States.ContainsKey(executionInfoA.StateRootHash));
+        Assert.True(repositoryB.States.ContainsKey(executionInfoB.StateRootHash));
     }
 
     [Fact]

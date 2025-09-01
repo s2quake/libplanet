@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 
-namespace Libplanet.Data.Structures.Nodes;
+namespace Libplanet.State.Structures.Nodes;
 
 [Model(Version = 1, TypeName = "snode")]
 internal sealed record class ShortNode : INode, IValidatableObject

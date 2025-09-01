@@ -1,13 +1,14 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Data.Structures;
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures;
+using Libplanet.State.Structures.Nodes;
 using Libplanet.Types;
 using static System.Linq.Enumerable;
 using System.Collections;
 using Libplanet.TestUtilities;
+using Libplanet.Data;
 
-namespace Libplanet.Data.Tests.Structures;
+namespace Libplanet.State.Tests.Structures;
 
 public sealed partial class TrieTest(ITestOutputHelper output)
 {
@@ -18,7 +19,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         Assert.IsType<NullNode>(trie1.Node);
 
         var hash = RandomUtility.HashDigest<SHA256>();
-        var hashNode = new HashNode { Hash = hash, Table = new MemoryTable() };
+        var hashNode = new HashNode { Hash = hash, StateIndex = [] };
         var trie2 = new Trie(hashNode);
         Assert.IsType<HashNode>(trie2.Node);
 
@@ -36,7 +37,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         Assert.Equal(default, trie1.Hash);
 
         var hash = RandomUtility.HashDigest<SHA256>();
-        var hashNode = new HashNode { Hash = hash, Table = new MemoryTable() };
+        var hashNode = new HashNode { Hash = hash, StateIndex = [] };
         var trie2 = new Trie(hashNode);
         Assert.Equal(hash, trie2.Hash);
 
@@ -53,7 +54,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         Assert.False(trie1.IsCommitted);
 
         var hash = RandomUtility.HashDigest<SHA256>();
-        var hashNode = new HashNode { Hash = hash, Table = new MemoryTable() };
+        var hashNode = new HashNode { Hash = hash, StateIndex = [] };
         var trie2 = new Trie(hashNode);
         Assert.True(trie2.IsCommitted);
 
@@ -69,7 +70,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         Assert.True(trie1.IsEmpty);
 
         var hash = RandomUtility.HashDigest<SHA256>();
-        var hashNode = new HashNode { Hash = hash, Table = new MemoryTable() };
+        var hashNode = new HashNode { Hash = hash, StateIndex = [] };
         var trie2 = new Trie(hashNode);
         Assert.False(trie2.IsEmpty);
 

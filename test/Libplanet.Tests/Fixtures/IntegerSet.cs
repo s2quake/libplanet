@@ -2,7 +2,7 @@
 // using Libplanet.State;
 // using Libplanet.Serialization;
 // using Libplanet.Data;
-// using Libplanet.Data.Structures;
+// using Libplanet.State.Structures;
 // using Libplanet.Types;
 // // using static Libplanet.State.SystemAddresses;
 

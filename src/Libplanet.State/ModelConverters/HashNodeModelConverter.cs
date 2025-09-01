@@ -1,10 +1,11 @@
 using System.IO;
 using System.Security.Cryptography;
+using Libplanet.Data;
 using Libplanet.Serialization;
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures.Nodes;
 using Libplanet.Types;
 
-namespace Libplanet.Data.ModelConverters;
+namespace Libplanet.State.ModelConverters;
 
 internal sealed class HashNodeModelConverter : ModelConverterBase<HashNode>
 {
@@ -12,16 +13,16 @@ internal sealed class HashNodeModelConverter : ModelConverterBase<HashNode>
     {
         var length = HashDigest<SHA256>.Size;
         var hash = new HashDigest<SHA256>(reader.ReadBytes(length));
-        if (!options.Items.TryGetValue(typeof(ITable), out var value) || value is not ITable table)
+        if (!options.Items.TryGetValue(typeof(StateIndex), out var value) || value is not StateIndex table)
         {
             throw new InvalidOperationException(
-                $"{nameof(ITable)} must be provided in {nameof(ModelOptions.Items)}.");
+                $"{nameof(StateIndex)} must be provided in {nameof(ModelOptions.Items)}.");
         }
 
         return new HashNode
         {
             Hash = hash,
-            Table = table,
+            StateIndex = table,
         };
     }
 

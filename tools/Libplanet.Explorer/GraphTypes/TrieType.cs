@@ -1,6 +1,6 @@
 using GraphQL;
 using GraphQL.Types;
-using Libplanet.Data.Structures;
+using Libplanet.State.Structures;
 
 namespace Libplanet.Explorer.GraphTypes
 {

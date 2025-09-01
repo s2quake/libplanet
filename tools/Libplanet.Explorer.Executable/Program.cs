@@ -11,7 +11,7 @@ using Libplanet.Explorer.Schemas;
 using Libplanet.Net;
 using Libplanet.Data.RocksDB;
 using Libplanet.Data;
-using Libplanet.Data.Structures;
+using Libplanet.State.Structures;
 using Libplanet.Types;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;

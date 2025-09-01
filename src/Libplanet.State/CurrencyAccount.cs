@@ -1,4 +1,4 @@
-using Libplanet.Data.Structures;
+using Libplanet.State.Structures;
 using Libplanet.Types;
 
 namespace Libplanet.State;

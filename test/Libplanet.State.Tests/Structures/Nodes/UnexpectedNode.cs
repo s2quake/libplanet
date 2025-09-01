@@ -1,6 +1,6 @@
-using Libplanet.Data.Structures;
+using Libplanet.State.Structures;
 
-namespace Libplanet.Data.Tests.Structures.Nodes;
+namespace Libplanet.State.Tests.Structures.Nodes;
 
 public sealed record class UnexpectedNode : INode
 {

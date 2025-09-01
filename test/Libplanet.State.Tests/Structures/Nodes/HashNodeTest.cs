@@ -1,24 +1,25 @@
 using System.Security.Cryptography;
+using Libplanet.Data;
 using Libplanet.Serialization;
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures.Nodes;
 using Libplanet.TestUtilities;
 
-namespace Libplanet.Data.Tests.Structures.Nodes;
+namespace Libplanet.State.Tests.Structures.Nodes;
 
 public class HashNodeTest
 {
     [Fact]
     public void Serialization()
     {
-        var table = new MemoryTable();
+        var stateIndex = new StateIndex();
         var expectedNode = new HashNode
         {
             Hash = RandomUtility.HashDigest<SHA256>(),
-            Table = table,
+            StateIndex = stateIndex,
         };
         var options = new ModelOptions
         {
-            Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(ITable), table),
+            Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(StateIndex), stateIndex),
         };
         var actualNode = ModelSerializer.Clone(expectedNode, options);
         Assert.Equal(expectedNode, actualNode);
@@ -27,11 +28,11 @@ public class HashNodeTest
     [Fact]
     public void Serialization_Throw()
     {
-        var table = new MemoryTable();
+        var stateIndex = new StateIndex();
         var expectedNode = new HashNode
         {
             Hash = RandomUtility.HashDigest<SHA256>(),
-            Table = table,
+            StateIndex = stateIndex,
         };
         Assert.Throws<InvalidOperationException>(() => ModelSerializer.Clone(expectedNode));
     }

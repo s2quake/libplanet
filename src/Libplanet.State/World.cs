@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Libplanet.Data;
-using Libplanet.Data.Structures;
+using Libplanet.State.Structures;
 using Libplanet.Types;
 
 namespace Libplanet.State;
@@ -13,7 +13,7 @@ public sealed record class World(Trie Trie, StateIndex StateIndex)
     }
 
     public World()
-        : this(new StateIndex())
+        : this(new StateIndex(new MemoryDatabase()))
     {
     }
 

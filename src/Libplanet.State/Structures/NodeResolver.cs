@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures.Nodes;
 
-namespace Libplanet.Data.Structures;
+namespace Libplanet.State.Structures;
 
 internal static class NodeResolver
 {

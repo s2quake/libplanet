@@ -30,7 +30,7 @@ public static class BlockExecutionInfoExtensions
         static Exception? GetActualException(Exception? exception) => exception?.InnerException ?? exception;
     }
 
-    public static BlockExecution GetBlockExecution(this BlockExecutionInfo @this, BlockHash blockHash) => new()
+    public static BlockExecutionResult GetBlockExecution(this BlockExecutionInfo @this, BlockHash blockHash) => new()
     {
         BlockHash = blockHash,
         EnterState = @this.EnterWorld.Hash,

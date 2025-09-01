@@ -1,12 +1,13 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Data.ModelConverters;
+using Libplanet.State.ModelConverters;
 using Libplanet.Types;
 using BitFaster.Caching;
 using BitFaster.Caching.Lru;
 using System.Diagnostics.CodeAnalysis;
+using Libplanet.Data;
 
-namespace Libplanet.Data.Structures.Nodes;
+namespace Libplanet.State.Structures.Nodes;
 
 [ModelConverter(typeof(HashNodeModelConverter), "hnode")]
 internal sealed record class HashNode : INode
@@ -22,7 +23,7 @@ internal sealed record class HashNode : INode
 
     public required HashDigest<SHA256> Hash { get; init; }
 
-    public required ITable Table { get; init; }
+    public required StateIndex StateIndex { get; init; }
 
     IEnumerable<INode> INode.Children
     {
@@ -38,12 +39,11 @@ internal sealed record class HashNode : INode
     {
         if (!TryGetNode(Hash, out var node))
         {
-            var key = Hash.ToString();
-            if (Table.TryGetValue(key, out var bytes))
+            if (StateIndex.TryGetValue(Hash, out var bytes))
             {
                 var context = new ModelOptions
                 {
-                    Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(ITable), Table),
+                    Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(StateIndex), StateIndex),
                 };
                 node = ModelSerializer.DeserializeFromBytes<INode>(bytes, context);
                 AddOrUpdate(Hash, node);

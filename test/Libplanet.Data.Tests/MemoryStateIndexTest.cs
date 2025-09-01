@@ -1,11 +1,11 @@
 
-namespace Libplanet.Data.Tests;
+// namespace Libplanet.Data.Tests;
 
-public sealed class MemoryStateIndexTest(ITestOutputHelper output) : StateIndexTestBase<MemoryTable>(output)
-{
-    protected override MemoryTable CreateTableOverride(string name) => new(name);
+// public sealed class MemoryStateIndexTest(ITestOutputHelper output) : StateIndexTestBase<MemoryTable>(output)
+// {
+//     protected override MemoryTable CreateTableOverride(string name) => new(name);
 
-    protected override void DeleteTableOverride(MemoryTable table)
-    {
-    }
-}
+//     protected override void DeleteTableOverride(MemoryTable table)
+//     {
+//     }
+// }

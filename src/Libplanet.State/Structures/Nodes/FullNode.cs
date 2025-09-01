@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Libplanet.Serialization;
 
-namespace Libplanet.Data.Structures.Nodes;
+namespace Libplanet.State.Structures.Nodes;
 
 [Model(Version = 1, TypeName = "fnode")]
 public sealed partial record class FullNode : INode, IValidatableObject

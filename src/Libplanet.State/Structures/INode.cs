@@ -1,4 +1,4 @@
-namespace Libplanet.Data.Structures;
+namespace Libplanet.State.Structures;
 
 public interface INode
 {

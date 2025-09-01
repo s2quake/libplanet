@@ -4,12 +4,12 @@ using Libplanet.Types;
 namespace Libplanet.Data.RocksDB.Tests;
 
 public sealed class RocksBlockExecutionIndexTest(ITestOutputHelper output)
-    : RocksKeyedIndexTestBase<BlockHash, BlockExecution, BlockExecutionIndex>(output)
+    : RocksKeyedIndexTestBase<BlockHash, BlockExecutionResult, BlockExecutionIndex>(output)
 {
     protected override BlockExecutionIndex CreateIndex(RocksDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
     protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
 
-    protected override BlockExecution CreateValue(Random random) => RandomUtility.BlockExecution(random);
+    protected override BlockExecutionResult CreateValue(Random random) => RandomUtility.BlockExecution(random);
 }

@@ -1,10 +1,11 @@
-using Libplanet.Data.Structures;
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures;
+using Libplanet.State.Structures.Nodes;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
+using Libplanet.Data;
 
-namespace Libplanet.Data.Tests.Structures.Nodes;
+namespace Libplanet.State.Tests.Structures.Nodes;
 
 public class FullNodeTest
 {
@@ -101,7 +102,7 @@ public class FullNodeTest
     [Fact]
     public void SetChild()
     {
-        var hashNode = new HashNode { Hash = default, Table = new MemoryTable() };
+        var hashNode = new HashNode { Hash = default, StateIndex = [] };
         var node1 = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty,
@@ -177,7 +178,7 @@ public class FullNodeTest
         };
         ValidationUtility.Validate(node4);
 
-        var hashNode = new HashNode { Hash = default, Table = new MemoryTable() };
+        var hashNode = new HashNode { Hash = default, StateIndex = [] };
         var invalidNode1 = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty.SetItem('A', hashNode),

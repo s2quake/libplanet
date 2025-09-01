@@ -2,10 +2,10 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures.Nodes;
 using Libplanet.Types;
 
-namespace Libplanet.Data.Structures;
+namespace Libplanet.State.Structures;
 
 public sealed partial record class Trie(INode Node) : IEnumerable<KeyValuePair<string, object>>
 {

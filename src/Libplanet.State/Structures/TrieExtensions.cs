@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Libplanet.Data.Structures;
+namespace Libplanet.State.Structures;
 
 public static class TrieExtensions
 {

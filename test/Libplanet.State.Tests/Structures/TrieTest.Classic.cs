@@ -1,30 +1,31 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.Data.Structures;
-using Libplanet.Data.Structures.Nodes;
+using Libplanet.State.Structures;
+using Libplanet.State.Structures.Nodes;
 using Libplanet.Types;
 using Libplanet.TestUtilities;
 using static System.Linq.Enumerable;
+using Libplanet.Data;
 
-namespace Libplanet.Data.Tests.Structures;
+namespace Libplanet.State.Tests.Structures;
 
 public sealed partial class TrieTest
 {
     [Fact]
     public void ConstructWithHashDigest()
     {
-        var store = new MemoryTable();
+        var stateIndex = new StateIndex();
         var hashDigest = RandomUtility.HashDigest<SHA256>();
-        var trie = new Trie(new HashNode { Hash = hashDigest, Table = store });
+        var trie = new Trie(new HashNode { Hash = hashDigest, StateIndex = stateIndex });
         Assert.Equal(hashDigest, trie.Hash);
     }
 
     [Fact]
     public void ConstructWithRootNode()
     {
-        var store = new MemoryTable();
+        var stateIndex = new StateIndex();
         var hashDigest = RandomUtility.HashDigest<SHA256>();
-        var node = new HashNode { Hash = hashDigest, Table = store };
+        var node = new HashNode { Hash = hashDigest, StateIndex = stateIndex };
         var trie = new Trie(node);
         Assert.Equal(hashDigest, trie.Hash);
     }
@@ -48,8 +49,7 @@ public sealed partial class TrieTest
     [Fact]
     public void ToDictionary()
     {
-        var keyValueStore = new MemoryTable();
-        var stateStore = new StateIndex(keyValueStore);
+        var stateIndex = new StateIndex();
         var trie = new Trie()
             .Set("00", ImmutableSortedDictionary<string, string>.Empty)
             .Set("1", "1")
@@ -65,7 +65,7 @@ public sealed partial class TrieTest
         Assert.Equal("4", states["4"]);
         Assert.Equal(ImmutableSortedDictionary<string, string>.Empty, states["00"]);
 
-        trie = stateStore.Commit(trie);
+        trie = stateIndex.Commit(trie);
         states = trie.ToDictionary();
         Assert.Equal(5, states.Count);
         Assert.Equal("1", states["1"]);
