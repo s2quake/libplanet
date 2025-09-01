@@ -342,6 +342,7 @@ public class Repository
             stepProgress.Next($"Copying table '{source.Name}' key '{key}'...");
             cancellationToken.ThrowIfCancellationRequested();
             destination[key] = value;
+            await Task.Yield();
         }
 
         stepProgress.Complete($"Copied table '{source.Name}' with {source.Count} entries.");
