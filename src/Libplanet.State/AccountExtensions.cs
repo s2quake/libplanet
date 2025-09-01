@@ -13,9 +13,11 @@ public static class AccountExtensions
     public static object? GetValueOrDefault(this Account @this, Address key) => @this.GetValueOrDefault(key.ToString());
 
     public static T GetValueOrDefault<T>(this Account @this, Address key, T defaultValue)
+        where T : notnull
         => @this.GetValueOrDefault(key.ToString(), defaultValue);
 
     public static T GetValueOrDefaultLenient<T>(this Account @this, string key, T defaultValue)
+        where T : notnull
     {
         try
         {
@@ -28,6 +30,7 @@ public static class AccountExtensions
     }
 
     public static T GetValueOrDefaultLenient<T>(this Account @this, Address key, T defaultValue)
+        where T : notnull
         => @this.GetValueOrDefaultLenient(key.ToString(), defaultValue);
 
     public static bool ContainsKey(this Account @this, Address key) => @this.ContainsKey(key.ToString());
@@ -43,6 +46,7 @@ public static class AccountExtensions
 
     public static bool TryGetValueLenient<T>(
         this Account @this, string key, T defaultValue, [MaybeNullWhen(false)] out T value)
+        where T : notnull
     {
         try
         {
@@ -58,5 +62,6 @@ public static class AccountExtensions
 
     public static bool TryGetValueLenient<T>(
         this Account @this, Address key, T defaultValue, [MaybeNullWhen(false)] out T value)
+        where T : notnull
         => @this.TryGetValueLenient(key.ToString(), defaultValue, out value);
 }

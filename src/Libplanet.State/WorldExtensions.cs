@@ -57,9 +57,11 @@ public static class WorldExtensions
         => @this.GetAccount(name).GetValueOrDefault(key);
 
     public static T GetValueOrDefault<T>(this World @this, string name, string key, T defaultValue)
+        where T : notnull
         => @this.GetAccount(name).GetValueOrDefault(key, defaultValue);
 
     public static T GetValueOrDefault<T>(this World @this, Address name, Address key, T defaultValue)
+        where T : notnull
         => @this.GetAccount(name).GetValueOrDefault(key, defaultValue);
 
     public static object GetValue(this World @this, string name, string key)
