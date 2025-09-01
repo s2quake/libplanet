@@ -17,6 +17,8 @@ public sealed record class GenesisBlockBuilder
 
     public ImmutableArray<AccountState> States { get; init; } = [];
 
+    public ImmutableArray<IAction> Actions { get; init; } = [];
+
     public Block Create(ISigner signer)
     {
         if (Validators.IsEmpty)
@@ -31,7 +33,11 @@ public sealed record class GenesisBlockBuilder
         };
         var tx = new TransactionBuilder
         {
-            Actions = [initialize],
+            Actions =
+            [
+                initialize,
+                .. Actions,
+            ],
         }.Create(signer);
         return new BlockBuilder
         {

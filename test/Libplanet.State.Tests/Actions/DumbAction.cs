@@ -83,8 +83,7 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
             }
             else
             {
-                throw new ArgumentException(
-                    $"Both From and To cannot be null for {transfer}");
+                throw new ArgumentException($"Both From and To cannot be null for {transfer}");
             }
         }
 

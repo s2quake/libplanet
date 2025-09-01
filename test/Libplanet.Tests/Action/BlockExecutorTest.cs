@@ -1,7 +1,9 @@
+using System.ComponentModel;
 using Libplanet.Data;
 using Libplanet.Extensions;
 using Libplanet.Serialization;
 using Libplanet.State;
+using Libplanet.State.Builtin;
 using Libplanet.State.Tests.Actions;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
@@ -310,384 +312,203 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
     public void EvaluateWithException()
     {
         var random = RandomUtility.GetRandom(output);
-        var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
-        }.Create(proposer);
-        var repository = new Repository();
-        var blockchain = new Blockchain(genesisBlock, repository);
-
-        // var privateKey = new PrivateKey();
-        // var address = privateKey.Address;
-
-        var tx = new TransactionBuilder
-        {
             Actions = [new ThrowException { ThrowOnExecution = true }],
         }.Create(proposer);
+        var repository = new Repository();
 
-        _ = blockchain.StagedTransactions.Add(proposer, new()
-        {
-            Actions =
-            [
-                new ThrowException { ThrowOnExecution = true },
-            ],
-        });
-        var block = blockchain.Propose(proposer);
         var blockExecutor = new BlockExecutor(repository.States);
-        var execution = blockExecutor.Execute(block);
+        var blockExecution = blockExecutor.Execute(genesisBlock);
 
-        // var action = new ThrowException { ThrowOnExecution = true };
-
-        // // var store = new Libplanet.Data.Store(new MemoryDatabase());
-        // // var stateStore = new TrieStateStore();
-        // var chain = TestUtils.MakeBlockChain(
-        //     policy: new BlockPolicy(),
-        //     store: store,
-        //     stateStore: stateStore,
-        //     actionLoader: new SingleActionLoader<ThrowException>());
-        // var tx = new TransactionMetadata
-        // {
-        //         nonce: 0,
-        //         privateKey: privateKey,
-        //         genesisHash: blockchain.Genesis.Hash,
-        //         actions: new[] { action }.ToPlainValues());
-
-        // blockchain.StageTransaction(tx);
-
-        // Block block = blockchain.ProposeBlock(new PrivateKey());
-        // blockchain.Append(block, CreateBlockCommit(block));
-        // var evaluations = blockchain.BlockExecutor.Evaluate(
-        //     (RawBlock)blockchain.Tip, blockchain.Store.GetStateRootHash(blockchain.Tip.PreviousHash));
-
-        // Assert.False(evaluations[0].InputContext.IsPolicyAction);
-        // Assert.Single(evaluations);
-        // Assert.NotNull(evaluations.Single().Exception);
-        // Assert.IsType<UnexpectedlyTerminatedActionException>(
-        //     evaluations.Single().Exception);
-        // Assert.IsType<ThrowException.SomeException>(
-        //     evaluations.Single().Exception.InnerException);
+        Assert.Empty(blockExecution.EnterExecutions);
+        Assert.IsType<Initialize>(blockExecution.Executions[0].Executions[0].Action);
+        Assert.IsType<ThrowException.SomeException>(blockExecution.Executions[0].Executions[1].Exception);
+        Assert.Empty(blockExecution.LeaveExecutions);
     }
 
-    //     // [Fact]
-    //     // public void EvaluateWithCriticalException()
-    //     // {
-    //     //     var privateKey = new PrivateKey();
-    //     //     var address = privateKey.Address;
+    [Fact]
+    public void EvaluateWithCriticalException()
+    {
+        var random = RandomUtility.GetRandom(output);
+        var proposer = RandomUtility.Signer(random);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            Actions = [new ThrowException { ThrowOnExecution = true, Deterministic = false, }],
+        }.Create(proposer);
+        var repository = new Repository();
+        var blockExecutor = new BlockExecutor(repository.States);
 
-    //     //     var action = new ThrowException
-    //     //     {
-    //     //         ThrowOnExecution = true,
-    //     //         Deterministic = false,
-    //     //     };
+        Assert.Throws<OutOfMemoryException>(() => blockExecutor.Execute(genesisBlock));
+    }
 
-    //     //     var store = new Libplanet.Data.Store(new MemoryDatabase());
-    //     //     var stateStore =
-    //     //         new TrieStateStore();
-    //     //     var (chain, blockExecutor) =
-    //     //         TestUtils.MakeBlockChainAndBlockExecutor(
-    //     //             policy: new BlockPolicy(),
-    //     //             store: store,
-    //     //             stateStore: stateStore,
-    //     //             actionLoader: new SingleActionLoader<ThrowException>());
-    //     //     var genesis = blockchain.Genesis;
-    //     //     // Evaluation is run with rehearsal true to get updated addresses on tx creation.
-    //     //     var tx = new TransactionMetadata
-    //     // {
-    //     //         nonce: 0,
-    //     //         privateKey: privateKey,
-    //     //         genesisHash: genesis.Hash,
-    //     //         actions: new[] { action }.ToPlainValues());
-    //     //     var txs = new Transaction[] { tx };
-    //     //     var evs = Array.Empty<EvidenceBase>();
-    //     //     RawBlock block = RawBlock.Create(
-    //     //         new BlockHeader
-    //     //         {
-    //     //             Height = 1L,
-    //     //             Timestamp = DateTimeOffset.UtcNow,
-    //     //             PublicKey = new PrivateKey().PublicKey,
-    //     //             PreviousHash = genesis.Hash,
-    //     //             TxHash = BlockContent.DeriveTxHash(txs),
-    //     //
-    //     //             EvidenceHash = null,
-    //     //         },
-    //     //         new BlockContent
-    //     //         {
-    //     //             Transactions = [.. txs],
-    //     //             Evidence = [.. evs],
-    //     //         });
-    //     //     World previousState = stateStore.GetWorld(genesis.StateRootHash);
+    [Fact]
+    public void EvaluateTxs()
+    {
+        static DumbAction MakeAction(Address address, char identifier, Address? transferTo = null)
+        {
+            return DumbAction.Create(
+                append: (address, identifier.ToString()),
+                transfer: transferTo is Address to ? (address, to, 5) : ((Address, Address, BigInteger)?)null);
+        }
 
-    //     //     Assert.Throws<OutOfMemoryException>(
-    //     //         () => blockExecutor.EvaluateTx(
-    //     //             block: block,
-    //     //             tx: tx,
-    //     //             world: previousState).ToList());
-    //     //     Assert.Throws<OutOfMemoryException>(
-    //     //         () => blockchain.BlockExecutor.Evaluate(
-    //     //             block, blockchain.Store.GetStateRootHash(block.PreviousHash)).ToList());
-    //     // }
+        var random = new System.Random(0);
+        var proposer = RandomUtility.Signer(random);
+        var addresses = RandomUtility.Array(random, RandomUtility.Address, 5);
+        var repository = new Repository();
+        var world = new World(repository.States)
+            .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
+            .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
+            .SetBalance(addresses[2], DumbAction.DumbCurrency * 100)
+            .SetBalance(addresses[3], DumbAction.DumbCurrency * 100)
+            .SetBalance(addresses[4], DumbAction.DumbCurrency * 100)
+            .Commit();
+        var signers = RandomUtility.Array(random, RandomUtility.Signer, 3);
+        var genesisBlock = new GenesisBlockBuilder
+        {
+            StateRootHash = world.Hash,
+        }.Create(proposer);
+        var blockExecutor = new BlockExecutor(repository.States);
+        repository.Append(genesisBlock, default);
+        repository.AppendExecution(blockExecutor.Execute(genesisBlock));
 
-    //     [Fact]
-    //     public void EvaluateTxs()
-    //     {
-    //         static DumbAction MakeAction(Address address, char identifier, Address? transferTo = null)
-    //         {
-    //             return DumbAction.Create(
-    //                 append: (address, identifier.ToString()),
-    //                 transfer: transferTo is Address to ? (address, to, 5) : ((Address, Address, BigInteger)?)null);
-    //         }
+        ImmutableSortedSet<Transaction> blockTxs1 =
+        [
+            new TransactionBuilder
+            {
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(1),
+                Actions =
+                [
+                    MakeAction(addresses[0], 'A', addresses[1]),
+                    MakeAction(addresses[1], 'B', addresses[2]),
+                ]
+            }.Create(signers[0]),
+            new TransactionBuilder
+            {
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
+                Actions =
+                [
+                    MakeAction(addresses[2], 'C', addresses[3])
+                ]
+            }.Create(signers[1]),
+            new TransactionBuilder
+            {
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
+            }.Create(signers[2]),
+        ];
+        var block1 = new BlockBuilder
+        {
+            PreviousBlockHash = genesisBlock.BlockHash,
+            PreviousStateRootHash = repository.StateRootHash,
+            Transactions = blockTxs1,
+        }.Create(proposer);
+        var blockExecution1 = blockExecutor.Execute(block1);
+        var actionExecutions1 = blockExecution1.Executions.SelectMany(exe => exe.Executions).ToArray();
 
-    //         Address[] addresses =
-    //         [
-    //             _txFx.Address1,
-    //             _txFx.Address2,
-    //             _txFx.Address3,
-    //             _txFx.Address4,
-    //             _txFx.Address5,
-    //         ];
+        Assert.Equal(
+            [.. blockTxs1],
+            blockExecution1.Executions.Select(item => item.Transaction));
+        Assert.Equal(3, actionExecutions1.Length);
+        Assert.Equal(
+            [null, null, "C", null, null],
+            addresses.Select(item => actionExecutions1[0].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
+        Assert.Equal(
+            ["A", null, "C", null, null],
+            addresses.Select(item => actionExecutions1[1].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
+        Assert.Equal(
+            ["A", "B", "C", null, null],
+            addresses.Select(item => actionExecutions1[2].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
 
-    //         var stateStore = new TrieStateStore();
-    //         var world = World.Create(stateStore)
-    //             .SetBalance(addresses[0], DumbAction.DumbCurrency * 100)
-    //             .SetBalance(addresses[1], DumbAction.DumbCurrency * 100)
-    //             .SetBalance(addresses[2], DumbAction.DumbCurrency * 100)
-    //             .SetBalance(addresses[3], DumbAction.DumbCurrency * 100)
-    //             .SetBalance(addresses[4], DumbAction.DumbCurrency * 100);
-    //         var trie = stateStore.CommitWorld(world).Trie;
+        Assert.Equal("A", blockExecution1.LeaveWorld.GetSystemValue(addresses[0]));
+        Assert.Equal("B", blockExecution1.LeaveWorld.GetSystemValue(addresses[1]));
+        Assert.Equal("C", blockExecution1.LeaveWorld.GetSystemValue(addresses[2]));
+        Assert.Equal(
+            DumbAction.DumbCurrency * 95.0m,
+            blockExecution1.LeaveWorld.GetBalance(addresses[0], DumbAction.DumbCurrency));
+        Assert.Equal(
+            DumbAction.DumbCurrency * 100m,
+            blockExecution1.LeaveWorld.GetBalance(addresses[1], DumbAction.DumbCurrency));
+        Assert.Equal(
+            DumbAction.DumbCurrency * 100m,
+            blockExecution1.LeaveWorld.GetBalance(addresses[2], DumbAction.DumbCurrency));
+        Assert.Equal(
+            DumbAction.DumbCurrency * 105m,
+            blockExecution1.LeaveWorld.GetBalance(addresses[3], DumbAction.DumbCurrency));
+        Assert.Equal(
+            DumbAction.DumbCurrency * 100m,
+            blockExecution1.LeaveWorld.GetBalance(addresses[4], DumbAction.DumbCurrency));
 
-    //         var genesisBlock = ProposeGenesisBlock(TestUtils.GenesisProposer, stateRootHash: trie.Hash);
-    //         var blockExecutor = new BlockExecutor(stateStore);
+        ImmutableSortedSet<Transaction> blockTxs2 =
+        [
+            new TransactionBuilder
+            {
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(1),
+                Actions =
+                [
+                    MakeAction(addresses[0], 'D')
+                ],
+            }.Create(signers[0]),
+            new TransactionBuilder
+            {
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
+                Actions =
+                [
+                    MakeAction(addresses[3], 'E')
+                ],
+            }.Create(signers[1]),
+            new TransactionBuilder
+            {
+                Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
+                Actions =
+                [
+                    DumbAction.Create((addresses[4], "F"), transfer: (addresses[0], addresses[4], 8)),
+                ],
+            }.Create(signers[2]),
+        ];
+        var block2 = new BlockBuilder
+        {
+            PreviousBlockHash = block1.BlockHash,
+            PreviousStateRootHash = blockExecution1.LeaveWorld.Hash,
+            Transactions = blockTxs2,
+        }.Create(proposer);
 
-    //         var block1Txs = ImmutableSortedSet.Create(
-    //         [
-    //             new TransactionMetadata
-    //             {
-    //                 Signer = _txFx.PrivateKey1.Address,
-    //                 GenesisHash = genesisBlock.BlockHash,
-    //                 Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
-    //                 Actions = new IAction[]
-    //                 {
-    //                     MakeAction(addresses[0], 'A', addresses[1]),
-    //                     MakeAction(addresses[1], 'B', addresses[2]),
-    //                 }.ToBytecodes(),
-    //             }.Sign(_txFx.PrivateKey1),
-    //             new TransactionMetadata
-    //             {
-    //                 Signer = _txFx.PrivateKey2.Address,
-    //                 GenesisHash = genesisBlock.BlockHash,
-    //                 Timestamp = DateTimeOffset.MinValue.AddSeconds(4),
-    //                 Actions = new IAction[]
-    //                 {
-    //                     MakeAction(addresses[2], 'C', addresses[3]),
-    //                 }.ToBytecodes(),
-    //             }.Sign(_txFx.PrivateKey2),
-    //             new TransactionMetadata
-    //             {
-    //                 Signer = _txFx.PrivateKey3.Address,
-    //                 GenesisHash = genesisBlock.BlockHash,
-    //                 Timestamp = DateTimeOffset.MinValue.AddSeconds(7),
-    //                 Actions = [],
-    //             }.Sign(_txFx.PrivateKey3),
-    //         ]);
-    //         foreach ((var tx, var i) in block1Txs.Zip(
-    //             Enumerable.Range(0, block1Txs.Count), (x, y) => (x, y)))
-    //         {
-    //             _logger.Debug("{0}[{1}] = {2}", nameof(block1Txs), i, tx.Id);
-    //         }
+        var blockExecution2 = blockExecutor.Execute(block2);
+        var actionExecutions2 = blockExecution2.Executions.SelectMany(exe => exe.Executions).ToArray();
+        Assert.Equal(
+           [.. blockTxs2],
+           blockExecution2.Executions.Select(item => item.Transaction));
+        Assert.Equal(3, actionExecutions2.Length);
+        Assert.Equal(
+            ["A", "B", "C", "E", null],
+            addresses.Select(item => actionExecutions2[0].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
+        Assert.Equal(
+            ["A,D", "B", "C", "E", null],
+            addresses.Select(item => actionExecutions2[1].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
+        Assert.Equal(
+            ["A,D", "B", "C", "E", "F"],
+            addresses.Select(item => actionExecutions2[2].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
 
-    //         Block block1 = ProposeNextBlock(
-    //             genesisBlock,
-    //             GenesisProposer,
-    //             block1Txs);
-    //         World previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
-    //         var evals = blockExecutor.EvaluateBlock((RawBlock)block1, previousState);
-    //         // Once the BlockHeader.CurrentProtocolVersion gets bumped, expectations may also
-    //         // have to be updated, since the order may change due to different RawHash.
-    //         (int TxIdx, int ActionIdx, string?[] UpdatedStates, Address Signer)[] expectations =
-    //         [
-    //             (0, 0, new[] { "A", null, null, null, null }, _txFx.Address1),  // Adds "A"
-    //             (0, 1, new[] { "A", "B", null, null, null }, _txFx.Address1),   // Adds "B"
-    //             (1, 0, new[] { "A", "B", "C", null, null }, _txFx.Address2),    // Adds "C"
-    //         ];
+        Assert.Equal("A,D", blockExecution2.LeaveWorld.GetSystemValue(addresses[0]));
+        Assert.Equal("B", blockExecution2.LeaveWorld.GetSystemValue(addresses[1]));
+        Assert.Equal("C", blockExecution2.LeaveWorld.GetSystemValue(addresses[2]));
 
-    // #if DEBUG
-    //         // This code was created by ilgyu.
-    //         // You can preview the result of the test in the debug console.
-    //         // If this test fails, you can copy the result from the debug console
-    //         // and paste it to the upper part of the test code.
-    //         System.Diagnostics.Trace.WriteLine("------- 1");
-    //         foreach (var eval in evals)
-    //         {
-    //             int txIdx = block1Txs.Select((e, idx) => new { e, idx })
-    //                 .First(x => x.e.Id.Equals(eval.InputContext.TxId))
-    //                 .idx;
-    //             int actionIdx = block1Txs[txIdx].Actions.Select((e, idx) => new { e, idx })
-    //                 .First(x => x.e.Equals(eval.Action.ToBytecode()))
-    //                 .idx;
-    //             var outputWorld = eval.OutputWorld;
-    //             var values = addresses.Select(item => outputWorld.GetValueOrDefault(SystemAccount, item));
-    //             var valueStrings = values.Select(item => item is not null ? $"\"{item}\"" : "null");
-    //             var updatedStates = "new[] { " + string.Join(", ", valueStrings) + " }";
-    //             string signerIdx = "_txFx.Address" + (addresses.Select(
-    //                 (e, idx) => new { e, idx }).First(
-    //                 x => x.e.Equals(eval.InputContext.Signer)).idx + 1);
-    //             System.Diagnostics.Trace.WriteLine(
-    //                             $"({txIdx}, {actionIdx}, {updatedStates}, {signerIdx}),");
-    //         }
-
-    //         System.Diagnostics.Trace.WriteLine("---------");
-    // #endif // DEBUG
-
-    //         Assert.Equal(expectations.Length, evals.Length);
-    //         foreach (var (expect, eval) in expectations.Zip(evals, (x, y) => (x, y)))
-    //         {
-    //             var outputWorld = eval.OutputWorld;
-    //             Assert.Equal(
-    //                 expect.UpdatedStates,
-    //                 addresses.Select(item => outputWorld.GetValueOrDefault(SystemAccount, item)));
-    //             Assert.Equal(block1Txs[expect.TxIdx].Id, eval.InputContext.TxId);
-    //             Assert.Equal(
-    //                 block1Txs[expect.TxIdx].Actions[expect.ActionIdx],
-    //                 eval.Action.ToBytecode());
-    //             Assert.Equal(expect.Signer, eval.InputContext.Signer);
-    //             Assert.Equal(GenesisProposer.Address, eval.InputContext.Proposer);
-    //             Assert.Equal(block1.Height, eval.InputContext.BlockHeight);
-    //         }
-
-    //         previousState = stateStore.GetWorld(genesisBlock.StateRootHash);
-    //         ActionEvaluation[] evals1 =
-    //             blockExecutor.EvaluateBlock((RawBlock)block1, previousState).ToArray();
-    //         var output1 = World.Create(evals1[^1].OutputWorld.Trie, stateStore);
-    //         Assert.Equal("A", output1.GetValue(SystemAccount, addresses[0]));
-    //         Assert.Equal("B", output1.GetValue(SystemAccount, addresses[1]));
-    //         Assert.Equal("C", output1.GetValue(SystemAccount, addresses[2]));
-    //         Assert.Equal(
-    //             FungibleAssetValue.Create(DumbAction.DumbCurrency, 95, 0),
-    //             output1.GetBalance(addresses[0], DumbAction.DumbCurrency));
-    //         Assert.Equal(
-    //             FungibleAssetValue.Create(DumbAction.DumbCurrency, 100, 0),
-    //             output1.GetBalance(addresses[1], DumbAction.DumbCurrency));
-    //         Assert.Equal(
-    //             FungibleAssetValue.Create(DumbAction.DumbCurrency, 100, 0),
-    //             output1.GetBalance(addresses[2], DumbAction.DumbCurrency));
-    //         Assert.Equal(
-    //             FungibleAssetValue.Create(DumbAction.DumbCurrency, 105, 0),
-    //             output1.GetBalance(addresses[3], DumbAction.DumbCurrency));
-
-    //         var block2Txs = ImmutableSortedSet.Create(
-    //         [
-    //             // Note that these timestamps in themselves does not have any meanings but are
-    //             // only arbitrary.  These purpose to make their evaluation order in a block
-    //             // equal to the order we (the test) intend:
-    //             new TransactionMetadata
-    //             {
-    //                 Signer = _txFx.PrivateKey1.Address,
-    //                 GenesisHash = genesisBlock.BlockHash,
-    //                 Timestamp = DateTimeOffset.MinValue.AddSeconds(3),
-    //                 Actions = new IAction[]
-    //                 {
-    //                     MakeAction(addresses[0], 'D'),
-    //                 }.ToBytecodes(),
-    //             }.Sign(_txFx.PrivateKey1),
-    //             new TransactionMetadata
-    //             {
-    //                 Signer = _txFx.PrivateKey2.Address,
-    //                 GenesisHash = genesisBlock.BlockHash,
-    //                 Timestamp = DateTimeOffset.MinValue.AddSeconds(2),
-    //                 Actions = new[]
-    //                 {
-    //                     MakeAction(addresses[3], 'E'),
-    //                 }.ToBytecodes(),
-    //             }.Sign(_txFx.PrivateKey2),
-    //             new TransactionMetadata
-    //             {
-    //                 Signer = _txFx.PrivateKey3.Address,
-    //                 GenesisHash = genesisBlock.BlockHash,
-    //                 Timestamp = DateTimeOffset.MinValue.AddSeconds(5),
-    //                 Actions = new[]
-    //                 {
-    //                     DumbAction.Create((addresses[4], "F"), transfer: (addresses[0], addresses[4], 8)),
-    //                 }.ToBytecodes(),
-    //             }.Sign(_txFx.PrivateKey3),
-    //         ]);
-    //         foreach ((var tx, var i) in block2Txs.Zip(
-    //             Enumerable.Range(0, block2Txs.Count), (x, y) => (x, y)))
-    //         {
-    //             _logger.Debug("{0}[{1}] = {2}", nameof(block2Txs), i, tx.Id);
-    //         }
-
-    //         // Same as above, use the same timestamp of last commit for each to get a deterministic
-    //         // test result.
-    //         Block block2 = ProposeNextBlock(
-    //             block1,
-    //             GenesisProposer,
-    //             block2Txs,
-    //             lastCommit: CreateBlockCommit(block1, true));
-
-    //         // Forcefully reset to null delta
-    //         previousState = evals1[^1].OutputWorld;
-    //         evals = blockExecutor.EvaluateBlock((RawBlock)block2, previousState);
-
-    //         // Once the BlockHeader.CurrentProtocolVersion gets bumped, expectations may also
-    //         // have to be updated, since the order may change due to different RawHash.
-    //         expectations =
-    //         [
-    //             (0, 0, new[] { "A", "B", "C", "E", null }, _txFx.Address2),
-    //             (1, 0, new[] { "A,D", "B", "C", "E", null }, _txFx.Address1),
-    //             (2, 0, new[] { "A,D", "B", "C", "E", "F" }, _txFx.Address3),
-    //         ];
-
-    // #if DEBUG
-    //         // This code was created by ilgyu.
-    //         // You can preview the result of the test in the debug console.
-    //         // If this test fails, you can copy the result from the debug console
-    //         // and paste it to the upper part of the test code.
-    //         System.Diagnostics.Trace.WriteLine("------- 2");
-    //         foreach (var eval in evals)
-    //         {
-    //             int txIdx = block2Txs.Select(
-    //                 (e, idx) => new { e, idx }).First(
-    //                 x => x.e.Id.Equals(eval.InputContext.TxId)).idx;
-    //             int actionIdx = block2Txs[txIdx].Actions.Select(
-    //                 (e, idx) => new { e, idx }).First(
-    //                 x => x.e.Equals(eval.Action.ToBytecode())).idx;
-    //             string updatedStates = "new[] { " + string.Join(", ", addresses.Select(
-    //                 eval.OutputWorld.GetAccount(SystemAccount).GetValueOrDefault)
-    //                 .Select(x => x is string t ? '"' + t + '"' : "null")) + " }";
-    //             string signerIdx = "_txFx.Address" + (addresses.Select(
-    //                 (e, idx) => new { e, idx }).First(
-    //                 x => x.e.Equals(eval.InputContext.Signer)).idx + 1);
-    //             System.Diagnostics.Trace.WriteLine(
-    //                 $"({txIdx}, {actionIdx}, {updatedStates}, {signerIdx}),");
-    //         }
-
-    //         System.Diagnostics.Trace.WriteLine("---------");
-    // #endif // DEBUG
-
-    //         Assert.Equal(expectations.Length, evals.Length);
-    //         foreach (var (expect, eval) in expectations.Zip(evals, (x, y) => (x, y)))
-    //         {
-    //             var updatedStates = addresses
-    //                 .Select(eval.OutputWorld.GetAccount(SystemAccount).GetValueOrDefault);
-    //             Assert.Equal(expect.UpdatedStates, updatedStates);
-    //             Assert.Equal(block2Txs[expect.TxIdx].Id, eval.InputContext.TxId);
-    //             Assert.Equal(
-    //                 block2Txs[expect.TxIdx].Actions[expect.ActionIdx],
-    //                 eval.Action.ToBytecode());
-    //             Assert.Equal(expect.Signer, eval.InputContext.Signer);
-    //             Assert.Equal(GenesisProposer.Address, eval.InputContext.Proposer);
-    //             Assert.Equal(block2.Height, eval.InputContext.BlockHeight);
-    //             Assert.Null(eval.Exception);
-    //         }
-
-    //         previousState = evals1[^1].OutputWorld;
-    //         var evals2 = blockExecutor.EvaluateBlock((RawBlock)block2, previousState).ToArray();
-    //         var output2 = World.Create(evals2[^1].OutputWorld.Trie, stateStore);
-    //         Assert.Equal("A,D", output2.GetValue(SystemAccount, addresses[0]));
-    //         Assert.Equal("E", output2.GetValue(SystemAccount, addresses[3]));
-    //         Assert.Equal("F", output2.GetValue(SystemAccount, addresses[4]));
-    //     }
+        Assert.Equal(
+            DumbAction.DumbCurrency * 87.0m,
+            blockExecution2.LeaveWorld.GetBalance(addresses[0], DumbAction.DumbCurrency));
+        Assert.Equal(
+            DumbAction.DumbCurrency * 100m,
+            blockExecution2.LeaveWorld.GetBalance(addresses[1], DumbAction.DumbCurrency));
+        Assert.Equal(
+            DumbAction.DumbCurrency * 100m,
+            blockExecution2.LeaveWorld.GetBalance(addresses[2], DumbAction.DumbCurrency));
+        Assert.Equal(
+            DumbAction.DumbCurrency * 105m,
+            blockExecution2.LeaveWorld.GetBalance(addresses[3], DumbAction.DumbCurrency));
+        Assert.Equal(
+            DumbAction.DumbCurrency * 108m,
+            blockExecution2.LeaveWorld.GetBalance(addresses[4], DumbAction.DumbCurrency));
+    }
 
     //     [Fact]
     //     public void EvaluateTx()

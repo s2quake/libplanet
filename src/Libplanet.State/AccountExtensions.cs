@@ -40,7 +40,7 @@ public static class AccountExtensions
     public static bool TryGetValue(this Account @this, Address key, [MaybeNullWhen(false)] out object value)
         => @this.TryGetValue(key.ToString(), out value);
 
-    public static bool TryGetValue<T>(this Account @this, Address key, [MaybeNullWhen(false)] out T? value)
+    public static bool TryGetValue<T>(this Account @this, Address key, [MaybeNullWhen(false)] out T value)
         where T : notnull
         => @this.TryGetValue(key.ToString(), out value);
 
