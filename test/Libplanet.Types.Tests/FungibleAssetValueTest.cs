@@ -1,6 +1,3 @@
-using Libplanet.Types;
-// using static Libplanet.Tests.TestUtils;
-
 namespace Libplanet.Types.Tests;
 
 public class FungibleAssetValueTest
@@ -458,37 +455,5 @@ public class FungibleAssetValueTest
         Assert.Equal(FungibleAssetValue.Create(FOO, 123, 0), FungibleAssetValue.Parse(FOO, "123"));
         Assert.Equal(FungibleAssetValue.Create(FOO, 12, 0), FungibleAssetValue.Parse(FOO, "+12"));
         Assert.Equal(FungibleAssetValue.Create(FOO, -12, 0), FungibleAssetValue.Parse(FOO, "-12"));
-    }
-
-    [Fact]
-    public void JsonSerialization()
-    {
-        var foo1 = FungibleAssetValue.Create(FOO, 123, 45);
-        var expectedFoo1Json = @"
-            {
-                ""quantity"": ""123.45"",
-                ""currency"": {
-                    ""hash"": ""b48e64cd4355c04a1a07a921c2dc4e070ae274ff"",
-                    ""ticker"": ""FOO"",
-                    ""decimalPlaces"": 2,
-                    ""minters"": [],
-                    ""maximumSupply"": ""0""
-                }
-            }";
-        // AssertJsonSerializable(foo1, expectedFoo1Json);
-
-        var foo2 = FungibleAssetValue.Create(FOO, -456, 0);
-        var expectedFoo2Json = @"
-            {
-                ""quantity"": ""-456"",
-                ""currency"": {
-                    ""hash"": ""b48e64cd4355c04a1a07a921c2dc4e070ae274ff"",
-                    ""ticker"": ""FOO"",
-                    ""decimalPlaces"": 2,
-                    ""minters"": [],
-                    ""maximumSupply"": ""0""
-                }
-            }";
-        // AssertJsonSerializable(foo2, expectedFoo2Json);
     }
 }

@@ -154,7 +154,7 @@ public sealed class StepProgressTest(ITestOutputHelper output)
     [Fact]
     public void MaxUpdateRate_ZeroOrNegative_Throw()
     {
-        var stepProgress = new StepProgress(1); ;
+        var stepProgress = new StepProgress(1);
         Assert.Throws<ArgumentOutOfRangeException>(() => stepProgress.MaxUpdateRate = 0);
         Assert.Throws<ArgumentOutOfRangeException>(() => stepProgress.MaxUpdateRate = -1);
     }

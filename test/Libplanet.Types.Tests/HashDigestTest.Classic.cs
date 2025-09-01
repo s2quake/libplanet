@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Security.Cryptography;
 using Libplanet.Types;
-// using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Types.Tests;
 
@@ -116,15 +115,5 @@ public partial class HashDigestTest
         Assert.Throws<FormatException>(() => converter.ConvertFrom("INVALID"));
         Assert.True(converter.CanConvertTo(typeof(string)));
         Assert.Equal("62cdb7020ff920e5aa642c3d4066950dd1f01f4d", converter.ConvertTo(sha1, typeof(string)));
-    }
-
-    [Fact]
-    public void JsonSerialization()
-    {
-        HashDigest<SHA1> digest =
-            HashDigest<SHA1>.Parse("0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33");
-        // AssertJsonSerializable(
-        //     digest,
-        //     "\"0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33\"");
     }
 }
