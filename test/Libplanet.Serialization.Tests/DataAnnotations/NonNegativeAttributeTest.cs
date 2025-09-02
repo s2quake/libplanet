@@ -29,7 +29,7 @@ public sealed class NonNegativeAttributeTest
             Value7 = 1m,
             Value8 = (BigInteger)1,
         };
-        ValidationTest.DoseNotThrow(obj1);
+        ModelAssert.DoseNotThrow(obj1);
 
         var obj2 = new TestClass
         {
@@ -42,7 +42,7 @@ public sealed class NonNegativeAttributeTest
             Value7 = 0m,
             Value8 = (BigInteger)0,
         };
-        ValidationTest.DoseNotThrow(obj2);
+        ModelAssert.DoseNotThrow(obj2);
     }
 
     [Fact]
@@ -71,14 +71,14 @@ public sealed class NonNegativeAttributeTest
             Value7 = -1m,
             Value8 = (BigInteger)(-1),
         };
-        ValidationTest.ThrowsMany(obj1, propertyNames);
+        ModelAssert.ThrowsMany(obj1, propertyNames);
     }
 
     [Fact]
     public void UnsupportedType_Throw()
     {
         var obj1 = new InvalidTestClass();
-        ValidationTest.Throws(obj1, nameof(InvalidTestClass.Value1));
+        ModelAssert.Throws(obj1, nameof(InvalidTestClass.Value1));
     }
 
     private sealed record class TestClass

@@ -58,7 +58,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
             }.Sign(signer));
 
         // Non positive height is not allowed.
-        var exception1 = ValidationTest.Throws(
+        var exception1 = ModelAssert.Throws(
             new BlockCommit
             {
                 Height = 0,
@@ -69,7 +69,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
         Assert.Contains(nameof(BlockCommit.Height), exception1.ValidationResult.MemberNames);
 
         // Negative round is not allowed.
-        var exception2 = ValidationTest.Throws(
+        var exception2 = ModelAssert.Throws(
             new BlockCommit
             {
                 Height = 1,
@@ -85,7 +85,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var blockHash = RandomUtility.BlockHash(random);
-        var exception1 = ValidationTest.Throws(
+        var exception1 = ModelAssert.Throws(
             new BlockCommit
             {
                 Height = 1,
@@ -95,7 +95,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
             });
         Assert.Contains(nameof(BlockCommit.Votes), exception1.ValidationResult.MemberNames);
 
-        var exception2 = ValidationTest.Throws(
+        var exception2 = ModelAssert.Throws(
             new BlockCommit
             {
                 Height = 1,
@@ -128,7 +128,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
                 Type = VoteType.PreCommit,
             }.Sign(signer));
 
-        var exception1 = ValidationTest.Throws(
+        var exception1 = ModelAssert.Throws(
             new BlockCommit
             {
                 Height = height,
@@ -151,7 +151,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
                 Type = VoteType.PreCommit,
             }.Sign(signer));
 
-        var exception2 = ValidationTest.Throws(
+        var exception2 = ModelAssert.Throws(
             new BlockCommit
             {
                 Height = height,
@@ -184,7 +184,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
                 Type = VoteType.PreCommit,
             }.Sign(signer));
 
-        var exception1 = ValidationTest.Throws(
+        var exception1 = ModelAssert.Throws(
             new BlockCommit
             {
                 Height = height,
@@ -250,7 +250,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
             }.WithoutSignature(),
             .. preCommitVotes.Skip(1),
         ];
-        ValidationTest.Throws(
+        ModelAssert.Throws(
             new BlockCommit
             {
                 Height = height,
@@ -274,7 +274,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
             }.Sign(signers[0]),
             .. preCommitVotes.Skip(1),
         ];
-        ValidationTest.Throws(
+        ModelAssert.Throws(
             new BlockCommit
             {
                 Height = height,

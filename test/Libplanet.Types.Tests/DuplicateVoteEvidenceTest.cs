@@ -40,7 +40,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         }.Sign(signer);
 
         // When, Then
-        ValidationTest.Throws(
+        ModelAssert.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
             nameof(DuplicateVoteEvidence.VoteDup));
     }
@@ -79,7 +79,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         }.Sign(signer);
 
         // When, Then
-        ValidationTest.Throws(
+        ModelAssert.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
             nameof(DuplicateVoteEvidence.VoteDup));
     }
@@ -116,7 +116,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         }.Sign(signers[1]);
 
         // When, Then
-        ValidationTest.Throws(
+        ModelAssert.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
             nameof(DuplicateVoteEvidence.VoteDup));
     }
@@ -155,7 +155,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         }.Sign(signer);
 
         // When, Then
-        ValidationTest.Throws(
+        ModelAssert.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
             nameof(DuplicateVoteEvidence.VoteDup));
     }
@@ -195,7 +195,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         }.Sign(signer);
 
         // When, Then
-        ValidationTest.Throws(
+        ModelAssert.Throws(
             DuplicateVoteEvidence.Create(voteRef, voteDup, validators),
             nameof(DuplicateVoteEvidence.VoteDup));
     }

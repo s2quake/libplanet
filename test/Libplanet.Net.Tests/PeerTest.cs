@@ -78,7 +78,7 @@ public sealed class PeerTest(ITestOutputHelper output)
             Address = default,
             EndPoint = RandomUtility.DnsEndPoint(random),
         };
-        ValidationTest.Throws(peer, nameof(Peer.Address));
+        ModelAssert.Throws(peer, nameof(Peer.Address));
     }
 
     [Fact]
@@ -91,6 +91,6 @@ public sealed class PeerTest(ITestOutputHelper output)
             Address = default,
             EndPoint = new DnsEndPoint(".ninodes.com", port),
         };
-        ValidationTest.Throws(peer, nameof(Peer.EndPoint));
+        ModelAssert.Throws(peer, nameof(Peer.EndPoint));
     }
 }

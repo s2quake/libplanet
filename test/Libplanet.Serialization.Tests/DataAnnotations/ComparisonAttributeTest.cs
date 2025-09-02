@@ -10,67 +10,67 @@ public sealed class ComparisonAttributeTest
     [Fact]
     public void BaseTest()
     {
-        ValidationTest.DoseNotThrow(new TestClass());
+        ModelAssert.DoseNotThrow(new TestClass());
     }
 
     [Fact]
     public void PropertyEmpty_Throw()
     {
-        ValidationTest.Throws(new TestClass1_A(), nameof(TestClass1_A.Value1));
-        ValidationTest.Throws(new TestClass1_B(), nameof(TestClass1_B.Value1));
+        ModelAssert.Throws(new TestClass1_A(), nameof(TestClass1_A.Value1));
+        ModelAssert.Throws(new TestClass1_B(), nameof(TestClass1_B.Value1));
     }
 
     [Fact]
     public void NonExistentProperty_Throw()
     {
-        ValidationTest.Throws(new TestClass2_A(), nameof(TestClass2_A.Value1));
-        ValidationTest.Throws(new TestClass2_B(), nameof(TestClass2_B.Value1));
+        ModelAssert.Throws(new TestClass2_A(), nameof(TestClass2_A.Value1));
+        ModelAssert.Throws(new TestClass2_B(), nameof(TestClass2_B.Value1));
     }
 
     [Fact]
     public void SelfProperty_Throw()
     {
-        ValidationTest.Throws(new TestClass3_A(), nameof(TestClass3_A.Value1));
+        ModelAssert.Throws(new TestClass3_A(), nameof(TestClass3_A.Value1));
     }
 
     [Fact]
     public void PropertyNotIComparable_Throw()
     {
-        ValidationTest.Throws(new TestClass4_A(), nameof(TestClass4_A.Value1));
-        ValidationTest.Throws(new TestClass4_B(), nameof(TestClass4_B.Value1));
+        ModelAssert.Throws(new TestClass4_A(), nameof(TestClass4_A.Value1));
+        ModelAssert.Throws(new TestClass4_B(), nameof(TestClass4_B.Value1));
     }
 
     [Fact]
     public void CannotParseProperty_Throw()
     {
-        ValidationTest.Throws(new TestClass5_A(), nameof(TestClass5_A.Value1));
-        ValidationTest.Throws(new TestClass5_B(), nameof(TestClass5_B.Value1));
-        ValidationTest.Throws(new TestClass5_C(), nameof(TestClass5_C.Value1));
+        ModelAssert.Throws(new TestClass5_A(), nameof(TestClass5_A.Value1));
+        ModelAssert.Throws(new TestClass5_B(), nameof(TestClass5_B.Value1));
+        ModelAssert.Throws(new TestClass5_C(), nameof(TestClass5_C.Value1));
     }
 
     [Fact]
     public void NotComparable_Throw()
     {
-        ValidationTest.Throws(new TestClass6_A(), nameof(TestClass6_A.Value1));
-        ValidationTest.Throws(new TestClass6_B(), nameof(TestClass6_B.Value1));
+        ModelAssert.Throws(new TestClass6_A(), nameof(TestClass6_A.Value1));
+        ModelAssert.Throws(new TestClass6_B(), nameof(TestClass6_B.Value1));
     }
 
     [Fact]
     public void NullValue_Throw()
     {
-        ValidationTest.Throws(new TestClass7(), nameof(TestClass7.Value1));
+        ModelAssert.Throws(new TestClass7(), nameof(TestClass7.Value1));
     }
 
     [Fact]
     public void DifferenceType_Throw()
     {
-        ValidationTest.Throws(new TestClass8(), nameof(TestClass8.Value1));
+        ModelAssert.Throws(new TestClass8(), nameof(TestClass8.Value1));
     }
 
     [Fact]
     public void DifferenceValue_Throw()
     {
-        ValidationTest.Throws(new TestClass9(), nameof(TestClass9.Value1));
+        ModelAssert.Throws(new TestClass9(), nameof(TestClass9.Value1));
     }
 
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]

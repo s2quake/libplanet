@@ -29,7 +29,7 @@ public sealed class NotEmptyAttributeTest
             Value5 = Enumerable.Range(1, 3),
             Value6 = new TestArray { Items = [1, 2, 3] },
         };
-        ValidationTest.DoseNotThrow(obj1);
+        ModelAssert.DoseNotThrow(obj1);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public sealed class NotEmptyAttributeTest
         ];
 
         var obj1 = new TestClass();
-        ValidationTest.ThrowsMany(obj1, propertyNames);
+        ModelAssert.ThrowsMany(obj1, propertyNames);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public sealed class NotEmptyAttributeTest
             nameof(InvalidTestClass.Value3),
         ];
         var obj1 = new InvalidTestClass();
-        ValidationTest.ThrowsMany(obj1, propertyNames);
+        ModelAssert.ThrowsMany(obj1, propertyNames);
     }
 
     private sealed record class TestClass

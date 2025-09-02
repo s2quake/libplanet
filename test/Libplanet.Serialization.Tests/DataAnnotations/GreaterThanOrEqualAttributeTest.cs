@@ -38,14 +38,14 @@ public sealed class GreaterThanOrEqualAttributeTest
             Value1 = value1,
             Value2 = value2,
         };
-        ValidationTest.DoseNotThrow(obj1);
+        ModelAssert.DoseNotThrow(obj1);
 
         var obj2 = new TestClass1
         {
             Value1 = value1,
             Value2 = value1,
         };
-        ValidationTest.DoseNotThrow(obj2);
+        ModelAssert.DoseNotThrow(obj2);
     }
 
     [Fact]
@@ -56,14 +56,14 @@ public sealed class GreaterThanOrEqualAttributeTest
             Value1 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
             Value2 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
         };
-        ValidationTest.DoseNotThrow(obj1);
+        ModelAssert.DoseNotThrow(obj1);
 
         var obj2 = new TestClass1
         {
             Value1 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
             Value2 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
         };
-        ValidationTest.DoseNotThrow(obj2);
+        ModelAssert.DoseNotThrow(obj2);
     }
 
     public static TheoryDataRow<object, object>[] InvalidValues =>
@@ -88,7 +88,7 @@ public sealed class GreaterThanOrEqualAttributeTest
             Value1 = value1,
             Value2 = value2,
         };
-        ValidationTest.Throws(obj1);
+        ModelAssert.Throws(obj1);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class GreaterThanOrEqualAttributeTest
             Value1 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
             Value2 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
         };
-        ValidationTest.Throws(obj1);
+        ModelAssert.Throws(obj1);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class GreaterThanOrEqualAttributeTest
             Value8 = 'b',
             Value9 = "B"
         };
-        ValidationTest.DoseNotThrow(obj1);
+        ModelAssert.DoseNotThrow(obj1);
 
         var obj2 = new TestClass2
         {
@@ -132,7 +132,7 @@ public sealed class GreaterThanOrEqualAttributeTest
             Value9 = "C"
         };
 
-        ValidationTest.DoseNotThrow(obj2);
+        ModelAssert.DoseNotThrow(obj2);
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public sealed class GreaterThanOrEqualAttributeTest
             Value8 = 'a',
             Value9 = "A"
         };
-        ValidationTest.ThrowsMany(obj1, propertyNames);
+        ModelAssert.ThrowsMany(obj1, propertyNames);
     }
 
     private sealed record class TestClass1

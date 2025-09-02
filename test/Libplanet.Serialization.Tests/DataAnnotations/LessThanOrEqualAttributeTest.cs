@@ -38,14 +38,14 @@ public sealed class LessThanOrEqualAttributeTest
             Value1 = value1,
             Value2 = value2,
         };
-        ValidationTest.DoseNotThrow(obj1);
+        ModelAssert.DoseNotThrow(obj1);
 
         var obj2 = new TestClass1
         {
             Value1 = value1,
             Value2 = value1,
         };
-        ValidationTest.DoseNotThrow(obj2);
+        ModelAssert.DoseNotThrow(obj2);
     }
 
     [Fact]
@@ -56,14 +56,14 @@ public sealed class LessThanOrEqualAttributeTest
             Value1 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
             Value2 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
         };
-        ValidationTest.DoseNotThrow(obj1);
+        ModelAssert.DoseNotThrow(obj1);
 
         var obj2 = new TestClass1
         {
             Value1 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
             Value2 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
         };
-        ValidationTest.DoseNotThrow(obj2);
+        ModelAssert.DoseNotThrow(obj2);
     }
 
     public static TheoryDataRow<object, object>[] InvalidValues =>
@@ -88,7 +88,7 @@ public sealed class LessThanOrEqualAttributeTest
             Value1 = value1,
             Value2 = value2,
         };
-        ValidationTest.Throws(obj1);
+        ModelAssert.Throws(obj1);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class LessThanOrEqualAttributeTest
             Value1 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
             Value2 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
         };
-        ValidationTest.Throws(obj1);
+        ModelAssert.Throws(obj1);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class LessThanOrEqualAttributeTest
             Value8 = 'a',
             Value9 = "A"
         };
-        ValidationTest.DoseNotThrow(obj1);
+        ModelAssert.DoseNotThrow(obj1);
 
         var obj2 = new TestClass2
         {
@@ -131,7 +131,7 @@ public sealed class LessThanOrEqualAttributeTest
             Value8 = 'b',
             Value9 = "B"
         };
-        ValidationTest.DoseNotThrow(obj2);
+        ModelAssert.DoseNotThrow(obj2);
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public sealed class LessThanOrEqualAttributeTest
             Value8 = 'c',
             Value9 = "C"
         };
-        ValidationTest.ThrowsMany(obj1, propertyNames);
+        ModelAssert.ThrowsMany(obj1, propertyNames);
     }
 
     private sealed record class TestClass1

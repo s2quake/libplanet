@@ -183,18 +183,18 @@ public class FullNodeTest
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty.SetItem('A', hashNode),
         };
-        ValidationTest.Throws(invalidNode1, nameof(FullNode.Children));
+        ModelAssert.Throws(invalidNode1, nameof(FullNode.Children));
 
         var invalidNode2 = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty.SetItem('B', new UnexpectedNode()),
         };
-        ValidationTest.Throws(invalidNode2, nameof(FullNode.Children));
+        ModelAssert.Throws(invalidNode2, nameof(FullNode.Children));
 
         var invalidNode3 = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty.SetItem('C', NullNode.Value),
         };
-        ValidationTest.Throws(invalidNode3, nameof(FullNode.Children));
+        ModelAssert.Throws(invalidNode3, nameof(FullNode.Children));
     }
 }

@@ -43,10 +43,10 @@ public class CurrencyTest
         Assert.Equal(100, quux.MaximumSupply);
         Assert.Empty(quux.Minters);
 
-        ValidationTest.Throws(Currency.Create(string.Empty, 0), nameof(Currency.Ticker));
-        ValidationTest.Throws(Currency.Create("   \n", 1), nameof(Currency.Ticker));
-        ValidationTest.Throws(Currency.Create("bar", 1), nameof(Currency.Ticker));
-        ValidationTest.Throws(Currency.Create("TEST", 1, -100, []), nameof(Currency.MaximumSupply));
+        ModelAssert.Throws(Currency.Create(string.Empty, 0), nameof(Currency.Ticker));
+        ModelAssert.Throws(Currency.Create("   \n", 1), nameof(Currency.Ticker));
+        ModelAssert.Throws(Currency.Create("bar", 1), nameof(Currency.Ticker));
+        ModelAssert.Throws(Currency.Create("TEST", 1, -100, []), nameof(Currency.MaximumSupply));
     }
 
     [Fact]

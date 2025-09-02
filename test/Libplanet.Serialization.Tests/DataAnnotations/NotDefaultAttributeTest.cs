@@ -25,7 +25,7 @@ public sealed class NotDefaultAttributeTest
             Value2 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
             Value3 = [1, 2, 3],
         };
-        ValidationTest.DoseNotThrow(obj1);
+        ModelAssert.DoseNotThrow(obj1);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public sealed class NotDefaultAttributeTest
         ];
 
         var obj1 = new TestClass();
-        ValidationTest.ThrowsMany(obj1, propertyNames);
+        ModelAssert.ThrowsMany(obj1, propertyNames);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public sealed class NotDefaultAttributeTest
             nameof(InvalidTestClass.Value2)
         ];
         var obj1 = new InvalidTestClass();
-        ValidationTest.ThrowsMany(obj1, propertyNames);
+        ModelAssert.ThrowsMany(obj1, propertyNames);
     }
 
     private sealed record class TestClass

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Libplanet.TestUtilities;
 
-public static class ValidationTest
+public static class ModelAssert
 {
     [AssertionMethod]
     public static ValidationException Throws(object obj)

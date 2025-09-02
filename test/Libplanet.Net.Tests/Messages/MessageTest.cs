@@ -174,7 +174,7 @@ public sealed class MessageTest(ITestOutputHelper output)
         ModelValidationUtility.Validate(() => new ConsensusPreCommitMessage { PreCommit = preCommit });
 
         // Invalid message cases
-        ValidationTest.Throws(() => new ConsensusPreVoteMessage { PreVote = preCommit });
-        ValidationTest.Throws(() => new ConsensusPreCommitMessage { PreCommit = preVote });
+        ModelAssert.Throws(() => new ConsensusPreVoteMessage { PreVote = preCommit });
+        ModelAssert.Throws(() => new ConsensusPreCommitMessage { PreCommit = preVote });
     }
 }
