@@ -1,6 +1,6 @@
 namespace Libplanet.Serialization.DataAnnotations;
 
-[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Property)]
 public sealed class GreaterThanAttribute : ComparisonAttribute
 {
     public GreaterThanAttribute(Type? targetType, string propertyName)

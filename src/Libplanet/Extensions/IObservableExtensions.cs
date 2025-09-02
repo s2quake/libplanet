@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Reactive.Linq;
 
 namespace Libplanet.Extensions;
@@ -18,7 +19,14 @@ public static class IObservableExtensions
             tcs.TrySetResult(e);
         });
 
-        return await tcs.Task;
+        try
+        {
+            return await tcs.Task;
+        }
+        catch (TaskCanceledException e)
+        {
+            throw new OperationCanceledException(e.Message, e.InnerException, cancellationToken);
+        }
     }
 
     public static Task<T> WaitAsync<T>(this IObservable<T> @this, TimeSpan timeout)
@@ -48,7 +56,14 @@ public static class IObservableExtensions
             }
         });
 
-        return await tcs.Task;
+        try
+        {
+            return await tcs.Task;
+        }
+        catch (TaskCanceledException e)
+        {
+            throw new OperationCanceledException(e.Message, e.InnerException, cancellationToken);
+        }
     }
 
     public static Task<T> WaitAsync<T>(

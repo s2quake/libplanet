@@ -109,7 +109,7 @@ public sealed partial record class DuplicateVoteEvidence : EvidenceBase, IEquata
                 $"Blockhash of votes are the same: {VoteDup}");
         }
 
-        if (!ValidationUtility.TryValidate(VoteRef))
+        if (!ModelValidationUtility.TryValidate(VoteRef))
         {
             yield return new ValidationResult(
                 $"Signature of voteRef is invalid: " +
@@ -117,7 +117,7 @@ public sealed partial record class DuplicateVoteEvidence : EvidenceBase, IEquata
                 $"signature {VoteRef.Signature}");
         }
 
-        if (!ValidationUtility.TryValidate(VoteDup))
+        if (!ModelValidationUtility.TryValidate(VoteDup))
         {
             yield return new ValidationResult(
                 $"Signature of voteDup is invalid: " +

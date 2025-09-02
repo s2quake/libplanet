@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+using System.Diagnostics;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
 
@@ -6,11 +6,9 @@ namespace Libplanet.Types.Tests;
 
 public class CurrencyTest
 {
-    public static readonly Address AddressA
-        = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
+    public static readonly Address AddressA = Address.Parse("D6D639DA5a58A78A564C2cD3DB55FA7CeBE244A9");
 
-    public static readonly Address AddressB
-        = Address.Parse("5003712B63baAB98094aD678EA2B24BcE445D076");
+    public static readonly Address AddressB = Address.Parse("5003712B63baAB98094aD678EA2B24BcE445D076");
 
     [Fact]
     public void Constructor()
@@ -54,29 +52,29 @@ public class CurrencyTest
     [Fact]
     public void Hash()
     {
-        var currency = Currency.Create("GOLD", 2, [AddressA]);
-        var expected = HashDigest<SHA1>.Parse("c20c7a9bf9f39ba5b6dbf7f798bb4b6562e51e5e");
-        Assert.Equal(expected, currency.Hash);
+        (string, Currency)[] items =
+        [
+            ("5c167c93e9d55301c126b533f3f9bfaf7c8035c6", Currency.Create("GOLD", 2, [AddressA])),
+            ("bdec9f36c8c990ca5f5af5142f220b3560a39e7a", Currency.Create("NCG", 8, [AddressA, AddressB])),
+            ("ad8dce7d6f7aa1625318743d162f6d386f022a14", Currency.Create("FOO", 0)),
+            ("a16139726848bc16b208d62efa0f3b20a2468ac8", Currency.Create("BAR", 1)),
+            ("46943167967e11a862b08a16df44b9ba48aa1b5f", Currency.Create("BAZ", 1)),
+            ("02e5cdc825bd2f27ba506a5996667c1cc9bd9653", Currency.Create("BAZ", 1, 100)),
+        ];
 
-        currency = Currency.Create("NCG", 8, [AddressA, AddressB]);
-        expected = HashDigest<SHA1>.Parse("976d50cc499205ad9e55085ecb93e7809f340814");
-        Assert.Equal(expected, currency.Hash);
+#if DEBUG
+        for (var i = 0; i < items.Length; i++)
+        {
+            var (_, currency) = items[i];
+            Trace.WriteLine($"{currency.Hash}, {currency}");
+        }
+#endif // DEBUG
 
-        currency = Currency.Create("FOO", 0);
-        expected = HashDigest<SHA1>.Parse("9a6f39c23125e7b64ef3d16cfaac7243cf77f8f7");
-        Assert.Equal(expected, currency.Hash);
-
-        currency = Currency.Create("BAR", 1);
-        expected = HashDigest<SHA1>.Parse("c10347fb5d6abc3ab92aa4f3d8d026bb50d5c6bc");
-        Assert.Equal(expected, currency.Hash);
-
-        currency = Currency.Create("BAZ", 1);
-        expected = HashDigest<SHA1>.Parse("c5fda09873901efeb6d73104ac06bd7126141a53");
-        Assert.Equal(expected, currency.Hash);
-
-        currency = Currency.Create("BAZ", 1, 100);
-        expected = HashDigest<SHA1>.Parse("92417bc9b80a82cf043c9752c7b37de3b9889372");
-        Assert.Equal(expected, currency.Hash);
+        for (var i = 0; i < items.Length; i++)
+        {
+            var (expectedHash, currency) = items[i];
+            Assert.Equal(expectedHash, currency.Hash.ToString());
+        }
     }
 
     [Fact]
@@ -107,17 +105,31 @@ public class CurrencyTest
     [Fact]
     public void String()
     {
-        var currency = Currency.Create("GOLD", 0, [AddressA]);
-        Assert.Equal("GOLD (a563cb2ebd932576a033dbd6e0871064ee211ad2)", currency.ToString());
+        (string, Currency)[] items =
+        [
+            ("GOLD (36bbe96591f0c209addbd038bc2d912f18ef9c48)", Currency.Create("GOLD", 0, [AddressA])),
+            ("GOLD (b0ec285863ae0fd90fbbca482b529c0c42309b02)", Currency.Create("GOLD", 0, [])),
+            ("GOLD (7713ebfc5c5b3a32dc279e671dcb771958ac82ae)", Currency.Create("GOLD", 0, 100, [AddressA])),
+            ("GOLD (b0ec285863ae0fd90fbbca482b529c0c42309b02)", Currency.Create("GOLD", 0)),
+            ("FOO (ad8dce7d6f7aa1625318743d162f6d386f022a14)", Currency.Create("FOO", 0)),
+            ("BAR (a16139726848bc16b208d62efa0f3b20a2468ac8)", Currency.Create("BAR", 1)),
+            ("BAZ (46943167967e11a862b08a16df44b9ba48aa1b5f)", Currency.Create("BAZ", 1)),
+            ("BAZ (02e5cdc825bd2f27ba506a5996667c1cc9bd9653)", Currency.Create("BAZ", 1, 100)),
+        ];
 
-        currency = Currency.Create("GOLD", 0, []);
-        Assert.Equal("GOLD (b392f57c9ec82c6f3c63fa504b2dc06196609c21)", currency.ToString());
+#if DEBUG
+        for (var i = 0; i < items.Length; i++)
+        {
+            var (_, currency) = items[i];
+            Trace.WriteLine($"{currency.Hash}, {currency}");
+        }
+#endif // DEBUG
 
-        currency = Currency.Create("GOLD", 0);
-        Assert.Equal("GOLD (b392f57c9ec82c6f3c63fa504b2dc06196609c21)", currency.ToString());
-
-        currency = Currency.Create("GOLD", 0, 100, [AddressA]);
-        Assert.Equal("GOLD (9cff87ba928f3f3c72aaa05cc24e1dc603ae18fd)", currency.ToString());
+        for (var i = 0; i < items.Length; i++)
+        {
+            var (expectedString, currency) = items[i];
+            Assert.Equal(expectedString, currency.ToString());
+        }
     }
 
     [Fact]
@@ -163,5 +175,29 @@ public class CurrencyTest
 
         Assert.Equal(foo, ModelSerializer.Clone(foo));
         Assert.Equal(bar, ModelSerializer.Clone(bar));
+    }
+
+    [Fact]
+    public void GetRawValue()
+    {
+        var currency = Currency.Create("FOO", 2);
+        Assert.Equal(12300, currency.GetRawValue(123, 0));
+        Assert.Equal(12301, currency.GetRawValue(123, 1));
+        Assert.Equal(12302, currency.GetRawValue(123, 2));
+        Assert.Equal(12321, currency.GetRawValue(123, 21));
+        Assert.Equal(12399, currency.GetRawValue(123, 99));
+        Assert.Equal(12299, currency.GetRawValue(123, -1));
+        Assert.Equal(12279, currency.GetRawValue(123, -21));
+        Assert.Equal(12201, currency.GetRawValue(123, -99));
+    }
+
+    [Fact]
+    public void GetRawValue_Throw()
+    {
+        var currency = Currency.Create("FOO", 2);
+        Assert.Throws<ArgumentOutOfRangeException>(() => currency.GetRawValue(123, 100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => currency.GetRawValue(123, 101));
+        Assert.Throws<ArgumentOutOfRangeException>(() => currency.GetRawValue(123, -100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => currency.GetRawValue(123, -101));
     }
 }

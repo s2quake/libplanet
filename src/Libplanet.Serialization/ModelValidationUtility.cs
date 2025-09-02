@@ -1,16 +1,15 @@
 using System.ComponentModel.DataAnnotations;
-using Libplanet.Serialization;
 
-namespace Libplanet.Types;
+namespace Libplanet.Serialization;
 
-public static class ValidationUtility
+public static class ModelValidationUtility
 {
     public static void Validate(object obj)
     {
         var type = obj.GetType();
         if (!type.IsValueType || !TypeUtility.IsDefault(obj, type))
         {
-            System.ComponentModel.DataAnnotations.Validator.ValidateObject(instance: obj, new(obj), true);
+            Validator.ValidateObject(instance: obj, new(obj), true);
         }
     }
 
@@ -19,7 +18,7 @@ public static class ValidationUtility
         var type = obj.GetType();
         if (!type.IsValueType || !TypeUtility.IsDefault(obj, type))
         {
-            System.ComponentModel.DataAnnotations.Validator.ValidateObject(instance: obj, new(obj, items), true);
+            Validator.ValidateObject(instance: obj, new(obj, items), true);
         }
     }
 
@@ -38,8 +37,8 @@ public static class ValidationUtility
     }
 
     public static bool TryValidate(object obj)
-        => System.ComponentModel.DataAnnotations.Validator.TryValidateObject(obj, new(obj), null, true);
+        => Validator.TryValidateObject(obj, new(obj), null, true);
 
     public static bool TryValidate(object obj, ICollection<ValidationResult>? validationResults)
-        => System.ComponentModel.DataAnnotations.Validator.TryValidateObject(obj, new(obj), validationResults, true);
+        => Validator.TryValidateObject(obj, new(obj), validationResults, true);
 }

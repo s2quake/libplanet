@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
@@ -15,7 +16,7 @@ public readonly partial record struct BlockCommit : IValidatableObject
             vote.Round != round ||
             !blockHash.Equals(vote.BlockHash) ||
             (vote.Type != VoteType.Null && vote.Type != VoteType.PreCommit) ||
-            (vote.Type == VoteType.PreCommit && !ValidationUtility.TryValidate(vote))))
+            (vote.Type == VoteType.PreCommit && !ModelValidationUtility.TryValidate(vote))))
         {
             yield return new ValidationResult(
                 $"Every vote must have the same height as {Height}, the same round " +

@@ -13,16 +13,13 @@ public abstract class SignComparisonAttribute : ComparisonAttribute
     private static readonly Type[] _supportedTypes =
     [
         typeof(sbyte),
-        typeof(byte),
         typeof(short),
-        typeof(ushort),
         typeof(int),
-        typeof(uint),
         typeof(long),
-        typeof(ulong),
         typeof(float),
         typeof(double),
         typeof(decimal),
+        typeof(BigInteger),
     ];
 
     protected override IComparable GetTargetComparable(Type valueType, ValidationContext validationContext)
@@ -45,13 +42,9 @@ public abstract class SignComparisonAttribute : ComparisonAttribute
     private static IComparable GetTargetComparable(Type type) => type switch
     {
         Type t when t == typeof(sbyte) => (sbyte)0,
-        Type t when t == typeof(byte) => (byte)0,
         Type t when t == typeof(short) => (short)0,
-        Type t when t == typeof(ushort) => (ushort)0,
         Type t when t == typeof(int) => 0,
-        Type t when t == typeof(uint) => 0u,
         Type t when t == typeof(long) => 0L,
-        Type t when t == typeof(ulong) => 0uL,
         Type t when t == typeof(float) => 0f,
         Type t when t == typeof(double) => 0.0d,
         Type t when t == typeof(decimal) => 0m,

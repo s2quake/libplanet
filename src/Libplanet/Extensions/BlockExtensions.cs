@@ -1,3 +1,4 @@
+using Libplanet.Serialization;
 using Libplanet.Types;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -12,7 +13,7 @@ public static class BlockExtensions
             { typeof(Blockchain), blockChain }
         };
 
-        ValidationUtility.Validate(@this, items);
+        ModelValidationUtility.Validate(@this, items);
     }
 
     public static long GetActionByteLength(this Block @this)

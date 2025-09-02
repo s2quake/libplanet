@@ -1,6 +1,6 @@
 namespace Libplanet.Serialization.DataAnnotations;
 
-[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Property)]
 public sealed class GreaterThanEqualAttribute : ComparisonAttribute
 {
     public GreaterThanEqualAttribute(Type? targetType, string propertyName)
@@ -10,6 +10,11 @@ public sealed class GreaterThanEqualAttribute : ComparisonAttribute
 
     public GreaterThanEqualAttribute(object value)
         : base(value)
+    {
+    }
+
+    public GreaterThanEqualAttribute(string textValue, Type valueType)
+        : base(textValue, valueType)
     {
     }
 

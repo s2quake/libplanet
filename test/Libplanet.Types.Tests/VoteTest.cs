@@ -59,6 +59,6 @@ public sealed class VoteTest(ITestOutputHelper output)
         Assert.Equal(validatorPower, vote.ValidatorPower);
         Assert.Equal(type, vote.Type);
         Assert.Equal(metadata, vote.Metadata);
-        Assert.True(ValidationUtility.TryValidate(vote));
+        Assert.True(ModelValidationUtility.TryValidate(vote));
     }
 }

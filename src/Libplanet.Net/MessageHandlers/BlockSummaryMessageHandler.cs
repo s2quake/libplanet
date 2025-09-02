@@ -28,7 +28,6 @@ internal sealed class BlockSummaryMessageHandler(
 
     private static BlockSummary ValidateAndReturn(BlockSummary blockSummary)
     {
-        blockSummary.Timestamp.ValidateTimestamp();
         return blockSummary;
     }
 }

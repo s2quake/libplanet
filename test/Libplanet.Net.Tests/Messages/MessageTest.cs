@@ -1,5 +1,6 @@
 using Libplanet.Net.Messages;
 using Libplanet.Net.NetMQ;
+using Libplanet.Serialization;
 using Libplanet.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
@@ -169,8 +170,8 @@ public sealed class MessageTest(ITestOutputHelper output)
         }.Sign(TestUtils.Signers[0]);
 
         // Valid message cases
-        ValidationUtility.Validate(() => new ConsensusPreVoteMessage { PreVote = preVote });
-        ValidationUtility.Validate(() => new ConsensusPreCommitMessage { PreCommit = preCommit });
+        ModelValidationUtility.Validate(() => new ConsensusPreVoteMessage { PreVote = preVote });
+        ModelValidationUtility.Validate(() => new ConsensusPreCommitMessage { PreCommit = preCommit });
 
         // Invalid message cases
         ValidationTest.Throws(() => new ConsensusPreVoteMessage { PreVote = preCommit });

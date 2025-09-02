@@ -151,13 +151,13 @@ public class FullNodeTest
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty,
         };
-        ValidationUtility.Validate(node1);
+        ModelValidationUtility.Validate(node1);
 
         var node2 = new FullNode
         {
             Children = ImmutableSortedDictionary<char, INode>.Empty.SetItem('A', new ValueNode { Value = "childA" }),
         };
-        ValidationUtility.Validate(node2);
+        ModelValidationUtility.Validate(node2);
 
         var node3 = new FullNode
         {
@@ -166,7 +166,7 @@ public class FullNodeTest
                 Children = ImmutableSortedDictionary<char, INode>.Empty
             }),
         };
-        ValidationUtility.Validate(node3);
+        ModelValidationUtility.Validate(node3);
 
         var node4 = new FullNode
         {
@@ -176,7 +176,7 @@ public class FullNodeTest
                 Value = new ValueNode { Value = "shortValue" },
             }),
         };
-        ValidationUtility.Validate(node4);
+        ModelValidationUtility.Validate(node4);
 
         var hashNode = new HashNode { Hash = default, StateIndex = [] };
         var invalidNode1 = new FullNode

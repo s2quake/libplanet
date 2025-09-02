@@ -1,3 +1,4 @@
+using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Extensions;
@@ -11,6 +12,6 @@ public static class BlockCommitExtensions
             { typeof(Block), block }
         };
 
-        ValidationUtility.Validate(@this, items);
+        ModelValidationUtility.Validate(@this, items);
     }
 }

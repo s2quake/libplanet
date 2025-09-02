@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Channels;
 using Libplanet.Net.Messages;
+using Libplanet.Serialization;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,7 @@ namespace Libplanet.Net.NetMQ;
 public sealed partial class NetMQTransport(ISigner signer, TransportOptions options)
     : ServiceBase(options.Logger), ITransport
 {
-    private readonly TransportOptions _options = ValidationUtility.ValidateAndReturn(options);
+    private readonly TransportOptions _options = ModelValidationUtility.ValidateAndReturn(options);
     private readonly ProtocolHash _protocolHash = options.Protocol.Hash;
     private readonly TransportPeer _peer = new(signer.Address, options.Host, options.Port);
     private Task _processTask = Task.CompletedTask;

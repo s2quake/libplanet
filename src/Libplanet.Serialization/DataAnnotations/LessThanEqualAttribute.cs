@@ -1,6 +1,6 @@
 namespace Libplanet.Serialization.DataAnnotations;
 
-[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Property)]
 public sealed class LessThanEqualAttribute : ComparisonAttribute
 {
     public LessThanEqualAttribute(Type? targetType, string propertyName)
@@ -10,6 +10,11 @@ public sealed class LessThanEqualAttribute : ComparisonAttribute
 
     public LessThanEqualAttribute(object value)
         : base(value)
+    {
+    }
+
+    public LessThanEqualAttribute(string textValue, Type valueType)
+        : base(textValue, valueType)
     {
     }
 

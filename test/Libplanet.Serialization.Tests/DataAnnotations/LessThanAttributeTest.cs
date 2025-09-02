@@ -5,12 +5,12 @@ using Libplanet.Types;
 
 namespace Libplanet.Serialization.Tests.DataAnnotations;
 
-public sealed class GreaterThanAttributeTest
+public sealed class LessThanAttributeTest
 {
     [Fact]
     public void AttributeTest()
     {
-        var attr = typeof(GreaterThanAttribute).GetCustomAttribute<AttributeUsageAttribute>();
+        var attr = typeof(LessThanAttribute).GetCustomAttribute<AttributeUsageAttribute>();
         Assert.NotNull(attr);
         Assert.Equal(AttributeTargets.Property, attr.ValidOn);
         Assert.False(attr.AllowMultiple);
@@ -18,15 +18,15 @@ public sealed class GreaterThanAttributeTest
 
     public static TheoryDataRow<object, object>[] ValidValues =>
     [
-        new(true, false),
-        new(1, 0),
-        new(1L, 0L),
-        new(1f, 0f),
-        new(1d, 0d),
-        new(1m, 0m),
-        new((BigInteger)1, (BigInteger)0),
-        new('c', 'b'),
-        new("C", "B"),
+        new(false, true),
+        new(0, 1),
+        new(0L, 1L),
+        new(0f, 1f),
+        new(0d, 1d),
+        new(0m, 1m),
+        new((BigInteger)0, (BigInteger)1),
+        new('a', 'z'),
+        new("a", "z"),
     ];
 
     [Theory]
@@ -46,23 +46,23 @@ public sealed class GreaterThanAttributeTest
     {
         var obj1 = new TestClass1
         {
-            Value1 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
-            Value2 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
+            Value1 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
+            Value2 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
         };
         ValidationTest.DoseNotThrow(obj1);
     }
 
     public static TheoryDataRow<object, object>[] InvalidValues =>
     [
-        new(false, true),
-        new(0, 1),
-        new(0L, 1L),
-        new(0f, 1f),
-        new(0d, 1d),
-        new(0m, 1m),
-        new((BigInteger)0, (BigInteger)1),
-        new('b', 'c'),
-        new("B", "C"),
+        new(true, false),
+        new(1, 0),  
+        new(1L, 0L),
+        new(1f, 0f),
+        new(1d, 0d),
+        new(1m, 0m),
+        new((BigInteger)1, (BigInteger)0),
+        new('z', 'a'),
+        new("z", "a"),
     ];
 
     [Theory]
@@ -89,8 +89,8 @@ public sealed class GreaterThanAttributeTest
     {
         var obj1 = new TestClass1
         {
-            Value1 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
-            Value2 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
+            Value1 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
+            Value2 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
         };
         ValidationTest.Throws(obj1);
 
@@ -107,15 +107,15 @@ public sealed class GreaterThanAttributeTest
     {
         var obj1 = new TestClass2
         {
-            Value1 = true,
-            Value2 = 1,
-            Value3 = 1L,
-            Value4 = 1f,
-            Value5 = 1d,
-            Value6 = 1m,
-            Value7 = 1,
-            Value8 = 'c',
-            Value9 = "C"
+            Value1 = false,
+            Value2 = -1,
+            Value3 = -1L,
+            Value4 = -1f,
+            Value5 = -1d,
+            Value6 = -1m,
+            Value7 = -1,
+            Value8 = 'a',
+            Value9 = "A"
         };
         ValidationTest.DoseNotThrow(obj1);
     }
@@ -138,21 +138,21 @@ public sealed class GreaterThanAttributeTest
 
         var obj1 = new TestClass2
         {
-            Value1 = false,
-            Value2 = -1,
-            Value3 = -1L,
-            Value4 = -1f,
-            Value5 = -1d,
-            Value6 = -1m,
-            Value7 = -1,
-            Value8 = 'a',
-            Value9 = "A"
+            Value1 = true,
+            Value2 = 1,
+            Value3 = 1L,
+            Value4 = 1f,
+            Value5 = 1d,
+            Value6 = 1m,
+            Value7 = 1,
+            Value8 = 'c',
+            Value9 = "C"
         };
         ValidationTest.ThrowsMany(obj1, propertyNames);
 
         var obj2 = new TestClass2
         {
-            Value1 = false,
+            Value1 = true,
             Value2 = 0,
             Value3 = 0L,
             Value4 = 0f,
@@ -167,7 +167,7 @@ public sealed class GreaterThanAttributeTest
 
     private sealed record class TestClass1
     {
-        [GreaterThan(targetType: null, nameof(Value2))]
+        [LessThan(targetType: null, nameof(Value2))]
         public required object Value1 { get; init; }
 
         public required object Value2 { get; init; }
@@ -175,31 +175,31 @@ public sealed class GreaterThanAttributeTest
 
     private sealed record class TestClass2
     {
-        [GreaterThan(false)]
+        [LessThan(true)]
         public bool Value1 { get; init; }
 
-        [GreaterThan(0)]
+        [LessThan(0)]
         public int Value2 { get; init; }
 
-        [GreaterThan(0L)]
+        [LessThan(0L)]
         public long Value3 { get; init; }
 
-        [GreaterThan(0f)]
+        [LessThan(0f)]
         public float Value4 { get; init; }
 
-        [GreaterThan(0d)]
+        [LessThan(0d)]
         public double Value5 { get; init; }
 
-        [GreaterThan("0", typeof(decimal))]
+        [LessThan("0", typeof(decimal))]
         public decimal Value6 { get; init; }
 
-        [GreaterThan("0", typeof(BigInteger))]
+        [LessThan("0", typeof(BigInteger))]
         public BigInteger Value7 { get; init; }
 
-        [GreaterThan('b')]
+        [LessThan('b')]
         public char Value8 { get; init; }
 
-        [GreaterThan("B")]
+        [LessThan("B")]
         public string Value9 { get; init; } = string.Empty;
     }
 }

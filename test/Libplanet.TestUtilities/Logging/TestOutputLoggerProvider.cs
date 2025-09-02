@@ -3,9 +3,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Libplanet.TestUtilities.Logging;
 
-/// <summary>
-/// ILoggerProvider 구현체: xUnit ITestOutputHelper 로 로그를 전달.
-/// </summary>
 internal sealed class TestOutputLoggerProvider(ITestOutputHelper output, LogLevel minLevel = LogLevel.Debug)
     : ILoggerProvider
 {
@@ -42,7 +39,7 @@ internal sealed class TestOutputLoggerProvider(ITestOutputHelper output, LogLeve
             }
             catch (InvalidOperationException)
             {
-                // ITestOutputHelper 수명 종료 시 발생 가능 - 무시.
+                // nothing
             }
         }
 

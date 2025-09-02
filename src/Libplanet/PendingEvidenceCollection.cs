@@ -2,6 +2,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Subjects;
 using Libplanet.Data;
+using Libplanet.Serialization;
 using Libplanet.State;
 using Libplanet.Types;
 using Microsoft.CodeAnalysis;
@@ -139,7 +140,7 @@ public sealed class PendingEvidenceCollection(Repository repository, BlockchainO
             var validators = world.GetValidators();
             var evidenceContext = new EvidenceContext(validators);
 
-            ValidationUtility.Validate(evidence, new Dictionary<object, object?>
+            ModelValidationUtility.Validate(evidence, new Dictionary<object, object?>
             {
                 { typeof(EvidenceContext), evidenceContext },
             });

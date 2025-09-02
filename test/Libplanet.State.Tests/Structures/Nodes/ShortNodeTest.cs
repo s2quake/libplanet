@@ -60,7 +60,7 @@ public class ShortNodeTest
             Key = key,
             Value = valueNode,
         };
-        ValidationUtility.Validate(node1);
+        ModelValidationUtility.Validate(node1);
 
         var node2 = node1 with
         {
@@ -69,13 +69,13 @@ public class ShortNodeTest
                 Children = ImmutableSortedDictionary<char, INode>.Empty,
             },
         };
-        ValidationUtility.Validate(node2);
+        ModelValidationUtility.Validate(node2);
 
         var node3 = node1 with
         {
             Value = new HashNode { Hash = default, StateIndex = [] },
         };
-        ValidationUtility.Validate(node3);
+        ModelValidationUtility.Validate(node3);
 
         var invalidNode1 = new ShortNode
         {

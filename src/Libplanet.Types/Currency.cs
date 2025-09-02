@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using Libplanet.Serialization;
@@ -31,7 +30,7 @@ public readonly partial record struct Currency
     [Property(3)]
     public ImmutableSortedSet<Address> Minters { get; init; } = [];
 
-    public HashDigest<SHA1> Hash => GetHash();
+    public HashDigest<SHA1> Hash => HashDigest<SHA1>.HashData(ModelSerializer.SerializeToBytes(this));
 
     public static FungibleAssetValue operator *(Currency currency, decimal value)
     {
@@ -89,35 +88,4 @@ public readonly partial record struct Currency
     }
 
     public override string ToString() => $"{Ticker} ({Hash})";
-
-    private static SHA1 GetSHA1()
-    {
-#if NETSTANDARD2_0_OR_GREATER || NETCOREAPP3_1
-        try
-        {
-            return new SHA1CryptoServiceProvider();
-        }
-        catch (PlatformNotSupportedException)
-        {
-            return new SHA1Managed();
-        }
-#elif NET6_0_OR_GREATER
-        return SHA1.Create();
-#endif
-    }
-
-    private HashDigest<SHA1> GetHash()
-    {
-        using var buffer = new MemoryStream();
-        using var sha1 = GetSHA1();
-        using var stream = new CryptoStream(buffer, sha1, CryptoStreamMode.Write);
-        stream.Write(ModelSerializer.SerializeToBytes(this).AsSpan());
-        stream.FlushFinalBlock();
-        if (sha1.Hash is { } hash)
-        {
-            return new HashDigest<SHA1>(hash);
-        }
-
-        throw new InvalidOperationException("Failed to compute the hash.");
-    }
 }

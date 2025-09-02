@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Libplanet.Serialization.DataAnnotations;
 
 [AttributeUsage(AttributeTargets.Property)]
