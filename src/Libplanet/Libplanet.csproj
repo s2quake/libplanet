@@ -5,24 +5,17 @@
     <Description>A .NET library for creating multiplayer online game in decentralized fashion.
 See also the docs for details:
 https://docs.libplanet.io/</Description>
-    <!-- FIXME: The above summary/description should be rewritten. -->
   </PropertyGroup>
 
   <PropertyGroup>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);S4035;CS1591;NU5104;MEN001;NU1902</NoWarn>
-    <!-- FIXME: S4035 and CS1591 should be turned on eventually. -->
-    <!-- FIXME: NU1902 should be removed once BouncyCastle is bumped to a secure version -->
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.*" /> -->
     <PackageReference Include="System.Text.Json" Version="9.0.*" />
     <PackageReference Include="System.Reactive" Version="6.0.*" />
-    <!-- <PackageReference Include="Serilog" Version="4.0.0" /> -->
-    <!-- <PackageReference Include="Nito.AsyncEx" Version="5.0.0" /> -->
-    <!-- <PackageReference Include="System.Linq.Async" Version="4.0.*" /> -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
   </ItemGroup>
 
@@ -30,6 +23,7 @@ https://docs.libplanet.io/</Description>
     <ProjectReference Include="..\Libplanet.Types\Libplanet.Types.csproj" />
     <ProjectReference Include="..\Libplanet.Data\Libplanet.Data.csproj" />
     <ProjectReference Include="..\Libplanet.State\Libplanet.State.csproj" />
+    <ProjectReference Include="..\Libplanet.Serialization.Analyzers\Libplanet.Serialization.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
 </Project>

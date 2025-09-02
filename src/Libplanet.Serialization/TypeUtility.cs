@@ -238,6 +238,7 @@ public static class TypeUtility
 
     private static void AddAssembly(Assembly assembly)
     {
+        Trace.WriteLine(assembly.FullName);
         var query = from type in assembly.GetTypes()
                     where type.IsDefined(typeof(ModelAttribute)) ||
                           type.IsDefined(typeof(ModelConverterAttribute))

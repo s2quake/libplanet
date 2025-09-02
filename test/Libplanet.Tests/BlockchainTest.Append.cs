@@ -7,7 +7,7 @@ using Libplanet.Types;
 using Libplanet.TestUtilities;
 using Libplanet.Extensions;
 using Libplanet.State.Structures;
-using Libplanet.State.Builtin;
+using Libplanet.Builtin;
 using static Libplanet.Tests.TestUtils;
 
 namespace Libplanet.Tests;

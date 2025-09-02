@@ -1,7 +1,7 @@
 using Libplanet.State;
 using Libplanet.Types;
 using System.Security.Cryptography;
-using Libplanet.State.Builtin;
+using Libplanet.Builtin;
 
 namespace Libplanet.Tests;
 

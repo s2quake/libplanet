@@ -1,6 +1,7 @@
 using Libplanet.Serialization;
+using Libplanet.State;
 
-namespace Libplanet.State.Builtin;
+namespace Libplanet.Builtin;
 
 [Model(Version = 1, TypeName = "NullAction")]
 public sealed record class NullAction : ActionBase

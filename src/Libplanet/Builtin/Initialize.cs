@@ -1,8 +1,9 @@
 using Libplanet.Serialization;
+using Libplanet.State;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Builtin;
+namespace Libplanet.Builtin;
 
 [Model(Version = 1, TypeName = "Initialize")]
 public sealed partial record class Initialize : ActionBase

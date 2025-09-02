@@ -60,7 +60,7 @@ public static class TestUtils
     {
         options ??= new TransportOptions();
         signer ??= new PrivateKey().AsSigner();
-        return new Libplanet.Net.NetMQ.NetMQTransport(signer, options);
+        return new Transport(signer, options);
     }
 
     public static void InvokeDelay(Action action, int millisecondsDelay)

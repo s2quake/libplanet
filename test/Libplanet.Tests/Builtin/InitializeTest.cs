@@ -1,9 +1,10 @@
-using Libplanet.State.Builtin;
+using Libplanet.Builtin;
+using Libplanet.State;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Tests.Builtin;
+namespace Libplanet.Tests.Builtin;
 
 public sealed class InitializeTest(ITestOutputHelper output)
 {
@@ -55,7 +56,7 @@ public sealed class InitializeTest(ITestOutputHelper output)
             Validators = _validators,
         };
 
-        var nextWorld = ActionUtility.Execute(initialize, world, context);
+        var nextWorld = ExecuteAction(initialize, world, context);
 
         Assert.Equal(_validators, nextWorld.GetValidators());
         Assert.Equal(
@@ -106,6 +107,13 @@ public sealed class InitializeTest(ITestOutputHelper output)
         };
 
         Assert.Throws<InvalidOperationException>(
-            () => ActionUtility.Execute(initialize, world, context));
+            () => ExecuteAction(initialize, world, context));
+    }
+
+    private static World ExecuteAction(IAction action, World world, IActionContext actionContext)
+    {
+        using var worldContext = new WorldContext(world);
+        action.Execute(worldContext, actionContext);
+        return worldContext.Flush();
     }
 }

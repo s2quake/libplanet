@@ -63,7 +63,7 @@ public sealed class GossipTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new BlockBuilder
+        var genesisBlock = new GenesisBlockBuilder
         {
         }.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);

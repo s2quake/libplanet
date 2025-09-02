@@ -1,7 +1,7 @@
 using Libplanet.Data;
 using Libplanet.Extensions;
 using Libplanet.State;
-using Libplanet.State.Builtin;
+using Libplanet.Builtin;
 using Libplanet.State.Tests.Actions;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
