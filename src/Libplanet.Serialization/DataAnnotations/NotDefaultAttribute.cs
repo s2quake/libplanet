@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 
 namespace Libplanet.Serialization.DataAnnotations;
@@ -6,27 +5,32 @@ namespace Libplanet.Serialization.DataAnnotations;
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class NotDefaultAttribute : ValidationAttribute
 {
-    private static readonly ConcurrentDictionary<Type, object?> _defaultValueByType = new();
-
-    public override bool IsValid(object? value)
+    protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
-        if (value?.GetType() is { IsValueType: true } type)
+        var memberName = validationContext.DisplayName;
+        var declaringType = validationContext.ObjectType;
+
+        if (value is null)
         {
-            return !IsDefault(value, type);
+            var message = $"The value specified in {GetType().Name} on " +
+                          $"{declaringType.Name}.{memberName} must not be null.";
+            return new ValidationResult(message, [memberName]);
         }
 
-        return false;
-    }
-
-    internal static bool IsDefault(object value, Type type)
-    {
-        if (!type.IsValueType)
+        var valueType = value.GetType();
+        if (!valueType.IsValueType)
         {
-            throw new ArgumentException(
-                $"Type {type} is not a value type.", nameof(type));
+            var message = $"The type {valueType.Name} specified in {GetType().Name} on " +
+                          $"{declaringType.Name}.{memberName} must be a value type.";
+            return new ValidationResult(message, [memberName]);
+        }
+        else if (TypeUtility.IsDefault(value, valueType))
+        {
+            var message = $"The value specified in {GetType().Name} on " +
+                          $"{declaringType.Name}.{memberName} must not be the default value.";
+            return new ValidationResult(message, [memberName]);
         }
 
-        var defaultValue = _defaultValueByType.GetOrAdd(type, Activator.CreateInstance);
-        return Equals(value, defaultValue);
+        return ValidationResult.Success;
     }
 }
