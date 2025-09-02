@@ -11,7 +11,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var blockHash = RandomUtility.BlockHash(random);
-        var votes = new VoteCollection(0, 0, VoteType.PreCommit, TestUtils.Validators);
+        var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
         Assert.False(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
         Assert.False(votes.HasTwoThirdsMajority);
@@ -20,7 +20,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
 
         votes.Add(new VoteMetadata
         {
-            Height = 0,
+            Height = 1,
             Round = 0,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
@@ -36,7 +36,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
 
         votes.Add(new VoteMetadata
         {
-            Height = 0,
+            Height = 1,
             Round = 0,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
@@ -52,7 +52,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
 
         votes.Add(new VoteMetadata
         {
-            Height = 0,
+            Height = 1,
             Round = 0,
             BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
@@ -68,7 +68,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
 
         votes.Add(new VoteMetadata
         {
-            Height = 0,
+            Height = 1,
             Round = 0,
             BlockHash = blockHash,
             Timestamp = DateTimeOffset.UtcNow,
@@ -79,7 +79,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
         Assert.True(votes.HasOneThirdsAny);
         Assert.True(votes.HasTwoThirdsAny);
         Assert.True(votes.HasTwoThirdsMajority);
-        Assert.False(votes.TryGetMajority23(out var decidedBlockHash5));
+        Assert.True(votes.TryGetMajority23(out var decidedBlockHash5));
         Assert.Equal(blockHash, decidedBlockHash5);
     }
 }

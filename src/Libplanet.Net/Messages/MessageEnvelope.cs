@@ -1,4 +1,5 @@
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Net.Messages;
 
@@ -6,6 +7,7 @@ namespace Libplanet.Net.Messages;
 public sealed record class MessageEnvelope
 {
     [Property(0)]
+    [NotDefault]
     public required Guid Identity { get; init; }
 
     [Property(1)]
@@ -18,6 +20,7 @@ public sealed record class MessageEnvelope
     public required Peer Sender { get; init; }
 
     [Property(4)]
+    [NotDefault]
     public DateTimeOffset Timestamp { get; init; }
 
     [Property(5)]

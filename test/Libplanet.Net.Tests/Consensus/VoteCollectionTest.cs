@@ -27,6 +27,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
         {
             Validator = TestUtils.Validators[0].Address,
             ValidatorPower = TestUtils.Validators[0].Power,
+            Timestamp = DateTimeOffset.UtcNow,
             Height = 1,
             Round = 0,
             Type = VoteType.PreCommit,
@@ -54,6 +55,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Height = 1,
                 Round = 0,
+                Timestamp = DateTimeOffset.UtcNow,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
             }.Sign(TestUtils.Signers[i]);
@@ -81,6 +83,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Height = 1,
                 Round = 0,
+                Timestamp = DateTimeOffset.UtcNow,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
             }.Sign(TestUtils.Signers[i]);
@@ -107,6 +110,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
             ValidatorPower = TestUtils.Validators[0].Power,
             Height = 1,
             Round = 0,
+            Timestamp = DateTimeOffset.UtcNow,
             Type = VoteType.PreCommit,
             BlockHash = blockHash,
         }.Sign(TestUtils.Signers[0]);
@@ -130,6 +134,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Height = 1,
                 Round = 0,
+                Timestamp = DateTimeOffset.UtcNow,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
             }.Sign(TestUtils.Signers[i]);
@@ -155,6 +160,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Height = 1,
                 Round = 0,
+                Timestamp = DateTimeOffset.UtcNow,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
             }.Sign(TestUtils.Signers[i]);
@@ -183,6 +189,7 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
                 ValidatorPower = TestUtils.Validators[i].Power,
                 Height = 1,
                 Round = 0,
+                Timestamp = DateTimeOffset.UtcNow,
                 Type = VoteType.PreCommit,
                 BlockHash = blockHash,
             }.Sign(TestUtils.Signers[i]);

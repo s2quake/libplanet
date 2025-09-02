@@ -24,6 +24,7 @@ public sealed partial record class ProposalMetadata : IValidatableObject
     public int Round { get; init; }
 
     [Property(4)]
+    [NotDefault]
     public DateTimeOffset Timestamp { get; init; }
 
     [Property(5)]

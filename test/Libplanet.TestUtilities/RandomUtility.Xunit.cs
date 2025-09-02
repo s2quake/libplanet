@@ -8,4 +8,11 @@ public static partial class RandomUtility
         output.WriteLine($"Random seed: {seed}");
         return new Random(seed);
     }
+
+    public static Random GetStaticRandom(ITestOutputHelper output)
+    {
+        var seed = 0;
+        output.WriteLine($"Random seed: {seed}");
+        return new Random(seed);
+    }
 }

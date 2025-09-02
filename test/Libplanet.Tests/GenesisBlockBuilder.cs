@@ -33,6 +33,7 @@ public sealed record class GenesisBlockBuilder
         };
         var tx = new TransactionBuilder
         {
+            Timestamp = Timestamp,
             Actions =
             [
                 initialize,

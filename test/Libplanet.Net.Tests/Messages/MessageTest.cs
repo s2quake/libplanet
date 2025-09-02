@@ -59,7 +59,7 @@ public sealed class MessageTest(ITestOutputHelper output)
         };
         var timestamp = DateTimeOffset.UtcNow;
         var badPrivateKey = new PrivateKey();
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<ArgumentException>(() =>
             NetMQMessageCodec.Encode(
                 new MessageEnvelope
                 {
@@ -130,10 +130,11 @@ public sealed class MessageTest(ITestOutputHelper output)
     [Fact]
     public void GetId()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = RandomUtility.GetStaticRandom(output);
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
+            Timestamp = new DateTimeOffset(2025, 9, 2, 14, 56, 15, TimeSpan.Zero),
         }.Create(proposer);
         var message = new BlockSummaryMessage
         {
@@ -141,8 +142,7 @@ public sealed class MessageTest(ITestOutputHelper output)
             BlockSummary = genesisBlock,
         };
         Assert.Equal(
-            new MessageId(ByteUtility.ParseHex(
-                "e1acbdc4d0cc1eb156cec60d0bf6d40fae3a90192e95719b12e6ee944c71b742")),
+            MessageId.Parse("905384adec66e8c79103c7a3f0e544d2cecc846b39419559a9603e5172f21130"),
             message.Id);
     }
 

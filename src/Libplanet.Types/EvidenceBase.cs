@@ -17,6 +17,7 @@ public abstract record class EvidenceBase
     public Address TargetAddress { get; init; }
 
     [Property(2)]
+    [NotDefault]
     public DateTimeOffset Timestamp { get; init; }
 
     public EvidenceId Id => new(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));

@@ -21,6 +21,7 @@ public sealed partial record class VoteBitsMetadata
     public BlockHash BlockHash { get; init; }
 
     [Property(3)]
+    [NotDefault]
     public DateTimeOffset Timestamp { get; init; }
 
     [Property(4)]
