@@ -24,8 +24,8 @@ public sealed record class MinerReward : ActionBase
     protected override void OnExecute(IWorldContext world, IActionContext context)
     {
         var proposer = context.Proposer;
-        var record = world.GetValueOrDefault(SystemAccount, RewardRecordAddress, string.Empty);
-        var reward = world.GetValueOrDefault(SystemAccount, proposer, 0) + Reward;
+        var record = world.GetValueOrDefaultLenient(SystemAccount, RewardRecordAddress, string.Empty);
+        var reward = world.GetValueOrDefaultLenient(SystemAccount, proposer, 0) + Reward;
         var rewardRecord = record == string.Empty ? $"{proposer}" : $"{record},{proposer}";
         world[SystemAccount, RewardRecordAddress] = rewardRecord;
         world[SystemAccount, proposer] = reward;

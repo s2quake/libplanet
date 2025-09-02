@@ -58,7 +58,7 @@ public partial class BlockchainTest
                 Proposer = proposer.Address,
                 PreviousStateRootHash = world.Hash,
             },
-        }.Sign(proposer);
+        }.SignWithoutValidation(proposer);
 
         var blockchain = new Blockchain(genesisBlock, repository);
 
@@ -74,7 +74,7 @@ public partial class BlockchainTest
                 PreviousBlockCommit = default,
                 PreviousStateRootHash = blockchain.StateRootHash,
             },
-        }.Sign(proposer);
+        }.SignWithoutValidation(proposer);
         var blockCommit1 = CreateBlockCommit(block1);
         blockchain.Append(block1, blockCommit1);
 
@@ -90,7 +90,7 @@ public partial class BlockchainTest
                 PreviousBlockCommit = blockCommit1,
                 PreviousStateRootHash = blockchain.StateRootHash,
             },
-        }.Sign(proposer);
+        }.SignWithoutValidation(proposer);
         var blockCommit2 = CreateBlockCommit(block2);
         Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));
 
@@ -106,7 +106,7 @@ public partial class BlockchainTest
                 PreviousBlockCommit = blockCommit1,
                 PreviousStateRootHash = blockchain.StateRootHash,
             },
-        }.Sign(proposer);
+        }.SignWithoutValidation(proposer);
         var blockCommit3 = CreateBlockCommit(block3);
 
         Assert.Throws<ArgumentException>(() => blockchain.Append(block3, blockCommit3));

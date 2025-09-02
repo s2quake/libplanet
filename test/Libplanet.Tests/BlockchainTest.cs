@@ -774,7 +774,7 @@ public partial class BlockchainTest(ITestOutputHelper output)
             {
                 Height = previousBlock.Height + 1,
                 PreviousBlockHash = previousBlock.BlockHash,
-                PreviousBlockCommit = CreateBlockCommit(previousBlock),
+                PreviousBlockCommit = previousBlock.Height is 0 ? default : CreateBlockCommit(previousBlock),
                 PreviousStateRootHash = blockchain.GetStateRootHash(previousBlock.BlockHash),
                 Timestamp = previousBlock.Timestamp + TimeSpan.FromSeconds(10),
                 Transactions = txs,

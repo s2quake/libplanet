@@ -236,11 +236,11 @@ public partial class BlockchainTest
 
         blockchain.StagedTransactions.AddRange(txs);
 
-        Assert.Null(blockchain.GetWorld().GetAccount(SystemAccount).GetValueOrDefault(addressA));
-        Assert.Null(blockchain.GetWorld().GetAccount(SystemAccount).GetValueOrDefault(addressB));
-        Assert.Null(blockchain.GetWorld().GetAccount(SystemAccount).GetValueOrDefault(addressC));
-        Assert.Null(blockchain.GetWorld().GetAccount(SystemAccount).GetValueOrDefault(addressD));
-        Assert.Null(blockchain.GetWorld().GetAccount(SystemAccount).GetValueOrDefault(addressE));
+        Assert.Null(blockchain.GetSystemValueOrDefault(addressA));
+        Assert.Null(blockchain.GetSystemValueOrDefault(addressB));
+        Assert.Null(blockchain.GetSystemValueOrDefault(addressC));
+        Assert.Null(blockchain.GetSystemValueOrDefault(addressD));
+        Assert.Null(blockchain.GetSystemValueOrDefault(addressE));
 
         foreach (var tx in txs)
         {
@@ -262,20 +262,20 @@ public partial class BlockchainTest
 
         Assert.Equal(
             1,
-            blockchain.GetWorld().GetAccount(SystemAccount).GetValue(addressA));
+            blockchain.GetSystemValue(addressA));
         Assert.Equal(
             "1b",
-            blockchain.GetWorld().GetAccount(SystemAccount).GetValue(addressB));
+            blockchain.GetSystemValue(addressB));
         Assert.Equal(
             "2a",
-            blockchain.GetWorld().GetAccount(SystemAccount).GetValue(addressC));
-        Assert.IsType<string>(blockchain.GetWorld().GetAccount(SystemAccount).GetValue(addressD));
+            blockchain.GetSystemValue(addressC));
+        Assert.IsType<string>(blockchain.GetSystemValue(addressD));
         Assert.Equal(
             new HashSet<string> { "2b", "5a" },
-            [.. ((string)blockchain.GetWorld().GetAccount(SystemAccount).GetValue(addressD)).Split(',')]);
+            [.. ((string)blockchain.GetSystemValue(addressD)).Split(',')]);
         Assert.Equal(
             "5b",
-            blockchain.GetWorld().GetAccount(SystemAccount).GetValue(addressE));
+            blockchain.GetSystemValue(addressE));
 
         foreach (var tx in new[] { txs[0], txs[1], txs[4] })
         {

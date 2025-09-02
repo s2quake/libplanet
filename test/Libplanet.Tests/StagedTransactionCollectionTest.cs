@@ -50,6 +50,7 @@ public sealed class StagedTransactionCollectionTest(ITestOutputHelper output)
             Timestamp = DateTimeOffset.UtcNow,
         }.Sign(signer);
         repository.Nonces.Increase(signer.Address, 100);
-        Assert.Throws<ArgumentException>(() => transactions.Add(tx));
+        transactions.Add(tx);
+        Assert.Contains(tx.Id, transactions);
     }
 }

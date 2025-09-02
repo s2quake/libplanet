@@ -125,10 +125,12 @@ public sealed class WorldTest
         {
             Signer = _signers[0].Address,
             GenesisBlockHash = blockchain.Genesis.BlockHash,
+            Timestamp = DateTimeOffset.UtcNow,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_signers[0]);
         var block1 = new BlockBuilder
         {
+            Height = blockchain.Tip.Height + 1,
             PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [tx],
@@ -152,11 +154,13 @@ public sealed class WorldTest
         {
             Nonce = 1,
             Signer = _signers[0].Address,
+            Timestamp = DateTimeOffset.UtcNow,
             GenesisBlockHash = blockchain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_signers[0]);
         var block2 = new BlockBuilder
         {
+            Height = blockchain.Tip.Height + 1,
             PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [tx],
@@ -180,11 +184,13 @@ public sealed class WorldTest
         {
             Nonce = blockchain.GetNextTxNonce(_addresses[0]),
             Signer = _signers[0].Address,
+            Timestamp = DateTimeOffset.UtcNow,
             GenesisBlockHash = blockchain.Genesis.BlockHash,
             Actions = new[] { action }.ToBytecodes(),
         }.Sign(_signers[0]);
         var block3 = new BlockBuilder
         {
+            Height = blockchain.Tip.Height + 1,
             PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
             Transactions = [tx],

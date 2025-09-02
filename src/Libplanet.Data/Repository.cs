@@ -7,6 +7,12 @@ namespace Libplanet.Data;
 
 public class Repository
 {
+    private const string GenesisHeightKey = "genesisHeight";
+    private const string HeightKey = "height";
+    private const string StateRootHashKey = "stateRootHash";
+    private const string IdKey = "id";
+
+    private readonly ImmutableMetadataIndex _immutableMetadata;
     private readonly MetadataIndex _metadata;
     private int _genesisHeight = -1;
     private int _height = -1;
@@ -20,6 +26,7 @@ public class Repository
     public Repository(IDatabase database)
     {
         Database = database;
+        _immutableMetadata = new ImmutableMetadataIndex(database);
         _metadata = new MetadataIndex(database);
         BlockDigests = new BlockDigestIndex(database);
         BlockCommits = new BlockCommitIndex(database);
@@ -33,21 +40,26 @@ public class Repository
         BlockHashes = new BlockHashIndex(database);
         Nonces = new NonceIndex(database);
         States = new StateIndex(database);
-        if (_metadata.TryGetValue("genesisHeight", out var genesisHeight))
+        if (_metadata.TryGetValue(GenesisHeightKey, out var genesisHeight))
         {
             _genesisHeight = int.Parse(genesisHeight);
         }
 
-        if (_metadata.TryGetValue("height", out var height))
+        if (_metadata.TryGetValue(HeightKey, out var height))
         {
             _height = int.Parse(height);
         }
 
-        _stateRootHash = _metadata.TryGetValue("stateRootHash", out var s1) ? HashDigest<SHA256>.Parse(s1) : default;
+        _stateRootHash = _metadata.TryGetValue(StateRootHashKey, out var s1) ? HashDigest<SHA256>.Parse(s1) : default;
 
-        if (_metadata.TryGetValue("id", out var id))
+        if (_immutableMetadata.TryGetValue(IdKey, out var id))
         {
             Id = Guid.Parse(id);
+        }
+        else
+        {
+            Id = Guid.NewGuid();
+            _immutableMetadata[IdKey] = Id.ToString();
         }
 
         BlockHashes.Height = _height;
@@ -90,16 +102,15 @@ public class Repository
             }
 
             _genesisHeight = value;
-            Id = Guid.NewGuid();
-            _metadata["id"] = Id.ToString();
+            _metadata[IdKey] = Id.ToString();
 
             if (value != -1)
             {
-                _metadata["genesisHeight"] = _genesisHeight.ToString();
+                _metadata[GenesisHeightKey] = _genesisHeight.ToString();
             }
             else
             {
-                _metadata.Remove("genesisHeight");
+                _metadata.Remove(GenesisHeightKey);
             }
         }
     }
@@ -118,11 +129,11 @@ public class Repository
             BlockHashes.Height = value;
             if (value != -1)
             {
-                _metadata["height"] = _height.ToString();
+                _metadata[HeightKey] = _height.ToString();
             }
             else
             {
-                _metadata.Remove("height");
+                _metadata.Remove(HeightKey);
             }
         }
     }
@@ -135,11 +146,11 @@ public class Repository
             _stateRootHash = value;
             if (value != default)
             {
-                _metadata["stateRootHash"] = _stateRootHash.ToString();
+                _metadata[StateRootHashKey] = _stateRootHash.ToString();
             }
             else
             {
-                _metadata.Remove("stateRootHash");
+                _metadata.Remove(StateRootHashKey);
             }
         }
     }
@@ -303,6 +314,15 @@ public class Repository
         return 0;
     }
 
+    public void Clear()
+    {
+        var tables = Database.Where(item => item.Key != ImmutableMetadataIndex.Name).ToArray();
+        foreach (var (_, table) in tables)
+        {
+            table.Clear();
+        }
+    }
+
     public async Task CopyToAsync(
         Repository destination, CancellationToken cancellationToken, IProgress<ProgressInfo> progress)
     {
@@ -311,8 +331,9 @@ public class Repository
             throw new ArgumentException("Destination repository is not empty.", nameof(destination));
         }
 
-        var stepProgress = new StepProgress(Database.Count + 1);
-        foreach (var (name, sourceTable) in Database)
+        var tables = Database.Where(item => item.Key != ImmutableMetadataIndex.Name).ToArray();
+        var stepProgress = new StepProgress(tables.Length + 1, progress);
+        foreach (var (name, sourceTable) in tables)
         {
             var destTable = destination.Database.GetOrAdd(name);
             if (sourceTable.Count > 0)
@@ -326,9 +347,9 @@ public class Repository
         }
 
         stepProgress.Next("Copying database state...");
-        destination.GenesisHeight = GenesisHeight;
-        destination.Height = Height;
-        destination.StateRootHash = StateRootHash;
+        destination._genesisHeight = _genesisHeight;
+        destination._height = _height;
+        destination._stateRootHash = _stateRootHash;
 
         stepProgress.Complete("Completed.");
     }
@@ -347,7 +368,6 @@ public class Repository
 
         stepProgress.Complete($"Copied table '{source.Name}' with {source.Count} entries.");
     }
-
 }
 
 public class Repository<TDatabase>(TDatabase database) : Repository(database)
