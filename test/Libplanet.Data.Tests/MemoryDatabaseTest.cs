@@ -18,7 +18,9 @@ public sealed class MemoryDatabaseTest : DatabaseTestBase<MemoryDatabase>
 
         database.TryRemove("table1");
         Assert.Single(database.Values);
-        Assert.DoesNotContain(table1, database.Values);
+#pragma warning disable xUnit2017 // Do not use Contains() to check if a value exists in a collection
+        Assert.False(database.Values.Contains(table1));
+#pragma warning restore xUnit2017 // Do not use Contains() to check if a value exists in a collection
         Assert.Contains(table2, database.Values);
     }
 

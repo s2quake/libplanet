@@ -5,12 +5,12 @@ using Libplanet.Types;
 
 namespace Libplanet.Serialization.Tests.DataAnnotations;
 
-public sealed class LessThanEqualAttributeTest
+public sealed class GreaterThanOrEqualAttributeTest
 {
     [Fact]
     public void AttributeTest()
     {
-        var attr = typeof(LessThanEqualAttribute).GetCustomAttribute<AttributeUsageAttribute>();
+        var attr = typeof(GreaterThanOrEqualAttribute).GetCustomAttribute<AttributeUsageAttribute>();
         Assert.NotNull(attr);
         Assert.Equal(AttributeTargets.Property, attr.ValidOn);
         Assert.False(attr.AllowMultiple);
@@ -18,15 +18,15 @@ public sealed class LessThanEqualAttributeTest
 
     public static TheoryDataRow<object, object>[] ValidValues =>
     [
-        new(false, true),
-        new(0, 1),
-        new(0L, 1L),
-        new(0f, 1f),
-        new(0d, 1d),
-        new(0m, 1m),
-        new((BigInteger)0, (BigInteger)1),
-        new('a', 'z'),
-        new("a", "z"),
+        new(true, false),
+        new(1, 0),
+        new(1L, 0L),
+        new(1f, 0f),
+        new(1d, 0d),
+        new(1m, 0m),
+        new((BigInteger)1, (BigInteger)0),
+        new('c', 'b'),
+        new("C", "B"),
     ];
 
     [Theory]
@@ -53,30 +53,30 @@ public sealed class LessThanEqualAttributeTest
     {
         var obj1 = new TestClass1
         {
-            Value1 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
-            Value2 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
+            Value1 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
+            Value2 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
         };
         ValidationTest.DoseNotThrow(obj1);
 
         var obj2 = new TestClass1
         {
-            Value1 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
-            Value2 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
+            Value1 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
+            Value2 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
         };
         ValidationTest.DoseNotThrow(obj2);
     }
 
     public static TheoryDataRow<object, object>[] InvalidValues =>
     [
-        new(true, false),
-        new(1, 0),  
-        new(1L, 0L),
-        new(1f, 0f),
-        new(1d, 0d),
-        new(1m, 0m),
-        new((BigInteger)1, (BigInteger)0),
-        new('z', 'a'),
-        new("z", "a"),
+        new(false, true),
+        new(0, 1),
+        new(0L, 1L),
+        new(0f, 1f),
+        new(0d, 1d),
+        new(0m, 1m),
+        new((BigInteger)0, (BigInteger)1),
+        new('a', 'b'),
+        new("A", "B"),
     ];
 
     [Theory]
@@ -96,8 +96,8 @@ public sealed class LessThanEqualAttributeTest
     {
         var obj1 = new TestClass1
         {
-            Value1 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
-            Value2 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
+            Value1 = Address.Parse("0x1c54b2F83D26E2db2D93dE4539c301d8aE32E69d"),
+            Value2 = Address.Parse("0x27A6F7321C93DE392d1078A7A3BdC62E03962cF7"),
         };
         ValidationTest.Throws(obj1);
     }
@@ -107,15 +107,15 @@ public sealed class LessThanEqualAttributeTest
     {
         var obj1 = new TestClass2
         {
-            Value1 = false,
-            Value2 = -1,
-            Value3 = -1L,
-            Value4 = -1f,
-            Value5 = -1d,
-            Value6 = -1m,
-            Value7 = -1,
-            Value8 = 'a',
-            Value9 = "A"
+            Value1 = true,
+            Value2 = 1,
+            Value3 = 1L,
+            Value4 = 1f,
+            Value5 = 1d,
+            Value6 = 1m,
+            Value7 = 1,
+            Value8 = 'b',
+            Value9 = "B"
         };
         ValidationTest.DoseNotThrow(obj1);
 
@@ -128,9 +128,10 @@ public sealed class LessThanEqualAttributeTest
             Value5 = 0d,
             Value6 = 0m,
             Value7 = 0,
-            Value8 = 'b',
-            Value9 = "B"
+            Value8 = 'c',
+            Value9 = "C"
         };
+
         ValidationTest.DoseNotThrow(obj2);
     }
 
@@ -151,21 +152,21 @@ public sealed class LessThanEqualAttributeTest
 
         var obj1 = new TestClass2
         {
-            Value2 = 1,
-            Value3 = 1L,
-            Value4 = 1f,
-            Value5 = 1d,
-            Value6 = 1m,
-            Value7 = 1,
-            Value8 = 'c',
-            Value9 = "C"
+            Value2 = -1,
+            Value3 = -1L,
+            Value4 = -1f,
+            Value5 = -1d,
+            Value6 = -1m,
+            Value7 = -1,
+            Value8 = 'a',
+            Value9 = "A"
         };
         ValidationTest.ThrowsMany(obj1, propertyNames);
     }
 
     private sealed record class TestClass1
     {
-        [LessThanEqual(targetType: null, nameof(Value2))]
+        [GreaterThanOrEqual(targetType: null, nameof(Value2))]
         public required object Value1 { get; init; }
 
         public required object Value2 { get; init; }
@@ -173,31 +174,31 @@ public sealed class LessThanEqualAttributeTest
 
     private sealed record class TestClass2
     {
-        [LessThanEqual(true)]
+        [GreaterThanOrEqual(false)]
         public bool Value1 { get; init; }
 
-        [LessThanEqual(0)]
+        [GreaterThanOrEqual(0)]
         public int Value2 { get; init; }
 
-        [LessThanEqual(0L)]
+        [GreaterThanOrEqual(0L)]
         public long Value3 { get; init; }
 
-        [LessThanEqual(0f)]
+        [GreaterThanOrEqual(0f)]
         public float Value4 { get; init; }
 
-        [LessThanEqual(0d)]
+        [GreaterThanOrEqual(0d)]
         public double Value5 { get; init; }
 
-        [LessThanEqual("0", typeof(decimal))]
+        [GreaterThanOrEqual("0", typeof(decimal))]
         public decimal Value6 { get; init; }
 
-        [LessThanEqual("0", typeof(BigInteger))]
+        [GreaterThanOrEqual("0", typeof(BigInteger))]
         public BigInteger Value7 { get; init; }
 
-        [LessThanEqual('b')]
+        [GreaterThanOrEqual('b')]
         public char Value8 { get; init; }
 
-        [LessThanEqual("B")]
+        [GreaterThanOrEqual("B")]
         public string Value9 { get; init; } = string.Empty;
     }
 }

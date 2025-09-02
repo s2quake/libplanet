@@ -28,14 +28,14 @@ public sealed class MemoryBlockHashIndexTest(ITestOutputHelper output)
             Height = 2,
         }.Create(signer);
         index.Add(block0);
+        index.Height = block0.Height;
 
         Assert.Equal(block0.BlockHash, index[block0.Height]);
         Assert.Single(index[block0.Height..]);
 
         index.Add(block2);
-        Assert.Empty(index[block2.Height..]);
-
         index.Height = block2.Height;
+
         Assert.Single(index[block2.Height..]);
         Assert.Equal(2, index[block0.Height..].Count());
     }

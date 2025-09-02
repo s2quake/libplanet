@@ -16,26 +16,29 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     public void Test()
     {
         var repository = CreateRepository();
-        Assert.NotEqual(Guid.Empty, repository.Id);
+        Assert.Equal(Guid.Empty, repository.Id);
         // for test coverage
-        Assert.NotNull(repository.PendingEvidences);
-        Assert.NotNull(repository.CommittedEvidences);
-        Assert.NotNull(repository.PendingTransactions);
-        Assert.NotNull(repository.CommittedTransactions);
-        Assert.NotNull(repository.BlockCommits);
-        Assert.NotNull(repository.BlockDigests);
-        Assert.NotNull(repository.StateRootHashes);
-        Assert.NotNull(repository.TxExecutions);
-        Assert.NotNull(repository.BlockExecutions);
-        Assert.NotNull(repository.BlockHashes);
-        Assert.NotNull(repository.Nonces);
-        Assert.NotNull(repository.States);
+        Assert.True(repository.PendingEvidences.IsEmpty);
+        Assert.True(repository.CommittedEvidences.IsEmpty);
+        Assert.True(repository.PendingTransactions.IsEmpty);
+        Assert.True(repository.CommittedTransactions.IsEmpty);
+        Assert.True(repository.BlockCommits.IsEmpty);
+        Assert.True(repository.BlockDigests.IsEmpty);
+        Assert.True(repository.StateRootHashes.IsEmpty);
+        Assert.True(repository.TxExecutions.IsEmpty);
+        Assert.True(repository.BlockExecutions.IsEmpty);
+        Assert.True(repository.BlockHashes.IsEmpty);
+        Assert.True(repository.Nonces.IsEmpty);
+        Assert.True(repository.States.IsEmpty);
+        Assert.True(repository.IsEmpty);
         Assert.Equal(-1, repository.GenesisHeight);
         Assert.Equal(-1, repository.Height);
         Assert.Equal(default, repository.StateRootHash);
         Assert.Equal(default, repository.GenesisBlockHash);
         Assert.Equal(default, repository.BlockHash);
         Assert.Equal(default, repository.BlockCommit);
+        Assert.Equal(default, repository.Timestamp);
+        Assert.Equal(BlockHeader.CurrentProtocolVersion, repository.BlockVersion);
     }
 
     [Fact]

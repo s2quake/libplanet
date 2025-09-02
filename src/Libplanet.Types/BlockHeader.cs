@@ -11,6 +11,7 @@ public sealed partial record class BlockHeader
 
     [Property(0)]
     [NonNegative]
+    [LessThanOrEqual(CurrentProtocolVersion)]
     public int BlockVersion { get; init; } = CurrentProtocolVersion;
 
     [Property(1)]
