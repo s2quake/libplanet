@@ -16,7 +16,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     public void Test()
     {
         var repository = CreateRepository();
-        Assert.Equal(Guid.Empty, repository.Id);
+        Assert.NotEqual(Guid.Empty, repository.Id);
         // for test coverage
         Assert.True(repository.PendingEvidences.IsEmpty);
         Assert.True(repository.CommittedEvidences.IsEmpty);

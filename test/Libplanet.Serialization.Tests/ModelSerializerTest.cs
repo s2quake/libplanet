@@ -1,6 +1,8 @@
+using Xunit.Sdk;
+
 namespace Libplanet.Serialization.Tests;
 
-public sealed partial class ModelSerializerTest
+public sealed partial class ModelSerializerTest(ITestOutputHelper output)
 {
     public enum TestEnum
     {

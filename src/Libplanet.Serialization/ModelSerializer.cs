@@ -181,7 +181,7 @@ public static class ModelSerializer
             else if (TryGetConverter(type, out var converter))
             {
                 stream.WriteByte((byte)DataType.Converter);
-                converter.Serialize(obj, stream, options);
+                SerializeByConverter(stream, obj, options, converter);
 #if _POSITION
                 System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
 #endif
@@ -224,6 +224,19 @@ public static class ModelSerializer
             {
                 throw new ModelSerializationException($"Unsupported type {obj.GetType()}");
             }
+        }
+    }
+
+    private static void SerializeByConverter(Stream stream, object obj, ModelOptions options, IModelConverter converter)
+    {
+        try
+        {
+            converter.Serialize(obj, stream, options);
+        }
+        catch (Exception e)
+        {
+            var message = $"An exception occurred while serializing {obj.GetType()} by {converter.GetType()}.";
+            throw new ModelSerializationException(message, e);
         }
     }
 
