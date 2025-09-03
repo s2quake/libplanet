@@ -109,7 +109,6 @@ public sealed partial class ConsensusService : ServiceBase
         _subscriptions =
         [
             _blockchain.TipChanged.Subscribe(Blockchain_TipChanged),
-            // _blockchain.BlockExecuted.Subscribe(Blockchain_BlockExecuted),
             _blockchain.Appended.Subscribe(Blockchain_Appended),
             _transport.MessageRouter.RegisterSendingMessageValidation<ConsensusVoteMessage>(ValidateMessageToSend),
             _transport.MessageRouter.RegisterReceivedMessageValidation<ConsensusVoteMessage>(ValidateMessageToReceive),
@@ -307,10 +306,7 @@ public sealed partial class ConsensusService : ServiceBase
         });
     }
 
-    private void Blockchain_TipChanged(Block e)
-    {
-        _tipChangedTime = DateTimeOffset.UtcNow;
-    }
+    private void Blockchain_TipChanged(Block e) => _tipChangedTime = DateTimeOffset.UtcNow;
 
     private async void Blockchain_Appended((Block Block, BlockCommit BlockCommit) e)
     {

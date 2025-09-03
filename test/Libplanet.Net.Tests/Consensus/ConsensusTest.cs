@@ -244,7 +244,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
             options.TimeoutPropose(consensus.Round) + TimeSpan.FromMilliseconds(200), cancellationToken);
         await stepChangedTask.WaitAsync(
             options.TimeoutPropose(consensus.Round) + TimeSpan.FromMilliseconds(200), cancellationToken);
-        Assert.Equal(ConsensusStep.Propose, consensus.Step);
-        Assert.Equal(1, consensus.Round.Index);
+        Assert.Equal(ConsensusStep.PreVote, consensus.Step);
+        Assert.Equal(0, consensus.Round.Index);
     }
 }

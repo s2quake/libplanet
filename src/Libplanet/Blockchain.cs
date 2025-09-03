@@ -83,7 +83,7 @@ public partial class Blockchain
 
     public IObservable<Block> TipChanged => _tipChangedSubject;
 
-    public IObservable<(Block, BlockCommit)> Appended => _appendedSubject;
+    public IObservable<(Block Block, BlockCommit BlockCommit)> Appended => _appendedSubject;
 
     public Guid Id { get; }
 

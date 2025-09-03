@@ -114,7 +114,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var consensusService = new ConsensusService(Signers[1], blockchain, transport, options);
 
         Assert.Equal(ConsensusStep.Default, consensusService.Step);
-        Assert.Equal(1, consensusService.Height);
+        Assert.Equal(-1, consensusService.Height);
         Assert.Equal(-1, consensusService.Round);
     }
 
@@ -276,15 +276,15 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
             TargetBlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[0], blockchain, transportB, options);
-        var preCommitStepChangedTask = consensusService.StepChanged.WaitAsync(
-            e => consensusService.Height == 1 && e == ConsensusStep.PreCommit);
-        var preCommittedTask = consensusService.Consensus.PreCommitted.WaitAsync(
-            e => e.Height == 1);
 
         await transportA.StartAsync();
         await transportB.StartAsync();
         await consensusService.StartAsync();
 
+        var preCommitStepChangedTask = consensusService.StepChanged.WaitAsync(
+            e => consensusService.Height == 1 && e == ConsensusStep.PreCommit);
+        var preCommittedTask = consensusService.Consensus.PreCommitted.WaitAsync(
+            e => e.Height == 1);
         var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {

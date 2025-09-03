@@ -126,6 +126,13 @@ public sealed partial class Consensus(ImmutableSortedSet<Validator> validators, 
             throw new InvalidOperationException("Consensus is not running.");
         }
 
+        if (proposal.Height != Height)
+        {
+            throw new ArgumentException(
+                $"Height of proposal {proposal.Height} does not match expected height {Height}.",
+                nameof(proposal));
+        }
+
         await _dispatcher.InvokeAsync(_ =>
         {
             SetProposal(proposal);

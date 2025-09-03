@@ -193,7 +193,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
 
         await consensus.StartAsync();
         var e1 = await Assert.ThrowsAsync<ArgumentException>(() => consensus.ProposeAsync(invalidProposal));
-        Assert.StartsWith("Proposal height", e1.Message);
+        Assert.StartsWith("Height of proposal", e1.Message);
 
         var proposal = await proposeTask.WaitAsync(WaitTimeout5, cancellationToken);
         await consensus.ProposeAsync(proposal).WaitAsync(WaitTimeout5, cancellationToken);

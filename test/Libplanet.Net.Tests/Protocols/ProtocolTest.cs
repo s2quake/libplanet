@@ -154,6 +154,9 @@ public sealed class ProtocolTest(ITestOutputHelper output)
 
         await transports.StartAsync(cancellationToken);
 
+        await peerExplorerB.ExploreAsync(cancellationToken);
+        await peerExplorerC.ExploreAsync(cancellationToken);
+
         Assert.Contains(transportC.Peer, peerExplorerB.Peers);
         Assert.Contains(transportB.Peer, peerExplorerC.Peers);
 
@@ -240,7 +243,7 @@ public sealed class ProtocolTest(ITestOutputHelper output)
         await using var transportB = CreateTransport();
         await using var transportC = CreateTransport();
 
-        var peers = new PeerCollection(transport.Peer.Address, bucketCount:1, capacityPerBucket: 1);
+        var peers = new PeerCollection(transport.Peer.Address, bucketCount: 1, capacityPerBucket: 1);
         using var peerExplorer = new PeerExplorer(transport, peers);
         await using var transports = new ServiceCollection
         {

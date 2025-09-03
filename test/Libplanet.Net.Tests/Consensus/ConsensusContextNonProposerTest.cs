@@ -88,6 +88,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task HandleMessageFromHigherHeight()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
@@ -107,6 +108,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
 
         var proposal = await consensusServiceB.BlockProposed.WaitAsync(e => e.Height == 2);
         Assert.Equal(2, consensusServiceB.Height);
+        var appendedTask2 = blockchain.Appended.WaitAsync(e => e.Block.Height == 2);
 
         for (var i = 0; i < Validators.Count; i++)
         {
@@ -147,6 +149,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
             timeout: WaitTimeout5,
             consensusServiceB.StepChanged.WaitAsync(e => e == ConsensusStep.EndCommit && consensusServiceB.Height == 2),
             blockchain.TipChanged.WaitAsync(e => e.Height == 2));
+
+        await appendedTask2.WaitAsync(WaitTimeout5, cancellationToken);
 
         var block3 = blockchain.Propose(Signers[3]);
         var proposal3 = new ProposalBuilder

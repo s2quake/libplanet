@@ -20,7 +20,7 @@ public sealed record class ProposalClaimBuilder
             BlockHash = Block.BlockHash,
             Height = Block.Height,
             Round = Round,
-            Timestamp = Timestamp,
+            Timestamp = Timestamp == default ? DateTimeOffset.UtcNow : Timestamp,
         };
         return metadata.Sign(signer);
     }
