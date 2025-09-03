@@ -16,9 +16,7 @@ public class ConsensusServiceTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var count = Signers.Length;
         var blockchains = new Blockchain[count];
         var validatorPeers = new List<Peer>();

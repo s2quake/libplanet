@@ -10,9 +10,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         ImmutableSortedSet<Transaction> txs =
         [
@@ -30,9 +28,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
 
         var tx1Signer = RandomUtility.Signer(random);
@@ -68,9 +64,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var signer = RandomUtility.Signer(random);
 
@@ -115,9 +109,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         Transaction[] txs =
         [

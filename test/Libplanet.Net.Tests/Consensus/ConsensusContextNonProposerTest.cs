@@ -20,9 +20,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);
         await using var transportB = CreateTransport(Signers[2]);
@@ -92,9 +90,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);
         await using var transportB = CreateTransport(Signers[2]);
@@ -177,9 +173,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transport = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
@@ -209,9 +203,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var timeError = 500;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);
         await using var transportB = CreateTransport(Signers[2]);

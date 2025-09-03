@@ -1,4 +1,5 @@
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 using Libplanet.State;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
@@ -9,9 +10,11 @@ namespace Libplanet.Builtin;
 public sealed partial record class Initialize : ActionBase
 {
     [Property(0)]
+    [NotDefault]
     public ImmutableArray<AccountState> States { get; init; } = [];
 
     [Property(1)]
+    [NotEmpty]
     public ImmutableSortedSet<Validator> Validators { get; init; } = [];
 
     protected override void OnExecute(IWorldContext world, IActionContext context)

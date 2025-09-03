@@ -15,9 +15,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(
@@ -48,9 +46,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(
@@ -94,9 +90,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var roundChanged1Task = consensus.RoundChanged.WaitAsync(e => e.Index == 1);
@@ -138,9 +132,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(
@@ -194,9 +186,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 5); // Peer1 should be a proposer
         var preVoteStepTask = consensus.StepChanged.WaitAsync(
@@ -222,9 +212,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preVoteStepTask = consensus.StepChanged.WaitAsync(
@@ -252,9 +240,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var signer = RandomUtility.Signer(random);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         _ = blockchain.ProposeAndAppendMany(2);
         var block = blockchain.Propose(signer);

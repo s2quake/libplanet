@@ -202,9 +202,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var signerA = RandomUtility.Signer(random);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchainA = new Blockchain(genesisBlock: genesisBlock);
         var blockchainB = new Blockchain(genesisBlock: genesisBlock);
 
@@ -233,9 +231,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var signerA = RandomUtility.Signer(random);
         var signerB = RandomUtility.Signer(random);
 
@@ -287,9 +283,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var signerB = RandomUtility.Signer(random);
         var transportA = CreateTransport();
         var transportB = CreateTransport(signerB);
@@ -322,9 +316,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var signerA = RandomUtility.Signer(random);
         var signerB = RandomUtility.Signer(random);
         var transportA = CreateTransport(signerA);
@@ -404,9 +396,7 @@ public partial class SwarmTest(ITestOutputHelper output)
                 ],
             },
         };
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
 
         var transportA = CreateTransport();
         var transportB = CreateTransport();
@@ -519,21 +509,21 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         var signerAddress = RandomUtility.Address(random);
 
-        var genesisBlockA = new GenesisBlockBuilder
+        var genesisBlockBuilderA = TestUtils.GenesisBlockBuilder with
         {
             Actions = [DumbAction.Create((signerAddress, "1"))],
-        }.Create(proposer);
-        var genesisBlockB = new GenesisBlockBuilder
+        };
+        var genesisBlockA = genesisBlockBuilderA.Create(proposer);
+        var genesisBlockBuilderB = TestUtils.GenesisBlockBuilder with
         {
             Actions = [DumbAction.Create((signerAddress, "2"))],
-        }.Create(proposer);
-        var genesisBlockC = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        };
+        var genesisBlockB = genesisBlockBuilderB.Create(proposer);
+        var genesisBlockC = TestUtils.GenesisBlockBuilder.Create(proposer);
 
         var blockchainA = new Blockchain(genesisBlockA);
         var blockchainB = new Blockchain(genesisBlockB);
-        var blockchainC =new Blockchain(genesisBlockC);
+        var blockchainC = new Blockchain(genesisBlockC);
 
         var transportA = CreateTransport(signerA);
         var transportB = CreateTransport(signerB);
@@ -722,9 +712,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var transportA = CreateTransport();
         var transportB = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
@@ -771,9 +759,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var peersB = new PeerCollection(transportB.Peer.Address);
         using var peerExplorerA = new PeerExplorer(transportA, peersA);
         using var peerExplorerB = new PeerExplorer(transportB, peersB);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchainA = new Blockchain(genesisBlock);
         var blockchainB = new Blockchain(genesisBlock);
         var syncServiceA = new BlockSynchronizationService(blockchainA, transportA);
@@ -813,9 +799,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var peersB = new PeerCollection(transportB.Peer.Address);
         using var peerExplorerA = new PeerExplorer(transportA, peersA);
         using var peerExplorerB = new PeerExplorer(transportB, peersB);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchainA = new Blockchain(genesisBlock);
         var blockchainB = new Blockchain(genesisBlock);
         var syncServiceA = new BlockSynchronizationService(blockchainA, transportA);
@@ -857,9 +841,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
         var signerB = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
 
         var transportA = CreateTransport();
         var transportB = CreateTransport(signerB);
@@ -922,9 +904,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var transportA = CreateTransport();
         var transportB = CreateTransport();
         var blockchainA = new Blockchain(genesisBlock);
@@ -970,9 +950,7 @@ public partial class SwarmTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var transportA = CreateTransport();
         var transportB = CreateTransport();
         var blockchainA = new Blockchain(genesisBlock);

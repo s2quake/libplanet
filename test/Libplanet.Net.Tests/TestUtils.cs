@@ -22,6 +22,8 @@ public static class TestUtils
 
     public static readonly ImmutableSortedSet<Validator> Validators = Libplanet.Tests.TestUtils.Validators;
 
+    public static readonly GenesisBlockBuilder GenesisBlockBuilder = Libplanet.Tests.TestUtils.GenesisBlockBuilder;
+
     public static readonly BlockchainOptions BlockchainOptions = new()
     {
         SystemAction = new SystemAction

@@ -57,9 +57,7 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
         var proposer = RandomUtility.Signer(random);
         var signer = RandomUtility.Signer(random);
 
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var repositoryA = new Repository();
         var blockchain = new Blockchain(genesisBlock, repositoryA);
         var action = new ContextRecording { Address = signer.Address, Value = "Foo" };
@@ -114,9 +112,7 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var repositoryB = new Repository();
         var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
         var options = new BlockchainOptions
@@ -238,9 +234,7 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {
             SystemAction = new SystemAction
@@ -311,10 +305,11 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
+        var genesisBlockBuilder = TestUtils.GenesisBlockBuilder with
         {
             Actions = [new ThrowException { ThrowOnExecution = true }],
-        }.Create(proposer);
+        };
+        var genesisBlock = genesisBlockBuilder.Create(proposer);
         var repository = new Repository();
 
         var blockExecutor = new BlockExecutor(repository.States);
@@ -331,10 +326,11 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
+        var genesisBlockBuilder = TestUtils.GenesisBlockBuilder with
         {
             Actions = [new ThrowException { ThrowOnExecution = true, Deterministic = false, }],
-        }.Create(proposer);
+        };
+        var genesisBlock = genesisBlockBuilder.Create(proposer);
         var repository = new Repository();
         var blockExecutor = new BlockExecutor(repository.States);
 
@@ -363,10 +359,11 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
             .SetBalance(addresses[4], DumbAction.DumbCurrency * 100)
             .Commit();
         var signers = RandomUtility.Array(random, RandomUtility.Signer, 3);
-        var genesisBlock = new GenesisBlockBuilder
+        var genesisBlockBuilder = TestUtils.GenesisBlockBuilder with
         {
             StateRootHash = world.Hash,
-        }.Create(proposer);
+        };
+        var genesisBlock = genesisBlockBuilder.Create(proposer);
         var blockExecutor = new BlockExecutor(repository.States);
         repository.Append(genesisBlock, default);
         repository.AppendExecution(blockExecutor.Execute(genesisBlock));

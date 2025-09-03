@@ -24,9 +24,7 @@ public partial class BlockchainTest
         var signer = RandomUtility.Signer(random);
 
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var repository = new Repository();
         var options = new BlockchainOptions
         {
@@ -311,9 +309,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var accountAddress = Address.Parse("0123456789abcdef0123456789abcdef12345678");
         var address1 = RandomUtility.Address(random);
@@ -342,9 +338,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {
         };
@@ -392,9 +386,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {
         };
@@ -428,9 +420,7 @@ public partial class BlockchainTest
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {
         };
@@ -472,9 +462,7 @@ public partial class BlockchainTest
                 ],
             },
         };
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock, options);
 
         _ = blockchain.StagedTransactions.Add(validSigner, new());
@@ -506,9 +494,7 @@ public partial class BlockchainTest
         var signer = RandomUtility.Signer(random);
 
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var repository = new Repository();
         var options = new BlockchainOptions
         {
@@ -598,9 +584,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {
             BlockOptions = new BlockOptions
@@ -638,9 +622,7 @@ public partial class BlockchainTest
         var signerA = RandomUtility.Signer(random);
         var signerB = RandomUtility.Signer(random);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var txA0 = new TransactionBuilder
         {

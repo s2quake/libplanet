@@ -25,6 +25,11 @@ public static class TestUtils
     // [3]: 0x66Bff9Ff1Ad108f26A829c1090bE517C0155801A
     public static readonly ImmutableSortedSet<Validator> Validators = [.. TestValidators.Select(v => (Validator)v)];
 
+    public static readonly GenesisBlockBuilder GenesisBlockBuilder = new()
+    {
+        Validators = Validators,
+    };
+
     public static BlockCommit CreateBlockCommit(
         Block block,
         bool deterministicTimestamp = false)

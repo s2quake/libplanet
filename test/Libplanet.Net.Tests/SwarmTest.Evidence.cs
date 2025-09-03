@@ -16,9 +16,7 @@ public partial class SwarmTest
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var signers = Libplanet.Tests.TestUtils.Signers.ToArray();
         var count = signers.Length;
         var transports = signers.Select(item => TestUtils.CreateTransport(item)).ToArray();

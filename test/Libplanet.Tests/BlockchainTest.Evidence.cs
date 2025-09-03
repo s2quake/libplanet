@@ -11,9 +11,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         Assert.Empty(blockchain.PendingEvidence);
     }
@@ -24,9 +22,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var height = blockchain.Tip.Height;
         var address = RandomUtility.Address(random);
@@ -45,9 +41,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var height = blockchain.Tip.Height;
         var address = RandomUtility.Address(random);
@@ -61,9 +55,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -82,9 +74,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -100,9 +90,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var height = blockchain.Tip.Height;
         var address = RandomUtility.Address(random);
@@ -116,9 +104,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var expectedEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -138,9 +124,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -159,9 +143,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -177,9 +159,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var height = blockchain.Tip.Height + 1;
@@ -195,9 +175,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions();
         var blockchain = new Blockchain(genesisBlock, options);
         var address = RandomUtility.Address(random);
@@ -217,9 +195,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -237,9 +213,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -268,9 +242,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions();
         var blockchain = new Blockchain(genesisBlock, options);
         var address = RandomUtility.Address(random);
@@ -302,9 +274,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -333,9 +303,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -355,9 +323,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -373,9 +339,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -390,9 +354,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -411,9 +373,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -429,9 +389,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -447,9 +405,7 @@ public partial class BlockchainTest
         // Given
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var address = RandomUtility.Address(random);
         var testEvidence = TestEvidence.Create(0, address, DateTimeOffset.UtcNow);
@@ -465,9 +421,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         _ = blockchain.ProposeAndAppend(proposer);
         var voteRef = new VoteMetadata
@@ -522,9 +476,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         _ = blockchain.ProposeAndAppend(proposer);
         var voteRef = new VoteMetadata
@@ -575,9 +527,7 @@ public partial class BlockchainTest
         var random = RandomUtility.GetRandom(_output);
         var signer = RandomUtility.Signer(random);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         _ = blockchain.ProposeAndAppend(proposer);
         var voteRef = new VoteMetadata
@@ -619,9 +569,7 @@ public partial class BlockchainTest
     {
         var random = RandomUtility.GetRandom(_output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions();
         var blockchain = new Blockchain(genesisBlock);
         _ = blockchain.ProposeAndAppend(proposer);

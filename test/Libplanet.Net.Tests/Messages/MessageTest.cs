@@ -16,9 +16,7 @@ public sealed class MessageTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
-        {
-        }.Create(proposer);
+        var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var signer = RandomUtility.Signer(random);
         var peer = new Peer
         {
@@ -132,10 +130,11 @@ public sealed class MessageTest(ITestOutputHelper output)
     {
         var random = RandomUtility.GetStaticRandom(output);
         var proposer = RandomUtility.Signer(random);
-        var genesisBlock = new GenesisBlockBuilder
+        var genesisBlockBuilder = TestUtils.GenesisBlockBuilder with
         {
             Timestamp = new DateTimeOffset(2025, 9, 2, 14, 56, 15, TimeSpan.Zero),
-        }.Create(proposer);
+        };
+        var genesisBlock = genesisBlockBuilder.Create(proposer);
         var message = new BlockSummaryMessage
         {
             GenesisBlockHash = genesisBlock.BlockHash,
