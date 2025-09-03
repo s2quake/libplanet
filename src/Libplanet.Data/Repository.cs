@@ -14,6 +14,7 @@ public class Repository
 
     private readonly ImmutableMetadataIndex _immutableMetadata;
     private readonly MetadataIndex _metadata;
+    private readonly IRepositoryIndex[] _indexes;
     private int _genesisHeight = -1;
     private int _height = -1;
     private HashDigest<SHA256> _stateRootHash;
@@ -40,6 +41,22 @@ public class Repository
         BlockHashes = new BlockHashIndex(database);
         Nonces = new NonceIndex(database);
         States = new StateIndex(database);
+        _indexes =
+        [
+            _metadata,
+            BlockDigests,
+            BlockCommits,
+            StateRootHashes,
+            PendingTransactions,
+            CommittedTransactions,
+            PendingEvidences,
+            CommittedEvidences,
+            TxExecutions,
+            BlockExecutions,
+            BlockHashes,
+            Nonces,
+            States,
+        ];
         if (_metadata.TryGetValue(GenesisHeightKey, out var genesisHeight))
         {
             _genesisHeight = int.Parse(genesisHeight);
@@ -316,11 +333,10 @@ public class Repository
 
     public void Clear()
     {
-        var tables = Database.Where(item => item.Key != ImmutableMetadataIndex.Name).ToArray();
-        foreach (var (_, table) in tables)
+        foreach (var index in _indexes)
         {
-            table.Clear();
-        }
+            index.Clear();
+        }   
     }
 
     public async Task CopyToAsync(
@@ -331,18 +347,18 @@ public class Repository
             throw new ArgumentException("Destination repository is not empty.", nameof(destination));
         }
 
-        var tables = Database.Where(item => item.Key != ImmutableMetadataIndex.Name).ToArray();
-        var stepProgress = new StepProgress(tables.Length + 1, progress);
-        foreach (var (name, sourceTable) in tables)
+        var stepProgress = new StepProgress(_indexes.Length + 1, progress);
+        foreach (var index in _indexes)
         {
-            var destTable = destination.Database.GetOrAdd(name);
+            var sourceTable = index.Table;
+            var destTable = destination.Database.GetOrAdd(index.Name);
             if (sourceTable.Count > 0)
             {
                 await CopyTableAsync(sourceTable, destTable, stepProgress, cancellationToken);
             }
             else
             {
-                stepProgress.Next($"Skipping empty table '{name}'...");
+                stepProgress.Next($"Skipping empty table '{index.Name}'...");
             }
         }
 

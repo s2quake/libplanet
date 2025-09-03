@@ -7,7 +7,7 @@ using Libplanet.Types.Threading;
 namespace Libplanet.Data;
 
 public abstract class IndexBase<TKey, TValue>
-    : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+    : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IRepositoryIndex
     where TKey : notnull
     where TValue : notnull
 {
@@ -28,7 +28,6 @@ public abstract class IndexBase<TKey, TValue>
         }
 
         _table = table;
-        _table.Cleared += (s, e) => _cache?.Clear();
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
     }
@@ -46,6 +45,10 @@ public abstract class IndexBase<TKey, TValue>
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => _keys;
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _values;
+
+    string IRepositoryIndex.Name => _table.Name;
+
+    ITable IRepositoryIndex.Table => _table;
 
     public TValue this[TKey key]
     {

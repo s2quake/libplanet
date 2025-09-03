@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
 
@@ -29,7 +30,7 @@ internal sealed class TransactionRequestMessageHandler(
                 txList.Add(transaction);
             }
             else if (blockchain.StagedTransactions.TryGetValue(txId, out var stagedTransaction)
-            && blockchain.GetTxNonce(stagedTransaction.Signer) <= stagedTransaction.Nonce)
+                && blockchain.GetTxNonce(stagedTransaction.Signer) <= stagedTransaction.Nonce)
             {
                 txList.Add(stagedTransaction);
             }

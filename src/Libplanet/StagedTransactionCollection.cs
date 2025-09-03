@@ -10,20 +10,38 @@ using Libplanet.Types.Threading;
 
 namespace Libplanet;
 
-public sealed class StagedTransactionCollection(Repository repository, BlockchainOptions options)
-    : IReadOnlyDictionary<TxId, Transaction>
+public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Transaction>
 {
     private readonly Subject<Transaction> _addedSubject = new();
     private readonly Subject<Transaction> _removedSubject = new();
-    private readonly Repository _repository = repository;
-    private readonly PendingTransactionIndex _stagedIndex = repository.PendingTransactions;
-    private readonly CommittedTransactionIndex _committedIndex = repository.CommittedTransactions;
-    private readonly BlockchainOptions _options = options;
-    private readonly Dictionary<Address, ImmutableArray<long>> _noncesByAddress
-        = Create(repository.PendingTransactions);
+    private readonly Repository _repository;
+    private readonly PendingTransactionIndex _stagedIndex;
+    private readonly CommittedTransactionIndex _committedIndex;
+    private readonly BlockchainOptions _options;
+    private readonly Dictionary<Address, ImmutableArray<long>> _noncesByAddress;
 
     private readonly Dictionary<TxId, bool> _isActionValidById = [];
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
+
+    public StagedTransactionCollection(Repository repository, BlockchainOptions options)
+    {
+        _repository = repository;
+        _stagedIndex = repository.PendingTransactions;
+        _committedIndex = repository.CommittedTransactions;
+        _options = options;
+        _noncesByAddress = Create(repository.PendingTransactions);
+        _stagedIndex.Added += (sender, tx) =>
+        {
+            AddNonce(tx);
+            _addedSubject.OnNext(tx);
+        };
+        _stagedIndex.Removed += (sender, tx) =>
+        {
+            RemoveNonce(tx);
+            _isActionValidById.Remove(tx.Id);
+            _removedSubject.OnNext(tx);
+        };
+    }
 
     public StagedTransactionCollection(Repository repository)
         : this(repository, new BlockchainOptions())
@@ -216,6 +234,44 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
         return _stagedIndex.TryGetValue(txId, out value);
     }
 
+    public bool IsValid(Transaction transaction)
+    {
+        try
+        {
+            if (transaction.Nonce >= _repository.GetNonce(transaction.Signer))
+            {
+                if (!_isActionValidById.TryGetValue(transaction.Id, out var isValid))
+                {
+                    try
+                    {
+                        Parallel.ForEach(
+                            transaction.Actions,
+                            item => _ = ModelSerializer.DeserializeFromBytes<IAction>(item.Bytes.AsSpan()));
+                        isValid = true;
+                    }
+                    catch
+                    {
+                        isValid = false;
+                    }
+
+                    _isActionValidById[transaction.Id] = isValid;
+                }
+
+                if (isValid)
+                {
+                    _options.TransactionOptions.Validate(transaction);
+                    return true;
+                }
+            }
+        }
+        catch
+        {
+            // do nothing
+        }
+
+        return false;
+    }
+
     public IEnumerator<KeyValuePair<TxId, Transaction>> GetEnumerator()
     {
         using var _ = _lock.ReadScope();
@@ -305,18 +361,18 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
                 $"Transaction {transaction.Id} already exists in the staged transactions.", nameof(transaction));
         }
 
-        AddNonce(transaction);
-        _addedSubject.OnNext(transaction);
+        // AddNonce(transaction);
+        // _addedSubject.OnNext(transaction);
     }
 
     private bool RemoveInternal(TxId txId)
     {
-        if (_stagedIndex.TryGetValue(txId, out var transaction))
+        if (_stagedIndex.TryGetValue(txId, out _))
         {
             _stagedIndex.Remove(txId);
-            RemoveNonce(transaction);
-            _isActionValidById.Remove(txId);
-            _removedSubject.OnNext(transaction);
+            // RemoveNonce(transaction);
+            // _isActionValidById.Remove(txId);
+            // _removedSubject.OnNext(transaction);
             return true;
         }
 
@@ -325,44 +381,6 @@ public sealed class StagedTransactionCollection(Repository repository, Blockchai
 
     private bool IsExpired(Transaction transaction, DateTimeOffset timestamp)
         => transaction.Timestamp + _options.TransactionOptions.Lifetime < timestamp;
-
-    private bool IsValid(Transaction transaction)
-    {
-        try
-        {
-            if (transaction.Nonce >= _repository.GetNonce(transaction.Signer))
-            {
-                if (!_isActionValidById.TryGetValue(transaction.Id, out var isValid))
-                {
-                    try
-                    {
-                        Parallel.ForEach(
-                            transaction.Actions,
-                            item => _ = ModelSerializer.DeserializeFromBytes<IAction>(item.Bytes.AsSpan()));
-                        isValid = true;
-                    }
-                    catch
-                    {
-                        isValid = false;
-                    }
-
-                    _isActionValidById[transaction.Id] = isValid;
-                }
-
-                if (isValid)
-                {
-                    _options.TransactionOptions.Validate(transaction);
-                    return true;
-                }
-            }
-        }
-        catch
-        {
-            // do nothing
-        }
-
-        return false;
-    }
 
     private void AddNonce(Transaction transaction)
     {

@@ -9,6 +9,7 @@ public sealed class TransactionBroadcaster : IAsyncDisposable
     private static readonly object _lock = new();
     private readonly Subject<(ImmutableArray<Peer>, ImmutableArray<TxId>)> _broadcastedSubject = new();
 
+    private readonly Blockchain _blockchain;
     private readonly PeerExplorer _peerExplorer;
     private readonly HashSet<TxId> _broadcastedTxIds;
     private readonly DisposerCollection _subscriptions;
@@ -18,6 +19,7 @@ public sealed class TransactionBroadcaster : IAsyncDisposable
 
     public TransactionBroadcaster(Blockchain blockchain, PeerExplorer peerExplorer)
     {
+        _blockchain = blockchain;
         _subscriptions =
         [
             blockchain.StagedTransactions.Added.Subscribe(AddInternal),
@@ -50,7 +52,10 @@ public sealed class TransactionBroadcaster : IAsyncDisposable
     {
         lock (_lock)
         {
-            _broadcastedTxIds.Add(transaction.Id);
+            if (_blockchain.StagedTransactions.IsValid(transaction))
+            {
+                _broadcastedTxIds.Add(transaction.Id);
+            }
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reactive.Linq;
 using Libplanet.Extensions;
 using Libplanet.Net.Components;
@@ -342,6 +343,8 @@ public partial class SwarmTest
         Assert.Contains(transportC.Peer, peerExplorerA.Peers);
         Assert.Contains(transportA.Peer, peerExplorerC.Peers);
 
+        var waitTaskC = serviceC.Staged.WaitAsync(
+            _ => blockchainC.StagedTransactions.Count == txCount);
         var miningTask = Task.Run(async () =>
         {
             for (var i = 0; i < 10; i++)
@@ -355,9 +358,7 @@ public partial class SwarmTest
         {
             peerExplorerA.BroadcastTransaction(txs);
         }
-
-        var waitTaskC = serviceC.Staged.WaitAsync(
-            _ => blockchainC.StagedTransactions.Count == txCount);
+        
         await miningTask;
         await waitTaskC.WaitAsync(WaitTimeout5, cancellationToken);
 
@@ -520,7 +521,9 @@ public partial class SwarmTest
 
         var signer = RandomUtility.Signer();
         var tx1 = blockchainA.StagedTransactions.Add(signer);
+        Trace.WriteLine($"tx1: {tx1.Id}");
         var tx2 = blockchainA.StagedTransactions.Add(signer);
+        Trace.WriteLine($"tx2: {tx2.Id}");
         Assert.Equal(0, tx1.Nonce);
         Assert.Equal(1, tx2.Nonce);
 
@@ -528,8 +531,11 @@ public partial class SwarmTest
         await transportB.StartAsync(cancellationToken);
         await services.StartAsync(cancellationToken);
         await peerExplorerA.PingAsync(peerExplorerB.Peer, cancellationToken);
-        InvokeDelay(() => peerExplorerA.BroadcastTransaction([tx1, tx2]), 100);
-        await syncServiceB.Staged.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
+
+        using var stagedCounter = syncServiceB.Staged.Counter();
+        var stagedTask = stagedCounter.CountChanged.WaitAsync(i => i == 2);
+        _ = peerExplorerA.BroadcastTransaction([tx1, tx2]);
+        await stagedTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(
             new HashSet<TxId> { tx1.Id, tx2.Id },
             [.. blockchainB.StagedTransactions.Keys]);
@@ -554,22 +560,29 @@ public partial class SwarmTest
         blockchainB.ProposeAndAppend(signerB);
 
         var tx3 = blockchainA.StagedTransactions.Add(signer);
+        Trace.WriteLine($"tx3: {tx3.Id}");
         var tx4 = blockchainA.StagedTransactions.Add(signer);
+        Trace.WriteLine($"tx4: {tx4.Id}");
         Assert.Equal(1, tx3.Nonce);
         Assert.Equal(2, tx4.Nonce);
 
         await transportC.StartAsync(cancellationToken);
+        Trace.WriteLine("c start");
         await peerExplorerA.PingAsync(peerExplorerB.Peer, cancellationToken);
-        await peerExplorerB.PingAsync(peerExplorerA.Peer, cancellationToken);
         await peerExplorerB.PingAsync(peerExplorerC.Peer, cancellationToken);
 
-        InvokeDelay(() => peerExplorerA.BroadcastTransaction([tx3, tx4]), 100);
-        await syncServiceB.Staged.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
-        await syncServiceC.Staged.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
+        using var stagedCounterB = syncServiceB.Staged.Counter();
+        var stagedTaskB = stagedCounterB.CountChanged.WaitAsync(i => i == 2);
+        var stagedTaskC = syncServiceC.Staged.WaitAsync();
+        _ = peerExplorerA.BroadcastTransaction([tx3, tx4]);
+        await stagedTaskB.WaitAsync(WaitTimeout5, cancellationToken);
+        await stagedTaskC.WaitAsync(WaitTimeout5, cancellationToken);
 
         // SwarmB receives tx3 and is staged, but policy filters it.
         Assert.Contains(tx3.Id, blockchainB.StagedTransactions.Keys);
         Assert.Contains(tx4.Id, blockchainB.StagedTransactions.Keys);
+        blockchainB.StagedTransactions.Prune();
+        Assert.DoesNotContain(tx3.Id, blockchainB.StagedTransactions.Keys);
 
         // SwarmC can not receive tx3 because SwarmB does not rebroadcast it.
         Assert.DoesNotContain(tx3.Id, blockchainC.StagedTransactions.Keys);

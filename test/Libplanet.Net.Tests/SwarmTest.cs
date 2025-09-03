@@ -954,7 +954,15 @@ public partial class SwarmTest(ITestOutputHelper output)
         var transportA = CreateTransport();
         var transportB = CreateTransport();
         var blockchainA = new Blockchain(genesisBlock);
-        var txIds = blockchainA.Transactions.Keys.ToArray();
+        Transaction[] txs =
+        [
+            blockchainA.StagedTransactions.Add(proposer),
+            blockchainA.StagedTransactions.Add(proposer),
+            blockchainA.StagedTransactions.Add(proposer),
+            blockchainA.StagedTransactions.Add(proposer),
+            blockchainA.StagedTransactions.Add(proposer),
+        ];
+        var txIds = txs.Select(tx => tx.Id).ToArray();
 
         var syncResponderServiceA = new TransactionSynchronizationResponderService(blockchainA, transportA)
         {
@@ -973,7 +981,9 @@ public partial class SwarmTest(ITestOutputHelper output)
         var tasks = new List<Task>();
         for (var i = 0; i < 5; i++)
         {
-            tasks.Add(transportB.GetTransactionsAsync(transportA.Peer, txIds, cancellationToken).ToArrayAsync(cancellationToken).AsTask());
+            var getTask = transportB.GetTransactionsAsync(transportA.Peer, txIds, cancellationToken);
+            var toArrayTask = getTask.ToArrayAsync(cancellationToken);
+            tasks.Add(toArrayTask.AsTask());
         }
 
         await TaskUtility.TryWhenAll(tasks);

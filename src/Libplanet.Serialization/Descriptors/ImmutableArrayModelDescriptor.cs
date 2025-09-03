@@ -85,6 +85,11 @@ internal sealed class ImmutableArrayModelDescriptor : ModelDescriptor
 
     public override int GetHashCode(object obj, Type type)
     {
+        if (TypeUtility.IsDefault(obj, type))
+        {
+            return 0;
+        }
+
         var items = (IList)obj;
         var elementType = GetElementType(type);
         HashCode hash = default;

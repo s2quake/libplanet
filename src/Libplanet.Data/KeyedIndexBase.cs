@@ -8,7 +8,7 @@ using Libplanet.Types.Threading;
 namespace Libplanet.Data;
 
 public abstract class KeyedIndexBase<TKey, TValue>
-    : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+    : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IRepositoryIndex
     where TKey : notnull
     where TValue : IHasKey<TKey>
 {
@@ -29,10 +29,17 @@ public abstract class KeyedIndexBase<TKey, TValue>
         }
 
         _table = table;
-        _table.Cleared += (s, e) => _cache?.Clear();
         _keys = new KeyCollection(this);
         _values = new ValueCollection(this);
     }
+
+    public event EventHandler<TValue>? Added;
+
+    public event EventHandler<(TValue OldValue, TValue NewValue)>? Updated;
+
+    public event EventHandler<TValue>? Removed;
+
+    public event EventHandler? Cleared;
 
     public ICollection<TKey> Keys => _keys;
 
@@ -47,6 +54,10 @@ public abstract class KeyedIndexBase<TKey, TValue>
     IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => _keys;
 
     IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _values;
+
+    string IRepositoryIndex.Name => _table.Name;
+
+    ITable IRepositoryIndex.Table => _table;
 
     public TValue this[TKey key]
     {
@@ -138,7 +149,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
         _table.Add(KeyToString(key), ValueToBytes(value));
         _cache?.AddOrUpdate(key, value);
-        OnUpdated(value);
+        OnAdded(value);
         return true;
     }
 
@@ -148,7 +159,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
         var key = value.Key;
         _table.Add(KeyToString(key), ValueToBytes(value));
         _cache?.AddOrUpdate(key, value);
-        OnUpdated(value);
+        OnAdded(value);
     }
 
     public void AddRange(IEnumerable<TValue> values)
@@ -170,7 +181,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
             var value = item;
             _table.Add(KeyToString(key), ValueToBytes(value));
             _cache?.AddOrUpdate(key, value);
-            OnUpdated(value);
+            OnAdded(value);
         }
     }
 
@@ -198,20 +209,8 @@ public abstract class KeyedIndexBase<TKey, TValue>
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
         using var scope = new ReadScope(_lock);
-        if (_cache?.TryGet(key, out value) is true && value is not null)
-        {
-            return true;
-        }
-
-        if (_table.TryGetValue(KeyToString(key), out var bytes))
-        {
-            value = BytesToValue(bytes);
-            _cache?.AddOrUpdate(key, value);
-            return true;
-        }
-
-        value = default;
-        return false;
+        var keyString = KeyToString(key);
+        return TryGetValueInternal(key, keyString, out value);
     }
 
     public void Clear()
@@ -227,7 +226,6 @@ public abstract class KeyedIndexBase<TKey, TValue>
         using var scope = new WriteScope(_lock);
         _cache?.Clear();
     }
-
 
     void IDictionary<TKey, TValue>.Add(TKey key, TValue value)
     {
@@ -312,17 +310,13 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
     protected abstract TValue BytesToValue(byte[] bytes);
 
-    protected virtual void OnCleared()
-    {
-    }
+    protected virtual void OnCleared() => Cleared?.Invoke(this, EventArgs.Empty);
 
-    protected virtual void OnUpdated(TValue item)
-    {
-    }
+    protected virtual void OnAdded(TValue item) => Added?.Invoke(this, item);
 
-    protected virtual void OnRemoved(TValue item)
-    {
-    }
+    protected virtual void OnUpdated(TValue oldValue, TValue newValue) => Updated?.Invoke(this, (oldValue, newValue));
+
+    protected virtual void OnRemoved(TValue item) => Removed?.Invoke(this, item);
 
     private bool ContainsKeyInternal(TKey key)
     {
@@ -360,9 +354,37 @@ public abstract class KeyedIndexBase<TKey, TValue>
     private void UpsertInternal(TValue value)
     {
         var key = value.Key;
-        _table[KeyToString(key)] = ValueToBytes(value);
-        _cache?.AddOrUpdate(key, value);
-        OnUpdated(value);
+        var keyString = KeyToString(key);
+        if (TryGetValueInternal(key, keyString, out var existingValue))
+        {
+            _table[keyString] = ValueToBytes(value);
+            _cache?.AddOrUpdate(key, value);
+            OnUpdated(existingValue, value);
+        }
+        else
+        {
+            _table[keyString] = ValueToBytes(value);
+            _cache?.AddOrUpdate(key, value);
+            OnAdded(value);
+        }
+    }
+
+    private bool TryGetValueInternal(TKey key, string keyString, [MaybeNullWhen(false)] out TValue value)
+    {
+        if (_cache?.TryGet(key, out value) is true && value is not null)
+        {
+            return true;
+        }
+
+        if (_table.TryGetValue(keyString, out var bytes))
+        {
+            value = BytesToValue(bytes);
+            _cache?.AddOrUpdate(key, value);
+            return true;
+        }
+
+        value = default;
+        return false;
     }
 
     private sealed class KeyCollection(KeyedIndexBase<TKey, TValue> owner) : ICollection<TKey>

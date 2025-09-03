@@ -65,6 +65,7 @@ public static class TestUtils
         return new Transport(signer, options);
     }
 
+    [Obsolete]
     public static void InvokeDelay(Action action, int millisecondsDelay)
     {
         _ = Task.Run(async () =>
@@ -74,6 +75,7 @@ public static class TestUtils
         });
     }
 
+    [Obsolete]
     public static void InvokeDelay(Func<Task> func, int millisecondsDelay)
     {
         _ = Task.Run(async () =>

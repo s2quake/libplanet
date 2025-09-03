@@ -167,7 +167,7 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
         {
             await foreach (var messageEnvelope in reader.ReadAllAsync(cancellationToken))
             {
-                await messageRouter.HandleAsync(messageEnvelope, cancellationToken);
+                _ = messageRouter.HandleAsync(messageEnvelope, cancellationToken);
             }
         }
         catch
