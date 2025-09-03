@@ -127,8 +127,10 @@ public sealed class GossipTest(ITestOutputHelper output)
         await transports.StartAsync(cancellationToken);
 
         var waitTaskA = transportA.WaitAsync<HaveMessage>(cancellationToken);
+        var addedTask = peersA.Added.WaitAsync(cancellationToken);
         transportB.Post(gossipA.Peer, new HaveMessage());
         await waitTaskA.WaitAsync(WaitTimeout2, cancellationToken);
+        await addedTask.WaitAsync(WaitTimeout2, cancellationToken);
 
         Assert.Contains(transportB.Peer, gossipA.Peers);
     }

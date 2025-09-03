@@ -360,9 +360,6 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
             throw new ArgumentException(
                 $"Transaction {transaction.Id} already exists in the staged transactions.", nameof(transaction));
         }
-
-        // AddNonce(transaction);
-        // _addedSubject.OnNext(transaction);
     }
 
     private bool RemoveInternal(TxId txId)
@@ -370,9 +367,6 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
         if (_stagedIndex.TryGetValue(txId, out _))
         {
             _stagedIndex.Remove(txId);
-            // RemoveNonce(transaction);
-            // _isActionValidById.Remove(txId);
-            // _removedSubject.OnNext(transaction);
             return true;
         }
 

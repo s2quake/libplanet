@@ -551,13 +551,12 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         var (block, _) = blockchainA.ProposeAndAppend(signerA);
 
-        InvokeDelay(() => peerExplorerA.BroadcastBlock(blockchainA, block), 100);
-
-        await Task.WhenAll(
-            transportB.MessageRouter.MessageHandlingFailed.WaitAsync(
-                predicate: e => e.Handler is BlockSummaryMessageHandler),
-            syncServiceC.Appended.WaitAsync())
-            .WaitAsync(WaitTimeout5, cancellationToken);
+        var waitTask1 = transportB.MessageRouter.MessageHandlingFailed.WaitAsync(
+            predicate: e => e.Handler is BlockSummaryMessageHandler);
+        var waitTask2 = syncServiceC.Appended.WaitAsync();
+        peerExplorerA.BroadcastBlock(blockchainA, block);
+        await waitTask1.WaitAsync(WaitTimeout5, cancellationToken);
+        await waitTask2.WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.NotEqual(blockchainA.Genesis, blockchainB.Genesis);
         Assert.Equal(blockchainA.Blocks.Keys, blockchainC.Blocks.Keys);
@@ -741,8 +740,9 @@ public partial class SwarmTest(ITestOutputHelper output)
         blockchainB.ProposeAndAppendMany(proposer, 6);
 
         await peerExplorerB.PingAsync(peerExplorerA.Peer, cancellationToken);
-        InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
-        await syncServiceA.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
+        var appendedTask = syncServiceA.Appended.WaitAsync(cancellationToken);
+        peerExplorerB.BroadcastBlock(blockchainB);
+        await appendedTask.WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.Equal(7, blockchainA.Blocks.Count);
     }
@@ -781,8 +781,9 @@ public partial class SwarmTest(ITestOutputHelper output)
         blockchainB.ProposeAndAppendMany(proposer, 6);
 
         await peerExplorerB.PingAsync(peerExplorerA.Peer, cancellationToken);
-        InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
-        await syncServiceA.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
+        var appendedTask = syncServiceA.Appended.WaitAsync(cancellationToken);
+        peerExplorerB.BroadcastBlock(blockchainB);
+        await appendedTask.WaitAsync(WaitTimeout5, cancellationToken);
 
         Assert.Equal(2, blockchainA.Blocks.Count);
     }
@@ -821,16 +822,19 @@ public partial class SwarmTest(ITestOutputHelper output)
         blockchainB.ProposeAndAppendMany(proposer, 6);
         await peerExplorerB.PingAsync(peerExplorerA.Peer, cancellationToken);
 
-        InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
-        await syncServiceA.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
+        var appendedTask1 = syncServiceA.Appended.WaitAsync(cancellationToken);
+        peerExplorerB.BroadcastBlock(blockchainB);
+        await appendedTask1.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(3, blockchainA.Blocks.Count);
 
-        InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
-        await syncServiceA.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
+        var appendedTask2 = syncServiceA.Appended.WaitAsync(cancellationToken);
+        peerExplorerB.BroadcastBlock(blockchainB);
+        await appendedTask2.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(5, blockchainA.Blocks.Count);
 
-        InvokeDelay(() => peerExplorerB.BroadcastBlock(blockchainB), 100);
-        await syncServiceA.Appended.WaitAsync().WaitAsync(WaitTimeout5, cancellationToken);
+        var appendedTask3 = syncServiceA.Appended.WaitAsync(cancellationToken);
+        peerExplorerB.BroadcastBlock(blockchainB);
+        await appendedTask3.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(7, blockchainA.Blocks.Count);
     }
 

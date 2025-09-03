@@ -341,31 +341,15 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         }.Create(Signers[2]);
         consensus.AddPreVoteMaj23(maj23);
 
-        var preVoteB0 = new VoteBuilder
-        {
-            Validator = Validators[1],
-            Block = blockB,
-            Type = VoteType.PreVote,
-        }.Create(Signers[1]);
-        var preVoteB1 = new VoteBuilder
-        {
-            Validator = Validators[2],
-            Block = blockB,
-            Type = VoteType.PreVote,
-        }.Create(Signers[2]);
-        var preVoteB2 = new VoteBuilder
-        {
-            Validator = Validators[3],
-            Block = blockB,
-            Type = VoteType.PreVote,
-        }.Create(Signers[3]);
-        _ = consensus.PreVoteAsync(preVoteB0, cancellationToken);
-        _ = consensus.PreVoteAsync(preVoteB1, cancellationToken);
-        _ = consensus.PreVoteAsync(preVoteB2, cancellationToken);
-        await consensus.ProposalClaimed.WaitAsync(WaitTimeout5);
+        var proposalClaimedTask = consensus.ProposalClaimed.WaitAsync(cancellationToken);
+        _ = consensus.PreVoteAsync(validator: 1, blockB, round: 0, cancellationToken);
+        _ = consensus.PreVoteAsync(validator: 2, blockB, round: 0, cancellationToken);
+        _ = consensus.PreVoteAsync(validator: 3, blockB, round: 0, cancellationToken);
+        await proposalClaimedTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Null(consensus.Proposal);
+        var preCommitStepTask = consensus.WaitStepAsync(ConsensusStep.PreCommit, cancellationToken);
         _ = consensus.ProposeAsync(proposalB);
-        await consensus.StepChanged.WaitAsync(e => e.Step == ConsensusStep.PreCommit, WaitTimeout5);
+        await preCommitStepTask.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(consensus.Proposal, proposalB);
         Assert.Equal(proposalB, consensus.ValidProposal);
     }

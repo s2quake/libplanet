@@ -124,8 +124,9 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         {
             Block = blockchain.Propose(Signers[1]),
         }.Create(Signers[1]);
+        var stepChangedTask = consensus.StepChanged.WaitAsync(cancellationToken);
         _ = consensus.ProposeAsync(proposal, cancellationToken);
-        await consensus.StepChanged.WaitAsync(options.TimeoutPropose(consensus.Round), cancellationToken);
+        await stepChangedTask.WaitAsync(options.TimeoutPropose(consensus.Round), cancellationToken);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(proposal, consensus.Proposal);
     }
@@ -158,8 +159,9 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var stepChangedTask = consensus.StepChanged.WaitAsync();
         _ = consensus.ProposeAsync(proposal, cancellationToken);
 
-        InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
-        var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout5, cancellationToken);
+        var exceptionOccurredTask = consensus.ExceptionOccurred.WaitAsync(cancellationToken);
+        _ = consensus.ProposeAsync(proposal, cancellationToken);
+        var e1 = await exceptionOccurredTask.WaitAsync(WaitTimeout5, cancellationToken);
         var e2 = Assert.IsType<InvalidOperationException>(e1);
         Assert.StartsWith("Proposal already exists", e2.Message);
 

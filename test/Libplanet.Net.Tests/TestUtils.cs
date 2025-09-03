@@ -64,24 +64,4 @@ public static class TestUtils
         signer ??= new PrivateKey().AsSigner();
         return new Transport(signer, options);
     }
-
-    [Obsolete]
-    public static void InvokeDelay(Action action, int millisecondsDelay)
-    {
-        _ = Task.Run(async () =>
-        {
-            await Task.Delay(millisecondsDelay);
-            action();
-        });
-    }
-
-    [Obsolete]
-    public static void InvokeDelay(Func<Task> func, int millisecondsDelay)
-    {
-        _ = Task.Run(async () =>
-        {
-            await Task.Delay(millisecondsDelay);
-            await func();
-        });
-    }
 }

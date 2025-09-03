@@ -233,8 +233,8 @@ public sealed class PeerExplorer : IDisposable
     internal bool AddOrUpdate(Peer peer, DateTimeOffset lastUpdated, TimeSpan latency)
     {
         var peerState = Peers.TryGetPeerState(peer, out var v)
-                    ? v with { LastUpdated = lastUpdated, Latency = latency }
-                    : new PeerState { Peer = peer, LastUpdated = lastUpdated, Latency = latency };
+            ? v with { LastUpdated = lastUpdated, Latency = latency }
+            : new PeerState { Peer = peer, LastUpdated = lastUpdated, Latency = latency };
 
         if (!Peers.AddOrUpdate(peerState) && !_replacementCache.AddOrUpdate(peerState))
         {
