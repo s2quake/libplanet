@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
-using Libplanet.Types;
 
 namespace Libplanet.Types.Tests;
 

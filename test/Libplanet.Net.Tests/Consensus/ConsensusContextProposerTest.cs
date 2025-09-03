@@ -1,8 +1,6 @@
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
-using Libplanet.Net.Messages;
 using Libplanet.TestUtilities;
-using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Consensus;

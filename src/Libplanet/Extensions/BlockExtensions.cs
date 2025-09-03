@@ -1,6 +1,5 @@
 using Libplanet.Serialization;
 using Libplanet.Types;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Libplanet.Extensions;
 

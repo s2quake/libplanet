@@ -4,7 +4,6 @@ using Libplanet.Extensions;
 using System.Reactive.Linq;
 using static Libplanet.Net.Tests.TestUtils;
 using Libplanet.TestUtilities;
-using Libplanet.Tests;
 
 namespace Libplanet.Net.Tests;
 

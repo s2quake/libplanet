@@ -2,8 +2,6 @@ using Libplanet.State.Structures;
 using Libplanet.State.Structures.Nodes;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
-using Libplanet.Types;
-using Libplanet.Data;
 
 namespace Libplanet.State.Tests.Structures.Nodes;
 

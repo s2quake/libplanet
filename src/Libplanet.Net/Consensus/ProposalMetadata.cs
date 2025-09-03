@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
