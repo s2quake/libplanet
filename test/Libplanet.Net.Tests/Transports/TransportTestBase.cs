@@ -411,12 +411,18 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendToMany_Throw_AfterDisposed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = RandomUtility.GetRandom(output, 1283411870);
         await using var transport = CreateTransport(random);
 
         await transport.StartAsync(cancellationToken);
         await transport.DisposeAsync();
-        var peers = RandomUtility.Array(random, RandomUtility.LocalPeer).ToImmutableArray();
+
+        // If the peers are empty, the exception does not occur
+        transport.Post([], new PingMessage());
+
+        var peers = RandomUtility.Try(
+            generator: () => RandomUtility.Array(random, RandomUtility.LocalPeer).ToImmutableArray(),
+            predicate: i => i.Length > 0);
         var e = Assert.Throws<AggregateException>(() => transport.Post(peers, new PingMessage()));
         Assert.All(e.InnerExceptions, e => Assert.IsType<ObjectDisposedException>(e));
     }
@@ -427,7 +433,12 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         var random = RandomUtility.GetRandom(output);
         await using var transport = CreateTransport(random);
 
-        var peers = RandomUtility.Array(random, RandomUtility.LocalPeer).ToImmutableArray();
+        // If the peers are empty, the exception does not occur
+        transport.Post([], new PingMessage());
+        
+        var peers = RandomUtility.Try(
+            generator: () => RandomUtility.Array(random, RandomUtility.LocalPeer).ToImmutableArray(),
+            predicate: i => i.Length > 0);
         var e = Assert.Throws<AggregateException>(() => transport.Post(peers, new PingMessage()));
         Assert.All(e.InnerExceptions, e => Assert.IsType<InvalidOperationException>(e));
     }

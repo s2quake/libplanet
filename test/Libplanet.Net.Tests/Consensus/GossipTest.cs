@@ -60,7 +60,6 @@ public sealed class GossipTest(ITestOutputHelper output)
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task AddMessages()
     {
-        var b = new Blockchain();
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
@@ -127,8 +126,9 @@ public sealed class GossipTest(ITestOutputHelper output)
 
         await transports.StartAsync(cancellationToken);
 
-        transportB.PostAfter(gossipA.Peer, new HaveMessage(), 100);
-        await transportA.WaitAsync<HaveMessage>(cancellationToken);
+        var waitTaskA = transportA.WaitAsync<HaveMessage>(cancellationToken);
+        transportB.Post(gossipA.Peer, new HaveMessage());
+        await waitTaskA.WaitAsync(WaitTimeout2, cancellationToken);
 
         Assert.Contains(transportB.Peer, gossipA.Peers);
     }

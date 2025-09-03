@@ -9,6 +9,12 @@ public static partial class RandomUtility
         return new Random(seed);
     }
 
+    public static Random GetRandom(ITestOutputHelper output, int seed)
+    {
+        output.WriteLine($"Random seed: {seed}");
+        return new Random(seed);
+    }
+
     public static Random GetStaticRandom(ITestOutputHelper output)
     {
         var seed = 0;
