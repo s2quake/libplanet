@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Libplanet.Serialization.Analyzers\Libplanet.Serialization.Analyzers.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Libplanet\Libplanet.csproj" />
+    <ProjectReference Include="..\Libplanet.Serialization.Analyzers\Libplanet.Serialization.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 </Project>

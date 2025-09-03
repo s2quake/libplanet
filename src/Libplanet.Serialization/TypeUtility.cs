@@ -9,9 +9,11 @@ namespace Libplanet.Serialization;
 public static class TypeUtility
 {
     private static readonly ConcurrentDictionary<string, Type> _typeByFullName = [];
-    private static readonly KnownTypes _knownTypes = new();
-    private static readonly ConcurrentDictionary<Type, KnownTypes> _knownTypesByType = [];
     private static readonly ConcurrentDictionary<Type, object> _defaultByType = [];
+    private static readonly KnownTypes _knownTypes = new();
+    private static readonly Dictionary<Type, KnownTypes> _knownTypesByType = [];
+    private static readonly HashSet<Assembly> _addedAssemblies = [];
+    private static readonly object _lock = new();
 
     static TypeUtility()
     {
@@ -127,44 +129,10 @@ public static class TypeUtility
 
     public static string GetTypeName(Type type)
     {
-        if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+        lock (_lock)
         {
-            return $"{GetTypeName(underlyingType)}?";
+            return GetTypeNameInternal(type);
         }
-        else if (type.IsGenericType)
-        {
-            var typeDefinition = type.GetGenericTypeDefinition();
-            var typeDefinitionName = _knownTypes.GetTypeName(typeDefinition);
-            var genericArguments = type.GetGenericArguments();
-            var genericArgumentList = new List<string>(genericArguments.Length);
-            foreach (var genericArgument in genericArguments)
-            {
-                var genericArgumentName = GetGenericArgumentName(typeDefinition, genericArgument);
-                genericArgumentList.Add(genericArgumentName);
-            }
-            var genericArgumentString = string.Join(',', genericArgumentList);
-            return Regex.Replace(typeDefinitionName, "<.*>", $"<{genericArgumentString}>");
-        }
-        else if (type.IsArray)
-        {
-            var elementType = type.GetElementType()
-                ?? throw new UnreachableException("Array type does not have an element type");
-            var elementTypeName = GetTypeName(elementType);
-            var rank = type.GetArrayRank();
-            return $"{elementTypeName}[{new string(',', rank - 1)}]";
-        }
-        else if (_knownTypes.TryGetTypeName(type, out var typeName))
-        {
-            return typeName;
-        }
-        else if (type.IsDefined(typeof(OriginModelAttribute)))
-        {
-            var attribute = type.GetCustomAttribute<OriginModelAttribute>()!;
-            return GetTypeName(attribute.Type);
-        }
-
-        throw new NotSupportedException(
-            $"Type '{type.FullName}' is not supported or not registered in known types.");
     }
 
     public static bool IsDefault(object value, Type type)
@@ -211,7 +179,7 @@ public static class TypeUtility
     {
         if (type.Name is null)
         {
-            throw new UnreachableException("Type does not have FullName");
+            throw new ArgumentException("Type does not have FullName", nameof(type));
         }
 
         var name = type.Name;
@@ -238,7 +206,11 @@ public static class TypeUtility
 
     private static void AddAssembly(Assembly assembly)
     {
-        Trace.WriteLine(assembly.FullName);
+        if (!_addedAssemblies.Add(assembly))
+        {
+            return;
+        }
+
         var query = from type in assembly.GetTypes()
                     where type.IsDefined(typeof(ModelAttribute)) ||
                           type.IsDefined(typeof(ModelConverterAttribute))
@@ -274,10 +246,59 @@ public static class TypeUtility
                 }
             }
         }
+
+        _addedAssemblies.Add(assembly);
     }
 
     private static object CreateDefault(Type type)
         => Activator.CreateInstance(type) ?? throw new UnreachableException("ValueType cannot be null");
+
+    private static string GetTypeNameInternal(Type type)
+    {
+        if (!_addedAssemblies.Contains(type.Assembly))
+        {
+            AddAssembly(type.Assembly);
+        }
+
+        if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+        {
+            return $"{GetTypeName(underlyingType)}?";
+        }
+        else if (type.IsGenericType)
+        {
+            var typeDefinition = type.GetGenericTypeDefinition();
+            var typeDefinitionName = _knownTypes.GetTypeName(typeDefinition);
+            var genericArguments = type.GetGenericArguments();
+            var genericArgumentList = new List<string>(genericArguments.Length);
+            foreach (var genericArgument in genericArguments)
+            {
+                var genericArgumentName = GetGenericArgumentName(typeDefinition, genericArgument);
+                genericArgumentList.Add(genericArgumentName);
+            }
+            var genericArgumentString = string.Join(',', genericArgumentList);
+            return Regex.Replace(typeDefinitionName, "<.*>", $"<{genericArgumentString}>");
+        }
+        else if (type.IsArray)
+        {
+            var elementType = type.GetElementType()
+                ?? throw new UnreachableException("Array type does not have an element type");
+            var elementTypeName = GetTypeName(elementType);
+            var rank = type.GetArrayRank();
+            return $"{elementTypeName}[{new string(',', rank - 1)}]";
+        }
+        else if (_knownTypes.TryGetTypeName(type, out var typeName))
+        {
+            return typeName;
+        }
+        else if (type.IsDefined(typeof(OriginModelAttribute)))
+        {
+            var attribute = type.GetCustomAttribute<OriginModelAttribute>()!;
+            return GetTypeName(attribute.Type);
+        }
+
+        throw new NotSupportedException(
+            $"Type '{type.FullName}' is not supported or not registered in known types.");
+    }
 
     private static string GetGenericArgumentName(Type typeDefinition, Type genericArgument)
     {

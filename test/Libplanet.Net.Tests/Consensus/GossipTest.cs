@@ -60,6 +60,7 @@ public sealed class GossipTest(ITestOutputHelper output)
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task AddMessages()
     {
+        var b = new Blockchain();
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = RandomUtility.GetRandom(output);
         var proposer = RandomUtility.Signer(random);
