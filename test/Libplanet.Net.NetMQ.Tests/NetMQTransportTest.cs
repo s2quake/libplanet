@@ -1,9 +1,9 @@
 using Libplanet.Net.Messages;
-using Libplanet.Net.NetMQ;
+using Libplanet.Net.Tests.Transports;
 using Libplanet.TestUtilities;
 using Libplanet.Types;
 
-namespace Libplanet.Net.Tests.Transports;
+namespace Libplanet.Net.NetMQ.Tests;
 
 public sealed class NetMQTransportTest(ITestOutputHelper output)
     : TransportTestBase(output)
