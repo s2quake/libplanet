@@ -670,7 +670,6 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Type = VoteType.PreCommit,
             }.Create(Signers[3]));
 
-
         // Wait for timeout.
         await timeoutTask.WaitAsync(cancellationToken);
         await proposeStep1Task.WaitAsync(cancellationToken);

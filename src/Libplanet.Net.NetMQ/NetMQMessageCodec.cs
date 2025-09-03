@@ -34,7 +34,10 @@ internal static class NetMQMessageCodec
     {
         if (encoded.FrameCount < 2)
         {
-            throw new ArgumentException("Invalid NetMQMessage: must contain at least 2 frames.");
+            throw new ArgumentException(
+                "The encoded message must have at least two frames: " +
+                "one for the serialized message and one for the signature.",
+                nameof(encoded));
         }
 
         var bytes = encoded[0].ToByteArray();
@@ -44,7 +47,7 @@ internal static class NetMQMessageCodec
         var address = messageEnvelope.Sender.Address;
         if (!address.Verify(bytes, signature))
         {
-            throw new InvalidOperationException("Signature verification failed.");
+            throw new ArgumentException("Signature verification failed.", nameof(encoded));
         }
 
         return messageEnvelope;

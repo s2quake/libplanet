@@ -36,6 +36,7 @@ public static class TransportExtensions
         {
             Validator = Validators[validator].Address,
             ValidatorPower = Validators[validator].Power,
+            Timestamp = DateTimeOffset.UtcNow,
             Height = height,
             BlockHash = blockHash,
             Round = round,
@@ -56,6 +57,7 @@ public static class TransportExtensions
         {
             Validator = Validators[validator].Address,
             ValidatorPower = Validators[validator].Power,
+            Timestamp = DateTimeOffset.UtcNow,
             Height = height,
             BlockHash = default,
             Round = round,
@@ -95,6 +97,7 @@ public static class TransportExtensions
         {
             Validator = Validators[validator].Address,
             ValidatorPower = Validators[validator].Power,
+            Timestamp = DateTimeOffset.UtcNow,
             Height = height,
             BlockHash = blockHash,
             Round = round,
@@ -115,6 +118,7 @@ public static class TransportExtensions
         {
             Validator = Validators[validator].Address,
             ValidatorPower = Validators[validator].Power,
+            Timestamp = DateTimeOffset.UtcNow,
             Height = height,
             BlockHash = default,
             Round = round,

@@ -449,7 +449,7 @@ public sealed partial class Consensus(ImmutableSortedSet<Validator> validators, 
         var round = Round;
         var roundIndex = Round.Index;
 
-        if (!Validators.GetProposer(Height, roundIndex).Address.Equals(proposal.Validator))
+        if (Validators.GetProposer(Height, roundIndex).Address != proposal.Validator)
         {
             var message = $"Given proposal's proposer {proposal.Validator} does not match " +
                           $"with the current proposer for height {Height} and round {roundIndex}.";

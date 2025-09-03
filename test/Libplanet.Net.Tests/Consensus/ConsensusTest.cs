@@ -189,8 +189,9 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         {
             Block = blockchain.Propose(Signers[0]),
         }.Create(Signers[0]);
-        InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
-        var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout5, cancellationToken);
+        var exceptionOccurredTask = consensus.ExceptionOccurred.WaitAsync();
+        _ = consensus.ProposeAsync(proposal, cancellationToken);
+        var e1 = await exceptionOccurredTask.WaitAsync(WaitTimeout5, cancellationToken);
         var e2 = Assert.IsType<ArgumentException>(e1);
         Assert.StartsWith("Given proposal's proposer", e2.Message);
         Assert.Equal("proposal", e2.ParamName);
@@ -204,11 +205,7 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         var proposer = RandomUtility.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
-        await using var consensus = new Net.Consensus.Consensus(
-            height: 1,
-            // signer: TestUtils.PrivateKeys[0].AsSigner(),
-            validators: Validators,
-            options: new());
+        await using var consensus = new Net.Consensus.Consensus(Validators);
 
         await consensus.StartAsync(cancellationToken);
 
@@ -216,9 +213,10 @@ public sealed class ConsensusTest(ITestOutputHelper output)
         {
             Round = 2,
             Block = blockchain.Propose(Signers[1]),
-        }.Create(Signers[0]);
-        InvokeDelay(() => _ = consensus.ProposeAsync(proposal, default), 100);
-        var e1 = await consensus.ExceptionOccurred.WaitAsync(WaitTimeout5, cancellationToken);
+        }.Create(Signers[1]);
+        var exceptionOccurredTask = consensus.ExceptionOccurred.WaitAsync();
+        _ = consensus.ProposeAsync(proposal, cancellationToken);
+        var e1 = await exceptionOccurredTask.WaitAsync(WaitTimeout5, cancellationToken);
         var e2 = Assert.IsType<ArgumentException>(e1);
         Assert.StartsWith("Given proposal's round", e2.Message);
         Assert.Equal("proposal", e2.ParamName);

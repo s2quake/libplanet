@@ -110,19 +110,16 @@ public sealed class MessageTest(ITestOutputHelper output)
             }, signer).ToArray();
 
         var frames = new NetMQMessage();
-        frames.Push(rawMessage[4]);
-        frames.Push(rawMessage[3]);
-        frames.Push(fakeMessage[2]);
         frames.Push(rawMessage[1]);
-        frames.Push(rawMessage[0]);
+        frames.Push(fakeMessage[0]);
 
-        Assert.Throws<InvalidOperationException>(() => NetMQMessageCodec.Decode(frames));
+        Assert.Throws<ArgumentException>("encoded", () => NetMQMessageCodec.Decode(frames));
     }
 
     [Fact]
     public void InvalidArguments()
     {
-        Assert.Throws<ArgumentException>(() => NetMQMessageCodec.Decode(new NetMQMessage()));
+        Assert.Throws<ArgumentException>("encoded", () => NetMQMessageCodec.Decode(new NetMQMessage()));
     }
 
     [Fact]
@@ -148,12 +145,14 @@ public sealed class MessageTest(ITestOutputHelper output)
     [Fact]
     public void InvalidVoteTypeConsensus()
     {
-        var blockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size));
+        var random = RandomUtility.GetRandom(output);
+        var blockHash = RandomUtility.BlockHash(random);
 
         var preVote = new VoteMetadata
         {
             Validator = TestUtils.Validators[0].Address,
             ValidatorPower = TestUtils.Validators[0].Power,
+            Timestamp = DateTimeOffset.UtcNow,
             Height = 1,
             BlockHash = blockHash,
             Type = VoteType.PreVote,
@@ -163,17 +162,18 @@ public sealed class MessageTest(ITestOutputHelper output)
         {
             Validator = TestUtils.Validators[0].Address,
             ValidatorPower = TestUtils.Validators[0].Power,
+            Timestamp = DateTimeOffset.UtcNow,
             Height = 1,
             BlockHash = blockHash,
             Type = VoteType.PreCommit,
         }.Sign(TestUtils.Signers[0]);
 
         // Valid message cases
-        ModelValidationUtility.Validate(() => new ConsensusPreVoteMessage { PreVote = preVote });
-        ModelValidationUtility.Validate(() => new ConsensusPreCommitMessage { PreCommit = preCommit });
+        ModelAssert.DoseNotThrow(new ConsensusPreVoteMessage { PreVote = preVote });
+        ModelAssert.DoseNotThrow(new ConsensusPreCommitMessage { PreCommit = preCommit });
 
         // Invalid message cases
-        ModelAssert.Throws(() => new ConsensusPreVoteMessage { PreVote = preCommit });
-        ModelAssert.Throws(() => new ConsensusPreCommitMessage { PreCommit = preVote });
+        ModelAssert.Throws(new ConsensusPreVoteMessage { PreVote = preCommit });
+        ModelAssert.Throws(new ConsensusPreCommitMessage { PreCommit = preVote });
     }
 }

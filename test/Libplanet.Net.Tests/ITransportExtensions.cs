@@ -16,7 +16,14 @@ public static class ITransportExtensions
             }
         });
 
-        await tcs.Task;
+        try
+        {
+            await tcs.Task;
+        }
+        catch (TaskCanceledException e)
+        {
+            throw new OperationCanceledException(e.Message, e.InnerException, e.CancellationToken);
+        }
     }
 
     public static Task<MessageEnvelope> WaitAsync<T>(this ITransport @this)
@@ -66,7 +73,14 @@ public static class ITransportExtensions
             }
         });
 
-        return await tcs.Task;
+        try
+        {
+            return await tcs.Task;
+        }
+        catch (TaskCanceledException e)
+        {
+            throw new OperationCanceledException(e.Message, e.InnerException, cancellationToken);
+        }
     }
 
     public static Task<MessageEnvelope> WaitAsync<T>(

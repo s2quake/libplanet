@@ -62,6 +62,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
                 {
                     Validator = Validators[0].Address,
                     ValidatorPower = Validators[0].Power,
+                    Timestamp = DateTimeOffset.UtcNow,
                     Height = 3,
                     BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
                     Type = VoteType.PreCommit,

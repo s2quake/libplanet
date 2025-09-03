@@ -257,7 +257,7 @@ public sealed class ServiceBaseTest(ITestOutputHelper output)
         await using var service = new Service(output);
         var e = await Assert.ThrowsAsync<InvalidOperationException>(
             async () => await service.DelayAsync(TimeSpan.FromSeconds(10), cancellationToken));
-        Assert.StartsWith("Cannot create a cancellation token source", e.Message);
+        Assert.EndsWith("is not running.", e.Message);
     }
 
     [Fact]
