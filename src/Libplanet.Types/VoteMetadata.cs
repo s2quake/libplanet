@@ -23,7 +23,7 @@ public sealed partial record class VoteMetadata
 
     [Property(4)]
     [NotDefault]
-    public DateTimeOffset Timestamp { get; init; }
+    public required DateTimeOffset Timestamp { get; init; }
 
     [Property(5)]
     [Positive]

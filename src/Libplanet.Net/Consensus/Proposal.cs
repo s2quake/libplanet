@@ -15,8 +15,8 @@ public sealed partial record class Proposal
     public required ImmutableArray<byte> Signature { get; init; }
 
     [Property(2)]
-    [NotEmpty]
-    public ImmutableArray<byte> MarshaledBlock { get; init; } = [];
+    [ValidateObject]
+    public required Block Block { get; init; }
 
     public int Height => Metadata.Height;
 
@@ -27,8 +27,6 @@ public sealed partial record class Proposal
     public DateTimeOffset Timestamp => Metadata.Timestamp;
 
     public Address Validator => Metadata.Proposer;
-
-    public Block Block => ModelSerializer.DeserializeFromBytes<Block>(MarshaledBlock.AsSpan());
 
     public int ValidRound => Metadata.ValidRound;
 

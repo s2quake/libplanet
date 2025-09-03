@@ -18,7 +18,7 @@ public sealed partial record class BlockSummary
 
     [Property(3)]
     [NotDefault]
-    public DateTimeOffset Timestamp { get; init; }
+    public required DateTimeOffset Timestamp { get; init; }
 
     public static implicit operator BlockSummary(Block block) => new()
     {

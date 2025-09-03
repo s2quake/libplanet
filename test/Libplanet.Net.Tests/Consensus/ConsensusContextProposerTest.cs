@@ -1,10 +1,9 @@
+using Libplanet.Extensions;
+using Libplanet.Net.Consensus;
 using Libplanet.Net.Messages;
+using Libplanet.TestUtilities;
 using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
-using Libplanet.Net.Consensus;
-using Libplanet.Extensions;
-using Libplanet.TestUtilities;
-using Libplanet.Tests;
 
 namespace Libplanet.Net.Tests.Consensus;
 
@@ -29,6 +28,7 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
             e => consensusService.Height == 1 && e == ConsensusStep.PreVote);
         var preCommitTimeoutTask = consensusService.TimeoutOccurred.WaitAsync(
             e => consensusService.Height == 1 && e == ConsensusStep.PreCommit);
+        var roundChangedTask1 = consensusService.RoundChanged.WaitAsync(e => e.Index == 1);
 
         await transportA.StartAsync();
         await transportB.StartAsync();
@@ -38,58 +38,16 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
         Assert.Equal(1, consensusService.Height);
         Assert.Equal(0, consensusService.Round);
 
-        // Triggers timeout +2/3 with NIL and Block
-        var preVote2 = new NilVoteBuilder
-        {
-            Validator = Validators[2],
-            Height = 1,
-            Type = VoteType.PreVote,
-        }.Create(Signers[2]);
-        var preVoteMessage2 = new ConsensusPreVoteMessage
-        {
-            PreVote = preVote2
-        };
-        transportA.Post(transportB.Peer, preVoteMessage2);
-
-        var preVote3 = new NilVoteBuilder
-        {
-            Validator = Validators[3],
-            Height = 1,
-            Type = VoteType.PreVote,
-        }.Create(Signers[3]);
-        var preVoteMessage3 = new ConsensusPreVoteMessage
-        {
-            PreVote = preVote3
-        };
-        transportA.Post(transportB.Peer, preVoteMessage3);
+        transportA.PostNilPreVote(transportB.Peer, validator: 2, height: 1);
+        transportA.PostNilPreVote(transportB.Peer, validator: 3, height: 1);
 
         await preVoteTimeoutTask.WaitAsync(WaitTimeout5, cancellationToken);
 
-        var preCommit2 = new NilVoteBuilder
-        {
-            Validator = Validators[2],
-            Height = 1,
-            Type = VoteType.PreCommit,
-        }.Create(Signers[2]);
-        var preCommitMessage2 = new ConsensusPreCommitMessage
-        {
-            PreCommit = preCommit2
-        };
-        transportA.Post(transportB.Peer, preCommitMessage2);
-
-        var preCommit3 = new NilVoteBuilder
-        {
-            Validator = Validators[3],
-            Height = 1,
-            Type = VoteType.PreCommit,
-        }.Create(Signers[3]);
-        var preCommitMessage3 = new ConsensusPreCommitMessage
-        {
-            PreCommit = preCommit3
-        };
-        transportA.Post(transportB.Peer, preCommitMessage3);
+        transportA.PostNilPreCommit(transportB.Peer, validator: 2, height: 1);
+        transportA.PostNilPreCommit(transportB.Peer, validator: 3, height: 1);
 
         await preCommitTimeoutTask.WaitAsync(WaitTimeout5, cancellationToken);
+        await roundChangedTask1.WaitAsync(WaitTimeout5, cancellationToken);
         Assert.Equal(1, consensusService.Height);
         Assert.Equal(1, consensusService.Round);
     }

@@ -189,8 +189,8 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 5); // Peer1 should be a proposer
-        var preVoteStepTask = consensus.StepChanged.WaitAsync(
-            e => e.Step == ConsensusStep.PreVote && consensus.Round.Index == 0);
+        var preVoteStepTask = consensus.WaitStepAsync(ConsensusStep.PreVote, round: 0, cancellationToken);
+        _ = blockchain.ProposeAndAppendMany(proposer, 4);
         var block = blockchain.Propose(Signers[1]);
         var proposal = new ProposalBuilder
         {
@@ -201,7 +201,7 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         await consensus.ProposeAsync(proposal, cancellationToken);
 
         var (_, actualBlockHash) = await preVoteStepTask.WaitAsync(WaitTimeout5, cancellationToken);
-        Assert.Equal(default, actualBlockHash);
+        Assert.Equal(block.BlockHash, actualBlockHash);
         Assert.Equal(ConsensusStep.PreVote, consensus.Step);
         Assert.Equal(5, consensus.Height);
     }
@@ -244,21 +244,23 @@ public sealed class ContextProposerTest(ITestOutputHelper output)
         var blockchain = new Blockchain(genesisBlock);
         _ = blockchain.ProposeAndAppendMany(2);
         var block = blockchain.Propose(signer);
-        var proposal = new ProposalBuilder
+        var proposal = new ProposalMetadata
         {
-            Block = block,
-        }.Create(Signers[2]);
+            BlockHash = block.BlockHash,
+            Height = 2,
+            Timestamp = DateTimeOffset.UtcNow,
+            Proposer = Signers[2].Address,
+        }.SignWithoutValidation(Signers[2], block);
 
         await using var consensus = new Net.Consensus.Consensus(Validators, height: 2);
-        var preVoteStepTask = consensus.StepChanged.WaitAsync(
-            e => e.Step == ConsensusStep.PreVote && consensus.Round.Index == 0);
+        var preVoteStepTask = consensus.WaitStepAsync(ConsensusStep.PreVote, round: 0, cancellationToken);
 
         await consensus.StartAsync(cancellationToken);
         await consensus.ProposeAsync(proposal, cancellationToken);
         var actualProposal = consensus.Proposal;
         Assert.NotNull(actualProposal);
 
-        Assert.Equal(consensus.Height + 1, actualProposal.Height);
+        Assert.Equal(consensus.Height + 1, actualProposal.Block.Height);
         var (_, actualBlockHash) = await preVoteStepTask.WaitAsync(cancellationToken);
         Assert.Equal(default, actualBlockHash);
     }

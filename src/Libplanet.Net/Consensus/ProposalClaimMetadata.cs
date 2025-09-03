@@ -17,7 +17,7 @@ public sealed partial record class ProposalClaimMetadata
 
     [Property(2)]
     [NotDefault]
-    public BlockHash BlockHash { get; init; }
+    public required BlockHash BlockHash { get; init; }
 
     [Property(3)]
     [NotDefault]
@@ -25,7 +25,7 @@ public sealed partial record class ProposalClaimMetadata
 
     [Property(4)]
     [NotDefault]
-    public Address Validator { get; init; }
+    public required Address Validator { get; init; }
 
     public ProposalClaim Sign(ISigner signer)
     {

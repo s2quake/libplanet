@@ -1,3 +1,4 @@
+using Libplanet.Extensions;
 using Libplanet.Net.Consensus;
 using Libplanet.Types;
 using static Libplanet.Net.Tests.TestUtils;
@@ -95,4 +96,17 @@ public static class ConsensusExtensions
         await @this.PreCommitAsync(preCommit, cancellationToken);
         return preCommit;
     }
+
+    public static async Task<(ConsensusStep, BlockHash)> WaitStepAsync(
+        this Net.Consensus.Consensus @this,
+        ConsensusStep step,
+        CancellationToken cancellationToken = default)
+        => await @this.StepChanged.WaitAsync(e => e.Step == step, cancellationToken);
+
+    public static async Task<(ConsensusStep, BlockHash)> WaitStepAsync(
+        this Net.Consensus.Consensus @this,
+        ConsensusStep step,
+        int round,
+        CancellationToken cancellationToken = default)
+        => await @this.StepChanged.WaitAsync(e => e.Step == step && @this.Round.Index == round, cancellationToken);
 }

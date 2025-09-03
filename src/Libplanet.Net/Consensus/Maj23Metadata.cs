@@ -18,15 +18,15 @@ public sealed partial record class Maj23Metadata
 
     [Property(2)]
     [NotDefault]
-    public BlockHash BlockHash { get; init; }
+    public required BlockHash BlockHash { get; init; }
 
     [Property(3)]
     [NotDefault]
-    public DateTimeOffset Timestamp { get; init; }
+    public required DateTimeOffset Timestamp { get; init; }
 
     [Property(4)]
     [NotDefault]
-    public Address Validator { get; init; }
+    public required Address Validator { get; init; }
 
     [Property(5)]
     [AllowedValues(VoteType.PreVote, VoteType.PreCommit)]

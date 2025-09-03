@@ -20,7 +20,6 @@ public sealed record class ProposalBuilder
         var metadata = new ProposalMetadata
         {
             BlockHash = Block.BlockHash,
-            StateRootHash = StateRootHash,
             Height = Block.Height,
             Round = Round,
             Timestamp = Timestamp == default ? DateTimeOffset.UtcNow : Timestamp,
