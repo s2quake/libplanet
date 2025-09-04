@@ -68,13 +68,37 @@ public sealed class LiteTable(global::LiteDB.LiteDatabase db, string name)
 
     protected override void ClearOverride() => _collection.DeleteAll();
 
-    protected override IEnumerable<string> EnumerateKeys()
+    protected override IEnumerable<(string, byte[]?)> EnumerateOverride(bool includeValue)
     {
         foreach (var doc in _collection.FindAll())
         {
-            if (doc.TryGetValue("_id", out BsonValue keyValue) && keyValue.IsString)
+            if (!doc.TryGetValue("_id", out var keyValue))
             {
-                yield return keyValue.AsString;
+                throw new InvalidOperationException("Document does not have an _id field.");
+            }
+
+            if (!keyValue.IsString)
+            {
+                throw new InvalidOperationException("_id field is not a string.");
+            }
+
+            if (includeValue)
+            {
+                if (!doc.TryGetValue("value", out var value))
+                {
+                    throw new InvalidOperationException("Document does not have a value field.");
+                }
+                if (!value.IsBinary)
+                {
+                    throw new InvalidOperationException("value field is not a byte array.");
+                }
+
+                yield return (keyValue.AsString, value.AsBinary);
+
+            }
+            else
+            {
+                yield return (keyValue.AsString, null);
             }
         }
     }

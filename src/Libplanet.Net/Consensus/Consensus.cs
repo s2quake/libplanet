@@ -92,7 +92,7 @@ public sealed partial class Consensus(ImmutableSortedSet<Validator> validators, 
 
     public ImmutableSortedSet<Validator> Validators => validators;
 
-    public bool AddPreVoteMaj23(Maj23 maj23)
+    public async Task<bool> AddPreVoteMaj23Async(Maj23 maj23, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
@@ -100,7 +100,7 @@ public sealed partial class Consensus(ImmutableSortedSet<Validator> validators, 
             throw new InvalidOperationException("Consensus is not running.");
         }
 
-        return _dispatcher.Invoke(() =>
+        return await _dispatcher.InvokeAsync(_ =>
         {
             var round = _rounds[maj23.Round];
             var maj23s = round.PreVoteMaj23s;
@@ -111,18 +111,18 @@ public sealed partial class Consensus(ImmutableSortedSet<Validator> validators, 
             }
 
             return false;
-        });
+        }, cancellationToken);
     }
 
-    public bool AddPreCommitMaj23(Maj23 maj23)
+    public async Task<bool> AddPreCommitMaj23Async(Maj23 maj23, CancellationToken cancellationToken)
     {
-         ObjectDisposedException.ThrowIf(IsDisposed, this);
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
         if (_dispatcher is null)
         {
             throw new InvalidOperationException("Consensus is not running.");
         }
 
-        return _dispatcher.Invoke(() =>
+        return await _dispatcher.InvokeAsync(_ =>
         {
             var round = _rounds[maj23.Round];
             var maj23s = round.PreCommitMaj23s;
@@ -133,7 +133,7 @@ public sealed partial class Consensus(ImmutableSortedSet<Validator> validators, 
             }
 
             return false;
-        });
+        }, cancellationToken);
     }
 
     public async Task ProposeAsync(Proposal proposal, CancellationToken cancellationToken)

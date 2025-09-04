@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using System.ServiceModel;
 using System.Threading.Channels;
 using Libplanet.Net.Messages;
 using Libplanet.Types;
@@ -125,7 +124,7 @@ public static class ITransportExtensions
         var blockHashes = response.BlockHashes;
         if (blockHashes.Length > 0 && blockHash != blockHashes[0])
         {
-            throw new InvalidMessageContractException(
+            throw new InvalidOperationException(
                 $"Expected the first block hash to be {blockHash}, but got {blockHashes[0]} instead.");
         }
 

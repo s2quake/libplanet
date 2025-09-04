@@ -132,12 +132,12 @@ public sealed class RocksTable : TableBase, IDisposable
         _count = null;
     }
 
-    protected override IEnumerable<string> EnumerateKeys()
+    protected override IEnumerable<(string, byte[]?)> EnumerateOverride(bool includeValue)
     {
         using var it = _rocksDb.NewIterator();
         for (it.SeekToFirst(); it.Valid(); it.Next())
         {
-            yield return Encoding.UTF8.GetString(it.Key());
+            yield return (Encoding.UTF8.GetString(it.Key()), includeValue ? it.Value() : null);
         }
     }
 

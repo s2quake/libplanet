@@ -13,7 +13,8 @@ internal sealed class ConsensusPreVoteMaj23MessageHandler(ISigner signer, Consen
         var maj23 = message.Maj23;
         var validator = maj23.Validator;
         var sender = gossip.Peers.FirstOrDefault(peer => peer.Address.Equals(validator));
-        if (sender is not null && consensus.Height == maj23.Height && consensus.AddPreVoteMaj23(maj23))
+        if (sender is not null && consensus.Height == maj23.Height
+            && await consensus.AddPreVoteMaj23Async(maj23, cancellationToken))
         {
             var round = consensus.Rounds[maj23.Round];
             var preVotes = round.PreVotes;

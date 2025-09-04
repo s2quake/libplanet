@@ -9,18 +9,16 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);S4035;CS0660;CS0661;S3875;CS1591;NU5104;MEN001</NoWarn>
-    <!-- FIXME: S4035 and CS1591 should be turned on eventually. -->
   </PropertyGroup>
 
 
   <ItemGroup>
-    <PackageReference Include="NetMQ" Version="4.0.2.1" />
     <PackageReference Include="System.Linq.Async" Version="4.0.*" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Libplanet\Libplanet.csproj" />
     <ProjectReference Include="..\Libplanet.Serialization.Analyzers\Libplanet.Serialization.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
+
 </Project>

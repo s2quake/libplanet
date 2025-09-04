@@ -35,11 +35,11 @@ public sealed class MemoryTable(string name) : TableBase(name)
 
     protected override void ClearOverride() => _dictionary.Clear();
 
-    protected override IEnumerable<string> EnumerateKeys()
+    protected override IEnumerable<(string, byte[]?)> EnumerateOverride(bool includeValue)
     {
-        foreach (var item in _dictionary)
+        foreach (var (key, value) in _dictionary)
         {
-            yield return item.Key;
+            yield return (key, includeValue ? value : null);
         }
     }
 }

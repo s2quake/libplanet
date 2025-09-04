@@ -81,17 +81,27 @@ public abstract class TableBase : ITable, IEquatable<ITable>
 
     IEnumerator<KeyValuePair<string, byte[]>> IEnumerable<KeyValuePair<string, byte[]>>.GetEnumerator()
     {
-        foreach (var key in Keys)
+        foreach (var (key, value) in EnumerateOverride(includeValue: true))
         {
-            yield return new KeyValuePair<string, byte[]>(key, this[key]);
+            if (value is null)
+            {
+                throw new InvalidOperationException("Value is null.");
+            }
+
+            yield return new KeyValuePair<string, byte[]>(key, value);
         }
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        foreach (var key in Keys)
+        foreach (var (key, value) in EnumerateOverride(includeValue: true))
         {
-            yield return new KeyValuePair<string, byte[]>(key, this[key]);
+            if (value is null)
+            {
+                throw new InvalidOperationException("Value is null.");
+            }
+
+            yield return new KeyValuePair<string, byte[]>(key, value);
         }
     }
 
@@ -107,7 +117,7 @@ public abstract class TableBase : ITable, IEquatable<ITable>
 
     protected abstract byte[] GetOverride(string key);
 
-    protected abstract IEnumerable<string> EnumerateKeys();
+    protected abstract IEnumerable<(string Key, byte[]? Value)> EnumerateOverride(bool includeValue);
 
     protected virtual bool CompareValue(byte[] value1, byte[] value2) => value1.SequenceEqual(value2);
 
@@ -132,7 +142,7 @@ public abstract class TableBase : ITable, IEquatable<ITable>
             }
 
             var index = arrayIndex;
-            foreach (var key in owner.EnumerateKeys())
+            foreach (var (key, _) in owner.EnumerateOverride(includeValue: false))
             {
                 array[index++] = key;
             }
@@ -140,7 +150,7 @@ public abstract class TableBase : ITable, IEquatable<ITable>
 
         public IEnumerator<string> GetEnumerator()
         {
-            foreach (var key in owner.EnumerateKeys())
+            foreach (var (key, _) in owner.EnumerateOverride(includeValue: false))
             {
                 yield return key;
             }
@@ -162,7 +172,10 @@ public abstract class TableBase : ITable, IEquatable<ITable>
         public void Clear() => throw new NotSupportedException("Clear is not supported.");
 
         [Obsolete("This method is inefficient. Consider using alternative approaches.", error: false)]
-        public bool Contains(byte[] item) => owner.EnumerateKeys().Any(key => owner[key].SequenceEqual(item));
+        public bool Contains(byte[] item) => owner.EnumerateOverride(includeValue: true)
+            .Select(i => i.Value)
+            .OfType<byte[]>()
+            .Any(i => i.SequenceEqual(item));
 
         public void CopyTo(byte[][] array, int arrayIndex)
         {
@@ -172,17 +185,27 @@ public abstract class TableBase : ITable, IEquatable<ITable>
             }
 
             var index = arrayIndex;
-            foreach (var key in owner.EnumerateKeys())
+            foreach (var (_, value) in owner.EnumerateOverride(includeValue: true))
             {
-                array[index++] = owner[key];
+                if (value is null)
+                {
+                    throw new InvalidOperationException("Value is null.");
+                }
+
+                array[index++] = value;
             }
         }
 
         public IEnumerator<byte[]> GetEnumerator()
         {
-            foreach (var key in owner.EnumerateKeys())
+            foreach (var (_, value) in owner.EnumerateOverride(includeValue: true))
             {
-                yield return owner[key];
+                if (value is null)
+                {
+                    throw new InvalidOperationException("Value is null.");
+                }
+
+                yield return value;
             }
         }
 

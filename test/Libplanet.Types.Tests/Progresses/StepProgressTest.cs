@@ -72,10 +72,10 @@ public sealed class StepProgressTest(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task SubProgress()
+    public void SubProgress()
     {
+        using var _ = new TestScope(new TestSynchronizationContext());
         int[] lengths = [2, 5, 10];
-        var cancellationToken = TestContext.Current.CancellationToken;
         var itemList = new List<ProgressInfo>(1000);
         var progress = new StepProgress(lengths[0]) { MaxUpdateRate = int.MaxValue };
         var expected = 0;
@@ -116,7 +116,6 @@ public sealed class StepProgressTest(ITestOutputHelper output)
 
         Invoke(lengths, 0, progress, ref expected);
 
-        await Task.Delay(1000, cancellationToken);
         Assert.Equal(expected, itemList.Count);
     }
 
@@ -205,5 +204,26 @@ public sealed class StepProgressTest(ITestOutputHelper output)
         var stepProgress = new StepProgress(1);
         stepProgress.Complete("Completed");
         Assert.Throws<InvalidOperationException>(() => stepProgress.BeginSubProgress(1));
+    }
+
+    private sealed class TestSynchronizationContext : SynchronizationContext
+    {
+        public override void Post(SendOrPostCallback d, object? state) => d(state);
+    }
+
+    private sealed class TestScope : IDisposable
+    {
+        private readonly SynchronizationContext? _oldContext = SynchronizationContext.Current;
+
+        public TestScope(SynchronizationContext synchronizationContext)
+            => SynchronizationContext.SetSynchronizationContext(synchronizationContext);
+
+        public void Dispose()
+        {
+            if (_oldContext is not null)
+            {
+                SynchronizationContext.SetSynchronizationContext(_oldContext);
+            }
+        }
     }
 }

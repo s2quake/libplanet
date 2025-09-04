@@ -339,7 +339,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
             Block = blockB,
             VoteType = VoteType.PreVote,
         }.Create(Signers[2]);
-        consensus.AddPreVoteMaj23(maj23);
+        await consensus.AddPreVoteMaj23Async(maj23, cancellationToken);
 
         var proposalClaimedTask = consensus.ProposalClaimed.WaitAsync(cancellationToken);
         _ = consensus.PreVoteAsync(validator: 1, blockB, round: 0, cancellationToken);
