@@ -55,8 +55,8 @@ public partial class SwarmTest
             await peerExplorerB.PingAsync(peer, cancellationToken);
         }
 
-        Assert.Equal([transportC.Peer, transportD.Peer], [.. peersA]);
-        Assert.Equal([transportC.Peer, transportD.Peer], [.. peersB]);
+        Assert.Equal([transportC.Peer, transportD.Peer], peersA.ToHashSet());
+        Assert.Equal([transportC.Peer, transportD.Peer], peersB.ToHashSet());
     }
 
     [Fact(Timeout = Timeout)]

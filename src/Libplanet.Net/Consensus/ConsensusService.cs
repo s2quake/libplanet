@@ -51,7 +51,7 @@ public sealed partial class ConsensusService : ServiceBase
         _signer = signer;
         _transport = transport;
         _peers = new PeerCollection(_transport.Peer.Address);
-        _peers.AddMany([.. options.Validators]);
+        _peers.AddMany([.. options.Validators.Where(item => item.Address != signer.Address)]);
         _peerExplorer = new PeerExplorer(_transport, _peers)
         {
             SeedPeers = options.Seeds,

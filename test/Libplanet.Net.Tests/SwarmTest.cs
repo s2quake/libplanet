@@ -519,11 +519,10 @@ public partial class SwarmTest(ITestOutputHelper output)
             Actions = [DumbAction.Create((signerAddress, "2"))],
         };
         var genesisBlockB = genesisBlockBuilderB.Create(proposer);
-        var genesisBlockC = TestUtils.GenesisBlockBuilder.Create(proposer);
 
         var blockchainA = new Blockchain(genesisBlockA);
         var blockchainB = new Blockchain(genesisBlockB);
-        var blockchainC = new Blockchain(genesisBlockC);
+        var blockchainC = new Blockchain(genesisBlockA);
 
         var transportA = CreateTransport(signerA);
         var transportB = CreateTransport(signerB);
@@ -564,24 +563,9 @@ public partial class SwarmTest(ITestOutputHelper output)
         Assert.Single(blockchainB.Blocks);
         Assert.Equal(2, blockchainC.Blocks.Count);
 
-        Assert.Equal(
-            "1",
-            blockchainA
-                .GetWorld()
-                .GetAccount(SystemAddresses.SystemAccount)
-                .GetValue(signerAddress));
-        Assert.Equal(
-            "2",
-            blockchainB
-                .GetWorld()
-                .GetAccount(SystemAddresses.SystemAccount)
-                .GetValue(signerAddress));
-        Assert.Equal(
-            "1",
-            blockchainC
-                .GetWorld()
-                .GetAccount(SystemAddresses.SystemAccount)
-                .GetValue(signerAddress));
+        Assert.Equal("1", blockchainA.GetSystemValue(signerAddress));
+        Assert.Equal("2", blockchainB.GetSystemValue(signerAddress));
+        Assert.Equal("1", blockchainC.GetSystemValue(signerAddress));
     }
 
     [Fact(Timeout = Timeout)]

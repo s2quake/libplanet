@@ -639,9 +639,8 @@ public partial class SwarmTest
         await transports.StartAsync(cancellationToken);
         await services.StartAsync(cancellationToken);
 
-        await Task.WhenAll(
-            peerExplorerB.ExploreAsync([peerExplorerA.Peer], 3, cancellationToken),
-            peerExplorerC.ExploreAsync([peerExplorerA.Peer], 3, cancellationToken));
+        await peerExplorerB.ExploreAsync([peerExplorerA.Peer], 3, cancellationToken);
+        await peerExplorerC.ExploreAsync([peerExplorerA.Peer], 3, cancellationToken);
 
         var waitTask1 = syncServiceA.BlockDemands.Added.WaitAsync(cancellationToken);
         var waitTask2 = syncServiceC.Appended.WaitAsync(cancellationToken);
@@ -1000,7 +999,6 @@ public partial class SwarmTest
 
         var blockchainB = new Blockchain(genesisBlock);
         var syncServiceB = new BlockSynchronizationService(blockchainB, transportB);
-        var requestCount = 0;
 
         await using var transports = new ServiceCollection
         {
@@ -1013,23 +1011,18 @@ public partial class SwarmTest
         };
 
         using var _1 = transportA.MessageRouter.Register(new PingMessageHandler(transportA));
-        using var _2 = transportA.MessageRouter.Register<IMessage>(e =>
-        {
-            if (e is BlockHashRequestMessage)
-            {
-                requestCount++;
-            }
-        });
-        using var messageWaiterB = new MessageWaiter();
-        using var _3 = transportB.MessageRouter.Register(messageWaiterB);
+        using var requestCounterA = transportA.Counter<BlockHashRequestMessage>();
+        var requestTaskA = requestCounterA.CountChanged.WaitAsync(c => c == 1, cancellationToken);
 
         var block1 = new BlockBuilder
         {
+            Height = 1,
             PreviousBlockHash = blockchainB.Tip.BlockHash,
             PreviousStateRootHash = blockchainB.StateRootHash,
         }.Create(signer);
         var block2 = new BlockBuilder
         {
+            Height = 2,
             PreviousBlockHash = block1.BlockHash,
             PreviousStateRootHash = blockchainB.StateRootHash,
         }.Create(signer);
@@ -1040,39 +1033,32 @@ public partial class SwarmTest
         var message1 = new BlockSummaryMessage
         {
             GenesisBlockHash = blockchainB.Genesis.BlockHash,
-            BlockSummary = block1
+            BlockSummary = block1,
         };
 
-        InvokeAfter(() => transportA.Post(transportB.Peer, message1), TimeSpan.FromMilliseconds(100));
+        await using (syncServiceB.BlockDemands.Added.AsWaiter(cancellationToken))
+        {
+            transportA.Post(transportB.Peer, message1);
+        }
 
-        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage)
-            .WaitAsync(WaitTimeout5, cancellationToken);
-
-        InvokeAfter(() => transportA.Post(transportB.Peer, message1), TimeSpan.FromMilliseconds(100));
-
-        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage)
-            .WaitAsync(WaitTimeout5, cancellationToken);
+        await using (syncServiceB.BlockDemands.Added.AsWaiter(cancellationToken))
+        {
+            transportA.Post(transportB.Peer, message1);
+        }
 
         var message2 = new BlockSummaryMessage
         {
             GenesisBlockHash = blockchainB.Genesis.BlockHash,
-            BlockSummary = block2
+            BlockSummary = block2,
         };
 
-        InvokeAfter(() => transportA.Post(transportB.Peer, message2), TimeSpan.FromMilliseconds(100));
-        await messageWaiterB.Received.WaitAsync(m => m is BlockHashRequestMessage)
-            .WaitAsync(WaitTimeout5, cancellationToken);
-
-        Assert.Equal(1, requestCount);
-
-        void InvokeAfter(Action action, TimeSpan delay)
+        await using (syncServiceB.BlockDemands.Added.AsWaiter(cancellationToken))
         {
-            _ = Task.Run(async () =>
-            {
-                await Task.Delay(delay);
-                action();
-            });
+            transportA.Post(transportB.Peer, message2);
         }
+
+        var requestCount = await requestTaskA.WaitAsync(WaitTimeout5, cancellationToken);
+        Assert.Equal(1, requestCount);
     }
 
     [Fact(Timeout = Timeout)]
