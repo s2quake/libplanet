@@ -1,9 +1,11 @@
-using Libplanet.Net.Consensus;
-using Libplanet.Types;
-using Libplanet.Extensions;
+using System.Diagnostics;
 using System.Reactive.Linq;
-using static Libplanet.Net.Tests.TestUtils;
+using Libplanet.Extensions;
+using Libplanet.Net.Consensus;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Logging;
+using Libplanet.Types;
+using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests;
 
@@ -19,20 +21,24 @@ public partial class SwarmTest
         var signers = Libplanet.Tests.TestUtils.Signers.ToArray();
         var count = signers.Length;
         var transports = new ServiceCollection<ITransport>(signers.Select(item => CreateTransport(item)));
-        var blockchains = transports.Select(item => new Blockchain(genesisBlock)).ToArray();
+        var blockchainOptions = new BlockchainOptions
+        {
+            Logger = TestLogging.CreateLogger<Blockchain>(output),
+        };
+        var blockchains = transports.Select((item, i)
+            => new Blockchain(genesisBlock, blockchainOptions) { Name = $"Blockchain {i}" }).ToArray();
 
         var peers = transports.Select(item => item.Peer);
         var serviceOptions = Enumerable.Range(0, count).Select(i =>
             new ConsensusServiceOptions
             {
                 KnownPeers = [.. peers.Where(item => item.Address != transports[i].Peer.Address)],
-                Workers = 100,
-                TargetBlockInterval = TimeSpan.FromSeconds(4),
-                ConsensusOptions = new ConsensusOptions(),
+                BlockInterval = TimeSpan.FromSeconds(2),
+                Logger = TestLogging.CreateLogger<ConsensusService>(output),
             }).ToArray();
         var services = new ServiceCollection<ConsensusService>(serviceOptions.Select((options, i) =>
         {
-            return new ConsensusService(signers[i], blockchains[i], transports[i], options);
+            return new ConsensusService(signers[i], blockchains[i], transports[i], options) { Name = $"Service {i}" };
         }));
 
         await transports.StartAsync(cancellationToken);
@@ -56,7 +62,7 @@ public partial class SwarmTest
         for (; i < 10; i++)
         {
             var waitTasks1 = blockchains.Select(item => item.TipChanged.WaitAsync(e => e.Height == i));
-            await Task.WhenAll(waitTasks1);
+            await Task.WhenAll(waitTasks1).WaitAsync(WaitTimeout10, cancellationToken);
             Array.ForEach(blockchains, item => Assert.Equal(i + 1, item.Blocks.Count));
             if (blockchains.Any(item => item.Blocks[i].Evidences.Count > 0))
             {
@@ -66,12 +72,8 @@ public partial class SwarmTest
 
         Assert.NotEqual(10, i);
 
-        var waitTasks2 = blockchains.Select(item => item.TipChanged.WaitAsync(e => e.Height == i));
-        await Task.WhenAll(waitTasks2);
-        foreach (Blockchain blockchain in blockchains)
-        {
-            Assert.Equal(i + 1, blockchain.Blocks.Count);
-        }
+        var waitTasks2 = blockchains.Select(item => item.TipChanged.WaitAsync(e => e.Height == i + 1));
+        await Task.WhenAll(waitTasks2).WaitAsync(WaitTimeout10, cancellationToken);
     }
 
     private static Vote MakeRandomVote(

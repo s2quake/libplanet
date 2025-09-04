@@ -25,7 +25,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[3], blockchain, transportB, options);
 
@@ -109,7 +109,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var transport = CreateTransport(Signers[1]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[1], blockchain, transport, options);
 
@@ -128,7 +128,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var transport = CreateTransport(Signers[1]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[1], blockchain, transport, options);
         await transport.StartAsync();
@@ -148,7 +148,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var transport = CreateTransport(Signers[1]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[1], blockchain, transport, options);
 
@@ -175,7 +175,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[1]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[1], blockchain, transportB, options);
         var heightChangedTask2 = consensusService.HeightChanged.WaitAsync(e => e == 2);
@@ -218,7 +218,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[1]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[1], blockchain, transportB, options);
         var proposedTask1 = consensusService.BlockProposed.WaitAsync(_ => consensusService.Height == 1);
@@ -273,7 +273,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[0]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[0], blockchain, transportB, options);
 
@@ -332,7 +332,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         var options = new ConsensusServiceOptions
         {
             KnownPeers = [transportA.Peer],
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[0], blockchain, transportB, options);
         var preCommitStepChangedTask = consensusService.StepChanged.WaitAsync(
@@ -414,7 +414,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         var options = new ConsensusServiceOptions
         {
             KnownPeers = [transportA.Peer],
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusServiceB = new ConsensusService(Signers[0], blockchain, transportB, options);
         var preVoteStepTask = consensusServiceB.StepChanged.WaitAsync(

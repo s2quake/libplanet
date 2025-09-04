@@ -23,7 +23,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[3], blockchain, transportB, options);
 
@@ -99,7 +99,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[3], blockchain, transportB, options);
         var proposed3Task = consensusService.BlockProposed.WaitAsync(e => e.Height == 3);
@@ -171,7 +171,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[3], blockchain, transportB, options);
         var proposed3Task = consensusService.BlockProposed.WaitAsync(e => e.Height == 3);
@@ -209,7 +209,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[3], blockchain, transportB, options);
         var proposed3Task = consensusService.BlockProposed.WaitAsync(e => e.Height == 3);
@@ -246,7 +246,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[3]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[3], blockchain, transportB, options);
         var proposed3Task = consensusService.BlockProposed.WaitAsync(e => e.Height == 3);

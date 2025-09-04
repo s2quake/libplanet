@@ -7,6 +7,7 @@ using Libplanet.Data;
 using Libplanet.Types;
 using Microsoft.Extensions.Logging;
 using Libplanet.Serialization;
+using System.Diagnostics;
 
 namespace Libplanet;
 
@@ -18,6 +19,7 @@ public partial class Blockchain
     private readonly Repository _repository;
     private readonly BlockExecutor _blockExecutor;
     private readonly ILogger<Blockchain> _logger;
+    private string _name = string.Empty;
 
     public Blockchain()
         : this(new Repository(), BlockchainOptions.Empty)
@@ -86,6 +88,12 @@ public partial class Blockchain
     public IObservable<(Block Block, BlockCommit BlockCommit)> Appended => _appendedSubject;
 
     public Guid Id { get; }
+
+    public string Name
+    {
+        get => _name == string.Empty ? nameof(Blockchain) : _name;
+        init => _name = value;
+    }
 
     public BlockHashCollection BlockHashes { get; }
 
@@ -260,7 +268,7 @@ public partial class Blockchain
         _blockExecutingSubject.OnNext(Unit.Default);
         _repository.AppendExecution(_blockExecutor.Execute(block, Options.SystemAction));
         _appendedSubject.OnNext((block, blockCommit));
-        LogAppended(_logger, block.Height, block.BlockHash);
+        LogAppended(_logger, Name, block.Height, block.BlockHash);
     }
 
     public HashDigest<SHA256> GetStateRootHash(int height)

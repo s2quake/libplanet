@@ -57,7 +57,7 @@ public sealed partial class ConsensusService : ServiceBase
         };
         _gossip = new Gossip(_transport, _peerExplorer.Peers);
         _blockchain = blockchain;
-        _newHeightDelay = options.TargetBlockInterval;
+        _newHeightDelay = options.BlockInterval;
         _consensusOption = options.ConsensusOptions with
         {
             BlockValidators = options.ConsensusOptions.BlockValidators.Add(
@@ -185,7 +185,7 @@ public sealed partial class ConsensusService : ServiceBase
         await _dispatcher.InvokeAsync(async cancellationToken =>
         {
             var pendingMessage = _broadcastingResponder?.PendingMessages.ToArray() ?? [];
-            LogNewHeightBegin(_logger, height);
+            LogNewHeightBegin(_logger, Name, height);
             Array.ForEach(_consensusSubscriptions, subscription => subscription.Dispose());
             _consensusSubscriptions = [];
             _broadcastingResponder?.Dispose();
@@ -213,7 +213,7 @@ public sealed partial class ConsensusService : ServiceBase
             _peerCatchupRounds.Clear();
             _gossip.DeniedPeers.Clear();
             _heightChangedSubject.OnNext(Height);
-            LogNewHeightEnd(_logger, height);
+            LogNewHeightEnd(_logger, Name, height);
             foreach (var message in pendingMessage)
             {
                 _transport.Post(_transport.Peer, message);
@@ -226,8 +226,8 @@ public sealed partial class ConsensusService : ServiceBase
         var sender = messageEnvelope.Sender;
         if (message.Height != Height)
         {
-            throw new InvalidOperationException(
-                $"Filtered vote from different height: {message.Height}");
+            throw new ArgumentException(
+                $"Filtered vote from different height: {message.Height}", nameof(message));
         }
 
         if (message.Height == Height && message.Round > Round)
@@ -240,9 +240,10 @@ public sealed partial class ConsensusService : ServiceBase
             if (_peerCatchupRounds.TryGetValue(sender, out var set) && set.Count > 2)
             {
                 _gossip.DeniedPeers.Add(sender);
-                throw new InvalidOperationException(
+                throw new ArgumentException(
                     $"Add {sender} to deny set, since repetitively found higher rounds: " +
-                    $"{string.Join(", ", _peerCatchupRounds[sender])}");
+                    $"{string.Join(", ", _peerCatchupRounds[sender])}",
+                    nameof(message));
             }
         }
     }
@@ -269,6 +270,7 @@ public sealed partial class ConsensusService : ServiceBase
             if (exception is EvidenceException evidenceException)
             {
                 _evidenceCollector.Add(evidenceException);
+                LogEvidenceOccurred(_logger, Name, evidenceException.GetType().Name, evidenceException.Height);
             }
 
             _exceptionOccurredSubject.OnNext(exception);
@@ -320,7 +322,7 @@ public sealed partial class ConsensusService : ServiceBase
         try
         {
             await Task.Delay(delay, StoppingToken);
-            AddEvidenceToBlockChain(height);
+            AddEvidenceToBlockchain(height);
             await NewHeightAsync(height + 1, StoppingToken);
         }
         catch (TaskCanceledException)
@@ -335,7 +337,7 @@ public sealed partial class ConsensusService : ServiceBase
         static TimeSpan EnsureNonNegative(TimeSpan timeSpan) => timeSpan < TimeSpan.Zero ? TimeSpan.Zero : timeSpan;
     }
 
-    private void AddEvidenceToBlockChain(int height)
+    private void AddEvidenceToBlockchain(int height)
     {
         var evidenceExceptions = _evidenceCollector.Flush().Where(item => item.Height <= height).ToArray();
         foreach (var evidenceException in evidenceExceptions)

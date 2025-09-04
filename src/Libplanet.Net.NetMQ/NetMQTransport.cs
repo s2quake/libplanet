@@ -26,8 +26,6 @@ public sealed partial class NetMQTransport(ISigner signer, TransportOptions opti
     {
     }
 
-    public override string Name => $"[{Peer}]";
-
     public MessageRouter MessageRouter { get; } = new MessageRouter();
 
     public Peer Peer => _peer;
@@ -37,6 +35,8 @@ public sealed partial class NetMQTransport(ISigner signer, TransportOptions opti
     CancellationToken ITransport.StoppingToken => StoppingToken;
 
     IMessageRouter ITransport.MessageRouter => MessageRouter;
+
+    protected override string DefaultName => $"[{Peer}]";
 
     public MessageEnvelope Post(Peer receiver, IMessage message, Guid? replyTo)
     {

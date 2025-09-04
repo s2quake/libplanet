@@ -26,7 +26,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusServiceB = new ConsensusService(Signers[2], blockchain, transportB, options);
 
@@ -97,7 +97,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusServiceB = new ConsensusService(Signers[2], blockchain, transportB, options);
         await transportA.StartAsync();
@@ -182,7 +182,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         await using var transport = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[2], blockchain, transport, options);
 
@@ -213,7 +213,7 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[2]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = newHeightDelay,
+            BlockInterval = newHeightDelay,
         };
         await using var consensusServiceB = new ConsensusService(Signers[2], blockchain, transportB, options: options);
 

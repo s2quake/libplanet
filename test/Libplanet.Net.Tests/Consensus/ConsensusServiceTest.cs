@@ -43,7 +43,7 @@ public class ConsensusServiceTest(ITestOutputHelper output)
             var options = new ConsensusServiceOptions
             {
                 KnownPeers = [.. validatorPeers.Except([transports[i].Peer])],
-                TargetBlockInterval = TimeSpan.FromMilliseconds(PropagationDelay * 2),
+                BlockInterval = TimeSpan.FromMilliseconds(PropagationDelay * 2),
             };
 
             consensusServices.Add(new ConsensusService(Signers[i], blockchains[i], transports[i], options));

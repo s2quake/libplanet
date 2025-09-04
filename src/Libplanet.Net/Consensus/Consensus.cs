@@ -94,28 +94,46 @@ public sealed partial class Consensus(ImmutableSortedSet<Validator> validators, 
 
     public bool AddPreVoteMaj23(Maj23 maj23)
     {
-        var round = _rounds[maj23.Round];
-        var maj23s = round.PreVoteMaj23s;
-        if (!maj23s.Contains(maj23.Validator))
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        if (_dispatcher is null)
         {
-            maj23s.Add(maj23);
-            return true;
+            throw new InvalidOperationException("Consensus is not running.");
         }
 
-        return false;
+        return _dispatcher.Invoke(() =>
+        {
+            var round = _rounds[maj23.Round];
+            var maj23s = round.PreVoteMaj23s;
+            if (!maj23s.Contains(maj23.Validator))
+            {
+                maj23s.Add(maj23);
+                return true;
+            }
+
+            return false;
+        });
     }
 
     public bool AddPreCommitMaj23(Maj23 maj23)
     {
-        var round = _rounds[maj23.Round];
-        var maj23s = round.PreCommitMaj23s;
-        if (!maj23s.Contains(maj23.Validator))
+         ObjectDisposedException.ThrowIf(IsDisposed, this);
+        if (_dispatcher is null)
         {
-            maj23s.Add(maj23);
-            return true;
+            throw new InvalidOperationException("Consensus is not running.");
         }
 
-        return false;
+        return _dispatcher.Invoke(() =>
+        {
+            var round = _rounds[maj23.Round];
+            var maj23s = round.PreCommitMaj23s;
+            if (!maj23s.Contains(maj23.Validator))
+            {
+                maj23s.Add(maj23);
+                return true;
+            }
+
+            return false;
+        });
     }
 
     public async Task ProposeAsync(Proposal proposal, CancellationToken cancellationToken)

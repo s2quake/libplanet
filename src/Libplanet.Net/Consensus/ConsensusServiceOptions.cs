@@ -5,11 +5,9 @@ namespace Libplanet.Net.Consensus;
 
 public sealed record class ConsensusServiceOptions
 {
-    public int Workers { get; init; }
-
     public ImmutableHashSet<Peer> KnownPeers { get; init; } = [];
 
-    public TimeSpan TargetBlockInterval { get; init; }
+    public TimeSpan BlockInterval { get; init; }
 
     public ConsensusOptions ConsensusOptions { get; init; } = ConsensusOptions.Default;
 

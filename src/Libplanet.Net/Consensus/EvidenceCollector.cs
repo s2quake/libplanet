@@ -8,8 +8,6 @@ internal sealed class EvidenceCollector
 
     public void Add(EvidenceException exception) => _exceptionList.Add(exception);
 
-    public void AddRange(EvidenceException[] exceptions) => _exceptionList.AddRange(exceptions);
-
     public EvidenceException[] Flush()
     {
         var evidenceExceptions = _exceptionList.ToArray();

@@ -11,6 +11,7 @@ public abstract partial class ServiceBase(ILogger logger) : IAsyncDisposable, IS
     private ServiceState _state = ServiceState.None;
     private CancellationTokenSource? _cancellationTokenSource;
     private CancellationToken _cancellationToken;
+    private string _name = string.Empty;
 
     protected ServiceBase()
         : this(NullLogger<ServiceBase>.Instance)
@@ -19,7 +20,11 @@ public abstract partial class ServiceBase(ILogger logger) : IAsyncDisposable, IS
 
     public ServiceState State => _state;
 
-    public virtual string Name => $"{GetType().Name} {GetHashCode()}";
+    public string Name
+    {
+        get => _name == string.Empty ? DefaultName : _name;
+        init => _name = value;
+    }
 
     public bool IsRunning => _state == ServiceState.Started;
 
@@ -28,6 +33,8 @@ public abstract partial class ServiceBase(ILogger logger) : IAsyncDisposable, IS
     public bool IsDisposed => _state == ServiceState.Disposed;
 
     protected CancellationToken StoppingToken => _cancellationToken;
+
+    protected virtual string DefaultName => $"{GetType().Name} {GetHashCode()}";
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {

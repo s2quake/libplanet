@@ -19,7 +19,7 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[1]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromSeconds(1),
+            BlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[1], blockchain, transportB, options);
         var preVoteTimeoutTask = consensusService.TimeoutOccurred.WaitAsync(

@@ -366,7 +366,7 @@ public sealed class ConsensusClassicTest(ITestOutputHelper output)
         await using var transport = new NetMQ.NetMQTransport(Signers[0]);
         var options = new ConsensusServiceOptions
         {
-            TargetBlockInterval = TimeSpan.FromMilliseconds(100),
+            BlockInterval = TimeSpan.FromMilliseconds(100),
         };
         var consensusService = new ConsensusService(Signers[0], blockchain, transport, options);
         var tipChangedTask = blockchain.TipChanged.WaitAsync(e => e.Height == 1);
