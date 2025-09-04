@@ -42,7 +42,7 @@ public class ConsensusServiceTest(ITestOutputHelper output)
         {
             var options = new ConsensusServiceOptions
             {
-                Validators = [.. validatorPeers.Except([transports[i].Peer])],
+                KnownPeers = [.. validatorPeers.Except([transports[i].Peer])],
                 TargetBlockInterval = TimeSpan.FromMilliseconds(PropagationDelay * 2),
             };
 

@@ -331,7 +331,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[0]);
         var options = new ConsensusServiceOptions
         {
-            Validators = [transportA.Peer],
+            KnownPeers = [transportA.Peer],
             TargetBlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusService = new ConsensusService(Signers[0], blockchain, transportB, options);
@@ -413,7 +413,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
         await using var transportB = CreateTransport(Signers[0]);
         var options = new ConsensusServiceOptions
         {
-            Validators = [transportA.Peer],
+            KnownPeers = [transportA.Peer],
             TargetBlockInterval = TimeSpan.FromSeconds(1),
         };
         await using var consensusServiceB = new ConsensusService(Signers[0], blockchain, transportB, options);

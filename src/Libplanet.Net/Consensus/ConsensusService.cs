@@ -51,10 +51,9 @@ public sealed partial class ConsensusService : ServiceBase
         _signer = signer;
         _transport = transport;
         _peers = new PeerCollection(_transport.Peer.Address);
-        _peers.AddMany([.. options.Validators.Where(item => item.Address != signer.Address)]);
         _peerExplorer = new PeerExplorer(_transport, _peers)
         {
-            SeedPeers = options.Seeds,
+            SeedPeers = options.KnownPeers,
         };
         _gossip = new Gossip(_transport, _peerExplorer.Peers);
         _blockchain = blockchain;
@@ -113,6 +112,11 @@ public sealed partial class ConsensusService : ServiceBase
             _transport.MessageRouter.RegisterSendingMessageValidation<ConsensusVoteMessage>(ValidateMessageToSend),
             _transport.MessageRouter.RegisterReceivedMessageValidation<ConsensusVoteMessage>(ValidateMessageToReceive),
         ];
+        if (_peerExplorer.SeedPeers.Count > 0)
+        {
+            await _peerExplorer.ExploreAsync(cancellationToken);
+        }
+
         await _consensus.StartAsync(default);
     }
 

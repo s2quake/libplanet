@@ -151,10 +151,11 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         await using var transportA = CreateTransport(signerA);
         await using var transportB = CreateTransport();
+        transportA.MessageRouter.Register(new PingMessageHandler(transportA));
+        transportB.MessageRouter.Register(new PingMessageHandler(transportB));
 
         await transportA.StartAsync(cancellationToken);
         await transportB.StartAsync(cancellationToken);
-
 
         await using var transport = CreateTransport();
 
@@ -163,15 +164,18 @@ public partial class SwarmTest(ITestOutputHelper output)
         {
             SeedPeers = [transport.Peer],
         };
-        var refreshService = new RefreshStaticPeersService(peerExplorer, [transportA.Peer, transportB.Peer]);
+        var refreshService = new RefreshStaticPeersService(peerExplorer, [transportA.Peer, transportB.Peer])
+        {
+            StaticPeersMaintainPeriod = TimeSpan.FromSeconds(1),
+        };
 
         await transport.StartAsync(cancellationToken);
-        await refreshService.StartAsync(cancellationToken);
 
-        await Task.WhenAll(
-            refreshService.PeerAdded.WaitAsync(predicate: p => p == transportA.Peer),
-            refreshService.PeerAdded.WaitAsync(predicate: p => p == transportB.Peer))
-            .WaitAsync(WaitTimeout5, cancellationToken);
+        var waitTask1 = refreshService.PeerAdded.WaitAsync(predicate: p => p == transportA.Peer);
+        var waitTask2 = refreshService.PeerAdded.WaitAsync(predicate: p => p == transportB.Peer);
+        await refreshService.StartAsync(cancellationToken);
+        await waitTask1.WaitAsync(WaitTimeout5, cancellationToken);
+        await waitTask2.WaitAsync(WaitTimeout5, cancellationToken);
 
         await transportA.DisposeAsync();
         await Task.Delay(100, cancellationToken);
@@ -187,12 +191,10 @@ public partial class SwarmTest(ITestOutputHelper output)
             Port = transportA.Peer.EndPoint.Port,
         };
         await using var transportC = CreateTransport(signerA, options: transportOptionsC);
+        transportC.MessageRouter.Register(new PingMessageHandler(transportC));
+        var waitTask3 = refreshService.PeerAdded.WaitAsync(predicate: p => p == transportA.Peer);
         await transportC.StartAsync(cancellationToken);
-
-        await Task.WhenAll(
-            refreshService.PeerAdded.WaitAsync(predicate: p => p == transportA.Peer),
-            refreshService.PeerAdded.WaitAsync(predicate: p => p == transportB.Peer))
-            .WaitAsync(WaitTimeout5, cancellationToken);
+        await waitTask3.WaitAsync(WaitTimeout5, cancellationToken);
     }
 
     [Fact(Timeout = Timeout)]

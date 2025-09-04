@@ -10,7 +10,7 @@ internal sealed class RefreshStaticPeersService(
 
     public IObservable<Peer> PeerAdded => _peerAddedSubject;
 
-    public TimeSpan StaticPeersMaintainPeriod { get; } = TimeSpan.FromSeconds(10);
+    public TimeSpan StaticPeersMaintainPeriod { get; init; } = TimeSpan.FromSeconds(10);
 
     protected override bool CanExecute => staticPeers.Length > 0;
 

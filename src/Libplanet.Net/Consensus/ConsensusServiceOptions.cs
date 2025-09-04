@@ -7,9 +7,7 @@ public sealed record class ConsensusServiceOptions
 {
     public int Workers { get; init; }
 
-    public ImmutableHashSet<Peer> Seeds { get; init; } = [];
-
-    public ImmutableHashSet<Peer> Validators { get; init; } = [];
+    public ImmutableHashSet<Peer> KnownPeers { get; init; } = [];
 
     public TimeSpan TargetBlockInterval { get; init; }
 

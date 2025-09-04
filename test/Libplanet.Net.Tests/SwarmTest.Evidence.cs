@@ -18,30 +18,27 @@ public partial class SwarmTest
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var signers = Libplanet.Tests.TestUtils.Signers.ToArray();
         var count = signers.Length;
-        var transports = signers.Select(item => TestUtils.CreateTransport(item)).ToArray();
+        var transports = new ServiceCollection<ITransport>(signers.Select(item => CreateTransport(item)));
         var blockchains = transports.Select(item => new Blockchain(genesisBlock)).ToArray();
 
-        var consensusPeers = transports.Select(item => item.Peer);
-        var consensusServiceOptions = Enumerable.Range(0, count).Select(i =>
+        var peers = transports.Select(item => item.Peer);
+        var serviceOptions = Enumerable.Range(0, count).Select(i =>
             new ConsensusServiceOptions
             {
-                Validators = [.. consensusPeers],
+                KnownPeers = [.. peers.Where(item => item.Address != transports[i].Peer.Address)],
                 Workers = 100,
                 TargetBlockInterval = TimeSpan.FromSeconds(4),
                 ConsensusOptions = new ConsensusOptions(),
-            }).ToList();
-        var consensusServices = consensusServiceOptions.Select((options, i) =>
+            }).ToArray();
+        var services = new ServiceCollection<ConsensusService>(serviceOptions.Select((options, i) =>
         {
             return new ConsensusService(signers[i], blockchains[i], transports[i], options);
-        }).ToArray();
+        }));
 
-        await using var services = new ServiceCollection();
-        services.AddRange(consensusServices);
-        services.AddRange(transports);
-
+        await transports.StartAsync(cancellationToken);
         await services.StartAsync(cancellationToken);
 
-        var consensusService = consensusServices[0];
+        var consensusService = services[0];
         var round = 0;
         var height = 1;
         var consensus = consensusService.Consensus;
