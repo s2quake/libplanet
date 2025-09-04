@@ -38,14 +38,14 @@ public sealed partial class ActionBytecodeTest(ITestOutputHelper output)
     public void Equals_Test()
     {
         var random = RandomUtility.GetRandom(output);
-        var address1 = RandomUtility.ActionBytecode(random);
-        var address2 = RandomUtility.ActionBytecode(random);
-        var sameActionBytecode = new ActionBytecode(address1.Bytes);
+        var bytecode1 = RandomUtility.Try(random, RandomUtility.ActionBytecode, e => e.Bytes.Length > 0);
+        var bytecode2 = RandomUtility.Try(random, RandomUtility.ActionBytecode, e => e.Bytes.Length > 0);
+        var sameActionBytecode = new ActionBytecode(bytecode1.Bytes);
 
-        Assert.True(address1.Equals(sameActionBytecode));
-        Assert.False(address1.Equals(address2));
-        Assert.False(address1.Equals(null));
-        Assert.False(address1.Equals("not an address"));
+        Assert.True(bytecode1.Equals(sameActionBytecode));
+        Assert.False(bytecode1.Equals(bytecode2));
+        Assert.False(bytecode1.Equals(null));
+        Assert.False(bytecode1.Equals("not an address"));
     }
 
     [Fact]
