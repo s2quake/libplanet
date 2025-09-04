@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reactive.Linq;
 using Libplanet.Extensions;
 using Libplanet.Net.Consensus;

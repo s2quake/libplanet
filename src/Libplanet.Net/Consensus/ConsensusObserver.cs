@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Reactive.Subjects;
 using Libplanet.Types;
 
