@@ -898,6 +898,9 @@ public partial class SwarmTest
             blockchainB.Append(block, CreateBlockCommit(block));
         }
 
+        var tipB = blockchainB.Tip;
+
+
         await transports.StartAsync(cancellationToken);
 
         await peerExplorerB.PingAsync(transportA.Peer, cancellationToken);
@@ -905,13 +908,17 @@ public partial class SwarmTest
         await peerExplorerB.ExploreAsync([transportA.Peer], 3, cancellationToken);
         await peerExplorerC.ExploreAsync([transportA.Peer], 3, cancellationToken);
 
+        var blockDemands = new BlockDemandCollection();
         var blockBranches = new BlockBranchCollection();
         using var blockFetcher = new BlockFetcher(blockchainC, transportC);
         using var blockBranchResolver = new BlockBranchResolver(blockchainC, blockFetcher);
         using var _1 = blockBranchResolver.BlockBranchCreated
             .Subscribe(e => blockBranches.Add(e.BlockBranch));
         var blockBranchAppender = new BlockBranchAppender(blockchainC);
+        blockDemands.Add(new BlockDemand(transportA.Peer, tipA, DateTimeOffset.UtcNow));
+        blockDemands.Add(new BlockDemand(transportB.Peer, tipB, DateTimeOffset.UtcNow));
 
+        await blockBranchResolver.ResolveAsync(blockDemands, blockchainC.Tip, cancellationToken);
         await blockBranchAppender.AppendAsync(blockBranches, cancellationToken);
 
         Assert.Equal(blockchainC.Tip, tipA);

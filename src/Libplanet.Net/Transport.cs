@@ -67,8 +67,8 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
         _listener.Start();
         _processTasks =
         [
-            ProcessReceiveAsync(_listener,_logger, _receiveChannel, StoppingToken),
-            ProcessSendAsync(_logger,_sendChannel, StoppingToken),
+            ProcessReceiveAsync(_listener,_logger, _receiveChannel, _messageRouter, StoppingToken),
+            ProcessSendAsync(_logger,_sendChannel, _messageRouter, StoppingToken),
             ProcessHandleAsync(_receiveChannel, _messageRouter, StoppingToken),
         ];
         return Task.CompletedTask;
@@ -103,7 +103,10 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
     }
 
     private static async Task ProcessSendAsync(
-        ILogger<ITransport> logger, Channel<MessageRequest> channel, CancellationToken cancellationToken)
+        ILogger<ITransport> logger,
+        Channel<MessageRequest> channel,
+        MessageRouter messageRouter,
+        CancellationToken cancellationToken)
     {
         var requestReader = channel.Reader;
         try
@@ -111,23 +114,26 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
             await foreach (var request in requestReader.ReadAllAsync(cancellationToken))
             {
                 var messageEnvelope = request.MessageEnvelope;
-                var receiver = request.Receiver;
-                var bytes = ModelSerializer.SerializeToBytes(messageEnvelope);
-                var lengthBytes = BitConverter.GetBytes(bytes.Length);
+                if (messageRouter.VerifySendingMessagre(messageEnvelope))
+                {
+                    var receiver = request.Receiver;
+                    var bytes = ModelSerializer.SerializeToBytes(messageEnvelope);
+                    var lengthBytes = BitConverter.GetBytes(bytes.Length);
 
-                using var client = new TcpClient();
-                try
-                {
-                    await client.ConnectAsync(receiver.EndPoint.Host, receiver.EndPoint.Port, cancellationToken);
-                    using var stream = client.GetStream();
-                    await stream.WriteAsync(lengthBytes, cancellationToken);
-                    await stream.WriteAsync(bytes, cancellationToken);
-                    await stream.FlushAsync(cancellationToken);
-                    LogMessageSent(logger, messageEnvelope, receiver);
-                }
-                catch (SocketException)
-                {
-                    // do nothing
+                    using var client = new TcpClient();
+                    try
+                    {
+                        await client.ConnectAsync(receiver.EndPoint.Host, receiver.EndPoint.Port, cancellationToken);
+                        using var stream = client.GetStream();
+                        await stream.WriteAsync(lengthBytes, cancellationToken);
+                        await stream.WriteAsync(bytes, cancellationToken);
+                        await stream.FlushAsync(cancellationToken);
+                        LogMessageSent(logger, messageEnvelope, receiver);
+                    }
+                    catch (SocketException)
+                    {
+                        // do nothing
+                    }
                 }
             }
         }
@@ -141,6 +147,7 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
         TcpListener listener,
         ILogger<ITransport> logger,
         Channel<MessageEnvelope> receiveChannel,
+        MessageRouter messageRouter,
         CancellationToken cancellationToken)
     {
         try
@@ -148,7 +155,7 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
             while (!cancellationToken.IsCancellationRequested)
             {
                 var client = await listener.AcceptTcpClientAsync(cancellationToken);
-                _ = ReadMessageAsync(client, logger, receiveChannel, cancellationToken);
+                _ = ReadMessageAsync(client, logger, receiveChannel, messageRouter, cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -180,6 +187,7 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
         TcpClient client,
         ILogger<ITransport> logger,
         Channel<MessageEnvelope> receiveChannel,
+        MessageRouter messageRouter,
         CancellationToken cancellationToken)
     {
         using var _ = client;
@@ -200,8 +208,11 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
         }
 
         var messageEnvelope = ModelSerializer.DeserializeFromBytes<MessageEnvelope>(messageBuffer);
-        receiveChannel.Writer.TryWrite(messageEnvelope);
-        LogMessageReceived(logger, messageEnvelope);
+        if (messageRouter.VerifyReceivedMessage(messageEnvelope))
+        {
+            receiveChannel.Writer.TryWrite(messageEnvelope);
+            LogMessageReceived(logger, messageEnvelope);
+        }
     }
 
     private static async Task<int> ReadExactAsync(

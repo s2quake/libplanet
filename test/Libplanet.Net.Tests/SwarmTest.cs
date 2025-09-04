@@ -423,8 +423,7 @@ public partial class SwarmTest(ITestOutputHelper output)
 
         var invalidSigner = RandomUtility.Signer(random);
         var validTx = blockchainA.StagedTransactions.Add(validSigner);
-        var invalidTx = blockchainB.CreateTransaction(invalidSigner);
-        Assert.Throws<InvalidOperationException>(() => blockchainA.StagedTransactions.Add(invalidSigner));
+        var invalidTx = blockchainA.StagedTransactions.Add(invalidSigner);
 
         await transports.StartAsync(cancellationToken);
         await services.StartAsync(cancellationToken);
@@ -909,6 +908,8 @@ public partial class SwarmTest(ITestOutputHelper output)
             transportB,
             syncResponderServiceA,
         };
+
+        blockchainA.ProposeAndAppendMany(proposer, 10);
 
         await services.StartAsync(cancellationToken);
 

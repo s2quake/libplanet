@@ -30,7 +30,8 @@ internal sealed class TransactionRequestMessageHandler(
                 txList.Add(transaction);
             }
             else if (blockchain.StagedTransactions.TryGetValue(txId, out var stagedTransaction)
-                && blockchain.GetTxNonce(stagedTransaction.Signer) <= stagedTransaction.Nonce)
+                && blockchain.GetTxNonce(stagedTransaction.Signer) <= stagedTransaction.Nonce
+                && blockchain.StagedTransactions.IsValid(stagedTransaction))
             {
                 txList.Add(stagedTransaction);
             }
