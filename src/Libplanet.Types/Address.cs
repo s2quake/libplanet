@@ -114,8 +114,9 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
 
     private static string ToChecksumAddress(string hex)
     {
-        var value = new Nethereum.Util.AddressUtil().ConvertToChecksumAddress(hex);
-        return value[2..]; // Remove "0x" prefix
+        // Remove "0x" prefix
+        var value = Nethereum.Util.AddressUtil.Current.ConvertToChecksumAddress(hex);
+        return value[2..];
     }
 
     private static byte[] GetPubKeyNoPrefix(PublicKey publicKey, bool compressed = false)
@@ -128,7 +129,7 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
 
     private static ImmutableArray<byte> DeriveAddress(PublicKey publicKey)
     {
-        var initaddr = new Nethereum.Util.Sha3Keccack().CalculateHash(GetPubKeyNoPrefix(publicKey, false));
+        var initaddr = Nethereum.Util.Sha3Keccack.Current.CalculateHash(GetPubKeyNoPrefix(publicKey, false));
         var bytes = new byte[initaddr.Length - 12];
         Array.Copy(initaddr, 12, bytes, 0, initaddr.Length - 12);
         var hex = Nethereum.Hex.HexConvertors.Extensions.HexByteConvertorExtensions.ToHex(bytes);
@@ -158,8 +159,8 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
             hex = hex[2..];
         }
 
-        if (hex.ToLower(CultureInfo.InvariantCulture) != hex &&
-            ToChecksumAddress(hex.ToLower(CultureInfo.InvariantCulture)) != hex)
+        if (hex.ToLower(CultureInfo.InvariantCulture) != hex
+            && ToChecksumAddress(hex.ToLower(CultureInfo.InvariantCulture)) != hex)
         {
             throw new ArgumentException("Address checksum is invalid", nameof(hex));
         }

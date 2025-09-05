@@ -1,10 +1,11 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
+using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "Block")]
-public sealed partial record class Block : IComparable<Block>, IComparable
+[Model(Version = 1, TypeName = "blk")]
+public sealed partial record class Block
 {
     [Property(0)]
     public required BlockHeader Header { get; init; }
@@ -13,6 +14,7 @@ public sealed partial record class Block : IComparable<Block>, IComparable
     public required BlockContent Content { get; init; }
 
     [Property(2)]
+    [NotDefault]
     public required ImmutableArray<byte> Signature { get; init; }
 
     public BlockHash BlockHash => BlockHash.HashData(ModelSerializer.SerializeToBytes(this));
@@ -37,16 +39,14 @@ public sealed partial record class Block : IComparable<Block>, IComparable
 
     public override string ToString() => BlockHash.ToString();
 
-    public int CompareTo(object? obj) => obj switch
+    public bool Verify()
     {
-        null => 1,
-        Block other => CompareTo(other),
-        _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(Block)}.", nameof(obj)),
-    };
-
-    public int CompareTo(Block? other) => other switch
-    {
-        null => 1,
-        _ => Height.CompareTo(other.Height),
-    };
+        var rawBlock = new RawBlock
+        {
+            Header = Header,
+            Content = Content,
+        };
+        var bytes = ModelSerializer.SerializeToBytes(rawBlock);
+        return Header.Proposer.Verify(bytes, Signature.AsSpan());
+    }
 }

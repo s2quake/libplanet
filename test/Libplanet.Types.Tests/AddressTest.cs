@@ -74,6 +74,17 @@ public sealed partial class AddressTest(ITestOutputHelper output)
         Assert.Equal(bytes, address.Bytes);
     }
 
+    [Fact]
+    public void OperatorCompare()
+    {
+        var address1 = Address.Parse("0000000000000000000000000000000000000001");
+        var address2 = Address.Parse("0000000000000000000000000000000000000002");
+        Assert.True(address1 < address2);
+        Assert.True(address2 > address1);
+        Assert.True(address1 <= address2);
+        Assert.True(address2 >= address1);
+    }
+
     [Theory]
     [InlineData("0123456789ABcdefABcdEfABcdEFabcDEFabCDE")]
     [InlineData("0123456789ABcdefABcdEfABcdEFabcDEFabCDEFF")]

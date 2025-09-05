@@ -46,6 +46,7 @@ public sealed partial class ActionBytecodeTest(ITestOutputHelper output)
         Assert.False(bytecode1.Equals(bytecode2));
         Assert.False(bytecode1.Equals(null));
         Assert.False(bytecode1.Equals("not an address"));
+        Assert.Equal(default, new ActionBytecode(default(ImmutableArray<byte>)));
     }
 
     [Fact]
@@ -55,9 +56,13 @@ public sealed partial class ActionBytecodeTest(ITestOutputHelper output)
         var address1 = RandomUtility.ActionBytecode(random);
         var address2 = RandomUtility.ActionBytecode(random);
         var sameActionBytecode = new ActionBytecode(address1.Bytes);
+        var defaultAddress1 = default(ActionBytecode);
+        var defaultAddress2 = new ActionBytecode(default(ImmutableArray<byte>));
 
         Assert.Equal(address1.GetHashCode(), ByteUtility.GetHashCode(address1.Bytes));
         Assert.Equal(address1.GetHashCode(), sameActionBytecode.GetHashCode());
         Assert.NotEqual(address1.GetHashCode(), address2.GetHashCode());
+        Assert.Equal(0, defaultAddress1.GetHashCode());
+        Assert.Equal(0, defaultAddress2.GetHashCode());
     }
 }

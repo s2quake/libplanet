@@ -4,7 +4,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "BlockHeader")]
+[Model(Version = 1, TypeName = "blkh")]
 public sealed partial record class BlockHeader
 {
     public const int CurrentProtocolVersion = 0;
