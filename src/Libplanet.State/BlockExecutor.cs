@@ -89,7 +89,7 @@ public sealed class BlockExecutor(StateIndex stateIndex)
                 TxId = tx?.Id ?? default,
                 Proposer = block.Header.Proposer,
                 BlockHeight = block.Header.Height,
-                BlockProtocolVersion = block.Header.BlockVersion,
+                BlockProtocolVersion = block.Header.Version,
                 PreviousCommit = block.Header.PreviousBlockCommit,
                 RandomSeed = randomSeed,
                 MaxGasPrice = tx?.MaxGasPrice ?? default,

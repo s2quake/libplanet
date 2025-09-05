@@ -16,13 +16,13 @@ public sealed record class BlockBuilder
 
     public ImmutableSortedSet<Transaction> Transactions { get; init; } = [];
 
-    public ImmutableSortedSet<EvidenceBase> Evidences { get; init; } = [];
+    public ImmutableSortedSet<EvidenceBase> Evidence { get; init; } = [];
 
     public Block Create(ISigner proposer)
     {
         var blockHeader = new BlockHeader
         {
-            BlockVersion = BlockHeader.CurrentProtocolVersion,
+            Version = BlockHeader.CurrentVersion,
             Height = Height,
             Timestamp = Timestamp == default ? DateTimeOffset.UtcNow : Timestamp,
             Proposer = proposer.Address,
@@ -33,7 +33,7 @@ public sealed record class BlockBuilder
         var blockContent = new BlockContent
         {
             Transactions = Transactions,
-            Evidences = Evidences,
+            Evidence = Evidence,
         };
         var rawBlock = new RawBlock
         {

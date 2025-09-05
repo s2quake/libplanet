@@ -34,14 +34,14 @@ public sealed class BlockTest(ITestOutputHelper output)
 
         Assert.Equal(BlockHash.HashData(ModelSerializer.SerializeToBytes(block)), block.BlockHash);
         Assert.Equal(block.Header.Height, block.Height);
-        Assert.Equal(block.Header.BlockVersion, block.Version);
+        Assert.Equal(block.Header.Version, block.Version);
         Assert.Equal(block.Header.Timestamp, block.Timestamp);
         Assert.Equal(block.Header.Proposer, block.Proposer);
         Assert.Equal(block.Header.PreviousBlockHash, block.PreviousBlockHash);
         Assert.Equal(block.Header.PreviousBlockCommit, block.PreviousBlockCommit);
         Assert.Equal(block.Header.PreviousStateRootHash, block.PreviousStateRootHash);
         Assert.Equal(block.Content.Transactions, block.Transactions);
-        Assert.Equal(block.Content.Evidences, block.Evidences);
+        Assert.Equal(block.Content.Evidence, block.Evidences);
     }
 
     [Fact]

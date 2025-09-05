@@ -36,7 +36,7 @@ public sealed partial record class BlockDigest : IHasKey<BlockHash>
         Header = block.Header,
         Signature = block.Signature,
         TxIds = [.. block.Content.Transactions.Select(tx => tx.Id)],
-        EvidenceIds = [.. block.Content.Evidences.Select(ev => ev.Id)],
+        EvidenceIds = [.. block.Content.Evidence.Select(ev => ev.Id)],
         BlockHash = block.BlockHash,
     };
 
@@ -47,7 +47,7 @@ public sealed partial record class BlockDigest : IHasKey<BlockHash>
         Content = new BlockContent
         {
             Transactions = [.. TxIds.Select(txId => txGetter(txId))],
-            Evidences = [.. EvidenceIds.Select(evId => evGetter(evId))],
+            Evidence = [.. EvidenceIds.Select(evId => evGetter(evId))],
         },
     };
 }

@@ -180,7 +180,7 @@ public class Repository
 
     public DateTimeOffset Timestamp => _height == -1 ? default : BlockDigests[BlockHash].Timestamp;
 
-    public int BlockVersion { get; set; } = BlockHeader.CurrentProtocolVersion;
+    public int BlockVersion { get; set; } = BlockHeader.CurrentVersion;
 
     public bool IsEmpty => _genesisHeight == -1
         && _height == -1
@@ -336,7 +336,7 @@ public class Repository
         foreach (var index in _indexes)
         {
             index.Clear();
-        }   
+        }
     }
 
     public async Task CopyToAsync(

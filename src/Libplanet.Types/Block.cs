@@ -21,7 +21,7 @@ public sealed partial record class Block
 
     public int Height => Header.Height;
 
-    public int Version => Header.BlockVersion;
+    public int Version => Header.Version;
 
     public DateTimeOffset Timestamp => Header.Timestamp;
 
@@ -35,7 +35,7 @@ public sealed partial record class Block
 
     public ImmutableSortedSet<Transaction> Transactions => Content.Transactions;
 
-    public ImmutableSortedSet<EvidenceBase> Evidences => Content.Evidences;
+    public ImmutableSortedSet<EvidenceBase> Evidences => Content.Evidence;
 
     public override string ToString() => BlockHash.ToString();
 

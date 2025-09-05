@@ -22,7 +22,7 @@ public sealed partial record class BlockSummary
 
     public static implicit operator BlockSummary(Block block) => new()
     {
-        BlockVersion = block.Header.BlockVersion,
+        BlockVersion = block.Header.Version,
         Height = block.Header.Height,
         BlockHash = block.BlockHash,
         Timestamp = block.Header.Timestamp,

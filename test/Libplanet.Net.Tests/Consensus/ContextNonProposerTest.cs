@@ -187,7 +187,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
         {
             Header = new BlockHeader
             {
-                BlockVersion = BlockHeader.CurrentProtocolVersion,
+                Version = BlockHeader.CurrentVersion,
                 Height = blockchain.Tip.Height + 2,
                 Timestamp = blockchain.Tip.Timestamp.Subtract(TimeSpan.FromSeconds(1)),
                 Proposer = Signers[1].Address,
@@ -342,7 +342,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
             Content = new BlockContent
             {
                 Transactions = [invalidTx],
-                Evidences = [],
+                Evidence = [],
             },
         }.Sign(Signers[1]);
 

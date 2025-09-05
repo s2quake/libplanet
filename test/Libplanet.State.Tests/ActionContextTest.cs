@@ -42,7 +42,7 @@ public class ActionContextTest(ITestOutputHelper output)
                 TxId = txId,
                 Proposer = address,
                 BlockHeight = 1,
-                BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
+                BlockProtocolVersion = BlockHeader.CurrentVersion,
                 PreviousCommit = lastCommit,
                 RandomSeed = seed,
             };
@@ -80,7 +80,7 @@ public class ActionContextTest(ITestOutputHelper output)
             TxId = txId,
             Proposer = address,
             BlockHeight = 1,
-            BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
+            BlockProtocolVersion = BlockHeader.CurrentVersion,
             PreviousCommit = lastCommit,
             RandomSeed = 0,
         };
@@ -91,7 +91,7 @@ public class ActionContextTest(ITestOutputHelper output)
             TxId = txId,
             Proposer = address,
             BlockHeight = 1,
-            BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
+            BlockProtocolVersion = BlockHeader.CurrentVersion,
             PreviousCommit = lastCommit,
         };
 
@@ -101,7 +101,7 @@ public class ActionContextTest(ITestOutputHelper output)
             TxId = txId,
             Proposer = address,
             BlockHeight = 1,
-            BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
+            BlockProtocolVersion = BlockHeader.CurrentVersion,
             PreviousCommit = lastCommit,
             RandomSeed = 1,
         };
@@ -155,7 +155,7 @@ public class ActionContextTest(ITestOutputHelper output)
                 TxId = txId,
                 Proposer = address,
                 BlockHeight = 1,
-                BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
+                BlockProtocolVersion = BlockHeader.CurrentVersion,
                 PreviousCommit = lastCommit,
                 RandomSeed = i,
             };

@@ -47,7 +47,7 @@ public sealed record class GenesisBlockBuilder
             PreviousBlockCommit = default,
             PreviousStateRootHash = StateRootHash,
             Transactions = [tx],
-            Evidences = [],
+            Evidence = [],
         }.Create(signer);
     }
 }

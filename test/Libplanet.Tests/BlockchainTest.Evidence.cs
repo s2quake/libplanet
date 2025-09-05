@@ -228,7 +228,7 @@ public partial class BlockchainTest
             PreviousBlockHash = block1.BlockHash,
             PreviousBlockCommit = blockCommit1,
             PreviousStateRootHash = blockchain.StateRootHash,
-            Evidences = [testEvidence],
+            Evidence = [testEvidence],
         }.Create(proposer);
         var blockCommit2 = CreateBlockCommit(block2);
 
@@ -260,7 +260,7 @@ public partial class BlockchainTest
             PreviousBlockHash = block1.BlockHash,
             PreviousBlockCommit = blockCommit1,
             PreviousStateRootHash = blockchain.StateRootHash,
-            Evidences = [testEvidence],
+            Evidence = [testEvidence],
         }.Create(proposer);
         var blockCommit2 = CreateBlockCommit(block2);
 
@@ -286,7 +286,7 @@ public partial class BlockchainTest
             PreviousBlockHash = block1.BlockHash,
             PreviousBlockCommit = blockCommit1,
             PreviousStateRootHash = blockchain.StateRootHash,
-            Evidences = [testEvidence],
+            Evidence = [testEvidence],
         }.Create(proposer);
         var blockCommit2 = CreateBlockCommit(block2);
 
@@ -511,7 +511,7 @@ public partial class BlockchainTest
             Timestamp = blockchain.Tip.Timestamp.AddSeconds(1),
             PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
-            Evidences = [evidence]
+            Evidence = [evidence]
         }.Create(proposer);
         var blockCommit1 = CreateBlockCommit(block1);
         blockchain.Append(block1, blockCommit1);
@@ -624,7 +624,7 @@ public partial class BlockchainTest
             Height = blockchain.Tip.Height + 1,
             PreviousBlockHash = blockchain.Tip.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
-            Evidences = [evidence],
+            Evidence = [evidence],
         }.Create(proposer);
         var blockCommit2 = CreateBlockCommit(block2);
         Assert.Throws<ArgumentException>(() => blockchain.Append(block2, blockCommit2));

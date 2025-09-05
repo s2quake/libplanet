@@ -26,12 +26,12 @@ public static class BlockExtensions
                 $"Given {nameof(@this)} must have index 0 but has index {@this.Height}");
         }
 
-        if (@this.Version > BlockHeader.CurrentProtocolVersion)
+        if (@this.Version > BlockHeader.CurrentVersion)
         {
             throw new InvalidOperationException(
                 $"The protocol version ({@this.Version}) of the block " +
                 $"#{@this.Height} {@this.BlockHash} is not supported by this node." +
-                $"The highest supported protocol version is {BlockHeader.CurrentProtocolVersion}.");
+                $"The highest supported protocol version is {BlockHeader.CurrentVersion}.");
         }
 
         if (@this.PreviousBlockHash != default)

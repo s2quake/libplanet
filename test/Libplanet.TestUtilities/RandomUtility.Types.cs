@@ -40,7 +40,7 @@ public static partial class RandomUtility
 
     public static BlockHeader BlockHeader(Random random) => new()
     {
-        BlockVersion = NonNegative(random),
+        Version = NonNegative(random),
         Height = NonNegative(random),
         Timestamp = DateTimeOffset(random),
         Proposer = Address(random),
@@ -63,8 +63,8 @@ public static partial class RandomUtility
     public static BlockCommit BlockCommit(Random random) => new()
     {
         BlockHash = BlockHash(random),
-        Height = Int32(random),
-        Round = Int32(random),
+        Height = Positive(random),
+        Round = NonNegative(random),
         Votes = ImmutableArray(random, Vote),
     };
 
@@ -175,7 +175,7 @@ public static partial class RandomUtility
     public static BlockContent BlockContent(Random random) => new()
     {
         Transactions = ImmutableSortedSet(random, Transaction),
-        Evidences = ImmutableSortedSet(random, Evidence),
+        Evidence = ImmutableSortedSet(random, Evidence),
     };
 
     public static Block Block() => Block(System.Random.Shared);

@@ -72,7 +72,7 @@ public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
         {
             Header = new BlockHeader
             {
-                BlockVersion = BlockHeader.CurrentProtocolVersion,
+                Version = BlockHeader.CurrentVersion,
                 Height = blockchain.Tip.Height + 1,
                 Timestamp = blockchain.Tip.Timestamp.Add(TimeSpan.FromSeconds(1)),
                 Proposer = signer.Address,

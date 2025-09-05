@@ -7,12 +7,12 @@ namespace Libplanet.Types;
 [Model(Version = 1, TypeName = "blkh")]
 public sealed partial record class BlockHeader
 {
-    public const int CurrentProtocolVersion = 0;
+    public const int CurrentVersion = 0;
 
     [Property(0)]
     [NonNegative]
-    [LessThanOrEqual(CurrentProtocolVersion)]
-    public int BlockVersion { get; init; } = CurrentProtocolVersion;
+    [LessThanOrEqual(CurrentVersion)]
+    public int Version { get; init; } = CurrentVersion;
 
     [Property(1)]
     [NonNegative]

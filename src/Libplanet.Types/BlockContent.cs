@@ -12,11 +12,11 @@ public sealed partial record class BlockContent : IValidatableObject
     public ImmutableSortedSet<Transaction> Transactions { get; init; } = [];
 
     [Property(1)]
-    public ImmutableSortedSet<EvidenceBase> Evidences { get; init; } = [];
+    public ImmutableSortedSet<EvidenceBase> Evidence { get; init; } = [];
 
     public HashDigest<SHA256> TxHash => DeriveTxHash(Transactions);
 
-    public HashDigest<SHA256> EvidenceHash => DeriveEvidenceHash(Evidences);
+    public HashDigest<SHA256> EvidenceHash => DeriveEvidenceHash(Evidence);
 
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {

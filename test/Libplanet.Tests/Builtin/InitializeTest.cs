@@ -47,7 +47,7 @@ public sealed class InitializeTest(ITestOutputHelper output)
             TxId = RandomUtility.TxId(random),
             Proposer = RandomUtility.Address(random),
             BlockHeight = 0,
-            BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
+            BlockProtocolVersion = BlockHeader.CurrentVersion,
             RandomSeed = 123,
         };
         var initialize = new Initialize
@@ -96,7 +96,7 @@ public sealed class InitializeTest(ITestOutputHelper output)
             TxId = RandomUtility.TxId(random),
             Proposer = RandomUtility.Address(random),
             BlockHeight = 10,
-            BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
+            BlockProtocolVersion = BlockHeader.CurrentVersion,
             PreviousCommit = lastCommit,
             RandomSeed = 123,
         };

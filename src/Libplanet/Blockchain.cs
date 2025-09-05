@@ -149,7 +149,7 @@ public partial class Blockchain
                 throw new ArgumentException(
                     $"The protocol version ({block.Version}) of the block " +
                     $"#{block.Height} {block.BlockHash} is not supported by this node." +
-                    $"The highest supported protocol version is {BlockHeader.CurrentProtocolVersion}.",
+                    $"The highest supported protocol version is {BlockHeader.CurrentVersion}.",
                     nameof(block));
             }
 
@@ -323,7 +323,7 @@ public partial class Blockchain
         var blockContent = new BlockContent
         {
             Transactions = [.. StagedTransactions.Collect(timestamp)],
-            Evidences = [.. PendingEvidence.Collect(height + 1)],
+            Evidence = [.. PendingEvidence.Collect(height + 1)],
         };
         var rawBlock = new RawBlock
         {

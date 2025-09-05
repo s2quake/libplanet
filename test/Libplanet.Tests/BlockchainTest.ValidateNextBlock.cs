@@ -50,7 +50,7 @@ public partial class BlockchainTest
         {
             Header = new BlockHeader
             {
-                BlockVersion = blockVersion,
+                Version = blockVersion,
                 Height = 0,
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = proposer.Address,
@@ -64,7 +64,7 @@ public partial class BlockchainTest
         {
             Header = new BlockHeader
             {
-                BlockVersion = blockVersion,
+                Version = blockVersion,
                 Height = 1,
                 Timestamp = genesisBlock.Timestamp.AddDays(2),
                 Proposer = proposer.Address,
@@ -80,7 +80,7 @@ public partial class BlockchainTest
         {
             Header = new BlockHeader
             {
-                BlockVersion = blockVersion - 1,
+                Version = blockVersion - 1,
                 Height = 2,
                 Timestamp = genesisBlock.Timestamp.AddDays(2),
                 Proposer = proposer.Address,
@@ -96,7 +96,7 @@ public partial class BlockchainTest
         {
             Header = new BlockHeader
             {
-                BlockVersion = blockVersion + 1,
+                Version = blockVersion + 1,
                 Height = 2,
                 Timestamp = genesisBlock.Timestamp.AddDays(2),
                 Proposer = proposer.Address,

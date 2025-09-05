@@ -753,7 +753,7 @@ public partial class BlockchainTest
             Content = new BlockContent
             {
                 Transactions = [.. txs],
-                Evidences = [.. evs],
+                Evidence = [.. evs],
             },
         };
         var genesisBlock = rawGenesisBlock.Sign(proposer);

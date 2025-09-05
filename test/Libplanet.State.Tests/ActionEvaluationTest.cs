@@ -42,7 +42,7 @@ public class ActionEvaluationTest(ITestOutputHelper output)
                 TxId = txid,
                 Proposer = address,
                 BlockHeight = 1,
-                BlockProtocolVersion = BlockHeader.CurrentProtocolVersion,
+                BlockProtocolVersion = BlockHeader.CurrentVersion,
                 PreviousCommit = lastCommit,
                 RandomSeed = 123,
             },

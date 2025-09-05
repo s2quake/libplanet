@@ -38,7 +38,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         Assert.Equal(default, repository.BlockHash);
         Assert.Equal(default, repository.BlockCommit);
         Assert.Equal(default, repository.Timestamp);
-        Assert.Equal(BlockHeader.CurrentProtocolVersion, repository.BlockVersion);
+        Assert.Equal(BlockHeader.CurrentVersion, repository.BlockVersion);
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
                     Actions = [new TestAction()],
                 }.Create(proposer),
             ],
-            Evidences =
+            Evidence =
             [
                 TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
                 TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
@@ -326,7 +326,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
                     Actions = [new TestAction()],
                 }.Create(proposer),
             ],
-            Evidences =
+            Evidence =
             [
                 TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
                 TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
