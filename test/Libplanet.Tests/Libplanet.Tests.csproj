@@ -1,20 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <NoWarn>$(NoWarn);SA1401;SYSLIB0011</NoWarn>
+    <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="DiffPlex" Version="1.7.0" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.5" />
-    <PackageReference Include="Serilog.Enrichers.Thread" Version="3.0.0" />
-    <PackageReference Include="Serilog.Sinks.TestCorrelator" Version="3.2.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Types\Libplanet.Types.csproj" />
+    <ProjectReference Include="..\Libplanet.TestUtilities\Libplanet.TestUtilities.csproj" />
     <ProjectReference Include="..\Libplanet.State.Tests\Libplanet.State.Tests.csproj" />
     <ProjectReference Include="..\Libplanet.Types.Tests\Libplanet.Types.Tests.csproj" />
   </ItemGroup>

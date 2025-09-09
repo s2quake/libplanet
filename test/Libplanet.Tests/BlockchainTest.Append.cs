@@ -9,6 +9,7 @@ using Libplanet.Extensions;
 using Libplanet.State.Structures;
 using Libplanet.Builtin;
 using static Libplanet.Tests.TestUtils;
+using Libplanet.TestUtilities.Actions;
 
 namespace Libplanet.Tests;
 
@@ -747,8 +748,8 @@ public partial class BlockchainTest
             {
                 Height = 0,
                 Timestamp = DateTimeOffset.UtcNow,
-
                 Proposer = proposer.Address,
+                PreviousBlockHash = default,
             },
             Content = new BlockContent
             {

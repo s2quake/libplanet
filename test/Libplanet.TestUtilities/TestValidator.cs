@@ -1,6 +1,6 @@
 using Libplanet.Types;
 
-namespace Libplanet.Tests;
+namespace Libplanet.TestUtilities;
 
 public sealed class TestValidator(ISigner signer, BigInteger power) : ISigner, IComparable<TestValidator>, IComparable
 {
@@ -28,4 +28,24 @@ public sealed class TestValidator(ISigner signer, BigInteger power) : ISigner, I
     int IComparable<TestValidator>.CompareTo(TestValidator? other) => _validator.CompareTo(other?._validator);
 
     public int CompareTo(object? obj) => _validator.CompareTo(obj);
+
+    public Vote CreateVote(Block block, int round, VoteType voteType) => new VoteBuilder
+    {
+        Validator = this,
+        Block = block,
+        Round = round,
+        Timestamp = DateTimeOffset.UtcNow,
+        Type = voteType,
+    }.Create(signer);
+
+    public Vote CreateVote(int hegith, int round, BlockHash block, VoteType voteType) => new VoteMetadata
+    {
+        Height = hegith,
+        Round = round,
+        BlockHash = block,
+        Timestamp = DateTimeOffset.UtcNow,
+        Validator = Address,
+        ValidatorPower = Power,
+        Type = voteType,
+    }.Sign(signer);
 }

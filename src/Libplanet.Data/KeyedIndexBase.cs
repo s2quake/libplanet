@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using BitFaster.Caching;
-using BitFaster.Caching.Lru;
+using LruCacheNet;
 using Libplanet.Types;
 using Libplanet.Types.Threading;
 
@@ -12,7 +11,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
     where TKey : notnull
     where TValue : IHasKey<TKey>
 {
-    private readonly ICache<TKey, TValue>? _cache;
+    private readonly LruCache<TKey, TValue>? _cache;
     private readonly ITable _table;
     private readonly ReaderWriterLockSlim _lock = new();
 
@@ -23,9 +22,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
     {
         if (cacheSize > 0)
         {
-            _cache = new ConcurrentLruBuilder<TKey, TValue>()
-                .WithCapacity(cacheSize)
-                .Build();
+            _cache = new LruCache<TKey, TValue>(cacheSize);
         }
 
         _table = table;
@@ -64,7 +61,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
         get
         {
             using var scope = new ReadScope(_lock);
-            if (_cache?.TryGet(key, out var value) is true)
+            if (_cache?.TryGetValue(key, out var value) is true)
             {
                 return value;
             }
@@ -137,7 +134,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
     {
         using var scope = new WriteScope(_lock);
         var key = value.Key;
-        if (_cache?.TryGet(key, out _) is true)
+        if (_cache?.TryGetValue(key, out _) is true)
         {
             return false;
         }
@@ -198,7 +195,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
     public bool ContainsKey(TKey key)
     {
         using var scope = new ReadScope(_lock);
-        if (_cache?.TryGet(key, out _) is true)
+        if (_cache?.ContainsKey(key) is true)
         {
             return true;
         }
@@ -320,7 +317,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
     private bool ContainsKeyInternal(TKey key)
     {
-        if (_cache?.TryGet(key, out _) is true)
+        if (_cache?.TryGetValue(key, out _) is true)
         {
             return true;
         }
@@ -330,7 +327,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
     private bool RemoveInternal(TKey key)
     {
-        if (_cache?.TryRemove(key, out var value) is true)
+        if (_cache?.Remove(key, out var value) is true)
         {
             _table.Remove(KeyToString(key));
             OnRemoved(value);
@@ -371,7 +368,7 @@ public abstract class KeyedIndexBase<TKey, TValue>
 
     private bool TryGetValueInternal(TKey key, string keyString, [MaybeNullWhen(false)] out TValue value)
     {
-        if (_cache?.TryGet(key, out value) is true && value is not null)
+        if (_cache?.TryGetValue(key, out value) is true && value is not null)
         {
             return true;
         }

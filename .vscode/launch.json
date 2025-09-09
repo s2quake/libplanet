@@ -5,6 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "C#: Benchmark Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/Libplanet.Benchmarks/bin/Debug/net8.0/Libplanet.Benchmarks.dll",
+            "console": "integratedTerminal",
+            "args": [
+                "0"
+            ],
+        },
+        {
             "name": "C#: Libplanet Node",
             "type": "coreclr",
             "request": "launch",

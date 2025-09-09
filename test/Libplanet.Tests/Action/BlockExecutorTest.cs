@@ -4,6 +4,7 @@ using Libplanet.Extensions;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Actions;
 using Libplanet.Types;
 using Xunit.Internal;
 using static Libplanet.State.SystemAddresses;

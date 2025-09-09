@@ -1,49 +1,79 @@
 using BenchmarkDotNet.Attributes;
-using Libplanet.State.Tests.Actions;
-using Libplanet.Data;
-using Libplanet.Tests;
-using Libplanet.Tests.Store;
 using Libplanet.Types;
+using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Actions;
 
-namespace Libplanet.Benchmarks
+namespace Libplanet.Benchmarks;
+
+public class AppendBlock
 {
-    public class AppendBlock
+    private readonly int _seed = Random.Shared.Next();
+    private readonly Random _random;
+    private readonly ISigner _proposer;
+    private readonly ImmutableSortedSet<TestValidator> _validators;
+    private readonly Block _genesisBlock;
+    private readonly Libplanet.Blockchain _blockchain;
+    private Block _block;
+    private BlockCommit _blockCommit;
+
+    public AppendBlock()
     {
-        private readonly Libplanet.Blockchain _blockChain;
-        private readonly ISigner _signer;
-        private BlockCommit _lastCommit;
-        private Block _block;
-        private BlockCommit _commit;
-
-        public AppendBlock()
+        _random = new Random(_seed);
+        _proposer = RandomUtility.Signer(_random);
+        _validators = RandomUtility.ImmutableSortedSet(
+            _random, RandomUtility.TestValidator, RandomUtility.Int32(_random, 4, 16));
+        _genesisBlock = new GenesisBlockBuilder
         {
-            var fx = new MemoryRepositoryFixture();
-            var repository = new Repository();
-            _blockChain = new Blockchain(fx.GenesisBlock, repository, fx.Options);
-            _signer = new PrivateKey().AsSigner();
+            Validators = [.. _validators.Select(v => (Validator)v)],
+        }.Create(_proposer);
+        _block = _genesisBlock;
+        _blockchain = new Libplanet.Blockchain(_genesisBlock);
+    }
+
+    [IterationSetup(Target = nameof(AppendBlockOneTransactionNoAction))]
+    public void PrepareAppendMakeOneTransactionNoAction()
+    {
+        _blockchain.StagedTransactions.Add(_proposer);
+        PrepareAppend();
+    }
+
+    [IterationSetup(Target = nameof(AppendBlockTenTransactionsNoAction))]
+    public void PrepareAppendMakeTenTransactionsNoAction()
+    {
+        for (var i = 0; i < 10; i++)
+        {
+            _blockchain.StagedTransactions.Add(RandomUtility.Signer(_random));
         }
 
-        [IterationSetup(Target = nameof(AppendBlockOneTransactionNoAction))]
-        public void PrepareAppendMakeOneTransactionNoAction()
-        {
-            _blockChain.StagedTransactions.Add(_signer);
-            PrepareAppend();
-        }
+        PrepareAppend();
+    }
 
-        [IterationSetup(Target = nameof(AppendBlockTenTransactionsNoAction))]
-        public void PrepareAppendMakeTenTransactionsNoAction()
+    [IterationSetup(Target = nameof(AppendBlockOneTransactionWithActions))]
+    public void PrepareAppendMakeOneTransactionWithActions()
+    {
+        var signer = RandomUtility.Signer(_random);
+        var address = signer.Address;
+        var actions = new[]
         {
-            for (var i = 0; i < 10; i++)
-            {
-                _blockChain.StagedTransactions.Add(new PrivateKey().AsSigner());
-            }
-            PrepareAppend();
-        }
+            DumbAction.Create((address, "foo")),
+            DumbAction.Create((address, "bar")),
+            DumbAction.Create((address, "baz")),
+            DumbAction.Create((address, "qux")),
+        };
+        _blockchain.StagedTransactions.Add(signer, @params: new()
+        {
+            Actions = actions,
+        });
 
-        [IterationSetup(Target = nameof(AppendBlockOneTransactionWithActions))]
-        public void PrepareAppendMakeOneTransactionWithActions()
+        PrepareAppend();
+    }
+
+    [IterationSetup(Target = nameof(AppendBlockTenTransactionsWithActions))]
+    public void PrepareAppendMakeTenTransactionsWithActions()
+    {
+        for (var i = 0; i < 10; i++)
         {
-            var signer = new PrivateKey().AsSigner();
+            var signer = RandomUtility.Signer(_random);
             var address = signer.Address;
             var actions = new[]
             {
@@ -52,64 +82,42 @@ namespace Libplanet.Benchmarks
                 DumbAction.Create((address, "baz")),
                 DumbAction.Create((address, "qux")),
             };
-            _blockChain.StagedTransactions.Add(signer, @params: new()
+            _blockchain.StagedTransactions.Add(signer, @params: new()
             {
                 Actions = actions,
             });
-            PrepareAppend();
         }
 
-        [IterationSetup(Target = nameof(AppendBlockTenTransactionsWithActions))]
-        public void PrepareAppendMakeTenTransactionsWithActions()
-        {
-            for (var i = 0; i < 10; i++)
-            {
-                var signer = new PrivateKey().AsSigner();
-                var address = signer.Address;
-                var actions = new[]
-                {
-                    DumbAction.Create((address, "foo")),
-                    DumbAction.Create((address, "bar")),
-                    DumbAction.Create((address, "baz")),
-                    DumbAction.Create((address, "qux")),
-                };
-                _blockChain.StagedTransactions.Add(signer, @params: new()
-                {
-                    Actions = actions,
-                });
-            }
-            PrepareAppend();
-        }
+        PrepareAppend();
+    }
 
-        [Benchmark]
-        public void AppendBlockOneTransactionNoAction()
-        {
-            _blockChain.Append(_block, blockCommit: _commit);
-        }
+    [Benchmark]
+    public void AppendBlockOneTransactionNoAction()
+    {
+        _blockchain.Append(_block, _blockCommit);
+    }
 
-        [Benchmark]
-        public void AppendBlockTenTransactionsNoAction()
-        {
-            _blockChain.Append(_block, blockCommit: _commit);
-        }
+    [Benchmark]
+    public void AppendBlockTenTransactionsNoAction()
+    {
+        _blockchain.Append(_block, _blockCommit);
+    }
 
-        [Benchmark]
-        public void AppendBlockOneTransactionWithActions()
-        {
-            _blockChain.Append(_block, blockCommit: _commit);
-        }
+    [Benchmark]
+    public void AppendBlockOneTransactionWithActions()
+    {
+        _blockchain.Append(_block, _blockCommit);
+    }
 
-        [Benchmark]
-        public void AppendBlockTenTransactionsWithActions()
-        {
-            _blockChain.Append(_block, blockCommit: _commit);
-        }
+    [Benchmark]
+    public void AppendBlockTenTransactionsWithActions()
+    {
+        _blockchain.Append(_block, _blockCommit);
+    }
 
-        private void PrepareAppend()
-        {
-            _lastCommit = TestUtils.CreateBlockCommit(_blockChain.Tip);
-            _block = _blockChain.Propose(_signer);
-            _commit = TestUtils.CreateBlockCommit(_block);
-        }
+    private void PrepareAppend()
+    {
+        _block = _blockchain.Propose(_proposer);
+        _blockCommit = TestUtility.CreateBlockCommit(_block, _validators);
     }
 }

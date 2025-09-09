@@ -32,22 +32,29 @@ public static partial class RandomUtility
 
     public static BlockHash BlockHash() => BlockHash(System.Random.Shared);
 
-    public static BlockHash BlockHash(Random random) => new BlockHash(Array(random, Byte, Types.BlockHash.Size));
+    public static BlockHash BlockHash(Random random) => new(Array(random, Byte, Types.BlockHash.Size));
 
     public static EvidenceId EvidenceId() => EvidenceId(System.Random.Shared);
 
     public static EvidenceId EvidenceId(Random random) => new(Array(random, Byte, Types.EvidenceId.Size));
 
-    public static BlockHeader BlockHeader(Random random) => new()
+    public static BlockHeader BlockHeader(Random random, int? version = null, ISigner? proposer = null)
     {
-        Version = NonNegative(random),
-        Height = NonNegative(random),
-        Timestamp = DateTimeOffset(random),
-        Proposer = Address(random),
-        PreviousBlockHash = BlockHash(random),
-        PreviousBlockCommit = BlockCommit(random),
-        PreviousStateRootHash = HashDigest<SHA256>(random),
-    };
+        var height = Try(random, NonNegative, item => item > 1);
+        var previousBlockHash = BlockHash(random);
+        var previousBlockCommit = BlockCommit(random, height: height - 1, blockHash: previousBlockHash);
+        proposer ??= Signer(random);
+        return new()
+        {
+            Version = version ?? Types.BlockHeader.CurrentVersion,
+            Height = height,
+            Timestamp = DateTimeOffset(random),
+            Proposer = proposer.Address,
+            PreviousBlockHash = previousBlockHash,
+            PreviousBlockCommit = previousBlockCommit,
+            PreviousStateRootHash = HashDigest<SHA256>(random),
+        };
+    }
 
     public static BlockDigest BlockDigest(Random random) => new()
     {
@@ -60,13 +67,38 @@ public static partial class RandomUtility
 
     public static BlockCommit BlockCommit() => BlockCommit(System.Random.Shared);
 
-    public static BlockCommit BlockCommit(Random random) => new()
+    public static BlockCommit BlockCommit(int height) => BlockCommit(System.Random.Shared);
+
+    public static BlockCommit BlockCommit(
+        Random random,
+        BlockHash? blockHash = null,
+        int? height = null,
+        int? round = null,
+        TestValidator[]? validators = null)
     {
-        BlockHash = BlockHash(random),
-        Height = Positive(random),
-        Round = NonNegative(random),
-        Votes = ImmutableArray(random, Vote),
-    };
+        blockHash ??= BlockHash(random);
+        height ??= Positive(random);
+        round ??= NonNegative(random);
+        validators ??= Array(random, TestValidator);
+        var votes = validators.Select(validator => new VoteMetadata
+        {
+            Validator = validator.Address,
+            BlockHash = blockHash.Value,
+            Height = height.Value,
+            Round = round.Value,
+            Timestamp = DateTimeOffset(random),
+            ValidatorPower = validator.Power,
+            Type = Boolean(random) ? VoteType.PreCommit : VoteType.Null,
+        }.Sign(validator));
+
+        return new()
+        {
+            BlockHash = blockHash.Value,
+            Height = height.Value,
+            Round = round.Value,
+            Votes = [.. votes],
+        };
+    }
 
     public static Vote Vote(Random random)
     {
@@ -122,24 +154,27 @@ public static partial class RandomUtility
 
     public static TransactionMetadata TransactionMetadata() => TransactionMetadata(System.Random.Shared);
 
-    public static TransactionMetadata TransactionMetadata(Random random) => new()
+    public static TransactionMetadata TransactionMetadata(Random random, Address? signer = null) => new()
     {
-        Nonce = Int64(random),
-        Signer = Address(random),
+        Nonce = NonNegativeInt64(random),
+        Signer = signer ?? Address(random),
         GenesisBlockHash = BlockHash(random),
         Actions = ImmutableArray(random, ActionBytecode),
         Timestamp = DateTimeOffset(random),
         MaxGasPrice = Nullable(random, FungibleAssetValue),
-        GasLimit = Try(random, Int64, item => item >= 0),
+        GasLimit = NonNegativeInt64(random),
     };
 
     public static Transaction Transaction() => Transaction(System.Random.Shared);
 
-    public static Transaction Transaction(Random random) => new()
+    public static Transaction Transaction(Random random) => Transaction(random, signer: null);
+
+    public static Transaction Transaction(Random random, ISigner? signer = null)
     {
-        Metadata = TransactionMetadata(random),
-        Signature = ImmutableArray(random, Byte),
-    };
+        signer ??= Signer(random);
+        var metadata = TransactionMetadata(random, signer.Address);
+        return metadata.Sign(signer);
+    }
 
     public static EvidenceBase Evidence() => Evidence(System.Random.Shared);
 
@@ -180,18 +215,26 @@ public static partial class RandomUtility
 
     public static Block Block() => Block(System.Random.Shared);
 
-    public static Block Block(Random random) => new()
+    public static Block Block(Random random)
     {
-        Header = BlockHeader(random),
-        Content = BlockContent(random),
-        Signature = ImmutableArray(random, Byte),
-    };
+        var proposer = Signer(random);
+        var rawBlock = new RawBlock
+        {
+            Header = BlockHeader(random, proposer: proposer),
+            Content = BlockContent(random),
+        }.Sign(proposer);
+        return rawBlock;
+    }
 
     public static Validator Validator() => Validator(System.Random.Shared);
 
     public static Validator Validator(Random random) => new()
     {
         Address = Address(random),
-        Power = System.Numerics.BigInteger.One,
+        Power = NonNegativeBigInteger(random),
     };
+
+    public static TestValidator TestValidator() => TestValidator(System.Random.Shared);
+
+    public static TestValidator TestValidator(Random random) => new(Signer(random), NonNegativeBigInteger(random));
 }

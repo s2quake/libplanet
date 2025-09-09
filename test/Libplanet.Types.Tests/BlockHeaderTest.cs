@@ -13,19 +13,8 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     {
         var attribute = typeof(BlockHeader).GetCustomAttribute<ModelAttribute>();
         Assert.NotNull(attribute);
-        Assert.Equal("BlockHeader", attribute.TypeName);
-    }
-
-    [Fact]
-    public void PropertyAttributes()
-    {
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Version), 0);
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Height), 1);
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Timestamp), 2);
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.Proposer), 3);
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.PreviousBlockHash), 4);
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.PreviousBlockCommit), 5);
-        ModelTestUtility.AssertProperty<BlockHeader>(nameof(BlockHeader.PreviousStateRootHash), 6);
+        Assert.Equal(1, attribute.Version);
+        Assert.Equal("blkhd", attribute.TypeName);
     }
 
     [Fact]
@@ -41,11 +30,17 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void Ctor()
     {
-        var blockHeader = new BlockHeader();
+        var proposer = RandomUtility.Address();
+        var blockHeader = new BlockHeader
+        {
+            Height = 0,
+            Timestamp = DateTimeOffset.UtcNow,
+            Proposer = proposer,
+        };
         Assert.Equal(BlockHeader.CurrentVersion, blockHeader.Version);
-        Assert.Equal(0L, blockHeader.Height);
-        Assert.Equal(default, blockHeader.Timestamp);
-        Assert.Equal(default, blockHeader.Proposer);
+        Assert.Equal(0, blockHeader.Height);
+        Assert.True(blockHeader.Timestamp < DateTimeOffset.UtcNow);
+        Assert.Equal(proposer, blockHeader.Proposer);
         Assert.Equal(default, blockHeader.PreviousBlockHash);
         Assert.Equal(default, blockHeader.PreviousBlockCommit);
         Assert.Equal(default, blockHeader.PreviousStateRootHash);

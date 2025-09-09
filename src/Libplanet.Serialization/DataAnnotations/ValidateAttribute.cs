@@ -4,9 +4,9 @@ using System.Text;
 namespace Libplanet.Serialization.DataAnnotations;
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class ValidateObjectAttribute : ValidationAttribute
+public sealed class ValidateAttribute : ValidationAttribute
 {
-    public bool ValidateAllProperties { get; set; }
+    public bool ValidateAllProperties { get; set; } = true;
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
@@ -40,7 +40,6 @@ public sealed class ValidateObjectAttribute : ValidationAttribute
 
     private sealed class ServiceProvider(ValidationContext validationContext) : IServiceProvider
     {
-        object? IServiceProvider.GetService(Type serviceType)
-            => validationContext.GetService(serviceType);
+        object? IServiceProvider.GetService(Type serviceType) => validationContext.GetService(serviceType);
     }
 }

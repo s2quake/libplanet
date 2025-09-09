@@ -5,11 +5,11 @@ namespace Libplanet.Extensions;
 
 public static class BlockExtensions
 {
-    public static void Validate(this Block @this, Blockchain blockChain)
+    public static void Validate(this Block @this, Blockchain blockchain)
     {
         var items = new Dictionary<object, object?>
         {
-            { typeof(Blockchain), blockChain }
+            { typeof(Blockchain), blockchain }
         };
 
         ModelValidationUtility.Validate(@this, items);

@@ -18,11 +18,12 @@ public sealed partial record class TransactionMetadata
     public BlockHash GenesisBlockHash { get; init; }
 
     [Property(3)]
+    [NotDefault]
     public ImmutableArray<ActionBytecode> Actions { get; init; } = [];
 
     [Property(4)]
     [NotDefault]
-    public DateTimeOffset Timestamp { get; init; }
+    public required DateTimeOffset Timestamp { get; init; }
 
     [Property(5)]
     public FungibleAssetValue? MaxGasPrice { get; init; }

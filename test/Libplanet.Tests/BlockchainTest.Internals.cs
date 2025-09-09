@@ -3,6 +3,7 @@ using Libplanet.Data;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.TestUtilities;
+using Libplanet.TestUtilities.Actions;
 using Libplanet.Types;
 
 namespace Libplanet.Tests;

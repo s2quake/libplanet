@@ -1,10 +1,11 @@
 using System.Diagnostics;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
+using Libplanet.State;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 
-namespace Libplanet.State.Tests.Actions;
+namespace Libplanet.TestUtilities.Actions;
 
 [Model(Version = 1, TypeName = "Tests_DumbAction")]
 public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>

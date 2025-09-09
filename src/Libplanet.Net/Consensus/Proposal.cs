@@ -15,7 +15,7 @@ public sealed partial record class Proposal
     public required ImmutableArray<byte> Signature { get; init; }
 
     [Property(2)]
-    [ValidateObject]
+    [Validate]
     public required Block Block { get; init; }
 
     public int Height => Metadata.Height;

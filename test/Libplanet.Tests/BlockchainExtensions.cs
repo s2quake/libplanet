@@ -5,7 +5,7 @@ namespace Libplanet.Tests;
 
 public static class BlockchainExtensions
 {
-    public static (Block, BlockCommit) ProposeAndAppend(this Libplanet.Blockchain @this, ISigner signer)
+    public static (Block, BlockCommit) ProposeAndAppend(this Blockchain @this, ISigner signer)
     {
         var block = @this.Propose(signer);
         var blockCommit = TestUtils.CreateBlockCommit(block);
@@ -14,7 +14,7 @@ public static class BlockchainExtensions
     }
 
     public static (Block Block, BlockCommit BlockCommit)[] ProposeAndAppendMany(
-        this Libplanet.Blockchain @this, ISigner signer, int count)
+        this Blockchain @this, ISigner signer, int count)
     {
         var blocks = new (Block, BlockCommit)[count];
         for (var i = 0; i < count; i++)
@@ -25,11 +25,13 @@ public static class BlockchainExtensions
         return blocks;
     }
 
-    public static (Block, BlockCommit)[] ProposeAndAppendMany(this Libplanet.Blockchain @this, int count)
-        => ProposeAndAppendMany(@this, Random.Shared, count);
+    public static (Block, BlockCommit)[] ProposeAndAppendMany(this Blockchain @this, int count)
+    {
+        return ProposeAndAppendMany(@this, Random.Shared, count);
+    }
 
     public static (Block, BlockCommit)[] ProposeAndAppendMany(
-        this Libplanet.Blockchain @this, Random random, int count)
+        this Blockchain @this, Random random, int count)
     {
         var blocks = new (Block, BlockCommit)[count];
         for (var i = 0; i < count; i++)
@@ -41,14 +43,14 @@ public static class BlockchainExtensions
         return blocks;
     }
 
-    public static BlockCommit AppendWithBlockCommit(this Libplanet.Blockchain @this, Block block)
+    public static BlockCommit AppendWithBlockCommit(this Blockchain @this, Block block)
     {
         var blockCommit = TestUtils.CreateBlockCommit(block);
         @this.Append(block, blockCommit);
         return blockCommit;
     }
 
-    public static void AppendTo(this Libplanet.Blockchain @this, Libplanet.Blockchain other, Range range)
+    public static void AppendTo(this Blockchain @this, Blockchain other, Range range)
     {
         var (start, length) = range.GetOffsetAndLength(@this.Blocks.Count);
         for (var i = 0; i < length; i++)
@@ -60,6 +62,8 @@ public static class BlockchainExtensions
         }
     }
 
-    public static Transaction CreateTransaction(this Libplanet.Blockchain @this, ISigner signer)
-        => @this.CreateTransaction(signer, new TransactionParams());
+    public static Transaction CreateTransaction(this Blockchain @this, ISigner signer)
+    {
+        return @this.CreateTransaction(signer, new TransactionParams());
+    }
 }

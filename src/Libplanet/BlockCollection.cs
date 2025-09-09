@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using BitFaster.Caching;
-using BitFaster.Caching.Lru;
+using LruCacheNet;
 using Libplanet.Data;
 using Libplanet.Types;
 
@@ -12,21 +11,17 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
     private readonly Repository _repository;
     private readonly BlockDigestIndex _blockDigests;
     private readonly BlockHashIndex _blockHashes;
-    private readonly ICache<BlockHash, Block> _cacheByHash;
+    private readonly LruCache<BlockHash, Block> _cacheByHash;
 
-    private readonly ICache<int, Block> _cacheByHeight;
+    private readonly LruCache<int, Block> _cacheByHeight;
 
-    internal BlockCollection(Repository repository, int cacheSize = 4096)
+    internal BlockCollection(Repository repository, int cacheSize = 256)
     {
         _repository = repository;
         _blockDigests = _repository.BlockDigests;
         _blockHashes = _repository.BlockHashes;
-        _cacheByHash = new ConcurrentLruBuilder<BlockHash, Block>()
-            .WithCapacity(cacheSize)
-            .Build();
-        _cacheByHeight = new ConcurrentLruBuilder<int, Block>()
-            .WithCapacity(cacheSize)
-            .Build();
+        _cacheByHash = new LruCache<BlockHash, Block>(cacheSize);
+        _cacheByHeight = new LruCache<int, Block>(cacheSize);
     }
 
     public IEnumerable<BlockHash> Keys
@@ -76,7 +71,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
     {
         get
         {
-            if (_cacheByHash.TryGet(blockHash, out var cached))
+            if (_cacheByHash.TryGetValue(blockHash, out var cached))
             {
                 return cached;
             }
@@ -109,8 +104,8 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
             _blockHashes.Remove(blockDigest.Height);
             _repository.PendingTransactions.RemoveRange(blockDigest.TxIds);
             _repository.CommittedEvidences.RemoveRange(blockDigest.EvidenceIds);
-            _cacheByHash.TryRemove(blockHash);
-            _cacheByHeight.TryRemove(blockDigest.Height);
+            _cacheByHash.Remove(blockHash);
+            _cacheByHeight.Remove(blockDigest.Height);
             return true;
         }
 
@@ -119,7 +114,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     public bool TryGetValue(int height, [MaybeNullWhen(false)] out Block value)
     {
-        if (_cacheByHeight.TryGet(height, out value))
+        if (_cacheByHeight.TryGetValue(height, out value))
         {
             return true;
         }
@@ -136,7 +131,7 @@ public sealed class BlockCollection : IReadOnlyDictionary<BlockHash, Block>
 
     public bool TryGetValue(BlockHash blockHash, [MaybeNullWhen(false)] out Block value)
     {
-        if (_cacheByHash.TryGet(blockHash, out value))
+        if (_cacheByHash.TryGetValue(blockHash, out value))
         {
             return true;
         }

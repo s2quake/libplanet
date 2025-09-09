@@ -1,11 +1,12 @@
+using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "blkh")]
-public sealed partial record class BlockHeader
+[Model(Version = 1, TypeName = "blkhd")]
+public sealed partial record class BlockHeader : IValidatableObject
 {
     public const int CurrentVersion = 0;
 
@@ -16,15 +17,15 @@ public sealed partial record class BlockHeader
 
     [Property(1)]
     [NonNegative]
-    public int Height { get; init; }
+    public required int Height { get; init; }
 
     [Property(2)]
     [NotDefault]
-    public DateTimeOffset Timestamp { get; init; }
+    public required DateTimeOffset Timestamp { get; init; }
 
     [Property(3)]
     [NotDefault]
-    public Address Proposer { get; init; }
+    public required Address Proposer { get; init; }
 
     [Property(4)]
     public BlockHash PreviousBlockHash { get; init; }
@@ -34,4 +35,24 @@ public sealed partial record class BlockHeader
 
     [Property(6)]
     public HashDigest<SHA256> PreviousStateRootHash { get; init; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (PreviousBlockCommit != default)
+        {
+            if (PreviousBlockCommit.Height != Height - 1)
+            {
+                var message = $"{nameof(PreviousBlockCommit)}.{nameof(PreviousBlockCommit.Height)} " +
+                              $"must be {Height - 1}.";
+                yield return new ValidationResult(message, [nameof(PreviousBlockCommit)]);
+            }
+
+            if (PreviousBlockCommit.BlockHash != PreviousBlockHash)
+            {
+                var message = $"{nameof(PreviousBlockCommit)}.{nameof(PreviousBlockCommit.BlockHash)} " +
+                              $"must be {PreviousBlockHash}.";
+                yield return new ValidationResult(message, [nameof(PreviousBlockCommit)]);
+            }
+        }
+    }
 }

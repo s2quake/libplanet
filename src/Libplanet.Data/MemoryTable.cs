@@ -5,7 +5,7 @@ namespace Libplanet.Data;
 
 public sealed class MemoryTable(string name) : TableBase(name)
 {
-    private readonly ConcurrentDictionary<string, byte[]> _dictionary = new();
+    private readonly Dictionary<string, byte[]> _dictionary = new();
 
     public MemoryTable()
         : this(string.Empty)
@@ -31,7 +31,7 @@ public sealed class MemoryTable(string name) : TableBase(name)
         }
     }
 
-    protected override bool RemoveOverride(string key) => _dictionary.TryRemove(key, out _);
+    protected override bool RemoveOverride(string key) => _dictionary.Remove(key);
 
     protected override void ClearOverride() => _dictionary.Clear();
 

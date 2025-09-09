@@ -8,7 +8,7 @@ public sealed record class VoteBuilder
 
     public int Round { get; init; }
 
-    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset Timestamp { get; init; }
 
     public VoteType Type { get; init; }
 
@@ -26,7 +26,7 @@ public sealed record class VoteBuilder
             BlockHash = Block.BlockHash,
             Height = Block.Height,
             Round = Round,
-            Timestamp = Timestamp,
+            Timestamp = Timestamp == default ? DateTimeOffset.UtcNow : Timestamp,
             ValidatorPower = Validator.Power,
             Type = Type,
         };

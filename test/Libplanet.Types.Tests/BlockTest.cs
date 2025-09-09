@@ -64,23 +64,7 @@ public sealed class BlockTest(ITestOutputHelper output)
     public void Verify()
     {
         var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
-        var header = RandomUtility.BlockHeader(random) with { Proposer = signer.Address };
-        var content = RandomUtility.BlockContent(random);
-        var rawBlock = new RawBlock
-        {
-            Header = header,
-            Content = content,
-        };
-        var bytes = ModelSerializer.SerializeToBytes(rawBlock);
-        var signature = signer.Sign(bytes);
-
-        var block = new Block
-        {
-            Header = header,
-            Content = content,
-            Signature = [.. signature],
-        };
+        var block = RandomUtility.Block(random);
         Assert.True(block.Verify());
     }
 }

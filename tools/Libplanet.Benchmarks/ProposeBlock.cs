@@ -1,73 +1,95 @@
 using BenchmarkDotNet.Attributes;
-using Libplanet.State.Tests.Actions;
-using Libplanet.Data;
-using Libplanet.Tests;
-using Libplanet.Tests.Store;
 using Libplanet.Types;
+using Libplanet.TestUtilities.Actions;
+using Libplanet.TestUtilities;
 
-namespace Libplanet.Benchmarks
+namespace Libplanet.Benchmarks;
+
+public class ProposeBlock
 {
-    public class ProposeBlock
+    private readonly int _seed = Random.Shared.Next();
+    private readonly Random _random;
+    private readonly ISigner _proposer;
+    private readonly ImmutableSortedSet<TestValidator> _validators;
+    private readonly Block _genesisBlock;
+    private readonly Libplanet.Blockchain _blockchain;
+    private Block _block;
+    private BlockCommit _blockCommit;
+
+    public ProposeBlock()
     {
-        private readonly Libplanet.Blockchain _blockChain;
-        private readonly ISigner _signer;
-        private BlockCommit _lastCommit;
-        private Block _block;
-
-        public ProposeBlock()
+        _random = new Random(_seed);
+        _proposer = RandomUtility.Signer(_random);
+        _validators = RandomUtility.ImmutableSortedSet(
+            _random, RandomUtility.TestValidator, RandomUtility.Int32(_random, 4, 16));
+        _genesisBlock = new GenesisBlockBuilder
         {
-            var fx = new MemoryRepositoryFixture();
-            var repository = new Repository();
-            _blockChain = new Blockchain(fx.GenesisBlock, repository, fx.Options);
-            _signer = new PrivateKey().AsSigner();
-        }
+            Validators = [.. _validators.Select(v => (Validator)v)],
+        }.Create(_proposer);
+        _block = _genesisBlock;
+        _blockchain = new Libplanet.Blockchain(_genesisBlock);
+    }
 
-        [IterationSetup(Target = nameof(ProposeBlockEmpty))]
-        public void PreparePropose()
+    [IterationCleanup(
+        Targets = new[]
         {
-            _lastCommit = TestUtils.CreateBlockCommit(_blockChain.Tip);
-        }
+            nameof(ProposeBlockEmpty),
+            nameof(ProposeBlockOneTransactionNoAction),
+            nameof(ProposeBlockTenTransactionsNoAction),
+            nameof(ProposeBlockOneTransactionWithActions),
+            nameof(ProposeBlockTenTransactionsWithActions),
+        })]
+    public void CleanupPropose()
+    {
+        // To unstaging transactions, a block is appended to blockchain.
+        _blockCommit = TestUtility.CreateBlockCommit(_block, _validators);
+        _blockchain.Append(_block, _blockCommit);
+    }
 
-        [IterationCleanup(
-            Targets = new []
-            {
-                nameof(ProposeBlockEmpty),
-                nameof(ProposeBlockOneTransactionNoAction),
-                nameof(ProposeBlockTenTransactionsNoAction),
-                nameof(ProposeBlockOneTransactionWithActions),
-                nameof(ProposeBlockTenTransactionsWithActions),
-            })]
-        public void CleanupPropose()
+    [IterationSetup(Target = nameof(ProposeBlockOneTransactionNoAction))]
+    public void MakeOneTransactionNoAction()
+    {
+        var tx = new TransactionBuilder
         {
-            // To unstaging transactions, a block is appended to blockchain.
-            _blockChain.Append(_block, TestUtils.CreateBlockCommit(_block));
-        }
+        }.Create(_proposer, _blockchain);
+        _blockchain.StagedTransactions.Add(tx);
+    }
 
-        [IterationSetup(Target = nameof(ProposeBlockOneTransactionNoAction))]
-        public void MakeOneTransactionNoAction()
+    [IterationSetup(Target = nameof(ProposeBlockTenTransactionsNoAction))]
+    public void MakeTenTransactionsNoAction()
+    {
+        for (var i = 0; i < 10; i++)
         {
-            PreparePropose();
             var tx = new TransactionBuilder
             {
-            }.Create(_signer, _blockChain);
-            _blockChain.StagedTransactions.Add(tx);
+            }.Create(new PrivateKey().AsSigner(), _blockchain);
+            _blockchain.StagedTransactions.Add(tx);
         }
+    }
 
-        [IterationSetup(Target = nameof(ProposeBlockTenTransactionsNoAction))]
-        public void MakeTenTransactionsNoAction()
+    [IterationSetup(Target = nameof(ProposeBlockOneTransactionWithActions))]
+    public void MakeOneTransactionWithActions()
+    {
+        var signer = new PrivateKey().AsSigner();
+        var address = signer.Address;
+        var actions = new[]
         {
-            for (var i = 0; i < 10; i++)
-            {
-                var tx = new TransactionBuilder
-                {
-                }.Create(new PrivateKey().AsSigner(), _blockChain);
-                _blockChain.StagedTransactions.Add(tx);
-            }
-            PreparePropose();
-        }
+            DumbAction.Create((address, "foo")),
+            DumbAction.Create((address, "bar")),
+            DumbAction.Create((address, "baz")),
+            DumbAction.Create((address, "qux")),
+        };
+        var tx = new TransactionBuilder
+        {
+            Actions = actions,
+        }.Create(signer, _blockchain);
+        _blockchain.StagedTransactions.Add(tx);
+    }
 
-        [IterationSetup(Target = nameof(ProposeBlockOneTransactionWithActions))]
-        public void MakeOneTransactionWithActions()
+    [IterationSetup(Target = nameof(ProposeBlockTenTransactionsWithActions))]
+    public void MakeTenTransactionsWithActions()
+    {
+        for (var i = 0; i < 10; i++)
         {
             var signer = new PrivateKey().AsSigner();
             var address = signer.Address;
@@ -81,62 +103,38 @@ namespace Libplanet.Benchmarks
             var tx = new TransactionBuilder
             {
                 Actions = actions,
-            }.Create(signer, _blockChain);
-            _blockChain.StagedTransactions.Add(tx);
-            PreparePropose();
+            }.Create(signer, _blockchain);
+            _blockchain.StagedTransactions.Add(tx);
         }
+    }
 
-        [IterationSetup(Target = nameof(ProposeBlockTenTransactionsWithActions))]
-        public void MakeTenTransactionsWithActions()
-        {
-            for (var i = 0; i < 10; i++)
-            {
-                var signer = new PrivateKey().AsSigner();
-                var address = signer.Address;
-                var actions = new[]
-                {
-                    DumbAction.Create((address, "foo")),
-                    DumbAction.Create((address, "bar")),
-                    DumbAction.Create((address, "baz")),
-                    DumbAction.Create((address, "qux")),
-                };
-                var tx = new TransactionBuilder
-                {
-                    Actions = actions,
-                }.Create(signer, _blockChain);
-                _blockChain.StagedTransactions.Add(tx);
-            }
-            PreparePropose();
-        }
+    [Benchmark]
+    public void ProposeBlockEmpty()
+    {
+        _block = _blockchain.Propose(_proposer);
+    }
 
-        [Benchmark]
-        public void ProposeBlockEmpty()
-        {
-            _block = _blockChain.Propose(_signer);
-        }
+    [Benchmark]
+    public void ProposeBlockOneTransactionNoAction()
+    {
+        _block = _blockchain.Propose(_proposer);
+    }
 
-        [Benchmark]
-        public void ProposeBlockOneTransactionNoAction()
-        {
-            _block = _blockChain.Propose(_signer);
-        }
+    [Benchmark]
+    public void ProposeBlockTenTransactionsNoAction()
+    {
+        _block = _blockchain.Propose(_proposer);
+    }
 
-        [Benchmark]
-        public void ProposeBlockTenTransactionsNoAction()
-        {
-            _block = _blockChain.Propose(_signer);
-        }
+    [Benchmark]
+    public void ProposeBlockOneTransactionWithActions()
+    {
+        _block = _blockchain.Propose(_proposer);
+    }
 
-        [Benchmark]
-        public void ProposeBlockOneTransactionWithActions()
-        {
-            _block = _blockChain.Propose(_signer);
-        }
-
-        [Benchmark]
-        public void ProposeBlockTenTransactionsWithActions()
-        {
-            _block = _blockChain.Propose(_signer);
-        }
+    [Benchmark]
+    public void ProposeBlockTenTransactionsWithActions()
+    {
+        _block = _blockchain.Propose(_proposer);
     }
 }

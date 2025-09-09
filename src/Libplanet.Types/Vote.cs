@@ -28,6 +28,8 @@ public sealed partial record class Vote : IValidatableObject
 
     public VoteType Type => Metadata.Type;
 
+    public bool Verify() => Metadata.Verify(Signature.AsSpan());
+
     IEnumerable<ValidationResult> IValidatableObject.Validate(ValidationContext validationContext)
     {
         if (Signature.Length > 0 && !Metadata.Verify(Signature.AsSpan()))

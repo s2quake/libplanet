@@ -11,3 +11,6 @@ dotnet_diagnostic.SA1101.severity = none
 
 # SA1401: Fields should be private
 dotnet_diagnostic.SA1401.severity = none
+
+# S3427: Method overloads with default parameter values should not overlap
+dotnet_diagnostic.S3427.severity = none

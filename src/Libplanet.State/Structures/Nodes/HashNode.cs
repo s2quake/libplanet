@@ -2,8 +2,7 @@ using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.State.ModelConverters;
 using Libplanet.Types;
-using BitFaster.Caching;
-using BitFaster.Caching.Lru;
+using LruCacheNet;
 using System.Diagnostics.CodeAnalysis;
 using Libplanet.Data;
 
@@ -14,12 +13,7 @@ internal sealed record class HashNode : INode
 {
     private const int _cacheSize = 524_288;
 
-    private static readonly ICache<HashDigest<SHA256>, INode> _cache
-        = new ConcurrentLruBuilder<HashDigest<SHA256>, INode>()
-            .WithMetrics()
-            .WithExpireAfterAccess(TimeSpan.FromMinutes(10))
-            .WithCapacity(_cacheSize)
-            .Build();
+    private static readonly LruCache<HashDigest<SHA256>, INode> _cache = new(_cacheSize);
 
     public required HashDigest<SHA256> Hash { get; init; }
 
@@ -58,7 +52,7 @@ internal sealed record class HashNode : INode
     }
 
     public static bool TryGetNode(HashDigest<SHA256> hash, [MaybeNullWhen(false)] out INode node)
-        => _cache.TryGet(hash, out node);
+        => _cache.TryGetValue(hash, out node);
 
     public static void AddOrUpdate(HashDigest<SHA256> hash, INode node)
         => _cache.AddOrUpdate(hash, node);
