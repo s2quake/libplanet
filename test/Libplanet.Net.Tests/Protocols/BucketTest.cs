@@ -9,31 +9,31 @@ public class BucketTest(ITestOutputHelper output)
     public async Task BaseTest()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var bucket = new Bucket(4);
         var peer1 = new Peer
         {
-            Address = RandomUtility.Address(random),
+            Address = Rand.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
         var peer2 = new Peer
         {
-            Address = RandomUtility.Address(random),
+            Address = Rand.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
         var peer3 = new Peer
         {
-            Address = RandomUtility.Address(random),
+            Address = Rand.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
         var peer4 = new Peer
         {
-            Address = RandomUtility.Address(random),
+            Address = Rand.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
         var peer5 = new Peer
         {
-            Address = RandomUtility.Address(random),
+            Address = Rand.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", 1234)
         };
 

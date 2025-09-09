@@ -9,8 +9,8 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
     [Fact]
     public void Majority()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
         var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
         Assert.False(votes.HasOneThirdsAny);
         Assert.False(votes.HasTwoThirdsAny);
@@ -54,7 +54,7 @@ public sealed class VoteCollectionClassicTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 0,
-            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            BlockHash = new BlockHash(Rand.Bytes(BlockHash.Size)),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = TestUtils.Validators[2].Address,
             ValidatorPower = TestUtils.Validators[2].Power,

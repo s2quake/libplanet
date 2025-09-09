@@ -19,9 +19,9 @@ public class AppendBlock
     public AppendBlock()
     {
         _random = new Random(_seed);
-        _proposer = RandomUtility.Signer(_random);
-        _validators = RandomUtility.ImmutableSortedSet(
-            _random, RandomUtility.TestValidator, RandomUtility.Int32(_random, 4, 16));
+        _proposer = Rand.Signer(_random);
+        _validators = Rand.ImmutableSortedSet(
+            _random, Rand.TestValidator, Rand.Int32(_random, 4, 16));
         _genesisBlock = new GenesisBlockBuilder
         {
             Validators = [.. _validators.Select(v => (Validator)v)],
@@ -42,7 +42,7 @@ public class AppendBlock
     {
         for (var i = 0; i < 10; i++)
         {
-            _blockchain.StagedTransactions.Add(RandomUtility.Signer(_random));
+            _blockchain.StagedTransactions.Add(Rand.Signer(_random));
         }
 
         PrepareAppend();
@@ -51,7 +51,7 @@ public class AppendBlock
     [IterationSetup(Target = nameof(AppendBlockOneTransactionWithActions))]
     public void PrepareAppendMakeOneTransactionWithActions()
     {
-        var signer = RandomUtility.Signer(_random);
+        var signer = Rand.Signer(_random);
         var address = signer.Address;
         var actions = new[]
         {
@@ -73,7 +73,7 @@ public class AppendBlock
     {
         for (var i = 0; i < 10; i++)
         {
-            var signer = RandomUtility.Signer(_random);
+            var signer = Rand.Signer(_random);
             var address = signer.Address;
             var actions = new[]
             {

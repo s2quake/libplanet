@@ -10,7 +10,7 @@ public sealed class LiteStateRootHashIndexTest(ITestOutputHelper output)
     protected override StateRootHashIndex CreateIndex(LiteDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
-    protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
+    protected override BlockHash CreateKey(Random random) => Rand.BlockHash(random);
 
-    protected override HashDigest<SHA256> CreateValue(Random random) => RandomUtility.HashDigest<SHA256>(random);
+    protected override HashDigest<SHA256> CreateValue(Random random) => Rand.HashDigest<SHA256>(random);
 }

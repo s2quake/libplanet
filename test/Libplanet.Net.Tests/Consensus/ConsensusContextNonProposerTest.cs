@@ -18,8 +18,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     public async Task NewHeightWithLastCommit()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);
@@ -89,8 +89,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     public async Task HandleMessageFromHigherHeight()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);
@@ -175,8 +175,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
     [Fact(Timeout = Timeout)]
     public async Task UseLastCommitCacheIfHeightContextIsEmpty()
     {
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transport = CreateTransport(Signers[2]);
@@ -205,8 +205,8 @@ public class ConsensusContextNonProposerTest(ITestOutputHelper output)
         var newHeightDelay = TimeSpan.FromSeconds(1);
         // The maximum error margin. (macos-netcore-test)
         var timeError = 500;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);

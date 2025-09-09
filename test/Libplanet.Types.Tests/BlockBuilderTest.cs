@@ -22,15 +22,15 @@ public sealed class BlockBuilderTest(ITestOutputHelper output)
     [Fact]
     public void Create()
     {
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
-        var height = RandomUtility.Positive(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
+        var height = Rand.Positive(random);
         var timestamp = DateTimeOffset.UtcNow;
-        var previousBlockHash = RandomUtility.BlockHash(random);
-        var previousBlockCommit = RandomUtility.BlockCommit(random);
-        var previousStateRootHash = RandomUtility.HashDigest<SHA256>(random);
-        var transactions = RandomUtility.ImmutableSortedSet(random, RandomUtility.Transaction);
-        var evidence = RandomUtility.ImmutableSortedSet(random, RandomUtility.Evidence);
+        var previousBlockHash = Rand.BlockHash(random);
+        var previousBlockCommit = Rand.BlockCommit(random);
+        var previousStateRootHash = Rand.HashDigest<SHA256>(random);
+        var transactions = Rand.ImmutableSortedSet(random, Rand.Transaction);
+        var evidence = Rand.ImmutableSortedSet(random, Rand.Evidence);
         var block = new BlockBuilder
         {
             Height = height,

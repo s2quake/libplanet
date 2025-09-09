@@ -9,7 +9,7 @@ public sealed class LiteNonceIndexTest(ITestOutputHelper output)
     protected override NonceIndex CreateIndex(LiteDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
-    protected override Address CreateKey(Random random) => RandomUtility.Address(random);
+    protected override Address CreateKey(Random random) => Rand.Address(random);
 
-    protected override long CreateValue(Random random) => RandomUtility.Int64(random);
+    protected override long CreateValue(Random random) => Rand.Int64(random);
 }

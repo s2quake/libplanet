@@ -296,11 +296,11 @@ public class PrivateKeyTest(ITestOutputHelper output)
     [Fact]
     public void PrivateKeyGenerateLongerThan31Bytes()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var faultList = new List<int>(3000);
         for (var i = 0; i < faultList.Capacity; i++)
         {
-            var privateKey = RandomUtility.PrivateKey(random);
+            var privateKey = Rand.PrivateKey(random);
             if (privateKey.Bytes.Length < 32)
             {
                 faultList.Add(i);

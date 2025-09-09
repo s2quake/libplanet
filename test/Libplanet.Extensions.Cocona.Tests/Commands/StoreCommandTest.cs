@@ -342,7 +342,7 @@ public sealed class StoreCommandTest : IDisposable
 
     private Transaction DummyTransaction()
     {
-        var signer = RandomUtility.Signer();
+        var signer = Rand.Signer();
         return new TransactionMetadata
         {
             Nonce = 0,

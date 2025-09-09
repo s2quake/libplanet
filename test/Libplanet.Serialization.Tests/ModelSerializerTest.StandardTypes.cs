@@ -12,7 +12,7 @@ public sealed partial class ModelSerializerTest
     public void BigInteger_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.BigInteger(random);
+        var expectedValue = Rand.BigInteger(random);
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
@@ -26,7 +26,7 @@ public sealed partial class ModelSerializerTest
     public void Boolean_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.Boolean(random);
+        var expectedValue = Rand.Boolean(random);
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
@@ -40,7 +40,7 @@ public sealed partial class ModelSerializerTest
     public void Byte_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.Byte(random);
+        var expectedValue = Rand.Byte(random);
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
@@ -55,7 +55,7 @@ public sealed partial class ModelSerializerTest
     public void Char_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.Try(random, RandomUtility.Char, c => !char.IsSurrogate(c));
+        var expectedValue = Rand.Try(random, Rand.Char, c => !char.IsSurrogate(c));
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
@@ -64,7 +64,7 @@ public sealed partial class ModelSerializerTest
     [Fact]
     public void SurrogateChar_SerializeAndDeserialize_Test_Throw()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var expectedValue = RandomSurrogate(random);
         Assert.Throws<ModelSerializationException>(() => ModelSerializer.SerializeToBytes(expectedValue));
 
@@ -86,7 +86,7 @@ public sealed partial class ModelSerializerTest
     public void DateTimeOffset_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.DateTimeOffset(random);
+        var expectedValue = Rand.DateTimeOffset(random);
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
@@ -100,7 +100,7 @@ public sealed partial class ModelSerializerTest
     public void Guid_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.Guid(random);
+        var expectedValue = Rand.Guid(random);
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
@@ -114,7 +114,7 @@ public sealed partial class ModelSerializerTest
     public void Int32_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.Int32(random);
+        var expectedValue = Rand.Int32(random);
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
@@ -128,7 +128,7 @@ public sealed partial class ModelSerializerTest
     public void Int64_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.Int64(random);
+        var expectedValue = Rand.Int64(random);
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
@@ -142,7 +142,7 @@ public sealed partial class ModelSerializerTest
     public void String_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.String(random);
+        var expectedValue = Rand.String(random);
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);
@@ -156,7 +156,7 @@ public sealed partial class ModelSerializerTest
     public void TimeSpan_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var expectedValue = RandomUtility.TimeSpan(random);
+        var expectedValue = Rand.TimeSpan(random);
         var serialized = ModelSerializer.SerializeToBytes(expectedValue);
         var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expectedValue, actualValue);

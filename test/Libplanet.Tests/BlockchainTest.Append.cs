@@ -19,12 +19,12 @@ public partial class BlockchainTest
     public async Task Append()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(_output);
-        var signers = RandomUtility.Array(random, RandomUtility.Signer, 5);
+        var random = Rand.GetRandom(_output);
+        var signers = Rand.Array(random, Rand.Signer, 5);
         var addresses = signers.Select(s => s.Address).ToArray();
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
 
-        var proposer = RandomUtility.Signer(random);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var repository = new Repository();
         var options = new BlockchainOptions
@@ -308,13 +308,13 @@ public partial class BlockchainTest
     [Fact]
     public void AppendModern()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var accountAddress = Address.Parse("0123456789abcdef0123456789abcdef12345678");
-        var address1 = RandomUtility.Address(random);
-        var address2 = RandomUtility.Address(random);
+        var address1 = Rand.Address(random);
+        var address2 = Rand.Address(random);
         var action1 = DumbAction.Create((address1, "foo")) with { AccountAddress = accountAddress };
         var action2 = DumbAction.Create((address2, "bar")) with { AccountAddress = accountAddress };
 
@@ -337,8 +337,8 @@ public partial class BlockchainTest
     [Fact]
     public void AppendFailDueToInvalidBytesLength()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {
@@ -346,7 +346,7 @@ public partial class BlockchainTest
         var blockchain = new Blockchain(genesisBlock, options);
 
         var manyActions = Enumerable.Repeat(DumbAction.Create((default, "_")), 200).ToArray();
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         int nonce = 0;
         var txList = new List<Transaction>();
         for (var i = 0; i < 100; i++)
@@ -354,7 +354,7 @@ public partial class BlockchainTest
             if (i % 25 == 0)
             {
                 nonce = 0;
-                signer = RandomUtility.Signer(random);
+                signer = Rand.Signer(random);
             }
 
             var tx = new TransactionBuilder
@@ -385,8 +385,8 @@ public partial class BlockchainTest
     [Fact]
     public void AppendFailDueToInvalidTxCount()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {
@@ -419,14 +419,14 @@ public partial class BlockchainTest
     public async Task AppendWhenActionEvaluationFailed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {
         };
         var blockchain = new Blockchain(genesisBlock, options);
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
 
         var action = new ThrowException { ThrowOnExecution = true };
         blockchain.StagedTransactions.Add(signer, @params: new() { Actions = [action] });
@@ -442,10 +442,10 @@ public partial class BlockchainTest
     [Fact]
     public void AppendBlockWithPolicyViolationTx()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
-        var validSigner = RandomUtility.Signer(random);
-        var invalidSigner = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
+        var validSigner = Rand.Signer(random);
+        var invalidSigner = Rand.Signer(random);
         var options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
@@ -489,12 +489,12 @@ public partial class BlockchainTest
     [Fact]
     public void UnstageAfterAppendComplete()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var signers = RandomUtility.Array(random, RandomUtility.Signer, 5);
+        var random = Rand.GetRandom(_output);
+        var signers = Rand.Array(random, Rand.Signer, 5);
         var addresses = signers.Select(s => s.Address).ToArray();
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
 
-        var proposer = RandomUtility.Signer(random);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var repository = new Repository();
         var options = new BlockchainOptions
@@ -529,7 +529,7 @@ public partial class BlockchainTest
             }.Create(signer),
         ];
 
-        var signerA = RandomUtility.Signer(random);
+        var signerA = Rand.Signer(random);
         Assert.Empty(blockchain.StagedTransactions.Keys);
 
         // Mining with empty staged.
@@ -583,8 +583,8 @@ public partial class BlockchainTest
     [Fact]
     public void AppendValidatesBlock()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {
@@ -619,10 +619,10 @@ public partial class BlockchainTest
     [Fact]
     public void AppendWithdrawTxsWithExpiredNoncesFromStage()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var signerA = RandomUtility.Signer(random);
-        var signerB = RandomUtility.Signer(random);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var signerA = Rand.Signer(random);
+        var signerB = Rand.Signer(random);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var txA0 = new TransactionBuilder
@@ -715,8 +715,8 @@ public partial class BlockchainTest
     [Fact]
     public void DoesNotMigrateStateWithoutAction()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var options = new BlockchainOptions
         {
             BlockOptions = new BlockOptions

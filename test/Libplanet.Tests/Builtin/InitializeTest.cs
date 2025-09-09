@@ -38,14 +38,14 @@ public sealed class InitializeTest(ITestOutputHelper output)
     [Fact]
     public void Execute()
     {
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Address(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Address(random);
         var world = new World();
         var context = new ActionContext
         {
             Signer = signer,
-            TxId = RandomUtility.TxId(random),
-            Proposer = RandomUtility.Address(random),
+            TxId = Rand.TxId(random),
+            Proposer = Rand.Address(random),
             BlockHeight = 0,
             BlockProtocolVersion = BlockHeader.CurrentVersion,
             RandomSeed = 123,
@@ -67,10 +67,10 @@ public sealed class InitializeTest(ITestOutputHelper output)
     [Fact]
     public void ExecuteInNonGenesis()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var world = new World();
-        var signer = RandomUtility.Signer(random);
-        var blockHash = RandomUtility.BlockHash(random);
+        var signer = Rand.Signer(random);
+        var blockHash = Rand.BlockHash(random);
         var lastCommit = new BlockCommit
         {
             Height = 0,
@@ -93,8 +93,8 @@ public sealed class InitializeTest(ITestOutputHelper output)
         var context = new ActionContext
         {
             Signer = signer.Address,
-            TxId = RandomUtility.TxId(random),
-            Proposer = RandomUtility.Address(random),
+            TxId = Rand.TxId(random),
+            Proposer = Rand.Address(random),
             BlockHeight = 10,
             BlockProtocolVersion = BlockHeader.CurrentVersion,
             PreviousCommit = lastCommit,

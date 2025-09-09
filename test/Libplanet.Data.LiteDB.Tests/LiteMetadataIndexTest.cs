@@ -8,7 +8,7 @@ public sealed class LiteMetadataIndexTest(ITestOutputHelper output)
     protected override MetadataIndex CreateIndex(LiteDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
-    protected override string CreateKey(Random random) => RandomUtility.Word(random);
+    protected override string CreateKey(Random random) => Rand.Word(random);
 
-    protected override string CreateValue(Random random) => RandomUtility.String(random);
+    protected override string CreateValue(Random random) => Rand.String(random);
 }

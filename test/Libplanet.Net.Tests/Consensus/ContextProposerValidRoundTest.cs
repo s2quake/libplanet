@@ -12,8 +12,8 @@ public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
     public async Task EnterValidRoundPreVoteBlock()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
@@ -53,8 +53,8 @@ public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
     public async Task EnterValidRoundPreVoteNil()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
@@ -67,7 +67,7 @@ public sealed class ContextProposerValidRoundTest(ITestOutputHelper output)
             e => e.Step == ConsensusStep.PreCommit && consensus.Round.Index == 2);
 
         var block = blockchain.Propose(Signers[1]);
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         var differentBlock = new RawBlock
         {
             Header = new BlockHeader

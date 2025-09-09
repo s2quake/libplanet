@@ -18,8 +18,8 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     [Fact]
     public void SerializeAndDeserialize()
     {
-        var random = RandomUtility.GetRandom(output);
-        var expected = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var expected = Rand.BlockHash(random);
         var serialized = ModelSerializer.SerializeToBytes(expected);
         var actual = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expected, actual);
@@ -28,8 +28,8 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     [Fact]
     public void Ctor()
     {
-        var random = RandomUtility.GetRandom(output);
-        var bytes = RandomUtility.Bytes(random, BlockHash.Size);
+        var random = Rand.GetRandom(output);
+        var bytes = Rand.Bytes(random, BlockHash.Size);
         var hex = ByteUtility.Hex(bytes);
 
         Assert.Equal(BlockHash.Parse(hex), new BlockHash(bytes));
@@ -39,9 +39,9 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     [Fact]
     public void Ctor_Throw()
     {
-        var random = RandomUtility.GetRandom(output);
-        var bytes1 = RandomUtility.Bytes(random, BlockHash.Size + 1);
-        var bytes2 = RandomUtility.Bytes(random, BlockHash.Size - 1);
+        var random = Rand.GetRandom(output);
+        var bytes1 = Rand.Bytes(random, BlockHash.Size + 1);
+        var bytes2 = Rand.Bytes(random, BlockHash.Size - 1);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => new BlockHash(bytes1));
         Assert.Throws<ArgumentOutOfRangeException>(() => new BlockHash(bytes2));
@@ -61,8 +61,8 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     [Fact]
     public void Bytes()
     {
-        var random = RandomUtility.GetRandom(output);
-        var bytes = RandomUtility.Array(random, RandomUtility.Byte, BlockHash.Size);
+        var random = Rand.GetRandom(output);
+        var bytes = Rand.Array(random, Rand.Byte, BlockHash.Size);
         var address = new BlockHash(bytes);
         Assert.Equal(bytes, address.Bytes);
     }
@@ -80,9 +80,9 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     [Fact]
     public void Parse_WithInvalidLength()
     {
-        var random = RandomUtility.GetRandom(output);
-        var hex1 = RandomUtility.Hex(random, BlockHash.Size - 1);
-        var hex2 = RandomUtility.Hex(random, BlockHash.Size + 1);
+        var random = Rand.GetRandom(output);
+        var hex1 = Rand.Hex(random, BlockHash.Size - 1);
+        var hex2 = Rand.Hex(random, BlockHash.Size + 1);
         Assert.Throws<FormatException>(() => BlockHash.Parse(hex1));
         Assert.Throws<FormatException>(() => BlockHash.Parse(hex2));
     }
@@ -90,8 +90,8 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     [Fact]
     public void HashData()
     {
-        var random = RandomUtility.GetRandom(output);
-        var bytes = RandomUtility.Bytes(random, 100);
+        var random = Rand.GetRandom(output);
+        var bytes = Rand.Bytes(random, 100);
         var expectedHash = SHA256.HashData(bytes);
         var blockHash = BlockHash.HashData(bytes);
 
@@ -101,9 +101,9 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     [Fact]
     public void Equals_Test()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash1 = RandomUtility.BlockHash(random);
-        var blockHash2 = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash1 = Rand.BlockHash(random);
+        var blockHash2 = Rand.BlockHash(random);
         var sameBlockHash = new BlockHash(blockHash1.Bytes);
 
         Assert.True(blockHash1.Equals(sameBlockHash));
@@ -115,9 +115,9 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     [Fact]
     public void GetHashCode_Test()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash1 = RandomUtility.BlockHash(random);
-        var blockHash2 = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash1 = Rand.BlockHash(random);
+        var blockHash2 = Rand.BlockHash(random);
         var sameBlockHash = new BlockHash(blockHash1.Bytes);
 
         Assert.Equal(blockHash1.GetHashCode(), ByteUtility.GetHashCode(blockHash1.Bytes));
@@ -128,8 +128,8 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     [Fact]
     public void ToString_Test()
     {
-        var random = RandomUtility.GetRandom(output);
-        var hex = RandomUtility.Hex(random, BlockHash.Size);
+        var random = Rand.GetRandom(output);
+        var hex = Rand.Hex(random, BlockHash.Size);
         var blockHash = BlockHash.Parse(hex);
         Assert.Equal(hex, blockHash.ToString());
         Assert.Equal(hex, blockHash.ToString(null, null));

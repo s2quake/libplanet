@@ -18,11 +18,11 @@ public sealed class PeerTest(ITestOutputHelper output)
     [Fact]
     public void SerializeAndDeserialize()
     {
-        var random = RandomUtility.GetRandom(output);
-        var port = RandomUtility.Int32(random, 0, 65535);
+        var random = Rand.GetRandom(output);
+        var port = Rand.Int32(random, 0, 65535);
         var expected = new Peer
         {
-            Address = RandomUtility.Address(random),
+            Address = Rand.Address(random),
             EndPoint = new DnsEndPoint("0.0.0.0", port),
         };
         var deserialized = ModelSerializer.Clone(expected);
@@ -32,9 +32,9 @@ public sealed class PeerTest(ITestOutputHelper output)
     [Fact]
     public void Parse()
     {
-        var random = RandomUtility.GetRandom(output);
-        var endPoint = RandomUtility.DnsEndPoint(random);
-        var address = RandomUtility.Address(random);
+        var random = Rand.GetRandom(output);
+        var endPoint = Rand.DnsEndPoint(random);
+        var address = Rand.Address(random);
         var text = $"{address},{endPoint.Host},{endPoint.Port}";
         var expected = new Peer
         {
@@ -62,8 +62,8 @@ public sealed class PeerTest(ITestOutputHelper output)
     [Fact]
     public void ToString_Test()
     {
-        var random = RandomUtility.GetRandom(output);
-        var peer = RandomUtility.Peer(random);
+        var random = Rand.GetRandom(output);
+        var peer = Rand.Peer(random);
         var expected = $"{peer.Address},{peer.EndPoint.Host},{peer.EndPoint.Port}";
         var actual = peer.ToString();
         Assert.Equal(expected, actual);
@@ -72,11 +72,11 @@ public sealed class PeerTest(ITestOutputHelper output)
     [Fact]
     public void Address_Validate()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var peer = new Peer
         {
             Address = default,
-            EndPoint = RandomUtility.DnsEndPoint(random),
+            EndPoint = Rand.DnsEndPoint(random),
         };
         ModelAssert.Throws(peer, nameof(Peer.Address));
     }
@@ -84,8 +84,8 @@ public sealed class PeerTest(ITestOutputHelper output)
     [Fact]
     public void EndPoint_Validate()
     {
-        var random = RandomUtility.GetRandom(output);
-        var port = RandomUtility.Port(random);
+        var random = Rand.GetRandom(output);
+        var port = Rand.Port(random);
         var peer = new Peer
         {
             Address = default,

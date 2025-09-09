@@ -9,16 +9,16 @@ public sealed class MemoryBlockHashIndexTest(ITestOutputHelper output)
     protected override BlockHashIndex CreateIndex(MemoryDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
-    protected override int CreateKey(Random random) => RandomUtility.Int32(random);
+    protected override int CreateKey(Random random) => Rand.Int32(random);
 
-    protected override BlockHash CreateValue(Random random) => RandomUtility.BlockHash(random);
+    protected override BlockHash CreateValue(Random random) => Rand.BlockHash(random);
 
     [Fact]
     public void AddBlock()
     {
         var random = GetRandom();
         var index = CreateIndex(nameof(AddBlock), useCache: true);
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         var block0 = new BlockBuilder
         {
             Height = 0,

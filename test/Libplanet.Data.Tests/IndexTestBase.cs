@@ -70,7 +70,7 @@ public abstract class IndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestOutput
         TKey key;
         do
         {
-            key = RandomUtility.Try(random, item => CreateKey(random), predicate);
+            key = Rand.Try(random, item => CreateKey(random), predicate);
         } while (!predicate(key));
         return key;
     }
@@ -80,7 +80,7 @@ public abstract class IndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestOutput
         TValue value;
         do
         {
-            value = RandomUtility.Try(random, item => CreateValue(random), predicate);
+            value = Rand.Try(random, item => CreateValue(random), predicate);
         } while (!predicate(value));
         return value;
     }
@@ -640,7 +640,7 @@ public abstract class IndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestOutput
 
     protected Random GetRandom()
     {
-        var seed = RandomUtility.Int32();
+        var seed = Rand.Int32();
         output.WriteLine($"Random seed: {seed}");
         return new Random(seed);
     }

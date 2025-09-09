@@ -14,7 +14,7 @@ public class HashNodeTest
         var stateIndex = new StateIndex();
         var expectedNode = new HashNode
         {
-            Hash = RandomUtility.HashDigest<SHA256>(),
+            Hash = Rand.HashDigest<SHA256>(),
             StateIndex = stateIndex,
         };
         var options = new ModelOptions
@@ -31,7 +31,7 @@ public class HashNodeTest
         var stateIndex = new StateIndex();
         var expectedNode = new HashNode
         {
-            Hash = RandomUtility.HashDigest<SHA256>(),
+            Hash = Rand.HashDigest<SHA256>(),
             StateIndex = stateIndex,
         };
         Assert.Throws<InvalidOperationException>(() => ModelSerializer.Clone(expectedNode));

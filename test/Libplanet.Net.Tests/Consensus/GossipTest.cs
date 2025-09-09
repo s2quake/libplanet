@@ -15,8 +15,8 @@ public sealed class GossipTest(ITestOutputHelper output)
     public async Task PublishMessage()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var block = new BlockBuilder
         {
         }.Create(proposer);
@@ -61,8 +61,8 @@ public sealed class GossipTest(ITestOutputHelper output)
     public async Task AddMessages()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);

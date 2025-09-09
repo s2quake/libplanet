@@ -36,7 +36,7 @@ public static class BlockchainExtensions
         var blocks = new (Block, BlockCommit)[count];
         for (var i = 0; i < count; i++)
         {
-            var signer = RandomUtility.Signer(random);
+            var signer = Rand.Signer(random);
             blocks[i] = @this.ProposeAndAppend(signer);
         }
 

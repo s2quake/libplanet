@@ -15,8 +15,8 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task EnterPreVoteBlockOneThird()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var options = new ConsensusOptions
@@ -58,8 +58,8 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task EnterPreCommitBlockTwoThird()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
@@ -112,13 +112,13 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task EnterPreCommitNilTwoThird()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
         var preCommitStepTask = consensus.StepChanged.WaitAsync(s => s.Step == ConsensusStep.PreCommit);
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         var invalidBlock = new RawBlock
         {
             Header = new BlockHeader
@@ -170,8 +170,8 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task EnterPreVoteNilOnInvalidBlockHeader()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
@@ -216,8 +216,8 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         // NOTE: This test does not check tx nonces, different state root hash.
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var invalidKey = new PrivateKey();
         var blockchainOptions = new BlockchainOptions
@@ -291,10 +291,10 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     {
         // NOTE: This test does not check tx nonces, different state root hash.
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
-        var txSigner = RandomUtility.Signer(random);
+        var txSigner = Rand.Signer(random);
         var blockchainOptions = new BlockchainOptions
         {
             SystemAction = new SystemAction
@@ -337,7 +337,7 @@ public class ContextNonProposerTest(ITestOutputHelper output)
                 Timestamp = DateTimeOffset.UtcNow,
                 Proposer = Signers[1].Address,
                 PreviousBlockHash = blockchain.Genesis.BlockHash,
-                PreviousStateRootHash = RandomUtility.HashDigest<SHA256>(random),
+                PreviousStateRootHash = Rand.HashDigest<SHA256>(random),
             },
             Content = new BlockContent
             {
@@ -399,8 +399,8 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task EnterPreVoteNilOneThird()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
@@ -458,8 +458,8 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task UponRulesCheckAfterTimeout()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var options = new ConsensusOptions
@@ -552,8 +552,8 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task TimeoutPreVote()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var options = new ConsensusOptions
@@ -614,8 +614,8 @@ public class ContextNonProposerTest(ITestOutputHelper output)
     public async Task TimeoutPreCommit()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var options = new ConsensusOptions

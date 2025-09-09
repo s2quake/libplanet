@@ -16,7 +16,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     protected ITransport CreateTransport(
         Random random, ISigner? signer = null, TransportOptions? options = null)
     {
-        signer ??= RandomUtility.PrivateKey(random).AsSigner();
+        signer ??= Rand.PrivateKey(random).AsSigner();
         options ??= new TransportOptions();
         if (options.Logger is NullLogger<ITransport>)
         {
@@ -35,7 +35,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task StartAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transport = CreateTransport(random);
         await transport.StartAsync(cancellationToken);
         Assert.True(transport.IsRunning);
@@ -45,7 +45,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task Restart()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transport = CreateTransport(random);
 
         await transport.StartAsync(cancellationToken);
@@ -61,14 +61,14 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task DisposeAsync_Test()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transport = CreateTransport(random);
 
         await transport.StartAsync(cancellationToken);
         await transport.StopAsync(cancellationToken);
         await transport.DisposeAsync();
 
-        var peer = RandomUtility.LocalPeer(random);
+        var peer = Rand.LocalPeer(random);
         var message = new PingMessage();
         await Assert.ThrowsAsync<ObjectDisposedException>(() => transport.StartAsync(cancellationToken));
         await Assert.ThrowsAsync<ObjectDisposedException>(() => transport.StopAsync(cancellationToken));
@@ -81,8 +81,8 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task Peer()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
         var host = IPAddress.Loopback.ToString();
         await using var transport = CreateTransport(random, signer);
 
@@ -111,7 +111,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task Post()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
@@ -130,7 +130,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task Post_AfterRestart()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
@@ -180,23 +180,23 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task Post_Throw_AfterDisposed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transport = CreateTransport(random);
 
         await transport.StartAsync(cancellationToken);
         await transport.DisposeAsync();
 
-        var peer = RandomUtility.LocalPeer(random);
+        var peer = Rand.LocalPeer(random);
         Assert.Throws<ObjectDisposedException>(() => transport.Post(peer, new PingMessage()));
     }
 
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task Post_Throw_NotRunning()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transport = CreateTransport(random);
 
-        var peer = RandomUtility.LocalPeer(random);
+        var peer = Rand.LocalPeer(random);
         Assert.Throws<InvalidOperationException>(() => transport.Post(peer, new PingMessage()));
     }
 
@@ -204,7 +204,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendAsync2_MultipleReplies()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
@@ -240,7 +240,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendAsync1_Throw_AfterCancel()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
@@ -260,7 +260,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendAsync1_Throw_NoReply()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var transportAOptions = new TransportOptions
         {
             ReplyTimeout = TimeSpan.FromMilliseconds(500),
@@ -279,7 +279,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendAsync1_Throw_AfterStop()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
@@ -298,7 +298,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendAsync2_Throw_AfterCancel()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
@@ -321,7 +321,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendAsync2_Throw_NoReply()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
 
@@ -342,7 +342,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendAsync2_Throw_AfterStop()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
         transportB.MessageRouter.Register<PingMessage>(async (m, e) =>
@@ -379,7 +379,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendToMany()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var count = 10;
         var transports = new ITransport[count];
         for (var i = 0; i < count; i++)
@@ -389,7 +389,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
 
         await transports.AsParallel().ForEachAsync(transport => transport.StartAsync(cancellationToken));
 
-        var sender = RandomUtility.Random(transports);
+        var sender = Rand.Random(transports);
         var receivers = transports.Where(t => t != sender).ToImmutableArray();
 
         var peers = receivers.Select(t => t.Peer).ToImmutableArray();
@@ -411,7 +411,7 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     public async Task SendToMany_Throw_AfterDisposed()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output, 1283411870);
+        var random = Rand.GetRandom(output, 1283411870);
         await using var transport = CreateTransport(random);
 
         await transport.StartAsync(cancellationToken);
@@ -420,8 +420,8 @@ public abstract class TransportTestBase(ITestOutputHelper output)
         // If the peers are empty, the exception does not occur
         transport.Post([], new PingMessage());
 
-        var peers = RandomUtility.Try(
-            generator: () => RandomUtility.Array(random, RandomUtility.LocalPeer).ToImmutableArray(),
+        var peers = Rand.Try(
+            generator: () => Rand.Array(random, Rand.LocalPeer).ToImmutableArray(),
             predicate: i => i.Length > 0);
         var e = Assert.Throws<AggregateException>(() => transport.Post(peers, new PingMessage()));
         Assert.All(e.InnerExceptions, e => Assert.IsType<ObjectDisposedException>(e));
@@ -430,14 +430,14 @@ public abstract class TransportTestBase(ITestOutputHelper output)
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task SendToMany_Throw_NotRunning()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         await using var transport = CreateTransport(random);
 
         // If the peers are empty, the exception does not occur
         transport.Post([], new PingMessage());
         
-        var peers = RandomUtility.Try(
-            generator: () => RandomUtility.Array(random, RandomUtility.LocalPeer).ToImmutableArray(),
+        var peers = Rand.Try(
+            generator: () => Rand.Array(random, Rand.LocalPeer).ToImmutableArray(),
             predicate: i => i.Length > 0);
         var e = Assert.Throws<AggregateException>(() => transport.Post(peers, new PingMessage()));
         Assert.All(e.InnerExceptions, e => Assert.IsType<InvalidOperationException>(e));

@@ -44,11 +44,11 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void ExistedRepository()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var repository1 = CreateRepository();
-        repository1.GenesisHeight = RandomUtility.NonNegative(random);
-        repository1.Height = RandomUtility.NonNegative(random);
-        repository1.StateRootHash = RandomUtility.HashDigest<SHA256>(random);
+        repository1.GenesisHeight = Rand.NonNegative(random);
+        repository1.Height = Rand.NonNegative(random);
+        repository1.StateRootHash = Rand.HashDigest<SHA256>(random);
 
         var propertyInfo = repository1.GetType().GetProperty("Database", BindingFlags.NonPublic | BindingFlags.Instance)!;
         var database = (IDatabase)propertyInfo.GetValue(repository1)!;
@@ -63,9 +63,9 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void GenesisHeight()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var repository = CreateRepository();
-        var genesisHeight = RandomUtility.NonNegative(random);
+        var genesisHeight = Rand.NonNegative(random);
         repository.GenesisHeight = genesisHeight;
 
         Assert.Equal(genesisHeight, repository.GenesisHeight);
@@ -78,7 +78,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
 
         Assert.Throws<ArgumentOutOfRangeException>(() => repository.GenesisHeight = -2);
 
-        var blockHash = RandomUtility.BlockHash(random);
+        var blockHash = Rand.BlockHash(random);
         repository.GenesisHeight = 0;
         repository.BlockHashes[0] = blockHash;
         Assert.Equal(blockHash, repository.GenesisBlockHash);
@@ -87,9 +87,9 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void Height()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var repository = CreateRepository();
-        var height = RandomUtility.NonNegative(random);
+        var height = Rand.NonNegative(random);
         repository.Height = height;
 
         Assert.Equal(height, repository.Height);
@@ -104,7 +104,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
 
         Assert.Throws<ArgumentOutOfRangeException>(() => repository.Height = -2);
 
-        var blockHash = RandomUtility.BlockHash(random);
+        var blockHash = Rand.BlockHash(random);
         repository.Height = 0;
         repository.BlockHashes[0] = blockHash;
         Assert.Equal(blockHash, repository.BlockHash);
@@ -113,9 +113,9 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void StateRootHash()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var repository = CreateRepository();
-        var stateRootHash = RandomUtility.HashDigest<SHA256>(random);
+        var stateRootHash = Rand.HashDigest<SHA256>(random);
         repository.StateRootHash = stateRootHash;
 
         Assert.Equal(stateRootHash, repository.StateRootHash);
@@ -128,13 +128,13 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void Append()
     {
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var repository = CreateRepository();
 
         var block1 = new BlockBuilder
         {
-            Height = RandomUtility.NonNegative(random),
+            Height = Rand.NonNegative(random),
             Transactions =
             [
                 new TransactionBuilder
@@ -149,8 +149,8 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
             ],
             Evidence =
             [
-                TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
-                TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
+                TestEvidence.Create(0, Rand.Address(random), DateTimeOffset.UtcNow),
+                TestEvidence.Create(0, Rand.Address(random), DateTimeOffset.UtcNow),
             ],
         }.Create(proposer);
 
@@ -217,18 +217,18 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void Append_Throw()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var repository = CreateRepository();
-        var block1 = RandomUtility.Block(random);
-        var block2 = RandomUtility.Try(random, RandomUtility.Block, item => item.Height != block1.Height);
+        var block1 = Rand.Block(random);
+        var block2 = Rand.Try(random, Rand.Block, item => item.Height != block1.Height);
         var blockCommit1 = new BlockCommit
         {
             Height = block1.Height,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
         };
         var blockCommit2 = new BlockCommit
         {
-            Height = RandomUtility.Try(random, RandomUtility.Int32, item => item != block2.Height),
+            Height = Rand.Try(random, Rand.Int32, item => item != block2.Height),
             BlockHash = block2.BlockHash,
         };
 
@@ -239,12 +239,12 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void GetBlock_ByBlockHash()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var repository = CreateRepository();
         var block = new BlockBuilder
         {
-            Height = RandomUtility.NonNegative(random),
-        }.Create(RandomUtility.Signer(random));
+            Height = Rand.NonNegative(random),
+        }.Create(Rand.Signer(random));
 
         repository.Append(block, default);
 
@@ -255,7 +255,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         var actualBlock3 = repository.GetBlockOrDefault(block.BlockHash);
         Assert.Equal(block, actualBlock3);
 
-        var nonExistentBlockHash = RandomUtility.BlockHash(random);
+        var nonExistentBlockHash = Rand.BlockHash(random);
         Assert.Throws<KeyNotFoundException>(() => repository.GetBlock(nonExistentBlockHash));
         Assert.False(repository.TryGetBlock(nonExistentBlockHash, out _));
         Assert.Null(repository.GetBlockOrDefault(nonExistentBlockHash));
@@ -264,12 +264,12 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void GetBlock_ByHeight()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var repository = CreateRepository();
         var block = new BlockBuilder
         {
-            Height = RandomUtility.NonNegative(random),
-        }.Create(RandomUtility.Signer(random));
+            Height = Rand.NonNegative(random),
+        }.Create(Rand.Signer(random));
 
         repository.Append(block, default);
 
@@ -280,7 +280,7 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
         var actualBlock3 = repository.GetBlockOrDefault(block.Height);
         Assert.Equal(block, actualBlock3);
 
-        var nonExistentHeight = RandomUtility.Try(random, RandomUtility.NonNegative, item => item != block.Height);
+        var nonExistentHeight = Rand.Try(random, Rand.NonNegative, item => item != block.Height);
         Assert.Throws<KeyNotFoundException>(() => repository.GetBlock(nonExistentHeight));
         Assert.False(repository.TryGetBlock(nonExistentHeight, out _));
         Assert.Null(repository.GetBlockOrDefault(nonExistentHeight));
@@ -289,25 +289,25 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
     [Fact]
     public void GetNonce()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var repository = CreateRepository();
-        var address = RandomUtility.Address(random);
-        var nonce = RandomUtility.Int32(random);
+        var address = Rand.Address(random);
+        var nonce = Rand.Int32(random);
 
         Assert.Equal(0, repository.GetNonce(address));
 
         repository.Nonces[address] = nonce;
         Assert.Equal(nonce, repository.GetNonce(address));
 
-        Assert.Equal(0, repository.GetNonce(RandomUtility.Address(random)));
+        Assert.Equal(0, repository.GetNonce(Rand.Address(random)));
     }
 
     [Fact]
     public async Task CopyToAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var repositoryA = CreateRepository();
         var repositoryB = CreateRepository();
 
@@ -328,8 +328,8 @@ public abstract class RepositoryTestBase<TRepository>(ITestOutputHelper output)
             ],
             Evidence =
             [
-                TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
-                TestEvidence.Create(0, RandomUtility.Address(random), DateTimeOffset.UtcNow),
+                TestEvidence.Create(0, Rand.Address(random), DateTimeOffset.UtcNow),
+                TestEvidence.Create(0, Rand.Address(random), DateTimeOffset.UtcNow),
             ],
         }.Create(proposer);
 

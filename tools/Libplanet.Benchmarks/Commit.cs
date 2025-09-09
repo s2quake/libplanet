@@ -21,7 +21,7 @@ public class Commit
     [GlobalSetup]
     public void Setup()
     {
-        _blockHash = RandomUtility.BlockHash();
+        _blockHash = Rand.BlockHash();
         SetupKeys();
         SetupVotes();
     }
@@ -47,7 +47,7 @@ public class Commit
 
     private void SetupKeys()
     {
-        _validators = RandomUtility.ImmutableSortedSet(RandomUtility.TestValidator, MaxValidatorSize);
+        _validators = Rand.ImmutableSortedSet(Rand.TestValidator, MaxValidatorSize);
     }
 
     private void SetupVotes()

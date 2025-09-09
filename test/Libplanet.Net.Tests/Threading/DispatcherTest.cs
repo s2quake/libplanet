@@ -43,8 +43,8 @@ public class DispatcherTest(ITestOutputHelper output)
     public async Task InvokeAsync_WithAction()
     {
         var dispatcher = new Dispatcher();
-        var random = RandomUtility.GetRandom(output);
-        var expected = RandomUtility.Try(random, RandomUtility.Int32, item => item != 0);
+        var random = Rand.GetRandom(output);
+        var expected = Rand.Try(random, Rand.Int32, item => item != 0);
         var actual = 0;
         await dispatcher.InvokeAsync(() => { actual = expected; });
         Assert.Equal(expected, actual);
@@ -58,8 +58,8 @@ public class DispatcherTest(ITestOutputHelper output)
     public async Task InvokeAsync_WithFunc()
     {
         var dispatcher = new Dispatcher();
-        var random = RandomUtility.GetRandom(output);
-        var expected = RandomUtility.Try(random, RandomUtility.Int32, item => item != 0);
+        var random = Rand.GetRandom(output);
+        var expected = Rand.Try(random, Rand.Int32, item => item != 0);
         var actual = await dispatcher.InvokeAsync(() => expected);
         Assert.Equal(expected, actual);
 
@@ -72,8 +72,8 @@ public class DispatcherTest(ITestOutputHelper output)
     public async Task InvokeAsync_WithActionTask()
     {
         var dispatcher = new Dispatcher();
-        var random = RandomUtility.GetRandom(output);
-        var expected = RandomUtility.Try(random, RandomUtility.Int32, item => item != 0);
+        var random = Rand.GetRandom(output);
+        var expected = Rand.Try(random, Rand.Int32, item => item != 0);
         var actual = 0;
         await dispatcher.InvokeAsync(async () =>
         {
@@ -92,8 +92,8 @@ public class DispatcherTest(ITestOutputHelper output)
     public async Task InvokeAsync_WithFuncTask()
     {
         var dispatcher = new Dispatcher();
-        var random = RandomUtility.GetRandom(output);
-        var expected = RandomUtility.Try(random, RandomUtility.Int32, item => item != 0);
+        var random = Rand.GetRandom(output);
+        var expected = Rand.Try(random, Rand.Int32, item => item != 0);
         var actual = await dispatcher.InvokeAsync(async () =>
         {
             await Task.Delay(10);
@@ -300,7 +300,7 @@ public class DispatcherTest(ITestOutputHelper output)
     {
         await using var dispatcher = new Dispatcher();
         var list = new List<int>();
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
 
         var funcs = new Func<int, Task>[]
         {

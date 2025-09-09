@@ -12,7 +12,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.ParseLiteral(new NullValue()));
 
-            var bytes = RandomUtility.Bytes(Address.Size);
+            var bytes = Rand.Bytes(Address.Size);
             var address = new Address([.. bytes]);
             var hex = ByteUtility.Hex(bytes);
             var prefixedHex = address.ToString();
@@ -34,7 +34,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.ParseValue(null));
 
-            var bytes = RandomUtility.Bytes(Address.Size);
+            var bytes = Rand.Bytes(Address.Size);
             var address = new Address([.. bytes]);
             var hex = ByteUtility.Hex(bytes);
             var prefixedHex = address.ToString();
@@ -51,7 +51,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.Serialize(null));
 
-            var bytes = RandomUtility.Bytes(Address.Size);
+            var bytes = Rand.Bytes(Address.Size);
             var address = new Address([.. bytes]);
             var hex = ByteUtility.Hex(bytes);
             var prefixedHex = address.ToString();

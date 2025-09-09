@@ -13,8 +13,8 @@ public class ConsensusServiceTest(ITestOutputHelper output)
     public async Task StartAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var count = Signers.Length;
         var blockchains = new Blockchain[count];

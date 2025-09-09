@@ -9,7 +9,7 @@ public sealed class RocksBlockDigestIndexTest(ITestOutputHelper output)
     protected override BlockDigestIndex CreateIndex(RocksDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
-    protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
+    protected override BlockHash CreateKey(Random random) => Rand.BlockHash(random);
 
-    protected override BlockDigest CreateValue(Random random) => RandomUtility.BlockDigest(random);
+    protected override BlockDigest CreateValue(Random random) => Rand.BlockDigest(random);
 }

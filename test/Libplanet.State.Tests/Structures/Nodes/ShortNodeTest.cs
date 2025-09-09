@@ -12,8 +12,8 @@ public class ShortNodeTest
     {
         var expectedNode = new ShortNode
         {
-            Key = RandomUtility.Word(),
-            Value = new ValueNode { Value = RandomUtility.Word() },
+            Key = Rand.Word(),
+            Value = new ValueNode { Value = Rand.Word() },
         };
         var actualNode = ModelSerializer.Clone(expectedNode);
         Assert.Equal(expectedNode, actualNode);
@@ -22,8 +22,8 @@ public class ShortNodeTest
     [Fact]
     public void Key_Value()
     {
-        var key = RandomUtility.Word();
-        var valueNode = new ValueNode { Value = RandomUtility.Word() };
+        var key = Rand.Word();
+        var valueNode = new ValueNode { Value = Rand.Word() };
         var node = new ShortNode
         {
             Key = key,
@@ -37,8 +37,8 @@ public class ShortNodeTest
     [Fact]
     public void INode_Children()
     {
-        var key = RandomUtility.Word();
-        var valueNode = new ValueNode { Value = RandomUtility.Word() };
+        var key = Rand.Word();
+        var valueNode = new ValueNode { Value = Rand.Word() };
         var node = new ShortNode
         {
             Key = key,
@@ -51,8 +51,8 @@ public class ShortNodeTest
     [Fact]
     public void IValidatableObject_Validate()
     {
-        var key = RandomUtility.Word();
-        var valueNode = new ValueNode { Value = RandomUtility.Word() };
+        var key = Rand.Word();
+        var valueNode = new ValueNode { Value = Rand.Word() };
         var node1 = new ShortNode
         {
             Key = key,

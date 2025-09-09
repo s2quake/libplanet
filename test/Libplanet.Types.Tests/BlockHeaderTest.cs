@@ -20,8 +20,8 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void SerializeAndDeserialize()
     {
-        var random = RandomUtility.GetRandom(output);
-        var expected = RandomUtility.BlockHeader(random);
+        var random = Rand.GetRandom(output);
+        var expected = Rand.BlockHeader(random);
         var serialized = ModelSerializer.SerializeToBytes(expected);
         var actual = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(expected, actual);
@@ -30,7 +30,7 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void Ctor()
     {
-        var proposer = RandomUtility.Address();
+        var proposer = Rand.Address();
         var blockHeader = new BlockHeader
         {
             Height = 0,
@@ -49,8 +49,8 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void Version()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHeader = RandomUtility.BlockHeader(random) with
+        var random = Rand.GetRandom(output);
+        var blockHeader = Rand.BlockHeader(random) with
         {
             Version = 0,
         };
@@ -70,9 +70,9 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void Height()
     {
-        var random = RandomUtility.GetRandom(output);
-        var height = RandomUtility.NonNegative(random);
-        var blockHeader = RandomUtility.BlockHeader(random) with
+        var random = Rand.GetRandom(output);
+        var height = Rand.NonNegative(random);
+        var blockHeader = Rand.BlockHeader(random) with
         {
             Height = height,
         };
@@ -87,9 +87,9 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void Timestamp()
     {
-        var random = RandomUtility.GetRandom(output);
-        var timestamp = RandomUtility.DateTimeOffset(random);
-        var blockHeader = RandomUtility.BlockHeader(random) with
+        var random = Rand.GetRandom(output);
+        var timestamp = Rand.DateTimeOffset(random);
+        var blockHeader = Rand.BlockHeader(random) with
         {
             Timestamp = timestamp,
         };
@@ -104,9 +104,9 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void Proposer()
     {
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Address(random);
-        var blockHeader = RandomUtility.BlockHeader(random) with
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Address(random);
+        var blockHeader = Rand.BlockHeader(random) with
         {
             Proposer = proposer,
         };
@@ -121,9 +121,9 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void PreviousHash()
     {
-        var random = RandomUtility.GetRandom(output);
-        var previousHash = RandomUtility.BlockHash(random);
-        var blockHeader = RandomUtility.BlockHeader(random) with
+        var random = Rand.GetRandom(output);
+        var previousHash = Rand.BlockHash(random);
+        var blockHeader = Rand.BlockHeader(random) with
         {
             PreviousBlockHash = previousHash,
         };
@@ -133,9 +133,9 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void PreviousCommit()
     {
-        var random = RandomUtility.GetRandom(output);
-        var previousCommit = RandomUtility.BlockCommit(random);
-        var blockHeader = RandomUtility.BlockHeader(random) with
+        var random = Rand.GetRandom(output);
+        var previousCommit = Rand.BlockCommit(random);
+        var blockHeader = Rand.BlockHeader(random) with
         {
             PreviousBlockCommit = previousCommit,
         };
@@ -145,9 +145,9 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     [Fact]
     public void PreviousStateRootHash()
     {
-        var random = RandomUtility.GetRandom(output);
-        var previousStateRootHash = RandomUtility.HashDigest<SHA256>(random);
-        var blockHeader = RandomUtility.BlockHeader(random) with
+        var random = Rand.GetRandom(output);
+        var previousStateRootHash = Rand.HashDigest<SHA256>(random);
+        var blockHeader = Rand.BlockHeader(random) with
         {
             PreviousStateRootHash = previousStateRootHash,
         };

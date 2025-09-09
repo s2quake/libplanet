@@ -13,10 +13,10 @@ public class Serialization
     {
         var seed = Random.Shared.Next();
         var random = new Random(seed);
-        var proposer = RandomUtility.Signer(random);
-        var validators = RandomUtility.ImmutableSortedSet(
+        var proposer = Rand.Signer(random);
+        var validators = Rand.ImmutableSortedSet(
             random,
-            RandomUtility.TestValidator,
+            Rand.TestValidator,
             10);
         var genesisBlock = new GenesisBlockBuilder
         {

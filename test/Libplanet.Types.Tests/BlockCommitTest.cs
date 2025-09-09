@@ -9,9 +9,9 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
     [Fact]
     public void ToHash()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
-        var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
+        var signers = Rand.Array(random, Rand.Signer, 4);
         var votes = signers.Select((signer, index) =>
                 new VoteMetadata
                 {
@@ -20,7 +20,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
                     BlockHash = blockHash,
                     Timestamp = DateTimeOffset.UtcNow,
                     Validator = signer.Address,
-                    ValidatorPower = RandomUtility.PositiveBigInteger(random),
+                    ValidatorPower = Rand.PositiveBigInteger(random),
                     Type = VoteType.PreCommit,
                 }.Sign(signer))
             .ToImmutableArray();
@@ -41,9 +41,9 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
     [Fact]
     public void HeightAndRoundMustNotBeNegative()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
+        var signer = Rand.Signer(random);
         var votes = ImmutableArray.Create(
             new VoteMetadata
             {
@@ -52,7 +52,7 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
                 BlockHash = blockHash,
                 Timestamp = DateTimeOffset.UtcNow,
                 Validator = signer.Address,
-                ValidatorPower = RandomUtility.PositiveBigInteger(random),
+                ValidatorPower = Rand.PositiveBigInteger(random),
                 Type = VoteType.PreCommit,
             }.Sign(signer));
 
@@ -82,8 +82,8 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
     [Fact]
     public void VotesCannotBeEmpty()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
         var exception1 = ModelAssert.Throws(
             new BlockCommit
             {
@@ -108,9 +108,9 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
     [Fact]
     public void EveryVoteMustHaveSameHeightAndRoundAsBlockCommit()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
+        var signer = Rand.Signer(random);
         var height = 2;
         var round = 3;
 
@@ -164,10 +164,10 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
     [Fact]
     public void EveryVoteMustHaveSameHashAsBlockCommit()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
-        var invalidHash = RandomUtility.BlockHash(random);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
+        var invalidHash = Rand.BlockHash(random);
+        var signer = Rand.Signer(random);
         var height = 2;
         var round = 3;
 
@@ -197,9 +197,9 @@ public sealed class BlockCommitTest(ITestOutputHelper output)
     [Fact]
     public void EveryVoteTypeMustBeNullOrPreCommit()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
-        var signers = RandomUtility.Array(random, RandomUtility.Signer, 4);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
+        var signers = Rand.Array(random, Rand.Signer, 4);
         var height = 2;
         var round = 3;
         var preCommitVotes = signers.Select(

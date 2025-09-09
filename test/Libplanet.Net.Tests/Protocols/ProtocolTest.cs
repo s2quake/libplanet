@@ -407,8 +407,8 @@ public sealed class ProtocolTest(ITestOutputHelper output)
     {
         const int peersCount = 10;
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
         var privateKeys = Enumerable.Range(0, peersCount).Select(
             i => GeneratePrivateKeyOfBucketIndex(signer.Address, i / 2));
         await using var transport = CreateTransport(signer);

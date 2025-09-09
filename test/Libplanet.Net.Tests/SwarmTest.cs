@@ -147,8 +147,8 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task MaintainStaticPeers()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var signerA = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signerA = Rand.Signer(random);
 
         await using var transportA = CreateTransport(signerA);
         await using var transportB = CreateTransport();
@@ -202,9 +202,9 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task GetBlocks()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var signerA = RandomUtility.Signer(random);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signerA = Rand.Signer(random);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchainA = new Blockchain(genesisBlock: genesisBlock);
         var blockchainB = new Blockchain(genesisBlock: genesisBlock);
@@ -232,11 +232,11 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task GetMultipleBlocksAtOnce()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
-        var signerA = RandomUtility.Signer(random);
-        var signerB = RandomUtility.Signer(random);
+        var signerA = Rand.Signer(random);
+        var signerB = Rand.Signer(random);
 
         var transportA = CreateTransport(signerA);
         var transportB = CreateTransport(signerB);
@@ -284,16 +284,16 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task GetTx()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
-        var signerB = RandomUtility.Signer(random);
+        var signerB = Rand.Signer(random);
         var transportA = CreateTransport();
         var transportB = CreateTransport(signerB);
         var blockchainA = new Blockchain(genesisBlock);
         var blockchainB = new Blockchain(genesisBlock);
         var fetcherA = new TransactionFetcher(blockchainA, transportA);
-        var txSigner = RandomUtility.Signer(random);
+        var txSigner = Rand.Signer(random);
         var tx = blockchainB.CreateTransaction(txSigner);
 
         await using var transports = new ServiceCollection
@@ -317,11 +317,11 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task CannotBlockSyncWithForkedChain()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
-        var signerA = RandomUtility.Signer(random);
-        var signerB = RandomUtility.Signer(random);
+        var signerA = Rand.Signer(random);
+        var signerB = Rand.Signer(random);
         var transportA = CreateTransport(signerA);
         var transportB = CreateTransport(signerB);
         var peersB = new PeerCollection(transportB.Peer.Address);
@@ -343,7 +343,7 @@ public partial class SwarmTest(ITestOutputHelper output)
             syncResponderServiceB,
         };
 
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         var addr = transportA.Peer.Address;
         var item = "foo";
 
@@ -379,8 +379,8 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task UnstageInvalidTransaction()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var validSigner = new PrivateKey().AsSigner();
         var blockchainOptions = new BlockchainOptions
         {
@@ -422,7 +422,7 @@ public partial class SwarmTest(ITestOutputHelper output)
             syncServiceB,
         };
 
-        var invalidSigner = RandomUtility.Signer(random);
+        var invalidSigner = Rand.Signer(random);
         var validTx = blockchainA.StagedTransactions.Add(validSigner);
         var invalidTx = blockchainA.StagedTransactions.Add(invalidSigner);
 
@@ -446,9 +446,9 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task IgnoreTransactionFromDifferentGenesis()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
-        var validSigner = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
+        var validSigner = Rand.Signer(random);
         var blockchainOptions = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
@@ -503,13 +503,13 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task DoNotReceiveBlockFromNodeHavingDifferentGenesisBlock()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var signerA = PrivateKey.Parse("8568eb6f287afedece2c7b918471183db0451e1a61535bb0381cfdf95b85df20").AsSigner();
         var signerB = PrivateKey.Parse("c34f7498befcc39a14f03b37833f6c7bb78310f1243616524eda70e078b8313c").AsSigner();
         var signerC = PrivateKey.Parse("941bc2edfab840d79914d80fe3b30840628ac37a5d812d7f922b5d2405a223d3").AsSigner();
 
-        var signerAddress = RandomUtility.Address(random);
+        var signerAddress = Rand.Address(random);
 
         var genesisBlockBuilderA = TestUtils.GenesisBlockBuilder with
         {
@@ -695,8 +695,8 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task DoNotFillWhenGetAllBlockAtFirstTimeFromSender()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var transportA = CreateTransport();
         var transportB = CreateTransport();
@@ -737,8 +737,8 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task FillWhenGetAChunkOfBlocksFromSender()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var transportA = CreateTransport();
         var transportB = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
@@ -778,8 +778,8 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task FillWhenGetAllBlocksFromSender()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var transportA = CreateTransport();
         var transportB = CreateTransport();
         var peersA = new PeerCollection(transportA.Peer.Address);
@@ -828,9 +828,9 @@ public partial class SwarmTest(ITestOutputHelper output)
     public async Task GetPeerChainStateAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
-        var signerB = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
+        var signerB = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
 
         var transportA = CreateTransport();
@@ -892,8 +892,8 @@ public partial class SwarmTest(ITestOutputHelper output)
     {
         const int MaxConcurrentResponses = 3;
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var transportA = CreateTransport();
         var transportB = CreateTransport();
@@ -940,8 +940,8 @@ public partial class SwarmTest(ITestOutputHelper output)
     {
         const int MaxConcurrentResponses = 3;
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var transportA = CreateTransport();
         var transportB = CreateTransport();

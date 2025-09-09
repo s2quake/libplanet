@@ -17,10 +17,10 @@ public class Repository
         const int blockCount = 500;
         var seed = Random.Shared.Next();
         var random = new Random(seed);
-        var proposer = RandomUtility.Signer(random);
-        var validators = RandomUtility.ImmutableSortedSet(
+        var proposer = Rand.Signer(random);
+        var validators = Rand.ImmutableSortedSet(
             random,
-            RandomUtility.TestValidator,
+            Rand.TestValidator,
             10);
         var genesisBlock = new GenesisBlockBuilder
         {
@@ -31,7 +31,7 @@ public class Repository
         {
             genesisBlock,
         };
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         var nonce = 0L;
         for (var i = 0; i < blockCount; i++)
         {

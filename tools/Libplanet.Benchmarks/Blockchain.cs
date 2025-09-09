@@ -13,10 +13,10 @@ public class Blockchain
     {
         var seed = Random.Shared.Next();
         var random = new Random(seed);
-        var proposer = RandomUtility.Signer(random);
-        var validators = RandomUtility.ImmutableSortedSet(
+        var proposer = Rand.Signer(random);
+        var validators = Rand.ImmutableSortedSet(
             random,
-            RandomUtility.TestValidator,
+            Rand.TestValidator,
             10);
         var genesisBlock = new GenesisBlockBuilder
         {
@@ -25,7 +25,7 @@ public class Blockchain
         _blockchain = new Libplanet.Blockchain(genesisBlock);
         for (var i = 0; i < 500; i++)
         {
-            var signer = RandomUtility.Signer(random);
+            var signer = Rand.Signer(random);
             _blockchain.ProposeAndAppend(signer, validators);
         }
     }

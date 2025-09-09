@@ -17,8 +17,8 @@ public sealed partial class AddressTest(ITestOutputHelper output)
     [Fact]
     public void SerializeAndDeserialize()
     {
-        var random = RandomUtility.GetRandom(output);
-        var address1 = RandomUtility.Address(random);
+        var random = Rand.GetRandom(output);
+        var address1 = Rand.Address(random);
         var serialized = ModelSerializer.SerializeToBytes(address1);
         var address2 = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(address1, address2);
@@ -68,8 +68,8 @@ public sealed partial class AddressTest(ITestOutputHelper output)
     [Fact]
     public void Bytes()
     {
-        var random = RandomUtility.GetRandom(output);
-        var bytes = RandomUtility.Array(random, RandomUtility.Byte, Address.Size);
+        var random = Rand.GetRandom(output);
+        var bytes = Rand.Array(random, Rand.Byte, Address.Size);
         var address = new Address(bytes);
         Assert.Equal(bytes, address.Bytes);
     }
@@ -102,17 +102,17 @@ public sealed partial class AddressTest(ITestOutputHelper output)
     [Fact]
     public void Verify()
     {
-        var random = RandomUtility.GetRandom(output);
-        var privateKey = RandomUtility.PrivateKey(random);
+        var random = Rand.GetRandom(output);
+        var privateKey = Rand.PrivateKey(random);
         var address = privateKey.Address;
-        var message = RandomUtility.Array(random, RandomUtility.Byte);
+        var message = Rand.Array(random, Rand.Byte);
         var signature = privateKey.Sign(message);
         Assert.True(address.Verify(message, signature));
 
-        var invalidAddress = RandomUtility.Address(random);
+        var invalidAddress = Rand.Address(random);
         Assert.False(invalidAddress.Verify(message, signature));
 
-        var invalidSignature = RandomUtility.Array(random, RandomUtility.Byte, signature.Length);
+        var invalidSignature = Rand.Array(random, Rand.Byte, signature.Length);
         Assert.False(address.Verify(message, invalidSignature));
         Assert.False(address.Verify(message, []));
     }
@@ -120,9 +120,9 @@ public sealed partial class AddressTest(ITestOutputHelper output)
     [Fact]
     public void Equals_Test()
     {
-        var random = RandomUtility.GetRandom(output);
-        var address1 = RandomUtility.Address(random);
-        var address2 = RandomUtility.Address(random);
+        var random = Rand.GetRandom(output);
+        var address1 = Rand.Address(random);
+        var address2 = Rand.Address(random);
         var sameAddress = new Address(address1.Bytes);
 
         Assert.True(address1.Equals(sameAddress));
@@ -134,9 +134,9 @@ public sealed partial class AddressTest(ITestOutputHelper output)
     [Fact]
     public void GetHashCode_Test()
     {
-        var random = RandomUtility.GetRandom(output);
-        var address1 = RandomUtility.Address(random);
-        var address2 = RandomUtility.Address(random);
+        var random = Rand.GetRandom(output);
+        var address1 = Rand.Address(random);
+        var address2 = Rand.Address(random);
         var sameAddress = new Address(address1.Bytes);
 
         Assert.Equal(address1.GetHashCode(), ByteUtility.GetHashCode(address1.Bytes));

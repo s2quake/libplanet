@@ -14,8 +14,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlock()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var block = new RawBlock
@@ -38,9 +38,9 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockProtocolVersion()
     {
-        var random = RandomUtility.GetRandom(_output);
+        var random = Rand.GetRandom(_output);
         var blockVersion = 10;
-        var proposer = RandomUtility.Signer(random);
+        var proposer = Rand.Signer(random);
         var repository = new Repository
         {
             BlockVersion = blockVersion,
@@ -113,8 +113,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockInvalidIndex()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
 
@@ -153,8 +153,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockInvalidPreviousHash()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
@@ -177,8 +177,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockInvalidTimestamp()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var (block1, blockCommit1) = blockchain.ProposeAndAppend(proposer);
@@ -201,8 +201,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockInvalidStateRootHash()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var optionsA = new BlockchainOptions
         {
@@ -234,7 +234,7 @@ public partial class BlockchainTest
             Height = 1,
             Timestamp = genesisBlock.Timestamp.AddSeconds(1),
             PreviousBlockHash = genesisBlock.BlockHash,
-            PreviousStateRootHash = RandomUtility.HashDigest<SHA256>(random),
+            PreviousStateRootHash = Rand.HashDigest<SHA256>(random),
         }.Create(proposer);
         var blockCommitB = CreateBlockCommit(blockB);
 
@@ -244,8 +244,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockLastCommitNullAtIndexOne()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
 
@@ -263,8 +263,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockLastCommitUpperIndexOne()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
@@ -284,13 +284,13 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockLastCommitFailsUnexpectedValidator()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
 
-        var validators = TestValidators.Add(new(RandomUtility.Signer(random)));
+        var validators = TestValidators.Add(new(Rand.Signer(random)));
         var votes = Enumerable.Range(0, validators.Count).Select(index => new VoteBuilder
         {
             Validator = validators[index],
@@ -318,8 +318,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockLastCommitFailsDropExpectedValidator()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var (block1, _) = blockchain.ProposeAndAppend(proposer);
@@ -351,8 +351,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateBlockCommitGenesis()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchainA = new Blockchain();
         // Works fine.
@@ -369,13 +369,13 @@ public partial class BlockchainTest
                     Metadata = new VoteMetadata
                     {
                         Height = 1,
-                        BlockHash = RandomUtility.BlockHash(random),
+                        BlockHash = Rand.BlockHash(random),
                         Timestamp = DateTimeOffset.UtcNow,
                         Validator = validator.Address,
                         ValidatorPower = BigInteger.One,
                         Type = VoteType.PreCommit,
                     },
-                    Signature = RandomUtility.ImmutableArray(random, RandomUtility.Byte),
+                    Signature = Rand.ImmutableArray(random, Rand.Byte),
                 }),
             ],
         };
@@ -386,8 +386,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateBlockCommitFailsDifferentBlockHash()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var block1 = new BlockBuilder
@@ -397,7 +397,7 @@ public partial class BlockchainTest
             PreviousBlockHash = genesisBlock.BlockHash,
             PreviousStateRootHash = blockchain.StateRootHash,
         }.Create(proposer);
-        var blockCommit1 = CreateBlockCommit(RandomUtility.BlockHash(random), 1, 0);
+        var blockCommit1 = CreateBlockCommit(Rand.BlockHash(random), 1, 0);
 
         Assert.Throws<ArgumentException>("blockCommit", () => blockchain.Append(block1, blockCommit1));
     }
@@ -405,8 +405,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateBlockCommitFailsDifferentHeight()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
 
@@ -425,8 +425,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateBlockCommitFailsDifferentValidatorSet()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
 
@@ -463,7 +463,7 @@ public partial class BlockchainTest
             };
             var options = new ModelOptions();
             var message = ModelSerializer.SerializeToBytes(metadata, options);
-            var signer = RandomUtility.Signer(random);
+            var signer = Rand.Signer(random);
             var signature = signer.Sign(message);
             return new Vote { Metadata = metadata, Signature = [.. signature] };
         }
@@ -472,8 +472,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateBlockCommitFailsNullBlockCommit()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var block1 = new BlockBuilder
@@ -490,15 +490,15 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateBlockCommitFailsInsufficientPower()
     {
-        var random = RandomUtility.GetRandom(_output);
+        var random = Rand.GetRandom(_output);
         ImmutableSortedSet<TestValidator> validators =
         [
-            new TestValidator(RandomUtility.Signer(random), 10),
-            new TestValidator(RandomUtility.Signer(random), 1),
-            new TestValidator(RandomUtility.Signer(random), 1),
-            new TestValidator(RandomUtility.Signer(random), 1),
+            new TestValidator(Rand.Signer(random), 10),
+            new TestValidator(Rand.Signer(random), 1),
+            new TestValidator(Rand.Signer(random), 1),
+            new TestValidator(Rand.Signer(random), 1),
         ];
-        var proposer = RandomUtility.Signer(random);
+        var proposer = Rand.Signer(random);
         var genesisBlock = new GenesisBlockBuilder
         {
             Validators = [.. validators.Select(item => (Validator)item)],
@@ -591,8 +591,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockOnChainRestart()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var block = new BlockBuilder
@@ -610,8 +610,8 @@ public partial class BlockchainTest
     [Fact]
     public void ValidateNextBlockAEVChangedOnChainRestart()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var options = new BlockchainOptions
         {

@@ -96,7 +96,7 @@ public sealed partial class AddressTest
                 continue;
             }
 
-            var bytes = RandomUtility.Array(RandomUtility.Byte, size);
+            var bytes = Rand.Array(Rand.Byte, size);
             Assert.Throws<ArgumentException>(() => new Address(bytes));
         }
     }
@@ -104,7 +104,7 @@ public sealed partial class AddressTest
     [Fact]
     public void ToByteArray()
     {
-        var addressBytes = RandomUtility.Array(RandomUtility.Byte, 20);
+        var addressBytes = Rand.Array(Rand.Byte, 20);
         var address = new Address([.. addressBytes]);
         Assert.Equal(addressBytes, address.Bytes);
     }
@@ -162,7 +162,7 @@ public sealed partial class AddressTest
     [Fact]
     public void Compare()
     {
-        var addresses = RandomUtility.Array(RandomUtility.Address, 50);
+        var addresses = Rand.Array(Rand.Address, 50);
 
         for (var i = 1; i < addresses.Length; i++)
         {
@@ -198,7 +198,7 @@ public sealed partial class AddressTest
     [Fact]
     public void Bencoded()
     {
-        var expected = RandomUtility.Address();
+        var expected = Rand.Address();
         var deserialized = ModelSerializer.Clone(expected);
         Assert.Equal(expected, deserialized);
         expected = default;

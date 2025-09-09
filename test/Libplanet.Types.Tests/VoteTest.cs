@@ -18,8 +18,8 @@ public sealed class VoteTest(ITestOutputHelper output)
     [Fact]
     public void SerializeAndDeserialize()
     {
-        var random = RandomUtility.GetRandom(output);
-        var value1 = RandomUtility.Vote(random);
+        var random = Rand.GetRandom(output);
+        var value1 = Rand.Vote(random);
         var serialized = ModelSerializer.SerializeToBytes(value1);
         var value2 = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(value1, value2);
@@ -28,16 +28,16 @@ public sealed class VoteTest(ITestOutputHelper output)
     [Fact]
     public void Base_Test()
     {
-        var random = RandomUtility.GetRandom(output);
-        var validatorKey = RandomUtility.PrivateKey(random);
+        var random = Rand.GetRandom(output);
+        var validatorKey = Rand.PrivateKey(random);
         var validator = validatorKey.Address;
-        var blockHash = RandomUtility.BlockHash(random);
-        var height = RandomUtility.NonNegative(random);
-        var round = RandomUtility.NonNegative(random);
-        var timestamp = RandomUtility.DateTimeOffset(random);
-        var validatorPower = RandomUtility.Positive(random);
-        var type = RandomUtility.Try(
-            random, RandomUtility.Enum<VoteType>, item => item is not VoteType.Null and not VoteType.Unknown);
+        var blockHash = Rand.BlockHash(random);
+        var height = Rand.NonNegative(random);
+        var round = Rand.NonNegative(random);
+        var timestamp = Rand.DateTimeOffset(random);
+        var validatorPower = Rand.Positive(random);
+        var type = Rand.Try(
+            random, Rand.Enum<VoteType>, item => item is not VoteType.Null and not VoteType.Unknown);
 
         var metadata = new VoteMetadata
         {

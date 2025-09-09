@@ -13,8 +13,8 @@ public partial class SwarmTest
     public async Task DetectAppProtocolVersion()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
         var v2 = new TransportOptions()
         {
             Protocol = new ProtocolBuilder { Version = 2 }.Create(signer),
@@ -63,8 +63,8 @@ public partial class SwarmTest
     public async Task HandleDifferentAppProtocolVersion()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
         var v1 = new TransportOptions
         {
             Protocol = new ProtocolBuilder { Version = 1 }.Create(signer),

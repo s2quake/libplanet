@@ -15,8 +15,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public async Task Evidence_WithDuplicateVotes_Test()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
@@ -64,7 +64,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
                     ValidatorPower = Validators[0].Power,
                     Timestamp = DateTimeOffset.UtcNow,
                     Height = 3,
-                    BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+                    BlockHash = new BlockHash(Rand.Bytes(BlockHash.Size)),
                     Type = VoteType.PreCommit,
                 }.Sign(Signers[0])
             });
@@ -91,8 +91,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public async Task IgnoreDifferentHeightVote()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
@@ -113,7 +113,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         blockchain.ProposeAndAppend(Signers[2]);
 
         var proposal3 = await proposed3Task.WaitAsync(cancellationToken);
-        var invalidBlockHash3 = RandomUtility.BlockHash(random);
+        var invalidBlockHash3 = Rand.BlockHash(random);
 
         transportA.PostPreCommit(transportB.Peer, 0, proposal3.Block);
         transportA.PostPreCommit(transportB.Peer, 0, invalidBlockHash3, height: 4);
@@ -129,8 +129,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public async Task IgnoreDifferentRoundVote()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
@@ -147,7 +147,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         blockchain.ProposeAndAppend(Signers[2]);
 
         var proposal3 = await proposed3Task.WaitAsync(cancellationToken);
-        var invalidBlockHash3 = RandomUtility.BlockHash(random);
+        var invalidBlockHash3 = Rand.BlockHash(random);
 
         transportA.PostPreCommit(transportB.Peer, 0, proposal3.Block);
         transportA.PostPreCommit(transportB.Peer, 0, invalidBlockHash3, height: 3, round: 1);
@@ -163,8 +163,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public async Task IgnoreDifferentFlagVote()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
@@ -185,7 +185,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         blockchain.ProposeAndAppend(Signers[2]);
 
         var proposal3 = await proposed3Task.WaitAsync(cancellationToken);
-        var invalidBlockHash3 = RandomUtility.BlockHash(random);
+        var invalidBlockHash3 = Rand.BlockHash(random);
 
         transportA.PostPreCommit(transportB.Peer, 0, proposal3.Block);
         transportA.PostPreVote(transportB.Peer, 0, invalidBlockHash3, height: 3);
@@ -201,8 +201,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public async Task IgnoreSameBlockHashVote()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
@@ -238,8 +238,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public async Task IgnoreNillVote()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);

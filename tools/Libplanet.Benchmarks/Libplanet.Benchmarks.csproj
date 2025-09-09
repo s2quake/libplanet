@@ -17,4 +17,8 @@
     <ProjectReference Include="..\..\src\Libplanet.Data.RocksDB\Libplanet.Data.RocksDB.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Libplanet.TestUtilities.RandomUtility" Alias="Rand" />
+  </ItemGroup>
+
 </Project>

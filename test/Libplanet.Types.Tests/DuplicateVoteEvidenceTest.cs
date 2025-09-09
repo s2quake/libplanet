@@ -9,8 +9,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public void Create_WithDifferentHeight_FailTest()
     {
         // Given
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
         var validatorAddress = signer.Address;
         ImmutableSortedSet<Validator> validators =
         [
@@ -21,7 +21,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 2,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -31,7 +31,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 2,
             Round = 2,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -48,8 +48,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public void Create_WithDifferentRound_FailTest()
     {
         // Given
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
         var validatorAddress = signer.Address;
         ImmutableSortedSet<Validator> validators =
         [
@@ -60,7 +60,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 2,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -70,7 +70,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 3,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -87,8 +87,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public void Create_WithDifferentPublicKey_FailTest()
     {
         // Given
-        var random = RandomUtility.GetRandom(output);
-        var signers = RandomUtility.Array(random, RandomUtility.Signer, 2);
+        var random = Rand.GetRandom(output);
+        var signers = Rand.Array(random, Rand.Signer, 2);
         var validatorAddresses = signers.Select(item => item.Address).ToArray();
         var validators = validatorAddresses.Select(item => new Validator { Address = item })
             .ToImmutableSortedSet();
@@ -97,7 +97,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 2,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddresses[0],
             ValidatorPower = BigInteger.One,
@@ -107,7 +107,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 2,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddresses[1],
             ValidatorPower = BigInteger.One,
@@ -124,8 +124,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public void Create_WithDifferentFlag_FailTest()
     {
         // Given
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
         var validatorAddress = signer.Address;
         ImmutableSortedSet<Validator> validators =
         [
@@ -136,7 +136,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 2,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -146,7 +146,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 2,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -163,10 +163,10 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public void Create_WithSameBlock_FailTest()
     {
         // Given
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
         var validatorAddress = signer.Address;
-        var blockHash = RandomUtility.BlockHash(random);
+        var blockHash = Rand.BlockHash(random);
         ImmutableSortedSet<Validator> validators =
         [
             new Validator { Address = validatorAddress },
@@ -203,8 +203,8 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
     public void Serialize_and_Deserialize_Test()
     {
         // Given
-        var random = RandomUtility.GetRandom(output);
-        var signer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var signer = Rand.Signer(random);
         var validatorAddress = signer.Address;
         ImmutableSortedSet<Validator> validators =
         [
@@ -215,7 +215,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 2,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,
@@ -225,7 +225,7 @@ public sealed class DuplicateVoteEvidenceTest(ITestOutputHelper output)
         {
             Height = 1,
             Round = 2,
-            BlockHash = RandomUtility.BlockHash(random),
+            BlockHash = Rand.BlockHash(random),
             Timestamp = DateTimeOffset.UtcNow,
             Validator = validatorAddress,
             ValidatorPower = BigInteger.One,

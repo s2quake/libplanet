@@ -11,7 +11,7 @@ public sealed class MemoryStateIndexTest(ITestOutputHelper output)
         => new(database, useCache ? 100 : 0);
 
     protected override HashDigest<SHA256> CreateKey(Random random)
-        => RandomUtility.HashDigest<SHA256>(random);
+        => Rand.HashDigest<SHA256>(random);
 
-    protected override byte[] CreateValue(Random random) => RandomUtility.Bytes(random);
+    protected override byte[] CreateValue(Random random) => Rand.Bytes(random);
 }

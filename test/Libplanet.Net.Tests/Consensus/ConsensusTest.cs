@@ -26,8 +26,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task StartAsync(int index, bool isProposer)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);
@@ -100,8 +100,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task Propose()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var options = new ConsensusOptions
@@ -135,8 +135,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task Propose_Throw_Double_Proposal()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         var options = new ConsensusOptions
@@ -173,8 +173,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task Propose_Throw_With_InvalidProposer()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(
@@ -201,8 +201,8 @@ public sealed class ConsensusTest(ITestOutputHelper output)
     public async Task Propose_Throw_With_InvalidRound()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var consensus = new Net.Consensus.Consensus(Validators);

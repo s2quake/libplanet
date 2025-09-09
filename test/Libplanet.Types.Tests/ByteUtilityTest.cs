@@ -63,7 +63,7 @@ public sealed class ByteUtilityTest
 
         Assert.Equal(-1026516859, ByteUtility.GetHashCode(bytes));
 
-        var otherBytes = RandomUtility.Bytes(20);
+        var otherBytes = Rand.Bytes(20);
         otherBytes[19] = 0xdd;
 
         Assert.NotEqual(

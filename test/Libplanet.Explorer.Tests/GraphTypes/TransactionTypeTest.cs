@@ -18,12 +18,12 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         [Fact]
         public async Task Query()
         {
-            var signer = RandomUtility.Signer();
+            var signer = Rand.Signer();
             var transaction = new TransactionMetadata
             {
                 Nonce = 0,
                 Signer = signer.Address,
-                GenesisBlockHash = new BlockHash(RandomUtility.Bytes(HashDigest<SHA256>.Size)),
+                GenesisBlockHash = new BlockHash(Rand.Bytes(HashDigest<SHA256>.Size)),
                 Actions = new[] { new NullAction() }.ToBytecodes(),
             }.Sign(signer);
             var query =

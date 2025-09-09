@@ -17,8 +17,8 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
     public async Task NewHeightIncreasing()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[2]);
@@ -102,8 +102,8 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task Ctor()
     {
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transport = CreateTransport(Signers[1]);
@@ -121,8 +121,8 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
     [Fact]
     public async Task CannotStartTwice()
     {
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transport = CreateTransport(Signers[1]);
@@ -140,9 +140,9 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
     public async Task NewHeightWhenTipChanged()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var newHeightDelay = TimeSpan.FromSeconds(1);
-        var proposer = RandomUtility.Signer(random);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transport = CreateTransport(Signers[1]);
@@ -157,7 +157,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
 
         Assert.Equal(1, consensusService.Height);
 
-        blockchain.ProposeAndAppend(RandomUtility.Signer(random));
+        blockchain.ProposeAndAppend(Rand.Signer(random));
         Assert.Equal(1, consensusService.Height);
         await Task.Delay(newHeightDelay + TimeSpan.FromSeconds(1), cancellationToken);
         Assert.Equal(2, consensusService.Height);
@@ -167,8 +167,8 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
     public async Task IgnoreMessagesFromLowerHeight()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
@@ -210,8 +210,8 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var preCommitList = new List<Vote>();
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);
@@ -236,7 +236,7 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
             ValidatorPower = Validators[0].Power,
             Timestamp = DateTimeOffset.UtcNow,
             Height = 1,
-            BlockHash = new BlockHash(RandomUtility.Bytes(BlockHash.Size)),
+            BlockHash = new BlockHash(Rand.Bytes(BlockHash.Size)),
             Type = VoteType.PreCommit,
         }.Sign(Signers[0]));
         preCommitList.AddRange(Enumerable.Range(1, 3).Select(i => new VoteBuilder
@@ -265,8 +265,8 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
     [Fact(Timeout = TestUtils.Timeout)]
     public async Task GetVoteSetBits()
     {
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[3]);
@@ -323,8 +323,8 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
     public async Task HandleVoteSetBits()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[3]);
@@ -405,8 +405,8 @@ public sealed class ConsensusContextTest(ITestOutputHelper output)
     public async Task HandleProposalClaim()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[1]);

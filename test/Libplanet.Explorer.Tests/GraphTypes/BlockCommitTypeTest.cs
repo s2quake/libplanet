@@ -13,7 +13,7 @@ public class BlockCommitTypeTest
     [Fact]
     public async Task Query()
     {
-        var signer = RandomUtility.Signer();
+        var signer = Rand.Signer();
         var blockHash = new BlockHash(new byte[32]);
         var vote = new VoteMetadata
         {

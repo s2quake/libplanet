@@ -160,8 +160,8 @@ public class PublicKeyTest(ITestOutputHelper output)
 
         for (int i = 0; i < 100; i++)
         {
-            byte[] message = RandomUtility.Bytes(64);
-            byte[] sig = RandomUtility.Bytes(71);
+            byte[] message = Rand.Bytes(64);
+            byte[] sig = Rand.Bytes(71);
             bool validity;
             try
             {

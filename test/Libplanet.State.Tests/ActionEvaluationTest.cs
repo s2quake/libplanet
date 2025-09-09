@@ -11,11 +11,11 @@ public class ActionEvaluationTest(ITestOutputHelper output)
     [Fact]
     public void Constructor()
     {
-        var random = RandomUtility.GetRandom(output);
-        var txid = RandomUtility.TxId(random);
-        var address = RandomUtility.Address(random);
-        var signer = RandomUtility.Signer(random);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var txid = Rand.TxId(random);
+        var address = Rand.Address(random);
+        var signer = Rand.Signer(random);
+        var blockHash = Rand.BlockHash(random);
         var lastCommit = new BlockCommit
         {
             BlockHash = blockHash,

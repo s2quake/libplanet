@@ -9,7 +9,7 @@ public sealed class StagedTransactionCollectionTest(ITestOutputHelper output)
     [Fact]
     public void AddTransaction()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
@@ -19,7 +19,7 @@ public sealed class StagedTransactionCollectionTest(ITestOutputHelper output)
         };
         var repository = new Repository();
         var transactions = new StagedTransactionCollection(repository, options);
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         var tx = new TransactionMetadata
         {
             Signer = signer.Address,
@@ -32,7 +32,7 @@ public sealed class StagedTransactionCollectionTest(ITestOutputHelper output)
     [Fact]
     public void AddTransactionWithExpiredNonce()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var options = new BlockchainOptions
         {
             TransactionOptions = new TransactionOptions
@@ -42,7 +42,7 @@ public sealed class StagedTransactionCollectionTest(ITestOutputHelper output)
         };
         var repository = new Repository();
         var transactions = new StagedTransactionCollection(repository, options);
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         var tx = new TransactionMetadata
         {
             Nonce = 0L,

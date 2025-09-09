@@ -9,7 +9,7 @@ public sealed class MemoryBlockExecutionIndexTest(ITestOutputHelper output)
     protected override BlockExecutionIndex CreateIndex(MemoryDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
-    protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
+    protected override BlockHash CreateKey(Random random) => Rand.BlockHash(random);
 
-    protected override BlockExecutionInfo CreateValue(Random random) => RandomUtility.BlockExecution(random);
+    protected override BlockExecutionInfo CreateValue(Random random) => Rand.BlockExecution(random);
 }

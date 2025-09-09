@@ -29,7 +29,7 @@ public class TransactionQueryTest
     [Fact]
     public async Task BindSignatureWithCustomActions()
     {
-        var signer = RandomUtility.Signer();
+        var signer = Rand.Signer();
         var tx = new TransactionMetadata
         {
             Nonce = 0L,
@@ -63,7 +63,7 @@ public class TransactionQueryTest
         {
             Validators = [new Validator { Address = new PrivateKey().Address }],
         };
-        var txSigner = RandomUtility.Signer();
+        var txSigner = Rand.Signer();
         var tx = new TransactionMetadata
         {
             Nonce = 0L,
@@ -109,7 +109,7 @@ public class TransactionQueryTest
             Assert.Equal(expected, (long)resultDict["nextNonce"]);
         }
 
-        var signer1 = RandomUtility.Signer();
+        var signer1 = Rand.Signer();
         // account nonce is 0 in the beginning
         await AssertNextNonce(0, signer1.Address);
 
@@ -123,18 +123,18 @@ public class TransactionQueryTest
         {
         });
         await AssertNextNonce(2, signer1.Address);
-        var block = Source.BlockChain.Propose(RandomUtility.Signer());
+        var block = Source.BlockChain.Propose(Rand.Signer());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
         await AssertNextNonce(2, signer1.Address);
 
-        var signer2 = RandomUtility.Signer();
+        var signer2 = Rand.Signer();
         await AssertNextNonce(0, signer2.Address);
 
         // staging txs of key2 does not increase nonce of key1
         Source.BlockChain.StagedTransactions.Add(signer2, new ()
         {
         });
-        block = Source.BlockChain.Propose(RandomUtility.Signer());
+        block = Source.BlockChain.Propose(Rand.Signer());
         Source.BlockChain.Append(block, Libplanet.Tests.TestUtils.CreateBlockCommit(block));
         await AssertNextNonce(1, signer2.Address);
         await AssertNextNonce(2, signer1.Address);

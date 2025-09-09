@@ -9,7 +9,7 @@ public sealed class RocksBlockCommitIndexTest(ITestOutputHelper output)
     protected override BlockCommitIndex CreateIndex(RocksDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
-    protected override BlockHash CreateKey(Random random) => RandomUtility.BlockHash(random);
+    protected override BlockHash CreateKey(Random random) => Rand.BlockHash(random);
 
-    protected override BlockCommit CreateValue(Random random) => RandomUtility.BlockCommit(random);
+    protected override BlockCommit CreateValue(Random random) => Rand.BlockCommit(random);
 }

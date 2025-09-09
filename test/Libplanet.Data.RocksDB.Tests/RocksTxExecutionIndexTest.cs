@@ -9,7 +9,7 @@ public sealed class RocksTxExecutionIndexTest(ITestOutputHelper output)
     protected override TxExecutionIndex CreateIndex(RocksDatabase database, bool useCache)
         => new(database, useCache ? 100 : 0);
 
-    protected override TxId CreateKey(Random random) => RandomUtility.TxId(random);
+    protected override TxId CreateKey(Random random) => Rand.TxId(random);
 
-    protected override TransactionExecutionInfo CreateValue(Random random) => RandomUtility.TxExecution(random);
+    protected override TransactionExecutionInfo CreateValue(Random random) => Rand.TxExecution(random);
 }

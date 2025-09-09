@@ -11,8 +11,8 @@ public class ConsensusContextProposerTest(ITestOutputHelper output)
     public async Task IncreaseRoundWhenTimeout()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         await using var transportA = CreateTransport(Signers[0]);

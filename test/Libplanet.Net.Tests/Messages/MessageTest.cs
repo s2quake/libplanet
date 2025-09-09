@@ -11,16 +11,16 @@ public sealed class MessageTest(ITestOutputHelper output)
     [Fact]
     public void BlockHeaderMsg()
     {
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         var peer = new Peer
         {
             Address = signer.Address,
-            EndPoint = RandomUtility.DnsEndPoint(random),
+            EndPoint = Rand.DnsEndPoint(random),
         };
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(RandomUtility.Signer(random));
+        var protocol = new ProtocolBuilder { Version = 1 }.Create(Rand.Signer(random));
         var dateTimeOffset = DateTimeOffset.UtcNow;
         var expected = new BlockSummaryMessage
         {
@@ -43,14 +43,14 @@ public sealed class MessageTest(ITestOutputHelper output)
     [Fact]
     public void InvalidCredential()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         var message = new PingMessage();
-        var signer = RandomUtility.Signer(random);
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(RandomUtility.Signer(random));
+        var signer = Rand.Signer(random);
+        var protocol = new ProtocolBuilder { Version = 1 }.Create(Rand.Signer(random));
         var peer = new Peer
         {
             Address = signer.Address,
-            EndPoint = RandomUtility.DnsEndPoint(random),
+            EndPoint = Rand.DnsEndPoint(random),
         };
         var timestamp = DateTimeOffset.UtcNow;
         var badPrivateKey = new PrivateKey();
@@ -69,16 +69,16 @@ public sealed class MessageTest(ITestOutputHelper output)
     [Fact]
     public void UseInvalidSignature()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         // Victim
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
         var peer = new Peer
         {
             Address = signer.Address,
-            EndPoint = RandomUtility.DnsEndPoint(random),
+            EndPoint = Rand.DnsEndPoint(random),
         };
         var timestamp = DateTimeOffset.UtcNow;
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(RandomUtility.Signer(random));
+        var protocol = new ProtocolBuilder { Version = 1 }.Create(Rand.Signer(random));
         var ping = new PingMessage();
         var rawMessage = NetMQMessageCodec.Encode(
             new MessageEnvelope
@@ -94,7 +94,7 @@ public sealed class MessageTest(ITestOutputHelper output)
         var fakePeer = new Peer
         {
             Address = signer.Address,
-            EndPoint = RandomUtility.DnsEndPoint(random),
+            EndPoint = Rand.DnsEndPoint(random),
         };
         var fakeMessage = NetMQMessageCodec.Encode(
             new MessageEnvelope
@@ -122,8 +122,8 @@ public sealed class MessageTest(ITestOutputHelper output)
     [Fact]
     public void GetId()
     {
-        var random = RandomUtility.GetStaticRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetStaticRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlockBuilder = TestUtils.GenesisBlockBuilder with
         {
             Timestamp = new DateTimeOffset(2025, 9, 2, 14, 56, 15, TimeSpan.Zero),
@@ -142,8 +142,8 @@ public sealed class MessageTest(ITestOutputHelper output)
     [Fact]
     public void InvalidVoteTypeConsensus()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
 
         var preVote = new VoteMetadata
         {

@@ -8,8 +8,8 @@ public partial class BlockchainTest
     [Fact]
     public void StageTransaction()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         ImmutableSortedSet<Transaction> txs =
@@ -26,25 +26,25 @@ public partial class BlockchainTest
     [Fact]
     public void StageTransactionWithDifferentGenesis()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
 
-        var tx1Signer = RandomUtility.Signer(random);
+        var tx1Signer = Rand.Signer(random);
         var tx1 = new TransactionBuilder
         {
             Nonce = 0,
             GenesisBlockHash = blockchain.Genesis.BlockHash,
             Actions = [],
         }.Create(tx1Signer);
-        var tx2Signer = RandomUtility.Signer(random);
+        var tx2Signer = Rand.Signer(random);
         var tx2 = new TransactionBuilder
         {
             Nonce = 0,
             Actions = [],
         }.Create(tx2Signer);
-        var tx3Signer = RandomUtility.Signer(random);
+        var tx3Signer = Rand.Signer(random);
         var tx3 = new TransactionBuilder
         {
             Nonce = 0,
@@ -62,11 +62,11 @@ public partial class BlockchainTest
     [Fact]
     public void TransactionsWithDuplicatedNonce()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
 
         var tx_0_0 = blockchain.CreateTransaction(signer, new() { Nonce = 0L });
         var tx_0_1 = blockchain.CreateTransaction(signer, new() { Nonce = 0L });
@@ -107,8 +107,8 @@ public partial class BlockchainTest
     [Fact]
     public void UnstageTransaction()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var blockchain = new Blockchain(genesisBlock);
         Transaction[] txs =

@@ -9,8 +9,8 @@ public sealed class PeerCollectionTest(ITestOutputHelper output)
     [Fact]
     public void AddSelf()
     {
-        var random = RandomUtility.GetRandom(output);
-        var owner = RandomUtility.Address(random);
+        var random = Rand.GetRandom(output);
+        var owner = Rand.Address(random);
         var table = new PeerCollection(owner);
         var peer = new Peer { Address = owner, EndPoint = new DnsEndPoint("0.0.0.0", 1234) };
         Assert.Throws<ArgumentException>(() => table.AddOrUpdate(peer));
@@ -19,11 +19,11 @@ public sealed class PeerCollectionTest(ITestOutputHelper output)
     [Fact]
     public void AddPeer()
     {
-        var random = RandomUtility.GetRandom(output);
-        var owner = RandomUtility.Address(random);
-        var peer1 = RandomUtility.LocalPeer(random);
-        var peer2 = RandomUtility.LocalPeer(random);
-        var peer3 = RandomUtility.LocalPeer(random);
+        var random = Rand.GetRandom(output);
+        var owner = Rand.Address(random);
+        var peer1 = Rand.LocalPeer(random);
+        var peer2 = Rand.LocalPeer(random);
+        var peer3 = Rand.LocalPeer(random);
         var peers = new PeerCollection(owner, 1, 2);
 
         Assert.True(peers.AddOrUpdate(peer1));
@@ -37,9 +37,9 @@ public sealed class PeerCollectionTest(ITestOutputHelper output)
     [Fact]
     public void RemovePeer()
     {
-        var random = RandomUtility.GetRandom(output);
-        var peer1 = RandomUtility.LocalPeer(random);
-        var peer2 = RandomUtility.LocalPeer(random);
+        var random = Rand.GetRandom(output);
+        var peer1 = Rand.LocalPeer(random);
+        var peer2 = Rand.LocalPeer(random);
         var peers = new PeerCollection(peer1.Address, 1, 2);
 
         Assert.False(peers.Remove(peer1));
@@ -104,10 +104,10 @@ public sealed class PeerCollectionTest(ITestOutputHelper output)
     [Fact]
     public void GetStalePeers_InSingleBucket()
     {
-        var random = RandomUtility.GetRandom(output);
-        var owner = RandomUtility.Address(random);
+        var random = Rand.GetRandom(output);
+        var owner = Rand.Address(random);
         var table = new PeerCollection(owner, 1);
-        var peers = RandomUtility.Array(random, RandomUtility.LocalPeer, 10);
+        var peers = Rand.Array(random, Rand.LocalPeer, 10);
         for (var i = 0; i < peers.Length; i++)
         {
             var peerState = new PeerState

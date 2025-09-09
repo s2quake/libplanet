@@ -7,7 +7,7 @@ public sealed class MessageIdTest(ITestOutputHelper output)
     [Fact]
     public void MessageIdMustBe32Bytes()
     {
-        var random = RandomUtility.GetRandom(output);
+        var random = Rand.GetRandom(output);
         for (var size = 0; size < 36; size++)
         {
             if (size == 32)
@@ -15,7 +15,7 @@ public sealed class MessageIdTest(ITestOutputHelper output)
                 continue;
             }
 
-            byte[] bytes = RandomUtility.Array(random, RandomUtility.Byte, size);
+            byte[] bytes = Rand.Array(random, Rand.Byte, size);
             Assert.Throws<ArgumentOutOfRangeException>("bytes", () => new MessageId(bytes));
         }
     }
@@ -47,8 +47,8 @@ public sealed class MessageIdTest(ITestOutputHelper output)
     [Fact]
     public void ToByteArray()
     {
-        var random = RandomUtility.GetRandom(output);
-        var bytes = RandomUtility.Array(random, RandomUtility.Byte, MessageId.Size);
+        var random = Rand.GetRandom(output);
+        var bytes = Rand.Array(random, Rand.Byte, MessageId.Size);
         var messageId = new MessageId(bytes);
 
         Assert.Equal(bytes, messageId.Bytes);
@@ -107,8 +107,8 @@ public sealed class MessageIdTest(ITestOutputHelper output)
     [Fact]
     public void Compare()
     {
-        var random = RandomUtility.GetRandom(output);
-        var ids = RandomUtility.Array(random, RandomUtility.MessageId, 50);
+        var random = Rand.GetRandom(output);
+        var ids = Rand.Array(random, Rand.MessageId, 50);
         for (var i = 1; i < ids.Length; i++)
         {
             var left = ids[i - 1];

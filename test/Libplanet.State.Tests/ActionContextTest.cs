@@ -8,11 +8,11 @@ public class ActionContextTest(ITestOutputHelper output)
     [Fact]
     public void RandomShouldBeDeterministic()
     {
-        var random = RandomUtility.GetRandom(output);
-        var address = RandomUtility.Address(random);
-        var txId = RandomUtility.TxId(random);
-        var signer = RandomUtility.Signer(random);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var address = Rand.Address(random);
+        var txId = Rand.TxId(random);
+        var signer = Rand.Signer(random);
+        var blockHash = Rand.BlockHash(random);
         var lastCommit = new BlockCommit
         {
             BlockHash = blockHash,
@@ -53,11 +53,11 @@ public class ActionContextTest(ITestOutputHelper output)
     [Fact]
     public void GuidShouldBeDeterministic()
     {
-        var random = RandomUtility.GetRandom(output);
-        var address = RandomUtility.Address(random);
-        var txId = RandomUtility.TxId(random);
-        var signer = RandomUtility.Signer(random);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var address = Rand.Address(random);
+        var txId = Rand.TxId(random);
+        var signer = Rand.Signer(random);
+        var blockHash = Rand.BlockHash(random);
         var lastCommit = new BlockCommit
         {
             BlockHash = blockHash,
@@ -126,11 +126,11 @@ public class ActionContextTest(ITestOutputHelper output)
     [Fact]
     public void GuidVersionAndVariant()
     {
-        var random = RandomUtility.GetRandom(output);
-        var address = RandomUtility.Address(random);
-        var txId = RandomUtility.TxId(random);
-        var signer = RandomUtility.Signer(random);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var address = Rand.Address(random);
+        var txId = Rand.TxId(random);
+        var signer = Rand.Signer(random);
+        var blockHash = Rand.BlockHash(random);
         var lastCommit = new BlockCommit
         {
             BlockHash = blockHash,

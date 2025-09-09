@@ -174,7 +174,7 @@ public abstract class DatabaseTestBase<TDatabase>
     public void GetOrAdd_Parallels()
     {
         var database = CreateDatabase(nameof(GetOrAdd_Parallels));
-        var keys = RandomUtility.Array(RandomUtility.Word, 20);
+        var keys = Rand.Array(Rand.Word, 20);
         var tables = new ConcurrentBag<ITable>();
 
         Parallel.ForEach(keys, (key) =>

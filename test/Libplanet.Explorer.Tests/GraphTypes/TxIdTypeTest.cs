@@ -12,7 +12,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.ParseLiteral(new NullValue()));
 
-            var bytes = RandomUtility.Bytes(TxId.Size);
+            var bytes = Rand.Bytes(TxId.Size);
             var txId = new TxId(bytes);
             var hex = ByteUtility.Hex(bytes);
             Assert.Equal(
@@ -30,7 +30,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         {
             Assert.Null(_type.ParseValue(null));
 
-            var bytes = RandomUtility.Bytes(TxId.Size);
+            var bytes = Rand.Bytes(TxId.Size);
             var txId = new TxId(bytes);
             var hex = ByteUtility.Hex(bytes);
             Assert.Equal(txId, _type.ParseValue(hex));
@@ -43,7 +43,7 @@ namespace Libplanet.Explorer.Tests.GraphTypes
         [Fact]
         public void Serialize()
         {
-            var bytes = RandomUtility.Bytes(TxId.Size);
+            var bytes = Rand.Bytes(TxId.Size);
             var txId = new TxId(bytes);
             var hex = ByteUtility.Hex(bytes);
             Assert.Equal(hex, _type.Serialize(txId));

@@ -49,7 +49,7 @@ public abstract class KeyedIndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestO
         TKey key;
         do
         {
-            key = RandomUtility.Try(random, item => CreateKey(random), predicate);
+            key = Rand.Try(random, item => CreateKey(random), predicate);
         } while (!predicate(key));
         return key;
     }
@@ -59,7 +59,7 @@ public abstract class KeyedIndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestO
         TValue value;
         do
         {
-            value = RandomUtility.Try(random, item => CreateValue(random), predicate);
+            value = Rand.Try(random, item => CreateValue(random), predicate);
         } while (!predicate(value));
         return value;
     }
@@ -652,7 +652,7 @@ public abstract class KeyedIndexTestBase<TKey, TValue, TIndex, TDatabase>(ITestO
 
     protected static Random GetRandom(ITestOutputHelper output)
     {
-        var seed = RandomUtility.Int32();
+        var seed = Rand.Int32();
         output.WriteLine($"Random seed: {seed}");
         return new Random(seed);
     }

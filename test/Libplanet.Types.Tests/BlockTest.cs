@@ -18,8 +18,8 @@ public sealed class BlockTest(ITestOutputHelper output)
     [Fact]
     public void SerializeAndDeserialize()
     {
-        var random = RandomUtility.GetRandom(output);
-        var block1 = RandomUtility.Block(random);
+        var random = Rand.GetRandom(output);
+        var block1 = Rand.Block(random);
         var serialized = ModelSerializer.SerializeToBytes(block1);
         var block2 = ModelSerializer.DeserializeFromBytes(serialized);
         Assert.Equal(block1, block2);
@@ -29,8 +29,8 @@ public sealed class BlockTest(ITestOutputHelper output)
     [Fact]
     public void BaseTest()
     {
-        var random = RandomUtility.GetRandom(output);
-        var block = RandomUtility.Block(random);
+        var random = Rand.GetRandom(output);
+        var block = Rand.Block(random);
 
         Assert.Equal(BlockHash.HashData(ModelSerializer.SerializeToBytes(block)), block.BlockHash);
         Assert.Equal(block.Header.Height, block.Height);
@@ -47,24 +47,24 @@ public sealed class BlockTest(ITestOutputHelper output)
     [Fact]
     public void ToStringTest()
     {
-        var random = RandomUtility.GetRandom(output);
-        var block = RandomUtility.Block(random);
+        var random = Rand.GetRandom(output);
+        var block = Rand.Block(random);
         Assert.Equal(block.BlockHash.ToString(), block.ToString());
     }
 
     [Fact]
     public void Verify_Fail()
     {
-        var random = RandomUtility.GetRandom(output);
-        var block = RandomUtility.Block(random);
+        var random = Rand.GetRandom(output);
+        var block = Rand.Block(random);
         Assert.False(block.Verify());
     }
 
     [Fact]
     public void Verify()
     {
-        var random = RandomUtility.GetRandom(output);
-        var block = RandomUtility.Block(random);
+        var random = Rand.GetRandom(output);
+        var block = Rand.Block(random);
         Assert.True(block.Verify());
     }
 }

@@ -9,13 +9,13 @@ public sealed class BlockHashesTest(ITestOutputHelper output)
     [Fact]
     public void Decode()
     {
-        var random = RandomUtility.GetRandom(output);
-        var privateKey = RandomUtility.PrivateKey(random);
-        var blockHashes = RandomUtility.Array(random, RandomUtility.BlockHash, 10);
+        var random = Rand.GetRandom(output);
+        var privateKey = Rand.PrivateKey(random);
+        var blockHashes = Rand.Array(random, Rand.BlockHash, 10);
         var peer = new Peer
         {
             Address = privateKey.Address,
-            EndPoint = RandomUtility.DnsEndPoint(random),
+            EndPoint = Rand.DnsEndPoint(random),
         };
         var expected = new BlockHashResponseMessage { BlockHashes = [.. blockHashes] };
         Assert.Equal(blockHashes, expected.BlockHashes);

@@ -14,16 +14,16 @@ public partial class BlockchainTest
     public void ListStagedTransactions()
     {
         var random = new System.Random(-873953735);
-        var proposer = RandomUtility.Signer(random);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var repository = new Repository();
         var blockchainA = new Blockchain(genesisBlock, repository);
 
-        var signerA = RandomUtility.Signer(random);
-        var signerB = RandomUtility.Signer(random);
-        var signerC = RandomUtility.Signer(random);
-        var signerD = RandomUtility.Signer(random);
-        var signerE = RandomUtility.Signer(random);
+        var signerA = Rand.Signer(random);
+        var signerB = Rand.Signer(random);
+        var signerC = Rand.Signer(random);
+        var signerD = Rand.Signer(random);
+        var signerE = Rand.Signer(random);
         ISigner[] signers = [signerA, signerB, signerC, signerD, signerE];
 
         // A normal case and corner cases:
@@ -142,12 +142,12 @@ public partial class BlockchainTest
     [Fact]
     public void ExecuteActions()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var signers = RandomUtility.Array(random, RandomUtility.Signer, 5);
+        var random = Rand.GetRandom(_output);
+        var signers = Rand.Array(random, Rand.Signer, 5);
         var addresses = signers.Select(s => s.Address).ToArray();
-        var signer = RandomUtility.Signer(random);
+        var signer = Rand.Signer(random);
 
-        var proposer = RandomUtility.Signer(random);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var repository = new Repository();
         var options = new BlockchainOptions
@@ -208,16 +208,16 @@ public partial class BlockchainTest
     [Fact]
     public void UpdateTxExecutions()
     {
-        var random = RandomUtility.GetRandom(_output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(_output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var repository = new Repository();
         var blockchain = new Blockchain(genesisBlock, repository);
 
-        var blockHash1 = RandomUtility.BlockHash(random);
-        var blockHash2 = RandomUtility.BlockHash(random);
-        var txId1 = RandomUtility.TxId(random);
-        var txId2 = RandomUtility.TxId(random);
+        var blockHash1 = Rand.BlockHash(random);
+        var blockHash2 = Rand.BlockHash(random);
+        var txId1 = Rand.TxId(random);
+        var txId2 = Rand.TxId(random);
 
         Assert.Null(blockchain.TxExecutions.GetValueOrDefault(txId1));
         Assert.Null(blockchain.TxExecutions.GetValueOrDefault(txId2));
@@ -226,24 +226,24 @@ public partial class BlockchainTest
         {
             BlockHash = blockHash1,
             TxId = txId1,
-            EnterState = RandomUtility.HashDigest<SHA256>(random),
-            LeaveState = RandomUtility.HashDigest<SHA256>(random),
+            EnterState = Rand.HashDigest<SHA256>(random),
+            LeaveState = Rand.HashDigest<SHA256>(random),
             ExceptionNames = [],
         };
         var inputB = new TransactionExecutionInfo
         {
             BlockHash = blockHash1,
             TxId = txId2,
-            EnterState = RandomUtility.HashDigest<SHA256>(random),
-            LeaveState = RandomUtility.HashDigest<SHA256>(random),
+            EnterState = Rand.HashDigest<SHA256>(random),
+            LeaveState = Rand.HashDigest<SHA256>(random),
             ExceptionNames = ["AnExceptionName"],
         };
         var inputC = new TransactionExecutionInfo
         {
             BlockHash = blockHash2,
             TxId = txId1,
-            EnterState = RandomUtility.HashDigest<SHA256>(random),
-            LeaveState = RandomUtility.HashDigest<SHA256>(random),
+            EnterState = Rand.HashDigest<SHA256>(random),
+            LeaveState = Rand.HashDigest<SHA256>(random),
             ExceptionNames = ["AnotherExceptionName", "YetAnotherExceptionName"],
         };
         repository.TxExecutions.AddRange([inputA, inputB]);

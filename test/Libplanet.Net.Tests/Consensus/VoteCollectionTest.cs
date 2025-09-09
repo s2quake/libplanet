@@ -20,8 +20,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
     [Fact]
     public void Add()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
         var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
         var vote = new VoteMetadata
         {
@@ -44,8 +44,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
     [Fact]
     public void Add_2Votes()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
         var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
         for (var i = 0; i < 2; i++)
         {
@@ -72,8 +72,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
     [Fact]
     public void Add_3Votes()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
         var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
         for (var i = 0; i < 3; i++)
         {
@@ -101,8 +101,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
     [Fact]
     public void Remove()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
         var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
         var vote = new VoteMetadata
         {
@@ -123,8 +123,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
     [Fact]
     public void Remove_After_Adding_2_Votes()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
         var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
         for (var i = 0; i < 2; i++)
         {
@@ -149,8 +149,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
     [Fact]
     public void Remove_After_Adding_3_Votes()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
         var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
         for (var i = 0; i < 3; i++)
         {
@@ -178,8 +178,8 @@ public sealed class VoteCollectionTest(ITestOutputHelper output)
     [Fact]
     public void Remove_After_Adding_4_Votes()
     {
-        var random = RandomUtility.GetRandom(output);
-        var blockHash = RandomUtility.BlockHash(random);
+        var random = Rand.GetRandom(output);
+        var blockHash = Rand.BlockHash(random);
         var votes = new VoteCollection(1, 0, VoteType.PreCommit, TestUtils.Validators);
         for (var i = 0; i < 4; i++)
         {

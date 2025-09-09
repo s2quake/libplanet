@@ -53,7 +53,7 @@ public class GeneratedBlockChainFixture
                 key => key.Address,
                 key => ImmutableArray<Transaction>.Empty);
 
-        var signer = RandomUtility.Signer(Random);
+        var signer = Rand.Signer(Random);
         var options = new BlockchainOptions
         {
             // BlockInterval = TimeSpan.FromMilliseconds(1),

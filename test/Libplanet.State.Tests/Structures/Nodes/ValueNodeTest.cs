@@ -12,7 +12,7 @@ public class ValueNodeTest
     {
         var expectedNode = new ValueNode
         {
-            Value = RandomUtility.Word(),
+            Value = Rand.Word(),
         };
         var actualNode = ModelSerializer.Clone(expectedNode);
         Assert.Equal(expectedNode, actualNode);
@@ -21,13 +21,13 @@ public class ValueNodeTest
     [Fact]
     public void Value()
     {
-        var node1 = new ValueNode { Value = RandomUtility.Word() };
+        var node1 = new ValueNode { Value = Rand.Word() };
         Assert.Equal(node1.Value, node1.Value);
-        Assert.NotEqual(node1.Value, RandomUtility.Word());
+        Assert.NotEqual(node1.Value, Rand.Word());
 
         var node2 = node1 with
         {
-            Value = RandomUtility.Word(),
+            Value = Rand.Word(),
         };
         Assert.NotEqual(node1.Value, node2.Value);
         Assert.NotEqual(node1, node2);
@@ -38,7 +38,7 @@ public class ValueNodeTest
     {
         var node1 = new ValueNode
         {
-            Value = RandomUtility.Word(),
+            Value = Rand.Word(),
         };
 
         Assert.Equal([], ((INode)node1).Children);
@@ -47,8 +47,8 @@ public class ValueNodeTest
     [Fact]
     public void GetHashCodeTest()
     {
-        var value1 = RandomUtility.Word();
-        var value2 = RandomUtility.Word();
+        var value1 = Rand.Word();
+        var value2 = Rand.Word();
         var node1 = new ValueNode { Value = value1 };
         var node2 = new ValueNode { Value = value2 };
 

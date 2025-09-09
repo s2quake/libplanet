@@ -14,7 +14,7 @@ public sealed class NetMQTransportTest(ITestOutputHelper output)
     public async Task SendAndWaitAsync2_AsStream()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(_output);
+        var random = Rand.GetRandom(_output);
         await using var transportA = CreateTransport(random);
         await using var transportB = CreateTransport(random);
         transportB.MessageRouter.Register<PingMessage>(async (m, e) =>

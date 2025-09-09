@@ -18,7 +18,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         var trie1 = new Trie();
         Assert.IsType<NullNode>(trie1.Node);
 
-        var hash = RandomUtility.HashDigest<SHA256>();
+        var hash = Rand.HashDigest<SHA256>();
         var hashNode = new HashNode { Hash = hash, StateIndex = [] };
         var trie2 = new Trie(hashNode);
         Assert.IsType<HashNode>(trie2.Node);
@@ -36,7 +36,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         var trie1 = new Trie();
         Assert.Equal(default, trie1.Hash);
 
-        var hash = RandomUtility.HashDigest<SHA256>();
+        var hash = Rand.HashDigest<SHA256>();
         var hashNode = new HashNode { Hash = hash, StateIndex = [] };
         var trie2 = new Trie(hashNode);
         Assert.Equal(hash, trie2.Hash);
@@ -53,7 +53,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         var trie1 = new Trie();
         Assert.False(trie1.IsCommitted);
 
-        var hash = RandomUtility.HashDigest<SHA256>();
+        var hash = Rand.HashDigest<SHA256>();
         var hashNode = new HashNode { Hash = hash, StateIndex = [] };
         var trie2 = new Trie(hashNode);
         Assert.True(trie2.IsCommitted);
@@ -69,7 +69,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         var trie1 = new Trie();
         Assert.True(trie1.IsEmpty);
 
-        var hash = RandomUtility.HashDigest<SHA256>();
+        var hash = Rand.HashDigest<SHA256>();
         var hashNode = new HashNode { Hash = hash, StateIndex = [] };
         var trie2 = new Trie(hashNode);
         Assert.False(trie2.IsEmpty);
@@ -88,7 +88,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         var trie1 = new Trie();
         Assert.Throws<KeyNotFoundException>(() => _ = trie1["nonexistent"]);
 
-        var value = RandomUtility.Word();
+        var value = Rand.Word();
         var trie2 = trie1.Set("key", value);
         trie2 = commit ? states.Commit(trie2) : trie2;
         Assert.Equal(value, trie2["key"]);
@@ -105,7 +105,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
     {
         var states = new StateIndex();
         var keyValues = Range(0, 10)
-            .Select(i => (RandomUtility.Word(), (object)RandomUtility.Int32()))
+            .Select(i => (Rand.Word(), (object)Rand.Int32()))
             .ToArray();
 
         var trie = Trie.Create(keyValues);
@@ -125,7 +125,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         var states = new StateIndex();
         var trie1 = new Trie();
 
-        var value = RandomUtility.Word();
+        var value = Rand.Word();
         var trie2 = trie1.Set("key", value);
         trie2 = commit ? states.Commit(trie2) : trie2;
         Assert.Equal(value, trie2["key"]);
@@ -138,7 +138,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         Assert.NotEqual(trie2, trie3);
         Assert.NotEqual(trie2.Hash, trie3.Hash);
 
-        var newValue = RandomUtility.Word();
+        var newValue = Rand.Word();
         var trie4 = trie3.Set("key", newValue);
         trie4 = commit ? states.Commit(trie4) : trie4;
         Assert.Equal(newValue, trie4["key"]);
@@ -151,12 +151,12 @@ public sealed partial class TrieTest(ITestOutputHelper output)
     [InlineData(true)]
     public void Remove(bool commit)
     {
-        var seed = RandomUtility.Int32();
+        var seed = Rand.Int32();
         output.WriteLine($"Seed: {seed}");
         var random = new Random(seed);
         var states = new StateIndex();
         var keyValues = Range(0, 10)
-            .Select(i => (RandomUtility.Word(random), (object)RandomUtility.Int32(random)))
+            .Select(i => (Rand.Word(random), (object)Rand.Int32(random)))
             .ToArray();
 
         var trie1 = Trie.Create(keyValues);
@@ -237,7 +237,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
     {
         var states = new StateIndex();
         var keyValues = Range(0, 10)
-            .Select(i => (RandomUtility.Word(), (object)RandomUtility.Int32()))
+            .Select(i => (Rand.Word(), (object)Rand.Int32()))
             .ToArray();
 
         var trie1 = Trie.Create(keyValues);
@@ -258,7 +258,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
     {
         var states = new StateIndex();
         var keyValues = Range(0, 10)
-            .Select(i => (RandomUtility.Word(), (object)RandomUtility.Int32()))
+            .Select(i => (Rand.Word(), (object)Rand.Int32()))
             .ToArray();
 
         var trie1 = Trie.Create(keyValues);
@@ -280,7 +280,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
     {
         var states = new StateIndex();
         var keyValues = Range(0, 10)
-            .Select(i => (RandomUtility.Word(), (object)RandomUtility.Int32()))
+            .Select(i => (Rand.Word(), (object)Rand.Int32()))
             .ToArray();
 
         var trie1 = Trie.Create(keyValues);
@@ -309,7 +309,7 @@ public sealed partial class TrieTest(ITestOutputHelper output)
     {
         var states = new StateIndex();
         var keyValues = Range(0, 10)
-            .Select(i => (RandomUtility.Word(), (object)RandomUtility.Int32()))
+            .Select(i => (Rand.Word(), (object)Rand.Int32()))
             .ToArray();
 
         var trie1 = Trie.Create(keyValues);

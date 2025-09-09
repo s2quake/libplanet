@@ -8,9 +8,9 @@ public sealed class EvidenceIdTest
 {
     public static readonly TheoryData<byte[]> RandomBytes =
     [
-        RandomUtility.Array(RandomUtility.Byte, 0),
-        RandomUtility.Array(RandomUtility.Byte, 31),
-        RandomUtility.Array(RandomUtility.Byte, 33),
+        Rand.Array(Rand.Byte, 0),
+        Rand.Array(Rand.Byte, 31),
+        Rand.Array(Rand.Byte, 33),
     ];
 
     [Theory]
@@ -69,7 +69,7 @@ public sealed class EvidenceIdTest
     public void ToByteArray_Test()
     {
         // Given
-        var expectedBytes = RandomUtility.Array(RandomUtility.Byte, EvidenceId.Size);
+        var expectedBytes = Rand.Array(Rand.Byte, EvidenceId.Size);
 
         // When
         var evidenceId = new EvidenceId(expectedBytes);
@@ -157,7 +157,7 @@ public sealed class EvidenceIdTest
     public void Compare_Test()
     {
         const int length = 50;
-        var evidenceIds = RandomUtility.Array(RandomUtility.EvidenceId, length);
+        var evidenceIds = Rand.Array(Rand.EvidenceId, length);
 
         for (var i = 1; i < evidenceIds.Length; i++)
         {
@@ -177,21 +177,21 @@ public sealed class EvidenceIdTest
     [Fact]
     public void Compare_WithNull_Test()
     {
-        var evidenceId = RandomUtility.EvidenceId();
+        var evidenceId = Rand.EvidenceId();
         Assert.Equal(1, evidenceId.CompareTo(null));
     }
 
     [Fact]
     public void Compare_WithOtherType_Test()
     {
-        var evidenceId = RandomUtility.EvidenceId();
+        var evidenceId = Rand.EvidenceId();
         Assert.Throws<ArgumentException>(() => evidenceId.CompareTo("string"));
     }
 
     [Fact]
     public void Bencoded_Test()
     {
-        var expectedEvidenceId = RandomUtility.EvidenceId();
+        var expectedEvidenceId = Rand.EvidenceId();
         var actualEvidenceId = ModelSerializer.Clone(expectedEvidenceId);
         Assert.Equal(expectedEvidenceId, actualEvidenceId);
     }

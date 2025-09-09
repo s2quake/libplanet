@@ -19,9 +19,9 @@ public class ProposeBlock
     public ProposeBlock()
     {
         _random = new Random(_seed);
-        _proposer = RandomUtility.Signer(_random);
-        _validators = RandomUtility.ImmutableSortedSet(
-            _random, RandomUtility.TestValidator, RandomUtility.Int32(_random, 4, 16));
+        _proposer = Rand.Signer(_random);
+        _validators = Rand.ImmutableSortedSet(
+            _random, Rand.TestValidator, Rand.Int32(_random, 4, 16));
         _genesisBlock = new GenesisBlockBuilder
         {
             Validators = [.. _validators.Select(v => (Validator)v)],

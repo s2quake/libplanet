@@ -17,8 +17,8 @@ public class BlockTypeTest
     [Fact]
     public async Task Query()
     {
-        var signer = RandomUtility.Signer();
-        var lastBlockHash = new BlockHash(RandomUtility.Bytes(HashDigest<SHA256>.Size));
+        var signer = Rand.Signer();
+        var lastBlockHash = new BlockHash(Rand.Bytes(HashDigest<SHA256>.Size));
         var lastVotes = ImmutableArray.Create(
             new VoteMetadata
             {
@@ -49,7 +49,7 @@ public class BlockTypeTest
             },
         };
         var stateRootHash =
-            new HashDigest<SHA256>(RandomUtility.Bytes(HashDigest<SHA256>.Size));
+            new HashDigest<SHA256>(Rand.Bytes(HashDigest<SHA256>.Size));
         // var signature = RawBlock.MakeSignature(privateKey, stateRootHash);
         // var hash = preEval.Header.DeriveBlockHash(stateRootHash, signature);
         // var block = new Block { Header = new BlockHeader(), Content = new BlockContent() };

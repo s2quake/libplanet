@@ -15,7 +15,7 @@ public sealed partial class TrieTest
     public void ConstructWithHashDigest()
     {
         var stateIndex = new StateIndex();
-        var hashDigest = RandomUtility.HashDigest<SHA256>();
+        var hashDigest = Rand.HashDigest<SHA256>();
         var trie = new Trie(new HashNode { Hash = hashDigest, StateIndex = stateIndex });
         Assert.Equal(hashDigest, trie.Hash);
     }
@@ -24,7 +24,7 @@ public sealed partial class TrieTest
     public void ConstructWithRootNode()
     {
         var stateIndex = new StateIndex();
-        var hashDigest = RandomUtility.HashDigest<SHA256>();
+        var hashDigest = Rand.HashDigest<SHA256>();
         var node = new HashNode { Hash = hashDigest, StateIndex = stateIndex };
         var trie = new Trie(node);
         Assert.Equal(hashDigest, trie.Hash);
@@ -399,7 +399,7 @@ public sealed partial class TrieTest
 
         // Add randomized kvs and remove kvs in order.
         // The way the test is set up, identical kv pairs shouldn't matter.
-        var kvs = RandomUtility.HashSet(RandomUtility.Word, 100)
+        var kvs = Rand.HashSet(Rand.Word, 100)
             .ToDictionary(item => item, item => item)
             .Select(item => (item.Key, item.Value))
             .ToArray();

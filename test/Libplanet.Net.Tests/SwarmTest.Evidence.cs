@@ -14,8 +14,8 @@ public partial class SwarmTest
     public async Task DuplicateVote_Test()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
-        var random = RandomUtility.GetRandom(output);
-        var proposer = RandomUtility.Signer(random);
+        var random = Rand.GetRandom(output);
+        var proposer = Rand.Signer(random);
         var genesisBlock = TestUtils.GenesisBlockBuilder.Create(proposer);
         var signers = Libplanet.Tests.TestUtils.Signers.ToArray();
         var count = signers.Length;
