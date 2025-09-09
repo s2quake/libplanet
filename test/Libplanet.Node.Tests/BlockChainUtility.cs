@@ -52,6 +52,7 @@ internal static class BlockChainUtility
         {
             Nonce = nonce,
             Signer = privateKey.Address,
+            Timestamp = DateTimeOffset.UtcNow,
             GenesisBlockHash = genesisBlock.BlockHash,
             Actions = values,
         }.Sign(privateKey.AsSigner());

@@ -292,7 +292,7 @@ If omitted (default) explorer only the local blockchain store.")]
         {
             return new BlockchainOptions
             {
-                SystemActions = SystemActions.Empty,
+                SystemAction = SystemAction.Empty,
                 // BlockInterval = TimeSpan.FromMilliseconds(options.BlockIntervalMilliseconds),
                 BlockOptions = new BlockOptions
                 {

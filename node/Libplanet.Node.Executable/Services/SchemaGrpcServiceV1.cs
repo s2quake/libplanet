@@ -37,7 +37,7 @@ internal sealed class SchemaGrpcServiceV1 : Schema.SchemaBase
         var optionList = new List<string>();
         foreach (var optionsType in optionsTypes)
         {
-            var optionsAttributes = GetAttributes(optionsType, scope: string.Empty);
+            var optionsAttributes = GetAttributes(optionsType);
             foreach (var optionsAttribute in optionsAttributes)
             {
                 optionList.Add(optionsAttribute.Name);
@@ -53,7 +53,7 @@ internal sealed class SchemaGrpcServiceV1 : Schema.SchemaBase
         var optionsTypes = ServiceUtility.GetTypes(typeof(OptionsAttribute), inherit: true);
         foreach (var optionsType in optionsTypes)
         {
-            var optionsAttributes = GetAttributes(optionsType, scope: string.Empty);
+            var optionsAttributes = GetAttributes(optionsType);
             foreach (var optionsAttribute in optionsAttributes)
             {
                 schemaBuilder.Add(optionsAttribute.Name, optionsType);
@@ -65,7 +65,7 @@ internal sealed class SchemaGrpcServiceV1 : Schema.SchemaBase
         return await schemaBuilder.BuildAsync(cancellationToken);
     }
 
-    private static IEnumerable<OptionsAttribute> GetAttributes(Type type, string scope)
+    private static IEnumerable<OptionsAttribute> GetAttributes(Type type)
         => Attribute.GetCustomAttributes(type, typeof(OptionsAttribute))
             .OfType<OptionsAttribute>();
 }

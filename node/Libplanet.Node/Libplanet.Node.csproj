@@ -9,11 +9,11 @@
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="8.0.0" />
     <PackageReference Include="NJsonSchema" Version="11.0.2" />
     <PackageReference Include="NJsonSchema.CodeGeneration.CSharp" Version="11.0.2" />
-    <PackageReference Include="R3" Version="1.2.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.Data.RocksDB\Libplanet.Data.RocksDB.csproj" />
+    <ProjectReference Include="..\..\src\Libplanet.Data.LiteDB\Libplanet.Data.LiteDB.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Data\Libplanet.Data.csproj" />
     <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Net\Libplanet.Net.csproj" />

@@ -1,5 +1,3 @@
-using Libplanet.Node.API;
-using Libplanet.Node.API.Explorer;
 using Libplanet.Node.API.Services;
 using Libplanet.Node.Extensions;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -26,12 +24,6 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddGrpc();
 builder.Services.AddGrpcReflection();
 builder.Services.AddLibplanetNode(builder.Configuration);
-builder.Services.AddHostedService<BlockChainRendererTracer>();
-
-if (builder.IsExplorerEnabled())
-{
-    builder.Services.AddNodeExplorer();
-}
 
 var handlerMessage = """
     Communication with gRPC endpoints must be made through a gRPC client. To learn how to
@@ -52,10 +44,5 @@ if (builder.Environment.IsDevelopment())
 
 app.MapSchemaBuilder("/v1/schema");
 app.MapGet("/schema", context => Task.Run(() => context.Response.Redirect("/v1/schema")));
-
-if (builder.IsExplorerEnabled())
-{
-    app.UseNodeExplorer();
-}
 
 await app.RunAsync();

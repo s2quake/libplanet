@@ -37,12 +37,9 @@ public static partial class RandomUtility
 
     public static Protocol Protocol(Random random)
     {
-        var signer = PrivateKey(random);
+        var signer = Signer(random);
         var version = NonNegative(random);
-        var properties = ImmutableSortedDictionary<string, object>(
-            keyGenerator: () => String(random),
-            valueGenerator: () => String(random));
-        return Net.Protocol.Create(signer.AsSigner(), version, properties);
+        return Net.Protocol.Create(signer, version);
     }
     
     public static MessageId MessageId() => MessageId(System.Random.Shared);

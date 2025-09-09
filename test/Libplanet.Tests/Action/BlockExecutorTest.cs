@@ -108,7 +108,7 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task EvaluateWithSystemActions()
+    public async Task EvaluateWithSystemAction()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         var random = Rand.GetRandom(output);
@@ -230,7 +230,7 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
     }
 
     [Fact]
-    public void EvaluateWithSystemActionsWithException()
+    public void EvaluateWithSystemActionWithException()
     {
         var random = Rand.GetRandom(output);
         var signers = Rand.Array(random, Rand.Signer, 4);

@@ -14,10 +14,6 @@ public sealed partial record class ProtocolMetadata
     [Property(1)]
     public Address Signer { get; init; }
 
-    [Property(2)]
-    public ImmutableSortedDictionary<string, object> Properties { get; init; }
-        = ImmutableSortedDictionary<string, object>.Empty;
-
     public Protocol Sign(ISigner signer)
     {
         var options = new ModelOptions

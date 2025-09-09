@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations;
 namespace Libplanet.Node.DataAnnotations;
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class BoundPeerAttribute : RegularExpressionAttribute
+public sealed class PeerAttribute : RegularExpressionAttribute
 {
-    public BoundPeerAttribute()
+    public PeerAttribute()
         : base(GetPattern())
     {
     }
@@ -15,7 +15,7 @@ public sealed class BoundPeerAttribute : RegularExpressionAttribute
     {
         var items = new string[]
         {
-            PublicKeyAttribute.OriginPattern,
+            AddressAttribute.OriginPattern,
             DnsEndPointAttribute.HostPattern,
             DnsEndPointAttribute.PortPattern,
         };
@@ -25,6 +25,6 @@ public sealed class BoundPeerAttribute : RegularExpressionAttribute
 }
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class BoundPeerArrayAttribute : ArrayAttribute<BoundPeerAttribute>
+public sealed class BoundPeerArrayAttribute : ArrayAttribute<PeerAttribute>
 {
 }

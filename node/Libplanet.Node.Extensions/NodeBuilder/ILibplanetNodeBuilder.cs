@@ -6,9 +6,5 @@ public interface ILibplanetNodeBuilder
 {
     IServiceCollection Services { get; }
 
-    ILibplanetNodeBuilder WithSolo();
-
-    ILibplanetNodeBuilder WithSwarm();
-
     ILibplanetNodeBuilder WithValidator();
 }

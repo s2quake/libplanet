@@ -25,18 +25,12 @@ public sealed partial record class Protocol
 
     public int Version => Metadata.Version;
 
-    public ImmutableSortedDictionary<string, object> Properties => Metadata.Properties;
-
     public static Protocol Create(ISigner signer, int version)
-        => Create(signer, version, ImmutableSortedDictionary<string, object>.Empty);
-
-    public static Protocol Create(ISigner signer, int version, ImmutableSortedDictionary<string, object> properties)
     {
         var metadata = new ProtocolMetadata
         {
             Version = version,
             Signer = signer.Address,
-            Properties = properties,
         };
         return metadata.Sign(signer);
     }
@@ -46,4 +40,6 @@ public sealed partial record class Protocol
         var bytes = ModelSerializer.SerializeToBytes(Metadata);
         return Signer.Verify(bytes, Signature.AsSpan());
     }
+
+    public override string ToString() => $"{Signer},{Version},{ByteUtility.Hex(Signature)}";
 }

@@ -1,6 +1,12 @@
+using Libplanet.Types;
+
 namespace Libplanet.Node.Services;
 
-public interface IBlockChainService
+public interface IBlockchainService
 {
-    Blockchain BlockChain { get; }
+    Block Tip { get; }
+
+    Block GetBlock(BlockHash hash);
+
+    Block GetBlock(int height);
 }

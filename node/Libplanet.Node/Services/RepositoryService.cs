@@ -2,19 +2,21 @@ using Libplanet.Node.Options;
 using Libplanet.Data.RocksDB;
 using Libplanet.Data;
 using Microsoft.Extensions.Options;
+using Libplanet.Data.LiteDB;
 
 namespace Libplanet.Node.Services;
 
-internal sealed class RepositoryService(IOptions<RepositoryOptions> storeOptions) : IRepositoryService
+internal sealed class RepositoryService(IOptions<RepositoryOptions> repositoryOptions) : IRepositoryService
 {
-    public Repository Repository { get; } = CreateStore(storeOptions.Value);
+    public Repository Repository { get; } = CreateStore(repositoryOptions.Value);
 
-    private static Repository CreateStore(RepositoryOptions storeOptions)
-        => storeOptions.Type switch
-        {
-            // RepositoryType.Default => new Repository(new DefaultDatabase(storeOptions.Path)),
-            RepositoryType.RocksDB => new Repository(new RocksDatabase(storeOptions.Path)),
-            RepositoryType.InMemory => new Repository(new MemoryDatabase()),
-            _ => throw new NotSupportedException($"Unsupported store type: {storeOptions.Type}"),
-        };
+    public RepositoryType Type => repositoryOptions.Value.Type;
+
+    private static Repository CreateStore(RepositoryOptions storeOptions) => storeOptions.Type switch
+    {
+        RepositoryType.RocksDB => new Repository(new RocksDatabase(storeOptions.Path)),
+        RepositoryType.Memory => new Repository(new MemoryDatabase()),
+        RepositoryType.LiteDB => new Repository(new LiteDatabase(storeOptions.Path)),
+        _ => throw new NotSupportedException($"Unsupported store type: {storeOptions.Type}"),
+    };
 }

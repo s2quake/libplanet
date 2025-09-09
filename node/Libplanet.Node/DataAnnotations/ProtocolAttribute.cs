@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Libplanet.Node.DataAnnotations;
 
 [AttributeUsage(AttributeTargets.Property)]
-public sealed class AppProtocolVersionAttribute : RegularExpressionAttribute
+public sealed class ProtocolAttribute : RegularExpressionAttribute
 {
     public const string VersionPattern = @"\d+";
     public const string AddressPattern = @"[0-9a-fA-F]{40}";
@@ -13,7 +13,7 @@ public sealed class AppProtocolVersionAttribute : RegularExpressionAttribute
 
     public static readonly string OriginPattern = GenerateOriginPattern();
 
-    public AppProtocolVersionAttribute()
+    public ProtocolAttribute()
         : base($"^{OriginPattern}$")
     {
     }

@@ -7,13 +7,13 @@ internal sealed class RepositoryOptionsConfigurator(ILogger<RepositoryOptionsCon
 {
     protected override void OnConfigure(RepositoryOptions options)
     {
-        if (options.Type == RepositoryType.InMemory)
+        if (options.Type == RepositoryType.Memory)
         {
             if (options.Path != string.Empty)
             {
                 options.Path = string.Empty;
                 logger.LogWarning(
-                    "RootPath is ignored because StoreType is {Memory}.", RepositoryType.InMemory);
+                    "RootPath is ignored because StoreType is {Memory}.", RepositoryType.Memory);
             }
 
         }

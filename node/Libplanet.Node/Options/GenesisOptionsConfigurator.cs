@@ -5,13 +5,12 @@ using Microsoft.Extensions.Options;
 namespace Libplanet.Node.Options;
 
 internal sealed class GenesisOptionsConfigurator(
-    IOptions<SwarmOptions> nodeOptions, ILogger<GenesisOptionsConfigurator> logger)
+    IOptions<NodeOptions> nodeOptions, ILogger<GenesisOptionsConfigurator> logger)
     : OptionsConfiguratorBase<GenesisOptions>
 {
     protected override void OnConfigure(GenesisOptions options)
     {
-        if (options.GenesisBlockPath == string.Empty &&
-            options.GenesisConfigurationPath == string.Empty)
+        if (options.GenesisBlockPath == string.Empty)
         {
             if (options.GenesisKey == string.Empty)
             {
@@ -25,7 +24,7 @@ internal sealed class GenesisOptionsConfigurator(
             if (options.Validators.Length == 0)
             {
                 var privateKey = PrivateKey.Parse(nodeOptions.Value.PrivateKey);
-                options.Validators = [privateKey.PublicKey.ToString()];
+                options.Validators = [privateKey.Address.ToString()];
                 logger.LogWarning(
                     "Validators are not set. Use the node's private key as a validator.");
             }

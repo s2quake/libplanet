@@ -11,14 +11,12 @@ public abstract class OptionsBase<T>
     {
         if (!IsConfigured)
         {
-            throw new InvalidOperationException(
-                $"The options {typeof(T)} have not been configured yet.");
+            throw new InvalidOperationException($"The options {typeof(T)} have not been configured yet.");
         }
 
         if (!IsValidated)
         {
-            throw new InvalidOperationException(
-                $"The options {typeof(T)} have not been validated yet.");
+            throw new InvalidOperationException($"The options {typeof(T)} have not been validated yet.");
         }
 
         return (T)this;

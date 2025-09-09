@@ -26,42 +26,23 @@ public static class LibplanetServicesExtensions
                 .Bind(configuration.GetSection(RepositoryOptions.Position));
         services.AddSingleton<IConfigureOptions<RepositoryOptions>, RepositoryOptionsConfigurator>();
 
-        services.AddOptions<ActionOptions>()
-                .Bind(configuration.GetSection(ActionOptions.Position));
-
-        services.AddOptions<SwarmOptions>()
-                .Bind(configuration.GetSection(SwarmOptions.Position));
-        services.AddSingleton<IConfigureOptions<SwarmOptions>, SwarmOptionsConfigurator>();
-        services.AddSingleton<IValidateOptions<SwarmOptions>, SwarmOptionsValidator>();
+        services.AddOptions<NodeOptions>()
+                .Bind(configuration.GetSection(NodeOptions.Position));
+        services.AddSingleton<IConfigureOptions<NodeOptions>, NodeOptionsConfigurator>();
+        services.AddSingleton<IValidateOptions<NodeOptions>, NodeOptionsValidator>();
 
         services.AddOptions<ValidatorOptions>()
                 .Bind(configuration.GetSection(ValidatorOptions.Position));
         services.AddSingleton<IConfigureOptions<ValidatorOptions>, ValidatorOptionsConfigurator>();
         services.AddSingleton<IValidateOptions<ValidatorOptions>, ValidatorOptionsValidator>();
 
-        services.AddOptions<SoloOptions>()
-                .Bind(configuration.GetSection(SoloOptions.Position));
-        services.AddSingleton<IConfigureOptions<SoloOptions>, SoloOptionsConfigurator>();
-
         services.AddSingleton<RepositoryService>();
         services.AddSingleton(s => (IRepositoryService)s.GetRequiredService<RepositoryService>());
-        services.AddSingleton<ActionService>();
-        services.AddSingleton(s => (IActionService)s.GetRequiredService<ActionService>());
-        services.AddSingleton<IBlockChainService, BlockChainService>();
-        services.AddSingleton<IReadChainService, ReadChainService>();
-        services.AddSingleton<TransactionService>();
+        services.AddSingleton<BlockchainService>()
+            .AddSingleton(s => (IBlockchainService)s.GetRequiredService<BlockchainService>());
 
         var nodeBuilder = new LibplanetNodeBuilder(services);
 
-        if (configuration.IsOptionsEnabled(SoloOptions.Position))
-        {
-            nodeBuilder.WithSolo();
-        }
-
-        if (configuration.IsOptionsEnabled(SwarmOptions.Position))
-        {
-            nodeBuilder.WithSwarm();
-        }
 
         if (configuration.IsOptionsEnabled(ValidatorOptions.Position))
         {

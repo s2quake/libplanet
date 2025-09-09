@@ -15,7 +15,7 @@ public sealed class RepositoryOptions : OptionsBase<RepositoryOptions>
     /// The type of the store.
     /// </summary>
     [Description("The type of the store.")]
-    public RepositoryType Type { get; set; } = RepositoryType.InMemory;
+    public RepositoryType Type { get; set; } = RepositoryType.Memory;
 
     /// <summary>
     /// The root directory path of the store.

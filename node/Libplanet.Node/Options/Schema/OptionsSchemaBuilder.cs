@@ -19,7 +19,7 @@ public sealed class OptionsSchemaBuilder
         var optionsTypes = ServiceUtility.GetTypes(typeof(OptionsAttribute), inherit: true);
         foreach (var optionsType in optionsTypes)
         {
-            var optionsAttributes = GetAttributes(optionsType, scope: string.Empty);
+            var optionsAttributes = GetAttributes(optionsType);
             foreach (var optionsAttribute in optionsAttributes)
             {
                 schemaBuilder.Add(optionsAttribute.Name, optionsType);
@@ -30,7 +30,7 @@ public sealed class OptionsSchemaBuilder
 
         return await schemaBuilder.BuildAsync(cancellationToken);
 
-        static IEnumerable<OptionsAttribute> GetAttributes(Type type, string scope)
+        static IEnumerable<OptionsAttribute> GetAttributes(Type type)
             => Attribute.GetCustomAttributes(type, typeof(OptionsAttribute))
                 .OfType<OptionsAttribute>();
     }

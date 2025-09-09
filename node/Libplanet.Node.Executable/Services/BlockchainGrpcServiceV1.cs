@@ -4,9 +4,9 @@ using Libplanet.Types;
 
 namespace Libplanet.Node.API.Services;
 
-public class BlockchainGrpcServiceV1(IReadChainService blockChain) : Blockchain.BlockchainBase
+public class BlockchainGrpcServiceV1(IBlockchainService blockChain) : Blockchain.BlockchainBase
 {
-    private readonly IReadChainService _blockChain = blockChain;
+    private readonly IBlockchainService _blockChain = blockChain;
 
     public override Task<GetGenesisBlockReply> GetGenesisBlock(
         GetGenesisBlockRequest request,

@@ -52,6 +52,7 @@ public class ArrayAttribute(Type validationType, params object?[] values) : Vali
     }
 }
 
+[AttributeUsage(AttributeTargets.Property)]
 public class ArrayAttribute<T> : ArrayAttribute
     where T : Attribute
 {

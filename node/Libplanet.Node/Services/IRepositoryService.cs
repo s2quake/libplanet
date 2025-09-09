@@ -1,8 +1,8 @@
-using Libplanet.Data;
+using Libplanet.Node.Options;
 
 namespace Libplanet.Node.Services;
 
 public interface IRepositoryService
 {
-    Repository Repository { get; }
+    RepositoryType Type { get; }
 }

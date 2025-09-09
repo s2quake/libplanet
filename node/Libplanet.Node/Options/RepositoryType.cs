@@ -2,9 +2,9 @@ namespace Libplanet.Node.Options;
 
 public enum RepositoryType
 {
-    Default,
+    Memory,
 
     RocksDB,
 
-    InMemory,
+    LiteDB,
 }

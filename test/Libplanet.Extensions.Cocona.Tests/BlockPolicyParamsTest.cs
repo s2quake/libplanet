@@ -26,14 +26,14 @@ public class BlockPolicyParamsTest
         };
         BlockchainOptions blockPolicy = Assert.IsType<BlockchainOptions>(
             blockPolicyParams.GetBlockPolicy(new[] { GetType().Assembly }));
-        Assert.Single(blockPolicy.SystemActions.BeginBlockActions);
-        Assert.IsType<NullAction>(blockPolicy.SystemActions.BeginBlockActions[0]);
-        Assert.Single(blockPolicy.SystemActions.EndBlockActions);
-        Assert.IsType<NullAction>(blockPolicy.SystemActions.EndBlockActions[0]);
-        Assert.Single(blockPolicy.SystemActions.BeginTxActions);
-        Assert.IsType<NullAction>(blockPolicy.SystemActions.BeginTxActions[0]);
-        Assert.Single(blockPolicy.SystemActions.EndTxActions);
-        Assert.IsType<NullAction>(blockPolicy.SystemActions.EndTxActions[0]);
+        Assert.Single(blockPolicy.SystemAction.BeginBlockActions);
+        Assert.IsType<NullAction>(blockPolicy.SystemAction.BeginBlockActions[0]);
+        Assert.Single(blockPolicy.SystemAction.EndBlockActions);
+        Assert.IsType<NullAction>(blockPolicy.SystemAction.EndBlockActions[0]);
+        Assert.Single(blockPolicy.SystemAction.BeginTxActions);
+        Assert.IsType<NullAction>(blockPolicy.SystemAction.BeginTxActions[0]);
+        Assert.Single(blockPolicy.SystemAction.EndTxActions);
+        Assert.IsType<NullAction>(blockPolicy.SystemAction.EndTxActions[0]);
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public class BlockPolicyParamsTest
     internal static BlockchainOptions BlockPolicyFactory() =>
         new BlockchainOptions
         {
-            SystemActions = new SystemActions
+            SystemAction = new SystemAction
             {
                 BeginBlockActions = [new NullAction()],
                 EndBlockActions = [new NullAction()],

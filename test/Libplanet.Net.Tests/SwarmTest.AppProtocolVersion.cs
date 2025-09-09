@@ -17,11 +17,11 @@ public partial class SwarmTest
         var signer = Rand.Signer(random);
         var v2 = new TransportOptions()
         {
-            Protocol = new ProtocolBuilder { Version = 2 }.Create(signer),
+            Protocol = Protocol.Create(signer, 2),
         };
         var v3 = new TransportOptions
         {
-            Protocol = new ProtocolBuilder { Version = 3 }.Create(signer),
+            Protocol = Protocol.Create(signer, 3),
         };
 
         var transportA = CreateTransport(options: v2);
@@ -67,11 +67,11 @@ public partial class SwarmTest
         var signer = Rand.Signer(random);
         var v1 = new TransportOptions
         {
-            Protocol = new ProtocolBuilder { Version = 1 }.Create(signer),
+            Protocol = Protocol.Create(signer, 1),
         };
         var v2 = new TransportOptions
         {
-            Protocol = new ProtocolBuilder { Version = 2 }.Create(signer),
+            Protocol = Protocol.Create(signer, 2),
         };
         await using var transportA = CreateTransport(options: v1);
         await using var transportB = CreateTransport(options: v2);

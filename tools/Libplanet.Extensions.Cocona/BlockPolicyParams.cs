@@ -67,7 +67,7 @@ public class BlockPolicyParams : ICommandParameterSet
     public object? GetBlockPolicy() =>
         GetBlockPolicy(LoadAssemblies());
 
-    public SystemActions GetPolicyActions() =>
+    public SystemAction GetPolicyActions() =>
         GetPolicyActions(LoadAssemblies());
 
     [SuppressMessage(
@@ -123,22 +123,22 @@ public class BlockPolicyParams : ICommandParameterSet
             string.Join("\n", assemblies.Select(asm => asm.FullName)));
     }
 
-    internal SystemActions GetPolicyActions(Assembly[] assemblies)
+    internal SystemAction GetPolicyActions(Assembly[] assemblies)
     {
         object? policy = GetBlockPolicy(assemblies);
         if (policy is null)
         {
-            return new SystemActions();
+            return new SystemAction();
         }
 
         PropertyInfo? propertyInfo = policy
             .GetType()
-            .GetProperty(nameof(BlockchainOptions.SystemActions));
+            .GetProperty(nameof(BlockchainOptions.SystemAction));
         if (propertyInfo is null)
         {
             var message = $"The policy type "
                 + $"'{policy.GetType().FullName}' does not have a "
-                + $"'{nameof(BlockchainOptions.SystemActions)}' property.";
+                + $"'{nameof(BlockchainOptions.SystemAction)}' property.";
             throw new InvalidOperationException(message);
         }
 
@@ -146,11 +146,11 @@ public class BlockPolicyParams : ICommandParameterSet
         if (value is null)
         {
             var message = $"The value of property "
-                + $"'{nameof(BlockchainOptions.SystemActions)}' of type "
+                + $"'{nameof(BlockchainOptions.SystemAction)}' of type "
                 + $"'{policy.GetType().FullName}' cannot be null.";
             throw new InvalidOperationException(message);
         }
 
-        return (SystemActions)value;
+        return (SystemAction)value;
     }
 }

@@ -20,7 +20,7 @@ public sealed class MessageTest(ITestOutputHelper output)
             Address = signer.Address,
             EndPoint = Rand.DnsEndPoint(random),
         };
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(Rand.Signer(random));
+        var protocol = Protocol.Create(Rand.Signer(random), 1);
         var dateTimeOffset = DateTimeOffset.UtcNow;
         var expected = new BlockSummaryMessage
         {
@@ -46,7 +46,7 @@ public sealed class MessageTest(ITestOutputHelper output)
         var random = Rand.GetRandom(output);
         var message = new PingMessage();
         var signer = Rand.Signer(random);
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(Rand.Signer(random));
+        var protocol = Protocol.Create(Rand.Signer(random), 1);
         var peer = new Peer
         {
             Address = signer.Address,
@@ -78,7 +78,7 @@ public sealed class MessageTest(ITestOutputHelper output)
             EndPoint = Rand.DnsEndPoint(random),
         };
         var timestamp = DateTimeOffset.UtcNow;
-        var protocol = new ProtocolBuilder { Version = 1 }.Create(Rand.Signer(random));
+        var protocol = Protocol.Create(Rand.Signer(random), 1);
         var ping = new PingMessage();
         var rawMessage = NetMQMessageCodec.Encode(
             new MessageEnvelope
