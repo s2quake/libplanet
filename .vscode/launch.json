@@ -8,8 +8,16 @@
             "name": "C#: Commands Debug",
             "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceFolder}/tools/Libplanet.Commands.Executable/bin/Debug/net8.0/Libplanet.Commands.Executable.dll",
-            "console": "integratedTerminal"
+            "program": "${workspaceFolder}/tools/Libplanet.Commands.Executable/bin/Debug/net8.0/planet.dll",
+            "console": "integratedTerminal",
+            "args": [
+                "key",
+                "create",
+                "--dry-run",
+                "-p",
+                "1234",
+                "--json"
+            ]
         },
         {
             "name": "C#: Benchmark Debug",

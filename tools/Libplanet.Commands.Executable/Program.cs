@@ -1,40 +1,17 @@
-using System.IO;
-using Cocona;
+using JSSoft.Commands;
+using JSSoft.Commands.Extensions;
 using Libplanet.Commands;
-using Libplanet.Commands.Extensions;
+using Libplanet.Commands.Executable;
+using Libplanet.Commands.Keys;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Libplanet.Commands.Executable;
+var services = new ServiceCollection();
 
-[HasSubCommands(typeof(ApvCommand), "apv", Description = "App protocol version utilities.")]
-[HasSubCommands(typeof(KeyCommand), "key", Description = "Manage private keys.")]
-[HasSubCommands(typeof(MptCommand), "mpt", Description = "Merkle Patricia Trie utilities.")]
-[HasSubCommands(typeof(StoreCommand), "store", Description = "Store utilities.")]
-[HasSubCommands(typeof(StatsCommand), "stats", Description = "Stats utilities.")]
-[HasSubCommands(typeof(TxCommand), "tx", Description = "Transaction utilities.")]
-[HasSubCommands(typeof(BlockCommand), "block", Description = "Block utilities.")]
-public class Program
-{
-    private static readonly string FileConfigurationServiceRoot = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "planetarium",
-        "cli.json");
+services.AddSingleton<BlockCommand>()
+    .AddSingleton<ICommand>(s => s.GetRequiredService<BlockCommand>());
+services.AddSingleton<KeyCommand>()
+    .AddSingleton<ICommand>(s => s.GetRequiredService<KeyCommand>());
+services.AddSingleton<ICommand, CreateKeyCommand>();
 
-    public static Task Main(string[] args)
-    {
-        return CoconaLiteApp.CreateHostBuilder()
-            .ConfigureServices(services =>
-            {
-                services.AddJsonConfigurationService(FileConfigurationServiceRoot);
-            })
-            .RunAsync<Program>(args, options =>
-            {
-                options.TreatPublicMethodsAsCommands = false;
-                options.EnableShellCompletionSupport = true;
-            });
-    }
-
-    [PrimaryCommand]
-    public Task Help() =>
-        /* FIXME: I believe there is a better way... */
-        Main(new[] { "--help" });
-}
+var commandContext = new CommandContext(services.BuildServiceProvider());
+await commandContext.ExecuteAsync(args);

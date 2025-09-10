@@ -11,6 +11,7 @@
     <PackageReference Include="Zio" Version="0.7.4" />
     <PackageReference Include="Norgerman.Cryptography.Scrypt" Version="2.0.1" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
+    <PackageReference Include="JSSoft.Commands" Version="7.1.0-pr.52" />
   </ItemGroup>
 
   <ItemGroup>
