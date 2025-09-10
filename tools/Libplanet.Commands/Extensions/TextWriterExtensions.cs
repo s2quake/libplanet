@@ -33,6 +33,15 @@ public static class TextWriterExtensions
         @this.Print(tableDataBuilder);
     }
 
+    public static void WriteLine(this TextWriter @this, IDictionary dictionary)
+    {
+        foreach (var row in dictionary)
+        {
+            var entry = (DictionaryEntry)row;
+            @this.WriteLine($"{entry.Key}: {entry.Value}");
+        }
+    }
+
     // public static void WriteColoredLine(
     //     this TextWriter @this, string text, TerminalColorType colorType)
     // {
