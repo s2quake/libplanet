@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace Libplanet.KeyStore
 {
@@ -31,7 +31,7 @@ namespace Libplanet.KeyStore
             @"^UTC--\d{4}-\d\d-\d\dT\d\d-\d\d-\d\dZ--([\da-f]{8}-?(?:[\da-f]{4}-?){3}[\da-f]{12})$",
             RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
-        private readonly ILogger _logger;
+        private readonly ILogger<IKeyStore> _logger;
 
         /// <summary>
         /// Creates a <see cref="Web3KeyStore"/> instance with a custom directory
@@ -44,7 +44,7 @@ namespace Libplanet.KeyStore
         /// <seealso cref="DefaultKeyStore"/>
         public Web3KeyStore(string path)
         {
-            _logger = Log.ForContext<Web3KeyStore>().ForContext("DirectoryPath", path);
+            // _logger = Log.ForContext<Web3KeyStore>().ForContext("DirectoryPath", path);
 
             if (path is null)
             {
@@ -53,9 +53,9 @@ namespace Libplanet.KeyStore
             else if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
-                _logger.Debug(
-                    "Created a directory {DirectoryPath} as it did not exist",
-                    path);
+                // _logger.Debug(
+                //     "Created a directory {DirectoryPath} as it did not exist",
+                //     path);
             }
 
             Path = path;
@@ -157,9 +157,9 @@ namespace Libplanet.KeyStore
                         if (!Guid.TryParse(m.Groups[1].Value, out Guid id))
 #pragma warning restore S4056
                         {
-                            _logger.Debug(
-                                "Failed to parse the file name due to invalid UUID: {keyPath}",
-                                Path);
+                            // _logger.Debug(
+                            //     "Failed to parse the file name due to invalid UUID: {keyPath}",
+                            //     Path);
                             continue;
                         }
 

@@ -1,21 +1,15 @@
 using System.IO;
 using System.Text.Json;
 using global::Cocona;
-using Libplanet.State.Builtin;
 using Libplanet.Serialization;
 using Libplanet.Types;
 
-namespace Libplanet.Extensions.Cocona.Commands;
+namespace Libplanet.Commands;
 
 public class BlockCommand
 {
     public enum OutputFormat
     {
-        /// <summary>
-        /// Bencode Extensible Binary Object Notation.
-        /// </summary>
-        Bencodex,
-
         /// <summary>
         /// Json (Human-readable).
         /// </summary>
@@ -106,7 +100,7 @@ public class BlockCommand
         string[] validatorKey,
         BlockPolicyParams blockPolicyParams,
         [Option('f', Description = "Output format.")]
-        OutputFormat format = OutputFormat.Bencodex)
+        OutputFormat format = OutputFormat.Json)
     {
         // FIXME: Declare a ICommandParameterSet type taking key ID and keystore path instead:
         PrivateKey key = new KeyCommand().UnprotectKey(keyId, passphrase, ignoreStdin: true);
@@ -117,16 +111,17 @@ public class BlockCommand
                 .Select(Address.Parse)
                 .Select(k => new Validator { Address = k })
                 .ToImmutableSortedSet();
-        var action = new Initialize { Validators = validatorSet, };
-        var genesis = new BlockBuilder
+        // var action = new Initialize { Validators = validatorSet, };
+        var genesis = new GenesisBlockBuilder
         {
-            Transactions =
-            [
-                new TransactionBuilder
-                {
-                    Actions = [action],
-                }.Create(signer),
-            ],
+            Validators = validatorSet,
+            // Transactions =
+            // [
+            //     new TransactionBuilder
+            //     {
+            //         Actions = [action],
+            //     }.Create(signer),
+            // ],
         }.Create(signer);
 
         using Stream stream = file == "-"

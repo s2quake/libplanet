@@ -1,7 +1,7 @@
 using Libplanet.State;
 using Libplanet.State.Builtin;
 
-namespace Libplanet.Extensions.Cocona.Tests;
+namespace Libplanet.Commands.Tests;
 
 public class BlockPolicyParamsTest
 {

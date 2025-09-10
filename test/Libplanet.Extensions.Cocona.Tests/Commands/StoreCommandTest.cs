@@ -1,13 +1,13 @@
 using System.IO;
 using global::Cocona;
 using Libplanet.State;
-using Libplanet.Extensions.Cocona.Commands;
+using Libplanet.Commands;
 using Libplanet.Tests;
 using Libplanet.Tests.Store;
 using Libplanet.Types;
 using Libplanet.TestUtilities;
 
-namespace Libplanet.Extensions.Cocona.Tests.Commands;
+namespace Libplanet.Commands.Tests.Commands;
 
 [Trait("CircleCI", "Skip")]
 public sealed class StoreCommandTest : IDisposable

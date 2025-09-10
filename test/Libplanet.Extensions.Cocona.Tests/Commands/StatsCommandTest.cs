@@ -1,8 +1,8 @@
 using System.IO;
-using Libplanet.Extensions.Cocona.Commands;
+using Libplanet.Commands;
 using Libplanet.Tests.Store;
 
-namespace Libplanet.Extensions.Cocona.Tests.Commands;
+namespace Libplanet.Commands.Tests.Commands;
 
 public sealed class StatsCommandTest : IDisposable
 {

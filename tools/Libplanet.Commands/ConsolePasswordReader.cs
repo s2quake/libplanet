@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Libplanet.Extensions.Cocona;
+namespace Libplanet.Commands;
 
 public class ConsolePasswordReader
 {

@@ -2,7 +2,7 @@ using global::Cocona;
 using Libplanet.Data;
 using Libplanet.Types;
 
-namespace Libplanet.Extensions.Cocona.Commands;
+namespace Libplanet.Commands;
 
 public class StatsCommand
 {

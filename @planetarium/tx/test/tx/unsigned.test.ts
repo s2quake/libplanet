@@ -57,7 +57,7 @@ test("encodeUnsignedTx", async () => {
       "run",
       "--no-build",
       "--project",
-      join(__dirname, "..", "..", "..", "..", "tools", "Libplanet.Tools"),
+      join(__dirname, "..", "..", "..", "..", "tools", "Libplanet.Commands.Executable"),
       "--",
       "tx",
       "analyze",

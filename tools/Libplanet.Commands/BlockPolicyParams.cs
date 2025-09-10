@@ -3,7 +3,7 @@ using System.Reflection;
 using global::Cocona;
 using Libplanet.State;
 
-namespace Libplanet.Extensions.Cocona;
+namespace Libplanet.Commands;
 
 public class BlockPolicyParams : ICommandParameterSet
 {

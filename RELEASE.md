@@ -132,7 +132,7 @@ automates the below processes:
  -  Building a new version of docs and uploading it on
     <https://docs.libplanet.net/>, which is hosted by GitHub Pages.
     See also the *gh-pages* branch.
- -  Submitting Libplanet.Tools to npm [@planetarium/cli].
+ -  Submitting Libplanet.Commands.Executable to npm [@planetarium/cli].
 
 In other words, you don't have to do them by yourself.  However, you should
 check twice if all these packages and docs are successfully submitted.

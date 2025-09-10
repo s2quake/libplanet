@@ -6,7 +6,7 @@ using Libplanet.KeyStore;
 using Libplanet.Net;
 using Libplanet.Types;
 
-namespace Libplanet.Extensions.Cocona.Commands;
+namespace Libplanet.Commands;
 
 public class ApvCommand
 {

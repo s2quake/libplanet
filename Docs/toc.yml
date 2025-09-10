@@ -11,7 +11,7 @@
   href: ../Libplanet.Analyzers/
   homepage: ../Libplanet.Analyzers/README.md
 - name: CLI Tools
-  href: ../Libplanet.Tools/README.md
+  href: ../Libplanet.Commands.Executable/README.md
 - name: Explorer
   href: ../Libplanet.Explorer/
   homepage: ../Libplanet.Explorer/README.md

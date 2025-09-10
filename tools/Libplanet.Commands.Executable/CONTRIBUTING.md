@@ -1,7 +1,7 @@
 On npm packaging
 ================
 
-Although *Libplanet.Tools* is a CLI program written in .NET, it's also
+Although *Libplanet.Commands.Executable* is a CLI program written in .NET, it's also
 distributed via *npm*, the popular package manager for JavaScript:
 *[@planetarium/cli]*.  The npm package consists of three scripts:
 
@@ -16,9 +16,9 @@ distributed via *npm*, the popular package manager for JavaScript:
     for details.
 
 As the npm package *[@planetarium/cli]* is just a thin wrapper around
-*Libplanet.Tools* project, which is also a thin entrypoint of
-*Libplanet.Extensions.Cocona* project, if you want to change the program itself
-see *Libplanet.Extensions.Cocona* project instead.
+*Libplanet.Commands.Executable* project, which is also a thin entrypoint of
+*Libplanet.Commands* project, if you want to change the program itself
+see *Libplanet.Commands* project instead.
 
 [@planetarium/cli]: https://www.npmjs.com/package/@planetarium/cli
 
@@ -27,7 +27,7 @@ Testing the installer
 ---------------------
 
 Note that the below examples do not test `npm install @planetarium/cli@0.27.3`,
-but install *Libplanet.Tools* 0.27.3 with the *current install script in your
+but install *Libplanet.Commands.Executable* 0.27.3 with the *current install script in your
 local working directory*.
 
 ### Linux/macOS
@@ -41,7 +41,7 @@ There are prerequisites for testing:
 Here's a testing script:
 
 ~~~ bash
-bin/npm-test.sh 0.27.3  # Libplanet.Tools version to install
+bin/npm-test.sh 0.27.3  # Libplanet.Commands.Executable version to install
 ~~~
 
 It must terminate with the output `Succeeded!` in the end if tests passed.
@@ -59,7 +59,7 @@ Here's a testing script:
 powershell `
   -ExecutionPolicy Bypass `
   -File bin\npm-test.ps1 `
-  -Version 0.27.3  # Libplanet.Tools version to install
+  -Version 0.27.3  # Libplanet.Commands.Executable version to install
 ~~~
 
 It must terminate with the output `Succeeded!` in the end if tests passed.

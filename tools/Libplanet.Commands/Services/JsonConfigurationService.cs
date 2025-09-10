@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Libplanet.Extensions.Cocona.Configuration;
+using Libplanet.Commands.Configuration;
 using Zio;
 
-namespace Libplanet.Extensions.Cocona.Services;
+namespace Libplanet.Commands.Services;
 
 public class JsonConfigurationService : IConfigurationService<ToolConfiguration>
 {

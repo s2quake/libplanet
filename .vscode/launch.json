@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "C#: Commands Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/Libplanet.Commands.Executable/bin/Debug/net8.0/Libplanet.Commands.Executable.dll",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "C#: Benchmark Debug",
             "type": "coreclr",
             "request": "launch",

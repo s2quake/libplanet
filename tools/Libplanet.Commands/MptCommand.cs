@@ -1,13 +1,14 @@
 using System.Security.Cryptography;
 using global::Cocona;
 using global::Cocona.Help;
-using Libplanet.Extensions.Cocona.Configuration;
-using Libplanet.Extensions.Cocona.Services;
+using Libplanet.Commands.Configuration;
+using Libplanet.Commands.Services;
 using Libplanet.Data.RocksDB;
 using Libplanet.Data;
 using Libplanet.Types;
+using Libplanet.State;
 
-namespace Libplanet.Extensions.Cocona.Commands;
+namespace Libplanet.Commands;
 
 internal enum SchemeType
 {
@@ -28,12 +29,12 @@ public class MptCommand
         "the type of " + nameof(ITable) + " implementation and the path where " +
         "it was used at. " + KVStoreURIExample;
 
-    private readonly IImmutableDictionary<string, Func<string, ITable>>
+    private readonly IImmutableDictionary<string, Func<string, IDatabase>>
         _kvStoreConstructors =
-            new Dictionary<string, Func<string, ITable>>
+            new Dictionary<string, Func<string, IDatabase>>
             {
                 // ["default"] = kvStorePath => new DefaultTable(kvStorePath),
-                ["rocksdb"] = kvStorePath => new RocksTable(kvStorePath),
+                ["rocksdb"] = kvStorePath => new RocksDatabase(kvStorePath),
             }.ToImmutableSortedDictionary();
 
     [Command(Description = "Compare two trees via root hash.")]
@@ -62,7 +63,7 @@ public class MptCommand
 
         StateIndex stateStore = new StateIndex(LoadKVStoreFromURI(kvStoreUri));
         StateIndex otherStateStore = new StateIndex(LoadKVStoreFromURI(otherKvStoreUri));
-        var trie =
+        var trie = 
             stateStore.GetTrie(HashDigest<SHA256>.Parse(stateRootHashHex));
         var otherTrie =
             otherStateStore.GetTrie(HashDigest<SHA256>.Parse(otherStateRootHashHex));
@@ -214,7 +215,7 @@ public class MptCommand
     {
         ToolConfiguration toolConfiguration = configurationService.Load();
         kvStoreUri = ConvertKVStoreUri(kvStoreUri, toolConfiguration);
-        ITable keyValueStore = LoadKVStoreFromURI(kvStoreUri);
+        var keyValueStore = LoadKVStoreFromURI(kvStoreUri);
         // var trie = Trie.Create(HashDigest<SHA256>.Parse(stateRootHashHex), keyValueStore);
         // KeyBytes stateKeyBytes = (KeyBytes)stateKey;
         throw new NotImplementedException();
@@ -238,7 +239,7 @@ public class MptCommand
         Console.Error.WriteLine(helpMessageBuilder.BuildAndRenderForCurrentContext());
     }
 
-    private ITable LoadKVStoreFromURI(string rawUri)
+    private IDatabase LoadKVStoreFromURI(string rawUri)
     {
         var uri = new Uri(rawUri);
         var scheme = uri.Scheme;
@@ -252,7 +253,7 @@ public class MptCommand
 
         if (!_kvStoreConstructors.TryGetValue(
             splitScheme[0],
-            out Func<string, ITable>? constructor))
+            out Func<string, IDatabase>? constructor))
         {
             throw new NotSupportedException(
                 $"No key-value store backend supports the such scheme: {splitScheme[0]}.");

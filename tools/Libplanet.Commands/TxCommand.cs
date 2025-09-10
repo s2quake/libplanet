@@ -1,7 +1,7 @@
 using global::Cocona;
 using global::Cocona.Help;
 
-namespace Libplanet.Extensions.Cocona.Commands;
+namespace Libplanet.Commands;
 
 public class TxCommand
 {

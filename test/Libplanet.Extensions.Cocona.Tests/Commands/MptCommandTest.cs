@@ -1,12 +1,12 @@
 using System.IO;
-using Libplanet.Extensions.Cocona.Commands;
-using Libplanet.Extensions.Cocona.Configuration;
+using Libplanet.Commands;
+using Libplanet.Commands.Configuration;
 using Libplanet.Data;
 using Libplanet.State.Structures;
-using Libplanet.Tools.Tests.Services;
+using Libplanet.Commands.Executable.Tests.Services;
 using Libplanet.Types;
 
-namespace Libplanet.Extensions.Cocona.Tests.Commands;
+namespace Libplanet.Commands.Tests.Commands;
 
 public class MptCommandTest : IDisposable
 {

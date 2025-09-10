@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Libplanet.Extensions.Cocona.Tests;
+namespace Libplanet.Commands.Tests;
 
 public class UtilsTest
 {
