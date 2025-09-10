@@ -16,11 +16,13 @@ public sealed class ListKeyCommand(KeyCommand keyCommand)
     protected override void OnExecute()
     {
         var keyStore = Path == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(Path);
-        var rows = new SortedDictionary<string, string>();
+        var rows = new Dictionary<string, string>();
         foreach (var item in keyStore.List())
         {
             rows[item.Item1.ToString()] = item.Item2.Address.ToString();
         }
+
+        FormatProperties.WriteLine(Out, rows);
 
         if (FormatProperties.Json)
         {
