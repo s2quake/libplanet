@@ -1393,9 +1393,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@planetarium/cli@workspace:tools/Libplanet.Tools":
+"@planetarium/cli@workspace:tools/Libplanet.Commands.Executable":
   version: 0.0.0-use.local
-  resolution: "@planetarium/cli@workspace:tools/Libplanet.Tools"
+  resolution: "@planetarium/cli@workspace:tools/Libplanet.Commands.Executable"
   dependencies:
     extract-zip: "npm:^2.0.1"
     node-fetch: "npm:^3.1.1"

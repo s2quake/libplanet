@@ -1,7 +1,7 @@
 using System.IO;
 using global::Cocona;
 
-namespace Libplanet.Extensions.Cocona;
+namespace Libplanet.Commands;
 
 public class PassphraseParameters : ICommandParameterSet
 {

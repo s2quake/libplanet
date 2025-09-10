@@ -1,9 +1,9 @@
 using System.IO;
 using Cocona;
-using Libplanet.Extensions.Cocona.Commands;
-using Libplanet.Extensions.Cocona.Extensions;
+using Libplanet.Commands;
+using Libplanet.Commands.Extensions;
 
-namespace Libplanet.Tools;
+namespace Libplanet.Commands.Executable;
 
 [HasSubCommands(typeof(ApvCommand), "apv", Description = "App protocol version utilities.")]
 [HasSubCommands(typeof(KeyCommand), "key", Description = "Manage private keys.")]

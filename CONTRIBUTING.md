@@ -145,13 +145,13 @@ on GitHub consists of several projects.  There are two types of projects:
     use Libplanet.  This project is distributed as a distinct NuGet package:
     *[Libplanet.Analyzers]*.
 
- -  *Libplanet.Extensions.Cocona*: The project to provide the [Cocona] commands
+ -  *Libplanet.Commands*: The project to provide the [Cocona] commands
     to handle *Libplanet* structures in command line.  This is  distributed as
-    a distinct NuGet package: *[Libplanet.Extensions.Cocona]*.
+    a distinct NuGet package: *[Libplanet.Commands]*.
 
- -  *Libplanet.Tools*: The CLI tools for Libplanet.  This project is distributed
-    as a distinct NuGet package: *[Libplanet.Tools]*. See its own
-    [README.md](tools/Libplanet.Tools/README.md).
+ -  *Libplanet.Commands.Executable*: The CLI tools for Libplanet.  This project is distributed
+    as a distinct NuGet package: *[Libplanet.Commands.Executable]*. See its own
+    [README.md](tools/Libplanet.Commands.Executable/README.md).
 
  -  *Libplanet.Explorer*: Libplanet Explorer, a web server that exposes
     a Libplanet blockchain as a [GraphQL] endpoint.  There is the official
@@ -206,8 +206,8 @@ on GitHub consists of several projects.  There are two types of projects:
  -  *Libplanet.Explorer.Cocona.Tests*: Unit tests for the
     *Libplanet.Explorer.Cocona* project.
 
- -  *Libplanet.Extensions.Cocona.Tests*: Unit tests for the
-    *Libplanet.Extensions.Cocona* project.
+ -  *Libplanet.Commands.Tests*: Unit tests for the
+    *Libplanet.Commands* project.
 
  -  *Libplanet.Node.Tests*: Unit tests for the *Libplanet.Node* project.
 
@@ -224,8 +224,8 @@ on GitHub consists of several projects.  There are two types of projects:
 [Libplanet.Analyzers]: https://www.nuget.org/packages/Libplanet.Analyzers/
 [Cocona]: https://www.nuget.org/packages/Cocona
 [Libplanet.Node]: https://www.nuget.org/packages/Libplanet.Node
-[Libplanet.Extensions.Cocona]: https://www.nuget.org/packages/Libplanet.Extensions.Cocona
-[Libplanet.Tools]: https://www.nuget.org/packages/Libplanet.Tools/
+[Libplanet.Commands]: https://www.nuget.org/packages/Libplanet.Commands
+[Libplanet.Commands.Executable]: https://www.nuget.org/packages/Libplanet.Commands.Executable/
 [GraphQL]: https://graphql.org/
 [libplanet-explorer-frontend]: https://github.com/planetarium/libplanet-explorer-frontend
 

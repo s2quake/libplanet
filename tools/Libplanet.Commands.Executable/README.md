@@ -10,9 +10,9 @@ create decentralized games powered by [Libplanet].
 
 [npm]: https://www.npmjs.com/package/@planetarium/cli
 [npm-badge]: https://img.shields.io/npm/v/@planetarium/cli
-[NuGet]: https://www.nuget.org/packages/Libplanet.Tools/
-[nuget-badge]: https://img.shields.io/nuget/v/Libplanet.Tools.svg?style=flat
-[nuget-prerelease-badge]: https://img.shields.io/nuget/vpre/Libplanet.Tools.svg?style=flat
+[NuGet]: https://www.nuget.org/packages/Libplanet.Commands.Executable/
+[nuget-badge]: https://img.shields.io/nuget/v/Libplanet.Commands.Executable.svg?style=flat
+[nuget-prerelease-badge]: https://img.shields.io/nuget/vpre/Libplanet.Commands.Executable.svg?style=flat
 [Libplanet]: https://libplanet.io/
 
 
@@ -35,7 +35,7 @@ npm install @planetarium/cli
 Install as a [.NET Core tool] if .NET Core SDK is installed on your system:
 
 ~~~~ bash
-dotnet tool install -g Libplanet.Tools
+dotnet tool install -g Libplanet.Commands.Executable
 ~~~~
 
 [.NET Core tool]: https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools

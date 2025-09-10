@@ -1,10 +1,10 @@
 using System.IO;
 using global::Cocona.Lite;
-using Libplanet.Extensions.Cocona.Configuration;
-using Libplanet.Extensions.Cocona.Services;
+using Libplanet.Commands.Configuration;
+using Libplanet.Commands.Services;
 using Zio.FileSystems;
 
-namespace Libplanet.Extensions.Cocona.Extensions;
+namespace Libplanet.Commands.Extensions;
 
 public static class ICoconaLiteServiceCollectionExtensions
 {

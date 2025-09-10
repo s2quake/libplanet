@@ -3,7 +3,7 @@ using global::Cocona;
 using Libplanet.KeyStore;
 using Libplanet.Types;
 
-namespace Libplanet.Extensions.Cocona.Commands;
+namespace Libplanet.Commands;
 
 public class KeyCommand
 {

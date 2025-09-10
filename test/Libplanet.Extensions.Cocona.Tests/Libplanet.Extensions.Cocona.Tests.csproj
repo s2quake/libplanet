@@ -7,7 +7,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\tools\Libplanet.Extensions.Cocona\Libplanet.Extensions.Cocona.csproj" />
+    <ProjectReference Include="..\..\tools\Libplanet.Commands\Libplanet.Commands.csproj" />
     <ProjectReference Include="..\..\test\Libplanet.RocksDBStore.Tests\Libplanet.RocksDBStore.Tests.csproj" />
     <ProjectReference Include="..\Libplanet.Tests\Libplanet.Tests.csproj" />
   </ItemGroup>

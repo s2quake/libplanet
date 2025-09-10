@@ -1,4 +1,4 @@
-namespace Libplanet.Extensions.Cocona.Configuration
+namespace Libplanet.Commands.Configuration
 {
     public struct MptConfiguration
     {

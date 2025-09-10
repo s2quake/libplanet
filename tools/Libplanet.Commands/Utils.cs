@@ -6,7 +6,7 @@ using Libplanet.State;
 using Libplanet.Serialization;
 using Libplanet.Types.JsonConverters;
 
-namespace Libplanet.Extensions.Cocona;
+namespace Libplanet.Commands;
 
 public static class Utils
 {

@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Libplanet.Extensions.Cocona\Libplanet.Extensions.Cocona.csproj" />
+    <ProjectReference Include="..\Libplanet.Commands\Libplanet.Commands.csproj" />
     <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
     <ProjectReference Include="..\..\src\Libplanet.Data.RocksDB\Libplanet.Data.RocksDB.csproj" />
     <!-- FIXME: We should specify the version range when the following NuGet
