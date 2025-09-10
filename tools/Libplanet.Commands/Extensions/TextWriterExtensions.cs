@@ -1,4 +1,6 @@
+using System.Collections;
 using System.IO;
+using JSSoft.Commands.Extensions;
 // using JSSoft.Terminals;
 
 namespace Libplanet.Commands.Extensions;
@@ -16,6 +18,19 @@ public static class TextWriterExtensions
     {
         var json = await JsonUtility.SerializeAsync(obj, isColorized: true, cancellationToken);
         await @this.WriteLineAsync(json);
+    }
+
+    public static void WriteLineAsTable(
+        this TextWriter @this, IDictionary rows, (string Key, string Value) header)
+    {
+        var tableDataBuilder = new TableDataBuilder([header.Key, header.Value]);
+        foreach (var row in rows)
+        {
+            var entry = (DictionaryEntry)row;
+            tableDataBuilder.Add([$"{entry.Key}", $"{entry.Value}"]);
+        }
+
+        @this.Print(tableDataBuilder);
     }
 
     // public static void WriteColoredLine(
