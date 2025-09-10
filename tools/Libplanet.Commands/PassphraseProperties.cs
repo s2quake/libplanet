@@ -91,4 +91,25 @@ public static class PassphraseProperties
                 $"-p/--passphrase and --passphrase-file options are mutually exclusive.");
         }
     }
+
+    public static string GetPassphrase(Guid keyId)
+    {
+        if (Passphrase == string.Empty && PassphraseFile == string.Empty)
+        {
+            return GetPassphraseFromPrompt("Passphrase (of {keyId}): ");
+        }
+        else if (PassphraseFile != string.Empty && Passphrase == string.Empty)
+        {
+            return GetPassphraseFromFile();
+        }
+        else if (Passphrase != string.Empty && PassphraseFile == string.Empty)
+        {
+            return Passphrase;
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                $"-p/--passphrase and --passphrase-file options are mutually exclusive.");
+        }
+    }
 }
