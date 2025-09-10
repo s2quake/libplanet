@@ -8,6 +8,7 @@
     --> (https://libplanet.io/).</Description>
     <OutputType>Exe</OutputType>
     <ToolCommandName>planet</ToolCommandName>
+    <AssemblyName>planet</AssemblyName>
     <NoWarn>$(NoWarn);CS1591;S1118;SA1118</NoWarn>
   </PropertyGroup>
 
@@ -30,12 +31,13 @@
 
   <ItemGroup>
     <PackageReference Include="Cocona.Lite" Version="2.0.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Libplanet.Commands\Libplanet.Commands.csproj" />
-    <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
-    <ProjectReference Include="..\..\src\Libplanet.Data.RocksDB\Libplanet.Data.RocksDB.csproj" />
+    <!-- <ProjectReference Include="..\..\src\Libplanet\Libplanet.csproj" />
+    <ProjectReference Include="..\..\src\Libplanet.Data.RocksDB\Libplanet.Data.RocksDB.csproj" /> -->
     <!-- FIXME: We should specify the version range when the following NuGet
     issue is addressed: <https://github.com/NuGet/Home/issues/5556>. -->
   </ItemGroup>

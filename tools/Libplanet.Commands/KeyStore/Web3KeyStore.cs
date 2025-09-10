@@ -104,7 +104,7 @@ namespace Libplanet.KeyStore
             }
             catch (InvalidOperationException)
             {
-                throw new NoKeyException("There is no key with such ID", id);
+                throw new InvalidOperationException("There is no key with such ID");
             }
 
             return Get(keyPath);
@@ -140,7 +140,7 @@ namespace Libplanet.KeyStore
                 }
             }
 
-            throw new NoKeyException("No key have such ID", id);
+            throw new InvalidOperationException("No key have such ID");
         }
 
         private IEnumerable<(Guid, string)> ListFiles()
