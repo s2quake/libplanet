@@ -12,6 +12,7 @@ services.AddSingleton<BlockCommand>()
 services.AddSingleton<KeyCommand>()
     .AddSingleton<ICommand>(s => s.GetRequiredService<KeyCommand>());
 services.AddSingleton<ICommand, CreateKeyCommand>();
+services.AddSingleton<ICommand, ListKeyCommand>();
 
 var commandContext = new CommandContext(services.BuildServiceProvider());
 await commandContext.ExecuteAsync(args);
