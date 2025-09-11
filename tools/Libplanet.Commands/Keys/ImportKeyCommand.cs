@@ -16,7 +16,7 @@ public sealed class ImportKeyCommand(KeyCommand keyCommand)
     [CommandSummary("A raw private key in hexadecimal string, or path to Web3 Secret Storage to import.")]
     public string Key { get; set; } = string.Empty;
 
-    [CommandPropertySwitch("key-json")]
+    [CommandPropertySwitch("web3-json")]
     [CommandSummary("Use the given key value as Web3 Secret Storage Formatted json.")]
     [CommandPropertyExclusion(nameof(PassphraseProperties.Passphrase))]
     [CommandPropertyExclusion(nameof(PassphraseProperties.PassphraseFile))]
@@ -29,11 +29,11 @@ public sealed class ImportKeyCommand(KeyCommand keyCommand)
     [CommandProperty]
     [CommandSummary("Path to key store")]
     [CommandPropertyExclusion(nameof(DryRun))]
-    public string Path { get; set; } = string.Empty;
+    public string StorePath { get; set; } = string.Empty;
 
     protected override void OnExecute()
     {
-        var keyStore = Path == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(Path);
+        var keyStore = StorePath == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(StorePath);
         var ppk = GetProtectedPrivateKey();
         var keyId = DryRun ? Guid.NewGuid() : keyStore.Add(ppk);
 

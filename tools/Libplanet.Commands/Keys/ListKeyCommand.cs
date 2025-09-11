@@ -11,11 +11,11 @@ public sealed class ListKeyCommand(KeyCommand keyCommand)
 {
     [CommandProperty]
     [CommandSummary("Specify key store path to list.")]
-    public string Path { get; set; } = string.Empty;
+    public string StorePath { get; set; } = string.Empty;
 
     protected override void OnExecute()
     {
-        var keyStore = Path == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(Path);
+        var keyStore = StorePath == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(StorePath);
         var rows = new Dictionary<string, string>();
         foreach (var item in keyStore.List())
         {
