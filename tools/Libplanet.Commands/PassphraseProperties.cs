@@ -96,7 +96,7 @@ public static class PassphraseProperties
     {
         if (Passphrase == string.Empty && PassphraseFile == string.Empty)
         {
-            return GetPassphraseFromPrompt("Passphrase (of {keyId}): ");
+            return GetPassphraseFromPrompt($"Passphrase (of {keyId}): ");
         }
         else if (PassphraseFile != string.Empty && Passphrase == string.Empty)
         {

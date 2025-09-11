@@ -5,15 +5,15 @@ using Libplanet.Types;
 
 namespace Libplanet.Commands.Keys;
 
-[CommandSummary("Create a new private key.")]
+[CommandSummary("Export a raw private key (or public key).")]
 [CommandStaticProperty(typeof(PassphraseProperties))]
 [CommandStaticProperty(typeof(FormatProperties))]
-public sealed class CreateKeyCommand(KeyCommand keyCommand)
-    : CommandBase(keyCommand, "create")
+public sealed class ExportKeyCommand(KeyCommand keyCommand)
+    : CommandBase(keyCommand, "export")
 {
-    [CommandPropertySwitch]
-    [CommandSummary("Do not add to the key store, but only show the created key.")]
-    public bool DryRun { get; set; }
+    [CommandPropertyRequired]
+    [CommandSummary("A key UUID to export.")]
+    public string KeyId { get; set; } = string.Empty;
 
     [CommandPropertySwitch]
     [CommandSummary("Outputs only the private key in hex format.")]
@@ -28,16 +28,16 @@ public sealed class CreateKeyCommand(KeyCommand keyCommand)
 
     [CommandProperty]
     [CommandSummary("Path to key store")]
-    [CommandPropertyExclusion(nameof(DryRun))]
     public string StorePath { get; set; } = string.Empty;
 
     protected override void OnExecute()
     {
-        var passphrase = PassphraseProperties.GetPassphrase();
-        var privateKey = new PrivateKey();
+        var keyId = Guid.Parse(KeyId);
         var keyStore = StorePath == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(StorePath);
-        var ppk = ProtectedPrivateKey.Protect(privateKey, passphrase);
-        var keyId = DryRun ? Guid.NewGuid() : keyStore.Add(ppk);
+        var ppk = keyStore.Get(keyId);
+        var passphrase = PassphraseProperties.GetPassphrase(keyId);
+
+        var privateKey = ppk.Unprotect(passphrase);
 
         if (Pure)
         {
@@ -51,7 +51,6 @@ public sealed class CreateKeyCommand(KeyCommand keyCommand)
         {
             var info = new Dictionary<string, string>
             {
-                ["keyId"] = keyId.ToString(),
                 ["privateKey"] = ByteUtility.Hex(privateKey.Bytes),
                 ["address"] = privateKey.Address.ToString(),
                 ["publicKey"] = privateKey.PublicKey.ToString(),
