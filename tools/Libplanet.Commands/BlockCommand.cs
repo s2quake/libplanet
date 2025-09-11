@@ -4,5 +4,4 @@ namespace Libplanet.Commands;
 
 public sealed class BlockCommand : CommandMethodBase
 {
-    
 }

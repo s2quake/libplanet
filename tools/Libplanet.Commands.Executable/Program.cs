@@ -1,6 +1,7 @@
 using JSSoft.Commands;
 using JSSoft.Commands.Extensions;
 using Libplanet.Commands;
+using Libplanet.Commands.Blocks;
 using Libplanet.Commands.Executable;
 using Libplanet.Commands.Keys;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +10,8 @@ var services = new ServiceCollection();
 
 services.AddSingleton<BlockCommand>()
     .AddSingleton<ICommand>(s => s.GetRequiredService<BlockCommand>());
+services.AddSingleton<ICommand, GenesisBlockCommand>();
+
 services.AddSingleton<KeyCommand>()
     .AddSingleton<ICommand>(s => s.GetRequiredService<KeyCommand>());
 services.AddSingleton<ICommand, CreateKeyCommand>();
