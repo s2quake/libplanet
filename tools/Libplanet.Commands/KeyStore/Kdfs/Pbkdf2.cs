@@ -15,11 +15,6 @@ namespace Libplanet.KeyStore.Kdfs;
 /// </summary>
 /// <typeparam name="T">PRF (pseudorandom function) to use, e.g.,
 /// <see cref="Sha256Digest"/>.</typeparam>
-[SuppressMessage(
-    "Microsoft.StyleCop.CSharp.ReadabilityRules",
-    "SA1402",
-    Justification = "There are just generic & non-generic versions of the same name classes.")]
-[Pure]
 public sealed class Pbkdf2<T> : IKdf
     where T : GeneralDigest, new()
 {
@@ -72,9 +67,40 @@ public sealed class Pbkdf2<T> : IKdf
     {
         c = Iterations,
         dklen = KeyLength,
-        pr  = "hmac-" + new T().AlgorithmName.ToLower(CultureInfo.InvariantCulture).Replace("-", string.Empty),
+        prf = "hmac-" + new T().AlgorithmName.ToLower(CultureInfo.InvariantCulture).Replace("-", string.Empty),
         salt = ByteUtility.Hex(Salt)
     };
+
+    public static Pbkdf2<T> FromDynamic(dynamic @dynamic)
+    {
+        if (@dynamic.c is not int iterations)
+        {
+            throw new ArgumentException("The \"c\" field must be an integer.", nameof(@dynamic));
+        }
+
+        if (@dynamic.dklen is not int keyLength)
+        {
+            throw new ArgumentException("The \"dklen\" field must be an integer.", nameof(@dynamic));
+        }
+
+        if (@dynamic.salt is not string saltString)
+        {
+            throw new ArgumentException("The \"salt\" field must be a string.", nameof(@dynamic));
+        }
+
+        if (@dynamic.prf is not string prf)
+        {
+            throw new ArgumentException("The \"prf\" field must be a string.", nameof(@dynamic));
+        }
+
+        var salt = ByteUtility.ParseHex(saltString);
+
+        return prf switch
+        {
+            "hmac-sha256" => new Pbkdf2<T>(iterations, salt, keyLength),
+            _ => throw new NotSupportedException($"Unsupported \"prf\" type: \"{prf}\"."),
+        };
+    }
 }
 
 internal static class Pbkdf2

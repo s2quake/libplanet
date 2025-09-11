@@ -12,11 +12,9 @@
             "console": "integratedTerminal",
             "args": [
                 "key",
-                "create",
-                "--dry-run",
-                "-p",
-                "1234",
-                "--json"
+                "import",
+                "--key-json",
+                "{\"version\":3,\"id\":\"1b175057-aaa8-472c-91e6-64f4c820e176\",\"address\":\"dc34aad15218a2b1d6581a22eba01160c6988a59\",\"crypto\":{\"ciphertext\":\"16d253a447a0fd511f80d2b1f7ba3974372a930c55d466193a26903a3454beea\",\"cipherparams\":{\"iv\":\"849adb780369180d9f4d143ea77a2651\"},\"cipher\":\"aes-128-ctr\",\"kdfparams\":{\"c\":10240,\"dklen\":32,\"prf\":\"hmac-sha256\",\"salt\":\"0891d8773b75c8ca83d5bbeffc487e359c14a0225d0482c72439f67d7c05e785\"},\"kdf\":\"pbkdf2\",\"mac\":\"aac982c38f78d306ca0367fa36bb4674617ed6b79d769d3e5d64128e56b02999\"}}"
             ]
         },
         {

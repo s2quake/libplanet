@@ -243,6 +243,55 @@ public sealed class ProtectedPrivateKey
         return key;
     }
 
+    public static ProtectedPrivateKey FromDynamic(dynamic obj)
+    {
+        if (obj.version is not int version)
+        {
+            throw new ArgumentException("The \"version\" field must be an integer.", nameof(obj));
+        }
+
+        if (version != 3)
+        {
+            throw new NotSupportedException(
+                $"The key JSON format version {obj.version} is unsupported; " +
+                "Only version 3 is supported.");
+        }
+
+        if (obj.address is not string addressString)
+        {
+            throw new ArgumentException("The \"address\" field must be a string.", nameof(obj));
+        }
+
+        if (obj.crypto.ciphertext is not string ciphertextString)
+        {
+            throw new ArgumentException("The \"ciphertext\" field must be a string.", nameof(obj));
+        }
+
+        if (obj.crypto.mac is not string macString)
+        {
+            throw new ArgumentException("The \"mac\" field must be a string.", nameof(obj));
+        }
+
+        var address = Address.Parse(addressString);
+        var mac = ByteUtility.ParseHex(macString);
+        var ciphertext = ByteUtility.ParseHex(ciphertextString);
+
+        ICipher cipher = obj.crypto.cipher switch
+        {
+            "aes-128-ctr" => Aes128Ctr.FromDynamic(obj.crypto.cipherparams),
+            _ => throw new NotSupportedException($"Unsupported cipher type: \"{obj.crypto.cipher}\"."),
+        };
+
+        IKdf kdf = obj.crypto.kdf switch
+        {
+            "pbkdf2" => Pbkdf2<Sha256Digest>.FromDynamic(obj.crypto.kdfparams),
+            "scrypt" => Scrypt.FromDynamic(obj.crypto.kdfparams),
+            _ => throw new NotSupportedException($"Unsupported kdf type: \"{obj.crypto.kdf}\"."),
+        };
+
+        return new ProtectedPrivateKey(address, kdf, mac, cipher, ciphertext);
+    }
+
     public dynamic ToDynamic(Guid keyId)
     {
         return new

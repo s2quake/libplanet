@@ -57,6 +57,17 @@ public sealed class Aes128Ctr : ICipher
 
     public dynamic ToDynamic() => new { iv = ByteUtility.Hex(Iv) };
 
+    public static Aes128Ctr FromDynamic(dynamic @dynamic)
+    {
+        if (@dynamic.iv is not string ivString)
+        {
+            throw new InvalidOperationException("The \"iv\" field must be a string.");
+        }
+
+        var iv = ByteUtility.ParseHex(ivString);
+        return new Aes128Ctr(iv);
+    }
+
     internal static ICipher FromJson(in JsonElement paramsElement)
     {
         if (!paramsElement.TryGetProperty("iv", out JsonElement ivElement))

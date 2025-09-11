@@ -99,6 +99,37 @@ public sealed class Scrypt : IKdf
         salt = ByteUtility.Hex(Salt)
     };
 
+    public static Scrypt FromDynamic(dynamic @dynamic)
+    {
+        if (@dynamic.n is not int cost)
+        {
+            throw new ArgumentException("The \"n\" field must be an integer.", nameof(@dynamic));
+        }
+
+        if (@dynamic.r is not int blockSize)
+        {
+            throw new ArgumentException("The \"r\" field must be an integer.", nameof(@dynamic));
+        }
+
+        if (@dynamic.p is not int parallelization)
+        {
+            throw new ArgumentException("The \"p\" field must be an integer.", nameof(@dynamic));
+        }
+
+        if (@dynamic.dklen is not int keyLength)
+        {
+            throw new ArgumentException("The \"dklen\" field must be an integer.", nameof(@dynamic));
+        }
+
+        if (@dynamic.salt is not string saltString)
+        {
+            throw new ArgumentException("The \"salt\" field must be a string.", nameof(@dynamic));
+        }
+
+        var salt = ByteUtility.ParseHex(saltString);
+        return new Scrypt(cost, salt, keyLength, parallelization, blockSize);
+    }
+
     internal static IKdf FromJson(in JsonElement element)
     {
         if (!element.TryGetProperty("n", out JsonElement n))

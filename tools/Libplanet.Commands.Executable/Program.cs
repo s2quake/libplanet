@@ -15,6 +15,8 @@ services.AddSingleton<ICommand, CreateKeyCommand>();
 services.AddSingleton<ICommand, ListKeyCommand>();
 services.AddSingleton<ICommand, RemoveKeyCommand>();
 services.AddSingleton<ICommand, GenerateKeyCommand>();
+services.AddSingleton<ICommand, DeriveKeyCommand>();
+services.AddSingleton<ICommand, ImportKeyCommand>();
 
 var commandContext = new CommandContext(services.BuildServiceProvider());
 await commandContext.ExecuteAsync(args);

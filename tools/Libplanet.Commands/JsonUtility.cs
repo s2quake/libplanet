@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Dynamic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
@@ -96,6 +97,12 @@ public static class JsonUtility
         return json;
     }
 
+    public static dynamic Deserialize(string value)
+    {
+        var dictionary = Deserialize<Dictionary<string, object?>>(value);
+        return ToDynamic(dictionary);
+    }
+
     public static T Deserialize<T>(string value)
     {
         if (JsonSerializer.Deserialize<T>(value, SerializerOptions) is T t)
@@ -114,6 +121,40 @@ public static class JsonUtility
         }
 
         throw new ArgumentException("Cannot deserialize the object.", nameof(value));
+    }
+
+    private static dynamic ToDynamic(IDictionary<string, object?> dictionary)
+    {
+        IDictionary<string, object?> exp = new ExpandoObject();
+        foreach (var (key, value) in dictionary)
+        {
+            if (value is JsonElement element)
+            {
+                exp[key] = GetValue(element);
+            }
+            else
+            {
+                throw new NotSupportedException(
+                    $"The type of value must be JsonElement, but {value?.GetType().FullName}.");
+            }
+        }
+
+        return exp;
+    }
+
+    private static object? GetValue(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.Object => ToDynamic(Deserialize<Dictionary<string, object?>>(element.GetRawText())),
+            JsonValueKind.Array => element.EnumerateArray().Select(GetValue).ToList(),
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number => element.GetInt32(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null,
+            _ => throw new InvalidOperationException($"Unsupported JsonElement: {element}"),
+        };
     }
 
     private static bool SupportsJQ()
