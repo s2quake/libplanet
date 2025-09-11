@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "allOf": [
+    {
+      "$ref": "#/definitions/appsettings"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "Genesis": {
+          "description": "Options for the genesis block.",
+          "$ref": "#/definitions/Genesis"
+        },
+        "Node": {
+          "description": "Type 'NodeOptions' does not have a description.",
+          "$ref": "#/definitions/Node"
+        },
+        "Store": {
+          "description": "Type 'RepositoryOptions' does not have a description.",
+          "$ref": "#/definitions/Store"
+        },
+        "Validator": {
+          "description": "Type 'ValidatorOptions' does not have a description.",
+          "$ref": "#/definitions/Validator"
+        }
+      }
+    }
+  ]
+}
