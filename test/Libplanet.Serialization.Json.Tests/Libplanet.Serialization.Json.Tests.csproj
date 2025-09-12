@@ -2,10 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Libplanet.Serialization.Json\Libplanet.Serialization.Json.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Using Remove="Libplanet.TestUtilities.RandomUtility" Alias="Rand" />
+    <ProjectReference Include="..\Libplanet.TestUtilities\Libplanet.TestUtilities.csproj" />
   </ItemGroup>
 
 </Project>

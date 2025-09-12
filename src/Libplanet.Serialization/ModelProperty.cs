@@ -17,6 +17,8 @@ public sealed class ModelProperty
 
     public Type PropertyType => _propertyInfo.PropertyType;
 
+    public string Name => _propertyInfo.Name;
+
     public object? GetValue(object obj) => _propertyInfo.GetValue(obj);
 
     public void SetValue(object obj, object? value) => _propertyInfo.SetValue(obj, value);
