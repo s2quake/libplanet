@@ -67,7 +67,7 @@ internal static class Utf8JsonReaderExtensions
             throw new JsonException($"Expected property '{propertyName}', got null.");
         }
 
-        if (!string.Equals(s, propertyName, StringComparison.Ordinal))
+        if (s != propertyName)
         {
             throw new JsonException($"Expected property '{propertyName}', got '{s}'.");
         }

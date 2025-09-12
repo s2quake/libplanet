@@ -69,7 +69,7 @@ public static class ModelJsonSerializer
     {
         var bytes = System.Text.Encoding.UTF8.GetBytes(json);
         var reader = new Utf8JsonReader(bytes.AsSpan());
-        reader.Read();
+        reader.ReadStartObject();
         return Deserialize<T>(ref reader, options)
             ?? throw new ModelSerializationException(
                 $"Failed to deserialize {typeof(T)} from bytes.");
@@ -225,6 +225,11 @@ public static class ModelJsonSerializer
 
     private static object? DeserializeRawValue(ref Utf8JsonReader reader, Type type, ModelOptions options)
     {
+        if (!reader.Read())
+        {
+            throw new JsonException("Unexpected end of JSON.");
+        }
+
         if (Nullable.GetUnderlyingType(type) is { } nullableType)
         {
             // var dataType = (DataType)stream.ReadByte();
@@ -273,15 +278,28 @@ public static class ModelJsonSerializer
                     throw new JsonException($"Invalid value '{enumString}' for enum type {type}.");
                 }
             }
-            else if (TryGetConverter(type, out var converter))
+            else if (reader.TokenType is JsonTokenType.Number
+                or JsonTokenType.String
+                or JsonTokenType.True
+                or JsonTokenType.False)
             {
+                if (!TryGetConverter(type, out var converter))
+                {
+                    throw new JsonException($"No converter found for type {type}.");
+                }
+
                 return JsonSerializer.Deserialize(ref reader, type, new JsonSerializerOptions
                 {
                     Converters = { converter }
                 });
             }
-            else if (TryGetDescriptor(type, out var descriptor))
+            else if (reader.TokenType is JsonTokenType.StartArray or JsonTokenType.StartObject)
             {
+                if (!TryGetDescriptor(type, out var descriptor))
+                {
+                    throw new JsonException($"No converter found for type {type}.");
+                }
+
                 var itemTypes = descriptor.GetTypes(type, out var isArray);
                 // var isArray = reader.TokenType == JsonTokenType.StartArray;
                 if (isArray)
