@@ -11,6 +11,7 @@ var services = new ServiceCollection();
 services.AddSingleton<BlockCommand>()
     .AddSingleton<ICommand>(s => s.GetRequiredService<BlockCommand>());
 services.AddSingleton<ICommand, GenesisBlockCommand>();
+services.AddSingleton<ICommand, InspectBlockCommand>();
 
 services.AddSingleton<KeyCommand>()
     .AddSingleton<ICommand>(s => s.GetRequiredService<KeyCommand>());
