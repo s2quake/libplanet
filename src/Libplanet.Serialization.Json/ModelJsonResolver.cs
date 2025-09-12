@@ -35,7 +35,7 @@ internal static class ModelJsonResolver
     };
     private static readonly ModelJsonDescriptor[] _descriptors =
     [
-        // new ArrayModelJsonDescriptor(),
+        new ArrayModelJsonDescriptor(),
         new ObjectModelJsonDescriptor(),
         // new KeyValuePairModelJsonDescriptor(),
         // new ListModelJsonDescriptor(),

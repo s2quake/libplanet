@@ -144,7 +144,7 @@ public sealed partial class ModelJsonSerializerTest
         }
 
         [Property(0)]
-        public int[] Ints { get; init; } = [];
+        public int[] Ints { get; init; } = [1];
 
         [Property(1)]
         public long[] Longs { get; init; } = [];
