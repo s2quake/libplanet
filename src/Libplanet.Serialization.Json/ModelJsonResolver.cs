@@ -19,7 +19,7 @@ internal static class ModelJsonResolver
     // private static readonly ConcurrentDictionary<Type, ImmutableArray<ModelProperty>> _declaredPropertiesByType = [];
     // private static readonly ConcurrentDictionary<Type, ImmutableArray<ModelProperty>> _propertiesByType = [];
     // private static readonly ConcurrentDictionary<Type, ImmutableArray<Type>> _typesByType = [];
-    private static readonly ConcurrentDictionary<Type, ModelJsonDescriptor> _descriptorByType = [];
+    private static readonly ConcurrentDictionary<Type, JsonConverter> _descriptorByType = [];
     private static readonly ConcurrentDictionary<Type, JsonConverter> _converterByType = new()
     {
         [typeof(BigInteger)] = new BigIntegerJsonConverter(),
@@ -33,9 +33,9 @@ internal static class ModelJsonResolver
         [typeof(string)] = new StringJsonConverter(),
         [typeof(TimeSpan)] = new TimeSpanJsonConverter(),
     };
-    private static readonly ModelJsonDescriptor[] _descriptors =
+    private static readonly JsonConverter[] _descriptors =
     [
-        new ArrayModelJsonDescriptor(),
+        new ArrayJsonDescriptor(),
         new ObjectModelJsonDescriptor(),
         // new KeyValuePairModelJsonDescriptor(),
         // new ListModelJsonDescriptor(),
@@ -64,7 +64,7 @@ internal static class ModelJsonResolver
 
     public static int GetVersion(Type type) => ModelResolver.GetVersion(type);
 
-    public static ModelJsonDescriptor GetDescriptor(Type type)
+    public static JsonConverter GetDescriptor(Type type)
     {
         if (FindDescriptor(type) is { } descriptor)
         {
@@ -74,7 +74,7 @@ internal static class ModelJsonResolver
         throw new NotSupportedException($"Type {type} is not supported.");
     }
 
-    public static bool TryGetDescriptor(Type type, [MaybeNullWhen(false)] out ModelJsonDescriptor descriptor)
+    public static bool TryGetDescriptor(Type type, [MaybeNullWhen(false)] out JsonConverter descriptor)
     {
         if (FindDescriptor(type) is { } foundDescriptor)
         {
@@ -340,7 +340,7 @@ internal static class ModelJsonResolver
     //     return builder.ToImmutable();
     // }
 
-    private static ModelJsonDescriptor? FindDescriptor(Type type)
+    private static JsonConverter? FindDescriptor(Type type)
     {
         if (_descriptorByType.TryGetValue(type, out var descriptor))
         {
@@ -349,7 +349,7 @@ internal static class ModelJsonResolver
 
         lock (_lock)
         {
-            descriptor = _descriptors.FirstOrDefault(descriptor => descriptor.CanSerialize(type));
+            descriptor = _descriptors.FirstOrDefault(descriptor => descriptor.CanConvert(type));
             if (descriptor is not null)
             {
                 _descriptorByType.TryAdd(type, descriptor);

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Libplanet.Serialization.Json.Converters;
 using static Libplanet.Serialization.Json.ModelJsonResolver;
 
 namespace Libplanet.Serialization.Json;
@@ -11,17 +12,27 @@ public static class ModelJsonSerializer
 
     public static string SerializeToString(object? obj, ModelOptions options)
     {
-        using var stream = new MemoryStream();
+        // using var stream = new MemoryStream();
 
-        using var writer = new Utf8JsonWriter(stream);
-        writer.WriteStartObject();
-        Serialize(writer, obj, options);
-        writer.WriteEndObject();
-        writer.Flush();
-        stream.Position = 0;
-        using var streamReader = new StreamReader(stream);
+        // using var writer = new Utf8JsonWriter(stream);
+        // writer.WriteStartObject();
+        // Serialize(writer, obj, options);
+        // writer.WriteEndObject();
+        // writer.Flush();
+        // stream.Position = 0;
+        // using var streamReader = new StreamReader(stream);
 
-        return streamReader.ReadToEnd();
+        // return streamReader.ReadToEnd();
+
+        return JsonSerializer.Serialize(obj, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Converters =
+            {
+                new ModelJsonConverter(),
+            },
+        });
+
     }
 
     public static void Serialize(Utf8JsonWriter writer, object? obj, ModelOptions options)
@@ -144,57 +155,57 @@ public static class ModelJsonSerializer
             }
             else if (TryGetDescriptor(type, out var descriptor))
             {
-                var itemTypes = descriptor.GetTypes(type, out var isArray);
-                var values = descriptor.Serialize(obj, type, options);
+//                 var itemTypes = descriptor.GetTypes(type, out var isArray);
+//                 var values = descriptor.Serialize(obj, type, options);
 
-                if (isArray && itemTypes.Length != 1)
-                {
-                    throw new ModelSerializationException(
-                        $"The number of types ({itemTypes.Length}) does not match the number of items " +
-                        $"({values.Length})");
-                }
+//                 if (isArray && itemTypes.Length != 1)
+//                 {
+//                     throw new ModelSerializationException(
+//                         $"The number of types ({itemTypes.Length}) does not match the number of items " +
+//                         $"({values.Length})");
+//                 }
 
-                if (isArray)
-                {
-                    writer.WriteStartArray();
-                }
-                else
-                {
-                    writer.WriteStartObject();
-                }
+//                 if (isArray)
+//                 {
+//                     writer.WriteStartArray();
+//                 }
+//                 else
+//                 {
+//                     writer.WriteStartObject();
+//                 }
 
-                for (var i = 0; i < values.Length; i++)
-                {
-                    var itemType = isArray ? itemTypes[0] : itemTypes[i];
-                    var value = values[i];
-                    var actualType = GetActualType(itemType.Item2, value);
-                    if (itemType.Item2 != actualType)
-                    {
-                        Serialize(writer, value, options);
-                    }
-                    else if (isArray)
-                    {
-                        SerializeRawValue(writer, value, itemType.Item2, options);
-                    }
-                    else
-                    {
-                        writer.WritePropertyName(JsonNamingPolicy.CamelCase.ConvertName(itemType.Item1));
-                        SerializeRawValue(writer, value, itemType.Item2, options);
-                    }
-                }
+//                 for (var i = 0; i < values.Length; i++)
+//                 {
+//                     var itemType = isArray ? itemTypes[0] : itemTypes[i];
+//                     var value = values[i];
+//                     var actualType = GetActualType(itemType.Item2, value);
+//                     if (itemType.Item2 != actualType)
+//                     {
+//                         Serialize(writer, value, options);
+//                     }
+//                     else if (isArray)
+//                     {
+//                         SerializeRawValue(writer, value, itemType.Item2, options);
+//                     }
+//                     else
+//                     {
+//                         writer.WritePropertyName(JsonNamingPolicy.CamelCase.ConvertName(itemType.Item1));
+//                         SerializeRawValue(writer, value, itemType.Item2, options);
+//                     }
+//                 }
 
-                if (isArray)
-                {
-                    writer.WriteEndArray();
-                }
-                else
-                {
-                    writer.WriteEndObject();
-                }
+//                 if (isArray)
+//                 {
+//                     writer.WriteEndArray();
+//                 }
+//                 else
+//                 {
+//                     writer.WriteEndObject();
+//                 }
 
-#if _POSITION
-                System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
-#endif
+// #if _POSITION
+//                 System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
+// #endif
             }
             else
             {
@@ -225,6 +236,7 @@ public static class ModelJsonSerializer
 
     private static object? DeserializeRawValue(ref Utf8JsonReader reader, Type type, ModelOptions options)
     {
+        throw new NotImplementedException();
         if (!reader.Read())
         {
             throw new JsonException("Unexpected end of JSON.");
@@ -295,77 +307,77 @@ public static class ModelJsonSerializer
             }
             else if (reader.TokenType is JsonTokenType.StartArray or JsonTokenType.StartObject)
             {
-                if (!TryGetDescriptor(type, out var descriptor))
-                {
-                    throw new JsonException($"No converter found for type {type}.");
-                }
+                // if (!TryGetDescriptor(type, out var descriptor))
+                // {
+                //     throw new JsonException($"No converter found for type {type}.");
+                // }
 
-                var itemTypes = descriptor.GetTypes(type, out var isArray);
-                // var isArray = reader.TokenType == JsonTokenType.StartArray;
-                if (isArray)
-                {
-                    var itemType = itemTypes[0].Item2;
-                    var valueList = new List<object?>();
+                // var itemTypes = descriptor.GetTypes(type, out var isArray);
+                // // var isArray = reader.TokenType == JsonTokenType.StartArray;
+                // if (isArray)
+                // {
+                //     var itemType = itemTypes[0].Item2;
+                //     var valueList = new List<object?>();
 
-                    reader.ReadStartArray();
+                //     reader.ReadStartArray();
 
-                    while (reader.TokenType != JsonTokenType.EndArray)
-                    {
-                        // array의 각 아이템을 읽음
-                        reader.Read();
-                        var item = DeserializeRawValue(ref reader, itemType, options);
-                        valueList.Add(item);
-                    }
+                //     while (reader.TokenType != JsonTokenType.EndArray)
+                //     {
+                //         // array의 각 아이템을 읽음
+                //         reader.Read();
+                //         var item = DeserializeRawValue(ref reader, itemType, options);
+                //         valueList.Add(item);
+                //     }
 
-                    reader.ReadEndArray();
+                //     reader.ReadEndArray();
 
-                    return descriptor.Deserialize(type, [.. valueList], options);
+                //     return descriptor.Deserialize(type, [.. valueList], options);
 
-                }
-                else
-                {
-                    var values = new object?[itemTypes.Length];
-                    var found = new bool[itemTypes.Length];
+                // }
+                // else
+                // {
+                //     var values = new object?[itemTypes.Length];
+                //     var found = new bool[itemTypes.Length];
 
-                    reader.ReadStartObject();
+                //     reader.ReadStartObject();
 
-                    while (reader.TokenType != JsonTokenType.EndObject)
-                    {
-                        var propertyName = reader.ReadPropertyName();
-                        var index = Array.FindIndex(
-                        itemTypes,
-                        it => string.Equals(
-                                JsonNamingPolicy.CamelCase.ConvertName(it.Item1),
-                                propertyName,
-                                StringComparison.Ordinal));
-                        if (index < 0)
-                        {
-                            throw new JsonException($"Unknown property '{propertyName}' for {type}.");
-                        }
+                //     while (reader.TokenType != JsonTokenType.EndObject)
+                //     {
+                //         var propertyName = reader.ReadPropertyName();
+                //         var index = Array.FindIndex(
+                //         itemTypes,
+                //         it => string.Equals(
+                //                 JsonNamingPolicy.CamelCase.ConvertName(it.Item1),
+                //                 propertyName,
+                //                 StringComparison.Ordinal));
+                //         if (index < 0)
+                //         {
+                //             throw new JsonException($"Unknown property '{propertyName}' for {type}.");
+                //         }
 
-                        if (found[index])
-                        {
-                            throw new JsonException($"Duplicate property '{propertyName}' for {type}.");
-                        }
+                //         if (found[index])
+                //         {
+                //             throw new JsonException($"Duplicate property '{propertyName}' for {type}.");
+                //         }
 
-                        var itemType = itemTypes[index].Item2;
-                        var item = DeserializeRawValue(ref reader, itemType, options);
-                        values[index] = item;
-                        found[index] = true;
-                    }
+                //         var itemType = itemTypes[index].Item2;
+                //         var item = DeserializeRawValue(ref reader, itemType, options);
+                //         values[index] = item;
+                //         found[index] = true;
+                //     }
 
-                    reader.ReadEndObject();
+                //     reader.ReadEndObject();
 
-                    for (var i = 0; i < found.Length; i++)
-                    {
-                        if (!found[i])
-                        {
-                            throw new JsonException($"Missing property '{itemTypes[i].Item1}' for {type}.");
-                        }
-                    }
+                //     for (var i = 0; i < found.Length; i++)
+                //     {
+                //         if (!found[i])
+                //         {
+                //             throw new JsonException($"Missing property '{itemTypes[i].Item1}' for {type}.");
+                //         }
+                //     }
 
-                    return descriptor.Deserialize(type, values, options);
-                }
+                //     return descriptor.Deserialize(type, values, options);
+                // }
 
                 //                 if (!isArray && length != itemTypes.Length)
                 //                 {
