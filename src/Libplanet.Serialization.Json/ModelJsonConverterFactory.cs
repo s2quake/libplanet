@@ -21,6 +21,8 @@ public sealed class ModelJsonConverterFactory(ModelOptions options) : JsonConver
         [typeof(long)] = new Int64JsonConverter(),
         [typeof(string)] = new StringJsonConverter(),
         [typeof(TimeSpan)] = new TimeSpanJsonConverter(),
+        [typeof(byte[])] = new ByteArrayJsonConverter(),
+        [typeof(ImmutableArray<byte>)] = new ImmutableByteArrayJsonConverter(),
     };
     private static readonly JsonConverter[] _descriptors =
     [
