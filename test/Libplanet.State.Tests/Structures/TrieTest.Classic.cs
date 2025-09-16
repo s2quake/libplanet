@@ -3,7 +3,6 @@ using Libplanet.Serialization;
 using Libplanet.State.Structures;
 using Libplanet.State.Structures.Nodes;
 using Libplanet.Types;
-using Libplanet.TestUtilities;
 using static System.Linq.Enumerable;
 using Libplanet.Data;
 

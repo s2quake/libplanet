@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Text;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Types.Tests;
 

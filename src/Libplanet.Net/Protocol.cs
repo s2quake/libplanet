@@ -19,7 +19,7 @@ public sealed partial record class Protocol
     [Property(1)]
     public required ImmutableArray<byte> Signature { get; init; }
 
-    public ProtocolHash Hash => new(SHA256.HashData(ModelSerializer.SerializeToBytes(this)));
+    public ProtocolHash Hash => new(SHA256.HashData(ModelSerializer.Serialize(this)));
 
     public Address Signer => Metadata.Signer;
 
@@ -37,7 +37,7 @@ public sealed partial record class Protocol
 
     public bool Verify()
     {
-        var bytes = ModelSerializer.SerializeToBytes(Metadata);
+        var bytes = ModelSerializer.Serialize(Metadata);
         return Signer.Verify(bytes, Signature.AsSpan());
     }
 

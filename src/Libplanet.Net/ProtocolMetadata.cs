@@ -20,7 +20,7 @@ public sealed partial record class ProtocolMetadata
         {
             IsValidationEnabled = true,
         };
-        var bytes = ModelSerializer.SerializeToBytes(this, options);
+        var bytes = ModelSerializer.Serialize(this, options);
         var signature = signer.Sign(bytes).ToImmutableArray();
         return new Protocol { Metadata = this, Signature = signature };
     }

@@ -34,7 +34,7 @@ public sealed record class TransactionBuilder
             MaxGasPrice = MaxGasPrice,
             GasLimit = GasLimit,
         };
-        var bytes = ModelSerializer.SerializeToBytes(metadata, options);
+        var bytes = ModelSerializer.Serialize(metadata, options);
         var signature = signer.Sign(bytes).ToImmutableArray();
 
         return new Transaction

@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using Libplanet.Data;
 using Libplanet.Serialization;
 using Libplanet.State.Structures.Nodes;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.State.Tests.Structures.Nodes;
 

@@ -23,7 +23,7 @@ public static class RawBlockExtensions
                 $"The given {nameof(signer)} does not match the block proposer.", nameof(signer));
         }
 
-        var message = ModelSerializer.SerializeToBytes(rawBlock);
+        var message = ModelSerializer.Serialize(rawBlock);
         return [.. signer.Sign(message)];
     }
 }

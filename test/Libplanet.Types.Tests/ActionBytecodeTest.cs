@@ -1,6 +1,5 @@
 using System.Reflection;
 using Libplanet.Serialization;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Types.Tests;
 
@@ -19,8 +18,8 @@ public sealed partial class ActionBytecodeTest(ITestOutputHelper output)
     {
         var random = Rand.GetRandom(output);
         var code1 = Rand.ActionBytecode(random);
-        var serialized = ModelSerializer.SerializeToBytes(code1);
-        var code2 = ModelSerializer.DeserializeFromBytes(serialized);
+        var serialized = ModelSerializer.Serialize(code1);
+        var code2 = ModelSerializer.Deserialize(serialized);
         Assert.Equal(code1, code2);
     }
 

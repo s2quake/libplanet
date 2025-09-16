@@ -13,8 +13,8 @@ public partial class HashDigestTest
     {
         var random = new Random(seed);
         var expectedValue = Rand.HashDigest<SHA256>(random);
-        var serialized = ModelSerializer.SerializeToBytes(expectedValue);
-        var actualValue = ModelSerializer.DeserializeFromBytes(serialized);
+        var serialized = ModelSerializer.Serialize(expectedValue);
+        var actualValue = ModelSerializer.Deserialize(serialized);
         Assert.Equal(expectedValue, actualValue);
     }
 }

@@ -26,7 +26,7 @@ public sealed partial record class ProposalClaim
 
     public bool Verify()
     {
-        var bytes = ModelSerializer.SerializeToBytes(Metadata).ToImmutableArray();
+        var bytes = ModelSerializer.Serialize(Metadata).ToImmutableArray();
         return PublicKey.Verify(Metadata.Validator, bytes, Signature);
     }
 }

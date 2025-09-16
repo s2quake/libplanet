@@ -1,6 +1,5 @@
 using Libplanet.Net.Messages;
 using Libplanet.Net.NetMQ;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests.Messages;
 

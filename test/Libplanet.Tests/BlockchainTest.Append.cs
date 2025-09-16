@@ -376,7 +376,7 @@ public partial class BlockchainTest
         }.Create(proposer);
         var blockCommit = CreateBlockCommit(block);
         var maxBytes = options.BlockOptions.MaxActionBytes;
-        Assert.True(ModelSerializer.SerializeToBytes(block).Length > maxBytes);
+        Assert.True(ModelSerializer.Serialize(block).Length > maxBytes);
 
         var e = Assert.Throws<ArgumentException>(() => blockchain.Append(block, blockCommit));
         Assert.StartsWith("The size of block", e.Message);

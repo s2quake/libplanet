@@ -34,7 +34,7 @@ public sealed partial record class BlockContent : IValidatableObject
         hasher.TransformBlock("t"u8.ToArray(), 0, 1, null, 0);
         foreach (var transaction in transactions)
         {
-            var payload = ModelSerializer.SerializeToBytes(transaction);
+            var payload = ModelSerializer.Serialize(transaction);
             hasher.TransformBlock(payload, 0, payload.Length, null, 0);
         }
 
@@ -60,7 +60,7 @@ public sealed partial record class BlockContent : IValidatableObject
         hasher.TransformBlock("e"u8.ToArray(), 0, 1, null, 0);
         foreach (var ev in evidence)
         {
-            var payload = ModelSerializer.SerializeToBytes(ev);
+            var payload = ModelSerializer.Serialize(ev);
             hasher.TransformBlock(payload, 0, payload.Length, null, 0);
         }
 

@@ -1,5 +1,4 @@
 using Libplanet.Data;
-using Libplanet.TestUtilities;
 using Libplanet.Types;
 
 namespace Libplanet.Tests;

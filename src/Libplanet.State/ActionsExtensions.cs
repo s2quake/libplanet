@@ -9,11 +9,11 @@ public static class ActionsExtensions
         => [.. actions.Select(item => item.ToBytecode())];
 
     public static ImmutableArray<IAction> FromImmutableBytes(this ImmutableArray<ActionBytecode> bytecodes)
-        => [.. bytecodes.Select(item => ModelSerializer.DeserializeFromBytes<IAction>(item.Bytes.AsSpan()))];
+        => [.. bytecodes.Select(item => ModelSerializer.Deserialize<IAction>(item.Bytes.AsSpan()))];
 
     public static T ToAction<T>(this ActionBytecode actionBytecode)
-        where T : IAction => ModelSerializer.DeserializeFromBytes<T>(actionBytecode.Bytes.AsSpan());
+        where T : IAction => ModelSerializer.Deserialize<T>(actionBytecode.Bytes.AsSpan());
 
     public static ActionBytecode ToBytecode(this IAction action)
-        => new(ModelSerializer.SerializeToBytes(action));
+        => new(ModelSerializer.Serialize(action));
 }

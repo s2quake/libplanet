@@ -53,9 +53,9 @@ public static class ModelSerializer
         }
     }
 
-    public static byte[] SerializeToBytes(object? obj) => SerializeToBytes(obj, ModelOptions.Empty);
+    public static byte[] Serialize(object? obj) => Serialize(obj, ModelOptions.Empty);
 
-    public static byte[] SerializeToBytes(object? obj, ModelOptions options)
+    public static byte[] Serialize(object? obj, ModelOptions options)
     {
         using var stream = new MemoryStream();
         Serialize(stream, obj, options);
@@ -86,21 +86,10 @@ public static class ModelSerializer
         throw new ModelSerializationException($"Failed to deserialize {typeof(T)}.");
     }
 
-    public static object DeserializeFromBytes(ImmutableArray<byte> bytes)
-        => DeserializeFromBytes(bytes, ModelOptions.Empty);
+    public static object Deserialize(ReadOnlySpan<byte> bytes)
+        => Deserialize(bytes, ModelOptions.Empty);
 
-    public static object DeserializeFromBytes(ImmutableArray<byte> bytes, ModelOptions options)
-    {
-        using var stream = new MemoryStream([.. bytes]);
-        return Deserialize(stream, options)
-            ?? throw new ModelSerializationException(
-                $"Failed to deserialize from bytes.");
-    }
-
-    public static object DeserializeFromBytes(ReadOnlySpan<byte> bytes)
-        => DeserializeFromBytes(bytes, ModelOptions.Empty);
-
-    public static object DeserializeFromBytes(ReadOnlySpan<byte> bytes, ModelOptions options)
+    public static object Deserialize(ReadOnlySpan<byte> bytes, ModelOptions options)
     {
         using var stream = new MemoryStream(bytes.ToArray());
         return Deserialize(stream, options)
@@ -108,11 +97,11 @@ public static class ModelSerializer
                 $"Failed to deserialize from bytes.");
     }
 
-    public static T DeserializeFromBytes<T>(ReadOnlySpan<byte> bytes)
+    public static T Deserialize<T>(ReadOnlySpan<byte> bytes)
         where T : notnull
-        => DeserializeFromBytes<T>(bytes, ModelOptions.Empty);
+        => Deserialize<T>(bytes, ModelOptions.Empty);
 
-    public static T DeserializeFromBytes<T>(ReadOnlySpan<byte> bytes, ModelOptions options)
+    public static T Deserialize<T>(ReadOnlySpan<byte> bytes, ModelOptions options)
         where T : notnull
     {
         using var stream = new MemoryStream(bytes.ToArray());

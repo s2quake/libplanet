@@ -25,5 +25,5 @@ public readonly partial record struct BlockCommit : IHasKey<BlockHash>
 
     BlockHash IHasKey<BlockHash>.Key => BlockHash;
 
-    public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.HashData(ModelSerializer.SerializeToBytes(this));
+    public HashDigest<SHA256> ToHash() => HashDigest<SHA256>.HashData(ModelSerializer.Serialize(this));
 }

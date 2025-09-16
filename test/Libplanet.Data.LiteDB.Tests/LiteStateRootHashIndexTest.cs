@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using Libplanet.TestUtilities;
 using Libplanet.Types;
 
 namespace Libplanet.Data.LiteDB.Tests;

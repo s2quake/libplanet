@@ -1,6 +1,5 @@
 using System.Reflection;
 using Libplanet.Serialization;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Types.Tests;
 
@@ -19,8 +18,8 @@ public sealed partial class AddressTest(ITestOutputHelper output)
     {
         var random = Rand.GetRandom(output);
         var address1 = Rand.Address(random);
-        var serialized = ModelSerializer.SerializeToBytes(address1);
-        var address2 = ModelSerializer.DeserializeFromBytes(serialized);
+        var serialized = ModelSerializer.Serialize(address1);
+        var address2 = ModelSerializer.Deserialize(serialized);
         Assert.Equal(address1, address2);
     }
 

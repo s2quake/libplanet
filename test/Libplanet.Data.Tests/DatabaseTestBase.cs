@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Concurrent;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Data.Tests;
 

@@ -35,11 +35,11 @@ internal sealed record class HashNode : INode
         {
             if (StateIndex.TryGetValue(Hash, out var bytes))
             {
-                var context = new ModelOptions
+                var options = new ModelOptions
                 {
                     Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(StateIndex), StateIndex),
                 };
-                node = ModelSerializer.DeserializeFromBytes<INode>(bytes, context);
+                node = ModelSerializer.Deserialize<INode>(bytes, options);
                 AddOrUpdate(Hash, node);
             }
             else

@@ -28,7 +28,7 @@ public sealed partial record class Maj23
 
     public bool Verify()
     {
-        var message = ModelSerializer.SerializeToBytes(Metadata);
+        var message = ModelSerializer.Serialize(Metadata);
         var signature = Signature.AsSpan();
         return Validator.Verify(message, signature);
     }

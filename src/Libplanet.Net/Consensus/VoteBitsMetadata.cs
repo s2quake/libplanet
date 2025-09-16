@@ -42,7 +42,7 @@ public sealed partial record class VoteBitsMetadata
         {
             IsValidationEnabled = true,
         };
-        var bytes = ModelSerializer.SerializeToBytes(this, options);
+        var bytes = ModelSerializer.Serialize(this, options);
         var signature = signer.Sign(bytes).ToImmutableArray();
         return new VoteBits { Metadata = this, Signature = signature };
     }

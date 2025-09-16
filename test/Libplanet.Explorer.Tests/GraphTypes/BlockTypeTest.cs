@@ -145,6 +145,6 @@ public class BlockTypeTest
 
         Assert.Equal(
             block,
-            ModelSerializer.DeserializeFromBytes<Block>(ByteUtility.ParseHex((string)resultData["raw"])));
+            ModelSerializer.Deserialize<Block>(ByteUtility.ParseHex((string)resultData["raw"])));
     }
 }

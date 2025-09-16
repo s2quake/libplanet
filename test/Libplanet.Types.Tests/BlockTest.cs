@@ -1,6 +1,5 @@
 using System.Reflection;
 using Libplanet.Serialization;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Types.Tests;
 
@@ -20,8 +19,8 @@ public sealed class BlockTest(ITestOutputHelper output)
     {
         var random = Rand.GetRandom(output);
         var block1 = Rand.Block(random);
-        var serialized = ModelSerializer.SerializeToBytes(block1);
-        var block2 = ModelSerializer.DeserializeFromBytes(serialized);
+        var serialized = ModelSerializer.Serialize(block1);
+        var block2 = ModelSerializer.Deserialize(serialized);
         Assert.Equal(block1, block2);
         Assert.Equal(block1.GetHashCode(), block2.GetHashCode());
     }
@@ -32,7 +31,7 @@ public sealed class BlockTest(ITestOutputHelper output)
         var random = Rand.GetRandom(output);
         var block = Rand.Block(random);
 
-        Assert.Equal(BlockHash.HashData(ModelSerializer.SerializeToBytes(block)), block.BlockHash);
+        Assert.Equal(BlockHash.HashData(ModelSerializer.Serialize(block)), block.BlockHash);
         Assert.Equal(block.Header.Height, block.Height);
         Assert.Equal(block.Header.Version, block.Version);
         Assert.Equal(block.Header.Timestamp, block.Timestamp);

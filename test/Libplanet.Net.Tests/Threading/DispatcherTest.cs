@@ -4,7 +4,6 @@
 #pragma warning disable S1186 // Methods should not be empty
 using System.Diagnostics;
 using Libplanet.Net.Threading;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Net.Tests.Threading;
 

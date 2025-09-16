@@ -1,19 +1,11 @@
+
 namespace Libplanet.Serialization.Tests;
 
-public sealed partial class ModelSerializerTest(ITestOutputHelper output)
+public sealed class ModelSerializerTest(ITestOutputHelper output) : ModelSerializerTestBase<byte[]>(output)
 {
-    public enum TestEnum
-    {
-        A,
-        B,
-        C,
-    }
+    protected override object? Deserialize(byte[] serialized, ModelOptions options)
+        => ModelSerializer.Deserialize(serialized, options);
 
-    public static TheoryData<int> RandomSeeds =>
-    [
-        Random.Shared.Next(),
-        Random.Shared.Next(),
-        Random.Shared.Next(),
-        Random.Shared.Next(),
-    ];
+    protected override byte[] Serialize(object? obj, ModelOptions options)
+        => ModelSerializer.Serialize(obj, options);
 }

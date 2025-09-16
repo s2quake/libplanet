@@ -59,7 +59,7 @@ public partial class Blockchain
     public Blockchain(Repository repository, BlockchainOptions options)
     {
         _repository = repository;
-        _repository.States[options.SystemAction.Hash] = ModelSerializer.SerializeToBytes(options.SystemAction);
+        _repository.States[options.SystemAction.Hash] = ModelSerializer.Serialize(options.SystemAction);
         _blockExecutor = new BlockExecutor(repository.States);
         Options = options;
         _logger = options.Logger;

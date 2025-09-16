@@ -33,7 +33,7 @@ public sealed partial record class ProposalClaimMetadata
         {
             IsValidationEnabled = true,
         };
-        var bytes = ModelSerializer.SerializeToBytes(this, options);
+        var bytes = ModelSerializer.Serialize(this, options);
         var signature = signer.Sign(bytes).ToImmutableArray();
         return new ProposalClaim { Metadata = this, Signature = signature };
     }

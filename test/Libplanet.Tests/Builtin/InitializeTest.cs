@@ -1,6 +1,5 @@
 using Libplanet.Builtin;
 using Libplanet.State;
-using Libplanet.TestUtilities;
 using Libplanet.Types;
 using static Libplanet.State.SystemAddresses;
 

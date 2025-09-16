@@ -21,7 +21,7 @@ internal static class NetMQMessageCodec
         {
             IsValidationEnabled = true,
         };
-        var bytes = ModelSerializer.SerializeToBytes(messageEnvelope, options);
+        var bytes = ModelSerializer.Serialize(messageEnvelope, options);
         var signature = signer.Sign(bytes);
         var netMqMessage = new NetMQMessage();
         netMqMessage.Append(bytes);
@@ -43,7 +43,7 @@ internal static class NetMQMessageCodec
         var bytes = encoded[0].ToByteArray();
         var signature = encoded[1].ToByteArray();
 
-        var messageEnvelope = ModelSerializer.DeserializeFromBytes<MessageEnvelope>(bytes);
+        var messageEnvelope = ModelSerializer.Deserialize<MessageEnvelope>(bytes);
         var address = messageEnvelope.Sender.Address;
         if (!address.Verify(bytes, signature))
         {

@@ -1,6 +1,5 @@
 using BenchmarkDotNet.Attributes;
 using Libplanet.Serialization;
-using Libplanet.TestUtilities;
 using Libplanet.Types;
 
 namespace Libplanet.Benchmarks;
@@ -28,6 +27,6 @@ public class Serialization
     [Benchmark]
     public void Serialize()
     {
-        ModelSerializer.SerializeToBytes(_block);
+        ModelSerializer.Serialize(_block);
     }
 }

@@ -1,5 +1,3 @@
-using Libplanet.TestUtilities;
-
 namespace Libplanet.Data.RocksDB.Tests;
 
 public sealed class RocksMetadataIndexTest(ITestOutputHelper output)

@@ -170,7 +170,7 @@ namespace Libplanet.Explorer.Queries
                 {
                     ImmutableArray<byte> signature = ByteUtility.ParseHexToImmutable(
                         context.GetArgument<string>("signature"));
-                    var unsignedTx = ModelSerializer.DeserializeFromBytes<TransactionMetadata>(ByteUtility.ParseHex(context.GetArgument<string>("unsignedTransaction")));
+                    var unsignedTx = ModelSerializer.Deserialize<TransactionMetadata>(ByteUtility.ParseHex(context.GetArgument<string>("unsignedTransaction")));
                     // var signedTransaction = unsignedTx.Verify(signature);
                     var tx = new Transaction
                     {

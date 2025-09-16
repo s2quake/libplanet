@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Net;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Tests.Protocols;
-using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Logging;
 using Libplanet.Types;
 using Microsoft.Extensions.Logging.Abstractions;

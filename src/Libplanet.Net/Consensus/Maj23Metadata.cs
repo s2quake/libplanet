@@ -38,7 +38,7 @@ public sealed partial record class Maj23Metadata
         {
             IsValidationEnabled = true,
         };
-        var message = ModelSerializer.SerializeToBytes(this, options);
+        var message = ModelSerializer.Serialize(this, options);
         var signature = signer.Sign(message).ToImmutableArray();
         return new Maj23 { Metadata = this, Signature = signature };
     }

@@ -1,5 +1,4 @@
 using Libplanet.Net.Consensus;
-using Libplanet.TestUtilities;
 using Libplanet.Types;
 
 namespace Libplanet.Net.Tests.Consensus;

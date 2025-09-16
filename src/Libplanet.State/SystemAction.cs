@@ -21,5 +21,5 @@ public sealed partial record class SystemAction
     [Property(3)]
     public ImmutableArray<IAction> LeaveTxActions { get; init; } = [];
 
-    public HashDigest<SHA256> Hash => HashDigest<SHA256>.HashData(ModelSerializer.SerializeToBytes(this));
+    public HashDigest<SHA256> Hash => HashDigest<SHA256>.HashData(ModelSerializer.Serialize(this));
 }

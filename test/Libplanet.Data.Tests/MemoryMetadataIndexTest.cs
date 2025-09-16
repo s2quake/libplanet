@@ -1,5 +1,3 @@
-using Libplanet.TestUtilities;
-
 namespace Libplanet.Data.Tests;
 
 public sealed class MemoryMetadataIndexTest(ITestOutputHelper output)

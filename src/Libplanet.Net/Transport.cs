@@ -117,7 +117,7 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
                 if (messageRouter.VerifySendingMessagre(messageEnvelope))
                 {
                     var receiver = request.Receiver;
-                    var bytes = ModelSerializer.SerializeToBytes(messageEnvelope);
+                    var bytes = ModelSerializer.Serialize(messageEnvelope);
                     var lengthBytes = BitConverter.GetBytes(bytes.Length);
 
                     using var client = new TcpClient();
@@ -207,7 +207,7 @@ public sealed partial class Transport(ISigner signer, TransportOptions options) 
             return;
         }
 
-        var messageEnvelope = ModelSerializer.DeserializeFromBytes<MessageEnvelope>(messageBuffer);
+        var messageEnvelope = ModelSerializer.Deserialize<MessageEnvelope>(messageBuffer);
         if (messageRouter.VerifyReceivedMessage(messageEnvelope))
         {
             receiveChannel.Writer.TryWrite(messageEnvelope);

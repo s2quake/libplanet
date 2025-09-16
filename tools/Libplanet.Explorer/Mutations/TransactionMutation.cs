@@ -30,7 +30,7 @@ namespace Libplanet.Explorer.Mutations
                 {
                     Blockchain chain = _context.BlockChain;
                     byte[] payload = ByteUtility.ParseHex(context.GetArgument<string>("payload"));
-                    Transaction tx = ModelSerializer.DeserializeFromBytes<Transaction>(payload);
+                    Transaction tx = ModelSerializer.Deserialize<Transaction>(payload);
                     chain.StagedTransactions.Add(tx);
 
                     return tx;

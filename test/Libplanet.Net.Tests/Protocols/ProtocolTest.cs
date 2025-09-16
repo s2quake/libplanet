@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Libplanet.Net.Components;
 using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
-using Libplanet.TestUtilities;
 using static Libplanet.Net.Tests.TestUtils;
 
 namespace Libplanet.Net.Tests.Protocols;

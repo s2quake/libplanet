@@ -1,4 +1,3 @@
-using Libplanet.TestUtilities;
 using Libplanet.Types;
 using System.Collections;
 using System.Collections.Concurrent;

@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
 using Libplanet.TestUtilities;
-using Libplanet.Serialization.Tests;
 
 namespace Libplanet.Types.Tests;
 
@@ -22,8 +21,8 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
     {
         var random = Rand.GetRandom(output);
         var expected = Rand.BlockHeader(random);
-        var serialized = ModelSerializer.SerializeToBytes(expected);
-        var actual = ModelSerializer.DeserializeFromBytes(serialized);
+        var serialized = ModelSerializer.Serialize(expected);
+        var actual = ModelSerializer.Deserialize(serialized);
         Assert.Equal(expected, actual);
     }
 

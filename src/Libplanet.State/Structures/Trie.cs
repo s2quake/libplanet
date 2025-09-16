@@ -18,7 +18,7 @@ public sealed partial record class Trie(INode Node) : IEnumerable<KeyValuePair<s
     {
         HashNode hashNode => hashNode.Hash,
         NullNode _ => default,
-        _ => HashDigest<SHA256>.HashData(ModelSerializer.SerializeToBytes(Node)),
+        _ => HashDigest<SHA256>.HashData(ModelSerializer.Serialize(Node)),
     };
 
     public bool IsCommitted => Node is HashNode;

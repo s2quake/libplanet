@@ -1,5 +1,3 @@
-using Libplanet.TestUtilities;
-
 namespace Libplanet.Net.Tests.Messages;
 
 public sealed class MessageIdTest(ITestOutputHelper output)

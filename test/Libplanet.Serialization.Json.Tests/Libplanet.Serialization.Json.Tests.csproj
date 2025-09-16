@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Libplanet.Serialization.Json\Libplanet.Serialization.Json.csproj" />
+    <ProjectReference Include="..\Libplanet.TestUtilities\Libplanet.TestUtilities.csproj" />
+    <ProjectReference Include="..\Libplanet.Serialization.Tests\Libplanet.Serialization.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

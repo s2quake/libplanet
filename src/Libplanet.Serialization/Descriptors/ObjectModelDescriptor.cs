@@ -11,8 +11,8 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
     {
         isArray = false;
         var properties = ModelResolver.GetProperties(type);
-        var types = new Type[properties.Length];
-        for (var i = 0; i < properties.Length; i++)
+        var types = new Type[properties.Count];
+        for (var i = 0; i < properties.Count; i++)
         {
             types[i] = properties[i].PropertyType;
         }
@@ -27,15 +27,15 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
             ModelResolver.Validate(obj, options);
         }
 
-        if (type.GetCustomAttribute<OriginModelAttribute>() is { } legacyModelAttribute
-                && !legacyModelAttribute.AllowSerialization)
+        if (type.GetCustomAttribute<OriginModelAttribute>() is { } originModelAttribute
+            && !originModelAttribute.AllowSerialization)
         {
             throw new ModelSerializationException("LegacyModelAttribute is not supported");
         }
 
         var properties = ModelResolver.GetProperties(type);
-        var values = new object?[properties.Length];
-        for (var i = 0; i < properties.Length; i++)
+        var values = new object?[properties.Count];
+        for (var i = 0; i < properties.Count; i++)
         {
             var property = properties[i];
             var value = property.GetValue(obj);
@@ -49,13 +49,13 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
     {
         var obj = TypeUtility.CreateInstance(type);
         var properties = ModelResolver.GetProperties(type);
-        if (properties.Length != values.Length)
+        if (properties.Count != values.Length)
         {
             throw new ModelSerializationException(
-                $"The number of properties ({properties.Length}) does not match the number of values ({values.Length})");
+                $"The number of properties ({properties.Count}) does not match the number of values ({values.Length})");
         }
 
-        for (var i = 0; i < properties.Length; i++)
+        for (var i = 0; i < properties.Count; i++)
         {
             var property = properties[i];
             if (!property.ReadOnly)
@@ -65,9 +65,9 @@ internal sealed class ObjectModelDescriptor : ModelDescriptor
             }
         }
 
-        if (type.GetCustomAttribute<OriginModelAttribute>() is { } legacyModelAttribute)
+        if (type.GetCustomAttribute<OriginModelAttribute>() is { } originModelAttribute)
         {
-            var originType = legacyModelAttribute.Type;
+            var originType = originModelAttribute.Type;
             var originVersion = ModelResolver.GetVersion(originType);
             var version = ModelResolver.GetVersion(type);
             while (version < originVersion)

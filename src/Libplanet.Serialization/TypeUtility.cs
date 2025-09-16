@@ -137,7 +137,7 @@ public static class TypeUtility
 
     public static bool IsDefault(object value, Type type)
     {
-        if (type.IsValueType)
+        if (type.IsValueType && !IsNullableType(type))
         {
             var defaultValue = _defaultByType.GetOrAdd(type, CreateDefault);
             return ReferenceEquals(value, defaultValue) || Equals(value, defaultValue);
@@ -148,7 +148,7 @@ public static class TypeUtility
 
     public static object GetDefault(Type type)
     {
-        if (type.IsValueType)
+        if (type.IsValueType && !IsNullableType(type))
         {
             return _defaultByType.GetOrAdd(type, CreateDefault);
         }

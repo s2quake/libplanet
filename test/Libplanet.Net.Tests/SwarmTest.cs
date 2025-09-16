@@ -5,7 +5,6 @@ using Libplanet.Net.MessageHandlers;
 using Libplanet.Net.Messages;
 using Libplanet.Net.Services;
 using Libplanet.State;
-using Libplanet.State.Tests.Actions;
 using Libplanet.Tests;
 using Libplanet.TestUtilities;
 using Libplanet.TestUtilities.Actions;

@@ -17,7 +17,7 @@ public sealed partial record class Block
     [NotDefault]
     public required ImmutableArray<byte> Signature { get; init; }
 
-    public BlockHash BlockHash => BlockHash.HashData(ModelSerializer.SerializeToBytes(this));
+    public BlockHash BlockHash => BlockHash.HashData(ModelSerializer.Serialize(this));
 
     public int Height => Header.Height;
 
@@ -46,7 +46,7 @@ public sealed partial record class Block
             Header = Header,
             Content = Content,
         };
-        var bytes = ModelSerializer.SerializeToBytes(rawBlock);
+        var bytes = ModelSerializer.Serialize(rawBlock);
         return Header.Proposer.Verify(bytes, Signature.AsSpan());
     }
 }

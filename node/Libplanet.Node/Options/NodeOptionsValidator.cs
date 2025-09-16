@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Options;
-
 namespace Libplanet.Node.Options;
 
 internal sealed class NodeOptionsValidator

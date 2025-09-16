@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using Libplanet.Serialization;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Types.Tests;
 

@@ -36,7 +36,7 @@ public sealed partial record class RawBlock
         {
             IsValidationEnabled = true,
         };
-        var message = ModelSerializer.SerializeToBytes(this, options);
+        var message = ModelSerializer.Serialize(this, options);
         return [.. signer.Sign(message)];
     }
 }

@@ -1,5 +1,4 @@
 using BenchmarkDotNet.Attributes;
-using Libplanet.TestUtilities;
 using Libplanet.Types;
 
 namespace Libplanet.Benchmarks;

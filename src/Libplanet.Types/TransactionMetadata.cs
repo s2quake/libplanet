@@ -38,7 +38,7 @@ public sealed partial record class TransactionMetadata
         {
             IsValidationEnabled = true,
         };
-        var message = ModelSerializer.SerializeToBytes(this, options);
+        var message = ModelSerializer.Serialize(this, options);
         var signature = signer.Sign(message);
 
         return new Transaction

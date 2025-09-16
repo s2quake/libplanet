@@ -36,13 +36,13 @@ public class Commit
             BlockHash = _blockHash,
             Votes = [.. _votes.Take(ValidatorSize)],
         };
-        _encodedBlockCommit = ModelSerializer.SerializeToBytes(_blockCommit);
+        _encodedBlockCommit = ModelSerializer.Serialize(_blockCommit);
     }
 
     [Benchmark]
     public void DecodeBlockCommit()
     {
-        _blockCommit = ModelSerializer.DeserializeFromBytes<BlockCommit>(_encodedBlockCommit);
+        _blockCommit = ModelSerializer.Deserialize<BlockCommit>(_encodedBlockCommit);
     }
 
     private void SetupKeys()

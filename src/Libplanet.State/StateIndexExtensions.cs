@@ -42,7 +42,7 @@ public static class StateIndexExtensions
 
         if (newNode is not HashNode)
         {
-            var value = ModelSerializer.SerializeToBytes(newNode);
+            var value = ModelSerializer.Serialize(newNode);
             var key = HashDigest<SHA256>.HashData(value);
 
             writeBatch.Add(key, value);
@@ -86,7 +86,7 @@ public static class StateIndexExtensions
 
     private static INode Write(INode node, WriteBatch writeBatch)
     {
-        var bytes = ModelSerializer.SerializeToBytes(node);
+        var bytes = ModelSerializer.Serialize(node);
         if (bytes.Length <= HashDigest<SHA256>.Size)
         {
             return node;

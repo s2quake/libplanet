@@ -462,7 +462,7 @@ public partial class BlockchainTest
                 Type = VoteType.PreCommit,
             };
             var options = new ModelOptions();
-            var message = ModelSerializer.SerializeToBytes(metadata, options);
+            var message = ModelSerializer.Serialize(metadata, options);
             var signer = Rand.Signer(random);
             var signature = signer.Sign(message);
             return new Vote { Metadata = metadata, Signature = [.. signature] };

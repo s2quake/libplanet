@@ -1,6 +1,5 @@
 using System.Reflection;
 using Libplanet.Serialization;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Types.Tests;
 
@@ -20,8 +19,8 @@ public sealed class VoteTest(ITestOutputHelper output)
     {
         var random = Rand.GetRandom(output);
         var value1 = Rand.Vote(random);
-        var serialized = ModelSerializer.SerializeToBytes(value1);
-        var value2 = ModelSerializer.DeserializeFromBytes(serialized);
+        var serialized = ModelSerializer.Serialize(value1);
+        var value2 = ModelSerializer.Deserialize(serialized);
         Assert.Equal(value1, value2);
     }
 

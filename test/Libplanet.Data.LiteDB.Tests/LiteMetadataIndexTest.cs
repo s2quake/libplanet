@@ -1,5 +1,3 @@
-using Libplanet.TestUtilities;
-
 namespace Libplanet.Data.LiteDB.Tests;
 
 public sealed class LiteMetadataIndexTest(ITestOutputHelper output)

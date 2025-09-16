@@ -1,5 +1,3 @@
-using Libplanet.TestUtilities;
-
 namespace Libplanet.Types.Tests;
 
 public sealed class ByteUtilityTest

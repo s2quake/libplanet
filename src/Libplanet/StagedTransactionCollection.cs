@@ -246,7 +246,7 @@ public sealed class StagedTransactionCollection : IReadOnlyDictionary<TxId, Tran
                     {
                         Parallel.ForEach(
                             transaction.Actions,
-                            item => _ = ModelSerializer.DeserializeFromBytes<IAction>(item.Bytes.AsSpan()));
+                            item => _ = ModelSerializer.Deserialize<IAction>(item.Bytes.AsSpan()));
                         isValid = true;
                     }
                     catch

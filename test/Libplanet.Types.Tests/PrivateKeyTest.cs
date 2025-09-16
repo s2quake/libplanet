@@ -1,5 +1,4 @@
 using System.Text;
-using Libplanet.TestUtilities;
 using Libplanet.Types.Crypto;
 
 namespace Libplanet.Types.Tests;

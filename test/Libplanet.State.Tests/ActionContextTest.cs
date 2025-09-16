@@ -1,4 +1,3 @@
-using Libplanet.TestUtilities;
 using Libplanet.Types;
 
 namespace Libplanet.State.Tests;

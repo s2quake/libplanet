@@ -57,14 +57,14 @@ internal sealed class BlockchainService : IBlockchainService
     private static Block LoadGenesisBlock(string genesisBlockPath)
     {
         var rawBlock = File.ReadAllBytes(Path.GetFullPath(genesisBlockPath));
-        return ModelSerializer.DeserializeFromBytes<Block>(rawBlock);
+        return ModelSerializer.Deserialize<Block>(rawBlock);
     }
 
     private static Block LoadGenesisBlockFromUrl(Uri genesisBlockUri)
     {
         using var client = new HttpClient();
         var rawBlock = client.GetByteArrayAsync(genesisBlockUri).Result;
-        return ModelSerializer.DeserializeFromBytes<Block>(rawBlock);
+        return ModelSerializer.Deserialize<Block>(rawBlock);
     }
 
     public Block GetBlock(BlockHash hash)

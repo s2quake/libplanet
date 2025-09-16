@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.TestUtilities;
 
 namespace Libplanet.Types.Tests;
 
@@ -20,8 +19,8 @@ public sealed partial class BlockHashTest(ITestOutputHelper output)
     {
         var random = Rand.GetRandom(output);
         var expected = Rand.BlockHash(random);
-        var serialized = ModelSerializer.SerializeToBytes(expected);
-        var actual = ModelSerializer.DeserializeFromBytes(serialized);
+        var serialized = ModelSerializer.Serialize(expected);
+        var actual = ModelSerializer.Deserialize(serialized);
         Assert.Equal(expected, actual);
     }
 

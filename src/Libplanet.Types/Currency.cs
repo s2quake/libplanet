@@ -30,7 +30,7 @@ public readonly partial record struct Currency
     [Property(3)]
     public ImmutableSortedSet<Address> Minters { get; init; } = [];
 
-    public HashDigest<SHA1> Hash => HashDigest<SHA1>.HashData(ModelSerializer.SerializeToBytes(this));
+    public HashDigest<SHA1> Hash => HashDigest<SHA1>.HashData(ModelSerializer.Serialize(this));
 
     public static FungibleAssetValue operator *(Currency currency, decimal value)
     {

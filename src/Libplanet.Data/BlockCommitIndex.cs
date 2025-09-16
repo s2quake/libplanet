@@ -17,9 +17,9 @@ public sealed class BlockCommitIndex(IDatabase database, int cacheSize = 100)
         }
     }
 
-    protected override byte[] ValueToBytes(BlockCommit value) => ModelSerializer.SerializeToBytes(value);
+    protected override byte[] ValueToBytes(BlockCommit value) => ModelSerializer.Serialize(value);
 
-    protected override BlockCommit BytesToValue(byte[] bytes) => ModelSerializer.DeserializeFromBytes<BlockCommit>(bytes);
+    protected override BlockCommit BytesToValue(byte[] bytes) => ModelSerializer.Deserialize<BlockCommit>(bytes);
 
     protected override string KeyToString(BlockHash key) => key.ToString();
 

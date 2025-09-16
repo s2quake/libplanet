@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -342,7 +343,35 @@ public static partial class RandomUtility
         var itemList = new List<TValue>(length);
         for (var i = 0; i < length; i++)
         {
-            var item = Try(random, generator, item => !itemList.Contains(item));
+            if (!TryGetValue(random, generator, item => !itemList.Contains(item), out var item))
+            {
+                break;
+            }
+
+            itemList.Add(item);
+        }
+
+        return [.. itemList];
+    }
+
+    public static SortedSet<TValue> SortedSet<TValue>(Func<TValue> generator) => SortedSet(generator, Length());
+
+    public static SortedSet<TValue> SortedSet<TValue>(Func<TValue> generator, int length)
+        => SortedSet(System.Random.Shared, _ => generator(), length);
+
+    public static SortedSet<TValue> SortedSet<TValue>(Random random, Func<Random, TValue> generator)
+        => SortedSet(random, generator, Length(random));
+
+    public static SortedSet<TValue> SortedSet<TValue>(Random random, Func<Random, TValue> generator, int length)
+    {
+        var itemList = new List<TValue>(length);
+        for (var i = 0; i < length; i++)
+        {
+            if (!TryGetValue(random, generator, item => !itemList.Contains(item), out var item))
+            {
+                break;
+            }
+
             itemList.Add(item);
         }
 
@@ -368,17 +397,55 @@ public static partial class RandomUtility
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator, int length)
         where TKey : notnull
     {
-        var keyList = new List<TKey>(length);
-        var items = new KeyValuePair<TKey, TValue>[length];
+        var keySet = new HashSet<TKey>(length);
+        var itemList = new List<KeyValuePair<TKey, TValue>>(length);
         for (var i = 0; i < length; i++)
         {
-            var key = Try(random, keyGenerator, item => !keyList.Contains(item));
+            if (!TryGetKey(random, keyGenerator, item => !keySet.Contains(item), out var key))
+            {
+                break;
+            }
+
             var value = valueGenerator(random);
-            items[i] = new(key, value);
-            keyList.Add(key);
+            itemList.Add(new(key, value));
+            keySet.Add(key);
         }
 
-        return new Dictionary<TKey, TValue>(items);
+        return new Dictionary<TKey, TValue>(itemList);
+    }
+
+    public static SortedDictionary<TKey, TValue> SortedDictionary<TKey, TValue>(
+        Func<TKey> keyGenerator, Func<TValue> valueGenerator)
+        where TKey : notnull
+        => SortedDictionary(keyGenerator, valueGenerator, Length());
+
+    public static SortedDictionary<TKey, TValue> SortedDictionary<TKey, TValue>(
+        Func<TKey> keyGenerator, Func<TValue> valueGenerator, int length)
+        where TKey : notnull
+        => SortedDictionary(System.Random.Shared, _ => keyGenerator(), _ => valueGenerator(), length);
+
+    public static SortedDictionary<TKey, TValue> SortedDictionary<TKey, TValue>(
+        Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator)
+        where TKey : notnull
+        => SortedDictionary(random, keyGenerator, valueGenerator, Length(random));
+
+    public static SortedDictionary<TKey, TValue> SortedDictionary<TKey, TValue>(
+        Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator, int length)
+        where TKey : notnull
+    {
+        var dictionary = new Dictionary<TKey, TValue>(length);
+        for (var i = 0; i < length; i++)
+        {
+            if (!TryGetKey(random, keyGenerator, item => !dictionary.ContainsKey(item), out var key))
+            {
+                break;
+            }
+
+            var value = valueGenerator(random);
+            dictionary.Add(key, value);
+        }
+
+        return new SortedDictionary<TKey, TValue>(dictionary);
     }
 
     public static ImmutableArray<T> ImmutableArray<T>(Func<T> generator)
@@ -435,7 +502,11 @@ public static partial class RandomUtility
         var itemList = new List<T>(length);
         for (var i = 0; i < length; i++)
         {
-            var item = Try(random, generator, item => !itemList.Contains(item));
+            if (!TryGetValue(random, generator, item => !itemList.Contains(item), out var item))
+            {
+                break;
+            }
+
             itemList.Add(item);
         }
 
@@ -456,7 +527,11 @@ public static partial class RandomUtility
         var itemList = new List<T>(length);
         for (var i = 0; i < length; i++)
         {
-            var item = Try(random, generator, item => !itemList.Contains(item));
+            if (!TryGetValue(random, generator, item => !itemList.Contains(item), out var item))
+            {
+                break;
+            }
+
             itemList.Add(item);
         }
 
@@ -482,17 +557,21 @@ public static partial class RandomUtility
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator, int length)
         where TKey : notnull
     {
-        var keyList = new List<TKey>(length);
-        var items = new KeyValuePair<TKey, TValue>[length];
+        var keySet = new HashSet<TKey>(length);
+        var itemList = new List<KeyValuePair<TKey, TValue>>(length);
         for (var i = 0; i < length; i++)
         {
-            var key = Try(random, keyGenerator, item => !keyList.Contains(item));
+            if (!TryGetKey(random, keyGenerator, item => !keySet.Contains(item), out var key))
+            {
+                break;
+            }
+
             var value = valueGenerator(random);
-            items[i] = new(key, value);
-            keyList.Add(key);
+            itemList.Add(new(key, value));
+            keySet.Add(key);
         }
 
-        return System.Collections.Immutable.ImmutableDictionary.CreateRange(items);
+        return System.Collections.Immutable.ImmutableDictionary.CreateRange(itemList);
     }
 
     public static ImmutableSortedDictionary<TKey, TValue> ImmutableSortedDictionary<TKey, TValue>(
@@ -514,17 +593,21 @@ public static partial class RandomUtility
         Random random, Func<Random, TKey> keyGenerator, Func<Random, TValue> valueGenerator, int length)
         where TKey : notnull
     {
-        var keyList = new List<TKey>(length);
-        var items = new KeyValuePair<TKey, TValue>[length];
+        var keySet = new HashSet<TKey>(length);
+        var itemList = new List<KeyValuePair<TKey, TValue>>(length);
         for (var i = 0; i < length; i++)
         {
-            var key = Try(random, keyGenerator, item => !keyList.Contains(item));
+            if (!TryGetKey(random, keyGenerator, item => !keySet.Contains(item), out var key))
+            {
+                break;
+            }
+
             var value = valueGenerator(random);
-            items[i] = new(key, value);
-            keyList.Add(key);
+            itemList.Add(new(key, value));
+            keySet.Add(key);
         }
 
-        return System.Collections.Immutable.ImmutableSortedDictionary.CreateRange(items);
+        return System.Collections.Immutable.ImmutableSortedDictionary.CreateRange(itemList);
     }
 
     public static T? RandomOrDefault<T>(this IEnumerable<T> enumerable) => RandomOrDefault(enumerable, item => true);
@@ -578,8 +661,7 @@ public static partial class RandomUtility
             count++;
             if (count >= AttemptCount)
             {
-                throw new InvalidOperationException(
-                $"No value was found that matches the condition after {AttemptCount} attempts.");
+                throw new MaxAttemptsExceededException(AttemptCount);
             }
 
             countByValue[key] = count;
@@ -640,5 +722,44 @@ public static partial class RandomUtility
         }
 
         return words;
+    }
+
+    private static bool TryGetKey<TKey>(
+        Random random, Func<Random, TKey> keyGenerator, Func<TKey, bool> predicate, [MaybeNullWhen(false)] out TKey key)
+        where TKey : notnull
+    {
+        try
+        {
+            key = Try(random, keyGenerator, predicate);
+            return true;
+        }
+        catch (MaxAttemptsExceededException)
+        {
+            key = default;
+            return false;
+        }
+    }
+
+    private static bool TryGetValue<TValue>(
+        Random random,
+        Func<Random, TValue> valueGenerator,
+        Func<TValue, bool> predicate,
+        [MaybeNullWhen(false)] out TValue value)
+    {
+        try
+        {
+            value = Try(random, valueGenerator, predicate);
+            return true;
+        }
+        catch (MaxAttemptsExceededException)
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public sealed class MaxAttemptsExceededException(int maxAttempts)
+        : InvalidOperationException($"No value was found that matches the condition after {maxAttempts} attempts.")
+    {
     }
 }

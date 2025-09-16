@@ -34,7 +34,7 @@ public sealed partial record class VoteMetadata
 
     public bool Verify(ReadOnlySpan<byte> signature)
     {
-        var message = ModelSerializer.SerializeToBytes(this);
+        var message = ModelSerializer.Serialize(this);
         return Validator.Verify(message, signature);
     }
 
@@ -50,7 +50,7 @@ public sealed partial record class VoteMetadata
         {
             IsValidationEnabled = true,
         };
-        var message = ModelSerializer.SerializeToBytes(this, options);
+        var message = ModelSerializer.Serialize(this, options);
         var signature = signer.Sign(message);
         return new Vote { Metadata = this, Signature = [.. signature] };
     }

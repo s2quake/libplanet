@@ -112,7 +112,7 @@ namespace Libplanet.Explorer.Executable
             using (var client = new System.Net.Http.HttpClient())
             {
                 var serialized = await client.GetByteArrayAsync(uri);
-                return ModelSerializer.DeserializeFromBytes<Block>(serialized);
+                return ModelSerializer.Deserialize<Block>(serialized);
             }
 #else
             throw new System.PlatformNotSupportedException();
