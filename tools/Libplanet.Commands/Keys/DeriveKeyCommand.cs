@@ -19,12 +19,12 @@ public sealed class DeriveKeyCommand(KeyCommand keyCommand)
     protected override void OnExecute()
     {
         var publicKey = IsPublicKey ? PublicKey.Parse(Key) : PrivateKey.Parse(Key).PublicKey;
-        var info = new Dictionary<string, string>
+        var keyInfo = new KeyInfo
         {
-            ["address"] = publicKey.Address.ToString(),
-            ["publicKey"] = publicKey.ToString(),
+            Address = publicKey.Address.ToString(),
+            PublicKey = publicKey.ToString(),
         };
-        FormatProperties.WriteLine(Out, info);
+        FormatProperties.WriteLine(Out, keyInfo);
     }
 
 }

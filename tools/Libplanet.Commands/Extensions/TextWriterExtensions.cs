@@ -1,7 +1,6 @@
 using System.Collections;
 using System.IO;
 using JSSoft.Commands.Extensions;
-// using JSSoft.Terminals;
 
 namespace Libplanet.Commands.Extensions;
 

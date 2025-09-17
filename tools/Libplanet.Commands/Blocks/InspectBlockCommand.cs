@@ -17,7 +17,7 @@ public sealed class InspectBlockCommand(BlockCommand blockCommand)
     protected override void OnExecute()
     {
         var bytes = File.ReadAllBytes(BlockPath);
-        var block = ModelSerializer.DeserializeFromBytes<Block>(bytes);
+        var block = ModelSerializer.Deserialize<Block>(bytes);
 
         var sb = new StringBuilder()
             .AppendLine($"Version: {block.Version}")

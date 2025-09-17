@@ -5,6 +5,7 @@ using global::Cocona;
 using Libplanet.State;
 using Libplanet.Serialization;
 using Libplanet.Types.JsonConverters;
+using Libplanet.Types;
 
 namespace Libplanet.Commands;
 

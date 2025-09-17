@@ -1,6 +1,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using JSSoft.Commands;
+using Libplanet.Commands.Extensions;
 using Libplanet.KeyStore;
 using Libplanet.Serialization;
 using Libplanet.Types;
@@ -68,8 +69,9 @@ public sealed class GenesisBlockCommand(BlockCommand blockCommand)
             Timestamp = Timestamp ?? DateTimeOffset.UtcNow,
         }.Create(privateKey.AsSigner());
 
-        var bytes = ModelSerializer.SerializeToBytes(genesisBlock);
-        File.WriteAllBytes(OutputPath, bytes);
+        // var bytes = ModelSerializer.Serialize(genesisBlock);
+        // File.WriteAllBytes(OutputPath, bytes);
+        Out.WriteLineAsJson(genesisBlock);
     }
 
     private static ImmutableSortedSet<Validator> GetValidators(string[] validators)

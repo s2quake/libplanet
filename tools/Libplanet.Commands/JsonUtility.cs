@@ -1,9 +1,12 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Libplanet.Commands.IO;
+using Libplanet.Serialization;
+using Libplanet.Serialization.Json;
 
 namespace Libplanet.Commands;
 
@@ -13,6 +16,14 @@ public static class JsonUtility
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver
+        {
+            Modifiers =
+            {
+                ExcludeDefaultValueAttributes,
+            },
+        },
     };
 
     private static readonly JsonSerializerOptions SchemaSerializerOptions = new()
@@ -26,7 +37,15 @@ public static class JsonUtility
     };
 
     public static string Serialize(object value)
-        => JsonSerializer.Serialize(value, SerializerOptions);
+    {
+        if (Attribute.IsDefined(value.GetType(), typeof(ModelAttribute))
+            || Attribute.IsDefined(value.GetType(), typeof(ModelConverterAttribute)))
+        {
+            return ModelJsonSerializer.Serialize(value);
+        }
+
+        return JsonSerializer.Serialize(value, SerializerOptions);
+    }
 
     public static string Serialize(object value, bool isColorized)
     {
@@ -202,5 +221,36 @@ public static class JsonUtility
 
         static bool ShouldSerialize(object obj, object? value)
             => value is string @string && !string.IsNullOrEmpty(@string);
+    }
+
+    private static void ExcludeDefaultValueAttributes(JsonTypeInfo typeInfo)
+    {
+        if (typeInfo.Kind != JsonTypeInfoKind.Object)
+        {
+            return;
+        }
+
+        foreach (var property in typeInfo.Properties)
+        {
+            var attribute = property.AttributeProvider?
+                .GetCustomAttributes(true)
+                .OfType<DefaultValueAttribute>()
+                .FirstOrDefault();
+            if (attribute is null)
+            {
+                continue;
+            }
+
+            var prev = property.ShouldSerialize;
+            property.ShouldSerialize = (obj, value) =>
+            {
+                if (prev is not null && !prev(obj, value))
+                {
+                    return false;
+                }
+
+                return !Equals(value, attribute.Value);
+            };
+        }
     }
 }

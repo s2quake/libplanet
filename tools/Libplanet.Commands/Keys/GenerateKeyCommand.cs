@@ -10,27 +10,20 @@ public sealed class GenerateKeyCommand(KeyCommand keyCommand)
 {
     [CommandPropertySwitch]
     [CommandSummary("Outputs only the private key in hex format.")]
-    [CommandPropertyExclusion(nameof(FormatProperties.Json))]
     public bool Pure { get; set; }
 
     protected override void OnExecute()
     {
         var privateKey = new PrivateKey();
-
-        if (Pure)
-        {
-            Out.WriteLine(ByteUtility.Hex(privateKey.Bytes));
-        }
-        else
-        {
-            var info = new Dictionary<string, string>
+        object info = Pure
+            ? ByteUtility.Hex(privateKey.Bytes)
+            : new KeyInfo
             {
-                ["privateKey"] = ByteUtility.Hex(privateKey.Bytes),
-                ["address"] = privateKey.Address.ToString(),
-                ["publicKey"] = privateKey.PublicKey.ToString(),
+                PrivateKey = ByteUtility.Hex(privateKey.Bytes),
+                Address = privateKey.Address.ToString(),
+                PublicKey = privateKey.PublicKey.ToString(),
             };
 
-            FormatProperties.WriteLine(Out, info);
-        }
+        FormatProperties.WriteLine(Out, info);
     }
 }

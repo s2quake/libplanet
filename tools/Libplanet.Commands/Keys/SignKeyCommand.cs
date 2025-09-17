@@ -38,13 +38,6 @@ public sealed class SignKeyCommand(KeyCommand keyCommand)
         var message = MessageAsHex ? ByteUtility.ParseHex(Message) : Encoding.UTF8.GetBytes(Message);
         var bytes = privateKey.Sign(message);
 
-        if (FormatProperties.Json)
-        {
-            Out.WriteLineAsJson(new { signature = ByteUtility.Hex(bytes) });
-        }
-        else
-        {
-            Out.WriteLine(ByteUtility.Hex(bytes));
-        }
+        FormatProperties.WriteLine(Out, ByteUtility.Hex(bytes));
     }
 }
