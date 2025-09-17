@@ -4,7 +4,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "blk")]
+[Model(Version = 1, TypeName = "Block")]
 public sealed partial record class Block
 {
     [Property(0)]

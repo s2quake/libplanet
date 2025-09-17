@@ -13,7 +13,7 @@ public sealed class BlockHeaderTest(ITestOutputHelper output)
         var attribute = typeof(BlockHeader).GetCustomAttribute<ModelAttribute>();
         Assert.NotNull(attribute);
         Assert.Equal(1, attribute.Version);
-        Assert.Equal("blkhd", attribute.TypeName);
+        Assert.Equal("BlockHeader", attribute.TypeName);
     }
 
     [Fact]

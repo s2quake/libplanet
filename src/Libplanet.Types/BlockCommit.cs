@@ -4,7 +4,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "blkcmt")]
+[Model(Version = 1, TypeName = "BlockCommit")]
 public readonly partial record struct BlockCommit : IHasKey<BlockHash>
 {
     [Property(0)]

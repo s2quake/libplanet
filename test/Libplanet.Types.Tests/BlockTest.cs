@@ -10,7 +10,7 @@ public sealed class BlockTest(ITestOutputHelper output)
     {
         var attribute = typeof(Block).GetCustomAttribute<ModelAttribute>();
         Assert.NotNull(attribute);
-        Assert.Equal("blk", attribute.TypeName);
+        Assert.Equal("Block", attribute.TypeName);
         Assert.Equal(1, attribute.Version);
     }
 
@@ -55,7 +55,15 @@ public sealed class BlockTest(ITestOutputHelper output)
     public void Verify_Fail()
     {
         var random = Rand.GetRandom(output);
-        var block = Rand.Block(random);
+        var blockHeader = Rand.BlockHeader(random);
+        var content = Rand.BlockContent(random);
+        var signature = Rand.ImmutableArray(random, Rand.Byte);
+        var block = new Block
+        {
+            Header = blockHeader,
+            Content = content,
+            Signature = signature,
+        };
         Assert.False(block.Verify());
     }
 

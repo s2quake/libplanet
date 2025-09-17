@@ -26,7 +26,7 @@ public sealed class BlockBuilderTest(ITestOutputHelper output)
         var height = Rand.Positive(random);
         var timestamp = DateTimeOffset.UtcNow;
         var previousBlockHash = Rand.BlockHash(random);
-        var previousBlockCommit = Rand.BlockCommit(random);
+        var previousBlockCommit = Rand.BlockCommit(random, height: height - 1, blockHash: previousBlockHash);
         var previousStateRootHash = Rand.HashDigest<SHA256>(random);
         var transactions = Rand.ImmutableSortedSet(random, Rand.Transaction);
         var evidence = Rand.ImmutableSortedSet(random, Rand.Evidence);

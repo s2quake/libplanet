@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "rblk")]
+[Model(Version = 1, TypeName = "RawBlock")]
 public sealed partial record class RawBlock
 {
     [Property(0)]
