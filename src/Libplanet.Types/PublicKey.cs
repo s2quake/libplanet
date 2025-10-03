@@ -1,18 +1,11 @@
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
-using Libplanet.Types.Converters;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.JsonConverters;
-using Libplanet.Types.ModelConverters;
 using Secp256k1Net;
 
 namespace Libplanet.Types;
 
-[TypeConverter(typeof(PublicKeyTypeConverter))]
-[JsonConverter(typeof(PublicKeyJsonConverter))]
-[ModelConverter(typeof(PublicKeyModelConverter), "puky")]
+[ModelScalar("puky", Kind = ModelScalarKind.Hex)]
 public sealed partial record class PublicKey : IEquatable<PublicKey>, IFormattable
 {
     private readonly ImmutableArray<byte> _bytes;
@@ -112,6 +105,11 @@ public sealed partial record class PublicKey : IEquatable<PublicKey>, IFormattab
         "c" => ByteUtility.Hex(ToByteArray(compress: true)),
         _ => ToString(),
     };
+
+    internal byte[] ToScalarValue() => [.. Bytes];
+
+    internal static PublicKey FromScalarValue(IServiceProvider serviceProvider, byte[] value)
+        => new(value.ToImmutableArray());
 
     private static bool TryGetPublicKey(
         ImmutableArray<byte> bytes, [MaybeNullWhen(false)] out byte[] publicKey)

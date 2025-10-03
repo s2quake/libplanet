@@ -3,7 +3,7 @@ using static Libplanet.TestUtilities.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 
-public abstract partial class ModelSerializerTestBase<T>
+public abstract partial class ModelSerializerTestBase<TData>
 {
     [Fact]
     public void ObjectRecordStruct_SerializeAndDeserialize_Test()
@@ -17,7 +17,7 @@ public abstract partial class ModelSerializerTestBase<T>
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
-    [ClassData(typeof(RandomSeedData))]
+    [ClassData(typeof(RandomSeedsData))]
     public void ObjectRecordStruct_SerializeAndDeserialize_Seed_Test(int seed)
     {
         var random = new Random(seed);
@@ -39,7 +39,7 @@ public abstract partial class ModelSerializerTestBase<T>
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
-    [ClassData(typeof(RandomSeedData))]
+    [ClassData(typeof(RandomSeedsData))]
     public void ArrayRecordStruct_SerializeAndDeserialize_Seed_Test(int seed)
     {
         var random = new Random(seed);
@@ -61,7 +61,7 @@ public abstract partial class ModelSerializerTestBase<T>
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
-    [ClassData(typeof(RandomSeedData))]
+    [ClassData(typeof(RandomSeedsData))]
     public void MixedRecordStruct_SerializeAndDeserialize_Seed_Test(int seed)
     {
         var random = new Random(seed);
@@ -72,7 +72,7 @@ public abstract partial class ModelSerializerTestBase<T>
     }
 }
 
-[Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_ObjectRecordStruct")]
+[Model("Libplanet_Serialization_Tests_ModelSerializerTest_ObjectRecordStruct", Version = 1)]
 public readonly record struct ObjectRecordStruct : IEquatable<ObjectRecordStruct>
 {
     public ObjectRecordStruct()
@@ -124,7 +124,7 @@ public readonly record struct ObjectRecordStruct : IEquatable<ObjectRecordStruct
     public override int GetHashCode() => ModelResolver.GetHashCode(this);
 }
 
-[Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_ArrayRecordStruct")]
+[Model("Libplanet_Serialization_Tests_ModelSerializerTest_ArrayRecordStruct", Version = 1)]
 public readonly record struct ArrayRecordStruct : IEquatable<ArrayRecordStruct>
 {
     public ArrayRecordStruct()
@@ -172,7 +172,7 @@ public readonly record struct ArrayRecordStruct : IEquatable<ArrayRecordStruct>
     public override int GetHashCode() => ModelResolver.GetHashCode(this);
 }
 
-[Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_MixedRecordStruct")]
+[Model("Libplanet_Serialization_Tests_ModelSerializerTest_MixedRecordStruct", Version = 1)]
 public readonly record struct MixedRecordStruct : IEquatable<MixedRecordStruct>
 {
     public MixedRecordStruct()

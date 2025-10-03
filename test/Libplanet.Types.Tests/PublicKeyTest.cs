@@ -281,32 +281,4 @@ public class PublicKeyTest(ITestOutputHelper output)
             "0246115b0131baccf94a5856ede871295f6f3d352e6847cda9c03e89fe09f73280",
             publicKey.ToString("c", null));
     }
-
-    [Fact]
-    public void TypeConverter()
-    {
-        var converter = TypeDescriptor.GetConverter(typeof(PublicKey));
-        var publicKey = PublicKey.Parse(
-            "0246115b0131baccf94a5856ede871295f6f3d352e6847cda9c03e89fe09f73280");
-        Assert.True(converter.CanConvertFrom(typeof(string)));
-        Assert.Equal(
-            publicKey,
-            converter.ConvertFrom(
-                "0246115b0131baccf94a5856ede871295f6f3d352e6847cda9c03e89fe09f73280"));
-        Assert.Equal(
-            publicKey,
-            converter.ConvertFrom(
-                "0246115B0131BACCF94A5856EDE871295F6F3D352E6847CDA9C03E89FE09F73280"));
-        Assert.Equal(
-            publicKey,
-            converter.ConvertFrom(
-                "0446115b0131baccf94a5856ede871295f6f3d352e6847cda9c03e89fe09f7328" +
-                "08711ec97af6e341f110a326da1bdb81f5ae3badf76a90b22c8c491aed3aaa296"));
-        Assert.Throws<FormatException>(() => converter.ConvertFrom("INVALID"));
-
-        Assert.True(converter.CanConvertTo(typeof(string)));
-        Assert.Equal(
-            "0246115b0131baccf94a5856ede871295f6f3d352e6847cda9c03e89fe09f73280",
-            converter.ConvertTo(publicKey, typeof(string)));
-    }
 }

@@ -7,29 +7,19 @@ namespace Libplanet.Serialization.Analyzers;
 internal static class TypeDeclarationSyntaxExtensions
 {
     public static bool IsPublic(this TypeDeclarationSyntax @this)
-    {
-        return @this.Modifiers.Any(m => m.IsKind(SyntaxKind.PublicKeyword));
-    }
+        => @this.Modifiers.Any(m => m.IsKind(SyntaxKind.PublicKeyword));
 
     public static bool IsInternal(this TypeDeclarationSyntax @this)
-    {
-        return @this.Modifiers.Any(m => m.IsKind(SyntaxKind.InternalKeyword));
-    }
+        => @this.Modifiers.Any(m => m.IsKind(SyntaxKind.InternalKeyword));
 
     public static bool IsProtected(this TypeDeclarationSyntax @this)
-    {
-        return @this.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword));
-    }
+        => @this.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword));
 
     public static bool IsPrivate(this TypeDeclarationSyntax @this)
-    {
-        return @this.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword));
-    }
+        => @this.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword));
 
     public static bool IsRecord(this TypeDeclarationSyntax @this)
-    {
-        return @this is RecordDeclarationSyntax;
-    }
+        => @this is RecordDeclarationSyntax;
 
     public static bool IsStruct(this TypeDeclarationSyntax @this)
     {

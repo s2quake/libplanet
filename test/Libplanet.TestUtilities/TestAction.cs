@@ -3,7 +3,7 @@ using Libplanet.State;
 
 namespace Libplanet.TestUtilities;
 
-[Model(Version = 1, TypeName = "Libplanet_TestUtilities_TestAction")]
+[Model("Libplanet_TestUtilities_TestAction", Version = 1)]
 public sealed record class TestAction : ActionBase
 {
     protected override void OnExecute(IWorldContext world, IActionContext context)

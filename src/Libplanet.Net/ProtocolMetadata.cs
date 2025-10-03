@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-[Model(Version = 1, TypeName = "ProtocolMetadata")]
+[Model("ProtocolMetadata", Version = 1)]
 public sealed partial record class ProtocolMetadata
 {
     [Property(0)]

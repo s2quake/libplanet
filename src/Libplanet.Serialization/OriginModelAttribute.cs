@@ -1,6 +1,6 @@
 ﻿namespace Libplanet.Serialization;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum)]
 public sealed class OriginModelAttribute : Attribute
 {
     public required Type Type { get; init; }

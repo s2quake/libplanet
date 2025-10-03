@@ -4,7 +4,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "TransactionExecutionInfo")]
+[Model("TransactionExecutionInfo", Version = 1)]
 public sealed partial record class TransactionExecutionInfo : IHasKey<TxId>
 {
     [Property(0)]

@@ -49,7 +49,7 @@ public sealed class ModelResolverTest
         Assert.True(model1.Equals(model2));
     }
 
-    [Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelResolverTest_Model")]
+    [Model("Libplanet_Serialization_Tests_ModelResolverTest_Model", Version = 1)]
     public sealed record class Model : IEquatable<Model>
     {
         [Property(0)]

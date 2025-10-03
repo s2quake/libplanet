@@ -4,7 +4,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "Transaction")]
+[Model("tx", Version = 1)]
 public sealed partial record class Transaction
     : IComparable<Transaction>, IComparable, IHasKey<TxId>
 {

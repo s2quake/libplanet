@@ -5,7 +5,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "BlockHeader")]
+[Model("BlockHeader", Version = 1)]
 public sealed partial record class BlockHeader : IValidatableObject
 {
     public const int CurrentVersion = 0;

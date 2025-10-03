@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "BlockExecutionInfo")]
+[Model("BlockExecutionInfo", Version = 1)]
 public sealed partial record class BlockExecutionInfo : IEquatable<BlockExecutionInfo>, IHasKey<BlockHash>
 {
     [Property(0)]

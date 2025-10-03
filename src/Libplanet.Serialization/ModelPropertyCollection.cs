@@ -77,7 +77,7 @@ public sealed class ModelPropertyCollection : IEnumerable<ModelProperty>
         var equatableType = typeof(IEquatable<>).MakeGenericType(type);
         if (!equatableType.IsAssignableFrom(type))
         {
-            throw new ModelSerializationException(
+            throw new ModelException(
                 $"Type {type} does not implement {equatableType}. " +
                 "Please implement IEquatable<T> and override GetHashCode and Equals methods.");
         }
@@ -88,13 +88,13 @@ public sealed class ModelPropertyCollection : IEnumerable<ModelProperty>
         var methodInfo1 = type.GetMethod(methodName1, bindingFlags, types: methodParams1);
         if (methodInfo1 is null)
         {
-            throw new ModelSerializationException(
+            throw new ModelException(
                 $"Method {nameof(IEquatable<object>.Equals)} is not implemented in {type}. " +
                 "Please implement IEquatable<T> Equals method.");
         }
         else if (methodInfo1.IsDefined(typeof(CompilerGeneratedAttribute)))
         {
-            throw new ModelSerializationException(
+            throw new ModelException(
                 $"Method {nameof(IEquatable<object>.Equals)} is not implemented in {type}. " +
                 "Please implement IEquatable<T> Equals method.");
         }
@@ -103,14 +103,14 @@ public sealed class ModelPropertyCollection : IEnumerable<ModelProperty>
         var methodInfo2 = type.GetMethod(methodName2, bindingFlags);
         if (methodInfo2 is null)
         {
-            throw new ModelSerializationException(
+            throw new ModelException(
                 $"Method {nameof(GetHashCode)} is not implemented in {type}. " +
                 "Please override GetHashCode method.");
         }
         else if (methodInfo2.DeclaringType != type
             && methodInfo2.IsDefined(typeof(CompilerGeneratedAttribute)))
         {
-            throw new ModelSerializationException(
+            throw new ModelException(
                 $"Method {nameof(GetHashCode)} is not implemented in {type}. " +
                 "Please override GetHashCode method.");
         }
@@ -122,7 +122,7 @@ public sealed class ModelPropertyCollection : IEnumerable<ModelProperty>
             var methodInfo3 = type.GetMethod(methodName3, bindingFlags, types: methodParams3);
             if (methodInfo3 is null)
             {
-                throw new ModelSerializationException(
+                throw new ModelException(
                     $"Method {nameof(object.Equals)} is not implemented in {type}. " +
                     "Please override Equals method.");
             }

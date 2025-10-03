@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "ProtocolRequestMessage")]
+[Model("ProtocolRequestMessage", Version = 1)]
 public sealed record class ProtocolRequestMessage : MessageBase
 {
 }

@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Libplanet.Serialization.Descriptors;
-using Libplanet.Serialization.ModelConverters;
+using Libplanet.Serialization.DynamicConverters;
+using Libplanet.Serialization.StaticConverters;
 
 namespace Libplanet.Serialization;
 
@@ -14,7 +14,6 @@ public static class ModelResolver
     private static readonly ConcurrentDictionary<Type, ModelPropertyCollection> _declaredPropertiesByType = [];
     private static readonly ConcurrentDictionary<Type, ModelPropertyCollection> _propertiesByType = [];
     private static readonly ConcurrentDictionary<Type, ImmutableArray<Type>> _typesByType = [];
-    private static readonly ConcurrentDictionary<Type, ModelDescriptor> _descriptorByType = [];
     private static readonly ConcurrentDictionary<Type, IModelConverter> _converterByType = new()
     {
         [typeof(BigInteger)] = new BigIntegerModelConverter(),
@@ -28,23 +27,25 @@ public static class ModelResolver
         [typeof(string)] = new StringModelConverter(),
         [typeof(TimeSpan)] = new TimeSpanModelConverter(),
     };
-    private static readonly ModelDescriptor[] _descriptors =
+    private static readonly IModelConverter[] _converters =
     [
-        new ObjectModelDescriptor(),
-        new TupleModelDescriptor(),
-        new KeyValuePairModelDescriptor(),
-        new ArrayModelDescriptor(),
-        new ListModelDescriptor(),
-        new HashSetModelDescriptor(),
-        new SortedSetModelDescriptor(),
-        new DictionaryModelDescriptor(),
-        new SortedDictionaryModelDescriptor(),
-        new ImmutableArrayModelDescriptor(),
-        new ImmutableListModelDescriptor(),
-        new ImmutableHashSetModelDescriptor(),
-        new ImmutableSortedSetModelDescriptor(),
-        new ImmutableDictionaryModelDescriptor(),
-        new ImmutableSortedDictionaryModelDescriptor(),
+        new NullableModelConverter(),
+        new EnumModelConverter(),
+        new ObjectModelConverter(),
+        new TupleModelConverter(),
+        new KeyValuePairModelConverter(),
+        new ArrayModelConverter(),
+        new ListModelConverter(),
+        new HashSetModelConverter(),
+        new SortedSetModelConverter(),
+        new DictionaryModelConverter(),
+        new SortedDictionaryModelConverter(),
+        new ImmutableArrayModelConverter(),
+        new ImmutableListModelConverter(),
+        new ImmutableHashSetModelConverter(),
+        new ImmutableSortedSetModelConverter(),
+        new ImmutableDictionaryModelConverter(),
+        new ImmutableSortedDictionaryModelConverter(),
     ];
 
     public static Type GetType(Type type, int version)
@@ -53,21 +54,28 @@ public static class ModelResolver
         {
             return version is 0 ? type : GetTypes(type)[version - 1];
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not ModelException)
         {
-            throw new ModelSerializationException($"Failed to get type for {type} with version {version}", e);
+            throw new ModelException($"Failed to get type for {type} with version {version}", e);
         }
     }
 
-    public static string GetTypeName(Type type)
+    public static (string TypeName, int Version) GetTypeInfo(Type type)
     {
         try
         {
-            return TypeUtility.GetTypeName(type);
+            if (type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(OriginModelAttribute)))
+            {
+                var types = GetTypes(type);
+                return (TypeUtility.GetTypeName(types[^1]), types.IndexOf(type) + 1);
+            }
+
+            return (TypeUtility.GetTypeName(type), 0);
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not ModelException)
         {
-            throw new ModelSerializationException($"Failed to get type name for {type}", e);
+            var message = $"Type '{type}' is not supported or not registered in known types.";
+            throw new InvalidModelException(message, type, e);
         }
     }
 
@@ -79,35 +87,19 @@ public static class ModelResolver
             {
                 return GetTypes(type).IndexOf(type) + 1;
             }
+            else if (TypeUtility.IsKnownType(type))
+            {
+                return 0;
+            }
 
-            return 0;
+            var message = $"Type '{type}' is not supported or not registered in known types.";
+            throw new InvalidModelException(message, type);
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not ModelException)
         {
-            throw new ModelSerializationException($"Failed to get version for {type}", e);
+            var message = $"Type '{type}' is not supported or not registered in known types.";
+            throw new InvalidModelException(message, type, e);
         }
-    }
-
-    public static ModelDescriptor GetDescriptor(Type type)
-    {
-        if (FindDescriptor(type) is { } descriptor)
-        {
-            return descriptor;
-        }
-
-        throw new NotSupportedException($"Type {type} is not supported.");
-    }
-
-    public static bool TryGetDescriptor(Type type, [MaybeNullWhen(false)] out ModelDescriptor descriptor)
-    {
-        if (FindDescriptor(type) is { } foundDescriptor)
-        {
-            descriptor = foundDescriptor;
-            return true;
-        }
-
-        descriptor = null;
-        return descriptor is not null;
     }
 
     public static ModelPropertyCollection GetProperties(Type type)
@@ -116,14 +108,14 @@ public static class ModelResolver
         {
             if (!type.IsDefined(typeof(ModelAttribute)) && !type.IsDefined(typeof(OriginModelAttribute)))
             {
-                throw new ArgumentException($"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));
+                throw new ArgumentException($"Type '{type}' does not have the {nameof(ModelAttribute)}", nameof(type));
             }
 
             return _propertiesByType.GetOrAdd(type, CreateProperties);
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not ModelException)
         {
-            throw new ModelSerializationException($"Failed to get properties for {type}", e);
+            throw new ModelException($"Failed to get properties for {type}", e);
         }
     }
 
@@ -131,19 +123,39 @@ public static class ModelResolver
 
     public static bool TryGetConverter(Type type, [MaybeNullWhen(false)] out IModelConverter converter)
     {
-        if (_converterByType.TryGetValue(type, out converter))
+        lock (_lock)
         {
-            return true;
+            if (FindConverter(type) is { } foundConverter)
+            {
+                converter = foundConverter;
+                return true;
+            }
+
+            converter = null;
+            return converter is not null;
         }
 
-        if (type.IsDefined(typeof(ModelConverterAttribute)))
+        static IModelConverter? FindConverter(Type type)
         {
-            converter = GetConverter(type);
-            return true;
-        }
+            if (_converterByType.TryGetValue(type, out var converter))
+            {
+                return converter;
+            }
 
-        converter = null;
-        return converter is not null;
+            if (type.IsDefined(typeof(ModelConverterAttribute)))
+            {
+                return GetConverter(type);
+            }
+
+            converter = _converters.FirstOrDefault(converter => converter.CanConvert(type));
+            if (converter is not null)
+            {
+                _converterByType.TryAdd(type, converter);
+                return converter;
+            }
+
+            return null;
+        }
     }
 
     public static void AddConverter(Type type, IModelConverter converter) => _converterByType.TryAdd(type, converter);
@@ -173,9 +185,9 @@ public static class ModelResolver
         }
 
         var objType = obj1.GetType() != type ? obj1.GetType() : type;
-        if (FindDescriptor(objType) is { } descriptor)
+        if (FindComparer(objType) is { } comparer)
         {
-            return descriptor.Equals(obj1, obj2, objType);
+            return comparer.Equals(obj1, obj2, objType);
         }
 
         return object.Equals(obj1, obj2);
@@ -190,9 +202,9 @@ public static class ModelResolver
             return 0;
         }
 
-        if (FindDescriptor(type) is { } descriptor)
+        if (FindComparer(type) is { } comparer)
         {
-            return descriptor.GetHashCode(obj, type);
+            return comparer.GetHashCode(obj, type);
         }
 
         return obj.GetHashCode();
@@ -202,7 +214,7 @@ public static class ModelResolver
     {
         Validator.ValidateObject(
             instance: obj,
-            validationContext: new ValidationContext(obj, options, options.Items),
+            validationContext: new ValidationContext(obj, options, items: null),
             validateAllProperties: true);
     }
 
@@ -240,8 +252,7 @@ public static class ModelResolver
         var attributes = query.ToArray();
         var builder = ImmutableArray.CreateBuilder<Type>(attributes.Length + 1);
         var modelAttribute = type.GetCustomAttribute<ModelAttribute>()
-            ?? throw new ArgumentException(
-                $"Type {type} does not have {nameof(ModelAttribute)}", nameof(type));
+            ?? throw new InvalidModelException($"Type '{type}' does not have the {nameof(ModelAttribute)}.", type);
 
         Type? previousType = null;
         var previousVersion = 0;
@@ -254,8 +265,8 @@ public static class ModelResolver
 
             if (builder.Contains(attributeType))
             {
-                throw new ArgumentException(
-                    $"Type {attributeType} is already registered", nameof(type));
+                throw new InvalidModelException(
+                    $"Type '{attributeType}' is already defined for '{type}'.", type);
             }
 
             builder.Add(attributeType);
@@ -270,21 +281,11 @@ public static class ModelResolver
         return builder.ToImmutable();
     }
 
-    private static ModelDescriptor? FindDescriptor(Type type)
+    private static IModelComparer? FindComparer(Type type)
     {
-        if (_descriptorByType.TryGetValue(type, out var descriptor))
+        if (TryGetConverter(type, out var converter) && converter is IModelComparer comparer)
         {
-            return descriptor;
-        }
-
-        lock (_lock)
-        {
-            descriptor = _descriptors.FirstOrDefault(descriptor => descriptor.CanSerialize(type));
-            if (descriptor is not null)
-            {
-                _descriptorByType.TryAdd(type, descriptor);
-                return descriptor;
-            }
+            return comparer;
         }
 
         return null;

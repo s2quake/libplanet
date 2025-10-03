@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using Libplanet.Serialization;
-using Libplanet.State.ModelConverters;
 using Libplanet.Types;
 using LruCacheNet;
 using System.Diagnostics.CodeAnalysis;
@@ -8,8 +7,8 @@ using Libplanet.Data;
 
 namespace Libplanet.State.Structures.Nodes;
 
-[ModelConverter(typeof(HashNodeModelConverter), "hnode")]
-internal sealed record class HashNode : INode
+[ModelScalar("hnode", Kind = ModelScalarKind.Hex)]
+internal sealed record class HashNode : INode, IServiceProvider
 {
     private const int _cacheSize = 524_288;
 
@@ -35,10 +34,7 @@ internal sealed record class HashNode : INode
         {
             if (StateIndex.TryGetValue(Hash, out var bytes))
             {
-                var options = new ModelOptions
-                {
-                    Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(StateIndex), StateIndex),
-                };
+                var options = new ModelOptions(this);
                 node = ModelSerializer.Deserialize<INode>(bytes, options);
                 AddOrUpdate(Hash, node);
             }
@@ -56,4 +52,25 @@ internal sealed record class HashNode : INode
 
     public static void AddOrUpdate(HashDigest<SHA256> hash, INode node)
         => _cache.AddOrUpdate(hash, node);
+
+    object? IServiceProvider.GetService(Type serviceType)
+    {
+        if (typeof(StateIndex) == serviceType)
+        {
+            return StateIndex;
+        }
+
+        return null;
+    }
+
+    internal byte[] ToScalarValue() => [.. Hash.Bytes];
+
+    internal static HashNode FromScalarValue(IServiceProvider serviceProvider, byte[] value) => new()
+    {
+        Hash = new HashDigest<SHA256>(value.ToImmutableArray()),
+        StateIndex = serviceProvider.GetService(typeof(StateIndex)) is StateIndex stateIndex
+            ? stateIndex
+            : throw new InvalidOperationException(
+                $"{nameof(StateIndex)} is required to deserialize {nameof(HashNode)}."),
+    };
 }

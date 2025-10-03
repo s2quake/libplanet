@@ -1,10 +1,9 @@
-using Libplanet.Net.ModelConverters;
 using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-[ModelConverter(typeof(ProtocolHashModelConverter), "pths")]
+[ModelScalar("pths", Kind = ModelScalarKind.Hex)]
 public readonly record struct ProtocolHash(in ImmutableArray<byte> Bytes)
     : IEquatable<ProtocolHash>, IComparable<ProtocolHash>, IComparable
 {
@@ -60,6 +59,10 @@ public readonly record struct ProtocolHash(in ImmutableArray<byte> Bytes)
         ProtocolHash other => CompareTo(other),
         _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(ProtocolHash)}.", nameof(obj)),
     };
+
+    internal byte[] ToScalarValue() => [.. Bytes];
+
+    internal static ProtocolHash FromScalarValue(IServiceProvider serviceProvider, byte[] scalarValue) => new(scalarValue);
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

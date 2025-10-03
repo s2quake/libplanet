@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Libplanet.Serialization;
 
 namespace Libplanet.Types.Tests;
@@ -201,14 +200,5 @@ public sealed class EvidenceIdTest
         var expectedEvidenceId = default(EvidenceId);
         var actualEvidenceId = ModelSerializer.Clone(expectedEvidenceId);
         Assert.Equal(expectedEvidenceId, actualEvidenceId);
-    }
-
-    [Fact]
-    public void JsonSerialization()
-    {
-        var evidenceId = EvidenceId.Parse("45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc");
-        var json1 = JsonSerializer.Serialize(evidenceId);
-        var json2 = JsonSerializer.Serialize("45a22187e2d8850bb357886958bc3e8560929ccc886958bc3e8560929ccc9ccc");
-        Assert.Equal(json1, json2);
     }
 }

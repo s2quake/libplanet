@@ -1,7 +1,7 @@
 ﻿namespace Libplanet.Serialization;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-public sealed class ModelConverterAttribute(Type converterType, string typeName) : Attribute
+public class ModelConverterAttribute(Type converterType, string typeName) : Attribute
 {
     public Type ConverterType { get; } = converterType;
 

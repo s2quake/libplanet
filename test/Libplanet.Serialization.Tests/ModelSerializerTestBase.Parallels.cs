@@ -1,15 +1,15 @@
 #pragma warning disable SA1414 // Tuple types in signatures should have element names
-using static Libplanet.TestUtilities.RandomUtility;
+using Libplanet.TestUtilities;
 
 namespace Libplanet.Serialization.Tests;
 
-public abstract partial class ModelSerializerTestBase<T>
+public abstract partial class ModelSerializerTestBase<TData>
 {
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
     [InlineData(1849913649)]
-    [ClassData(typeof(RandomSeedData))]
+    [ClassData(typeof(RandomSeedsData))]
     public void SerializeAndDeserialize_Parallels_Test(int seed)
     {
         var random = new Random(seed);

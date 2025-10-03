@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.State.Tests.Actions;
 
-[Model(Version = 1, TypeName = "Tests_SetStatesAtBlock")]
+[Model("Libplanet_State_Tests_Actions_SetStatesAtBlock", Version = 1)]
 public sealed record class SetStatesAtBlock : ActionBase
 {
     public SetStatesAtBlock()

@@ -54,12 +54,12 @@ public class CurrencyTest
     {
         (string, Currency)[] items =
         [
-            ("5c167c93e9d55301c126b533f3f9bfaf7c8035c6", Currency.Create("GOLD", 2, [AddressA])),
-            ("bdec9f36c8c990ca5f5af5142f220b3560a39e7a", Currency.Create("NCG", 8, [AddressA, AddressB])),
-            ("ad8dce7d6f7aa1625318743d162f6d386f022a14", Currency.Create("FOO", 0)),
-            ("a16139726848bc16b208d62efa0f3b20a2468ac8", Currency.Create("BAR", 1)),
-            ("46943167967e11a862b08a16df44b9ba48aa1b5f", Currency.Create("BAZ", 1)),
-            ("02e5cdc825bd2f27ba506a5996667c1cc9bd9653", Currency.Create("BAZ", 1, 100)),
+            ("e9587164eeef525eb9fb4bf526d757709382214b", Currency.Create("GOLD", 2, [AddressA])),
+            ("1980196f95bd4879acc3977a0f5712dee046ac72", Currency.Create("NCG", 8, [AddressA, AddressB])),
+            ("da16218c8e45354fe0c84e45f3949d1eb98ac5a0", Currency.Create("FOO", 0)),
+            ("0ff8e1479fc9ca224616a1d768ddbdaaba7caa9e", Currency.Create("BAR", 1)),
+            ("e10ccac2a855fcd31e94dfbeb59952e6ba3727c3", Currency.Create("BAZ", 1)),
+            ("7299fe0d9a888cbef5b698990fae61fcb9818c18", Currency.Create("BAZ", 1, 100)),
         ];
 
 #if DEBUG
@@ -107,14 +107,14 @@ public class CurrencyTest
     {
         (string, Currency)[] items =
         [
-            ("GOLD (36bbe96591f0c209addbd038bc2d912f18ef9c48)", Currency.Create("GOLD", 0, [AddressA])),
-            ("GOLD (b0ec285863ae0fd90fbbca482b529c0c42309b02)", Currency.Create("GOLD", 0, [])),
-            ("GOLD (7713ebfc5c5b3a32dc279e671dcb771958ac82ae)", Currency.Create("GOLD", 0, 100, [AddressA])),
-            ("GOLD (b0ec285863ae0fd90fbbca482b529c0c42309b02)", Currency.Create("GOLD", 0)),
-            ("FOO (ad8dce7d6f7aa1625318743d162f6d386f022a14)", Currency.Create("FOO", 0)),
-            ("BAR (a16139726848bc16b208d62efa0f3b20a2468ac8)", Currency.Create("BAR", 1)),
-            ("BAZ (46943167967e11a862b08a16df44b9ba48aa1b5f)", Currency.Create("BAZ", 1)),
-            ("BAZ (02e5cdc825bd2f27ba506a5996667c1cc9bd9653)", Currency.Create("BAZ", 1, 100)),
+            ("GOLD (693c0b95157483f1feabb2abe5c2080fc7c8c5f9)", Currency.Create("GOLD", 0, [AddressA])),
+            ("GOLD (a1c9cf374f8babd429283bec4c77c65fdeb8af8a)", Currency.Create("GOLD", 0, [])),
+            ("GOLD (ff8993ac5531fae2f19f0f744e750de74975371b)", Currency.Create("GOLD", 0, 100, [AddressA])),
+            ("GOLD (a1c9cf374f8babd429283bec4c77c65fdeb8af8a)", Currency.Create("GOLD", 0)),
+            ("FOO (da16218c8e45354fe0c84e45f3949d1eb98ac5a0)", Currency.Create("FOO", 0)),
+            ("BAR (0ff8e1479fc9ca224616a1d768ddbdaaba7caa9e)", Currency.Create("BAR", 1)),
+            ("BAZ (e10ccac2a855fcd31e94dfbeb59952e6ba3727c3)", Currency.Create("BAZ", 1)),
+            ("BAZ (7299fe0d9a888cbef5b698990fae61fcb9818c18)", Currency.Create("BAZ", 1, 100)),
         ];
 
 #if DEBUG

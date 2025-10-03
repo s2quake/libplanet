@@ -4,7 +4,7 @@ using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Actions;
 
-[Model(Version = 1, TypeName = "Tests_DumbModern")]
+[Model("Libplanet_State_Tests_Actions_DumbModern", Version = 1)]
 public sealed record class DumbModern : ActionBase
 {
     public static readonly DumbModern NoOp = DumbModern.Create();

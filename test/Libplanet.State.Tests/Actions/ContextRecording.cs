@@ -4,7 +4,7 @@ using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Actions;
 
-[Model(Version = 1, TypeName = "Tests_ContextRecording")]
+[Model("Libplanet_State_Tests_Actions_ContextRecording", Version = 1)]
 public sealed record class ContextRecording : ActionBase
 {
     public static readonly Address MinerRecordAddress = Address.Parse("1000000000000000000000000000000000000001");

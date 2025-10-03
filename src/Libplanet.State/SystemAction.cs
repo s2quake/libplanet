@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.State;
 
-[Model(Version = 1, TypeName = "SystemAction")]
+[Model("SystemAction", Version = 1)]
 public sealed partial record class SystemAction
 {
     public static SystemAction Empty { get; } = new SystemAction();

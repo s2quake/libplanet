@@ -1,6 +1,6 @@
 namespace Libplanet.Serialization.Tests;
 
-public abstract partial class ModelSerializerTestBase<T>
+public abstract partial class ModelSerializerTestBase<TData>
 {
     [Fact]
     public void LegacyModel_SerializeAndDeserialize_Test()
@@ -42,7 +42,7 @@ public sealed record class Version2_ModelRecord
 
 [ModelHistory(Version = 1, Type = typeof(Version1_ModelRecord))]
 [ModelHistory(Version = 2, Type = typeof(Version2_ModelRecord))]
-[Model(Version = 3, TypeName = "Libplanet_Serialization_Tests_ModelRecord")]
+[Model("Libplanet_Serialization_Tests_ModelRecord", Version = 3)]
 public sealed record class ModelRecord
 {
     public ModelRecord()

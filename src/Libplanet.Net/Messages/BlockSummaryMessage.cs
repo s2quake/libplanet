@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "BlockSummaryMessage")]
+[Model("BlockSummaryMessage", Version = 1)]
 internal sealed record class BlockSummaryMessage : MessageBase
 {
     [Property(0)]

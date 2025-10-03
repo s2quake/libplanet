@@ -1,23 +1,16 @@
 #pragma warning disable S2743 // Static fields should not be used in generic types
 #pragma warning disable S3877 // Exceptions should not be thrown from unexpected methods
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
-using Libplanet.Types.Converters;
-using Libplanet.Types.JsonConverters;
-using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types;
 
-[TypeConverter(typeof(HashDigestTypeConverter))]
-[JsonConverter(typeof(HashDigestJsonConverter))]
-[ModelConverter(typeof(HashDigestModelConverter), "hsdg<>")]
 [ModelKnownType(typeof(SHA1), "sh1")]
 [ModelKnownType(typeof(SHA256), "sh256")]
 [ModelKnownType(typeof(SHA512), "sh512")]
+[ModelScalar("hsdg<>", Kind = ModelScalarKind.Hex)]
 public readonly partial record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
     : IEquatable<HashDigest<T>>, IFormattable
     where T : HashAlgorithm
@@ -117,6 +110,11 @@ public readonly partial record struct HashDigest<T>(in ImmutableArray<byte> Byte
 
         return true;
     }
+
+    internal byte[] ToScalarValue() => [.. Bytes];
+
+    internal static HashDigest<T> FromScalarValue(IServiceProvider serviceProvider, byte[] value)
+        => new(value.ToImmutableArray());
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

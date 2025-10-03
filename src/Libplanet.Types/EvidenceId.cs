@@ -1,15 +1,8 @@
-using System.ComponentModel;
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
-using Libplanet.Types.Converters;
-using Libplanet.Types.JsonConverters;
-using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types;
 
-[JsonConverter(typeof(EvidenceIdJsonConverter))]
-[TypeConverter(typeof(EvidenceIdTypeConverter))]
-[ModelConverter(typeof(EvidenceIdModelConverter), "evid")]
+[ModelScalar("evid", Kind = ModelScalarKind.Hex)]
 public readonly partial record struct EvidenceId(in ImmutableArray<byte> Bytes)
     : IEquatable<EvidenceId>, IComparable<EvidenceId>, IComparable
 {
@@ -79,6 +72,11 @@ public readonly partial record struct EvidenceId(in ImmutableArray<byte> Bytes)
         EvidenceId other => CompareTo(other),
         _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(EvidenceId)}.", nameof(obj)),
     };
+
+    internal byte[] ToScalarValue() => [.. Bytes];
+
+    internal static EvidenceId FromScalarValue(IServiceProvider serviceProvider, byte[] value)
+        => new(value.ToImmutableArray());
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

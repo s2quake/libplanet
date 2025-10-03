@@ -3,7 +3,7 @@ using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Actions;
 
-[Model(Version = 1, TypeName = "Libplanet_Tests_Fixtures_Arithmetic")]
+[Model("Libplanet_State_Tests_Actions_Arithmetic", Version = 1)]
 public sealed record class Arithmetic : ActionBase
 {
     [Property(0)]

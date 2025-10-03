@@ -1,16 +1,9 @@
-using System.ComponentModel;
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
-using Libplanet.Types.Converters;
-using Libplanet.Types.JsonConverters;
-using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types;
 
-[JsonConverter(typeof(BlockHashJsonConverter))]
-[TypeConverter(typeof(BlockHashTypeConverter))]
-[ModelConverter(typeof(BlockHashModelConverter), "blhs")]
+[ModelScalar("blhs", Kind = ModelScalarKind.Hex)]
 public readonly partial record struct BlockHash(in ImmutableArray<byte> Bytes)
     : IEquatable<BlockHash>, IComparable<BlockHash>, IComparable, IFormattable
 {
@@ -83,6 +76,11 @@ public readonly partial record struct BlockHash(in ImmutableArray<byte> Bytes)
             _ => throw new FormatException($"The format string '{format}' is not supported."),
         };
     }
+
+    internal byte[] ToScalarValue() => [.. Bytes];
+
+    internal static BlockHash FromScalarValue(IServiceProvider serviceProvider, byte[] value)
+        => new(value.ToImmutableArray());
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

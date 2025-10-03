@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Reflection;
+using static Libplanet.Serialization.ModelScalarUtility;
 
 namespace Libplanet.Serialization.DataAnnotations;
 
@@ -162,6 +164,28 @@ public abstract class ComparisonAttribute : ValidationAttribute
             }
 
             return null;
+        }
+
+        if (valueType.GetCustomAttribute<ModelScalarAttribute>() is { } attribute)
+        {
+            if (attribute.Kind is not ModelScalarKind.String and not ModelScalarKind.Hex)
+            {
+                var message = $"The type '{valueType.Name}' specified in {nameof(ComparisonAttribute)} " +
+                              $"must be convertible from string or byte array.";
+                throw new InvalidOperationException(message);
+            }
+
+            if (attribute.Kind == ModelScalarKind.Hex)
+            {
+                if (textValue.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                {
+                    textValue = textValue[2..];
+                }
+
+                return GetObjectFromScalarValue(valueType, Convert.FromHexString(textValue)) as IComparable;
+            }
+
+            return GetObjectFromScalarValue(valueType, textValue) as IComparable;
         }
 
         var converter = TypeDescriptor.GetConverter(valueType);

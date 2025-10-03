@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "PeerRequestMessage")]
+[Model("PeerRequestMessage", Version = 1)]
 public sealed record class PeerRequestMessage : MessageBase
 {
     [Property(0)]

@@ -1,6 +1,6 @@
 namespace Libplanet.Serialization;
 
-public sealed class ModelCreationException : ModelSerializationException
+public sealed class ModelCreationException : ModelException
 {
     public ModelCreationException(Type type)
         : base(GetMessage(type))

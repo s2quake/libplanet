@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Consensus;
 
-[Model(Version = 1, TypeName = "VoteBits")]
+[Model("VoteBits", Version = 1)]
 public sealed partial record class VoteBits : IEquatable<VoteBits>
 {
     [Property(0)]

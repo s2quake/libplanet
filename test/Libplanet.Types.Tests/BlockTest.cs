@@ -22,7 +22,7 @@ public sealed class BlockTest(ITestOutputHelper output)
         var serialized = ModelSerializer.Serialize(block1);
         var block2 = ModelSerializer.Deserialize(serialized);
         Assert.Equal(block1, block2);
-        Assert.Equal(block1.GetHashCode(), block2.GetHashCode());
+        Assert.Equal(block1.GetHashCode(), block2?.GetHashCode());
     }
 
     [Fact]
