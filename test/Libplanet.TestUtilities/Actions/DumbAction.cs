@@ -7,7 +7,7 @@ using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.TestUtilities.Actions;
 
-[Model(Version = 1, TypeName = "Tests_DumbAction")]
+[Model("Tests_DumbAction", Version = 1)]
 public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
 {
     public static readonly DumbAction NoOp = Create();

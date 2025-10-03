@@ -6,7 +6,7 @@ using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.Builtin;
 
-[Model(Version = 1, TypeName = "Initialize")]
+[Model("Initialize", Version = 1)]
 public sealed partial record class Initialize : ActionBase
 {
     [Property(0)]

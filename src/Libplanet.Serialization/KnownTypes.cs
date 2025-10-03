@@ -33,4 +33,8 @@ internal sealed class KnownTypes
 
     public bool TryGetTypeName(Type type, [MaybeNullWhen(false)] out string typeName)
         => _nameByType.TryGetValue(type, out typeName);
+
+    public bool Contains(Type type) => _nameByType.ContainsKey(type);
+
+    public bool Contains(string typeName) => _typeByName.ContainsKey(typeName);
 }

@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.State.Tests.Actions;
 
-[Model(Version = 1, TypeName = "Tests_Sleep")]
+[Model("Libplanet_State_Tests_Actions_Sleep", Version = 1)]
 public sealed record class Sleep : ActionBase
 {
     [Property(0)]

@@ -79,7 +79,7 @@ public static partial class RandomUtility
         blockHash ??= BlockHash(random);
         height ??= Positive(random);
         round ??= NonNegative(random);
-        validators ??= Array(random, TestValidator);
+        validators ??= Try(() => Array(random, TestValidator), item => item.Length > 0);
         var votes = validators.Select(validator => new VoteMetadata
         {
             Validator = validator.Address,

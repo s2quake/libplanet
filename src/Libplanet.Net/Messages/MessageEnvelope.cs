@@ -3,7 +3,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "MessageEnvelope")]
+[Model("MessageEnvelope", Version = 1)]
 public sealed record class MessageEnvelope
 {
     [Property(0)]

@@ -17,7 +17,7 @@ public static class TypeUtility
 
     static TypeUtility()
     {
-        _knownTypes.AddType(typeof(object), "o");
+        _knownTypes.AddType(typeof(object), "obj");
         _knownTypes.AddType(typeof(BigInteger), "bi");
         _knownTypes.AddType(typeof(bool), "b");
         _knownTypes.AddType(typeof(byte), "y");
@@ -30,12 +30,30 @@ public static class TypeUtility
         _knownTypes.AddType(typeof(TimeSpan), "ts");
         _knownTypes.AddType(typeof(Array), "ar");
         _knownTypes.AddType(typeof(List<>), "li<>");
-        _knownTypes.AddType(typeof(Dictionary<,>), "di<>");
+        _knownTypes.AddType(typeof(HashSet<>), "hs<>");
+        _knownTypes.AddType(typeof(SortedSet<>), "shs<>");
+        _knownTypes.AddType(typeof(Dictionary<,>), "di<,>");
+        _knownTypes.AddType(typeof(SortedDictionary<,>), "sdi<,>");
         _knownTypes.AddType(typeof(ImmutableArray<>), "imar<>");
         _knownTypes.AddType(typeof(ImmutableList<>), "imli<>");
+        _knownTypes.AddType(typeof(ImmutableHashSet<>), "imhs<>");
         _knownTypes.AddType(typeof(ImmutableSortedSet<>), "imss<>");
         _knownTypes.AddType(typeof(ImmutableDictionary<,>), "imdi<,>");
         _knownTypes.AddType(typeof(ImmutableSortedDictionary<,>), "imsd<,>");
+        _knownTypes.AddType(typeof(Tuple<,>), "tp<,>");
+        _knownTypes.AddType(typeof(Tuple<,,>), "tp<,,>");
+        _knownTypes.AddType(typeof(Tuple<,,,>), "tp<,,,>");
+        _knownTypes.AddType(typeof(Tuple<,,,,>), "tp<,,,,>");
+        _knownTypes.AddType(typeof(Tuple<,,,,,>), "tp<,,,,,>");
+        _knownTypes.AddType(typeof(Tuple<,,,,,,>), "tp<,,,,,,>");
+        _knownTypes.AddType(typeof(Tuple<,,,,,,,>), "tp<,,,,,,,>");
+        _knownTypes.AddType(typeof(ValueTuple<,>), "vtp<,>");
+        _knownTypes.AddType(typeof(ValueTuple<,,>), "vtp<,,>");
+        _knownTypes.AddType(typeof(ValueTuple<,,,>), "vtp<,,,>");
+        _knownTypes.AddType(typeof(ValueTuple<,,,,>), "vtp<,,,,>");
+        _knownTypes.AddType(typeof(ValueTuple<,,,,,>), "vtp<,,,,,>");
+        _knownTypes.AddType(typeof(ValueTuple<,,,,,,>), "vtp<,,,,,,>");
+        _knownTypes.AddType(typeof(ValueTuple<,,,,,,,>), "vtp<,,,,,,,>");
 
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
@@ -62,12 +80,12 @@ public static class TypeUtility
 
         var isNullable = match.Groups["nullable"].Value == "?";
         var name = match.Groups["type"].Value;
-        var genericPart = match.Groups["generic"].Value.TrimStart('<').TrimEnd('>');
+        var genericPart = Regex.Replace(match.Groups["generic"].Value, "^<(.+)>$", "$1");
         var arrayPart = match.Groups["array"].Value;
 
         if (genericPart != string.Empty)
         {
-            var genericArgumentNames = genericPart.Split(',');
+            var genericArgumentNames = genericPart.Contains('<') ? [genericPart] : genericPart.Split(',');
             var genericArgumentList = new List<Type>(genericArgumentNames.Length);
             var separators = string.Empty.PadRight(genericArgumentNames.Length - 1, ',');
             var typeDefinitionName = $"{name}<{separators}>";
@@ -135,9 +153,11 @@ public static class TypeUtility
         }
     }
 
+    public static bool IsDefaultType(Type type) => type.IsValueType && !type.IsEnum && !IsNullableType(type);
+
     public static bool IsDefault(object value, Type type)
     {
-        if (type.IsValueType && !IsNullableType(type))
+        if (IsDefaultType(type))
         {
             var defaultValue = _defaultByType.GetOrAdd(type, CreateDefault);
             return ReferenceEquals(value, defaultValue) || Equals(value, defaultValue);
@@ -145,6 +165,12 @@ public static class TypeUtility
 
         return false;
     }
+
+    public static bool IsDefault(object? value) => value is not null && IsDefault(value, value.GetType());
+
+    public static bool IsKnownType(Type type) => _knownTypes.Contains(type);
+
+    public static bool IsKnownType(string typeName) => _knownTypes.Contains(typeName);
 
     public static object GetDefault(Type type)
     {
@@ -156,6 +182,21 @@ public static class TypeUtility
         throw new ArgumentException(
             $"Type '{type.FullName}' is not a value type and does not have a default value.",
             nameof(type));
+    }
+
+    public static Type GetActualType(object? value, Type type)
+    {
+        if (value is null)
+        {
+            return type;
+        }
+
+        if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+        {
+            return typeof(Nullable<>).MakeGenericType(underlyingType);
+        }
+
+        return value.GetType();
     }
 
     public static object CreateInstance(Type type, params object?[] args)
@@ -296,8 +337,7 @@ public static class TypeUtility
             return GetTypeName(attribute.Type);
         }
 
-        throw new NotSupportedException(
-            $"Type '{type.FullName}' is not supported or not registered in known types.");
+        throw new NotSupportedException($"Type '{type}' is not supported or not registered in known types.");
     }
 
     private static string GetGenericArgumentName(Type typeDefinition, Type genericArgument)

@@ -3,7 +3,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "Validator")]
+[Model("Validator", Version = 1)]
 public sealed record class Validator : IComparable<Validator>, IComparable
 {
     [Property(0)]

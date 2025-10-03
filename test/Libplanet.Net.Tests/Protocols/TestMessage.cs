@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Net.Tests.Protocols;
 
-[Model(Version = 1, TypeName = "Libplanet_Net_Tests_Protocols_TestMessage")]
+[Model("Libplanet_Net_Tests_Protocols_TestMessage", Version = 1)]
 internal sealed record class TestMessage : MessageBase
 {
     [Property(0)]

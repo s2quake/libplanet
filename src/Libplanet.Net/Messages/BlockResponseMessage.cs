@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "BlockResponseMessage")]
+[Model("BlockResponseMessage", Version = 1)]
 internal sealed partial record class BlockResponseMessage : MessageBase, IValidatableObject
 {
     [Property(0)]

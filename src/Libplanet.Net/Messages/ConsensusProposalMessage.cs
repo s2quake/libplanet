@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "ConsensusProposalMessage")]
+[Model("ConsensusProposalMessage", Version = 1)]
 public sealed record class ConsensusProposalMessage : ConsensusMessage
 {
     [Property(0)]

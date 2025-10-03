@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "BlockHashRequestMessage")]
+[Model("BlockHashRequestMessage", Version = 1)]
 internal sealed record class BlockHashRequestMessage : MessageBase
 {
     [Property(0)]

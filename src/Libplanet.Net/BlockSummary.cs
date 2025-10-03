@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-[Model(Version = 1, TypeName = "BlockSummary")]
+[Model("BlockSummary", Version = 1)]
 public sealed partial record class BlockSummary
 {
     [Property(0)]

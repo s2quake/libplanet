@@ -4,7 +4,7 @@ using static Libplanet.State.SystemAddresses;
 
 namespace Libplanet.State.Tests.Actions;
 
-[Model(Version = 1, TypeName = "Tests_SetValidator")]
+[Model("Libplanet_State_Tests_Actions_SetValidator", Version = 1)]
 public sealed record class SetValidator : ActionBase
 {
     [Property(0)]

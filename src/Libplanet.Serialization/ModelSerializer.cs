@@ -1,6 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using Libplanet.Serialization.Extensions;
+﻿using System.IO;
+using System.Text;
 using static Libplanet.Serialization.ModelResolver;
 
 namespace Libplanet.Serialization;
@@ -13,88 +12,122 @@ public static class ModelSerializer
 
         Default,
 
-        Enum,
-
-        Converter,
-
-        Descriptor,
-
         Value,
+
+        Header,
     }
 
-    public static bool TryGetType(Stream stream, [MaybeNullWhen(false)] out Type type)
-    {
-        var position = stream.Position;
-        try
-        {
-            if (ModelData.TryGetData(stream, out var data))
-            {
-                return TypeUtility.TryGetType(data.TypeName, out type);
-            }
+    public static byte[] Serialize<T>(T? obj)
+        where T : notnull
+        => Serialize(obj, ModelOptions.Empty);
 
-            type = null;
-            return false;
-        }
-        finally
-        {
-            stream.Position = position;
-        }
-    }
+    public static byte[] Serialize<T>(T? obj, ModelOptions options)
+        where T : notnull
+        => Serialize(obj, obj?.GetType() ?? typeof(T), options);
 
-    public static void Serialize(Stream stream, object? obj, ModelOptions options)
-    {
-        if (obj is null)
-        {
-            stream.WriteByte((byte)DataType.Null);
-        }
-        else
-        {
-            Serialize(stream, obj, obj.GetType(), options);
-        }
-    }
+    public static byte[] Serialize(object? obj, Type type) => Serialize(obj, type, ModelOptions.Empty);
 
-    public static byte[] Serialize(object? obj) => Serialize(obj, ModelOptions.Empty);
-
-    public static byte[] Serialize(object? obj, ModelOptions options)
+    public static byte[] Serialize(object? obj, Type type, ModelOptions options)
     {
         using var stream = new MemoryStream();
-        Serialize(stream, obj, options);
+        using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
+        Serialize(writer, obj, type, options);
         return stream.ToArray();
     }
 
-    public static object? Deserialize(Stream stream, ModelOptions options)
+    public static void Serialize(BinaryWriter writer, object? value, Type type, ModelOptions options)
     {
-        var data = ModelData.GetData(stream);
-        var headerType = TypeUtility.GetType(data.TypeName)
-            ?? throw new ModelSerializationException($"Given type name {data.TypeName} is not found");
+        if (value is null)
+        {
+            writer.Write((byte)DataType.Null);
+            return;
+        }
 
-        var modelType = ModelResolver.GetType(headerType, data.Version);
-        var obj = DeserializeRawValue(stream, modelType, options)
-            ?? throw new ModelSerializationException($"Failed to deserialize {modelType}.");
+        if (!ModelTypeScope.CanOmitTypeInfo(type, options))
+        {
+            var data = new ModelData(type);
+            writer.Write((byte)DataType.Header);
+            data.Write(writer);
+        }
 
-        return obj;
+        if (TypeUtility.IsDefault(value, type))
+        {
+            writer.Write((byte)DataType.Default);
+        }
+        else if (TryGetConverter(type, out var converter))
+        {
+            writer.Write((byte)DataType.Value);
+            SerializeByConverter(writer, value, options, converter);
+        }
+        else
+        {
+            throw new ModelException($"Unsupported type {type}");
+        }
     }
 
-    public static T Deserialize<T>(Stream stream, ModelOptions options)
+    public static object? Deserialize(ReadOnlySpan<byte> bytes) => Deserialize(bytes, ModelOptions.Empty);
+
+    public static object? Deserialize(ReadOnlySpan<byte> bytes, ModelOptions options)
+        => Deserialize(bytes, typeof(object), options);
+
+    public static object? Deserialize(ReadOnlySpan<byte> bytes, Type type)
+        => Deserialize(bytes, type, ModelOptions.Empty);
+
+    public static object? Deserialize(ReadOnlySpan<byte> bytes, Type type, ModelOptions options)
+    {
+        using var stream = new MemoryStream(bytes.ToArray());
+        using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+        return Deserialize(reader, type, options);
+    }
+
+    public static object? Deserialize(BinaryReader reader, Type type, ModelOptions options)
+    {
+        var dataType = (DataType)reader.Read();
+        if (dataType == DataType.Null)
+        {
+            return null;
+        }
+
+        if (ModelTypeScope.CanOmitTypeInfo(type) && dataType == DataType.Header)
+        {
+            throw new ModelException("Type information is required but not found.");
+        }
+
+        var actualType = type;
+        if (dataType == DataType.Header)
+        {
+            var header = ModelData.GetData(reader);
+            var headerType = TypeUtility.GetType(header.TypeName);
+            actualType = ModelResolver.GetType(headerType, header.Version);
+            dataType = (DataType)reader.Read();
+        }
+
+        if (actualType == typeof(object))
+        {
+            throw new ModelException("Type information is not found. Specify the exact type explicitly.");
+        }
+
+        if (dataType == DataType.Default)
+        {
+            return TypeUtility.GetDefault(actualType);
+        }
+        else if (dataType == DataType.Value && TryGetConverter(actualType, out var converter))
+        {
+            return converter.Read(reader, actualType, options);
+        }
+
+        throw new ModelException($"Invalid data type {actualType}.");
+    }
+
+    public static T Deserialize<T>(BinaryReader reader, ModelOptions options)
         where T : notnull
     {
-        if (Deserialize(stream, options) is T obj)
+        if (Deserialize(reader, typeof(T), options) is T obj)
         {
             return obj;
         }
 
-        throw new ModelSerializationException($"Failed to deserialize {typeof(T)}.");
-    }
-
-    public static object Deserialize(ReadOnlySpan<byte> bytes)
-        => Deserialize(bytes, ModelOptions.Empty);
-
-    public static object Deserialize(ReadOnlySpan<byte> bytes, ModelOptions options)
-    {
-        using var stream = new MemoryStream(bytes.ToArray());
-        return Deserialize(stream, options)
-            ?? throw new ModelSerializationException(
-                $"Failed to deserialize from bytes.");
+        throw new ModelException($"Failed to deserialize {typeof(T)}.");
     }
 
     public static T Deserialize<T>(ReadOnlySpan<byte> bytes)
@@ -105,9 +138,8 @@ public static class ModelSerializer
         where T : notnull
     {
         using var stream = new MemoryStream(bytes.ToArray());
-        return Deserialize<T>(stream, options)
-            ?? throw new ModelSerializationException(
-                $"Failed to deserialize {typeof(T)} from bytes.");
+        using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+        return Deserialize<T>(reader, options);
     }
 
     public static T Clone<T>(T obj) where T : notnull => Clone(obj, ModelOptions.Empty);
@@ -116,233 +148,24 @@ public static class ModelSerializer
         where T : notnull
     {
         using var stream = new MemoryStream();
-        Serialize(stream, obj, options);
+        using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
+        Serialize(writer, obj, typeof(T), options);
         stream.Position = 0;
-        return Deserialize<T>(stream, options);
+        using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+        return Deserialize<T>(reader, options);
     }
 
-    private static void Serialize(Stream stream, object obj, Type type, ModelOptions options)
-    {
-        var data = new ModelData
-        {
-            TypeName = GetTypeName(type),
-            Version = GetVersion(type),
-        };
-
-        data.Write(stream);
-
-        SerializeRawValue(stream, obj, type, options);
-    }
-
-    private static void SerializeRawValue(Stream stream, object? obj, Type type, ModelOptions options)
-    {
-        if (Nullable.GetUnderlyingType(type) is { } nullableType)
-        {
-            if (obj is null)
-            {
-                stream.WriteByte((byte)DataType.Null);
-            }
-            else if (TypeUtility.IsDefault(obj, nullableType))
-            {
-                stream.WriteByte((byte)DataType.Default);
-            }
-            else
-            {
-                stream.WriteByte((byte)DataType.Value);
-                SerializeRawValue(stream, obj, nullableType, options);
-            }
-        }
-        else
-        {
-            if (obj is null)
-            {
-                stream.WriteByte((byte)DataType.Null);
-            }
-            else if (TypeUtility.IsDefault(obj, type))
-            {
-                stream.WriteByte((byte)DataType.Default);
-            }
-            else if (type.IsEnum)
-            {
-                stream.WriteByte((byte)DataType.Enum);
-                stream.WriteEnum(obj, type);
-            }
-            else if (TryGetConverter(type, out var converter))
-            {
-                stream.WriteByte((byte)DataType.Converter);
-                SerializeByConverter(stream, obj, options, converter);
-#if _POSITION
-                System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
-#endif
-            }
-            else if (TryGetDescriptor(type, out var descriptor))
-            {
-                var itemTypes = descriptor.GetTypes(type, out var isArray);
-                var values = descriptor.Serialize(obj, type, options);
-                var length = values.Length;
-                stream.WriteByte((byte)DataType.Descriptor);
-                stream.WriteInt32(length);
-
-                if (isArray && itemTypes.Length != 1)
-                {
-                    throw new ModelSerializationException(
-                        $"The number of types ({itemTypes.Length}) does not match the number of items " +
-                        $"({values.Length})");
-                }
-
-                for (var i = 0; i < values.Length; i++)
-                {
-                    var itemType = isArray ? itemTypes[0] : itemTypes[i];
-                    var value = values[i];
-                    var actualType = GetActualType(itemType, value);
-                    if (itemType != actualType)
-                    {
-                        Serialize(stream, value, options);
-                    }
-                    else
-                    {
-                        SerializeRawValue(stream, value, itemType, options);
-                    }
-                }
-
-#if _POSITION
-                System.Diagnostics.Trace.WriteLine($"<< {type} {stream.Position}");
-#endif
-            }
-            else
-            {
-                throw new ModelSerializationException($"Unsupported type {obj.GetType()}");
-            }
-        }
-    }
-
-    private static void SerializeByConverter(Stream stream, object obj, ModelOptions options, IModelConverter converter)
+    private static void SerializeByConverter(
+        BinaryWriter writer, object obj, ModelOptions options, IModelConverter converter)
     {
         try
         {
-            converter.Serialize(obj, stream, options);
+            converter.Write(writer, obj, options);
         }
-        catch (Exception e)
+        catch (Exception e) when (e is not ModelException)
         {
             var message = $"An exception occurred while serializing {obj.GetType()} by {converter.GetType()}.";
-            throw new ModelSerializationException(message, e);
+            throw new ModelException(message, e);
         }
-    }
-
-    private static object? DeserializeRawValue(Stream stream, Type type, ModelOptions options)
-    {
-        if (Nullable.GetUnderlyingType(type) is { } nullableType)
-        {
-            var dataType = (DataType)stream.ReadByte();
-            if (dataType == DataType.Null)
-            {
-                return null;
-            }
-            else if (dataType == DataType.Default)
-            {
-                return TypeUtility.GetDefault(nullableType);
-            }
-            else if (dataType == DataType.Value)
-            {
-                return DeserializeRawValue(stream, nullableType, options);
-            }
-            else
-            {
-                throw new ModelSerializationException($"Invalid stream for nullable type {type}");
-            }
-        }
-        else
-        {
-            var dataType = (DataType)stream.ReadByte();
-            if (dataType == DataType.Null)
-            {
-                return null;
-            }
-            else if (dataType == DataType.Default)
-            {
-                return TypeUtility.GetDefault(type);
-            }
-            else if (dataType == DataType.Value)
-            {
-                return DeserializeRawValue(stream, type, options);
-            }
-            else if (type.IsEnum)
-            {
-                if (dataType != DataType.Enum)
-                {
-                    throw new ModelSerializationException(
-                        $"Invalid stream for enum type {type}");
-                }
-
-                return stream.ReadEnum(type);
-            }
-            else if (TryGetConverter(type, out var converter))
-            {
-                if (dataType != DataType.Converter)
-                {
-                    throw new ModelSerializationException(
-                        $"Invalid stream for converter type {type}");
-                }
-
-                var value = converter.Deserialize(stream, options);
-#if _POSITION
-                System.Diagnostics.Trace.WriteLine($">> {type} {stream.Position}");
-#endif
-                return value;
-            }
-            else if (TryGetDescriptor(type, out var descriptor))
-            {
-                if (dataType != DataType.Descriptor)
-                {
-                    throw new ModelSerializationException(
-                        $"Invalid stream for descriptor type {type}");
-                }
-
-                var length = stream.ReadInt32();
-                var itemTypes = descriptor.GetTypes(type, out var isArray);
-                if (isArray && itemTypes.Length != 1)
-                {
-                    throw new ModelSerializationException(
-                        $"The number of types ({itemTypes.Length}) does not match the number of items " +
-                        $"({length})");
-                }
-
-                if (!isArray && length != itemTypes.Length)
-                {
-                    throw new ModelSerializationException(
-                        $"The number of items ({length}) does not match the number of types " +
-                        $"({itemTypes.Length})");
-                }
-
-                var values = new object?[length];
-                for (var i = 0; i < length; i++)
-                {
-                    var itemType = isArray ? itemTypes[0] : itemTypes[i];
-                    values[i] = ModelData.IsData(stream)
-                        ? Deserialize(stream, options) : DeserializeRawValue(stream, itemType, options);
-                }
-
-#if _POSITION
-                System.Diagnostics.Trace.WriteLine($">> {type} {stream.Position}");
-#endif
-                return descriptor.Deserialize(type, values, options);
-            }
-            else
-            {
-                var message = $"Unsupported type {type}. Cannot convert value of type " +
-                              $"{stream.GetType()} to {type}";
-                throw new ModelSerializationException(message);
-            }
-        }
-    }
-
-    private static Type GetActualType(Type type, object? value)
-    {
-        if (value is not null && (type == typeof(object) || type.IsAbstract || type.IsInterface))
-        {
-            return value.GetType();
-        }
-
-        return type;
     }
 }

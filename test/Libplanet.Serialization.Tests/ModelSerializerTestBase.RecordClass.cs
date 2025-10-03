@@ -3,7 +3,7 @@ using static Libplanet.TestUtilities.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 
-public abstract partial class ModelSerializerTestBase<T>
+public abstract partial class ModelSerializerTestBase<TData>
 {
     [Fact]
     public void ObjectRecordClass_SerializeAndDeserialize_Test()
@@ -17,7 +17,7 @@ public abstract partial class ModelSerializerTestBase<T>
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
-    [ClassData(typeof(RandomSeedData))]
+    [ClassData(typeof(RandomSeedsData))]
     public void ObjectRecordClass_SerializeAndDeserialize_Seed_Test(int seed)
     {
         var random = new Random(seed);
@@ -39,7 +39,7 @@ public abstract partial class ModelSerializerTestBase<T>
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
-    [ClassData(typeof(RandomSeedData))]
+    [ClassData(typeof(RandomSeedsData))]
     public void ArrayRecordClass_SerializeAndDeserialize_Seed_Test(int seed)
     {
         var random = new Random(seed);
@@ -61,7 +61,7 @@ public abstract partial class ModelSerializerTestBase<T>
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
-    [ClassData(typeof(RandomSeedData))]
+    [ClassData(typeof(RandomSeedsData))]
     public void MixedRecordClass_SerializeAndDeserialize_Seed_Test(int seed)
     {
         var random = new Random(seed);
@@ -72,7 +72,7 @@ public abstract partial class ModelSerializerTestBase<T>
     }
 }
 
-[Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_ObjectRecordClass")]
+[Model("Libplanet_Serialization_Tests_ModelSerializerTest_ObjectRecordClass", Version = 1)]
 public sealed record class ObjectRecordClass : IEquatable<ObjectRecordClass>
 {
     public ObjectRecordClass()
@@ -124,7 +124,7 @@ public sealed record class ObjectRecordClass : IEquatable<ObjectRecordClass>
     public override int GetHashCode() => ModelResolver.GetHashCode(this);
 }
 
-[Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_ArrayRecordClass")]
+[Model("Libplanet_Serialization_Tests_ModelSerializerTest_ArrayRecordClass", Version = 1)]
 public sealed record class ArrayRecordClass : IEquatable<ArrayRecordClass>
 {
     public ArrayRecordClass()
@@ -172,7 +172,7 @@ public sealed record class ArrayRecordClass : IEquatable<ArrayRecordClass>
     public override int GetHashCode() => ModelResolver.GetHashCode(this);
 }
 
-[Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_MixedRecordClass")]
+[Model("Libplanet_Serialization_Tests_ModelSerializerTest_MixedRecordClass", Version = 1)]
 public sealed record class MixedRecordClass : IEquatable<MixedRecordClass>
 {
     public MixedRecordClass()

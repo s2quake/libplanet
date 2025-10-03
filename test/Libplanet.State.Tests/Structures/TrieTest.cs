@@ -194,9 +194,9 @@ public sealed partial class TrieTest(ITestOutputHelper output)
         Assert.IsType<HashNode>(trie2.GetNode(string.Empty));
         Assert.IsType<HashNode>(trie2.GetNode("00"));
         Assert.Throws<KeyNotFoundException>(() => trie2.GetNode("01"));
-        Assert.IsType<HashNode>(trie2.GetNode("000"));
+        Assert.IsType<ShortNode>(trie2.GetNode("000"));
         Assert.IsType<HashNode>(trie2.GetNode("001"));
-        Assert.IsType<HashNode>(trie2.GetNode("0000"));
+        Assert.IsType<ValueNode>(trie2.GetNode("0000"));
         Assert.IsType<HashNode>(trie2.GetNode("0010"));
     }
 

@@ -19,34 +19,33 @@ public sealed class ModelHistoryAttribute : Attribute
         var version = Version;
         if (version != previousVersion + 1)
         {
-            throw new ArgumentException(
-                $"Version of {modelType} must be sequential starting from 1", nameof(modelType));
+            throw new InvalidModelException($"The version of type '{Type}' must be {previousVersion + 1}.", modelType);
         }
 
         if (Type.GetCustomAttribute<OriginModelAttribute>() is not { } originModelAttribute)
         {
-            throw new ArgumentException(
-                $"Type {Type} does not have {nameof(OriginModelAttribute)}",
-                nameof(modelType));
+            throw new InvalidModelException($"Type '{Type}' does not have the {nameof(OriginModelAttribute)}.", modelType);
         }
 
         if (originModelAttribute.Type != modelType)
         {
-            throw new ArgumentException("OriginType of OriginModelAttribute is not valid", nameof(modelType));
+            var message = $"{nameof(OriginModelAttribute)}.{nameof(OriginModelAttribute.Type)} of " +
+                          $"'{Type}' must be '{modelType}'.";
+            throw new InvalidModelException(message, modelType);
         }
 
         if (previousType is not null)
         {
             if (Type.GetConstructor([previousType]) is null)
             {
-                throw new ArgumentException(
-                    $"Type {Type} does not have a constructor with {previousType}", nameof(modelType));
+                var message = $"Type '{Type}' does not have a constructor with a single parameter of type " +
+                              $"'{previousType}'.";
+                throw new InvalidModelException(message, modelType);
             }
 
             if (Type.GetConstructor([]) is null)
             {
-                throw new ArgumentException(
-                    $"Type {Type} does not have a default constructor", nameof(modelType));
+                throw new InvalidModelException($"Type '{Type}' does not have a default constructor.", modelType);
             }
         }
     }

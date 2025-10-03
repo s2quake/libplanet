@@ -1,14 +1,15 @@
+using Libplanet.TestUtilities;
 using static Libplanet.TestUtilities.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 
-public abstract partial class ModelSerializerTestBase<T>
+public abstract partial class ModelSerializerTestBase<TData>
 {
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
     [InlineData(1849913649)]
-    [ClassData(typeof(RandomSeedData))]
+    [ClassData(typeof(RandomSeedsData))]
     public void TupleProperty_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
@@ -17,9 +18,24 @@ public abstract partial class ModelSerializerTestBase<T>
         var actualObject = Deserialize<RecordClassWithTuple>(serialized)!;
         Assert.Equal(expectedObject, actualObject);
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1074183504)]
+    [InlineData(1849913649)]
+    [ClassData(typeof(RandomSeedsData))]
+    public void TupleProperty_WithNoTypeInfo_SerializeAndDeserialize_Test(int seed)
+    {
+        var random = new Random(seed);
+        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var expectedObject = new RecordClassWithTuple(random);
+        var serialized = Serialize(expectedObject, options);
+        var actualObject = Deserialize<RecordClassWithTuple>(serialized, options)!;
+        Assert.Equal(expectedObject, actualObject);
+    }
 }
 
-[Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_RecordClassWithTuple")]
+[Model("Libplanet_Serialization_Tests_ModelSerializerTest_RecordClassWithTuple", Version = 1)]
 public sealed record class RecordClassWithTuple : IEquatable<RecordClassWithTuple>
 {
     public RecordClassWithTuple()

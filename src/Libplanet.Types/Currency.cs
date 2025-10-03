@@ -1,14 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
-using Libplanet.Types.JsonConverters;
 
 namespace Libplanet.Types;
 
-[JsonConverter(typeof(CurrencyJsonConverter))]
-[Model(Version = 1, TypeName = "Currency")]
+[Model("Currency", Version = 1)]
 public readonly partial record struct Currency
 {
     public Currency()

@@ -204,25 +204,4 @@ public sealed partial class AddressTest
         deserialized = ModelSerializer.Clone(expected);
         Assert.Equal(expected, deserialized);
     }
-
-    [Fact]
-    public void TypeConverter()
-    {
-        var converter = TypeDescriptor.GetConverter(typeof(Address));
-        var address = Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");
-        Assert.True(converter.CanConvertFrom(typeof(string)));
-        Assert.Equal(address, converter.ConvertFrom("0x0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"));
-        Assert.Equal(address, converter.ConvertFrom("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF"));
-        Assert.Throws<FormatException>(() => converter.ConvertFrom("INVALID"));
-        Assert.True(converter.CanConvertTo(typeof(string)));
-        Assert.Equal("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF", converter.ConvertTo(address, typeof(string)));
-    }
-
-    [Fact]
-    public void JsonSerialization()
-    {
-        var address = Address.Parse("0123456789ABcdefABcdEfABcdEFabcDEFabCDEF");
-        var json = JsonUtility.Serialize(address);
-        Assert.Equal("\"0123456789ABcdefABcdEfABcdEFabcDEFabCDEF\"", json);
-    }
 }

@@ -3,7 +3,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "EvidenceIdMessage")]
+[Model("EvidenceIdMessage", Version = 1)]
 internal sealed partial record class EvidenceIdMessage : MessageBase
 {
     [Property(0)]

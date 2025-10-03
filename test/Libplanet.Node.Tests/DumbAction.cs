@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Node.Tests;
 
-[Model(Version = 1, TypeName = "Libplanet_Node_Tests_DumbAction")]
+[Model("Libplanet_Node_Tests_DumbAction", Version = 1)]
 public sealed record class DumbAction : ActionBase
 {
     [Property(0)]

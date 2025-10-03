@@ -1,14 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Net;
-using Libplanet.Net.ModelConverters;
 using Libplanet.Serialization;
 using Libplanet.Serialization.DataAnnotations;
 using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-[ModelConverter(typeof(PeerModelConverter), typeName: "peer")]
+[ModelScalar("peer", Kind = ModelScalarKind.String)]
 public sealed record class Peer : IValidatableObject, IComparable<Peer>
 {
     [NotDefault]
@@ -65,4 +64,8 @@ public sealed record class Peer : IValidatableObject, IComparable<Peer>
                 [nameof(EndPoint)]);
         }
     }
+
+    internal string ToScalarValue() => ToString();
+
+    internal static Peer FromScalarValue(IServiceProvider serviceProvider, string s) => Parse(s);
 }

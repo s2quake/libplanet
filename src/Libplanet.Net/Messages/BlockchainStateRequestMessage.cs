@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "BlockchainStateRequestMessage")]
+[Model("BlockchainStateRequestMessage", Version = 1)]
 internal sealed record class BlockchainStateRequestMessage : MessageBase
 {
 }

@@ -5,7 +5,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "BlockContent")]
+[Model("BlockContent", Version = 1)]
 public sealed partial record class BlockContent : IValidatableObject
 {
     [Property(0)]

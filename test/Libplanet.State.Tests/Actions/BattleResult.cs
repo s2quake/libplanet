@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.State.Tests.Actions;
 
-[Model(Version = 1, TypeName = "Tests_BattleResult")]
+[Model("Libplanet_State_Tests_Actions_BattleResult", Version = 1)]
 public sealed record class BattleResult : IEquatable<BattleResult>
 {
     [Property(0)]

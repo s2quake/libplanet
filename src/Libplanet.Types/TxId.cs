@@ -1,15 +1,8 @@
-using System.ComponentModel;
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
-using Libplanet.Types.Converters;
-using Libplanet.Types.JsonConverters;
-using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types;
 
-[JsonConverter(typeof(TxIdJsonConverter))]
-[TypeConverter(typeof(TxIdTypeConverter))]
-[ModelConverter(typeof(TxIdModelConverter), "txid")]
+[ModelScalar("txid", Kind = ModelScalarKind.Hex)]
 public readonly record struct TxId(in ImmutableArray<byte> Bytes)
     : IEquatable<TxId>, IComparable<TxId>, IComparable
 {
@@ -65,6 +58,11 @@ public readonly record struct TxId(in ImmutableArray<byte> Bytes)
         TxId other => CompareTo(other),
         _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(TxId)}.", nameof(obj)),
     };
+
+    internal byte[] ToScalarValue() => [.. Bytes];
+
+    internal static TxId FromScalarValue(IServiceProvider serviceProvider, byte[] value)
+        => new(value.ToImmutableArray());
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

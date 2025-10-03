@@ -1,15 +1,8 @@
-using System.ComponentModel;
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
-using Libplanet.Types.Converters;
-using Libplanet.Types.JsonConverters;
-using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types;
 
-[TypeConverter(typeof(ActionBytecodeTypeConverter))]
-[JsonConverter(typeof(ActionBytecodeJsonConverter))]
-[ModelConverter(typeof(ActionBytecodeModelConverter), "action")]
+[ModelScalar("action", Kind = ModelScalarKind.Hex)]
 public readonly record struct ActionBytecode(in ImmutableArray<byte> Bytes) : IEquatable<ActionBytecode>
 {
     public ActionBytecode(ReadOnlySpan<byte> bytes)
@@ -33,4 +26,9 @@ public readonly record struct ActionBytecode(in ImmutableArray<byte> Bytes) : IE
     }
 
     public override int GetHashCode() => ByteUtility.GetHashCode(Bytes);
+
+    internal byte[] ToScalarValue() => [.. Bytes];
+
+    internal static ActionBytecode FromScalarValue(IServiceProvider serviceProvider, byte[] value)
+        => new(value.ToImmutableArray());
 }

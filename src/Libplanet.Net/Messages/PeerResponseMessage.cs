@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "PeerResponseMessage")]
+[Model("PeerResponseMessage", Version = 1)]
 public sealed partial record class PeerResponseMessage : MessageBase
 {
     [Property(0)]

@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "BlockRequestMessage")]
+[Model("BlockRequestMessage", Version = 1)]
 internal sealed partial record class BlockRequestMessage : MessageBase
 {
     [Property(0)]

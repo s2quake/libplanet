@@ -2,7 +2,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "PingMessage")]
+[Model("PingMessage", Version = 1)]
 public sealed record class PingMessage : MessageBase
 {
 }

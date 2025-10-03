@@ -4,14 +4,6 @@ namespace Libplanet.Serialization.Json;
 
 internal static class Utf8JsonReaderExtensions
 {
-    public static void ReadExpect(this ref Utf8JsonReader @this, JsonTokenType type)
-    {
-        if (!@this.Read() || @this.TokenType != type)
-        {
-            throw new JsonException($"Expected {type}, got {@this.TokenType}.");
-        }
-    }
-
     public static void Expect(this ref Utf8JsonReader @this, JsonTokenType type)
     {
         if (@this.TokenType != type)
@@ -20,21 +12,13 @@ internal static class Utf8JsonReaderExtensions
         }
     }
 
-    public static void ReadStartObject(this ref Utf8JsonReader @this)
+    public static void Expect(this ref Utf8JsonReader @this, params JsonTokenType[] types)
     {
-        @this.Expect(JsonTokenType.StartObject);
-        Next(ref @this);
+        if (!types.Contains(@this.TokenType))
+        {
+            throw new JsonException($"Expected one of {string.Join(", ", types)}, got {@this.TokenType}.");
+        }
     }
-
-    public static void ReadEndObject(this ref Utf8JsonReader @this)
-    {
-        @this.Expect(JsonTokenType.EndObject);
-        Next(ref @this);
-    }
-
-    public static void ReadStartArray(this ref Utf8JsonReader @this) => @this.ReadExpect(JsonTokenType.StartArray);
-
-    public static void ReadEndArray(this ref Utf8JsonReader @this) => @this.ReadExpect(JsonTokenType.EndArray);
 
     public static string ReadString(this ref Utf8JsonReader @this, string propertyName)
     {
@@ -45,7 +29,6 @@ internal static class Utf8JsonReaderExtensions
         }
 
         Next(ref @this);
-
         return s;
     }
 
@@ -57,15 +40,6 @@ internal static class Utf8JsonReaderExtensions
         return v;
     }
 
-    public static object ReadObject(
-        this ref Utf8JsonReader @this, string propertyName, Type type, JsonSerializerOptions options)
-    {
-        @this.ExpectPropertyName(propertyName);
-        var obj = JsonSerializer.Deserialize(ref @this, type, options);
-        Next(ref @this);
-        return obj!;
-    }
-
     public static string ReadPropertyName(this ref Utf8JsonReader @this)
     {
         @this.Expect(JsonTokenType.PropertyName);
@@ -75,7 +49,6 @@ internal static class Utf8JsonReaderExtensions
         }
 
         Next(ref @this);
-
         return s;
     }
 
@@ -95,21 +68,7 @@ internal static class Utf8JsonReaderExtensions
         Next(ref @this);
     }
 
-    public static void ExpectPropertyName(this ref Utf8JsonReader @this, string propertyName)
-    {
-        @this.Expect(JsonTokenType.PropertyName);
-        if (@this.GetString() is not { } s)
-        {
-            throw new JsonException($"Expected property '{propertyName}', got null.");
-        }
-
-        if (s != propertyName)
-        {
-            throw new JsonException($"Expected property '{propertyName}', got '{s}'.");
-        }
-    }
-
-    private static void Next(ref Utf8JsonReader @this)
+    private static void Next(this ref Utf8JsonReader @this)
     {
         if (!@this.Read())
         {

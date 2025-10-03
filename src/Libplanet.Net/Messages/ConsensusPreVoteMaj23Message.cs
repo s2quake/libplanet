@@ -5,7 +5,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net.Messages;
 
-[Model(Version = 1, TypeName = "ConsensusPreVoteMaj23Message")]
+[Model("ConsensusPreVoteMaj23Message", Version = 1)]
 public sealed record class ConsensusPreVoteMaj23Message : ConsensusMessage, IValidatableObject
 {
     [Property(0)]

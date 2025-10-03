@@ -1,17 +1,10 @@
-using System.ComponentModel;
 using System.Globalization;
-using System.Text.Json.Serialization;
 using Libplanet.Serialization;
-using Libplanet.Types.Converters;
 using Libplanet.Types.Crypto;
-using Libplanet.Types.JsonConverters;
-using Libplanet.Types.ModelConverters;
 
 namespace Libplanet.Types;
 
-[TypeConverter(typeof(AddressTypeConverter))]
-[JsonConverter(typeof(AddressJsonConverter))]
-[ModelConverter(typeof(AddressModelConverter), "addr")]
+[ModelScalar("addr", Kind = ModelScalarKind.Hex)]
 public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
     : IEquatable<Address>, IComparable<Address>, IComparable, IFormattable
 {
@@ -100,6 +93,10 @@ public readonly partial record struct Address(in ImmutableArray<byte> Bytes)
         Address other => CompareTo(other),
         _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(Address)}.", nameof(obj)),
     };
+
+    internal byte[] ToScalarValue() => [.. Bytes];
+
+    internal static Address FromScalarValue(IServiceProvider serviceProvider, byte[] scalarValue) => new(scalarValue);
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

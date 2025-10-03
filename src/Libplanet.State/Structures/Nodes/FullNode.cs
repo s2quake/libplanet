@@ -3,7 +3,7 @@ using Libplanet.Serialization;
 
 namespace Libplanet.State.Structures.Nodes;
 
-[Model(Version = 1, TypeName = "fnode")]
+[Model("fnode", Version = 1)]
 public sealed partial record class FullNode : INode, IValidatableObject
 {
     [Property(0)]

@@ -3,7 +3,6 @@ namespace Libplanet.Serialization.Tests;
 public sealed class TypeUtilityTest
 {
     [Theory]
-    [InlineData(typeof(object), "o")]
     [InlineData(typeof(BigInteger), "bi")]
     [InlineData(typeof(BigInteger?), "bi?")]
     [InlineData(typeof(bool), "b")]
@@ -41,7 +40,6 @@ public sealed class TypeUtilityTest
     }
 
     [Theory]
-    [InlineData("o", typeof(object))]
     [InlineData("bi", typeof(BigInteger))]
     [InlineData("bi?", typeof(BigInteger?))]
     [InlineData("b", typeof(bool))]

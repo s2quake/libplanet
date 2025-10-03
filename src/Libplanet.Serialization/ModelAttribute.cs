@@ -3,14 +3,14 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Serialization;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-public sealed class ModelAttribute : Attribute
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum)]
+public sealed class ModelAttribute(string typeName) : Attribute
 {
+    [NotEmpty]
+    public string TypeName { get; } = typeName;
+
     [NonNegative]
     public required int Version { get; init; }
-
-    [NotEmpty]
-    public required string TypeName { get; init; }
 
     internal void Validate(Type modelType, int previousVersion, Type? previousType)
     {
@@ -19,22 +19,21 @@ public sealed class ModelAttribute : Attribute
 
         if (Version != previousVersion + 1)
         {
-            throw new ArgumentException(
-                $"Version of {modelType} must be sequential starting from 1", nameof(modelType));
+            throw new InvalidModelException($"The version of type '{modelType}' must be {previousVersion + 1}.", modelType);
         }
 
         if (previousType is not null)
         {
             if (modelType.GetConstructor([previousType]) is null)
             {
-                throw new ArgumentException(
-                    $"Type {modelType} does not have a constructor with {previousType}", nameof(modelType));
+                var message = $"Type '{modelType}' does not have a constructor with a single parameter of type " +
+                              $"'{previousType}'.";
+                throw new InvalidModelException(message, modelType);
             }
 
             if (modelType.GetConstructor([]) is null)
             {
-                throw new ArgumentException(
-                    $"Type {modelType} does not have a default constructor", nameof(modelType));
+                throw new InvalidModelException($"Type '{modelType}' does not have a default constructor.", modelType);
             }
         }
     }

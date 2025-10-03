@@ -3,7 +3,7 @@ using Libplanet.Serialization.DataAnnotations;
 
 namespace Libplanet.Types;
 
-[Model(Version = 1, TypeName = "VoteMetadata")]
+[Model("VoteMetadata", Version = 1)]
 public sealed partial record class VoteMetadata
 {
     [Property(0)]

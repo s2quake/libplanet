@@ -4,7 +4,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-[Model(Version = 1, TypeName = "Protocol")]
+[Model("Protocol", Version = 1)]
 public sealed partial record class Protocol
 {
     public static Protocol Empty { get; } = new Protocol

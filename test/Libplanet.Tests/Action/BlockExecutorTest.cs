@@ -476,10 +476,10 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
            blockExecution2.Executions.Select(item => item.Transaction));
         Assert.Equal(3, actionExecutions2.Length);
         Assert.Equal(
-            ["A", "B", "C", "E", null],
+            ["A", "B", "C", null, "F"],
             addresses.Select(item => actionExecutions2[0].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
         Assert.Equal(
-            ["A,D", "B", "C", "E", null],
+            ["A,D", "B", "C", null, "F"],
             addresses.Select(item => actionExecutions2[1].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
         Assert.Equal(
             ["A,D", "B", "C", "E", "F"],

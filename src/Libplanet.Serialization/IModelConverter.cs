@@ -4,7 +4,9 @@ namespace Libplanet.Serialization;
 
 public interface IModelConverter
 {
-    void Serialize(object obj, Stream stream, ModelOptions options);
+    bool CanConvert(Type type);
 
-    object Deserialize(Stream stream, ModelOptions options);
+    void Write(BinaryWriter writer, object value, ModelOptions options);
+
+    object? Read(BinaryReader reader, Type type, ModelOptions options);
 }

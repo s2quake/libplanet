@@ -1,10 +1,9 @@
-using Libplanet.Net.ModelConverters;
 using Libplanet.Serialization;
 using Libplanet.Types;
 
 namespace Libplanet.Net;
 
-[ModelConverter(typeof(MessageIdModelConverter), "msgid")]
+[ModelScalar("msgid", Kind = ModelScalarKind.Hex)]
 public readonly record struct MessageId(in ImmutableArray<byte> Bytes)
     : IEquatable<MessageId>, IComparable<MessageId>, IComparable
 {
@@ -60,6 +59,10 @@ public readonly record struct MessageId(in ImmutableArray<byte> Bytes)
         MessageId other => CompareTo(other),
         _ => throw new ArgumentException($"Argument {nameof(obj)} is not ${nameof(MessageId)}.", nameof(obj)),
     };
+
+    internal byte[] ToScalarValue() => Bytes.ToArray();
+
+    internal static MessageId FromScalarValue(IServiceProvider serviceProvider, byte[] bytes) => new(bytes.ToImmutableArray());
 
     private static ImmutableArray<byte> ValidateBytes(in ImmutableArray<byte> bytes)
     {

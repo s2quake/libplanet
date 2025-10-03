@@ -1,5 +1,7 @@
 using Libplanet.Data;
 using Libplanet.Extensions;
+using Libplanet.Serialization;
+using Libplanet.Serialization.Json;
 using Libplanet.State;
 using Libplanet.State.Tests.Actions;
 using Libplanet.TestUtilities.Actions;
@@ -80,7 +82,7 @@ public partial class BlockchainTest
         var block4 = blockchain.Propose(proposer: Rand.Signer(random));
         Assert.False(blockchain.Blocks.ContainsKey(block4.BlockHash));
         Assert.True(block4.GetActionByteLength() <= maxActionBytes);
-        Assert.Equal(8, block4.Transactions.Count);
+        Assert.Equal(10, block4.Transactions.Count);
         expected1 = $"{proposer.Address},{proposerA.Address},{proposerB.Address}";
         Assert.Equal(
             expected1,

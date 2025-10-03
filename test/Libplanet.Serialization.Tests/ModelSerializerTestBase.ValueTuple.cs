@@ -1,15 +1,16 @@
 #pragma warning disable SA1414 // Tuple types in signatures should have element names
+using Libplanet.TestUtilities;
 using static Libplanet.TestUtilities.RandomUtility;
 
 namespace Libplanet.Serialization.Tests;
 
-public abstract partial class ModelSerializerTestBase<T>
+public abstract partial class ModelSerializerTestBase<TData>
 {
     [Theory]
     [InlineData(0)]
     [InlineData(1074183504)]
     [InlineData(1849913649)]
-    [ClassData(typeof(RandomSeedData))]
+    [ClassData(typeof(RandomSeedsData))]
     public void ValueTupleProperty_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
@@ -20,7 +21,7 @@ public abstract partial class ModelSerializerTestBase<T>
     }
 }
 
-[Model(Version = 1, TypeName = "Libplanet_Serialization_Tests_ModelSerializerTest_RecordClassWithValueTuple")]
+[Model("Libplanet_Serialization_Tests_ModelSerializerTest_RecordClassWithValueTuple", Version = 1)]
 public sealed record class RecordClassWithValueTuple : IEquatable<RecordClassWithValueTuple>
 {
     public RecordClassWithValueTuple()

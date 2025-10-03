@@ -16,10 +16,7 @@ public class HashNodeTest
             Hash = Rand.HashDigest<SHA256>(),
             StateIndex = stateIndex,
         };
-        var options = new ModelOptions
-        {
-            Items = ImmutableDictionary<object, object?>.Empty.Add(typeof(StateIndex), stateIndex),
-        };
+        var options = new ModelOptions(expectedNode);
         var actualNode = ModelSerializer.Clone(expectedNode, options);
         Assert.Equal(expectedNode, actualNode);
     }
