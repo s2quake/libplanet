@@ -4,6 +4,8 @@ using JSSoft.Commands;
 using Libplanet.Commands.Extensions;
 using Libplanet.KeyStore;
 using Libplanet.Serialization;
+using Libplanet.Serialization.Json;
+using Libplanet.Serialization.Yaml;
 using Libplanet.Types;
 
 namespace Libplanet.Commands.Blocks;
@@ -18,11 +20,11 @@ public sealed class GenesisBlockCommand(BlockCommand blockCommand)
     [CommandSummary("A key UUID to export.")]
     public string KeyId { get; set; } = string.Empty;
 
-    [CommandPropertyRequired]
+    [CommandProperty]
     [CommandSummary("A list of validator addresses. (e.g. 'address1,address2:power2')")]
     public string[] Validators { get; set; } = [];
 
-    [CommandPropertyRequired]
+    [CommandProperty]
     public string OutputPath { get; set; } = string.Empty;
 
     [CommandPropertySwitch]
@@ -46,15 +48,15 @@ public sealed class GenesisBlockCommand(BlockCommand blockCommand)
 
     protected override void OnExecute()
     {
-        if (OutputPath == string.Empty)
-        {
-            throw new InvalidOperationException("Output path is not set.");
-        }
+        // if (OutputPath == string.Empty)
+        // {
+        //     throw new InvalidOperationException("Output path is not set.");
+        // }
 
-        if (File.Exists(OutputPath) && !Force)
-        {
-            throw new InvalidOperationException($"File already exists: {OutputPath}");
-        }
+        // if (File.Exists(OutputPath) && !Force)
+        // {
+        //     throw new InvalidOperationException($"File already exists: {OutputPath}");
+        // }
 
         var keyId = Guid.Parse(KeyId);
         var keyStore = StorePath == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(StorePath);
@@ -63,7 +65,7 @@ public sealed class GenesisBlockCommand(BlockCommand blockCommand)
         var privateKey = ppk.Unprotect(passphrase);
         var genesisBlock = new GenesisBlockBuilder
         {
-            Validators = GetValidators(Validators),
+            Validators = GetValidators(Validators, privateKey.Address),
             StateRootHash = StateRootHash == string.Empty ? default : HashDigest<SHA256>.Parse(StateRootHash),
             Height = Height,
             Timestamp = Timestamp ?? DateTimeOffset.UtcNow,
@@ -71,14 +73,16 @@ public sealed class GenesisBlockCommand(BlockCommand blockCommand)
 
         // var bytes = ModelSerializer.Serialize(genesisBlock);
         // File.WriteAllBytes(OutputPath, bytes);
-        Out.WriteLineAsJson(genesisBlock);
+        var data = ModelJsonSerializer.Serialize(genesisBlock);
+        Out.Write(data);
+        // Out.WriteLineAsJson(genesisBlock);
     }
 
-    private static ImmutableSortedSet<Validator> GetValidators(string[] validators)
+    private static ImmutableSortedSet<Validator> GetValidators(string[] validators, Address proposer)
     {
         if (validators.Length == 0)
         {
-            throw new ArgumentException("At least one validator is required.", nameof(validators));
+            return [new Validator { Address = proposer, Power = 1 }];
         }
 
         var validatorList = new List<Validator>(validators.Length);

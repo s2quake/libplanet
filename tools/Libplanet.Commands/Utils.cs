@@ -166,7 +166,7 @@ public static class Utils
                 WriteIndented = true,
                 Converters =
                 {
-                    new ByteArrayJsonConverter(),
+                    // new ByteArrayJsonConverter(),
                     new DateTimeOffsetJsonConverter(),
                 },
             });
@@ -179,7 +179,7 @@ public static class Utils
             {
                 Converters =
                 {
-                    new ByteArrayJsonConverter(),
+                    // new ByteArrayJsonConverter(),
                     new DateTimeOffsetJsonConverter(),
                 },
             });
@@ -238,7 +238,7 @@ public static class Utils
         }
     }
 
-    [Model(Version = 1, TypeName = "Libplanet_Extensions_Cocona_Utils_DummyAction")]
+    [Model("Libplanet_Extensions_Cocona_Utils_DummyAction", Version = 1)]
     public sealed record class DummyAction : ActionBase
     {
         protected override void OnExecute(IWorldContext world, IActionContext context)

@@ -24,5 +24,8 @@ services.AddSingleton<ICommand, ImportKeyCommand>();
 services.AddSingleton<ICommand, ExportKeyCommand>();
 services.AddSingleton<ICommand, SignKeyCommand>();
 
+services.AddSingleton<ActionCommand>()
+    .AddSingleton<ICommand>(s => s.GetRequiredService<ActionCommand>());
+
 var commandContext = new CommandContext(services.BuildServiceProvider());
 await commandContext.ExecuteAsync(args);
