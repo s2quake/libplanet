@@ -10,7 +10,7 @@ internal sealed class NullableYamlTypeConverter : YamlTypeConverter<object>
 
     public override object? Read(IParser parser, Type type, ObjectDeserializer rootDeserializer)
     {
-         if (Nullable.GetUnderlyingType(ModelTypeScope.Current) is not { } underlyingType)
+        if (Nullable.GetUnderlyingType(ModelTypeScope.Current) is not { } underlyingType)
         {
             return rootDeserializer(type);
         }

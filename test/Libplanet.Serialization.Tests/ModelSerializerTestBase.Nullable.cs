@@ -1,3 +1,4 @@
+using System.Reflection;
 using Libplanet.TestUtilities;
 
 namespace Libplanet.Serialization.Tests;
@@ -13,6 +14,25 @@ public abstract partial class ModelSerializerTestBase<TData>
     {
         var random = new Random(seed);
         var expectedObject = new RecordClassWithNullableProperty(random);
+        var serialized = Serialize(expectedObject);
+        var actualObject = Deserialize<RecordClassWithNullableProperty>(serialized)!;
+        Assert.Equal(expectedObject, actualObject);
+    }
+
+    [Fact]
+    public void NullableProperty_WithDefaultValue_SerializeAndDeserialize_Test()
+    {
+        var expectedObject = new RecordClassWithNullableProperty
+        {
+            Int32 = default(int),
+            Int64 = default(long),
+            Biginteger = default(BigInteger),
+            Enum = default(TestEnum),
+            Boolean = default(bool),
+            String = string.Empty,
+            DateTimeOffset = default(DateTimeOffset),
+            TimeSpan = default(TimeSpan),
+        };
         var serialized = Serialize(expectedObject);
         var actualObject = Deserialize<RecordClassWithNullableProperty>(serialized)!;
         Assert.Equal(expectedObject, actualObject);

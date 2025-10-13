@@ -21,12 +21,12 @@ internal abstract class CollectionModelConverter : ModelConverterBase<IEnumerabl
 
         if (type.IsValueType)
         {
-            if (TypeUtility.IsDefault(obj1, type) && TypeUtility.IsDefault(obj2, type))
+            if (TypeUtility.IsDefault(obj1) && TypeUtility.IsDefault(obj2))
             {
                 return true;
             }
 
-            if (TypeUtility.IsDefault(obj1, type) || TypeUtility.IsDefault(obj2, type))
+            if (TypeUtility.IsDefault(obj1) || TypeUtility.IsDefault(obj2))
             {
                 return false;
             }
@@ -58,7 +58,7 @@ internal abstract class CollectionModelConverter : ModelConverterBase<IEnumerabl
 
     public int GetHashCode(object obj, Type type)
     {
-        if (type.IsValueType && TypeUtility.IsDefault(obj, type))
+        if (TypeUtility.IsDefault(obj))
         {
             return 0;
         }

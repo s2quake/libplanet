@@ -1,6 +1,12 @@
-﻿namespace Libplanet.Serialization;
+﻿#if MODEL_JSON
+namespace Libplanet.Serialization.Json;
+#elif MODEL_YAML
+namespace Libplanet.Serialization.Yaml;
+#else
+#error This file must be included in either Libplanet.Serialization.Json or Libplanet.Serialization.Yaml project.
+#endif
 
-public static class ModelOptionsScope
+internal static class ModelOptionsScope
 {
     private static readonly ThreadLocal<Stack<ModelOptions>?> _stack = new();
 

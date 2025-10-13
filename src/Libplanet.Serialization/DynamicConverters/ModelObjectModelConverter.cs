@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Libplanet.Serialization.DynamicConverters;
 
-internal sealed class ObjectModelConverter : ModelConverterBase<object>, IModelComparer
+internal sealed class ModelObjectModelConverter : ModelConverterBase<object>, IModelComparer
 {
     public override bool CanConvert(Type type)
         => type.IsDefined(typeof(ModelAttribute)) || type.IsDefined(typeof(OriginModelAttribute));
@@ -75,7 +75,7 @@ internal sealed class ObjectModelConverter : ModelConverterBase<object>, IModelC
     protected override void Write(BinaryWriter writer, object value, ModelOptions options)
     {
         var type = value.GetType();
-        if (options.IsValidationEnabled && !TypeUtility.IsDefault(value, type))
+        if (options.IsValidationEnabled && !TypeUtility.IsDefault(value))
         {
             ModelResolver.Validate(value, options);
         }
@@ -95,7 +95,7 @@ internal sealed class ObjectModelConverter : ModelConverterBase<object>, IModelC
             var propertyType = property.PropertyType;
             var propertyValue = property.GetValue(value);
             var propertyActualType = TypeUtility.GetActualType(propertyValue, propertyType);
-            using var _ = ModelTypeScope.Push(propertyType);
+            using var _ = ModelTypeScope.Push(propertyType, emitDefaultValue: property.EmitDefaultValue);
             ModelSerializer.Serialize(writer, propertyValue, propertyActualType, options);
         }
     }

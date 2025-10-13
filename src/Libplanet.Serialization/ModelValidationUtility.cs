@@ -7,7 +7,7 @@ public static class ModelValidationUtility
     public static void Validate(object obj)
     {
         var type = obj.GetType();
-        if (!type.IsValueType || !TypeUtility.IsDefault(obj, type))
+        if (!type.IsValueType || !TypeUtility.IsDefault(obj))
         {
             Validator.ValidateObject(instance: obj, new(obj), true);
         }
@@ -16,7 +16,7 @@ public static class ModelValidationUtility
     public static void Validate(object obj, IDictionary<object, object?> items)
     {
         var type = obj.GetType();
-        if (!type.IsValueType || !TypeUtility.IsDefault(obj, type))
+        if (!type.IsValueType || !TypeUtility.IsDefault(obj))
         {
             Validator.ValidateObject(instance: obj, new(obj, items), true);
         }

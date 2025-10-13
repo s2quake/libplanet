@@ -20,7 +20,7 @@ internal sealed class WrappedJsonConverter<T>(JsonConverter<T> innerConverter) :
         var modelType = ModelResolver.GetType(type, version);
 
         reader.ReadPropertyName("value");
-        if (TypeUtility.IsDefaultType(typeToConvert)
+        if (TypeUtility.HasDefaultValue(typeToConvert)
             && reader.TokenType == JsonTokenType.Number
             && reader.TryGetInt32(out var intValue)
             && intValue == 0)

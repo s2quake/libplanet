@@ -31,7 +31,7 @@ public static class ModelResolver
     [
         new NullableModelConverter(),
         new EnumModelConverter(),
-        new ObjectModelConverter(),
+        new ModelObjectModelConverter(),
         new TupleModelConverter(),
         new KeyValuePairModelConverter(),
         new ArrayModelConverter(),

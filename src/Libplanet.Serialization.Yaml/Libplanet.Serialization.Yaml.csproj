@@ -1,11 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);SA1012</NoWarn>
+    <DefineConstants>$(DefineConstants);MODEL_YAML</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Libplanet.Serialization\Libplanet.Serialization.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Libplanet.Serialization.Json\ModelOptionsScope.cs" Link="ModelOptionsScope.cs" />
+    <Compile Include="..\Libplanet.Serialization.Json\ModelTypeScope.cs" Link="ModelTypeScope.cs" />
   </ItemGroup>
 
 </Project>

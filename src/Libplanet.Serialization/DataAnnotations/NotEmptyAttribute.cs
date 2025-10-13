@@ -15,7 +15,7 @@ public sealed class NotEmptyAttribute : ValidationAttribute
         if (value is ICollection collection)
         {
             var valueType = value.GetType();
-            if (valueType.IsValueType && IsDefault(value, valueType))
+            if (valueType.IsValueType && IsDefault(value))
             {
                 var message = $"The value specified in {GetType().Name} on " +
                               $"{declaringType.Name}.{memberName} must not be the default value.";
@@ -35,7 +35,7 @@ public sealed class NotEmptyAttribute : ValidationAttribute
         else if (value is IEnumerable enumerable)
         {
             var valueType = value.GetType();
-            if (valueType.IsValueType && IsDefault(value, valueType))
+            if (valueType.IsValueType && IsDefault(value))
             {
                 var message = $"The value specified in {GetType().Name} on " +
                               $"{declaringType.Name}.{memberName} must not be the default value.";

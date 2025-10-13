@@ -13,7 +13,7 @@ public sealed class ModelProperty
         _propertyInfo = propertyInfo;
     }
 
-    public bool ReadOnly => _propertyAttribute.ReadOnly;
+    public bool EmitDefaultValue => _propertyAttribute.EmitDefaultValue;
 
     public Type PropertyType => _propertyInfo.PropertyType;
 

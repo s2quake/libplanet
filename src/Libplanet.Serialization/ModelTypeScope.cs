@@ -1,19 +1,19 @@
 ﻿namespace Libplanet.Serialization;
 
-public static class ModelTypeScope
+internal static class ModelTypeScope
 {
-    private static readonly ThreadLocal<Stack<Type>?> _stack = new();
+    private static readonly ThreadLocal<Stack<Properties>?> _stack = new();
 
-    public static Type Current => _stack.Value is { Count: > 0 } s ? s.Peek() : typeof(object);
+    public static Type CurrentType => Current.Type;
 
-    public static IDisposable Push(Type options)
+    public static Properties Current => _stack.Value is { Count: > 0 } s ? s.Peek() : new Properties(typeof(object));
+
+    public static IDisposable Push(Type type, bool emitDefaultValue = false)
     {
-        var s = _stack.Value ??= new Stack<Type>();
-        s.Push(options);
+        var s = _stack.Value ??= new Stack<Properties>();
+        s.Push(new Properties(type, emitDefaultValue));
         return new PopOnDispose(s);
     }
-
-    public static bool CanOmitTypeInfo(Type type) => CanOmitTypeInfo(type, ModelOptionsScope.Current);
 
     public static bool CanOmitTypeInfo(Type type, ModelOptions options)
     {
@@ -27,17 +27,24 @@ public static class ModelTypeScope
             return true;
         }
 
-        return Current.IsSealed && type == Current;
+        return CurrentType.IsSealed && type == CurrentType;
     }
 
-    private sealed class PopOnDispose(Stack<Type> s) : IDisposable
+    public static bool CanWriteDefaultValue(ModelOptions options)
+        => !options.EmitDefaultValues && !Current.EmitDefaultValue;
+
+    private sealed class PopOnDispose(Stack<Properties> stack) : IDisposable
     {
         public void Dispose()
         {
-            if (s is { Count: > 0 })
+            if (stack is { Count: > 0 })
             {
-                s.Pop();
+                stack.Pop();
             }
         }
+    }
+
+    public record class Properties(Type Type, bool EmitDefaultValue = false)
+    {
     }
 }
