@@ -153,28 +153,35 @@ public static class TypeUtility
         }
     }
 
-    public static bool IsDefaultType(Type type) => type.IsValueType && !type.IsEnum && !IsNullableType(type);
-
-    public static bool IsDefault(object value, Type type)
+    public static bool HasDefaultValue(Type type)
     {
-        if (IsDefaultType(type))
+        if (type == typeof(string))
         {
-            var defaultValue = _defaultByType.GetOrAdd(type, CreateDefault);
-            return ReferenceEquals(value, defaultValue) || Equals(value, defaultValue);
+            return true;
         }
 
-        return false;
+        if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+        {
+            return HasDefaultValue(underlyingType);
+        }
+
+        return type.IsValueType && !type.IsEnum;
     }
 
-    public static bool IsDefault(object? value) => value is not null && IsDefault(value, value.GetType());
+    public static bool IsDefault(object? value)
+    {
+        if (value is null || !HasDefaultValue(value.GetType()))
+        {
+            return false;
+        }
 
-    public static bool IsKnownType(Type type) => _knownTypes.Contains(type);
-
-    public static bool IsKnownType(string typeName) => _knownTypes.Contains(typeName);
+        var defaultValue = _defaultByType.GetOrAdd(value.GetType(), CreateDefault);
+        return ReferenceEquals(value, defaultValue) || Equals(value, defaultValue);
+    }
 
     public static object GetDefault(Type type)
     {
-        if (type.IsValueType && !IsNullableType(type))
+        if (HasDefaultValue(type))
         {
             return _defaultByType.GetOrAdd(type, CreateDefault);
         }
@@ -183,6 +190,22 @@ public static class TypeUtility
             $"Type '{type.FullName}' is not a value type and does not have a default value.",
             nameof(type));
     }
+
+    public static bool TryGetDefault(Type type, [MaybeNullWhen(false)] out object defaultValue)
+    {
+        if (HasDefaultValue(type))
+        {
+            defaultValue = _defaultByType.GetOrAdd(type, CreateDefault);
+            return true;
+        }
+
+        defaultValue = null;
+        return false;
+    }
+
+    public static bool IsKnownType(Type type) => _knownTypes.Contains(type);
+
+    public static bool IsKnownType(string typeName) => _knownTypes.Contains(typeName);
 
     public static Type GetActualType(object? value, Type type)
     {
@@ -292,7 +315,19 @@ public static class TypeUtility
     }
 
     private static object CreateDefault(Type type)
-        => Activator.CreateInstance(type) ?? throw new UnreachableException("ValueType cannot be null");
+    {
+        if (type == typeof(string))
+        {
+            return string.Empty;
+        }
+
+        if (Nullable.GetUnderlyingType(type) is { } underlyingType)
+        {
+            return CreateDefault(underlyingType);
+        }
+
+        return Activator.CreateInstance(type) ?? throw new UnreachableException("ValueType cannot be null");
+    }
 
     private static string GetTypeNameInternal(Type type)
     {

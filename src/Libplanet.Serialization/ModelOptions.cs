@@ -16,5 +16,7 @@ public sealed record class ModelOptions : IServiceProvider
 
     public ModelTypeInfoMode TypeInfoMode { get; init; }
 
+    public bool EmitDefaultValues { get; init; }
+
     public object? GetService(Type serviceType) => _serviceProvider?.GetService(serviceType);
 }

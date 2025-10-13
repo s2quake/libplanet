@@ -30,7 +30,7 @@ internal static class ModelYamlResolver
     [
         new NullableYamlTypeConverter(),
         new EnumYamlTypeConverter(),
-        new ObjectYamlTypeConverter(),
+        new ModelObjectYamlTypeConverter(),
         new ScalarValueYamlTypeConverter(),
         new TupleYamlTypeConverter(),
         new KeyValuePairYamlTypeConverter(),

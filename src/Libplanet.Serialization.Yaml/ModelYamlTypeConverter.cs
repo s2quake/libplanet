@@ -44,7 +44,7 @@ public sealed class ModelYamlTypeConverter : IYamlTypeConverter
             }
 
             parser.ReadPropertyName("value");
-            if (TypeUtility.IsDefaultType(modelType)
+            if (TypeUtility.HasDefaultValue(modelType)
                 && parser.Current is YamlDotNet.Core.Events.Scalar { Style: ScalarStyle.Plain, Value: "0" })
             {
                 parser.MoveNext();
@@ -83,13 +83,14 @@ public sealed class ModelYamlTypeConverter : IYamlTypeConverter
             return;
         }
 
+        var modelOptions = ModelOptionsScope.Current;
         var (typeName, version) = ModelResolver.GetTypeInfo(type);
         emitter.WriteStartObject();
         emitter.WriteString("type", typeName);
         emitter.WriteNumber("version", version);
         emitter.WritePropertyName("value");
 
-        if (TypeUtility.IsDefault(value, type))
+        if (TypeUtility.IsDefault(value) && !modelOptions.EmitDefaultValues)
         {
             emitter.WriteNumberValue(0);
         }

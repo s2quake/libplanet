@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Libplanet.Serialization.Json.DynamicConverters;
 
-internal sealed class ObjectJsonConverter : JsonConverter<object>
+internal sealed class ModelObjectJsonConverter : JsonConverter<object>
 {
     public override bool CanConvert(Type typeToConvert)
         => typeToConvert.IsDefined(typeof(ModelAttribute)) || typeToConvert.IsDefined(typeof(OriginModelAttribute));
@@ -33,13 +33,9 @@ internal sealed class ObjectJsonConverter : JsonConverter<object>
         foreach (var (_, property) in propertyByName)
         {
             var propertyType = property.PropertyType;
-            if (Nullable.GetUnderlyingType(propertyType) is { } underlyingType)
+            if (TypeUtility.TryGetDefault(propertyType, out var defaultValue))
             {
-                property.SetValue(obj, TypeUtility.GetDefault(underlyingType));
-            }
-            else
-            {
-                property.SetValue(obj, TypeUtility.GetDefault(propertyType));
+                property.SetValue(obj, defaultValue);
             }
         }
 
@@ -71,7 +67,7 @@ internal sealed class ObjectJsonConverter : JsonConverter<object>
     {
         var modelOptions = ModelOptionsScope.Current;
         var type = value.GetType();
-        if (modelOptions.IsValidationEnabled && !TypeUtility.IsDefault(value, type))
+        if (modelOptions.IsValidationEnabled && !TypeUtility.IsDefault(value))
         {
             ModelResolver.Validate(value, modelOptions);
         }
@@ -92,7 +88,8 @@ internal sealed class ObjectJsonConverter : JsonConverter<object>
             var propertyType = property.PropertyType;
             var propertyValue = property.GetValue(value);
             var isDefault = TypeUtility.IsDefault(propertyValue);
-            if (isDefault)
+            var emitDefaultValue = modelOptions.EmitDefaultValues || property.EmitDefaultValue;
+            if (isDefault && !emitDefaultValue)
             {
                 continue;
             }

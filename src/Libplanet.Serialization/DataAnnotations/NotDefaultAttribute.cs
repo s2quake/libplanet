@@ -24,7 +24,7 @@ public sealed class NotDefaultAttribute : ValidationAttribute
                           $"{declaringType.Name}.{memberName} must be a value type.";
             return new ValidationResult(message, [memberName]);
         }
-        else if (TypeUtility.IsDefault(value, valueType))
+        else if (TypeUtility.IsDefault(value))
         {
             var message = $"The value specified in {GetType().Name} on " +
                           $"{declaringType.Name}.{memberName} must not be the default value.";

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <NoWarn>$(NoWarn);SA1012</NoWarn>
+    <DefineConstants>$(DefineConstants);MODEL_JSON</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

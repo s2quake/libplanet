@@ -30,7 +30,7 @@ internal static class ModelJsonResolver
     private static readonly JsonConverter[] _dynamicConverters =
     [
         new EnumJsonConverter(),
-        new ObjectJsonConverter(),
+        new ModelObjectJsonConverter(),
         new ScalarValueJsonConverter(),
         new TupleJsonConverter(),
         new KeyValuePairJsonConverter(),

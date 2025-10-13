@@ -50,7 +50,7 @@ public static class ModelSerializer
             data.Write(writer);
         }
 
-        if (TypeUtility.IsDefault(value, type))
+        if (TypeUtility.IsDefault(value) && ModelTypeScope.CanWriteDefaultValue(options))
         {
             writer.Write((byte)DataType.Default);
         }
@@ -88,7 +88,7 @@ public static class ModelSerializer
             return null;
         }
 
-        if (ModelTypeScope.CanOmitTypeInfo(type) && dataType == DataType.Header)
+        if (ModelTypeScope.CanOmitTypeInfo(type, options) && dataType == DataType.Header)
         {
             throw new ModelException("Type information is required but not found.");
         }
