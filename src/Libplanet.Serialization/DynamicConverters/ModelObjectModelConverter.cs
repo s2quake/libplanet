@@ -47,7 +47,7 @@ internal sealed class ModelObjectModelConverter : ModelConverterBase<object>, IM
             var propertyType = property.PropertyType;
             using var _ = ModelTypeScope.Push(property.PropertyType);
             var propertyValue = ModelSerializer.Deserialize(reader, propertyType, options);
-            property.SetValue(obj, propertyValue);
+            SetPropertyValue(property, obj, propertyValue);
         }
 
         if (type.GetCustomAttribute<OriginModelAttribute>() is { } originModelAttribute)
@@ -93,10 +93,28 @@ internal sealed class ModelObjectModelConverter : ModelConverterBase<object>, IM
         {
             var property = properties[i];
             var propertyType = property.PropertyType;
-            var propertyValue = property.GetValue(value);
+            var propertyValue = GetPropertyValue(property, value, options);
             var propertyActualType = TypeUtility.GetActualType(propertyValue, propertyType);
             using var _ = ModelTypeScope.Push(propertyType, emitDefaultValue: property.EmitDefaultValue);
             ModelSerializer.Serialize(writer, propertyValue, propertyActualType, options);
+        }
+    }
+
+    private static object? GetPropertyValue(ModelProperty property, object obj, ModelOptions options)
+    {
+        if (property.InspectOnly && options.Purpose is SerializationPurpose.Contract)
+        {
+            return null;
+        }
+
+        return property.GetValue(obj);
+    }
+
+    private static void SetPropertyValue(ModelProperty property, object obj, object? value)
+    {
+        if (!property.InspectOnly)
+        {
+            property.SetValue(obj, value);
         }
     }
 }

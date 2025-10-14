@@ -15,6 +15,8 @@ public sealed class ModelProperty
 
     public bool EmitDefaultValue => _propertyAttribute.EmitDefaultValue;
 
+    public bool InspectOnly => _propertyAttribute.InspectOnly;
+
     public Type PropertyType => _propertyInfo.PropertyType;
 
     public string Name => _propertyInfo.Name;

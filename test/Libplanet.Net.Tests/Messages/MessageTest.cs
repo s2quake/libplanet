@@ -135,7 +135,7 @@ public sealed class MessageTest(ITestOutputHelper output)
             BlockSummary = genesisBlock,
         };
         Assert.Equal(
-            MessageId.Parse("f7111a9508e986e7c9a8a194882c78db5f3dcc1bf424dca6ffb3826e83a217f9"),
+            MessageId.Parse("3eaa2dc66895f80047216b2eb6c089d1e170918f07a4105c22fa8a6ab664615e"),
             message.Id);
     }
 

@@ -20,6 +20,7 @@ public abstract record class EvidenceBase
     [NotDefault]
     public DateTimeOffset Timestamp { get; init; }
 
+    [Property(3, InspectOnly = true)]
     public EvidenceId Id => new(SHA256.HashData(ModelSerializer.Serialize(this)));
 
     EvidenceId IHasKey<EvidenceId>.Key => Id;

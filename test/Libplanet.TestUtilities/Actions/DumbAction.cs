@@ -58,7 +58,6 @@ public sealed record class DumbAction : ActionBase, IEquatable<DumbAction>
         {
             var items = world.GetValueOrDefaultLenient(AccountAddress, append.At, string.Empty);
             world[AccountAddress, append.At] = items == string.Empty ? append.Item : $"{items},{append.Item}";
-            Trace.WriteLine(world[AccountAddress, append.At]);
         }
 
         if (Transfer is { } transfer)

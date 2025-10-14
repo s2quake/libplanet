@@ -1,3 +1,4 @@
+using System.Collections;
 using Libplanet.Builtin;
 using Libplanet.Data;
 using Libplanet.Extensions;
@@ -475,15 +476,19 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
            [.. blockTxs2],
            blockExecution2.Executions.Select(item => item.Transaction));
         Assert.Equal(3, actionExecutions2.Length);
-        Assert.Equal(
-            ["A", "B", "C", null, "F"],
-            addresses.Select(item => actionExecutions2[0].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
-        Assert.Equal(
-            ["A,D", "B", "C", null, "F"],
-            addresses.Select(item => actionExecutions2[1].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
-        Assert.Equal(
-            ["A,D", "B", "C", "E", "F"],
-            addresses.Select(item => actionExecutions2[2].LeaveWorld.GetValueOrDefault(SystemAccount, item)));
+
+        var values1 = addresses.Select(item => actionExecutions2[0].LeaveWorld.GetSystemValueOrDefault(item));
+        var values2 = addresses.Select(item => actionExecutions2[1].LeaveWorld.GetSystemValueOrDefault(item));
+        var values3 = addresses.Select(item => actionExecutions2[2].LeaveWorld.GetSystemValueOrDefault(item));
+#if DEBUG
+        TraceArray(values1);
+        TraceArray(values2);
+        TraceArray(values3);
+#endif // DEBUG
+
+        Assert.Equal(["A,D", "B", "C", null, null], values1);
+        Assert.Equal(["A,D", "B", "C", null, "F"], values2);
+        Assert.Equal(["A,D", "B", "C", "E", "F"], values3);
 
         Assert.Equal("A,D", blockExecution2.LeaveWorld.GetSystemValue(addresses[0]));
         Assert.Equal("B", blockExecution2.LeaveWorld.GetSystemValue(addresses[1]));
@@ -605,4 +610,12 @@ public partial class BlockExecutorTest(ITestOutputHelper output)
         var blockExecution = blockExecutor.Execute(block);
         Assert.Equal(new World(repository.States, blockExecution.LeaveWorld.Hash), blockExecution.LeaveWorld);
     }
+
+#if DEBUG
+    private static void TraceArray(IEnumerable array)
+    {
+        var items = array.Cast<object>().Select(item => item is null ? "null" : $"\"{item}\"");
+        System.Diagnostics.Trace.WriteLine($"[{string.Join(", ", items)}]");
+    }
+#endif // DEBUG
 }

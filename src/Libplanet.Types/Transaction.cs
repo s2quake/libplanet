@@ -15,6 +15,7 @@ public sealed partial record class Transaction
     [NotDefault]
     public required ImmutableArray<byte> Signature { get; init; }
 
+    [Property(2, InspectOnly = true)]
     public TxId Id => new(SHA256.HashData(ModelSerializer.Serialize(this)));
 
     public long Nonce => Metadata.Nonce;
