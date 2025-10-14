@@ -22,7 +22,7 @@ public abstract partial class ModelSerializerTestBase<TData>
     [Theory]
     [InlineData(0)]
     [ClassData(typeof(RandomSeedsData))]
-    public void Dictionaryy_SerializeAndDeserialize_Test(int seed)
+    public void Dictionary_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
         var expectedObject = new RecordClassWithDictionary(random);
