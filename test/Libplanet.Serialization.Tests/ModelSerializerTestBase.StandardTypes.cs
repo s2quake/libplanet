@@ -72,7 +72,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<BigInteger>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<BigInteger>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);
@@ -96,7 +96,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<bool>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<bool>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);
@@ -120,7 +120,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<byte>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<byte>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);
@@ -144,7 +144,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<char>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<char>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);
@@ -185,7 +185,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<DateTimeOffset>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<DateTimeOffset>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);
@@ -209,7 +209,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<Guid>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<Guid>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);
@@ -233,7 +233,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<int>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<int>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);
@@ -257,7 +257,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<long>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<long>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);
@@ -281,7 +281,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<string>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<string>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);
@@ -305,7 +305,7 @@ public abstract partial class ModelSerializerTestBase<TData>
         var actualValue2 = Deserialize<TimeSpan>(serialized2);
         Assert.Equal(expectedValue, actualValue2);
 
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var serialized3 = Serialize(expectedValue, options);
         var actualValue3 = Deserialize<TimeSpan>(serialized3, options);
         Assert.Equal(expectedValue, actualValue3);

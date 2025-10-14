@@ -6,4 +6,6 @@ public sealed class PropertyAttribute(int index) : Attribute
     public int Index => index;
 
     public bool EmitDefaultValue { get; init; }
+
+    public bool InspectOnly { get; init; }
 }

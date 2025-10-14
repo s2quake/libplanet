@@ -14,7 +14,7 @@ public sealed record class ModelOptions : IServiceProvider
 
     public bool IsValidationEnabled { get; init; }
 
-    public ModelTypeInfoMode TypeInfoMode { get; init; }
+    public TypeInfoEmission TypeInfoEmission { get; init; }
 
     public bool EmitDefaultValues { get; init; }
 

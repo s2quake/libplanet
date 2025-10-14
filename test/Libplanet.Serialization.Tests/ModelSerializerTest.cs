@@ -22,7 +22,7 @@ public sealed class ModelSerializerTest(ITestOutputHelper output) : ModelSeriali
     [Fact]
     public void DefaultValue_OmitRootTypeInfo_Test()
     {
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         Assert.Equal([1], ModelSerializer.Serialize(0, typeof(int), options));
     }
 
