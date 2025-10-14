@@ -15,7 +15,7 @@ public static class ModelYamlSerializer
 
     public static string Serialize<T>(T? obj, ModelOptions options)
         where T : notnull
-        => Serialize(obj, typeof(T), options);
+        => Serialize(obj, obj?.GetType() ?? typeof(T), options);
 
     public static string Serialize(object? obj, Type type) => Serialize(obj, type, ModelOptions.Empty);
 

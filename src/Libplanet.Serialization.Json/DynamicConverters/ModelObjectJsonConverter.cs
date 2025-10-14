@@ -26,7 +26,11 @@ internal sealed class ModelObjectJsonConverter : JsonConverter<object>
             var propertyType = property.PropertyType;
             using var _ = ModelTypeScope.Push(propertyType);
             var value = JsonSerializer.Deserialize(ref reader, propertyType, options);
-            property.SetValue(obj, value);
+            if (!property.InspectOnly)
+            {
+                property.SetValue(obj, value);
+            }
+
             propertyByName.Remove(propertyName);
         }
 
@@ -86,6 +90,11 @@ internal sealed class ModelObjectJsonConverter : JsonConverter<object>
         {
             var property = properties[i];
             var propertyType = property.PropertyType;
+            if (property.InspectOnly && modelOptions.Purpose is SerializationPurpose.Contract)
+            {
+                continue;
+            }
+
             var propertyValue = property.GetValue(value);
             var isDefault = TypeUtility.IsDefault(propertyValue);
             var emitDefaultValue = modelOptions.EmitDefaultValues || property.EmitDefaultValue;

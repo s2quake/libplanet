@@ -1,6 +1,6 @@
 ﻿namespace Libplanet.Serialization;
 
-public enum ModelTypeInfoMode
+public enum TypeInfoEmission
 {
     Auto,
 

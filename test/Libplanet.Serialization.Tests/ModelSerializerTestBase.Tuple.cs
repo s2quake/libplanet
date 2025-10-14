@@ -27,7 +27,7 @@ public abstract partial class ModelSerializerTestBase<TData>
     public void TupleProperty_WithNoTypeInfo_SerializeAndDeserialize_Test(int seed)
     {
         var random = new Random(seed);
-        var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+        var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
         var expectedObject = new RecordClassWithTuple(random);
         var serialized = Serialize(expectedObject, options);
         var actualObject = Deserialize<RecordClassWithTuple>(serialized, options)!;

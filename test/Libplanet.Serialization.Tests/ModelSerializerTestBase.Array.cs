@@ -34,7 +34,7 @@ public abstract partial class ModelSerializerTestBase<TData>
             var actualValue1 = Deserialize(serialized1);
             Assert.Equal(expectedValue, actualValue1);
 
-            var options = new ModelOptions { TypeInfoMode = ModelTypeInfoMode.Never };
+            var options = new ModelOptions { TypeInfoEmission = TypeInfoEmission.Never };
             var serialized2 = Serialize(expectedValue, options);
             var actualValue2 = Deserialize(serialized2, property.PropertyType, options);
             Assert.Equal(expectedValue, actualValue2);

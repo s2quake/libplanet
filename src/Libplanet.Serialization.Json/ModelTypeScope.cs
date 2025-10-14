@@ -23,12 +23,12 @@ internal static class ModelTypeScope
 
     public static bool CanOmitTypeInfo(Type type, ModelOptions options)
     {
-        if (options.TypeInfoMode is ModelTypeInfoMode.Always)
+        if (options.TypeInfoEmission is TypeInfoEmission.Always)
         {
             return false;
         }
 
-        if (options.TypeInfoMode is ModelTypeInfoMode.Never)
+        if (options.TypeInfoEmission is TypeInfoEmission.Never)
         {
             return true;
         }

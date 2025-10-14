@@ -25,7 +25,11 @@ internal sealed class ModelObjectYamlTypeConverter : IYamlTypeConverter
             var propertyType = property.PropertyType;
             using var _ = ModelTypeScope.Push(propertyType);
             var propertyValue = rootDeserializer(property.PropertyType);
-            property.SetValue(obj, propertyValue);
+            if (!property.InspectOnly)
+            {
+                property.SetValue(obj, propertyValue);
+            }
+
             propertyByName.Remove(propertyName);
         }
 
@@ -87,6 +91,11 @@ internal sealed class ModelObjectYamlTypeConverter : IYamlTypeConverter
         {
             var property = properties[i];
             var propertyType = property.PropertyType;
+            if (property.InspectOnly && modelOptions.Purpose is SerializationPurpose.Contract)
+            {
+                continue;
+            }
+
             var propertyValue = property.GetValue(value);
             var isDefault = TypeUtility.IsDefault(propertyValue);
             var emitDefaultValue = modelOptions.EmitDefaultValues || property.EmitDefaultValue;
