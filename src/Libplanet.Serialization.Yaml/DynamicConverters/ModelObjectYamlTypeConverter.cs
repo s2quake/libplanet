@@ -36,7 +36,7 @@ internal sealed class ModelObjectYamlTypeConverter : IYamlTypeConverter
         foreach (var (_, property) in propertyByName)
         {
             var propertyType = property.PropertyType;
-            if (TypeUtility.TryGetDefault(propertyType, out var defaultValue))
+            if (TypeUtility.TryGetDefault(propertyType, out var defaultValue) && !property.InspectOnly)
             {
                 property.SetValue(obj, defaultValue);
             }
