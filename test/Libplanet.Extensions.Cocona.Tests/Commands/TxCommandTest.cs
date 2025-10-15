@@ -1,8 +1,8 @@
 using System.IO;
 using System.Reflection;
-using Libplanet.Extensions.Cocona.Commands;
+using Libplanet.Commands;
 
-namespace Libplanet.Extensions.Cocona.Tests.Commands;
+namespace Libplanet.Commands.Tests.Commands;
 
 public class TxCommandTest
 {

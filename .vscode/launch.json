@@ -5,6 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "C#: Commands Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/Libplanet.Commands.Executable/bin/Debug/net8.0/planet.dll",
+            "console": "integratedTerminal",
+            "args": [
+                "repo",
+                "init",
+                ".data/db",
+                "--genesis",
+                ".data/genesis.bin"
+            ]
+        },
+        {
             "name": "C#: Benchmark Debug",
             "type": "coreclr",
             "request": "launch",

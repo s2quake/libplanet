@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Libplanet.Extensions.Cocona.Tests")]
+[assembly: InternalsVisibleTo("Libplanet.Commands.Tests")]
 [assembly: InternalsVisibleTo("Libplanet.Tests")]
 [assembly: InternalsVisibleTo("Libplanet.Data.Tests")]

@@ -1,7 +1,7 @@
 using Cocona;
 using Cocona.Help;
 using Libplanet.Explorer.Indexing;
-using Libplanet.Extensions.Cocona;
+using Libplanet.Commands;
 using Serilog;
 
 namespace Libplanet.Explorer.Cocona.Commands
@@ -53,7 +53,7 @@ namespace Libplanet.Explorer.Cocona.Commands
 
         internal static IBlockChainIndex LoadIndexFromUri(string uriString)
         {
-            // Adapted from Libplanet.Extensions.Cocona.Utils.LoadStoreFromUri().
+            // Adapted from Libplanet.Commands.Utils.LoadStoreFromUri().
             // TODO: Cocona supports .NET's TypeConverter protocol for instantiating objects
             // from CLI options/arguments.  We'd better to implement it for Libplanet.Data.Store, and simply
             // use Libplanet.Data.Store as the option/argument types rather than taking them as strings.

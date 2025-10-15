@@ -263,7 +263,7 @@ If omitted (default) explorer only the local blockchain store.")]
 
         private static Libplanet.Data.Repository LoadStore(Options options)
         {
-            // FIXME: This method basically does the same thing to Libplanet.Extensions.Cocona's
+            // FIXME: This method basically does the same thing to Libplanet.Commands's
             // Utils.LoadStoreFromUri() method.
             // The duplicate code should be extract to a shared common method.
             // https://github.com/planetarium/libplanet/issues/1573
