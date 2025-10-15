@@ -5,11 +5,7 @@ namespace Libplanet.Node.Options;
 [Options(Position)]
 public sealed class RepositoryOptions : OptionsBase<RepositoryOptions>
 {
-    public const string Position = "Store";
-
-    public const string DefaultRootPath = ".db";
-    public const string DefaultStorePath = "store";
-    public const string DefaultStateStorePath = "state";
+    public const string Position = "Repository";
 
     /// <summary>
     /// The type of the store.

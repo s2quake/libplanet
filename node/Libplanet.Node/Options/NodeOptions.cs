@@ -11,11 +11,4 @@ public sealed class NodeOptions : OptionsBase<NodeOptions>
     [PrivateKey]
     [Description("The private key of Node.")]
     public string PrivateKey { get; set; } = string.Empty;
-
-    [DnsEndPoint]
-    public string EndPoint { get; set; } = string.Empty;
-
-    [Peer]
-    [Description("The endpoint of the node to block sync.")]
-    public string BlocksyncSeedPeer { get; set; } = string.Empty;
 }

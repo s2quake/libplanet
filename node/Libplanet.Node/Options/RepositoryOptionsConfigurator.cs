@@ -13,19 +13,11 @@ internal sealed class RepositoryOptionsConfigurator(ILogger<RepositoryOptionsCon
             {
                 options.Path = string.Empty;
                 logger.LogWarning(
-                    "RootPath is ignored because StoreType is {Memory}.", RepositoryType.Memory);
+                    "RootPath is ignored because RepositoryType is {Memory}.", RepositoryType.Memory);
             }
-
         }
         else
         {
-            if (options.Path == string.Empty)
-            {
-                options.Path = RepositoryOptions.DefaultRootPath;
-                logger.LogDebug(
-                    "RootPath is not set. Use the default path: {RootPath}", options.Path);
-            }
-
             options.Path = Path.GetFullPath(options.Path);
         }
     }

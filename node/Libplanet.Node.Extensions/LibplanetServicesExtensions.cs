@@ -21,16 +21,17 @@ public static class LibplanetServicesExtensions
         services.AddOptions<RepositoryOptions>()
                 .Bind(configuration.GetSection(RepositoryOptions.Position));
         services.AddSingleton<IConfigureOptions<RepositoryOptions>, RepositoryOptionsConfigurator>();
+        services.AddSingleton<IValidateOptions<RepositoryOptions>, RepositoryOptionsValidator>();
 
         services.AddOptions<NodeOptions>()
                 .Bind(configuration.GetSection(NodeOptions.Position));
         services.AddSingleton<IConfigureOptions<NodeOptions>, NodeOptionsConfigurator>();
         services.AddSingleton<IValidateOptions<NodeOptions>, NodeOptionsValidator>();
 
-        services.AddOptions<ValidatorOptions>()
-                .Bind(configuration.GetSection(ValidatorOptions.Position));
-        services.AddSingleton<IConfigureOptions<ValidatorOptions>, ValidatorOptionsConfigurator>();
-        services.AddSingleton<IValidateOptions<ValidatorOptions>, ValidatorOptionsValidator>();
+        services.AddOptions<ConsensusOptions>()
+                .Bind(configuration.GetSection(ConsensusOptions.Position));
+        services.AddSingleton<IConfigureOptions<ConsensusOptions>, ConsensusOptionsConfigurator>();
+        services.AddSingleton<IValidateOptions<ConsensusOptions>, ConsensusOptionsValidator>();
 
         services.AddSingleton<RepositoryService>();
         services.AddSingleton(s => (IRepositoryService)s.GetRequiredService<RepositoryService>());
@@ -40,7 +41,7 @@ public static class LibplanetServicesExtensions
         var nodeBuilder = new LibplanetNodeBuilder(services);
 
 
-        if (configuration.IsOptionsEnabled(ValidatorOptions.Position))
+        if (configuration.IsOptionsEnabled(ConsensusOptions.Position))
         {
             nodeBuilder.WithValidator();
         }

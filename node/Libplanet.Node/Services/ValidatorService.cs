@@ -15,7 +15,7 @@ internal sealed class ValidatorService : IValidatorService, IHostedService, IAsy
 
     public ValidatorService(
         IOptions<NodeOptions> nodeOptions,
-        IOptions<ValidatorOptions> validatorOptions,
+        IOptions<Options.ConsensusOptions> validatorOptions,
         BlockchainService blockchainService,
         ILoggerFactory loggerFactory)
     {
@@ -24,7 +24,7 @@ internal sealed class ValidatorService : IValidatorService, IHostedService, IAsy
         var consensusServiceOptions = new ConsensusServiceOptions
         {
             BlockInterval = TimeSpan.FromSeconds(4),
-            ConsensusOptions = new ConsensusOptions
+            ConsensusOptions = new Net.Consensus.ConsensusOptions
             {
                 Logger = loggerFactory.CreateLogger<Consensus>(),
             },

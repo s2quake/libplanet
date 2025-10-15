@@ -16,13 +16,5 @@ internal sealed class NodeOptionsConfigurator(
                 "Node's private key is not set. A new private key is generated: {PrivateKey}",
                 options.PrivateKey);
         }
-
-        if (options.EndPoint == string.Empty)
-        {
-            options.EndPoint = EndPointUtility.ToString(EndPointUtility.Next());
-            logger.LogWarning(
-                "Node's endpoint is not set. A new endpoint is generated: {EndPoint}",
-                options.EndPoint);
-        }
     }
 }
