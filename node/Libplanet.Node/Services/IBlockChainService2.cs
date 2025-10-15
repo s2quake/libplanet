@@ -6,7 +6,7 @@ public interface IBlockchainService
 {
     Block Tip { get; }
 
-    Block GetBlock(BlockHash hash);
+    Block GetBlock(BlockHash blockHash);
 
     Block GetBlock(int height);
 }

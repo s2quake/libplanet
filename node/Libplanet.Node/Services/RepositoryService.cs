@@ -6,13 +6,14 @@ using Libplanet.Data.LiteDB;
 
 namespace Libplanet.Node.Services;
 
-internal sealed class RepositoryService(IOptions<RepositoryOptions> repositoryOptions) : IRepositoryService
+internal sealed class RepositoryService(
+    IOptions<RepositoryOptions> repositoryOptions) : IRepositoryService
 {
-    public Repository Repository { get; } = CreateStore(repositoryOptions.Value);
+    public Repository Repository { get; } = CreateRepository(repositoryOptions.Value);
 
     public RepositoryType Type => repositoryOptions.Value.Type;
 
-    private static Repository CreateStore(RepositoryOptions storeOptions) => storeOptions.Type switch
+    private static Repository CreateRepository(RepositoryOptions storeOptions) => storeOptions.Type switch
     {
         RepositoryType.RocksDB => new Repository(new RocksDatabase(storeOptions.Path)),
         RepositoryType.Memory => new Repository(new MemoryDatabase()),

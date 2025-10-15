@@ -17,10 +17,6 @@ public static class LibplanetServicesExtensions
     {
         SynchronizationContext.SetSynchronizationContext(SynchronizationContext.Current ?? new());
         services.AddSingleton(SynchronizationContext.Current!);
-        services.AddOptions<GenesisOptions>()
-                .Bind(configuration.GetSection(GenesisOptions.Position));
-        services.AddSingleton<IConfigureOptions<GenesisOptions>, GenesisOptionsConfigurator>();
-        services.AddSingleton<IValidateOptions<GenesisOptions>, GenesisOptionsValidator>();
 
         services.AddOptions<RepositoryOptions>()
                 .Bind(configuration.GetSection(RepositoryOptions.Position));
