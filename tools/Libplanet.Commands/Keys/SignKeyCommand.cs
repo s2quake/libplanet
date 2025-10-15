@@ -1,7 +1,5 @@
 using System.Text;
 using JSSoft.Commands;
-using Libplanet.Commands.Extensions;
-using Libplanet.KeyStore;
 using Libplanet.Types;
 
 namespace Libplanet.Commands.Keys;
@@ -30,11 +28,13 @@ public sealed class SignKeyCommand(KeyCommand keyCommand)
     protected override void OnExecute()
     {
         var keyId = Guid.Parse(KeyId);
-        var keyStore = StorePath == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(StorePath);
-        var ppk = keyStore.Get(keyId);
-        var passphrase = PassphraseProperties.GetPassphrase(keyId);
-        var privateKey = ppk.Unprotect(passphrase);
+        var keyStore = StorePath == string.Empty ? Web3KeyStore.Default : new Web3KeyStore(StorePath);
+        if (!keyStore.Contains(keyId))
+        {
+            throw new KeyNotFoundException($"The key {KeyId} does not exist.");
+        }
 
+        var privateKey = keyStore.Get(keyId, PassphraseProperties.GetPassphrase(keyId));
         var message = MessageAsHex ? ByteUtility.ParseHex(Message) : Encoding.UTF8.GetBytes(Message);
         var bytes = privateKey.Sign(message);
 

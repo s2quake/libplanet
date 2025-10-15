@@ -1,6 +1,4 @@
 using JSSoft.Commands;
-using Libplanet.Commands.Extensions;
-using Libplanet.KeyStore;
 using Libplanet.Types;
 
 namespace Libplanet.Commands.Keys;
@@ -20,11 +18,11 @@ public sealed class CreateKeyCommand(KeyCommand keyCommand)
     [CommandPropertyExclusion(nameof(FormatProperties.Json))]
     public bool Pure { get; set; }
 
-    [CommandPropertySwitch("web3-json")]
+    [CommandPropertySwitch("web3")]
     [CommandSummary("Outputs the key in Web3 Secret Storage Formatted json.")]
     [CommandPropertyExclusion(nameof(FormatProperties.Json))]
     [CommandPropertyExclusion(nameof(Pure))]
-    public bool Web3Json { get; set; }
+    public bool Web3 { get; set; }
 
     [CommandProperty]
     [CommandSummary("Path to key store")]
@@ -35,29 +33,28 @@ public sealed class CreateKeyCommand(KeyCommand keyCommand)
     {
         var passphrase = PassphraseProperties.GetPassphrase();
         var privateKey = new PrivateKey();
-        var keyStore = StorePath == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(StorePath);
-        var ppk = ProtectedPrivateKey.Protect(privateKey, passphrase);
-        var keyId = DryRun ? Guid.NewGuid() : keyStore.Add(ppk);
+        var keyStore = StorePath == string.Empty ? Web3KeyStore.Default : new Web3KeyStore(StorePath);
+        var keyId = DryRun ? Guid.NewGuid() : keyStore.Add(privateKey, passphrase);
 
         if (Pure)
         {
             Out.WriteLine(ByteUtility.Hex(privateKey.Bytes));
         }
-        else if (Web3Json)
+        else if (Web3)
         {
-            Out.WriteLineAsJson((object)ppk.ToDynamic(keyId));
+            Out.WriteLine(OutputUtility.ToColorizedJsonString(keyStore.GetJson(keyId)));
         }
         else
         {
-            var info = new Dictionary<string, string>
+            var keyInfo = new KeyInfo
             {
-                ["keyId"] = keyId.ToString(),
-                ["privateKey"] = ByteUtility.Hex(privateKey.Bytes),
-                ["address"] = privateKey.Address.ToString(),
-                ["publicKey"] = privateKey.PublicKey.ToString(),
+                KeyId = keyId.ToString(),
+                PrivateKey = ByteUtility.Hex(privateKey.Bytes),
+                Address = privateKey.Address.ToString(),
+                PublicKey = privateKey.PublicKey.ToString(),
             };
 
-            FormatProperties.WriteLine(Out, info);
+            FormatProperties.WriteLine(Out, keyInfo);
         }
     }
 }

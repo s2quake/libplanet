@@ -1,22 +1,23 @@
-using System.ComponentModel;
+using Libplanet.Serialization;
 
 namespace Libplanet.Commands.Keys;
 
+[Model("Keys_KeyInfo", Version = 1)]
 public readonly record struct KeyInfo
 {
     public KeyInfo()
     {
     }
 
-    [DefaultValue("")]
+    [Property(0)]
     public string KeyId { get; init; } = string.Empty;
 
-    [DefaultValue("")]
+    [Property(1)]
     public string PrivateKey { get; init; } = string.Empty;
 
-    [DefaultValue("")]
+    [Property(2)]
     public string Address { get; init; } = string.Empty;
 
-    [DefaultValue("")]
+    [Property(3)]
     public string PublicKey { get; init; } = string.Empty;
 }

@@ -1,7 +1,8 @@
 using System.IO;
-using System.Text;
 using JSSoft.Commands;
 using Libplanet.Serialization;
+using Libplanet.Serialization.Json;
+using Libplanet.Serialization.Yaml;
 using Libplanet.Types;
 
 namespace Libplanet.Commands.Blocks;
@@ -14,18 +15,34 @@ public sealed class InspectBlockCommand(BlockCommand blockCommand)
     [CommandPropertyRequired]
     public string BlockPath { get; set; } = string.Empty;
 
+    [CommandPropertySwitch("from-json")]
+    [CommandPropertyExclusion(nameof(FromYaml))]
+    public bool FromJson { get; set; }
+
+    [CommandPropertySwitch("from-yaml")]
+    [CommandPropertyExclusion(nameof(FromJson))]
+    public bool FromYaml { get; set; }
+
     protected override void OnExecute()
     {
-        var bytes = File.ReadAllBytes(BlockPath);
-        var block = ModelSerializer.Deserialize<Block>(bytes);
+        var block = LoadBlock(BlockPath);
+        FormatProperties.WriteLine(Out, block);
+    }
 
-        var sb = new StringBuilder()
-            .AppendLine($"Version: {block.Version}")
-            .AppendLine($"Hash: {block.BlockHash}")
-            .AppendLine($"Height: {block.Height}")
-            .AppendLine($"Timestamp: {block.Timestamp:O}")
-            .AppendLine($"PreviousHash: {block.PreviousBlockHash}")
-            .AppendLine($"StateRoot: {block.PreviousStateRootHash}");
-        Out.WriteLine(sb.ToString());
+    private Block LoadBlock(string path)
+    {
+        if (FromJson)
+        {
+            return ModelJsonSerializer.Deserialize<Block>(File.ReadAllText(path));
+        }
+        else if (FromYaml)
+        {
+            return ModelYamlSerializer.Deserialize<Block>(File.ReadAllText(path));
+        }
+        else
+        {
+            var bytes = File.ReadAllBytes(path);
+            return ModelSerializer.Deserialize<Block>(bytes);
+        }
     }
 }

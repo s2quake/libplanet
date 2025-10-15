@@ -1,18 +1,13 @@
 using System.IO;
 using System.Security.Cryptography;
 using JSSoft.Commands;
-using Libplanet.Commands.Extensions;
-using Libplanet.KeyStore;
-using Libplanet.Serialization;
-using Libplanet.Serialization.Json;
-using Libplanet.Serialization.Yaml;
 using Libplanet.Types;
 
 namespace Libplanet.Commands.Blocks;
 
 [CommandSummary("Generate a genesis block.")]
 [CommandStaticProperty(typeof(PassphraseProperties))]
-[CommandStaticProperty(typeof(FormatProperties))]
+[CommandStaticProperty(typeof(ModelFormatProperties))]
 public sealed class GenesisBlockCommand(BlockCommand blockCommand)
     : CommandBase(blockCommand, "genesis")
 {
@@ -23,12 +18,6 @@ public sealed class GenesisBlockCommand(BlockCommand blockCommand)
     [CommandProperty]
     [CommandSummary("A list of validator addresses. (e.g. 'address1,address2:power2')")]
     public string[] Validators { get; set; } = [];
-
-    [CommandProperty]
-    public string OutputPath { get; set; } = string.Empty;
-
-    [CommandPropertySwitch]
-    public bool Force { get; set; }
 
     [CommandProperty]
     [CommandSummary("Path to key store")]
@@ -46,23 +35,29 @@ public sealed class GenesisBlockCommand(BlockCommand blockCommand)
     [CommandProperty]
     public string States { get; set; } = string.Empty;
 
+    [CommandProperty("output", 'o')]
+    public string OutputPath { get; set; } = string.Empty;
+
+    [CommandPropertySwitch("force", 'f')]
+    [CommandPropertyDependency(nameof(OutputPath))]
+    public bool Force { get; set; }
+
     protected override void OnExecute()
     {
-        // if (OutputPath == string.Empty)
-        // {
-        //     throw new InvalidOperationException("Output path is not set.");
-        // }
-
-        // if (File.Exists(OutputPath) && !Force)
-        // {
-        //     throw new InvalidOperationException($"File already exists: {OutputPath}");
-        // }
+        if (File.Exists(OutputPath) && !Force)
+        {
+            throw new IOException($"File '{OutputPath}' already exists. Use --force to overwrite.");
+        }
 
         var keyId = Guid.Parse(KeyId);
-        var keyStore = StorePath == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(StorePath);
-        var ppk = keyStore.Get(keyId);
+        var keyStore = StorePath == string.Empty ? Web3KeyStore.Default : new Web3KeyStore(StorePath);
+        if (!keyStore.Contains(keyId))
+        {
+            throw new KeyNotFoundException($"The key {KeyId} does not exist.");
+        }
+
         var passphrase = PassphraseProperties.GetPassphrase(keyId);
-        var privateKey = ppk.Unprotect(passphrase);
+        var privateKey = keyStore.Get(keyId, passphrase);
         var genesisBlock = new GenesisBlockBuilder
         {
             Validators = GetValidators(Validators, privateKey.Address),
@@ -71,11 +66,14 @@ public sealed class GenesisBlockCommand(BlockCommand blockCommand)
             Timestamp = Timestamp ?? DateTimeOffset.UtcNow,
         }.Create(privateKey.AsSigner());
 
-        // var bytes = ModelSerializer.Serialize(genesisBlock);
-        // File.WriteAllBytes(OutputPath, bytes);
-        var data = ModelJsonSerializer.Serialize(genesisBlock);
-        Out.Write(data);
-        // Out.WriteLineAsJson(genesisBlock);
+        if (OutputPath != string.Empty)
+        {
+            ModelFormatProperties.Save(OutputPath, genesisBlock, Force);
+        }
+        else
+        {
+            ModelFormatProperties.WriteLine(Out, genesisBlock);
+        }
     }
 
     private static ImmutableSortedSet<Validator> GetValidators(string[] validators, Address proposer)

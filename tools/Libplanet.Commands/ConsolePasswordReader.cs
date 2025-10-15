@@ -2,7 +2,7 @@ using System.Text;
 
 namespace Libplanet.Commands;
 
-public class ConsolePasswordReader
+public static class ConsolePasswordReader
 {
     public static string Read(string prompt)
     {

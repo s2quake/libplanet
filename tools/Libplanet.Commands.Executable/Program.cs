@@ -4,6 +4,8 @@ using Libplanet.Commands;
 using Libplanet.Commands.Blocks;
 using Libplanet.Commands.Executable;
 using Libplanet.Commands.Keys;
+using Libplanet.Commands.Protocols;
+using Libplanet.Commands.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
@@ -24,8 +26,15 @@ services.AddSingleton<ICommand, ImportKeyCommand>();
 services.AddSingleton<ICommand, ExportKeyCommand>();
 services.AddSingleton<ICommand, SignKeyCommand>();
 
-services.AddSingleton<ActionCommand>()
-    .AddSingleton<ICommand>(s => s.GetRequiredService<ActionCommand>());
+services.AddSingleton<ProtocolCommand>()
+    .AddSingleton<ICommand>(s => s.GetRequiredService<ProtocolCommand>());
+services.AddSingleton<ICommand, SignProtocolCommand>();
+services.AddSingleton<ICommand, InspectProtocolCommand>();
+
+services.AddSingleton<RepositoryCommand>()
+    .AddSingleton<ICommand>(s => s.GetRequiredService<RepositoryCommand>());
+services.AddSingleton<ICommand, InitializeRepositoryCommand>();
+services.AddSingleton<ICommand, InspectRepositoryCommand>();
 
 var commandContext = new CommandContext(services.BuildServiceProvider());
 await commandContext.ExecuteAsync(args);

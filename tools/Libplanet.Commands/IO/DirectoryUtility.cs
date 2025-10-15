@@ -4,6 +4,19 @@ namespace Libplanet.Commands.IO;
 
 public static class DirectoryUtility
 {
+    public static bool IsEmpty(string path)
+    {
+        if (!Directory.Exists(path))
+        {
+            throw new DirectoryNotFoundException($"Directory '{path}' does not exist.");
+        }
+
+        using var e = Directory.EnumerateFileSystemEntries(path).GetEnumerator();
+        return !e.MoveNext();
+    }
+
+    public static bool IsNullOrEmpty(string path) => !Directory.Exists(path) || IsEmpty(path);
+
     public static string EnsureDirectory(string path)
     {
         if (!Directory.Exists(path))
@@ -18,7 +31,7 @@ public static class DirectoryUtility
     {
         if (Directory.Exists(path))
         {
-            Directory.Delete(path);
+            Directory.Delete(path, recursive: true);
         }
     }
 

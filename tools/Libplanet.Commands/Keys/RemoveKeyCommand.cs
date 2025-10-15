@@ -1,5 +1,4 @@
 using JSSoft.Commands;
-using Libplanet.KeyStore;
 
 namespace Libplanet.Commands.Keys;
 
@@ -19,8 +18,12 @@ public sealed class RemoveKeyCommand(KeyCommand keyCommand)
 
     protected override void OnExecute()
     {
-        var keyStore = StorePath == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(StorePath);
-        _ = keyStore.Get(KeyId);
+        var keyStore = StorePath == string.Empty ? Web3KeyStore.Default : new Web3KeyStore(StorePath);
+        if (!keyStore.Contains(KeyId))
+        {
+            throw new KeyNotFoundException($"The key {KeyId} does not exist.");
+        }
+
         if (Yes || ConsoleConfirmationReader.Read($"Are you sure to remove the key {KeyId})?"))
         {
             keyStore.Remove(KeyId);

@@ -2,6 +2,6 @@ using JSSoft.Commands;
 
 namespace Libplanet.Commands;
 
-public sealed class ActionCommand : CommandMethodBase
+public sealed class ProtocolCommand : CommandMethodBase
 {
 }

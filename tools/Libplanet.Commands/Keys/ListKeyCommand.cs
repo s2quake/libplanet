@@ -1,9 +1,8 @@
 using JSSoft.Commands;
-using Libplanet.KeyStore;
 
 namespace Libplanet.Commands.Keys;
 
-[CommandSummary("List all private keys.")]
+[CommandSummary("List all keys and their addresses.")]
 [CommandStaticProperty(typeof(FormatProperties))]
 public sealed class ListKeyCommand(KeyCommand keyCommand)
     : CommandBase(keyCommand, "list")
@@ -14,16 +13,14 @@ public sealed class ListKeyCommand(KeyCommand keyCommand)
 
     protected override void OnExecute()
     {
-        var keyStore = StorePath == string.Empty ? Web3KeyStore.DefaultKeyStore : new Web3KeyStore(StorePath);
+        var keyStore = StorePath == string.Empty ? Web3KeyStore.Default : new Web3KeyStore(StorePath);
         var keyInfoList = new List<KeyInfo>();
-        foreach (var item in keyStore.List())
+        foreach (var keyId in keyStore)
         {
             keyInfoList.Add(new KeyInfo
             {
-                KeyId = item.Item1.ToString(),
-                PrivateKey = string.Empty,
-                Address = item.Item2.Address.ToString(),
-                PublicKey = string.Empty,
+                KeyId = keyId.ToString(),
+                Address = keyStore[keyId].ToString(),
             });
         }
 

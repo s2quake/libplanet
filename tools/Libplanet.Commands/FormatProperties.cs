@@ -1,16 +1,10 @@
 using System.IO;
 using JSSoft.Commands;
-using Libplanet.Commands.Extensions;
 
 namespace Libplanet.Commands;
 
 public static class FormatProperties
 {
-    private static readonly YamlDotNet.Serialization.ISerializer _serializer
-        = new YamlDotNet.Serialization.SerializerBuilder()
-            .ConfigureDefaultValuesHandling(YamlDotNet.Serialization.DefaultValuesHandling.OmitDefaults)
-            .Build();
-
     [CommandPropertySwitch("json")]
     [CommandSummary("Outputs in JSON format.")]
     public static bool Json { get; set; }
@@ -19,11 +13,23 @@ public static class FormatProperties
     {
         if (Json)
         {
-            textWriter.WriteLineAsJson(obj);
+            OutputUtility.WriteLine(textWriter, obj, OutputType.Json);
         }
         else
         {
-            _serializer.Serialize(textWriter, obj);
+            OutputUtility.WriteLine(textWriter, obj, OutputType.Yaml);
+        }
+    }
+
+    public static void WriteLine(TextWriter textWriter, string value)
+    {
+        if (Json)
+        {
+            OutputUtility.WriteLine(textWriter, value, OutputType.Json);
+        }
+        else
+        {
+            OutputUtility.WriteLine(textWriter, value, OutputType.Yaml);
         }
     }
 }

@@ -15,15 +15,20 @@ public sealed class GenerateKeyCommand(KeyCommand keyCommand)
     protected override void OnExecute()
     {
         var privateKey = new PrivateKey();
-        object info = Pure
-            ? ByteUtility.Hex(privateKey.Bytes)
-            : new KeyInfo
+        if (Pure)
+        {
+            Out.WriteLine(ByteUtility.Hex(privateKey.Bytes));
+        }
+        else
+        {
+            var keyInfo = new KeyInfo
             {
                 PrivateKey = ByteUtility.Hex(privateKey.Bytes),
                 Address = privateKey.Address.ToString(),
                 PublicKey = privateKey.PublicKey.ToString(),
             };
 
-        FormatProperties.WriteLine(Out, info);
+            FormatProperties.WriteLine(Out, keyInfo);
+        }
     }
 }
