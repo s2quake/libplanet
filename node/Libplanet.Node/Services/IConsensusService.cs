@@ -2,7 +2,7 @@ using Libplanet.Types;
 
 namespace Libplanet.Node.Services;
 
-public interface IValidatorService
+public interface IConsensusService
 {
     Address Address { get; }
 }

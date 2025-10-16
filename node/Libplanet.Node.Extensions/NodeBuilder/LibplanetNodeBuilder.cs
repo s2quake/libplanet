@@ -18,9 +18,9 @@ public class LibplanetNodeBuilder : ILibplanetNodeBuilder
 
     public ILibplanetNodeBuilder WithValidator()
     {
-        Services.AddSingleton<ValidatorService>()
-            .AddSingleton(s => (IValidatorService)s.GetRequiredService<ValidatorService>())
-            .AddHostedService(s => s.GetRequiredService<ValidatorService>());
+        Services.AddSingleton<ConsensusServiceHost>()
+            .AddSingleton(s => (IConsensusService)s.GetRequiredService<ConsensusServiceHost>())
+            .AddHostedService(s => s.GetRequiredService<ConsensusServiceHost>());
         _scopeList.Add("Validator");
         return this;
     }

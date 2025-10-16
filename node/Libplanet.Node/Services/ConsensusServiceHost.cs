@@ -8,12 +8,12 @@ using Microsoft.Extensions.Options;
 
 namespace Libplanet.Node.Services;
 
-internal sealed class ValidatorService : IValidatorService, IHostedService, IAsyncDisposable
+internal sealed class ConsensusServiceHost : IConsensusService, IHostedService, IAsyncDisposable
 {
     private readonly Transport _transport;
     private readonly ConsensusService _consensusService;
 
-    public ValidatorService(
+    public ConsensusServiceHost(
         IOptions<NodeOptions> nodeOptions,
         IOptions<Options.ConsensusOptions> validatorOptions,
         BlockchainService blockchainService,
