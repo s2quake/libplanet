@@ -7,9 +7,9 @@ using Libplanet.Serialization;
 
 namespace Libplanet.Types;
 
-[ModelKnownType(typeof(SHA1), "sh1")]
-[ModelKnownType(typeof(SHA256), "sh256")]
-[ModelKnownType(typeof(SHA512), "sh512")]
+[ModelKnownType(typeof(HashDigest<SHA1>), "hsdg_1")]
+[ModelKnownType(typeof(HashDigest<SHA256>), "hsdg_256")]
+[ModelKnownType(typeof(HashDigest<SHA512>), "hsdg_512")]
 [ModelScalar("hsdg<>", Kind = ModelScalarKind.Hex)]
 public readonly partial record struct HashDigest<T>(in ImmutableArray<byte> Bytes)
     : IEquatable<HashDigest<T>>, IFormattable

@@ -11,7 +11,6 @@ public static class TypeUtility
     private static readonly ConcurrentDictionary<string, Type> _typeByFullName = [];
     private static readonly ConcurrentDictionary<Type, object> _defaultByType = [];
     private static readonly KnownTypes _knownTypes = new();
-    private static readonly Dictionary<Type, KnownTypes> _knownTypesByType = [];
     private static readonly HashSet<Assembly> _addedAssemblies = [];
     private static readonly object _lock = new();
 
@@ -92,7 +91,7 @@ public static class TypeUtility
             var typeDefinition = _knownTypes.GetType(typeDefinitionName);
             foreach (var genericArgumentName in genericArgumentNames)
             {
-                var genericArgument = GetGenericArgument(typeDefinition, genericArgumentName);
+                var genericArgument = GetType(genericArgumentName);
                 genericArgumentList.Add(genericArgument);
             }
 
@@ -285,28 +284,22 @@ public static class TypeUtility
             if (item.IsDefined(typeof(ModelAttribute)))
             {
                 var attribute = item.GetCustomAttribute<ModelAttribute>()
-                    ?? throw new UnreachableException("ModelAttribute cannot be null");
+                    ?? throw new UnreachableException($"{nameof(ModelAttribute)} cannot be null.");
                 _knownTypes.AddType(item, attribute.TypeName);
             }
             else if (item.IsDefined(typeof(ModelConverterAttribute)))
             {
                 var attribute = item.GetCustomAttribute<ModelConverterAttribute>()
-                    ?? throw new UnreachableException("ModelConverterAttribute cannot be null");
+                    ?? throw new UnreachableException($"{nameof(ModelConverterAttribute)} cannot be null.");
                 _knownTypes.AddType(item, attribute.TypeName);
             }
 
             if (item.IsDefined(typeof(ModelKnownTypeAttribute)))
             {
                 var knownTypeAttributes = item.GetCustomAttributes<ModelKnownTypeAttribute>();
-                if (!_knownTypesByType.TryGetValue(item, out var typeResolver))
-                {
-                    typeResolver = new KnownTypes();
-                    _knownTypesByType[item] = typeResolver;
-                }
-
                 foreach (var knownTypeAttribute in knownTypeAttributes)
                 {
-                    typeResolver.AddType(knownTypeAttribute.Type, knownTypeAttribute.TypeName);
+                    _knownTypes.AddType(knownTypeAttribute.Type, knownTypeAttribute.TypeName);
                 }
             }
         }
@@ -340,6 +333,10 @@ public static class TypeUtility
         {
             return $"{GetTypeName(underlyingType)}?";
         }
+        else if (_knownTypes.TryGetTypeName(type, out var typeName))
+        {
+            return typeName;
+        }
         else if (type.IsGenericType)
         {
             var typeDefinition = type.GetGenericTypeDefinition();
@@ -348,7 +345,7 @@ public static class TypeUtility
             var genericArgumentList = new List<string>(genericArguments.Length);
             foreach (var genericArgument in genericArguments)
             {
-                var genericArgumentName = GetGenericArgumentName(typeDefinition, genericArgument);
+                var genericArgumentName = GetTypeName(genericArgument);
                 genericArgumentList.Add(genericArgumentName);
             }
             var genericArgumentString = string.Join(',', genericArgumentList);
@@ -362,10 +359,6 @@ public static class TypeUtility
             var rank = type.GetArrayRank();
             return $"{elementTypeName}[{new string(',', rank - 1)}]";
         }
-        else if (_knownTypes.TryGetTypeName(type, out var typeName))
-        {
-            return typeName;
-        }
         else if (type.IsDefined(typeof(OriginModelAttribute)))
         {
             var attribute = type.GetCustomAttribute<OriginModelAttribute>()!;
@@ -373,27 +366,5 @@ public static class TypeUtility
         }
 
         throw new NotSupportedException($"Type '{type}' is not supported or not registered in known types.");
-    }
-
-    private static string GetGenericArgumentName(Type typeDefinition, Type genericArgument)
-    {
-        if (_knownTypesByType.TryGetValue(typeDefinition, out var typeResolver)
-            && typeResolver.TryGetTypeName(genericArgument, out var genericArgumentName))
-        {
-            return genericArgumentName;
-        }
-
-        return GetTypeName(genericArgument);
-    }
-
-    private static Type GetGenericArgument(Type typeDefinition, string genericArgumentName)
-    {
-        if (_knownTypesByType.TryGetValue(typeDefinition, out var typeResolver)
-            && typeResolver.TryGetType(genericArgumentName, out var genericArgumentType))
-        {
-            return genericArgumentType;
-        }
-
-        return GetType(genericArgumentName);
     }
 }
